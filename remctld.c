@@ -486,7 +486,7 @@ acl_check(char *userprincipal, char **acls)
         if ((buf = read_file(acls[i])) == NULL)
             return -1;
 
-        for (line = strtok(buf, "\n"); line != NULL; line = strtok(buf, "\n")){
+        for (line = strtok(buf, "\n"); line != NULL; line = strtok(NULL, "\n")){
             if (*line == '\0' || *line == '#')
                 continue;
             if (strcmp(line, userprincipal) == 0) {
