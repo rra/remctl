@@ -200,9 +200,10 @@ public class RemctlClient {
 
         /* Make the socket: */
         socket =    new Socket(hostName, port != 0 ? port : DEFAULT_PORT);
-        inStream =  new DataInputStream(socket.getInputStream());
-        outStream = new DataOutputStream(socket.getOutputStream());
-
+        inStream =  new DataInputStream(
+                    new BufferedInputStream(socket.getInputStream(),8192));
+        outStream = new DataOutputStream(
+                    new BufferedOutputStream(socket.getOutputStream(),8192));
         clientEstablishContext();
         processRequest();
         processResponse();
