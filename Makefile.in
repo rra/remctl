@@ -49,7 +49,8 @@ $(srcdir)/remctl.1: remctl.pod
 	pod2man --release=$(VERSION) --center="User Commands" $< > $@
 
 $(srcdir)/remctld.8: remctld.pod
-	pod2man --release=$(VERSION) --center="System Daemons" $< > $@
+	pod2man --release=$(VERSION) --center="System Daemons" \
+	    --section=8 $< > $@
 
 install: remctld remctl remctld.8 remctl.1
 	$(INSTALL) -d $(bindir) $(sbindir) $(mandir)/man1 $(mandir)/man8
