@@ -1,16 +1,13 @@
 TODO:
 
+- negative error codes???
+- tcpserver/inetd
+- forwardable tickets?
+
+
+DOCUMENT:
 host@server or service/type are different gssapi types:
-gss_nt_service_name              gss_nt_user_name 
-
-negative error codes???
-
-tcpserver/inetd
-forwardable tickets?
-sendback error messages on failures
-server-specific principals
-
-
+gss_nt_service_name              gss_nt_user_name
 
 
 The new K5 sysctl design plan.

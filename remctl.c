@@ -47,9 +47,9 @@ int WRITEFD = 1;
 
 void usage()
 {
-     fprintf(stderr, "Usage: gss-client [-port port] [-mech mechanism] [-d]\n");
-     fprintf(stderr, "       [-f] [-q] [-ccount count] [-mcount count]\n");
-     fprintf(stderr, "       [-na] [-nw] [-nx] [-nm] host service msg\n");
+     fprintf(stderr, "Usage: gss-client [-p port] [-d] [-v] host service msg\n");
+     fprintf(stderr, "       -d delegate (only works with a proxiable TGT)\n");
+     fprintf(stderr, "       -v verbose\n");
      exit(1);
 }
 
@@ -285,7 +285,7 @@ int process_response(context)
      gss_ctx_id_t context;
 {
 
-     char	*cp;
+     char *cp;
      int token_flags;
      int errorcode;
      int length;
@@ -406,7 +406,7 @@ int main(argc, argv)
      /* Parse arguments. */
      argc--; argv++;
      while (argc) {
-	  if (strcmp(*argv, "-port") == 0) {
+	  if (strcmp(*argv, "-p") == 0) {
 	       argc--; argv++;
 	       if (!argc) usage();
 	       port = atoi(*argv);
@@ -414,8 +414,6 @@ int main(argc, argv)
 	       verbose = 1;
 	   } else if (strcmp(*argv, "-d") == 0) {
 	       deleg_flag = GSS_C_DELEG_FLAG;
-	  } else if (strcmp(*argv, "-q") == 0) {
-	       verbose = 0;
 	  } else 
 	       break;
 	  argc--; argv++;
