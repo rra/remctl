@@ -194,7 +194,7 @@ public class RemctlClient {
         }
 
         InetAddress hostAddress = InetAddress.getByName(host);
-	String hostName = hostAddress.getHostName().toLowerCase();
+	String hostName = hostAddress.getCanonicalHostName().toLowerCase();
         if (this.servicePrincipal == null) 
             this.servicePrincipal = "host/"+hostName;
 
