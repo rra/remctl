@@ -642,7 +642,7 @@ process_response(gss_ctx_id_t context, OM_uint32 code, char *blob)
     msglength = bloblength + 2 * sizeof(OM_uint32);
 
     network_order = htonl(code);
-    memcpy(msg, &code, sizeof(OM_uint32));
+    memcpy(msg, &network_order, sizeof(OM_uint32));
     network_order = htonl(bloblength);
     memcpy(msg + sizeof(int), &network_order, sizeof(OM_uint32));
     memcpy(msg + 2 * sizeof(OM_uint32), blob, bloblength);
