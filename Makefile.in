@@ -4,6 +4,11 @@
 srcdir          = @srcdir@
 VPATH           = @srcdir@
 
+PACKAGE		= @PACKAGE_TARNAME@
+VERSION		= @PACKAGE_VERSION@
+TARDIR		= $(PACKAGE)-$(VERSION)
+TARNAME		= $(TARDIR).tar
+
 prefix          = @prefix@
 exec_prefix     = @exec_prefix@
 
@@ -24,8 +29,6 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 
 SHELL           = /bin/sh
 
-##############################################################################
-
 COMMON_OBJS     = gss-utils.o snprintf.o
 
 SERVER_OBJS     = remctld.o vector.o $(COMMON_OBJS)
@@ -42,6 +45,19 @@ remctld: $(SERVER_OBJS)
 remctl: $(CLIENT_OBJS)
 	$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(LIBS) -o $@
 
+$(srcdir)/remctl.1: remctl.pod
+	pod2man --release=$(VERSION) --center="User Commands" $< > $@
+
+$(srcdir)/remctld.8: remctld.pod
+	pod2man --release=$(VERSION) --center="System Daemons" $< > $@
+
+install: remctld remctl remctld.8 remctl.1
+	$(INSTALL) -d $(bindir) $(sbindir) $(mandir)/man1 $(mandir)/man8
+	$(INSTALL_PROGRAM) remctl $(bindir)/remctl
+	$(INSTALL_PROGRAM) remctld $(sbindir)/remctld
+	$(INSTALL_DATA) $(srcdir)/remctl.1 $(mandir)/man1/remctl.1
+	$(INSTALL_DATA) $(srcdir)/remctld.8 $(mandir)/man8/remctld.8
+
 clean:
 	rm -f *.o remctld remctl
 
@@ -52,33 +68,15 @@ distclean: clean
 maintclean: distclean
 	rm -f config.h.in configure remctl.1 remctld.8
 
-install: remctld remctl remctld.8 remctl.1
-	$(INSTALL) -d $(bindir) $(sbindir) $(mandir)/man1 $(mandir)/man8
-	$(INSTALL_PROGRAM) remctl $(bindir)/remctl
-	$(INSTALL_PROGRAM) remctld $(sbindir)/remctld
-	$(INSTALL_DATA) $(srcdir)/remctl.1 $(mandir)/man1/remctl.1
-	$(INSTALL_DATA) $(srcdir)/remctld.8 $(mandir)/man8/remctld.8
-
-remctl.1: remctl.pod
-	pod2man --release=`cat VERSION` --center="User Commands" $< > $@
-
-remctld.8: remctld.pod
-	pod2man --release=`cat VERSION` --center="System Daemons" $< > $@
-
-dist: remctl.1 remctld.8
-	rm -f remctl-`cat VERSION`.tar.gz
-	mkdir remctl-`cat VERSION`
-	cp Makefile.in NEWS README VERSION config.h.in configure \
-	    configure.ac gss-utils.c gss-utils.h install-sh remctl.1 \
-	    remctl.c remctl.pod remctld.8 remctld.c remctld.pod \
-	    snprintf.c vector.c vector.h remctl-`cat VERSION`/
-	mkdir remctl-`cat VERSION`/docs
-	cp docs/design.html docs/remctl.conf remctl-`cat VERSION`/docs/
-	mkdir remctl-`cat VERSION`/java
-	cp java/*.java java/*.conf remctl-`cat VERSION`/java/
-	tar cf remctl-`cat VERSION`.tar remctl-`cat VERSION`
-	gzip -9 remctl-`cat VERSION`.tar
-	rm -rf remctl-`cat VERSION`
+dist: $(srcdir)/remctl.1 $(srcdir)/remctld.8
+	rm -rf $(TARNAME).gz $(TARNAME).gz.md5 $(TARDIR)
+	mkdir $(TARDIR)
+	rsync -C --exclude /debian/ -a $(srcdir)/ $(TARDIR)/
+	rsync -a $(srcdir)/remctl.1 $(srcdir)/remctld.8 $(TARDIR)/
+	cd $(TARDIR) && autoconf && autoheader && rm -rf autom4te.cache
+	tar cf $(TARNAME) $(TARDIR)
+	gzip -9 $(TARNAME)
+	md5sum $(TARNAME).gz > $(TARNAME).gz.md5
 
 # Dependencies.
 gss-utils.o: gss-utils.c config.h gss-utils.h
