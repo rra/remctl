@@ -60,7 +60,7 @@ usage()
     static const char usage[] = "\
 Usage: remctld <options>\n\
 Options:\n\
-\t-s service       K5 servicename to run as (default host/machine.stanford.edu)
+\t-s service       K5 servicename to run as (default host/machine.stanford.edu)\
 \t-f conffile      the default is ./remctl.conf\n\
 \t-v               debugging level of output\n\
 \t-m               standalone single connection mode, meant for testing only\n\
