@@ -25,8 +25,10 @@
 #include "config.h"
 
 #include <ctype.h>
-#include "vector.h"
+#include <stdlib.h>
+#include <string.h>
 #include "gss-utils.h"
+#include "vector.h"
 
 /*
 **  Allocate a new, empty vector.

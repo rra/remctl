@@ -13,16 +13,17 @@
 
 #include "config.h"
 
+#include <ctype.h>
+#include <errno.h>
+#include <netdb.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <errno.h>
-#include <time.h>
-#include <syslog.h>
-#include <unistd.h>
 #include <string.h>
-#include <netdb.h>
+#include <sys/types.h>
+#include <syslog.h>
+#include <time.h>
+#include <unistd.h>
 
 #include <gssapi/gssapi_generic.h>
 #include "gss-utils.h"
@@ -161,7 +162,6 @@ gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
     OM_uint32 maj_stat, min_stat;
     gss_qop_t qop_state;
     int token_flags;
-    char *cp;
 
     in_buf.value = msg;
     in_buf.length = msglength;
@@ -244,12 +244,12 @@ gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
  * completeness
  */
 int
-gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg, OM_uint32 *msglength)
+gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg,
+            OM_uint32 *msglength)
 {
     gss_buffer_desc xmit_buf, msg_buf;
     OM_uint32 maj_stat, min_stat;
     int conf_state;
-    char *cp;
 
     /* Receive the message token */
     if (recv_token(token_flags, &xmit_buf) < 0)
