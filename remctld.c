@@ -396,6 +396,7 @@ read_conf_file(char *filename)
         return -1;
     }
 
+    vbuf = vector_new();
     vbuf = vector_split(buf, '\n', vbuf);
     if (vbuf->count == 0) {
             syslog(LOG_ERR, "Empty conf file\n");
@@ -417,6 +418,7 @@ read_conf_file(char *filename)
     linenum = 0; /* Its value no longer needed, now it's a confline counter */
 
     /* Fill in the confbuffer */
+    vline = vector_new();
     for (i=0; i < vbuf->count; i++) {
         vlp = vbuf->strings + i;
         if (*vlp[0] == '\0' || *vlp[0] == '#')
