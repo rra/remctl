@@ -823,10 +823,12 @@ process_command(struct vector *argvector, char *userprincipal,
         /* Close the Child process' STDOUT read end */
         dup2(stdout_pipe[1], 1);
         close(stdout_pipe[0]);
+        close(stdout_pipe[1]);
 
         /* Close the Child process' STDERR read end */
         dup2(stderr_pipe[1], 2);
         close(stderr_pipe[0]);
+        close(stderr_pipe[1]);
 
         /* Child doesn't need STDIN at all */
         close(0);
