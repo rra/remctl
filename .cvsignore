@@ -1,4 +1,11 @@
-.filelist
-.history
+Makefile
+config.cache
+config.h
 config.h.in
+config.log
+config.status
 configure
+remctl
+remctl.1
+remctld
+remctld.8
