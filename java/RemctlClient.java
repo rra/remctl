@@ -1,43 +1,3 @@
-/*
- * @(#)SampleClient.java
- *
- * Copyright 2001-2002 Sun Microsystems, Inc. All Rights Reserved.
- *
- * Redistribution and use in source and binary forms, with or 
- * without modification, are permitted provided that the following 
- * conditions are met:
- * 
- * -Redistributions of source code must retain the above copyright  
- * notice, this  list of conditions and the following disclaimer.
- * 
- * -Redistribution in binary form must reproduct the above copyright 
- * notice, this list of conditions and the following disclaimer in 
- * the documentation and/or other materials provided with the 
- * distribution.
- * 
- * Neither the name of Sun Microsystems, Inc. or the names of 
- * contributors may be used to endorse or promote products derived 
- * from this software without specific prior written permission.
- * 
- * This software is provided "AS IS," without a warranty of any 
- * kind. ALL EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND 
- * WARRANTIES, INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, 
- * FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY 
- * EXCLUDED. SUN AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY 
- * DAMAGES OR LIABILITIES  SUFFERED BY LICENSEE AS A RESULT OF  OR 
- * RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR 
- * ITS DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE 
- * FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, 
- * SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER 
- * CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY, ARISING OUT OF 
- * THE USE OF OR INABILITY TO USE SOFTWARE, EVEN IF SUN HAS BEEN 
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
- * You acknowledge that Software is not designed, licensed or 
- * intended for use in the design, construction, operation or 
- * maintenance of any nuclear facility. 
- */
-
 import org.ietf.jgss.*;
 import java.net.Socket;
 import java.io.IOException;
@@ -48,41 +8,89 @@ import java.nio.ByteBuffer;
 
 public class RemctlClient {
 
-/* Token types */
-static int TOKEN_NOOP  =            (1<<0);
-static int TOKEN_CONTEXT =          (1<<1);
-static int TOKEN_DATA =             (1<<2);
-static int TOKEN_ERROR =            (1<<3);
-static int TOKEN_MIC =              (1<<4);
+    static int MAXBUFFER = 64000;
+    /* Token types */
+    static int TOKEN_NOOP  =            (1<<0);
+    static int TOKEN_CONTEXT =          (1<<1);
+    static int TOKEN_DATA =             (1<<2);
+    static int TOKEN_MIC =              (1<<3);
 
-/* Token flags */
-static int TOKEN_CONTEXT_NEXT =     (1<<5);
-static int TOKEN_SEND_MIC =         (1<<6);
- 
+    /* Token flags */
+    static int TOKEN_CONTEXT_NEXT =     (1<<4);
+    static int TOKEN_SEND_MIC =         (1<<5);
 
-    public static void main(String[] args) 
-       throws IOException, GSSException, Exception  {
+    public String clientIdentity;
+    public String serverIdentity;
+    public int    returnCode;
+    public String returnMessage;
+
+    GSSContext context;
+    MessageProp prop;
+    Socket socket;
+    DataInputStream inStream;
+    DataOutputStream outStream;
+    ByteBuffer messageBuffer;
+    String hostName;
+    String servicePrincipal;
+    int port;
+
+    public RemctlClient(String host, String service, int portNumber) {
+	hostName = host;
+	servicePrincipal = service;
+	port = portNumber;
+
+	messageBuffer = ByteBuffer.allocate(MAXBUFFER);
+    }
+
+    public RemctlClient(String host) {
+	hostName = host;
+	messageBuffer = ByteBuffer.allocate(MAXBUFFER);
+    }
+
+    public static void main(String[] args) throws Exception  {
 
 	// Obtain the command-line arguments and parse the port number
 	
 	if (args.length < 3) {
 	    System.err.println("Usage: java <options> Login SampleClient "
-			       + " <remctl_service_name> <hostName> <type> <service> <args>");
+			       + " <hostName> <type> <service> <args>");
 	    System.exit(-1);
 	}
 
-	String server = args[0];
-	String hostName = args[1];
-	int port = 4444;
+	String thisHostName = args[0];
+	String servicePrincipal = "host/"+thisHostName+".stanford.edu";
 
-	Socket socket = new Socket(hostName, port);
-	DataInputStream inStream = 
-	  new DataInputStream(socket.getInputStream());
-	DataOutputStream outStream = 
-	  new DataOutputStream(socket.getOutputStream());
+	RemctlClient thisClient = new RemctlClient(args[0], 
+						   servicePrincipal, 4444);
+	String remargs[] = new String[args.length-1];
+	for(int i=1; i<args.length; i++)
+	    remargs[i-1] = args[i];
 
-	System.out.println("Connected to server " 
-			   + socket.getInetAddress());
+	thisClient.process(remargs);
+
+	if (thisClient.returnCode != 0)
+	    System.out.println("Error code: "+thisClient.returnCode);
+
+	System.out.println(thisClient.returnMessage);
+
+    }
+
+    public void process(String args[])  throws GSSException, IOException, RemctlException {
+
+	/* Make the socket: */
+	socket =    new Socket(hostName, port);
+	inStream =  new DataInputStream(socket.getInputStream());
+	outStream = new DataOutputStream(socket.getOutputStream());
+
+	clientEstablishContext();
+	processRequest(args);
+	processResponse();
+
+	context.dispose();
+	socket.close();
+    }
+
+    private void clientEstablishContext() throws GSSException, IOException, RemctlException {
 
 	/*
 	 * This Oid is used to represent the Kerberos version 5 GSS-API
@@ -95,13 +103,13 @@ static int TOKEN_SEND_MIC =         (1<<6);
 	GSSManager manager = GSSManager.getInstance();
 
 	/*
-	 * Create a GSSName out of the server's name. The null
+	 * Create a GSSName out of the service name. The null
 	 * indicates that this application does not wish to make
 	 * any claims about the syntax of this name and that the
 	 * underlying mechanism should try to parse it as per whatever
 	 * default syntax it chooses.
 	 */
-	GSSName serverName = manager.createName(server, null);
+	GSSName serverName = manager.createName(servicePrincipal, null);
 
 	/*
 	 * Create a GSSContext for mutual authentication with the
@@ -117,30 +125,27 @@ static int TOKEN_SEND_MIC =         (1<<6);
 	 * will look among the credentials stored in the current Subject
 	 * to find the right kind of credentials that it needs.
 	 */
-	GSSContext context = manager.createContext(serverName,
+	context = manager.createContext(serverName,
 					krb5Oid,
 					null,
 					GSSContext.DEFAULT_LIFETIME);
 
-	// Set the desired optional features on the context. The client
-	// chooses these options.
-
+	// Set the optional features on the context.
 	context.requestMutualAuth(true);  // Mutual authentication
 	context.requestConf(true);  // Will use confidentiality later
 	context.requestInteg(true); // Will use integrity later
 
-	// Do the context eastablishment loop
 
 	byte[] token = new byte[0];
-	byte flag;
-	int errorcode = 0;
+	returnCode = 0;
 
+	// Initialize the context establishment 
 	outStream.writeByte(TOKEN_NOOP|TOKEN_CONTEXT_NEXT);
 	outStream.writeInt(token.length);
 	outStream.write(token);
 	outStream.flush();
 
-
+	// Do the context establishment loop
 	while (!context.isEstablished()) {
 
 	    // token is ignored on the first call
@@ -149,9 +154,6 @@ static int TOKEN_SEND_MIC =         (1<<6);
 	    // Send a token to the server if one was generated by
 	    // initSecContext
 	    if (token != null) {
-		System.out.println("Will send token of size "
-				   + token.length
-				   + " from initSecContext.");
                 outStream.writeByte(TOKEN_CONTEXT);
 		outStream.writeInt(token.length);
 		outStream.write(token);
@@ -161,42 +163,37 @@ static int TOKEN_SEND_MIC =         (1<<6);
 	    // If the client is done with context establishment
 	    // then there will be no more tokens to read in this loop
 	    if (!context.isEstablished()) {
-		flag = inStream.readByte();
+		inStream.readByte(); // flag
 		token = new byte[inStream.readInt()];
-		System.out.println("Will read input token of size "
-				   + token.length
-				   + " for processing by initSecContext");
 		inStream.readFully(token);
 	    }
 	}
 	
-	System.out.println("Context Established! ");
-	System.out.println("Client is " + context.getSrcName());
-	System.out.println("Server is " + context.getTargName());
+	clientIdentity = context.getSrcName().toString();
+	serverIdentity = context.getTargName().toString();
 
 	/*
 	 * If mutual authentication did not take place, then only the
 	 * client was authenticated to the server. Otherwise, both
 	 * client and server were authenticated to each other.
 	 */
-	if (context.getMutualAuthState())
-	    System.out.println("Mutual authentication took place!");
-
-/*
-	if (true) {
-        context.dispose();
-        socket.close();
-	System.exit(0);
-	}
-*/
-
-	ByteBuffer messageBuffer = ByteBuffer.allocate(64000);
-
-	for(int i=2;i<args.length;i++) {
-	messageBuffer.putInt(args[i].length());
-	messageBuffer.put(args[i].getBytes());
+	if (! context.getMutualAuthState()) {
+	    throw new RemctlException("Mutual authentication did not took place!");
 	}
 
+    }
+
+
+    private void processRequest(String args[])  throws GSSException, IOException, RemctlException {
+
+	/* Make the message buffer */
+	messageBuffer.putInt(args.length);
+	for(int i=0;i<args.length;i++) {
+	    messageBuffer.putInt(args[i].length());
+	    messageBuffer.put(args[i].getBytes());
+	}
+
+	/* Extract the raw bytes of the message */
 	int length = messageBuffer.position();
 	messageBuffer.rewind();
 	byte[] messageBytes = new byte[length];
@@ -208,7 +205,7 @@ static int TOKEN_SEND_MIC =         (1<<6);
 	 * The second argument is true to request
 	 * privacy (encryption of the message).
 	 */
-	MessageProp prop =  new MessageProp(0, true);
+	prop =  new MessageProp(0, true);
 
 	/*
 	 * Encrypt the data and send it across. Integrity protection
@@ -218,8 +215,7 @@ static int TOKEN_SEND_MIC =         (1<<6);
 	 * establishing the context.
 	 */
 
-	token = context.wrap(messageBytes, 0, messageBytes.length, prop);
-	System.out.println("Will send wrap token of size " + token.length);
+	byte[] token = context.wrap(messageBytes, 0, messageBytes.length, prop);
 	outStream.writeByte(TOKEN_DATA | TOKEN_SEND_MIC);
 	outStream.writeInt(token.length);
 	outStream.write(token);
@@ -231,89 +227,52 @@ static int TOKEN_SEND_MIC =         (1<<6);
 	 * to us for verification. This is unnecessary, but done here
 	 * for illustration.
 	 */
-	flag = inStream.readByte(); //TOKEN_MIC
+	inStream.readByte(); // flag
 	token = new byte[inStream.readInt()];
-	System.out.println("Will read token of size " + token.length);
 	inStream.readFully(token);
 	context.verifyMIC(token, 0, token.length, 
 			  messageBytes, 0, messageBytes.length,
 			  prop);
 	
-	System.out.println("Verified received MIC for message.");
-
-
-
-
-	/* R E S P O N S E */
-
-
-
-
-	    /* 
-	     * Read the token. This uses the same token byte array 
-	     * as that used during context establishment.
-	     */
-  	flag = inStream.readByte();
-
-	if ((flag & TOKEN_DATA) != 0 || (flag & TOKEN_ERROR) != 0) {
-	    token = new byte[inStream.readInt()];
-	    System.out.println("Will read the return token of size " + token.length);
-	    inStream.readFully(token);
-        }
-
-	    System.out.println("Will unwrap the token\n");
-	    byte[] bytes = context.unwrap(token, 0, token.length, prop);
-
-	    messageBuffer = ByteBuffer.allocate(bytes.length);
-	    messageBuffer.put(bytes);
-	    messageBuffer.rewind();
-
-	    if ((flag & TOKEN_ERROR) != 0) {
-		errorcode = messageBuffer.getInt();
-		System.out.println("Got error code\n");
-	    }
-
-	    byte[] responsebytes = new byte[messageBuffer.getInt()];
-	    System.out.println("Will read the return message of size " + responsebytes.length);
-	    messageBuffer.get(responsebytes);
-
-	    String msg = new String(responsebytes);
-	    System.out.println("Got response message: \n"+ msg);
-
-        /*
-	 * Now generate a MIC and send it to the client. This is
-	 * just for illustration purposes. The integrity of the
-	 * incoming wrapped message is guaranteed irrespective of
-	 * the confidentiality (encryption) that was used.
-	 */
-    
-         /*
-	  * First reset the QOP of the MessageProp to 0
-	  * to ensure the default Quality-of-Protection
-	  * is applied.
-	  */
-
-    prop.setQOP(0);
-    
-    token = context.getMIC(bytes, 0, bytes.length, prop);
-    
-    System.out.println("Will send MIC token of size " 
-		       + token.length);
-    outStream.writeByte(TOKEN_MIC);
-    outStream.writeInt(token.length);
-    outStream.write(token);
-    outStream.flush();
-    
-    
-    if (errorcode != 0) {
-	System.out.println("Error code: "+errorcode);
     }
 
-    System.out.println("Output message: \n"+msg);
 
-    System.out.println("Exiting...");
+    private void processResponse() throws GSSException, IOException, RemctlException {
+
+  	byte flag = inStream.readByte();
+
+	if ((flag & TOKEN_DATA) == 0) {
+	    throw new RemctlException("Wrong token type received, expected TOKEN_DATA");
+	}
+
+	byte[] token = new byte[inStream.readInt()];
+	inStream.readFully(token);
+
+	byte[] bytes = context.unwrap(token, 0, token.length, prop);
+	messageBuffer = ByteBuffer.allocate(bytes.length);
+	messageBuffer.put(bytes);
+	messageBuffer.rewind();
+
+	returnCode = messageBuffer.getInt();
+
+	byte[] responsebytes = new byte[messageBuffer.getInt()];
+	messageBuffer.get(responsebytes);
+
+	returnMessage = new String(responsebytes);
+
+	/*
+	 * First reset the QOP of the MessageProp to 0
+	 * to ensure the default Quality-of-Protection
+	 * is applied.
+	 */
+	prop.setQOP(0);
     
-    context.dispose();
-	socket.close();
+	token = context.getMIC(bytes, 0, bytes.length, prop);
+    
+	outStream.writeByte(TOKEN_MIC);
+	outStream.writeInt(token.length);
+	outStream.write(token);
+	outStream.flush();
+    
     }
 }
