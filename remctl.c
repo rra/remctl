@@ -361,6 +361,7 @@ process_request(gss_ctx_id_t context, OM_uint32 argc, char ** argv)
  * Arguments:
  *
  * 	context		(r) the established gssapi context
+ *      errorcode       (w) error code from the program executed on server
  *
  * Returns: 0 on success, -1 on failure
  *
@@ -372,7 +373,7 @@ process_request(gss_ctx_id_t context, OM_uint32 argc, char ** argv)
  * message.
  * */
 int
-process_response(gss_ctx_id_t context)
+process_response(gss_ctx_id_t context, OM_uint32* errorcode)
 {
 
     char *msg;
@@ -382,7 +383,6 @@ process_response(gss_ctx_id_t context)
     char *cp;        /* Iterator over msg */
     OM_uint32 network_ordered;
     OM_uint32 token_flags;
-    OM_uint32 errorcode;
 
     if (gss_recvmsg(context, &token_flags, &msg, &msglength) < 0)
         return (-1);
@@ -391,10 +391,10 @@ process_response(gss_ctx_id_t context)
 
     /* Extract the return code */
     memcpy(&network_ordered, cp, sizeof(OM_uint32));
-    errorcode = ntohl(network_ordered);
+    *errorcode = ntohl(network_ordered);
     cp += sizeof(OM_uint32);
     if (verbose)
-        printf("Return code: %d\n", errorcode);
+        printf("Return code: %d\n", *errorcode);
 
     /* Get the message length */
     memcpy(&network_ordered, cp, sizeof(OM_uint32));
@@ -433,6 +433,8 @@ main(int argc, char ** argv)
     unsigned short port = 4444;
     OM_uint32 ret_flags, maj_stat, min_stat;
     int s;
+    OM_uint32 errorcode = 0;
+
     gss_ctx_id_t context;
     gss_buffer_desc out_buf;
 
@@ -503,7 +505,7 @@ main(int argc, char ** argv)
         exit(1);
     }
 
-    if (process_response(context) < 0) {
+    if (process_response(context, &errorcode) < 0) {
         fprintf(stderr, "Can't process response\n");
         exit(1);
     }
@@ -520,7 +522,7 @@ main(int argc, char ** argv)
     (void)gss_release_buffer(&min_stat, &out_buf);
     (void)close(s);
 
-    return 0;
+    return errorcode;
 }
 
 
