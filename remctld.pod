@@ -4,7 +4,7 @@ remctld - Server for remctl, a remote command execution utility
 
 =head1 SYNOPSIS
 
-remctld
+remctld [B<-f> I<config>] [B<-s> I<service>]
 
 =head1 DESCRIPTION
 
@@ -18,15 +18,9 @@ B<remctld> should be started using tcpserver, or from inetd. It must be
 run as root, since it needs to read the host keytab file, unless otherwise
 configured (see below).  B<remctld> logs its activity using syslog(3C).
 
-=head1 ARGUMENTS
+=head1 OPTIONS
 
 =over 4
-
-=item B<-s> I<service>
-
-This option is used to specify the Kerberos service principal for
-B<remctld> to run as, the default is the server host principal:
-"host/<machinename>.stanford.edu"
 
 =item B<-f> I<conffile>
 
@@ -35,7 +29,9 @@ allowed commands and specifying access control information.  Default is
 F<./remctl.conf>.  Configuration file format is space or tab separated
 strings, where each line is:
 
-I<type service executable [logmask=n[,...]] {aclfile}+>
+    type service executable [logmask=n[,...]] {aclfile}+
+
+The meaning of these fields is:
 
 =over 4
 
@@ -78,9 +74,15 @@ only affects authorization.
 
 =back
 
+=item B<-s> I<service>
+
+This option is used to specify the Kerberos service principal for
+B<remctld> to run as, the default is the server host principal:
+"host/<machinename>.stanford.edu"
+
 =item B<-v>
 
-Verbose logging to syslog(3C)
+Verbose logging to syslog.
 
 =back
 
@@ -89,7 +91,7 @@ Verbose logging to syslog(3C)
 Typically B<remctld> is to be started as follows, where "hostname" is the
 machine where remctld will run, and 4444 (arbitrary example) is the port:
 
-   % tcpserver hostname 4444 remctld
+    tcpserver hostname 4444 remctld
 
 Example configuration file:
 
@@ -108,11 +110,10 @@ remctl(1), tcpserver(1), syslog(3C), kerberos(1)
 
 Anton Ushakov <antonu@stanford.edu>
 
-=head1 LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2002, 2003 Board of Trustees, Leland Stanford Jr. University.
-  
-All rights reserved.
+Copyright 2002, 2003, 2004, 2005 Board of Trustees, Leland Stanford
+Jr. University.  All rights reserved.
   
 Export of this software from the United States of America may require a
 specific license from the United States Government.  It is the

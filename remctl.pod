@@ -4,53 +4,46 @@ remctl - Remote execution tool
 
 =head1 SYNOPSIS
 
-remctl [B<-s> I<remctld-service-principal>] [B<-v> I<verbose>] I<host>
+remctl [B<-p> I<port>] [B<-s> I<service>] [B<-v> I<verbose>] I<host>
 I<type> I<service> [I<parameters> ...]
 
 =head1 DESCRIPTION
 
-B<remctl> is a program that allows a user to execute commands remotely on a 
-server that is running the remctld deamon. B<remctl> does not interpret the 
-commands given to it, it passes them to the server and displays the return
-message. The commands must be defined on the server-side before a B<remctl>
-client can execute them, and the user running B<remctl> must be authorized
-to execute the particular command on the server.
+B<remctl> is a program that allows a user to execute commands remotely on
+a server that is running the remctld deamon. B<remctl> does not interpret
+the commands given to it, it passes them to the server and displays the
+return message.  The commands must be defined on the server-side before a
+B<remctl> client can execute them, and the user running B<remctl> must be
+authorized to execute the particular command on the server.
 
-Access to remote commands is authenticated via GSSAPI Kerberos V, so a user
-must have a ticket granting ticket to use B<remctl>. All transmissions to
-and from the remctld server are encrypted using Kerberos. 
+Access to remote commands is authenticated via Kerberos v5 over GSSAPI, so
+a user must have a ticket granting ticket to use B<remctl>.  All
+transmissions to and from the remctld server are encrypted using GSSAPI's
+security layer.
 
-=head1 ARGUMENTS
+I<host> is the hostname of the target server.  I<type> and I<service>
+together specify the command to run and correspond to the command names in
+the configuration file on the server.  I<parameters> are any additional
+command-line parameters to pass to the remote command.
+
+=head1 OPTIONS
 
 =over 4
 
-=item B<-s> I<remctld-service-principal>
+=item B<-p> I<port>
 
-This option is used to specify the Kerberos service principal that remctld 
-runs as, if it's not the default principal. By default it is the server host 
-principal: "host/<machinename>.stanford.edu".
+Connect to the server on I<port> rather than the default of 4444.
+
+=item B<-s> I<service>
+
+Authenticate to the server with a service ticket for I<service> rather
+than the default server identity of host/I<hostname>.  This may be
+necessary with, for instance, a server where B<remctld> is not running as
+root.
 
 =item B<-v> I<verbose>
 
 Turn on extra printouts of the client-server interaction.
-
-=item I<host>
-
-The hostname of the target server.
-
-=item I<type>
-
-The type of command being requested, such as "afs" for the afs volume backend.
-In sysctl terms, the "ss" in "ss:create".
-
-=item I<service>
-
-The service within the type being requested, such as "release" for the afs 
-volume backend. In sysctl terms, the "create" in "ss:create".
-
-=item I<parameters>
-
-The command line arguments passed to the specific command being requested.
 
 =back
 
@@ -58,7 +51,7 @@ The command line arguments passed to the specific command being requested.
 
 Release an afs volume called ls.tripwire:
 
-    % remctl lsdb afs release ls.tripwire
+    remctl lsdb afs release ls.tripwire
 
 =head1 SEE ALSO
 
@@ -68,11 +61,10 @@ remctld(1), kerberos(1), kinit(1)
 
 Anton Ushakov <antonu@stanford.edu>
 
-=head1 LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2002, 2003 Board of Trustees, Leland Stanford Jr. University.
-  
-All rights reserved.
+Copyright 2002, 2003, 2004, 2005 Board of Trustees, Leland Stanford
+Jr. University.  All rights reserved.
   
 Export of this software from the United States of America may require a
 specific license from the United States Government.  It is the
