@@ -16,8 +16,8 @@ programs that change to various different user identities.
 remctl is built to use port 4444 by default.  This is a bad choice in
 retrospect, since it's the same port used by krb524d (although the latter
 uses only UDP, I believe), but it's the upstream default and the server
-and client have to agree.  There is currently no way of pointing the
-client to a different port.
+and client have to agree.  Using a different port will require always
+specifying the -p option to the client.
 
 remctld looks in the current directory for its configuration file by
 default, so you generally will want to specify the configuration file
@@ -26,4 +26,4 @@ location on the command line with the -f option.
 A Java client is provided in /usr/share/remctl/examples/java.  It may not
 work at your site without some tweaking.
 
- -- Russ Allbery <rra@stanford.edu>, Tue Feb 22 23:50:36 2005
+ -- Russ Allbery <rra@stanford.edu>, Wed Feb 23 00:24:16 2005
