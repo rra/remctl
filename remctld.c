@@ -678,6 +678,7 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
     int stderr_pipe[2];
     char **req_argv;
     char remuser[100];
+    char scprincipal[100];
     int ret_length;
     char err_message[MAXBUFFER];
     OM_uint32 ret_code;
@@ -720,11 +721,11 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
 
     if (command == NULL) {
         ret_code = -1;
-        strcpy(ret_message, "Command not defined");
+        strcpy(ret_message, "Command not defined\n");
     } else {
         if ((ret_code = acl_check(userprincipal, acls)) != 0)
             snprintf(ret_message, MAXBUFFER,
-                    "Access denied: %s principal not on the acl list",
+                    "Access denied: %s principal not on the acl list\n",
                     userprincipal);
     }
 
@@ -789,8 +790,8 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
             }
 
             /* Backward compat */
-            snprintf(remuser, MAXBUFFER, "SCPRINCIPAL=%s", userprincipal);
-            if (putenv(remuser) < 0) {
+            snprintf(scprincipal, MAXBUFFER, "SCPRINCIPAL=%s", userprincipal);
+            if (putenv(scprincipal) < 0) {
                 strcpy(ret_message, 
                        "Cant's set SCPRINCIPAL environment variable \n");
                 syslog(LOG_ERR, "%s%m", ret_message);

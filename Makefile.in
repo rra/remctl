@@ -56,7 +56,7 @@ install: remctld remctl remctld.8 remctl.1
 	$(INSTALL_PROGRAM) remctl $(bindir)/remctl
 	$(INSTALL_PROGRAM) remctld $(sbindir)/remctld
 	$(INSTALL_DATA) $(srcdir)/remctl.1 $(mandir)/man1/remctl.1
-	$(INSTALL_DATA) $(srcdir)/remctld.8 $(mandir)/man8/remctld.1
+	$(INSTALL_DATA) $(srcdir)/remctld.8 $(mandir)/man8/remctld.8
 
 remctl.1: remctl.pod
 	pod2man --release=`cat VERSION` --center="User Commands" $< > $@
