@@ -11,4 +11,4 @@ remctl
 remctl.1
 remctld
 remctld.8
-remctl_*
+remctl-*
