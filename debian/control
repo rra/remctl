@@ -1,0 +1,22 @@
+Source: remctl
+Section: net
+Priority: optional
+Maintainer: Russ Allbery <rra@stanford.edu>
+Build-Depends: debhelper (>= 4.0.0), libkrb5-dev
+Standards-Version: 3.6.1
+
+Package: remctl
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: remote Kerberos-authenticated command execution
+ remctl consists of a client and server for executing specific commands on
+ a remote system with Kerberos authentication.  The allowable commands
+ must be listed in a server configuration file, and the executable run on
+ the server may be mapped to any command name.  Each command is also
+ associated with an ACL containing a list of Kerberos principals
+ authorized to run that command.
+ .
+ Included in this package is both the client (remctl) and the server
+ (remctld).  The server will not be started automatically.
+ .
+ See <http://www.eyrie.org/~eagle/software/remctl/> for more information.

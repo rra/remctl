@@ -1,0 +1,29 @@
+remctl for Debian
+-----------------
+
+This package contains both the client (remctl) and the daemon (remctld).
+The latter is not configured to run by default.  If you want to run it out
+of inetd, add the equivalent of the following inetd.conf line:
+
+    4444 stream tcp nowait root /usr/sbin/tcpd \
+        /usr/sbin/remctld -f /etc/remctl.conf
+
+to your inetd configuration (on one line, without the backslash).  You
+don't have to run remctld as root, but of course will need to do so if you
+want it to run any programs that need root privileges or want to run
+programs that change to various different user identities.
+
+remctl is built to use port 4444 by default.  This is a bad choice in
+retrospect, since it's the same port used by krb524d (although the latter
+uses only UDP, I believe), but it's the upstream default and the server
+and client have to agree.  There is currently no way of pointing the
+client to a different port.
+
+remctld looks in the current directory for its configuration file by
+default, so you generally will want to specify the configuration file
+location on the command line with the -f option.
+
+A Java client is provided in /usr/share/remctl/examples/java.  It may not
+work at your site without some tweaking.
+
+ -- Russ Allbery <rra@stanford.edu>, Tue Feb 22 23:50:36 2005
