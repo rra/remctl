@@ -22,14 +22,6 @@ configured (see below).  B<remctld> logs its activity using syslog(3C).
 
 =over 4
 
-=item B<-a> I<limit>
-
-Limit logging of command arguments to at most the first I<limit>
-arguments.  This is a hack to avoid logging the arguments of commands that
-take privileged information, and will be removed again once the
-configuration file syntax is smart enough to allow this to be configurable
-on a per-command basis.
-
 =item B<-s> I<service>
 
 This option is used to specify the Kerberos service principal for
@@ -43,7 +35,7 @@ allowed commands and specifying access control information.  Default is
 F<./remctl.conf>.  Configuration file format is space or tab separated
 strings, where each line is:
 
-I<type service executable {aclfile}+>
+I<type service executable [logmask=n[,...]] {aclfile}+>
 
 =over 4
 
@@ -64,6 +56,16 @@ to the executable program that is listed for that service.
 
 The full path to the commmand executable to run for this type-service 
 combination. (See examples below)
+
+=item I<logmask=n[,...]>
+
+Limit logging of command arguments. Any argument listed in the logmask
+list will have its value logged as "**MASKED**". This is to avoid logging
+the arguments of commands that take privileged information.
+
+For example, if the command is "admin passwd {username} {passwd}", then
+you'd want to set logmask to "3", so the password argument gets logged
+as "**MASKED**".
 
 =item I<aclfile>
 
@@ -95,6 +97,7 @@ Example configuration file:
  accounts create /usr/local/bin/doaccount  /etc/acl/group1 /etc/acl/group2
  accounts delete /usr/local/bin/doaccount  /etc/acl/group3
  accounts view   /usr/local/bin/doaccount  ANYUSER
+ accounts passwd /usr/local/bin/doaccount logmask=3 /etc/acl/group1
  printing ALL    /usr/local/bin/printthing /etc/acl/group2 
 
 =head1 SEE ALSO

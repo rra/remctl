@@ -34,7 +34,6 @@
 
 int verbose;       /* Turns on debugging output. */
 int use_syslog;    /* Toggle for sysctl vs stdout/stderr. */
-int limit_args;    /* Limit argument logging to the first N. */
 
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver. */
@@ -46,6 +45,7 @@ struct confline {
     char *type;             /* Service type (ss in ss:create). */
     char *service;          /* Service name (create in ss:create). */
     char *program;          /* Full file name of executable. */
+    struct vector *logmask; /* what args to mask in the log */
     char **acls;            /* Full file names of ACL files. */
 };
 
@@ -61,15 +61,14 @@ usage()
     static const char usage[] = "\
 Usage: remctld <options>\n\
 Options:\n\
-\t-a count         Only log the first count arguments\n\
-\t-s service       K5 servicename to run as (default host/machine.stanford.edu)\n\
+\t-s service       K5 servicename to run as (default host/machine.stanford.edu)\
 \t-f conffile      the default is ./remctl.conf\n\
 \t-v               debugging level of output\n\
 \t-m               standalone single connection mode, meant for testing only\n\
 \t-p port          only for standalone mode. default 4444\n";
 
     fprintf(stderr, usage);
-    syslog(LOG_ERR, "invalid options");
+    syslog(LOG_ERR, usage);
     exit(1);
 }
 
@@ -392,7 +391,7 @@ read_conf_file(char *filename)
 
     char** vlp;
     char *buf;
-    int linenum, i, j;
+    int linenum, i, j, arg_i;
     struct vector *vline;
     struct vector *vbuf;
     struct confline* cp;
@@ -437,12 +436,30 @@ read_conf_file(char *filename)
 
         confbuffer[linenum] = smalloc(sizeof(struct confline));
         cp = confbuffer[linenum];
+        memset(cp, 0, sizeof(struct confline));
         cp->type    = strdup(vline->strings[0]);
         cp->service = strdup(vline->strings[1]);
         cp->program = strdup(vline->strings[2]);
-        cp->acls    = smalloc((vline->count-2) * sizeof(char*));
-        for (j=0; j < vline->count - 3; j++) {
-            cp->acls[j] = strdup(vline->strings[j+3]);
+
+        /* change this to a while vline->string[n] has an "=" in it
+           to support multiple x=y options */
+        if (strncmp(vline->strings[3], "logmask=", 8) == 0) {
+            cp->logmask = vector_new();
+            vector_split(vline->strings[3]+8, ',', cp->logmask);
+            arg_i = 4;
+        } else {
+            arg_i = 3;
+        }
+
+        if (vline->count <= arg_i) {
+            syslog(LOG_ERR, 
+                   "Parse error in the conf file on line %d\n", i);
+            return -1;
+        }
+
+        cp->acls    = smalloc((vline->count-arg_i+1) * sizeof(char*));
+        for (j=0; j < vline->count - arg_i; j++) {
+            cp->acls[j] = strdup(vline->strings[j+arg_i]);
         }
         cp->acls[j] = NULL;
         linenum++;
@@ -639,6 +656,43 @@ process_response(gss_ctx_id_t context, OM_uint32 code, char *blob)
 }
 
 
+/*
+ * Function: log command
+ */
+void
+log_command(struct vector *argvector, 
+            struct confline *cline,
+            char *userprincipal)
+{
+    char log_message[MAXBUFFER];
+    char *command;
+
+    if (cline != NULL && cline->logmask != NULL) {
+        int i,j;
+        struct cvector *v = cvector_new();
+        for (i=0; i < argvector->count; i++) {
+            char *a = argvector->strings[i];
+            for (j=0; j< cline->logmask->count; j++) {
+                if (atoi(cline->logmask->strings[j]) == i) {
+                    a = "**MASKED**";
+                    break;
+                }
+            }
+            cvector_add(v, a);
+        }
+        command = cvector_join(v, " ");
+        cvector_free(v);
+    } else {
+        command = vector_join(argvector, " ");
+    }
+
+    /* This block logs the requested command. */
+    snprintf(log_message, MAXBUFFER, "COMMAND from %s: ", userprincipal);
+    strncat(log_message, command, MAXBUFFER - strlen(log_message));
+    strcat(log_message, "\n");
+    syslog(LOG_INFO,log_message);
+
+}
 
 /*
  * Function: process_command
@@ -674,7 +728,7 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
 {
     char *command;
     char *program;
-    char **acls = NULL;
+    char **acls;
     struct confline* cline;
     int stdout_pipe[2];
     int stderr_pipe[2];
@@ -685,22 +739,6 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
     char err_message[MAXBUFFER];
     OM_uint32 ret_code;
     int i, pid, pipebuffer;
-
-    /* This block logs the requested command. */
-    if (limit_args < 0 || (size_t) limit_args < argvector->count) {
-        command = vector_join(argvector, " ");
-    } else {
-        size_t argc;
-
-        argc = argvector->count;
-        argvector->count = 2 + limit_args;
-        command = vector_join(argvector, " ");
-        argvector->count = argc;
-    }
-    snprintf(ret_message, MAXBUFFER, "COMMAND from %s: ", userprincipal);
-    strncat(ret_message, command, MAXBUFFER - strlen(ret_message));
-    strcat(ret_message, "\n");
-    syslog(LOG_INFO,ret_message);
 
     memset(ret_message, 0, MAXBUFFER);
     memset(err_message, 0, MAXBUFFER);
@@ -726,6 +764,8 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
         }
     }
 
+    /* log after we look for command so we can get potentially get logmask */
+    log_command(argvector, command == NULL ? NULL : cline, userprincipal);
 
     /* Check the command, aclfile, and the authorization of this client to
        run this command. */
@@ -733,13 +773,13 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
     if (command == NULL) {
         ret_code = -1;
         strcpy(ret_message, "Command not defined\n");
-    } else {
-        if ((ret_code = acl_check(userprincipal, acls)) != 0)
+    }
+
+    if ((ret_code = acl_check(userprincipal, acls)) != 0) {
             snprintf(ret_message, MAXBUFFER,
                     "Access denied: %s principal not on the acl list\n",
                     userprincipal);
     }
-
 
     /* Assemble the argv, envp, and fork off the child to run the command. */
     if (ret_code == 0) {
@@ -985,7 +1025,6 @@ main(int argc, char **argv)
     service_name[0] = '\0';
     verbose = 0;
     use_syslog = 1;
-    limit_args = -1;
 
     /* Since we are called from tcpserver, prevent clients from holding on to 
        us forever, and die after an hour. */
@@ -995,13 +1034,7 @@ main(int argc, char **argv)
     argc--;
     argv++;
     while (argc) {
-        if (strcmp(*argv, "-a") == 0) {
-            argc--;
-            argv++;
-            if (!argc)
-                usage();
-            limit_args = atoi(*argv);
-        } else if (strcmp(*argv, "-p") == 0) {
+        if (strcmp(*argv, "-p") == 0) {
             argc--;
             argv++;
             if (!argc)
