@@ -141,11 +141,21 @@ gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
     int state;
     OM_uint32 maj_stat, min_stat;
     gss_qop_t qop_state;
-
+    char tempbuf[MAXBUFFER];
     int token_flags;
+    char *cp;
 
     in_buf.value = msg;
     in_buf.length = msglength;
+
+    if (verbose) {
+        snprintf(tempbuf, MAXBUFFER, "Sending message of length: %d\n", 
+                 in_buf.length);
+        write_log(LOG_DEBUG, tempbuf);
+        print_token(&in_buf);
+        write_log(LOG_DEBUG, "\n");
+    }
+
 
     maj_stat = gss_wrap(&min_stat, context, 1, GSS_C_QOP_DEFAULT,
                         &in_buf, &state, &out_buf);
@@ -231,10 +241,6 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg, OM_uint32 *msgle
     if (recv_token(token_flags, &xmit_buf) < 0)
         return (-1);
 
-    if (verbose) {
-        print_token(&xmit_buf);
-    }
-
     maj_stat = gss_unwrap(&min_stat, context, &xmit_buf, &msg_buf,
                           &conf_state, (gss_qop_t *) NULL);
     (void)gss_release_buffer(&min_stat, &xmit_buf);
@@ -250,7 +256,9 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg, OM_uint32 *msgle
 
 
     if (verbose) {
-        write_log(LOG_DEBUG, "Received message: ");
+        snprintf(tempbuf, MAXBUFFER, "Received message of length: %d\n", 
+                 msg_buf.length);
+        write_log(LOG_DEBUG, tempbuf);
         cp = msg_buf.value;
         if ((isprint(cp[0]) || isspace(cp[0])) &&
             (isprint(cp[1]) || isspace(cp[1]))) {
@@ -411,7 +419,7 @@ recv_token(int *flags, gss_buffer_t tok)
 
     tok->length = ntohl(tok->length);
 
-    if (tok->length > MAXENCRYPT || tok->length <= 0) {
+    if (tok->length > MAXENCRYPT || tok->length < 0) {
         snprintf(tempbuf, 100, "Illegal token length: %d\n", tok->length);
         write_log(LOG_ERR, tempbuf);
         return -1;

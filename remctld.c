@@ -49,16 +49,19 @@ struct confline {
 /* Pointer to the global structure that will hold the parsed conf file. */
 struct confline **confbuffer;
 
+/* The environment */
+extern char **environ; 
 
 void
 usage()
 {
     static const char usage[] = "\
-Usage: remctld <options> hostname\n\
+Usage: remctld <options>\n\
 Options:\n\
+\t-s service       K5 servicename to run as (default host/machine.stanford.edu)
 \t-f conffile      the default is ./remctl.conf\n\
 \t-v               debugging level of output\n\
-\t-s               standalone mode\n\
+\t-m               standalone single connection mode, meant for testing only\n\
 \t-p port          only for standalone mode. default 4444\n";
 
     fprintf(stderr, usage);
@@ -344,9 +347,11 @@ read_file(char *file_name)
         syslog(LOG_ERR, "Problem during read in read_file\n");
         return NULL;
     }
-    if (count < length)
-        syslog(LOG_ERR, "Warning, only read in %d bytes, expected %d\n",
+    if (count < length) {
+        syslog(LOG_ERR, "Error: only read in %d bytes, expected %d\n",
                count, length);
+        return NULL;
+    }
 
     buf[length] = '\0';
     close(fd);
@@ -551,6 +556,8 @@ process_request(gss_ctx_id_t context, char ret_message[])
     req_argv = vector_new();
     vector_resize(req_argv, req_argc);
 
+    /* Parse out the arguments and store them into a vector */
+    /* Arguments are packed: (<arglength><argument>)+       */
     while (cp < msg + msglength) {
         memcpy(&network_order, cp, sizeof(OM_uint32));
         arglength = ntohl(network_order);
@@ -605,30 +612,17 @@ process_response(gss_ctx_id_t context, OM_uint32 code, char *blob)
     OM_uint32 flags;
     bloblength = strlen(blob);
 
-    if (code == 0) {            /* positive response */
+    flags = TOKEN_DATA;
 
-        msg = smalloc((sizeof(OM_uint32) + bloblength));
-        msglength = bloblength + sizeof(OM_uint32);
-        network_order = htonl(bloblength);
-        memcpy(msg, &network_order, sizeof(OM_uint32));
-        memcpy(msg + sizeof(OM_uint32), blob, bloblength);
+    msg = smalloc((2 * sizeof(OM_uint32) + bloblength));
+    msglength = bloblength + 2 * sizeof(OM_uint32);
 
-        flags = TOKEN_DATA;
-
-    } else {                    /* negative response */
-
-        msg = smalloc((2 * sizeof(OM_uint32) + bloblength));
-        msglength = bloblength + 2 * sizeof(OM_uint32);
-
-        network_order = htonl(code);
-        memcpy(msg, &code, sizeof(OM_uint32));
-        network_order = htonl(bloblength);
-        memcpy(msg + sizeof(int), &network_order, sizeof(OM_uint32));
-        memcpy(msg + 2 * sizeof(OM_uint32), blob, bloblength);
-
-        flags = TOKEN_ERROR;
-    }
-
+    network_order = htonl(code);
+    memcpy(msg, &code, sizeof(OM_uint32));
+    network_order = htonl(bloblength);
+    memcpy(msg + sizeof(int), &network_order, sizeof(OM_uint32));
+    memcpy(msg + 2 * sizeof(OM_uint32), blob, bloblength);
+    
     if (gss_sendmsg(context, flags, msg, msglength) < 0)
         return -1;
 
@@ -678,6 +672,7 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
     int stdout_pipe[2];
     int stderr_pipe[2];
     char **req_argv;
+    char remuser[100];
     int ret_length;
     char err_message[MAXBUFFER];
     OM_uint32 ret_code;
@@ -728,9 +723,11 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
     }
 
 
-    /* Assemble the argv and fork off the child to run the command. */
+    /* Assemble the argv, envp, and fork off the child to run the command. */
     if (ret_code == 0) {
 
+
+        /* ARGV: */
         req_argv = smalloc((argvector->count + 1) * sizeof(char*));
 
         /* Get the real program name, and use it as the first
@@ -773,6 +770,16 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
 
             /* Child doesn't need STDIN at all */
             close(0);
+
+            /* Tell the exec'ed program who requested it */
+            sprintf(remuser, "REMUSER=%s", userprincipal);
+            if (putenv(remuser) < 0) {
+                strcpy(ret_message, 
+                       "Cant's set REMUSER environment variable \n");
+                syslog(LOG_ERR, "%s%m", ret_message);
+                fprintf(stderr, ret_message);
+                exit(-1);   
+            }
 
             execv(command, req_argv);
 
@@ -930,15 +937,16 @@ int
 main(int argc, char **argv)
 {
     char service_name[500];
+    char host_name[500];
     struct hostent* hostinfo;
     gss_cred_id_t server_creds;
     OM_uint32 min_stat;
     unsigned short port = 4444;
-    int s;
+    int s, stmp;
     int do_standalone = 0;
-    int stmp;
     char *conffile = "remctl.conf";
 
+    service_name[0] = NULL;
     verbose = 0;
     use_syslog = 1;
 
@@ -964,33 +972,42 @@ main(int argc, char **argv)
             if (!argc)
                 usage();
             conffile = *argv;
-        } else if (strcmp(*argv, "-s")   == 0) {
+        } else if (strcmp(*argv, "-s")    == 0) {
+            argc--;
+            argv++;
+            if (!argc)
+                usage();
+            strncpy(service_name, *argv, sizeof(service_name));
+        } else if (strcmp(*argv, "-m")   == 0) {
             do_standalone = 1;
         } else
             break;
         argc--;
         argv++;
     }
-    if (argc != 1)
-        usage();
-
-    if ((*argv)[0] == '-')
-        usage();
 
     if (read_conf_file(conffile) != 0) {
         syslog(LOG_ERR, "%s%m\n", "Can't read conf file: ");
         exit(1);
     }
 
-    if ((hostinfo = gethostbyname(*argv)) == NULL) {
-        syslog(LOG_ERR, "%s%s\n", "Can't resolve given hostname: ", *argv);
-        exit(1);
-    }
+    if (strlen(service_name) == 0) {
+        if (gethostname(host_name, sizeof(host_name)) < 0) {
+            syslog(LOG_ERR, "%s%m\n", "Can't get hostname: ");
+            exit(1);
+        }
+        
+        if ((hostinfo = gethostbyname(host_name)) == NULL) {
+            syslog(LOG_ERR, "%s%s %m\n", "Can't resolve given hostname: ", 
+                   host_name);
+            exit(1);
+        }
 
-    /* service_name is for example host/zver.stanford.edu */
-    lowercase(hostinfo->h_name);
-    strcpy(service_name, "host/");
-    strcat(service_name, hostinfo->h_name);
+        /* service_name is for example host/zver.stanford.edu */
+        lowercase(hostinfo->h_name);
+        strcpy(service_name, "host/");
+        strcat(service_name, hostinfo->h_name);
+    }
 
     if (verbose)
         syslog(LOG_DEBUG, "service_name: %s\n", service_name);

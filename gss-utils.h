@@ -50,12 +50,11 @@ void print_token
 #define TOKEN_NOOP		(1<<0)
 #define TOKEN_CONTEXT		(1<<1)
 #define TOKEN_DATA		(1<<2)
-#define TOKEN_ERROR		(1<<3)
-#define TOKEN_MIC		(1<<4)
+#define TOKEN_MIC		(1<<3)
 
 /* Token flags */
-#define TOKEN_CONTEXT_NEXT	(1<<5)
-#define TOKEN_SEND_MIC		(1<<6)
+#define TOKEN_CONTEXT_NEXT	(1<<4)
+#define TOKEN_SEND_MIC		(1<<5)
 
 /* Used as the default max buffer for the argv passed into the server, and for 
    the return message from the server. */
@@ -67,5 +66,8 @@ void print_token
 /* Maximum encrypted token size. I notices it was roughly 6 - 7 times the clear
    text, so on the safe size, it's 10 * MAXBUFFER */
 #define MAXENCRYPT              640000
+
+/* Number of environment variables passed to the exec'ed process */
+#define MAXENV                  256
 
 #endif

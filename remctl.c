@@ -43,7 +43,8 @@ usage()
     static const char usage[] = "\
 Usage: remctl <options> host type service <parameters>\n\
 Options:\n\
-\t-v               debugging level of output\n";
+\t-s     remctld service principal (default host/machine.stanford.edu)
+\t-v     debugging level of output\n";
     fprintf(stderr, usage);
     exit(1);
 }
@@ -309,7 +310,7 @@ process_request(gss_ctx_id_t context, OM_uint32 argc, char ** argv)
     char *mp;            /* Iterator over msg. */
     OM_uint32 i;
 
-    /* Total message is: argc, {arglength, argument}+             */
+    /* Allocate total message: argc, {<arglength><argument>}+     */
     cp = argv;
     for (i = 0; i < argc; i++) {
         msglength += strlen(*cp++);
@@ -327,7 +328,8 @@ process_request(gss_ctx_id_t context, OM_uint32 argc, char ** argv)
     memcpy(mp, &network_ordered, sizeof(OM_uint32));
     mp += sizeof(OM_uint32);
 
-    /* Now, put in the argv */
+    /* Now, pack in the argv */
+    /* Arguments are packed: (<arglength><argument>)+       */
     while (i != 0) {
         arglength = strlen(*cp);
         network_ordered = htonl(arglength);
@@ -384,14 +386,12 @@ process_response(gss_ctx_id_t context)
 
     cp = msg;
 
-    /* Extract the error code, if this is an error message */
-    if (token_flags & TOKEN_ERROR) {
-        memcpy(&network_ordered, cp, sizeof(OM_uint32));
-        errorcode = ntohl(network_ordered);
-        cp += sizeof(OM_uint32);
-        if (verbose)
-            printf("Error code: %d\n", errorcode);
-    }
+    /* Extract the return code */
+    memcpy(&network_ordered, cp, sizeof(OM_uint32));
+    errorcode = ntohl(network_ordered);
+    cp += sizeof(OM_uint32);
+    if (verbose)
+        printf("Return code: %d\n", errorcode);
 
     /* Get the message length */
     memcpy(&network_ordered, cp, sizeof(OM_uint32));
@@ -433,6 +433,7 @@ main(int argc, char ** argv)
     gss_ctx_id_t context;
     gss_buffer_desc out_buf;
 
+    service_name[0] = NULL;
     verbose = 0;
     use_syslog = 0;
 
@@ -446,6 +447,12 @@ main(int argc, char ** argv)
             if (!argc)
                 usage();
             port = atoi(*argv);
+        } else if (strcmp(*argv, "-s")    == 0) {
+            argc--;
+            argv++;
+            if (!argc)
+                usage();
+            strncpy(service_name, *argv, sizeof(service_name));
         } else if (strcmp(*argv, "-v") == 0) {
             verbose = 1;
         } else
@@ -459,14 +466,16 @@ main(int argc, char ** argv)
     server_host = *argv++;
     argc--;
 
-    if ((hostinfo = gethostbyname(server_host)) == NULL) {
-        fprintf(stderr, "Can't resolve given hostname\n");
-        exit(1);
-    }
+    if (strlen(service_name) == 0) {
+        if ((hostinfo = gethostbyname(server_host)) == NULL) {
+            fprintf(stderr, "Can't resolve given hostname\n");
+            exit(1);
+        }
 
-    lowercase(hostinfo->h_name);
-    strcpy(service_name, "host/");
-    strcat(service_name, hostinfo->h_name);
+        lowercase(hostinfo->h_name);
+        strcpy(service_name, "host/");
+        strcat(service_name, hostinfo->h_name);
+    }
 
     /* Open connection */
     if ((s = connect_to_server(server_host, port)) < 0)
