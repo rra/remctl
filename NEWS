@@ -9,6 +9,8 @@ remctl 1.3 (2003-07-21)
     Adjust logging priorities and include some additional information in
     the log of the command.
 
+    Improved the README and added a make dist target to the makefile.
+
 remctl 1.2 (2003-04-04)
 
     Read from both standard out and standard error of the spawned command
