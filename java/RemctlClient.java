@@ -23,15 +23,19 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.nio.ByteBuffer;
+import java.security.PrivilegedExceptionAction;
 
-class RemctlClient implements java.security.PrivilegedExceptionAction {
+public class RemctlClient {
 
     private ArrayList byteArgs;
     private String host;
-    private int port;
     private String servicePrincipal;
 
+    /** Default remctl server port to use */
     public static final int DEFAULT_PORT = 4444;
+
+    /** Default name to use in the login configuration file */
+    public static final String DEFAULT_NAME = "RemctlClient";
 
     /* Token types */
     private static final int TOKEN_NOOP  =            (1<<0);
@@ -53,11 +57,18 @@ class RemctlClient implements java.security.PrivilegedExceptionAction {
     private DataInputStream inStream;
     private DataOutputStream outStream;
 
+    /**
+     * Main should be invoked as follows:
+     * <p>
+     * <code>java -Djava.security.auth.login.config=login.conf RemctlClient {host} {args}</code>
+     *
+     */
+
     public static void main(String[] args) {
 
         if (args.length < 3) {
             System.err.println("Usage: java <options> RemctlClient "
-                               + " <hostName> <type> <service> <args>");
+                               + " <hostName> <args>");
             System.exit(-1);
         }
         
@@ -68,10 +79,10 @@ class RemctlClient implements java.security.PrivilegedExceptionAction {
             for(int i=1; i<args.length; i++)
                 remargs[i-1] = args[i];
 
-            RemctlClient rc = RemctlClient.withLogin("RemctlClient",
-                                                     remargs,
+            RemctlClient rc = RemctlClient.withLogin(remargs,
                                                      host,
                                                      0,
+                                                     null,
                                                      null);
             System.out.print(rc.getReturnMessage());
             System.exit(rc.getReturnCode());
@@ -83,61 +94,112 @@ class RemctlClient implements java.security.PrivilegedExceptionAction {
 
     }
 
-    public static RemctlClient withLogin(String name,
-                                         String args[],
-                                         String host,
-                                         int port,
-                                         String servicePrincipal)
+    /**
+     * Factory method that creates a <code>LogincContext</code>
+     * and returns a RemctlClient that executed from within that
+     * context.
+     *
+     * @param args  array of args to pass to remctl server
+     * @param host  host name of remctl server. 
+     * @param port  port of remctl server. If 0, uses the default
+     *              port of 4444 (RemctlClient.DEFAULT_PORT).
+     * @param princ Principal to use. If null, uses the default
+     *              principal of <code>"host/"+host</code>.
+     * @param lcName  Name passed to the <code>LoginContext</code> constructor.
+     *              If null, use the default name of "RemctlClient".
+     */
+
+    public static RemctlClient withLogin(final String args[],
+                                         final String host,
+                                         final int port,
+                                         final String princ,
+                                         final String lcName)
         throws javax.security.auth.login.LoginException,
                java.security.PrivilegedActionException
     {
-        LoginContext lc = 
-            new LoginContext(name, new TextCallbackHandler());
+        final LoginContext lc = 
+            new LoginContext(lcName != null ? lcName : "RemctlClient", 
+                             new TextCallbackHandler());
         lc.login();
-        RemctlClient rc = new RemctlClient(args, host, port, servicePrincipal);
-        Subject.doAsPrivileged(lc.getSubject(), rc, null);
-        lc.logout();
-        return rc;
-    }
-
-    public RemctlClient(String args[], String host, 
-                        int port, String servicePrincipal) {
-        this.host = host;
-        this.port = port;
-        this.servicePrincipal = servicePrincipal;
-        this.byteArgs = new ArrayList();
-        for (int i=0; i < args.length; i++) {
-            byteArgs.add(args[i].getBytes());
+        PrivilegedExceptionAction pea = 
+            new PrivilegedExceptionAction() {
+                public Object run() 
+                    throws GSSException,
+                           IOException
+                {
+                    return new RemctlClient(args, 
+                                            host,
+                                            port,
+                                            princ);
+                }
+            };
+            
+        try {
+            return (RemctlClient)
+                Subject.doAsPrivileged(lc.getSubject(), pea, null);
+        } finally {
+            lc.logout();
         }
     }
 
-    public int getReturnCode() {
-        return returnCode;
+    /**
+     * Factory method that creates a <code>LogincContext</code>
+     * and returns a RemctlClient that executed from within that
+     * context. Uses default values for port/principal/name.
+     *
+     * @param args  array of args to pass to remctl server
+     * @param host  host name of remctl server. 
+     *              If null, use the default name of "RemctlClient".
+     */
+    public static RemctlClient withLogin(final String args[],
+                                         final String host)
+        throws javax.security.auth.login.LoginException,
+               java.security.PrivilegedActionException
+    { 
+        return withLogin(args, host, 0, null, null);
     }
 
-    public String getReturnMessage() {
-        return returnMessage;
-    }
+    /**
+     * Invoke Remctl on the specified host, with the specified args.
+     * If no exceptions are thrown, you would then normally check
+     * the return code with <code>getReturnCode()</code>, and the
+     * returned message with <code>getReturnMessage()</code>.
+     * <p>
+     * Should only be called within a login context that has the
+     * proper Kerberos credentials. The factory methods <code>withLogin</code>
+     * can be used when a single RemctlCLient object is needed. If
+     * multiple RemctlClient objects are needed, then the application
+     * should itself set up the login context, invoke Subject.doAsPrivileged,
+     * and then create multiple RemctlObjects from within that context.
+     *
+     * @param args  array of args to pass to remctl server
+     * @param host  host name of remctl server. 
+     * @param port  port of remctl server. If 0, uses the default
+     *              port of 4444 (RemctlClient.DEFAULT_PORT).
+     * @param servicePrincipal Principal to use. If null, uses the default
+     *              principal of <code>"host/"+host</code>.
+     */
+    public RemctlClient(String args[], 
+                        String host, 
+                        int port, 
+                        String servicePrincipal) 
+        throws GSSException, IOException 
+    {
+        this.host = host;
+        this.servicePrincipal = servicePrincipal;
+        this.byteArgs = new ArrayList();
 
-    public String getClientIdentity() {
-        return clientIdentity;
-    }
-
-    public String getServerIdentity() {
-        return serverIdentity;
-    }
-
-    public Object run() throws GSSException, IOException {
+        for (int i=0; i < args.length; i++) {
+            byteArgs.add(args[i].getBytes());
+        }
 
         InetAddress hostAddress = InetAddress.getByName(host);
 	String hostName = hostAddress.getHostName().toLowerCase();
-        if (servicePrincipal == null) 
-            servicePrincipal = "host/"+hostName;
-        if (port == 0)
-            port = DEFAULT_PORT;
+        if (this.servicePrincipal == null) 
+            this.servicePrincipal = "host/"+hostName;
 
         /* Make the socket: */
-        socket =    new Socket(hostName, port);
+        socket =    new Socket(hostName, port != 0 ? port : DEFAULT_PORT);
         inStream =  new DataInputStream(socket.getInputStream());
         outStream = new DataOutputStream(socket.getOutputStream());
 
@@ -146,7 +208,51 @@ class RemctlClient implements java.security.PrivilegedExceptionAction {
         processResponse();
         context.dispose();
         socket.close();
-        return null;
+    }
+
+    /**
+     * Returns the returnCode from the remote remctl execution. For
+     * example, if you invoked a Perl script that ended with a
+     * an "exit 1", this method would return 1. 
+     *
+     * @return the return code from the remote remctl execution.
+     * 
+     */
+
+    public int getReturnCode() {
+        return returnCode;
+    }
+
+    /**
+     * Returns the output from the remote remctl execution. For
+     * example, if you invoked a Perl script whose only output
+     * was "hello world\n", this method would return "hello world\n".
+     *
+     * @return the output from the remote remctl execution.
+     * 
+     */
+    public String getReturnMessage() {
+        return returnMessage;
+    }
+
+    /**
+     * Returns the client's Kerberos principal name.
+     *
+     * @return Returns the client's Kerberos principal name.
+     *
+     */
+    public String getClientIdentity() {
+        return clientIdentity;
+    }
+
+    /**
+     * Returns the server's Kerberos principal name.
+     *
+     * @return Returns the server's Kerberos principal name.
+     *
+     */
+    public String getServerIdentity() {
+        return serverIdentity;
     }
 
     private void clientEstablishContext() 
