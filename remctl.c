@@ -46,7 +46,7 @@ usage()
     static const char usage[] = "\
 Usage: remctl <options> host type service <parameters>\n\
 Options:\n\
-\t-s     remctld service principal (default host/machine.stanford.edu)\
+\t-s     remctld service principal (default host/machine.stanford.edu)\n\
 \t-v     debugging level of output\n";
     fprintf(stderr, usage);
     exit(1);
