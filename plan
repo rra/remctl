@@ -10,6 +10,20 @@ host@server or service/type are different gssapi types:
 gss_nt_service_name              gss_nt_user_name
 
 
+
+RUNTIME and BUILD details:
+
+gcc -g -o remctld remctld.o gss-utils.o -lgssapi_krb5 -lsocket -lnsl -lresolv
+
+java -Djava.security.auth.login.config=gss_jaas.conf -Djava.security.krb5.conf=/etc/leland/krb5.conf -Dsun.security.krb5.debug=true Login RemctlClient host/zver.stanford.edu zver ss show antonu.cgi
+
+setenv KRB5_KTNAME (if not /etc/krb5.keytab)
+setenv LD_LIBRARY_PATH /usr/local/lib:/usr/pubsw/lib
+
+
+
+
+
 The new K5 sysctl design plan.
 
 Preliminary new name: remctl (like remote control)

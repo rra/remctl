@@ -45,26 +45,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.nio.ByteBuffer;
 
-/**
- * A sample client application that uses JGSS to do mutual authentication
- * with a server using Kerberos as the underlying mechanism. It then
- * exchanges data securely with the server.
- *
- * Every message sent to the server includes a 4-byte application-level 
- * header that contains the big-endian integer value for the number
- * of bytes that will follow as part of the JGSS token.
- *
- * The protocol is:
- *    1.  Context establishment loop:
- *         a. client sends init sec context token to server
- *         b. server sends accept sec context token to client
- *         ....
- *    2. client sends a wrap token to the server.
- *    3. server sends a MIC token to the client for the application
- *       message that was contained in the wrap token.
- */
 
-public class SampleClient {
+public class RemctlClient {
 
 /* Token types */
 static int TOKEN_NOOP  =            (1<<0);
@@ -85,13 +67,13 @@ static int TOKEN_SEND_MIC =         (1<<6);
 	
 	if (args.length < 3) {
 	    System.err.println("Usage: java <options> Login SampleClient "
-			       + " <server> <hostName> <port>");
+			       + " <remctl_service_name> <hostName> <type> <service> <args>");
 	    System.exit(-1);
 	}
 
 	String server = args[0];
 	String hostName = args[1];
-	int port = Integer.parseInt(args[2]);
+	int port = 4444;
 
 	Socket socket = new Socket(hostName, port);
 	DataInputStream inStream = 
@@ -208,12 +190,11 @@ static int TOKEN_SEND_MIC =         (1<<6);
 	}
 */
 
-	String argz[] = {"blue", "masks", "dog"};
 	ByteBuffer messageBuffer = ByteBuffer.allocate(64000);
 
-	for(int i=0;i<argz.length;i++) {
-	messageBuffer.putInt(argz[i].length());
-	messageBuffer.put(argz[i].getBytes());
+	for(int i=2;i<args.length;i++) {
+	messageBuffer.putInt(args[i].length());
+	messageBuffer.put(args[i].getBytes());
 	}
 
 	int length = messageBuffer.position();
