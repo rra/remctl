@@ -94,7 +94,7 @@ class RemctlClient implements java.security.PrivilegedExceptionAction {
         LoginContext lc = 
             new LoginContext(name, new TextCallbackHandler());
         lc.login();
-        RemctlClient rc = new RemctlClient(args, host, 0, null);
+        RemctlClient rc = new RemctlClient(args, host, port, servicePrincipal);
         Subject.doAsPrivileged(lc.getSubject(), rc, null);
         lc.logout();
         return rc;
