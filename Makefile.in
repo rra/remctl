@@ -69,7 +69,7 @@ dist: remctl.1 remctld.8
 	rm -f remctl-`cat VERSION`.tar.gz
 	mkdir remctl-`cat VERSION`
 	cp Makefile.in NEWS README VERSION config.h.in configure \
-	    configure.in gss-utils.c gss-utils.h install-sh remctl.1 \
+	    configure.ac gss-utils.c gss-utils.h install-sh remctl.1 \
 	    remctl.c remctl.pod remctld.8 remctld.c remctld.pod \
 	    snprintf.c vector.c vector.h remctl-`cat VERSION`/
 	mkdir remctl-`cat VERSION`/docs
