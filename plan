@@ -1,12 +1,11 @@
 TODO:
 
-- forwardable tickets?
-- [aclfile]+
-- anyuser
+- Forwardable not supported by mechanism!!!
+- update this design doc
 
 
 
-DOCUMENT:
+explain also that:
 host@server or service/type are different gssapi types:
 gss_nt_service_name              gss_nt_user_name
 

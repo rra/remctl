@@ -28,8 +28,7 @@ int WRITEFD = 1;
 void usage()
 {
      fprintf(stderr, "Usage: \n");
-     fprintf(stderr, "remctl [-p port] [-d] [-v] host remctl_service_name type service <arguments>\n");
-     fprintf(stderr, "       -d delegate (only works with a proxiable TGT)\n");
+     fprintf(stderr, "remctl [-p port] [-v] host remctl_service_name type service <arguments>\n");
      fprintf(stderr, "       -v verbose\n");
      fprintf(stderr, "       remctl_service_name is the K5 principal the remctld server runs under.\n");
  fprintf(stderr, "       It's format should be: service/instance or service/host.domain.edu\n");
@@ -45,7 +44,7 @@ static void parse_oid(char *mechanism, gss_OID *oid)
     OM_uint32 maj_stat, min_stat;
     
     if (isdigit(mechanism[0])) {
-	mechstr = malloc(strlen(mechanism)+5);
+	mechstr = smalloc(strlen(mechanism)+5);
 	if (!mechstr) {
 	    fprintf(stderr, "Couldn't allocate mechanism scratch!\n");
 	    return;
@@ -127,7 +126,6 @@ int connect_to_server(host, port)
  *
  * 	s		(r) an established TCP connection to the service
  * 	service_name	(r) the ASCII service name of the service
- *	deleg_flag	(r) GSS-API delegation flag (if any)
  *	auth_flag	(r) whether to actually do authentication
  *	oid		(r) OID of the mechanism to use
  * 	context		(w) the established GSS-API context
@@ -147,10 +145,8 @@ int connect_to_server(host, port)
  * unsuccessful, the GSS-API error messages are displayed on stderr
  * and -1 is returned.
  */
-int client_establish_context(service_name, deleg_flag, 
-			     gss_context, ret_flags)
+int client_establish_context(service_name, gss_context, ret_flags)
      char *service_name;
-     OM_uint32 deleg_flag;
      gss_ctx_id_t *gss_context;
      OM_uint32 *ret_flags;
 {
@@ -207,8 +203,7 @@ int client_establish_context(service_name, deleg_flag,
 				gss_context,
 				target_name,
 				oid,
-				GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG |
-				deleg_flag,
+				GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG,
 				0,
 				NULL,	/* no channel bindings */
 				token_ptr,
@@ -312,7 +307,7 @@ int process_response(context)
        return(-1);
      }
 
-     body = malloc(length*sizeof(char)+1);
+     body = smalloc(length*sizeof(char)+1);
      bcopy(cp, body, length);
      body[length] = '\0';
 
@@ -363,7 +358,7 @@ int process_request(context, argc, argv)
      }
      msglength += argc * sizeof(int);
 
-     msg = malloc(msglength * (sizeof(char)));
+     msg = smalloc(msglength * (sizeof(char)));
 
      mp = msg;
      cp = argv;
@@ -394,7 +389,7 @@ int main(argc, argv)
 {
      char *service_name, *server_host;
      u_short port = 4444;
-     OM_uint32 deleg_flag = 0, ret_flags, maj_stat, min_stat;
+     OM_uint32 ret_flags, maj_stat, min_stat;
      int s;
      gss_ctx_id_t context;
      gss_buffer_desc out_buf;
@@ -410,8 +405,6 @@ int main(argc, argv)
 	       port = atoi(*argv);
 	   } else if (strcmp(*argv, "-v") == 0) {
 	       verbose = 1;
-	   } else if (strcmp(*argv, "-d") == 0) {
-	       deleg_flag = GSS_C_DELEG_FLAG;
 	  } else 
 	       break;
 	  argc--; argv++;
@@ -432,8 +425,7 @@ int main(argc, argv)
      WRITEFD = s;
 
      /* Establish context */
-     if (client_establish_context(service_name, deleg_flag, &context, 
-				  &ret_flags) < 0) {
+     if (client_establish_context(service_name, &context, &ret_flags) < 0) {
 	  (void) close(s);
 	  return -1;
      }

@@ -41,16 +41,18 @@ int WRITEFD = 1;
 
 /* this is used for caching the conf file in memory after first reading it */
 typedef struct confline {
-  char* line;       /* this if for a particular line in the conf file */
+  /* this if for a particular line in the conf file */
+  char* line;
 
-  /* The following holds four strings:
+  /* The following holds these strings:
      0 type
      1 service
      2 full file name of the executable, corresponding to this type
-     3 full file name of the acl file that has the principals, authorized to
-       run this command
+     3..N full file names of the acl files that have the principals, authorized
+         to run this command
   */
-  char* elem[4];    
+  char** settings;
+
 } confline; 
 confline* confbuffer;
 int confsize;
@@ -339,7 +341,7 @@ int process_response(context, code, blob, bloblength)
 
   if (code == 0) { /* positive response */
 
-    msg = malloc((sizeof(int) + bloblength)*(sizeof(char)));
+    msg = smalloc((sizeof(int) + bloblength)*(sizeof(char)));
     msglength = bloblength + sizeof(int);
 
     bcopy(&bloblength, msg, sizeof(int));
@@ -349,7 +351,7 @@ int process_response(context, code, blob, bloblength)
 
   } else { /* negative response */
 
-    msg = malloc((2 * sizeof(int) + bloblength)*(sizeof(char)));
+    msg = smalloc((2 * sizeof(int) + bloblength)*(sizeof(char)));
     msglength = bloblength + 2 * sizeof(int);
 
     bcopy(&code, msg, sizeof(int));
@@ -422,7 +424,7 @@ int process_request(context, req_argc, req_argv)
 
      /* Now we actually know argc, and can populate the allocated argv */
 
-     *req_argv = malloc((argvsize+1) * sizeof(char*));
+     *req_argv = smalloc((argvsize+1) * sizeof(char*));
 
      cp = msg;
      (*req_argc) = 0;
@@ -437,7 +439,7 @@ int process_request(context, req_argc, req_argv)
 	 return(-1);
        }
 
-       (*req_argv)[*req_argc] = malloc(length+1);
+       (*req_argv)[*req_argc] = smalloc(length+1);
        bcopy(cp, (*req_argv)[*req_argc], length); cp+=length;
        (*req_argv)[*req_argc][length] = '\0';
 
@@ -484,7 +486,7 @@ int read_file(file_name, buf)
 	return(-2);
     }
 
-    if ((*buf = malloc(length+1)) == 0) {
+    if ((*buf = smalloc(length+1)) == 0) {
 	fprintf(log, "Couldn't allocate %d byte buffer for reading file\n",
 		length);
 	return(-2);
@@ -500,6 +502,7 @@ int read_file(file_name, buf)
 		count, length);
 
     (*buf)[length] = '\0';
+    close(fd);
 
     return(0);
 }
@@ -531,21 +534,24 @@ void read_conf_file(char* filename) {
   char* buf;
   char* word;
   char* line;
+  char* temp;
   int linenum;
   int wordnum;
-  int i = 0;
+  int i, j;
 
   read_file(filename, &buf);
 
   linenum = 0;
-  line = strtok (strdup(buf), "\n");
+  temp = strdup(buf);
+  line = strtok (temp, "\n");
   while (line != NULL) {
     if ((strlen(line) > 0) && (line[0] != '#'))
       linenum++;
     line = strtok (NULL, "\n");
   }
+  free(temp);
 
-  confbuffer = malloc(linenum * sizeof(confline));
+  confbuffer = smalloc(linenum * sizeof(confline));
   confsize = linenum;
 
   line = strtok (buf,"\n");
@@ -563,18 +569,41 @@ void read_conf_file(char* filename) {
 
   for(i=0; i<linenum; i++) {
     wordnum = 0;
-    word = strtok (strdup((*(confbuffer+i)).line), " ");
+    temp = strdup((*(confbuffer+i)).line);
+    word = strtok (temp, " ");
     while (word != NULL) {
-      (*(confbuffer+i)).elem[wordnum] = word;
       word = strtok (NULL, " ");
       wordnum++;
     }
-    if (wordnum != 4) {
+    free(temp);
+
+    if (wordnum < 4) {
       fprintf(log, "Parse error in the conf file on this line: %s\n", 
 	      (*(confbuffer+i)).line);
       exit(-1);
     }
+
+    /* the settings member needs to have pointers to type, service, executable,
+       1 or more aclfiles, and finally one more spot for the terminator. */
+    (*(confbuffer+i)).settings = smalloc((wordnum+1)*sizeof(char*));
+
+    (*(confbuffer+i)).settings[0] = strtok (strdup((*(confbuffer+i)).line), " ");
+    (*(confbuffer+i)).settings[1] = strtok (NULL, " ");
+    (*(confbuffer+i)).settings[2] = strtok (NULL, " ");
+
+    j=3;
+    word = strtok (NULL, " ");
+    do {
+      (*(confbuffer+i)).settings[j] = word;
+      word = strtok (NULL, " ");
+      j++;
+    } while (word != NULL);
+    (*(confbuffer+i)).settings[j] = 0;
+
+    (*(confbuffer+i)).line = 0;
   }
+
+  free(buf);
 
 }
 
@@ -587,7 +616,7 @@ void read_conf_file(char* filename) {
  * Arguments:
  *
  * 	userprincipal    (r) K5 principal in form   user@stanford.edu
- * 	aclfile	         (r) acl file filename
+ * 	settings	 (r) acl files are in this structure
  *
  * Returns: 0 on success, -1 on failure
  *
@@ -597,34 +626,49 @@ void read_conf_file(char* filename) {
  * empty lines and comments '#'
  *
  * */
-int acl_check(userprincipal, aclfile) 
+int acl_check(userprincipal, settings) 
      char* userprincipal;
-     char* aclfile;
+     char** settings;
 {
 
   char* buf;
   int buflen;
   char* line;
   int ret;
+  int authorized = 0;
+  int i;
 
-  if ((ret = read_file(aclfile, &buf, &buflen)) != 0)
-    return(ret);
+  i=3;
+  if (!strcmp(settings[i], "anyuser")) return(0);
 
-  line = strtok (buf,"\n");
-  while (line != NULL) {
-    if ((strlen(line) == 0) || (line[0] == '#')) {
-      line = strtok(NULL, "\n");
-      continue;
+  while(settings[i] != 0) {
+
+    if ((ret = read_file(settings[i], &buf, &buflen)) != 0)
+      return(ret);
+
+    line = strtok (buf,"\n");
+    while (line != NULL) {
+      if ((strlen(line) == 0) || (line[0] == '#')) {
+	line = strtok(NULL, "\n");
+	continue;
+      }
+
+      if (!strcmp(line, userprincipal)) {
+	authorized = 1;
+	break;
+      }
+
+      line = strtok (NULL, "\n");
     }
 
-    if (!strcmp(line, userprincipal)) 
-      return(0);
+    free(buf);
 
-    line = strtok (NULL, "\n");
+    if (authorized)
+      return(0);
+    else i++;
   }
 
   return(-1);
-
 }
 
 
@@ -679,7 +723,7 @@ int process_connection(server_creds)
 
   char* tempcommand;
   char* command;
-  char* aclfile;
+  char** settings;
   char* userprincipal;
   char* program;
   char* cp;
@@ -697,7 +741,7 @@ int process_connection(server_creds)
     return(-1);
 
   /* This is who just connected to us */
-  userprincipal = malloc(client_name.length * sizeof(char)+1);
+  userprincipal = smalloc(client_name.length * sizeof(char)+1);
   bcopy(client_name.value, userprincipal, client_name.length);
   userprincipal[client_name.length] = '\0';
 	 
@@ -730,13 +774,12 @@ int process_connection(server_creds)
 
   /*Lookup the command and the aclfile from the conf file structure in memory*/
   command = NULL;
-  aclfile = NULL;
   for (i=0; i<confsize; i++) {
-    if (!strcmp((*(confbuffer+i)).elem[0], req_argv[0])) {
-      if (!strcmp((*(confbuffer+i)).elem[1], "all") || 
-	  !strcmp((*(confbuffer+i)).elem[1], req_argv[1])) {
-	command = (*(confbuffer+i)).elem[2];
-	aclfile = (*(confbuffer+i)).elem[3];
+    if (!strcmp((*(confbuffer+i)).settings[0], req_argv[0])) {
+      if (!strcmp((*(confbuffer+i)).settings[1], "all") || 
+	  !strcmp((*(confbuffer+i)).settings[1], req_argv[1])) {
+	command = (*(confbuffer+i)).settings[2];
+	settings = (*(confbuffer+i)).settings;
 	break;
       }
     }
@@ -749,11 +792,8 @@ int process_connection(server_creds)
   if (command == NULL) {
     ret_code = -1;
     strcpy(ret_message, "Command not defined");
-  } else if (aclfile == NULL) {
-    ret_code = -1;
-    strcpy(ret_message, "Aclfile not defined");
   } else {
-    ret_code = acl_check(userprincipal, aclfile);
+    ret_code = acl_check(userprincipal, settings);
 
     if (ret_code == -1)
       sprintf(ret_message, "Access denied: %s principal not on the acl list", userprincipal);
@@ -770,7 +810,7 @@ int process_connection(server_creds)
 
     /* parse out the real program name, and splice it in as the first argument
        in argv passed to the command */
-    tempcommand = malloc(strlen(command)+1);
+    tempcommand = smalloc(strlen(command)+1);
     strcpy(tempcommand, command);
     cp = strtok (tempcommand,"/");
     while (cp != NULL) {
@@ -778,7 +818,7 @@ int process_connection(server_creds)
       cp = strtok (NULL, "/");
     }
     free(req_argv[0]);
-    req_argv[0] = malloc(strlen(program)+1);
+    req_argv[0] = smalloc(strlen(program)+1);
     strcpy(req_argv[0], program);
     free(tempcommand);
 

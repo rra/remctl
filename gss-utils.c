@@ -57,6 +57,19 @@ static void display_status_1
 	PROTOTYPE( (char *m, OM_uint32 code, int type) );
 
 
+
+void* smalloc(int size) {
+
+  void* temp;
+  if ((temp = malloc(size)) == NULL)
+    if (display_file) {
+      fprintf(display_file, "ERROR: Cannot allocate memory\n");
+      exit(-1);
+    }
+
+  return temp;
+}
+
 /*
  * Function: gss_sendmsg
  *
@@ -189,16 +202,15 @@ int gss_recvmsg(context, token_flags, msg, msglength)
 
      maj_stat = gss_unwrap(&min_stat, context, &xmit_buf, &msg_buf,
 			   &conf_state, (gss_qop_t *) NULL);
+     (void) gss_release_buffer(&min_stat, &xmit_buf);
 
      if (maj_stat != GSS_S_COMPLETE) {
        display_status("while unwrapping message", maj_stat, min_stat);
-       (void) gss_release_buffer(&min_stat, &xmit_buf);
        return(-1);
      } else if (! conf_state) { 
 
        if (display_file)
 	 fprintf(display_file, "Error in gss_recvmsg: Message not encrypted.\n");
-       (void) gss_release_buffer(&min_stat, &xmit_buf);
        return(-1);
      }
        
@@ -216,12 +228,14 @@ int gss_recvmsg(context, token_flags, msg, msglength)
      }
      
 
+     /* fill in the return value */
      *msg = malloc(msg_buf.length * sizeof(char));
      bcopy(msg_buf.value, *msg, msg_buf.length);
      *msglength = msg_buf.length;
 
+
      /* send back a MIC checksum */
-     
+    
      if (*token_flags & TOKEN_SEND_MIC) {
        /* Produce a signature block for the message */
        maj_stat = gss_get_mic(&min_stat, context, GSS_C_QOP_DEFAULT,

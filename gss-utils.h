@@ -32,6 +32,8 @@
 
 extern FILE *display_file;
 
+void* smalloc(int);
+
 int gss_sendmsg
         PROTOTYPE( (gss_ctx_id_t context, int flags, char* msg, int msglength) );
 
