@@ -528,14 +528,27 @@ read_two(int readfd1, int readfd2, void *buf1, void *buf2, size_t nbyte1,
     void *ptr1, *ptr2;
     ssize_t ret1, ret2;
     char tempbuf[MAXBUFFER];
+    int status, max;
+    fd_set readfds;
 
     ptr1 = buf1;
     ptr2 = buf2;
     ret1 = ret2 = 1;
 
-    while(ret1 != 0 || ret2 != 0) {
+    while (1) {
+        FD_ZERO(&readfds);
+        if (ret1 != 0)
+            FD_SET(readfd1, &readfds);
+        if (ret2 != 0)
+            FD_SET(readfd2, &readfds);
+        max = (readfd1 > readfd2) ? readfd1 : readfd2;
+        status = select(max + 1, &readfds, NULL, NULL, NULL);
+        if (status == 0)
+            continue;
+        if (status < 0)
+            return status;
 
-        if (ret1 != 0) {
+        if (FD_ISSET(readfd1, &readfds)) {
             if (nbyte1 != 0) {
                 if ((ret1 = read(readfd1, ptr1, nbyte1)) < 0) {
                     if ((errno != EINTR) && (errno != EAGAIN))
@@ -553,7 +566,7 @@ read_two(int readfd1, int readfd2, void *buf1, void *buf2, size_t nbyte1,
             }
         }
 
-        if (ret2 != 0) {
+        if (FD_ISSET(readfd2, &readfds)) {
             if (nbyte2 != 0) {
                 if ((ret2 = read(readfd2, ptr2, nbyte2)) < 0) {
                     if ((errno != EINTR) && (errno != EAGAIN))
@@ -678,11 +691,10 @@ print_token(gss_buffer_t tok)
 }
 
 
-    /*
-    **  Local variables:
-    **  mode: c
-    **  c-basic-offset: 4
-    **  indent-tabs-mode: nil
-    **  end:
-    */
-
+/*
+**  Local variables:
+**  mode: c
+**  c-basic-offset: 4
+**  indent-tabs-mode: nil
+**  end:
+*/
