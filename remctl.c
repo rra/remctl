@@ -316,6 +316,7 @@ int process_response(context)
      body[length] = '\0';
 
      printf("Message: %s\n", body);
+     free(msg);
 
      return(0);
 

@@ -405,6 +405,9 @@ int process_request(context, req_argc, req_argv)
      }
      (*req_argv)[*req_argc] = '\0';
 
+     /* was allocated in gss_recvmsg */
+     free(msg);
+
      if (log)
        fflush(log);
      
