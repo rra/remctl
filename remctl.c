@@ -25,7 +25,8 @@
 #include <gssapi/gssapi_generic.h>
 #include "gss-utils.h"
 
-int verbose = 0;
+int verbose;
+int use_syslog;
 
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver */
@@ -181,6 +182,7 @@ client_establish_context(service_name, gss_context, ret_flags)
     }
 
     if (send_token(TOKEN_NOOP | TOKEN_CONTEXT_NEXT, empty_token) < 0) {
+        fprintf(stderr, "Can't send initial token to server\n");
         (void)gss_release_name(&min_stat, &target_name);
         return -1;
     }
@@ -249,6 +251,7 @@ client_establish_context(service_name, gss_context, ret_flags)
             if (verbose)
                 printf("continue needed...");
             if (recv_token(&token_flags, &recv_tok) < 0) {
+                fprintf(stderr, "No token received from server\n");
                 (void)gss_release_name(&min_stat, &target_name);
                 return -1;
             }
@@ -318,7 +321,7 @@ process_response(context)
     if (length > MAXCMDLINE || length < 0)
         length = MAXCMDLINE;
     if (length > msglength) {
-        fprintf(stderr, "Data unpacking error\n");
+        fprintf(stderr, "Data unpacking error while processing response\n");
         exit(-1);
     }
 
@@ -417,7 +420,8 @@ main(argc, argv)
     gss_ctx_id_t context;
     gss_buffer_desc out_buf;
 
-    log = stdout;
+    verbose = 0;
+    use_syslog = 0;
 
     /* Parse arguments. */
     argc--;
@@ -460,6 +464,7 @@ main(argc, argv)
 
     /* Establish context */
     if (client_establish_context(service_name, &context, &ret_flags) < 0) {
+        fprintf(stderr, "Can't establish GSS-API context\n");
         (void)close(s);
         return -1;
     }
@@ -468,11 +473,15 @@ main(argc, argv)
     if (verbose)
         display_ctx_flags(ret_flags);
 
-    if (process_request(context, argc, argv) < 0)
+    if (process_request(context, argc, argv) < 0) {
+        fprintf(stderr, "Can't process request\n");
         exit(1);
+    }
 
-    if (process_response(context) < 0)
+    if (process_response(context) < 0) {
+        fprintf(stderr, "Can't process response\n");
         exit(1);
+    }
 
     /* Delete context */
     maj_stat = gss_delete_sec_context(&min_stat, &context, &out_buf);

@@ -16,8 +16,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-extern FILE *log;
-
 void* smalloc(int);
 void lowercase(char string[]);
 
@@ -31,6 +29,12 @@ int send_token
 	PROTOTYPE( (int flags, gss_buffer_t tok) );
 int recv_token
 	PROTOTYPE( (int *flags, gss_buffer_t tok) );
+
+static int write_all
+	PROTOTYPE( (char *buf, unsigned int nbyte) );
+static int read_all
+	PROTOTYPE( (char *buf, unsigned int nbyte) );
+
 void display_status
 	PROTOTYPE( (char *msg, OM_uint32 maj_stat, OM_uint32 min_stat) );
 void display_ctx_flags

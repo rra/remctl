@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
+#include <syslog.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -28,9 +29,8 @@
 #include <gssapi/gssapi_generic.h>
 #include "gss-utils.h"
 
-FILE *log;
-
-int verbose = 0;
+int verbose;
+int use_syslog;
 
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver */
@@ -55,46 +55,23 @@ typedef struct confline {
 confline *confbuffer;
 int confsize;
 
-/* This is used for all error and debugging printouts. It directs the output
-   to whatever log is set to, which is either stdout, a file, or NULL, in 
-   which case the program is in "quiet" mode. */
-static void write_log(const char* fmt, ...) {
-    time_t    timevar;
-    char*     timestr;
-    va_list ap;
-    
-    if (log == NULL) 
-        return;
-    
-    va_start(ap, fmt);
-    
-    timevar = time(NULL);
-    timestr = ctime(&timevar);
-    timestr[strlen(timestr)-1]='\0';
-    
-    fprintf(log,"[%s] ",timestr);
-    vfprintf(log, fmt, ap);
-    fflush(log);
-    
-    va_end(ap);
-
-}
-
 
 void
 usage()
 {
     fprintf(stderr, "Usage: remctld <options> hostname\nOptions:");
     fprintf(stderr, 
-            "\n\t[-conf conffile] the default is ./remctl.conf");
+            "\n\t-f conffile      the default is ./remctl.conf");
     fprintf(stderr, 
-            "\n\t[-logfile file]  all output to this file (including stderr)");
+            "\n\t-v               debugging level of output");
     fprintf(stderr, 
-            "\n\t[-verbose]       print debugging output to logfile or stdout");
+            "\n\t-s               standalone mode");
     fprintf(stderr, 
-            "\n\t[-standalone]    listen to a socket");
-    fprintf(stderr, 
-            "\n\t[-port port]     only for standalone mode. default 4444\n");
+            "\n\t-p port          only for standalone mode. default 4444\n");
+
+    syslog(LOG_ERR, "%s%s", "Usage: remctld <options> hostname  ",
+           "(run on command line for options)");
+
     exit(1);
 }
 
@@ -192,7 +169,7 @@ server_establish_context(server_creds, context, client_name, ret_flags)
 
     (void)gss_release_buffer(&min_stat, &recv_tok);
     if (!(token_flags & TOKEN_NOOP)) {
-        write_log("Expected NOOP token, got %d token instead\n",
+        syslog(LOG_ERR, "Expected NOOP token, got %d token instead\n",
                     token_flags);
         return -1;
     }
@@ -205,7 +182,7 @@ server_establish_context(server_creds, context, client_name, ret_flags)
                 return -1;
 
             if (verbose) {
-                write_log("Received token (size=%d): \n", recv_tok.length);
+                syslog(LOG_DEBUG, "Received token (size=%d): \n", recv_tok.length);
                 print_token(&recv_tok);
             }
 
@@ -226,12 +203,12 @@ server_establish_context(server_creds, context, client_name, ret_flags)
 
             if (send_tok.length != 0) {
                 if (verbose) {
-                    write_log("Sending accept_sec_context token (size=%d):\n",
+                    syslog(LOG_DEBUG,"Sending accept_sec_context token (size=%d):\n",
                               send_tok.length);
                     print_token(&send_tok);
                 }
                 if (send_token(TOKEN_CONTEXT, &send_tok) < 0) {
-                    write_log("failure sending token\n");
+                    syslog(LOG_ERR, "failure sending token\n");
                     return -1;
                 }
 
@@ -249,14 +226,14 @@ server_establish_context(server_creds, context, client_name, ret_flags)
 
             if (verbose) {
                 if (maj_stat == GSS_S_CONTINUE_NEEDED)
-                    write_log("continue needed...\n");
+                    syslog(LOG_DEBUG,"continue needed...\n");
                 else
-                    write_log("\n");
+                    syslog(LOG_DEBUG,"\n");
             }
         } while (maj_stat == GSS_S_CONTINUE_NEEDED);
 
 
-        if (verbose && log) {
+        if (verbose) {
             display_ctx_flags(*ret_flags);
 
             maj_stat = gss_oid_to_str(&min_stat, doid, &oid_name);
@@ -265,7 +242,7 @@ server_establish_context(server_creds, context, client_name, ret_flags)
                                min_stat);
                 return -1;
             }
-            write_log("Accepted connection using mechanism OID %.*s.\n",
+            syslog(LOG_DEBUG,"Accepted connection using mechanism OID %.*s.\n",
                       (int)oid_name.length, (char *)oid_name.value);
             (void)gss_release_buffer(&min_stat, &oid_name);
         }
@@ -282,7 +259,7 @@ server_establish_context(server_creds, context, client_name, ret_flags)
         }
     } else {
         client_name->length = *ret_flags = 0;
-        write_log("Accepted unauthenticated connection.\n");
+        syslog(LOG_DEBUG,"Accepted unauthenticated connection.\n");
     }
 
     return 0;
@@ -457,7 +434,7 @@ process_request(context, req_argc, req_argv, ret_message, ret_length)
         if (length > msglength) {
             strcpy (ret_message, 
                     "Data unpacking error in getting number of arguments\n");
-            write_log(ret_message);
+            syslog(LOG_DEBUG, ret_message);
             *ret_length = strlen(ret_message);
             return(-1);
         }
@@ -485,7 +462,7 @@ process_request(context, req_argc, req_argv, ret_message, ret_length)
         if (length > msglength) {
             strcpy (ret_message, 
                     "Data unpacking error in getting arguments\n");
-            write_log(ret_message);
+            syslog(LOG_DEBUG, ret_message);
             *ret_length = strlen(ret_message);
             return(-1);
         }
@@ -537,19 +514,19 @@ read_file(file_name, buf)
     }
 
     if ((*buf = smalloc(length + 1)) == 0) {
-        write_log("Couldn't allocate %d byte buffer for reading file\n",
+        syslog(LOG_ERR, "Couldn't allocate %d byte buffer for reading file\n",
                   length);
         return (-2);
     }
 
     count = read(fd, *buf, length);
     if (count < 0) {
-        write_log("Problem during read\n");
+        syslog(LOG_ERR, "Problem during read\n");
         return (-2);
     }
     if (count < length)
-        write_log("Warning, only read in %d bytes, expected %d\n",
-                  count, length);
+        syslog(LOG_ERR, "Warning, only read in %d bytes, expected %d\n",
+               count, length);
 
     (*buf)[length] = '\0';
     close(fd);
@@ -579,7 +556,7 @@ read_file(file_name, buf)
  * declaration on top of this file details the fields. 
  *
  * */
-void
+int
 read_conf_file(char *filename)
 {
 
@@ -589,9 +566,11 @@ read_conf_file(char *filename)
     char *temp;
     int linenum;
     int wordnum;
-    int i, j;
+    int i, j, ret;
 
-    read_file(filename, &buf);
+    if ((ret = read_file(filename, &buf)) != 0) {
+        return(ret);
+    }
 
     linenum = 0;
     temp = strdup(buf);
@@ -630,9 +609,9 @@ read_conf_file(char *filename)
         free(temp);
 
         if (wordnum < 4) {
-            write_log("Parse error in the conf file on this line: %s\n",
+            syslog(LOG_ERR, "Parse error in the conf file on this line: %s\n",
                       (*(confbuffer + i)).line);
-            exit(-1);
+            return(-1);
         }
 
         /* The settings member needs to have pointers to type, service,
@@ -659,6 +638,7 @@ read_conf_file(char *filename)
     }
 
     free(buf);
+    return(0);
 
 }
 
@@ -688,7 +668,6 @@ acl_check(userprincipal, settings)
 {
 
     char *buf;
-    int buflen;
     char *line;
     int ret;
     int authorized = 0;
@@ -700,7 +679,7 @@ acl_check(userprincipal, settings)
 
     while (settings[i] != 0) {
 
-        if ((ret = read_file(settings[i], &buf, &buflen)) != 0)
+        if ((ret = read_file(settings[i], &buf)) != 0)
             return (ret);
 
         line = strtok(buf, "\n");
@@ -781,18 +760,16 @@ process_command(req_argc, req_argv, userprincipal, ret_message, ret_length)
     int ret_code;
     int i;
 
-    if (verbose) {
-	strcpy(tmp_message, "\nCOMMAND: ");
-        i = 0;
-        while (req_argv[i] != '\0') {
-            strcat(tmp_message, req_argv[i]);
-            strcat(tmp_message, " ");
-            i++;
-        }
-        strcat(tmp_message, "\n");
 
-        write_log(tmp_message);
+    strcpy(tmp_message, "COMMAND: ");
+    i = 0;
+    while (req_argv[i] != '\0') {
+        strcat(tmp_message, req_argv[i]);
+        strcat(tmp_message, " ");
+        i++;
     }
+    strcat(tmp_message, "\n");
+    syslog(LOG_INFO,tmp_message);
 
 
     /* Lookup the command and the aclfile from the conf file structure in
@@ -820,7 +797,7 @@ process_command(req_argc, req_argv, userprincipal, ret_message, ret_length)
         ret_code = acl_check(userprincipal, settings);
 
         if (ret_code == -1)
-            sprintf(ret_message,
+            snprintf(ret_message, MAXCMDLINE,
                     "Access denied: %s principal not on the acl list",
                     userprincipal);
         else if (ret_code == -2)
@@ -851,16 +828,16 @@ process_command(req_argc, req_argv, userprincipal, ret_message, ret_length)
         /* These pipes are used for communication with the child process that 
            actually runs the command */
         if (pipe(stdout_pipe) != 0 || pipe(stderr_pipe) != 0) {
-            write_log("Can't create pipes\n");
             strcpy(ret_message, "Can't create pipes\n");
+            syslog(LOG_ERR, ret_message);
             *ret_length = strlen(ret_message);
             exit(-1);
         }
 
         switch (fork()) {
         case -1:
-            write_log("Can't fork\n");
             strcpy(ret_message, "Can't fork\n");
+            syslog(LOG_ERR, ret_message);
             *ret_length = strlen(ret_message);
             return(-1);
 
@@ -982,14 +959,12 @@ process_connection(server_creds)
     userprincipal[client_name.length] = '\0';
 
     if (context == GSS_C_NO_CONTEXT) {
-        write_log("Unauthenticated connection.\n");
+        syslog(LOG_ERR, "Unauthenticated connection.\n");
         return (-1);
     }
 
-    if (verbose) {
-        write_log("Accepted connection: \"%.*s\"\n",
-                  (int)client_name.length, (char *)client_name.value);
-    }
+    syslog(LOG_INFO, "Accepted connection from \"%.*s\"\n",
+           (int)client_name.length, (char *)client_name.value);
     
     (void)gss_release_buffer(&min_stat, &client_name);
 
@@ -1051,34 +1026,34 @@ main(argc, argv)
     int do_standalone = 0;
     int stmp;
     char *conffile = "remctl.conf";
-    char *logfile = NULL;
+
+    verbose = 0;
+    use_syslog = 1;
 
     /* Since we are called from tcpserver, prevent clients from holding on to 
        us forever, and die after an hour */
     alarm(60 * 60);
+    openlog("remctld", LOG_PID | LOG_NDELAY, LOG_DAEMON);
 
-    log = stdout;
     argc--;
     argv++;
     while (argc) {
-        if (strcmp(*argv, "-port") == 0) {
+        if (strcmp(*argv, "-p") == 0) {
             argc--;
             argv++;
             if (!argc)
                 usage();
             port = atoi(*argv);
-        } else if (strcmp(*argv, "-verbose") == 0) {
+        } else if (strcmp(*argv, "-v") == 0) {
             verbose = 1;
-        } else if (strcmp(*argv, "-conf")    == 0) {
-            conffile = *argv;
-        } else if (strcmp(*argv, "-standalone")   == 0) {
-            do_standalone = 1;
-        } else if (strcmp(*argv, "-logfile") == 0) {
+        } else if (strcmp(*argv, "-f")    == 0) {
             argc--;
             argv++;
             if (!argc)
                 usage();
-            logfile = *argv;
+            conffile = *argv;
+        } else if (strcmp(*argv, "-s")   == 0) {
+            do_standalone = 1;
         } else
             break;
         argc--;
@@ -1090,25 +1065,13 @@ main(argc, argv)
     if ((*argv)[0] == '-')
         usage();
 
-    if (logfile != NULL) {
-        log = fopen(logfile, "w");
-        if (!log) {
-            perror(logfile);
-            exit(1);
-        }
-
-        if (verbose) {
-            write_log("starting logfile\n");
-            write_log("===========================================\n");
-        }
-    } else if (do_standalone == 0 && log == stdout)
-        log = NULL; /* This prevents spewing log messages all over the
-                       network connection */
-
-    read_conf_file(conffile);
+    if (read_conf_file(conffile) != 0) {
+        syslog(LOG_ERR, "%s%m\n", "Can't read conf file: ");
+        exit(1);
+    }
 
     if ((hostinfo = gethostbyname(*argv)) == NULL) {
-        write_log("Can't resolve given hostname\n");
+        syslog(LOG_ERR, "%s%s\n", "Can't resolve given hostname: ", *argv);
         exit(1);
     }
 
@@ -1118,7 +1081,7 @@ main(argc, argv)
     strcat(service_name, hostinfo->h_name);
 
     if (verbose)
-        write_log("service_name: %s\n", service_name);
+        syslog(LOG_DEBUG, "service_name: %s\n", service_name);
 
     /* This specifies the service name, checks out the keytab, etc */
     if (server_acquire_creds(service_name, &server_creds) < 0)

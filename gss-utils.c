@@ -14,12 +14,12 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <time.h>
+#include <syslog.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <string.h>
 #include <netdb.h>
-#include <stdarg.h>
 
 #include <gssapi/gssapi_generic.h>
 #include "gss-utils.h"
@@ -30,12 +30,14 @@
 extern char *malloc();
 #endif
 
+/* This is specified in main()
+   0 - Don't use syslog, use stdout and stderr
+   1 - Use syslog */
+extern int use_syslog;
 extern int verbose;
 
 extern int READFD;
 extern int WRITEFD;
-
-FILE *log;
 
 gss_buffer_desc empty_token_buf = { 0, (void *)"" };
 gss_buffer_t empty_token = &empty_token_buf;
@@ -46,28 +48,27 @@ static void display_status_1 PROTOTYPE((char *m, OM_uint32 code, int type));
    to whatever log is set to, which is either stdout, a file, or NULL, in which
    case the program is in "quiet" mode. */
 static void 
-write_log(const char* fmt, ...) {
-    va_list ap;
-    
-    if (log == NULL) 
-        return;
-    
-    va_start(ap, fmt);
-    vfprintf(log, fmt, ap);
-    fflush(log);
-    
-    va_end(ap);
+write_log(int priority, char message[]) {
 
+    if (use_syslog == 1) {
+        syslog(priority, message);
+    } else {
+
+        if (priority == LOG_DEBUG)
+            fprintf(stdout, message);
+        else if (priority == LOG_ERR)
+            fprintf(stderr, message);
+
+    }
 }
 
-/* Must be a brainfart... i can't remember if there's an ANSI library function 
-   to do this...  blah*/
+/* Hmm.. still no ANSI library function to do this...  blah*/
 void 
 lowercase(char string[])
 {
     int i = 0;
     
-    while (string[i]) {
+    while (string[i] != NULL) {
         string[i] = tolower(string[i]);
         i++;
     }
@@ -83,7 +84,7 @@ smalloc(int size)
     void *temp;
 
     if ((temp = malloc(size)) == NULL) {
-        write_log("ERROR: Cannot allocate memory\n");
+        write_log(LOG_ERR, "ERROR: Cannot allocate memory\n");
         exit(-1);
     }
 
@@ -139,7 +140,7 @@ gss_sendmsg(context, flags, msg, msglength)
         (void)gss_delete_sec_context(&min_stat, &context, GSS_C_NO_BUFFER);
         return -1;
     } else if (!state) {
-        write_log("Error in gss_sendmsg: Message not encrypted.\n");
+        write_log(LOG_ERR, "Error in gss_sendmsg: Message not encrypted.\n");
         return -1;
     }
 
@@ -212,6 +213,7 @@ gss_recvmsg(context, token_flags, msg, msglength)
     OM_uint32 maj_stat, min_stat;
     int conf_state;
     char *cp;
+    char tempbuf[MAXCMDLINE];
 
     /* Receive the message token */
     if (recv_token(token_flags, &xmit_buf) < 0)
@@ -230,19 +232,20 @@ gss_recvmsg(context, token_flags, msg, msglength)
         return (-1);
     } else if (!conf_state) {
 
-        write_log("Error in gss_recvmsg: Message not encrypted.\n");
+        write_log(LOG_ERR, "Error in gss_recvmsg: Message not encrypted.\n");
         return (-1);
     }
 
 
     if (verbose) {
-        write_log("Received message: ");
+        write_log(LOG_DEBUG, "Received message: ");
         cp = msg_buf.value;
         if ((isprint(cp[0]) || isspace(cp[0])) &&
             (isprint(cp[1]) || isspace(cp[1]))) {
-            write_log("\"%.*s\"\n", (int)msg_buf.length,(char *)msg_buf.value);
+            snprintf(tempbuf, MAXCMDLINE, "\"%.*s\"\n", 
+                    (int)msg_buf.length, (char *)msg_buf.value);
+            write_log(LOG_DEBUG, tempbuf);
         } else {
-            write_log("\n");
             print_token(&msg_buf);
         }
     }
@@ -270,7 +273,7 @@ gss_recvmsg(context, token_flags, msg, msglength)
             return (-1);
 
         if (verbose)
-            write_log("MIC signature sent\n");
+            write_log(LOG_DEBUG, "MIC signature sent\n");
 
         (void)gss_release_buffer(&min_stat, &xmit_buf);
     }
@@ -309,10 +312,11 @@ send_token(flags, tok)
 {
     int len, ret;
     unsigned char char_flags = (unsigned char)flags;
+    char tempbuf[100];
 
     ret = write_all((char *)&char_flags, 1);
     if (ret != 1) {
-        write_log("sending token flags");
+        write_log(LOG_ERR, "Error while sending token flags\n");
         return -1;
     }
 
@@ -320,20 +324,25 @@ send_token(flags, tok)
 
     ret = write_all((char *)&len, 4);
     if (ret < 0) {
-        write_log("sending token length");
+        write_log(LOG_ERR, "Error while sending token length\n");
         return -1;
     } else if (ret != 4) {
-        write_log("sending token length: %d of %d bytes written\n", ret, 4);
+        snprintf(tempbuf, 100, 
+                 "sending token length: only %d of %d bytes written\n", 
+                 ret, 4);
+        write_log(LOG_ERR, tempbuf);
         return -1;
     }
 
     ret = write_all(tok->value, tok->length);
     if (ret < 0) {
-        write_log("sending token data");
+        write_log(LOG_ERR, "Error while sending token data\n");
         return -1;
     } else if (ret != tok->length) {
-        write_log("sending token data: %d of %d bytes written\n",
-                  ret, tok->length);
+        snprintf(tempbuf, 100,  
+                 "sending token data: only %d of %d bytes written\n",
+                 ret, tok->length);
+        write_log(LOG_ERR, tempbuf);
         return -1;
     }
 
@@ -370,13 +379,14 @@ recv_token(flags, tok)
 {
     int ret;
     unsigned char char_flags;
+    char tempbuf[100];
 
     ret = read_all((char *)&char_flags, 1);
     if (ret < 0) {
-            write_log("reading token flags");
+            write_log(LOG_ERR, "reading token flags\n");
         return -1;
     } else if (!ret) {
-        write_log("reading token flags: 0 bytes read\n");
+        write_log(LOG_ERR, "reading token flags: 0 bytes read\n");
         return -1;
     } else {
         *flags = (int)char_flags;
@@ -384,28 +394,32 @@ recv_token(flags, tok)
 
     ret = read_all((char *)&tok->length, 4);
     if (ret < 0) {
-        write_log("reading token length");
+        write_log(LOG_ERR, "Error while reading token length\n");
         return -1;
     } else if (ret != 4) {
-        write_log("reading token length: %d of %d bytes read\n", ret, 4);
+        snprintf(tempbuf, 100, "reading token length: %d of %d bytes read\n", 
+                 ret, 4);
+        write_log(LOG_ERR, tempbuf);
         return -1;
     }
 
     tok->length = ntohl(tok->length);
     tok->value = (char *)malloc(tok->length);
     if (tok->length && tok->value == NULL) {
-        write_log("Out of memory allocating token data\n");
+        write_log(LOG_ERR, "Out of memory allocating token data\n");
         return -1;
     }
 
     ret = read_all((char *)tok->value, tok->length);
     if (ret < 0) {
-        write_log("reading token data");
+        write_log(LOG_ERR, "Error while reading token data");
         free(tok->value);
         return -1;
     } else if (ret != tok->length) {
-        write_log("sending token data: %d of %d bytes written\n", ret,
-                  tok->length);
+        snprintf(tempbuf, 100, 
+                 "sending token data: only %d of %d bytes written\n",
+                 ret, tok->length);
+        write_log(LOG_ERR, tempbuf);
         free(tok->value);
         return -1;
     }
@@ -491,13 +505,14 @@ display_status_1(m, code, type)
     OM_uint32 maj_stat, min_stat;
     gss_buffer_desc msg;
     OM_uint32 msg_ctx;
+    char tempbuf[1000];
 
     msg_ctx = 0;
     while (1) {
         maj_stat = gss_display_status(&min_stat, code,
                                       type, GSS_C_NULL_OID, &msg_ctx, &msg);
-        write_log("GSS-API error %s: %s\n", m,
-                  (char *)msg.value);
+        snprintf(tempbuf, 1000, "GSS-API error %s: %s\n", m,(char *)msg.value);
+        write_log(LOG_ERR, tempbuf);
         (void)gss_release_buffer(&min_stat, &msg);
 
         if (!msg_ctx)
@@ -553,21 +568,18 @@ display_ctx_flags(flags)
      OM_uint32 flags;
 {
 
-    if (!log)
-        return;
-
     if (flags & GSS_C_DELEG_FLAG)
-        write_log("context flag: GSS_C_DELEG_FLAG\n");
+        write_log(LOG_DEBUG, "context flag: GSS_C_DELEG_FLAG\n");
     if (flags & GSS_C_MUTUAL_FLAG)
-        write_log("context flag: GSS_C_MUTUAL_FLAG\n");
+        write_log(LOG_DEBUG, "context flag: GSS_C_MUTUAL_FLAG\n");
     if (flags & GSS_C_REPLAY_FLAG)
-        write_log("context flag: GSS_C_REPLAY_FLAG\n");
+        write_log(LOG_DEBUG, "context flag: GSS_C_REPLAY_FLAG\n");
     if (flags & GSS_C_SEQUENCE_FLAG)
-        write_log("context flag: GSS_C_SEQUENCE_FLAG\n");
+        write_log(LOG_DEBUG, "context flag: GSS_C_SEQUENCE_FLAG\n");
     if (flags & GSS_C_CONF_FLAG)
-        write_log("context flag: GSS_C_CONF_FLAG \n");
+        write_log(LOG_DEBUG, "context flag: GSS_C_CONF_FLAG \n");
     if (flags & GSS_C_INTEG_FLAG)
-        write_log("context flag: GSS_C_INTEG_FLAG \n");
+        write_log(LOG_DEBUG, "context flag: GSS_C_INTEG_FLAG \n");
 }
 
 void
@@ -576,17 +588,18 @@ print_token(tok)
 {
     int i;
     unsigned char *p = tok->value;
-
-    if (!log)
-        return;
+    char tempsymb[4];
+    char tempbuf[MAXCMDLINE] = "";
 
     for (i = 0; i < tok->length; i++, p++) {
-        write_log("%02x ", *p);
+        snprintf(tempsymb, 4, "%02x ", *p);
+        strncat(tempbuf, tempsymb, 4);
         if ((i % 16) == 15) {
-            write_log("\n");
+            strcat(tempbuf, "\n");
         }
     }
-    write_log("\n");
+    strcat(tempbuf, "\n");
+    write_log(LOG_DEBUG, tempbuf);
 }
 
 
