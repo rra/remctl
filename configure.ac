@@ -1,5 +1,10 @@
-AC_INIT(remctld.c)
+dnl Process this file with autoconf to produce a configure script.
+dnl $Id$
+
+AC_REVISION($Revision$)
 AC_PREREQ(2.57)
+AC_INIT([remctl], [1.7], [rra@stanford.edu])
+
 AC_PROG_CC
 AC_PROG_INSTALL
 
