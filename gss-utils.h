@@ -27,9 +27,10 @@ int gss_recvmsg(gss_ctx_id_t context, int* token_flags, char** msg, OM_uint32* m
 int send_token(int flags, gss_buffer_t tok);
 int recv_token(int *flags, gss_buffer_t tok);
 
-int write_all(int fd, const void *buffer, size_t size);
-int read_all(int fd, void *buffer, size_t size);
-int read_two(int readfd1, int readfd2, void *buf1, void *buf2, unsigned int nbyte1, unsigned int nbyte2);
+ssize_t write_all(int fd, const void *buffer, size_t size);
+ssize_t read_all(int fd, void *buffer, size_t size);
+ssize_t read_two(int readfd1, int readfd2, void *buf1, void *buf2,
+                 size_t nbyte1, size_t nbyte2);
 void display_status(char *msg, OM_uint32 maj_stat, OM_uint32 min_stat);
 void display_ctx_flags(OM_uint32 flags);
 void print_token(gss_buffer_t tok);
