@@ -729,8 +729,8 @@ process_command(struct vector *argvector, char *userprincipal,
 {
     char *command;
     char *program;
-    char **acls;
-    struct confline* cline;
+    char **acls = NULL;
+    struct confline *cline = NULL;
     int stdout_pipe[2];
     int stderr_pipe[2];
     char **req_argv;
