@@ -1,10 +1,12 @@
                        User-Visible remctl Changes
 
-remctl 1.4 (2003-09-05)
+remctl 1.4 (2003-11-12)
 
     Add support for a logmask=n option in the configuration file that
     masks those arguments in the logging output (used when some of the
     options for that command contain private information).
+
+    Added optimizations in the GSS code to do fewer network writes.
 
     Significant improvements to the Java client.
 
