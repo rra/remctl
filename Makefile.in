@@ -53,11 +53,11 @@ distclean: clean
 	rm -f Makefile config.h config.cache config.log config.status remctl.1 remctld.8
 
 install: remctld remctl remctld.8 remctl.1
-	$(INSTALL) -d $(bindir) $(sbindir)
+	$(INSTALL) -d $(bindir) $(sbindir) $(mandir)/man1 $(mandir)/man8
 	$(INSTALL_PROGRAM) remctl $(bindir)/remctl
 	$(INSTALL_PROGRAM) remctld $(sbindir)/remctld
 	$(INSTALL_DATA) $(srcdir)/remctl.1 $(mandir)/man1/remctl.1
-	$(INSTALL_DATA) $(srcdir)/remctld.8 $(mandir)/man1/remctld.1
+	$(INSTALL_DATA) $(srcdir)/remctld.8 $(mandir)/man8/remctld.1
 
 remctl.1: remctl.pod
 	pod2man --release=`cat VERSION` --center="User Commands" $< > $@
