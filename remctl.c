@@ -42,7 +42,6 @@
 #include "gss-utils.h"
 
 int verbose = 0;
-int INETD = 0;
 int READFD = 0;
 int WRITEFD = 1;
 
@@ -433,7 +432,6 @@ int main(argc, argv)
      if ((s = connect_to_server(server_host, port)) < 0)
 	  return -1;
 
-     INETD = 0;
      READFD = s;
      WRITEFD = s;
 

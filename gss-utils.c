@@ -45,7 +45,6 @@ extern char *malloc();
 
 extern int verbose;
 
-extern int INETD;
 extern int READFD;
 extern int WRITEFD;
 
@@ -91,10 +90,10 @@ int gss_sendmsg(context, flags, msg, msglength)
 
        /* Send to server */
      if (send_token((flags | TOKEN_SEND_MIC), &out_buf) < 0) {
-	 (void) close(WRITEFD);
-	 (void) gss_delete_sec_context(&min_stat, &context, GSS_C_NO_BUFFER);
-	 return -1;
-       }
+       (void) close(WRITEFD);
+       (void) gss_delete_sec_context(&min_stat, &context, GSS_C_NO_BUFFER);
+       return -1;
+     }
 
      (void) gss_release_buffer(&min_stat, &out_buf);
 
@@ -162,7 +161,7 @@ int gss_recvmsg(context, token_flags, msg, msglength)
        cp = msg_buf.value;
        if ((isprint(cp[0]) || isspace(cp[0])) &&
 	   (isprint(cp[1]) || isspace(cp[1]))) {
-	 fprintf(display_file, "\"%.*s\"\n", msg_buf.length, msg_buf.value);
+	 fprintf(display_file, "\"%.*s\"\n", (int)msg_buf.length, (char*)msg_buf.value);
        } else {
 	 fprintf(display_file, "\n");
 	 print_token(&msg_buf);
@@ -196,6 +195,9 @@ int gss_recvmsg(context, token_flags, msg, msglength)
      }
 
      (void) gss_release_buffer(&min_stat, &msg_buf);
+
+     return(0);
+
 }
 
 /*
@@ -228,7 +230,7 @@ int send_token(flags, tok)
 
      ret = write_all((char *)&char_flags, 1);
      if (ret != 1) {
-       perror("sending token flags");
+       if (display_file) fprintf(display_file, "sending token flags");
        return -1;
      }
 
@@ -236,7 +238,7 @@ int send_token(flags, tok)
 
      ret = write_all((char *) &len, 4);
      if (ret < 0) {
-	  perror("sending token length");
+	  if (display_file) fprintf(display_file, "sending token length");
 	  return -1;
      } else if (ret != 4) {
 	 if (display_file)
@@ -248,7 +250,7 @@ int send_token(flags, tok)
 
      ret = write_all(tok->value, tok->length);
      if (ret < 0) {
-	  perror("sending token data");
+	  if (display_file) fprintf(display_file, "sending token data");
 	  return -1;
      } else if (ret != tok->length) {
 	 if (display_file)
@@ -293,7 +295,7 @@ int recv_token(flags, tok)
 
      ret = read_all((char *) &char_flags, 1);
      if (ret < 0) {
-       perror("reading token flags");
+       if (display_file) fprintf(display_file, "reading token flags");
        return -1;
      } else if (! ret) {
        if (display_file)
@@ -305,7 +307,7 @@ int recv_token(flags, tok)
 
      ret = read_all((char *) &tok->length, 4);
      if (ret < 0) {
-	  perror("reading token length");
+	  if (display_file) fprintf(display_file, "reading token length");
 	  return -1;
      } else if (ret != 4) {
 	 if (display_file)
@@ -326,7 +328,7 @@ int recv_token(flags, tok)
 
      ret = read_all((char *) tok->value, tok->length);
      if (ret < 0) {
-	  perror("reading token data");
+	  if (display_file) fprintf(display_file, "reading token data");
 	  free(tok->value);
 	  return -1;
      } else if (ret != tok->length) {
@@ -350,10 +352,7 @@ static int write_all(char *buf, unsigned int nbyte)
 
      for (ptr = buf; nbyte; ptr += ret, nbyte -= ret) {
 
-       if (INETD) 
-	 ret = write(WRITEFD, ptr, nbyte);
-       else
-	 ret = send(WRITEFD, ptr, nbyte, 0);
+       ret = write(WRITEFD, ptr, nbyte);
 
 	  if (ret < 0) {
 	       if (errno == EINTR)
@@ -374,10 +373,7 @@ static int read_all(char *buf, unsigned int nbyte)
 
      for (ptr = buf; nbyte; ptr += ret, nbyte -= ret) {
 
-       if (INETD) 
-	 ret = read(READFD, ptr, nbyte);
-       else
-	 ret = recv(READFD, ptr, nbyte, 0);
+       ret = read(READFD, ptr, nbyte);
 
 	  if (ret < 0) {
 	       if (errno == EINTR)

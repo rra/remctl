@@ -1,24 +1,3 @@
-/*
- * Copyright 1994 by OpenVision Technologies, Inc.
- * 
- * Permission to use, copy, modify, distribute, and sell this software
- * and its documentation for any purpose is hereby granted without fee,
- * provided that the above copyright notice appears in all copies and
- * that both that copyright notice and this permission notice appear in
- * supporting documentation, and that the name of OpenVision not be used
- * in advertising or publicity pertaining to distribution of the software
- * without specific, written prior permission. OpenVision makes no
- * representations about the suitability of this software for any
- * purpose.  It is provided "as is" without express or implied warranty.
- * 
- * OPENVISION DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL OPENVISION BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
- * USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */
 
 #include <stdio.h>
 #ifdef _WIN32
@@ -53,13 +32,25 @@
 FILE *log;
 
 int verbose = 0;
-int INETD = 0;
+
+/* these are for storing either the socket for communication with client
+   or the streams that talk to the network in case of inetd/tcpserver */
 int READFD = 0;
 int WRITEFD = 1;
 
+
+/* this is used for caching the conf file in memory after first reading it */
 typedef struct confline {
-  char* line;
-  char* elem[4];
+  char* line;       /* this if for a particular line in the conf file */
+
+  /* The following holds four strings:
+     0 type
+     1 service
+     2 full file name of the executable, corresponding to this type
+     3 full file name of the acl file that has the principals, authorized to
+       run this command
+  */
+  char* elem[4];    
 } confline; 
 confline* confbuffer;
 int confsize;
@@ -67,8 +58,8 @@ int confsize;
 
 void usage()
 {
-     fprintf(stderr, "Usage: remctl [-port port] [-verbose] \n");
-     fprintf(stderr, "       [-logfile file] [service_name]\n");
+     fprintf(stderr, "Usage: remctl [-port port] [-verbose] [-inetd]\n");
+     fprintf(stderr, "       [-logfile file] [-conf conffile] [service_name]\n");
      exit(1);
 }
 
@@ -353,32 +344,6 @@ int process_response(context, code, blob, bloblength)
 
 
 
-/*
- * Function: sign_server
- *
- * Purpose: Performs the "sign" service.
- *
- * Arguments:
- *
- * 	s		(r) a TCP socket on which a connection has been
- *			accept()ed
- * 	service_name	(r) the ASCII name of the GSS-API service to
- * 			establish a context as
- *	export		(r) whether to test context exporting
- * 
- * Returns: -1 on error
- *
- * Effects:
- *
- * sign_server establishes a context, and performs a single sign request.
- *
- * A sign request is a single GSS-API sealed token.  The token is
- * unsealed and a signature block, produced with gss_sign, is returned
- * to the sender.  The context is the destroyed and the connection
- * closed.
- *
- * If any error occurs, -1 is returned.
- */
 int process_request(context, req_argc, req_argv)
      gss_ctx_id_t context;
      int* req_argc;
@@ -457,32 +422,28 @@ int read_file(file_name, buf)
 	return(-2);
     }
     if (fstat(fd, &stat_buf) < 0) {
-	perror("fstat");
-	exit(1);
+	return(-2);
     }
     length = stat_buf.st_size;
 
     if (length == 0) {
 	*buf = NULL;
-	return;
+	return(-2);
     }
 
     if ((*buf = malloc(length+1)) == 0) {
-	fprintf(stderr, "Couldn't allocate %d byte buffer for reading file\n",
+	fprintf(log, "Couldn't allocate %d byte buffer for reading file\n",
 		length);
-	exit(1);
+	return(-2);
     }
-
-    /* this code used to check for incomplete reads, but you can't get
-       an incomplete read on any file for which fstat() is meaningful */
 
     count = read(fd, *buf, length);
     if (count < 0) {
-	perror("read");
-	exit(1);
+      fprintf(log, "Problem during read\n");
+      return(-2);
     }
     if (count < length)
-	fprintf(stderr, "Warning, only read in %d bytes, expected %d\n",
+	fprintf(log, "Warning, only read in %d bytes, expected %d\n",
 		count, length);
 
     (*buf)[length] = '\0';
@@ -490,7 +451,7 @@ int read_file(file_name, buf)
     return(0);
 }
 
-void read_conf_file() {
+void read_conf_file(char* filename) {
 
   char* buf;
   char* word;
@@ -499,7 +460,7 @@ void read_conf_file() {
   int wordnum;
   int i = 0;
 
-  read_file("remctl.conf", &buf);
+  read_file(filename, &buf);
 
   linenum = 0;
   line = strtok (strdup(buf), "\n");
@@ -552,7 +513,7 @@ int acl_check(userprincipal, aclfile)
   char* line;
   int ret;
 
-  if (ret = read_file(aclfile, &buf, &buflen) != 0)
+  if ((ret = read_file(aclfile, &buf, &buflen)) != 0)
     return(ret);
 
   line = strtok (buf,"\n");
@@ -585,6 +546,7 @@ int process_connection(server_creds)
   char** req_argv;
   int ret_code;
   char ret_message[MAXCMDLINE];
+  char err_message[MAXCMDLINE];
   int ret_length;
 
   char* command;
@@ -592,17 +554,20 @@ int process_connection(server_creds)
   char* userprincipal;
   char* program;
   char* cp;
-  int pipefd[2];
+  int stdout_pipe[2];
+  int stderr_pipe[2];
 
   ret_code = 0;
-  bzero(ret_message, MAXCMDLINE);
   ret_length = 0;
+  bzero(ret_message, MAXCMDLINE);
+
 
   /* Establish a context with the client */
   if (server_establish_context(server_creds, &context,
 			       &client_name, &ret_flags) < 0)
     return(-1);
 
+  /* This is who just connected to us */
   userprincipal = malloc(client_name.length * sizeof(char)+1);
   bcopy(client_name.value, userprincipal, client_name.length);
   userprincipal[client_name.length] = '\0';
@@ -619,8 +584,8 @@ int process_connection(server_creds)
 
   (void) gss_release_buffer(&min_stat, &client_name);
 
-  /* Establish a context with the client */
-  
+
+  /*Interchange to get the data that makes up the request - basically an argv*/
   process_request(context, &req_argc, &req_argv);
 
   if (verbose) {
@@ -634,6 +599,7 @@ int process_connection(server_creds)
   }
 
 
+  /*Lookup the command and the aclfile from the conf file structure in memory*/
   command = NULL;
   aclfile = NULL;
   for (i=0; i<confsize; i++) {
@@ -647,6 +613,9 @@ int process_connection(server_creds)
     }
   }
 
+
+  /* Check the command, aclfile, and the authorization of this client to run 
+     this command */
 
   if (command == NULL) {
     ret_code = -1;
@@ -665,11 +634,11 @@ int process_connection(server_creds)
 
   ret_length = strlen(ret_message);
 
-  fprintf(log, "PRELIM code: %d\nmessage: %s\n\n", ret_code, ret_message);
 
   if (ret_code == 0) {
 
-    /* parse out the real program name, for the first argument in argv */
+    /* parse out the real program name, and splice it in as the first argument
+       in argv passed to the command */
     cp = strtok (strdup(command),"/");
     while (cp != NULL) {
       program = cp;
@@ -678,38 +647,72 @@ int process_connection(server_creds)
     req_argv[0] = program;
 
 
-    pipe (pipefd);
+    /* These pipes are used for communication with the child process that 
+       actually runs the command */
+    if(pipe (stdout_pipe) != 0 || 
+       pipe (stderr_pipe) != 0) {
+      fprintf(log, "Can't create pipes\n");
+      exit(-1);
+    }
+
     switch(fork()){
     case -1: fprintf(log, "Can't fork\n");
       exit(-1);
       
-    case 0 : // this is the code the child runs 
-      close(1);      // close stdout
-      dup (pipefd[1]); // points pipefd at file descriptor
-      close (pipefd[0]);
-      execv (command, req_argv);
-      strcpy(ret_message, strerror(errno));
-      fprintf(stdout, ret_message);
-      exit(-1);
-    default: // this is the code the parent runs 
+    case 0 : /* this is the code the child runs */
+
+      /* Close the Child process' STDOUT read end*/
+      close(1);
+      dup(stdout_pipe[1]);
+      close(stdout_pipe[0]);
       
-      close (pipefd[1]); // the parent isn't going to write to the pipe
-      // Now read from the pipe:
-      ret_length = read(pipefd[0], ret_message, MAXCMDLINE); 
-      ret_message[ret_length] = '\0';
+      /* Close the Child process' STDERR read end*/
+      close(2);
+      dup(stderr_pipe[1]);
+      close(stderr_pipe[0]);
+
+      /* Child doesn't need STDIN at all */
+      close(0);
+      
+      execv (command, req_argv);
+
+      /* This here happens only if the exec failed. In that case this passed 
+	 the errno information back up the stderr pipe to the parent, and 
+	 dies */
+      strcpy(ret_message, strerror(errno));
+      fprintf(stderr, ret_message);
+
+      exit(-1);
+    default: /* this is the code the parent runs */
+      
+      close (stdout_pipe[1]);
+      close (stderr_pipe[1]);
+
       wait(&ret_code);
 
+      /* Now read from the pipe: */
+      ret_length = read(stdout_pipe[0], ret_message, MAXCMDLINE/2); 
+      ret_message[ret_length] = '\0';
+
+      ret_length = read(stderr_pipe[0], err_message, MAXCMDLINE/2); 
+      err_message[ret_length] = '\0';
+
+      /* both streams could have useful info */
+      strcat(ret_message, err_message);
+      ret_length = strlen(ret_message);
+
+      /* this does the crazy >>8 thing to get the real error code */
       if (WIFEXITED(ret_code)) {
 	ret_code = WEXITSTATUS(ret_code);
-	if (ret_code != 0 && ret_length == 0) {
-	  strcpy(ret_message, strerror(errno));
-	  ret_length = strlen(ret_message);
-	}
       }
+
     }
   }
 
+
+  /* send back the stuff returned from the exec */
   process_response(context, ret_code, ret_message, ret_length);
+
 
   /* destroy the context */
   maj_stat = gss_delete_sec_context(&min_stat, &context, NULL);
@@ -742,8 +745,7 @@ main(argc, argv)
      time_t    timevar;
      char*     timestr;
      int stmp;
-
-     read_conf_file();
+     char* conffile = "remctl.conf";
 
      /* Since we are called from tcpserver, prevent clients from holding on
 	to us forever, and die after an hour */
@@ -759,6 +761,8 @@ main(argc, argv)
 	       port = atoi(*argv);
 	  } else if (strcmp(*argv, "-verbose") == 0) {
 	      verbose = 1;
+	  } else if (strcmp(*argv, "-conf") == 0) {
+	      conffile = *argv;
 	  } else if (strcmp(*argv, "-inetd") == 0) {
 	      do_inetd = 1;
 	  } else if (strcmp(*argv, "-logfile") == 0) {
@@ -793,16 +797,15 @@ main(argc, argv)
 
      service_name = *argv;
 
+     read_conf_file(conffile);
+
      if (do_inetd) {
-       INETD = 1;
        READFD = 0;
        WRITEFD = 1;
        process_connection(server_creds);
        close(0);
        close(1);
      } else {
-
-       INETD = 0;
 
        /* This specifies the service name, checks out the keytab, etc */
        if (server_acquire_creds(service_name, &server_creds) < 0)
