@@ -332,40 +332,27 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg, OM_uint32 *msgle
 int
 send_token(int flags, gss_buffer_t tok)
 {
-    OM_uint32 len, ret;
+    OM_uint32 len, ret, buflen;
+    char *buffer;
     unsigned char char_flags = (unsigned char)flags;
-
-    ret = write_all(WRITEFD, &char_flags, 1);
-    if (ret != 1) {
-        write_log(LOG_ERR, "Error while sending token flags\n");
-        return -1;
-    }
 
     len = htonl(tok->length);
 
-    ret = write_all(WRITEFD, &len, sizeof(OM_uint32));
-    if (ret < 0) {
-        write_log(LOG_ERR, "Error while sending token length\n");
-        return -1;
-    } else if (ret != sizeof(OM_uint32)) {
-        write_log(LOG_ERR, 
-                  "sending token length: only %d of %d bytes written\n", 
-                  sizeof(OM_uint32));
-        return -1;
-    }
-
-    ret = write_all(WRITEFD, tok->value, tok->length);
-    if (ret < 0) {
-        write_log(LOG_ERR, "Error while sending token data\n");
-        return -1;
-    } else if (ret != tok->length) {
-        write_log(LOG_ERR, "sending token data: only %d of %d bytes written\n",
-                  ret, tok->length);
+    /* send out the whole message in a single write */
+    buflen = 1 + sizeof(OM_uint32) + tok->length;
+    buffer = malloc(buflen);
+    memcpy(buffer, &char_flags, 1);
+    memcpy(buffer+1, &len, sizeof(OM_uint32));
+    memcpy(buffer+1+sizeof(OM_uint32), tok->value, tok->length);
+    ret = write_all(WRITEFD, buffer, buflen);
+    free(buffer);
+    if (ret != buflen) {
+        write_log(LOG_ERR, "Error while sending token: %d, %d\n", buflen, ret);
         return -1;
     }
-
     return 0;
 }
+
 
 /*
  * Function: recv_token
