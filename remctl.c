@@ -33,8 +33,8 @@ int use_syslog;    /* Toggle for sysctl vs stdout/stderr. */
 
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver. */
-unsigned short READFD;
-unsigned short WRITEFD;
+int READFD;
+int WRITEFD;
 
 /* Used in establishing context with gss server. */
 gss_buffer_desc empty_token_buf = { 0, (void *)"" };

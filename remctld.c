@@ -7,6 +7,7 @@
    program.
 
    Written by Anton Ushakov <antonu@stanford.edu>
+   Vector library contributed by Russ Allbery <rra@stanford.edu> 
    Copyright 2002 Board of Trustees, Leland Stanford Jr. University
 
 */
@@ -36,8 +37,8 @@ int use_syslog;    /* Toggle for sysctl vs stdout/stderr. */
 
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver. */
-unsigned short READFD = 0;
-unsigned short WRITEFD = 1;
+int READFD = 0;
+int WRITEFD = 1;
 
 /* This is used for caching the conf file in memory after first reading it. */
 struct confline {

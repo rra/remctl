@@ -9,8 +9,8 @@
 
 */
 
-#ifndef _GSSUTILS_H_
-#define _GSSUTILS_H_
+#ifndef GSSUTILS_H_
+#define GSSUTILS_H_
 
 #include <gssapi/gssapi_generic.h>
 #include <stdio.h>
@@ -21,30 +21,18 @@ void* srealloc(void* ptr, size_t size);
 char* sstrdup(const char* s1);
 void lowercase(char string[]);
 
-int gss_sendmsg
-        PROTOTYPE( (gss_ctx_id_t context, int flags, char* msg, OM_uint32 msglength) );
+int gss_sendmsg(gss_ctx_id_t context, int flags, char* msg, OM_uint32 msglength);
+int gss_recvmsg(gss_ctx_id_t context, int* token_flags, char** msg, OM_uint32* msglength);
 
-int gss_recvmsg
-        PROTOTYPE( (gss_ctx_id_t context, int* token_flags, char** msg, OM_uint32* msglength) );
+int send_token(int flags, gss_buffer_t tok);
+int recv_token(int *flags, gss_buffer_t tok);
 
-int send_token
-	PROTOTYPE( (int flags, gss_buffer_t tok) );
-int recv_token
-	PROTOTYPE( (int *flags, gss_buffer_t tok) );
-
-int write_all
-	PROTOTYPE( (unsigned short writefd, char *buf, unsigned int nbyte) );
-int read_all
-	PROTOTYPE( (unsigned short readfd, char *buf, unsigned int nbyte) );
-int read_two
-	PROTOTYPE( (unsigned short readfd1, unsigned short readfd2, char *buf1, char *buf2, unsigned int nbyte1, unsigned int nbyte2) );
-
-void display_status
-	PROTOTYPE( (char *msg, OM_uint32 maj_stat, OM_uint32 min_stat) );
-void display_ctx_flags
-	PROTOTYPE( (OM_uint32 flags) );
-void print_token
-	PROTOTYPE( (gss_buffer_t tok) );
+int write_all(int fd, const void *buffer, size_t size);
+int read_all(int fd, void *buffer, size_t size);
+int read_two(int readfd1, int readfd2, void *buf1, void *buf2, unsigned int nbyte1, unsigned int nbyte2);
+void display_status(char *msg, OM_uint32 maj_stat, OM_uint32 min_stat);
+void display_ctx_flags(OM_uint32 flags);
+void print_token(gss_buffer_t tok);
 
 /* Token types */
 #define TOKEN_NOOP		(1<<0)

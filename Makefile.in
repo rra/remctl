@@ -26,12 +26,12 @@ SHELL           = /bin/sh
 
 ##############################################################################
 
-COMMON_OBJS     = gss-utils.o
+COMMON_OBJS     = gss-utils.o snprintf.o
 
 SERVER_OBJS     = remctld.o vector.o $(COMMON_OBJS)
 CLIENT_OBJS     = remctl.o $(COMMON_OBJS)
 
-SOURCE_FILES    = remctld.c remctl.c gss-utils.h vector.c vector.h
+SOURCE_FILES    = remctld.c remctl.c gss-utils.h vector.c vector.h snprintf.c
 
 EXTRA_FILES     = Makefile.in README configure configure.in
 
@@ -66,5 +66,6 @@ remctld.8: remctld.pod
 	pod2man --release=`cat VERSION` --center="System Daemons" $< > $@
 
 # Dependencies.
+snprintf.o: snprintf.c
 vector.o: vector.c vector.h
 gss-utils.o: gss-utils.c gss-utils.h
