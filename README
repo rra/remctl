@@ -1,12 +1,12 @@
-                            remctl release 1.6
+                            remctl release 1.7
             (remote authenticated command execution with ACLs)
 
-              Written by Anton Ushakov <antonu@stanford.edu>
+                         Written by Anton Ushakov
+         Currently maintained by Russ Allbery <rra@stanford.edu>
 
-  Copyright 2002, 2003, 2004 Board of Trustees, Leland Stanford Jr.
+  Copyright 2002, 2003, 2004, 2005 Board of Trustees, Leland Stanford Jr.
   University.  This software is distributed under a BSD-style license.
   Please see the section LICENSE below for more information.
-
 
 DESCRIPTION
 
@@ -29,7 +29,6 @@ DESCRIPTION
   Both C and Java clients are provided.  The design documentation is
   available in docs/design.html.
 
-
 REQUIREMENTS
 
   The remctld server and the standard client are written in C and require
@@ -39,7 +38,6 @@ REQUIREMENTS
 
   A Java client is also available in the java subdirectory, but no Java
   server is available.
-
 
 INSTALLATION
 
@@ -69,7 +67,6 @@ INSTALLATION
   installed with remctl.  You will need to set up a remctl.conf file for
   the server; see docs/remctl.conf for an example.
 
-
 PORTING
 
   remctl should port reasonably well.  It has been tested on:
@@ -83,13 +80,10 @@ PORTING
   Some minor changes would be necessary to get it to build with Heimdal's
   GSSAPI libraries rather than MIT Kerberos.
 
-
 LICENSE
 
-  Copyright 2002, 2003, 2004 Board of Trustees, Leland Stanford Jr.
-  University
-  
-  All rights reserved.
+  Copyright 2002, 2003, 2004, 2005 Board of Trustees, Leland Stanford Jr.
+  University.  All rights reserved.
     
   Export of this software from the United States of America may require a
   specific license from the United States Government.  It is the

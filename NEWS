@@ -1,5 +1,19 @@
                        User-Visible remctl Changes
 
+remctl 1.7 (2005-02-22)
+
+    Close extra file descriptors before spawning a child process in
+    remctl.  The only file descriptors open should be standard output and
+    standard error.  This will fix problems with using remctld to start
+    long-running daemons; before, remctld would never realize that the
+    child process had exited.
+
+    Use select to wait for child output in remctld rather than
+    busy-waiting so as not to burn CPU cycles when the child takes a while
+    to produce output.
+
+    Document the -p option for the client.
+
 remctl 1.6 (2004-05-18)
 
     Fix format string vulnerabilities when logging the remote command.
@@ -18,7 +32,7 @@ remctl 1.4 (2003-11-12)
     masks those arguments in the logging output (used when some of the
     options for that command contain private information).
 
-    Added optimizations in the GSS code to do fewer network writes.
+    Add optimizations in the GSS code to do fewer network writes.
 
     Significant improvements to the Java client.
 
