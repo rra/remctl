@@ -172,7 +172,6 @@ gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
         write_log(LOG_DEBUG, "\n");
     }
 
-
     maj_stat = gss_wrap(&min_stat, context, 1, GSS_C_QOP_DEFAULT,
                         &in_buf, &state, &out_buf);
 
@@ -468,15 +467,15 @@ write_all(int fd, const void *buffer, size_t size)
     if (size == 0)
         return 0;
 
-    /* Abort the write if we try ten times with no forward progress. */
+    /* Abort the write if we try 100 times with no forward progress. */
     for (total = 0; total < size; total += status) {
-        if (++count > 10)
+        if (++count > 100)
             break;
         status = write(fd, (const char *) buffer + total, size - total);
         if (status > 0)
             count = 0;
         if (status < 0) {
-            if (errno != EINTR)
+            if ((errno != EINTR) && (errno != EAGAIN))
                 break;
             status = 0;
         }
@@ -506,15 +505,15 @@ read_all(int fd, void *buffer, size_t size)
     if (size == 0)
         return 0;
 
-    /* Abort the read if we try ten times with no forward progress. */
+    /* Abort the read if we try 100 times with no forward progress. */
     for (total = 0; total < size; total += status) {
-        if (++count > 10)
+        if (++count > 100)
             break;
         status = read(fd, buffer + total, size - total);
         if (status > 0)
             count = 0;
         if (status < 0) {
-            if (errno != EINTR)
+            if ((errno != EINTR) && (errno != EAGAIN))
                 break;
             status = 0;
         }
@@ -541,35 +540,49 @@ read_two(int readfd1, int readfd2, void *buf1, void *buf2, size_t nbyte1,
 {
     void *ptr1, *ptr2;
     ssize_t ret1, ret2;
+    char tempbuf[MAXBUFFER];
 
     ptr1 = buf1;
     ptr2 = buf2;
     ret1 = ret2 = 1;
 
-    while(nbyte1 != 0 && nbyte2 != 0 && (ret1 != 0 || ret2 != 0)) {
+    while(ret1 != 0 || ret2 != 0) {
 
         if (ret1 != 0) {
-            if ((ret1 = read(readfd1, ptr1, nbyte1)) < 0) {
-                if (errno == EINTR)
-                    continue;
-                else
-                    return (ret1);
+            if (nbyte1 != 0) {
+                if ((ret1 = read(readfd1, ptr1, nbyte1)) < 0) {
+                    if ((errno != EINTR) && (errno != EAGAIN))
+                        return (ret1);
+                } else {
+                    ptr1 += ret1;
+                    nbyte1 -= ret1;
+                }
+            } else {
+                tempbuf[0] = '\0';
+                if ((ret1 = read(readfd1, tempbuf, MAXBUFFER)) < 0) {
+                    if ((errno != EINTR) && (errno != EAGAIN))
+                        return (ret1);
+                }
             }
-            ptr1 += ret1;
-            nbyte1 -= ret1;
         }
 
         if (ret2 != 0) {
-            if ((ret2 = read(readfd2, ptr2, nbyte2)) < 0) {
-                if (errno == EINTR)
-                    continue;
-                else
-                    return (ret2);
+            if (nbyte2 != 0) {
+                if ((ret2 = read(readfd2, ptr2, nbyte2)) < 0) {
+                    if ((errno != EINTR) && (errno != EAGAIN))
+                        return (ret2);
+                } else {
+                    ptr2 += ret2;
+                    nbyte2 -= ret2;
+                }
+            } else {
+                tempbuf[0] = '\0';
+                if ((ret2 = read(readfd2, tempbuf, MAXBUFFER)) < 0) {
+                    if ((errno != EINTR) &&  (errno != EAGAIN))
+                        return (ret2);
+                }
             }
-            ptr2 += ret2;
-            nbyte2 -= ret2;
         }
-
     }
 
     * ((char *)ptr1) = '\0';
@@ -662,11 +675,11 @@ print_token(gss_buffer_t tok)
 {
     int i;
     unsigned char *p = tok->value;
-    char tempbuf[3*MAXBUFFER] = "";
+    char tempbuf[5*MAXBUFFER] = "";
     size_t offset;
 
     for (offset = 0, i = 0; i < tok->length; i++, p++) {
-        offset += snprintf(tempbuf + offset, 3*MAXBUFFER - offset, "%02x ", *p);
+        offset += snprintf(tempbuf + offset, 5*MAXBUFFER - offset, "%02x ", *p);
         if ((i % 16) == 15) {
             strcat(tempbuf, "\n");
             offset++;

@@ -226,7 +226,8 @@ server_establish_context(gss_cred_id_t server_creds, gss_ctx_id_t* context, gss_
                 return -1;
 
             if (verbose) {
-                syslog(LOG_DEBUG, "Received token (size=%d): \n", recv_tok.length);
+                syslog(LOG_DEBUG, "Received token (size=%d): \n", 
+                       recv_tok.length);
                 print_token(&recv_tok);
             }
 
@@ -713,6 +714,7 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
         }
     }
 
+
     /* Check the command, aclfile, and the authorization of this client to
        run this command. */
 
@@ -756,6 +758,7 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
             return -1;
         }
 
+
         switch (pid = fork()) {
         case -1:
             strcpy(ret_message, "Can't fork\n");
@@ -776,10 +779,20 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
             close(0);
 
             /* Tell the exec'ed program who requested it */
-            sprintf(remuser, "SCPRINCIPAL=%s", userprincipal);
+            sprintf(remuser, "REMUSER=%s", userprincipal);
             if (putenv(remuser) < 0) {
                 strcpy(ret_message, 
                        "Cant's set REMUSER environment variable \n");
+                syslog(LOG_ERR, "%s%m", ret_message);
+                fprintf(stderr, ret_message);
+                exit(-1);   
+            }
+
+            /* Backward compat */
+            sprintf(remuser, "SCPRINCIPAL=%s", userprincipal);
+            if (putenv(remuser) < 0) {
+                strcpy(ret_message, 
+                       "Cant's set SCPRINCIPAL environment variable \n");
                 syslog(LOG_ERR, "%s%m", ret_message);
                 fprintf(stderr, ret_message);
                 exit(-1);   
@@ -798,6 +811,13 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
 
             close(stdout_pipe[1]);
             close(stderr_pipe[1]);
+
+            /* Unblock the read ends of the pipes, to enable us to read from
+               both iteratevely */
+            fcntl(stdout_pipe[0], F_SETFL, 
+                  fcntl(stdout_pipe[0], F_GETFL) | O_NONBLOCK);
+            fcntl(stderr_pipe[0], F_SETFL, 
+                  fcntl(stderr_pipe[0], F_GETFL) | O_NONBLOCK);
 
             /* This collects output from both pipes iteratively, while the
                child is executing */

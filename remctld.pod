@@ -48,7 +48,8 @@ backend. In sysctl terms, the "ss" in "ss:create".
 The service within the type being requested, such as "release" for the afs
 volume backend. In sysctl terms, the "create" in "ss:create". The keyword 
 ALL may be used instead of the service to specify an executable and aclfiles
-for the entire type in one line.
+for the entire type in one line. The service is passed as the first argument
+to the executable program that is listed for that service.
 
 =item I<executable>
 
