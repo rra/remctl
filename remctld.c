@@ -551,7 +551,7 @@ process_request(gss_ctx_id_t context, char ret_message[])
     req_argc = ntohl(network_order);
     cp += sizeof(OM_uint32);
     
-    syslog(LOG_INFO, "argc is: %d\n", req_argc);
+    syslog(LOG_DEBUG, "argc is: %d\n", req_argc);
     if (req_argc <= 0 || req_argc > MAXCMDARGS) {
         strcpy (ret_message, "Invalid argc in request message\n");
         syslog(LOG_DEBUG, ret_message);
@@ -685,7 +685,7 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
 
     /* This block logs the requested command. */
     command = vector_join(argvector, " ");
-    strcpy(ret_message, "COMMAND: ");
+    snprintf(ret_message, MAXBUFFER, "COMMAND from %s: ", userprincipal);
     strncat(ret_message, command, MAXBUFFER - strlen(ret_message));
     strcat(ret_message, "\n");
     syslog(LOG_INFO,ret_message);
@@ -779,7 +779,7 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
             close(0);
 
             /* Tell the exec'ed program who requested it */
-            sprintf(remuser, "REMUSER=%s", userprincipal);
+            snprintf(remuser, MAXBUFFER, "REMUSER=%s", userprincipal);
             if (putenv(remuser) < 0) {
                 strcpy(ret_message, 
                        "Cant's set REMUSER environment variable \n");
@@ -789,7 +789,7 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
             }
 
             /* Backward compat */
-            sprintf(remuser, "SCPRINCIPAL=%s", userprincipal);
+            snprintf(remuser, MAXBUFFER, "SCPRINCIPAL=%s", userprincipal);
             if (putenv(remuser) < 0) {
                 strcpy(ret_message, 
                        "Cant's set SCPRINCIPAL environment variable \n");
@@ -919,7 +919,7 @@ process_connection(gss_cred_id_t server_creds)
     memcpy(userprincipal, client_name.value, client_name.length);
     userprincipal[client_name.length] = '\0';
 
-    syslog(LOG_INFO, "Accepted connection from \"%.*s\"\n",
+    syslog(LOG_DEBUG, "Accepted connection from \"%.*s\"\n",
            (int)client_name.length, (char *)client_name.value);
     
     gss_release_buffer(&min_stat, &client_name);
