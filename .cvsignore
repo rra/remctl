@@ -1,5 +1,6 @@
 Makefile
 autom4te.cache
+build-stamp
 config.cache
 config.h
 config.h.in
