@@ -724,7 +724,8 @@ log_command(struct vector *argvector,
 */
 
 OM_uint32
-process_command(struct vector *argvector, char *userprincipal, char ret_message[])
+process_command(struct vector *argvector, char *userprincipal,
+                char *ret_message)
 {
     char *command;
     char *program;
@@ -773,124 +774,124 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
     if (command == NULL) {
         ret_code = -1;
         strcpy(ret_message, "Command not defined\n");
+        goto done;
     }
 
-    if ((ret_code = acl_check(userprincipal, acls)) != 0) {
-            snprintf(ret_message, MAXBUFFER,
-                    "Access denied: %s principal not on the acl list\n",
-                    userprincipal);
+    ret_code = acl_check(userprincipal, acls);
+    if (ret_code != 0) {
+        snprintf(ret_message, MAXBUFFER,
+                 "Access denied: %s principal not on the acl list\n",
+                 userprincipal);
+        goto done;
     }
 
     /* Assemble the argv, envp, and fork off the child to run the command. */
-    if (ret_code == 0) {
+    req_argv = smalloc((argvector->count + 1) * sizeof(char*));
 
+    /* Get the real program name, and use it as the first argument in argv
+       passed to the command. */
+    program = strrchr(command, '/');
+    if (program == NULL)
+        program = command;
+    else
+        program++;
 
-        /* ARGV: */
-        req_argv = smalloc((argvector->count + 1) * sizeof(char*));
+    req_argv[0] = strdup(program);
+    for (i = 1; i < argvector->count; i++) {
+        req_argv[i] = strdup(argvector->strings[i]);
+    }
+    req_argv[i] = '\0';
 
-        /* Get the real program name, and use it as the first
-           argument in argv passed to the command. */
-        program = strrchr(command, '/');
-        if (program == NULL)
-            program = command;
-        else
-            program++;
+    /* These pipes are used for communication with the child process that 
+       actually runs the command. */
+    if (pipe(stdout_pipe) != 0 || pipe(stderr_pipe) != 0) {
+        strcpy(ret_message, "Can't create pipes\n");
+        syslog(LOG_ERR, ret_message);
+        ret_code = -1;
+        goto done;
+    }
 
-        req_argv[0] = strdup(program);
-        for (i = 1; i < argvector->count; i++) {
-            req_argv[i] = strdup(argvector->strings[i]);
-        }
-        req_argv[i] = '\0';
+    switch (pid = fork()) {
+    case -1:
+        strcpy(ret_message, "Can't fork\n");
+        syslog(LOG_ERR, ret_message);
+        ret_code = -1;
+        goto done;
 
-        /* These pipes are used for communication with the child process that 
-           actually runs the command. */
-        if (pipe(stdout_pipe) != 0 || pipe(stderr_pipe) != 0) {
-            strcpy(ret_message, "Can't create pipes\n");
-            syslog(LOG_ERR, ret_message);
-            return -1;
-        }
+    case 0:                /* This is the code the child runs. */
 
+        /* Close the Child process' STDOUT read end */
+        dup2(stdout_pipe[1], 1);
+        close(stdout_pipe[0]);
 
-        switch (pid = fork()) {
-        case -1:
-            strcpy(ret_message, "Can't fork\n");
-            syslog(LOG_ERR, ret_message);
-            return -1;
+        /* Close the Child process' STDERR read end */
+        dup2(stderr_pipe[1], 2);
+        close(stderr_pipe[0]);
 
-        case 0:                /* This is the code the child runs. */
+        /* Child doesn't need STDIN at all */
+        close(0);
 
-            /* Close the Child process' STDOUT read end */
-            dup2(stdout_pipe[1], 1);
-            close(stdout_pipe[0]);
-
-            /* Close the Child process' STDERR read end */
-            dup2(stderr_pipe[1], 2);
-            close(stderr_pipe[0]);
-
-            /* Child doesn't need STDIN at all */
-            close(0);
-
-            /* Tell the exec'ed program who requested it */
-            snprintf(remuser, MAXBUFFER, "REMUSER=%s", userprincipal);
-            if (putenv(remuser) < 0) {
-                strcpy(ret_message, 
-                       "Cant's set REMUSER environment variable \n");
-                syslog(LOG_ERR, "%s%m", ret_message);
-                fprintf(stderr, ret_message);
-                exit(-1);   
-            }
-
-            /* Backward compat */
-            snprintf(scprincipal, MAXBUFFER, "SCPRINCIPAL=%s", userprincipal);
-            if (putenv(scprincipal) < 0) {
-                strcpy(ret_message, 
-                       "Cant's set SCPRINCIPAL environment variable \n");
-                syslog(LOG_ERR, "%s%m", ret_message);
-                fprintf(stderr, ret_message);
-                exit(-1);   
-            }
-
-            execv(command, req_argv);
-
-            /* This here happens only if the exec failed. In that case this
-               passed the errno information back up the stderr pipe to the
-               parent, and dies */
-            strcpy(ret_message, strerror(errno));
+        /* Tell the exec'ed program who requested it */
+        snprintf(remuser, MAXBUFFER, "REMUSER=%s", userprincipal);
+        if (putenv(remuser) < 0) {
+            strcpy(ret_message, "Can't set REMUSER environment variable\n");
+            syslog(LOG_ERR, "%s%m", ret_message);
             fprintf(stderr, ret_message);
-
             exit(-1);
-        default:               /* This is the code the parent runs. */
+        }
 
-            close(stdout_pipe[1]);
-            close(stderr_pipe[1]);
+        /* Backward compat */
+        snprintf(scprincipal, MAXBUFFER, "SCPRINCIPAL=%s", userprincipal);
+        if (putenv(scprincipal) < 0) {
+            strcpy(ret_message,
+                   "Can't set SCPRINCIPAL environment variable\n");
+            syslog(LOG_ERR, "%s%m", ret_message);
+            fprintf(stderr, ret_message);
+            exit(-1);   
+        }
 
-            /* Unblock the read ends of the pipes, to enable us to read from
-               both iteratevely */
-            fcntl(stdout_pipe[0], F_SETFL, 
-                  fcntl(stdout_pipe[0], F_GETFL) | O_NONBLOCK);
-            fcntl(stderr_pipe[0], F_SETFL, 
-                  fcntl(stderr_pipe[0], F_GETFL) | O_NONBLOCK);
+        execv(command, req_argv);
 
-            /* This collects output from both pipes iteratively, while the
-               child is executing */
-            if ((ret_length = read_two(stdout_pipe[0], stderr_pipe[0], 
-                                       ret_message, err_message, 
-                                       pipebuffer, pipebuffer)) < 0)
-                ret_message = "No output from the command\n";
+        /* This here happens only if the exec failed. In that case this passed
+           the errno information back up the stderr pipe to the parent, and
+           dies */
+        strcpy(ret_message, strerror(errno));
+        fprintf(stderr, ret_message);
 
-            /* Both streams could have useful info. */
-            strcat(ret_message, err_message);
-            ret_length = strlen(ret_message);
+        exit(-1);
 
-            waitpid(pid, &ret_code, 0);
+    default:               /* This is the code the parent runs. */
 
-            /* This does the crazy >>8 thing to get the real error code. */
-            if (WIFEXITED(ret_code)) {
-                ret_code = (signed)WEXITSTATUS(ret_code);
-            }
+        close(stdout_pipe[1]);
+        close(stderr_pipe[1]);
+
+        /* Unblock the read ends of the pipes, to enable us to read from both
+           iteratevely */
+        fcntl(stdout_pipe[0], F_SETFL, 
+              fcntl(stdout_pipe[0], F_GETFL) | O_NONBLOCK);
+        fcntl(stderr_pipe[0], F_SETFL, 
+              fcntl(stderr_pipe[0], F_GETFL) | O_NONBLOCK);
+
+        /* This collects output from both pipes iteratively, while the child
+           is executing */
+        if ((ret_length = read_two(stdout_pipe[0], stderr_pipe[0], 
+                                   ret_message, err_message, 
+                                   pipebuffer, pipebuffer)) < 0)
+            ret_message = "No output from the command\n";
+
+        /* Both streams could have useful info. */
+        strcat(ret_message, err_message);
+        ret_length = strlen(ret_message);
+
+        waitpid(pid, &ret_code, 0);
+
+        /* This does the crazy >>8 thing to get the real error code. */
+        if (WIFEXITED(ret_code)) {
+            ret_code = (signed)WEXITSTATUS(ret_code);
         }
     }
 
+ done:
     if (req_argv != NULL) {
         i = 0;
         while (req_argv[i] != '\0') {
@@ -902,7 +903,6 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
 
     return ret_code;
 }
-
 
 
 

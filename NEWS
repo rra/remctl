@@ -1,5 +1,10 @@
                        User-Visible remctl Changes
 
+remctl 1.5 (in progress)
+
+    Fix a bug in remctld where it would segfault when trying to check the
+    ACLs for a command not present in the configuration file.
+
 remctl 1.4 (2003-11-12)
 
     Add support for a logmask=n option in the configuration file that
