@@ -1,6 +1,6 @@
 /*
 
-   The shared fucntions for a "K5 sysctl" - a service for remote execution 
+   The shared functions for a "K5 sysctl" - a service for remote execution 
    of predefined commands. Access is authenticated via GSSAPI Kerberos 5, 
    authorized via aclfiles. 
 
@@ -10,39 +10,27 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <errno.h>
 #include <time.h>
 #include <syslog.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #include <string.h>
 #include <netdb.h>
 
 #include <gssapi/gssapi_generic.h>
 #include "gss-utils.h"
 
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#else
-extern char *malloc();
-#endif
 
-/* This is specified in main()
-   0 - Don't use syslog, use stdout and stderr
-   1 - Use syslog */
-extern int use_syslog;
-extern int verbose;
+extern int use_syslog;   /* Turns on debugging output. */
+extern int verbose;      /* Toggle for sysctl vs stdout/stderr. */
 
-extern int READFD;
-extern int WRITEFD;
-
-gss_buffer_desc empty_token_buf = { 0, (void *)"" };
-gss_buffer_t empty_token = &empty_token_buf;
-
-static void display_status_1 PROTOTYPE((char *m, OM_uint32 code, int type));
+/* These are for storing either the socket for communication with client
+   or the streams that talk to the network in case of inetd/tcpserver. */
+extern unsigned short READFD;
+extern unsigned short WRITEFD;
 
 /* This is used for all error and debugging printouts. It directs the output
    to whatever log is set to, which is either stdout, a file, or NULL, in which
@@ -76,7 +64,22 @@ lowercase(char string[])
     return;
 }
 
-/* Safe malloc, that will check is the allocation succeeded */
+/* Safe realloc, that will check if the allocation succeeded. */
+void* 
+srealloc(void* ptr, size_t size) {
+
+    void *temp;
+
+    if ((temp = realloc(ptr, size)) == NULL) {
+        write_log(LOG_ERR, "ERROR: Cannot reallocate memory\n");
+        exit(-1);
+    }
+
+    return temp;
+
+}
+
+/* Safe malloc, that will check if the allocation succeeded. */
 void *
 smalloc(int size)
 {
@@ -90,6 +93,22 @@ smalloc(int size)
 
     return temp;
 }
+
+/* Safe strdup, that will check if the allocation succeeded. */
+void *
+sstrdup(const char* s1)
+{
+
+    void *temp;
+
+    if ((temp = strdup(s1)) == NULL) {
+        write_log(LOG_ERR, "ERROR: Cannot allocate memory for strdup\n");
+        exit(-1);
+    }
+
+    return temp;
+}
+
 
 /*
  * Function: gss_sendmsg
@@ -115,11 +134,7 @@ smalloc(int size)
  * transfer, but present here nonetheless for completeness
  */
 int
-gss_sendmsg(context, flags, msg, msglength)
-     gss_ctx_id_t context;
-     int flags;
-     char *msg;
-     int msglength;
+gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
 {
 
     gss_buffer_desc in_buf, out_buf;
@@ -188,6 +203,7 @@ gss_sendmsg(context, flags, msg, msglength)
  * 	context		(r) established gssapi context
  *	token_flags	(w) the flags received with the incoming token
  * 	msg		(w) the data token, packed [<len><data of len>]*
+ *      msglength       (w) length of data token
  *
  * Returns: 0 on success, -1 on failure
  *
@@ -203,17 +219,13 @@ gss_sendmsg(context, flags, msg, msglength)
  * completeness
  */
 int
-gss_recvmsg(context, token_flags, msg, msglength)
-     gss_ctx_id_t context;
-     int *token_flags;
-     char **msg;
-     int *msglength;
+gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg, OM_uint32 *msglength)
 {
     gss_buffer_desc xmit_buf, msg_buf;
     OM_uint32 maj_stat, min_stat;
     int conf_state;
     char *cp;
-    char tempbuf[MAXCMDLINE];
+    char tempbuf[MAXBUFFER];
 
     /* Receive the message token */
     if (recv_token(token_flags, &xmit_buf) < 0)
@@ -242,7 +254,7 @@ gss_recvmsg(context, token_flags, msg, msglength)
         cp = msg_buf.value;
         if ((isprint(cp[0]) || isspace(cp[0])) &&
             (isprint(cp[1]) || isspace(cp[1]))) {
-            snprintf(tempbuf, MAXCMDLINE, "\"%.*s\"\n", 
+            snprintf(tempbuf, MAXBUFFER, "\"%.*s\"\n", 
                     (int)msg_buf.length, (char *)msg_buf.value);
             write_log(LOG_DEBUG, tempbuf);
         } else {
@@ -291,7 +303,6 @@ gss_recvmsg(context, token_flags, msg, msglength)
  *
  * Arguments:
  *
- * 	s		(r) an open file descriptor
  *	flags		(r) the flags to write
  * 	tok		(r) the token to write
  *
@@ -306,15 +317,13 @@ gss_recvmsg(context, token_flags, msg, msglength)
  * write all the data.
  */
 int
-send_token(flags, tok)
-     int flags;
-     gss_buffer_t tok;
+send_token(int flags, gss_buffer_t tok)
 {
-    int len, ret;
+    size_t len, ret;
     unsigned char char_flags = (unsigned char)flags;
     char tempbuf[100];
 
-    ret = write_all((char *)&char_flags, 1);
+    ret = write_all(WRITEFD, (char *)&char_flags, 1);
     if (ret != 1) {
         write_log(LOG_ERR, "Error while sending token flags\n");
         return -1;
@@ -322,19 +331,19 @@ send_token(flags, tok)
 
     len = htonl(tok->length);
 
-    ret = write_all((char *)&len, 4);
+    ret = write_all(WRITEFD, (char *)&len, sizeof(size_t));
     if (ret < 0) {
         write_log(LOG_ERR, "Error while sending token length\n");
         return -1;
-    } else if (ret != 4) {
+    } else if (ret != sizeof(OM_uint32)) {
         snprintf(tempbuf, 100, 
                  "sending token length: only %d of %d bytes written\n", 
-                 ret, 4);
+                 ret, sizeof(OM_uint32));
         write_log(LOG_ERR, tempbuf);
         return -1;
     }
 
-    ret = write_all(tok->value, tok->length);
+    ret = write_all(WRITEFD, tok->value, tok->length);
     if (ret < 0) {
         write_log(LOG_ERR, "Error while sending token data\n");
         return -1;
@@ -356,7 +365,6 @@ send_token(flags, tok)
  *
  * Arguments:
  *
- * 	s		(r) an open file descriptor
  *	flags		(w) the read flags
  * 	tok		(w) the read token
  *
@@ -373,15 +381,13 @@ send_token(flags, tok)
  * and -1 if an error occurs or if it could not read all the data.
  */
 int
-recv_token(flags, tok)
-     int *flags;
-     gss_buffer_t tok;
+recv_token(int *flags, gss_buffer_t tok)
 {
     int ret;
     unsigned char char_flags;
     char tempbuf[100];
 
-    ret = read_all((char *)&char_flags, 1);
+    ret = read_all(READFD, (char *)&char_flags, 1);
     if (ret < 0) {
             write_log(LOG_ERR, "reading token flags\n");
         return -1;
@@ -392,25 +398,32 @@ recv_token(flags, tok)
         *flags = (int)char_flags;
     }
 
-    ret = read_all((char *)&tok->length, 4);
+    ret = read_all(READFD, (char *)&tok->length, sizeof(size_t));
     if (ret < 0) {
         write_log(LOG_ERR, "Error while reading token length\n");
         return -1;
-    } else if (ret != 4) {
+    } else if (ret != sizeof(size_t)) {
         snprintf(tempbuf, 100, "reading token length: %d of %d bytes read\n", 
-                 ret, 4);
+                 ret, sizeof(size_t));
         write_log(LOG_ERR, tempbuf);
         return -1;
     }
 
     tok->length = ntohl(tok->length);
+
+    if (tok->length > MAXENCRYPT || tok->length <= 0) {
+        snprintf(tempbuf, 100, "Illegal token length: %d\n", tok->length);
+        write_log(LOG_ERR, tempbuf);
+        return -1;
+    }
+
     tok->value = (char *)malloc(tok->length);
     if (tok->length && tok->value == NULL) {
         write_log(LOG_ERR, "Out of memory allocating token data\n");
         return -1;
     }
 
-    ret = read_all((char *)tok->value, tok->length);
+    ret = read_all(READFD, (char *)tok->value, tok->length);
     if (ret < 0) {
         write_log(LOG_ERR, "Error while reading token data");
         free(tok->value);
@@ -435,19 +448,20 @@ recv_token(flags, tok)
  *
  * Arguments:
  *
+ *      writefd         file descriptor to write to
  * 	buf		a buffer fromwhich to write
  *      nbyte	        number of bytes to write
  *
  */
-static int
-write_all(char *buf, unsigned int nbyte)
+int
+write_all(unsigned short writefd, char *buf, unsigned int nbyte)
 {
     int ret;
     char *ptr;
 
     for (ptr = buf; nbyte; ptr += ret, nbyte -= ret) {
 
-        ret = write(WRITEFD, ptr, nbyte);
+        ret = write(writefd, ptr, nbyte);
 
         if (ret < 0) {
             if (errno == EINTR)
@@ -468,19 +482,20 @@ write_all(char *buf, unsigned int nbyte)
  *
  * Arguments:
  *
+ *      readfd          file descriptor to read from
  * 	buf		a buffer into which to read
  *      nbyte	        number of bytes to read
  *
  */
-static int
-read_all(char *buf, unsigned int nbyte)
+int
+read_all(unsigned short readfd, char *buf, unsigned int nbyte)
 {
     int ret;
     char *ptr;
 
     for (ptr = buf; nbyte; ptr += ret, nbyte -= ret) {
 
-        ret = read(READFD, ptr, nbyte);
+        ret = read(readfd, ptr, nbyte);
 
         if (ret < 0) {
             if (errno == EINTR)
@@ -494,13 +509,63 @@ read_all(char *buf, unsigned int nbyte)
     return (ptr - buf);
 }
 
+/*
+ * Function: read_two
+ *
+ * Purpose: read freom two streams simultaneously
+ *
+ * Arguments:
+ *
+ *      readfd1-2       file descriptor to read from
+ * 	buf1-2	        buffer into which to read
+ *      nbyte1-2        number of bytes to read
+ *
+ */
+int
+read_two(unsigned short readfd1, unsigned short readfd2, char *buf1, char *buf2, unsigned int nbyte1, unsigned int nbyte2)
+{
+    char *ptr1, *ptr2;
+    int ret1, ret2;
+
+    ptr1 = buf1;
+    ptr2 = buf2;
+    ret1 = ret2 = 1;
+
+    while(nbyte1 != 0 && nbyte2 != 0 && ret1 != 0 && ret2 != 0) {
+
+        if (ret1 != 0) {
+            if ((ret1 = read(readfd1, ptr1, nbyte1)) < 0) {
+                if (errno == EINTR)
+                    continue;
+                else
+                    return (ret1);
+            }
+            ptr1 += ret1;
+            nbyte1 -= ret1;
+        }
+
+        if (ret2 != 0) {
+            if ((ret2 = read(readfd2, ptr2, nbyte2)) < 0) {
+                if (errno == EINTR)
+                    continue;
+                else
+                    return (ret2);
+            }
+            ptr2 += ret2;
+            nbyte2 -= ret2;
+        }
+
+    }
+
+    ptr1[0] = '\0';
+    ptr2[0] = '\0';
+    return (ptr1 - buf1 + ptr2 - buf2);
+}
 
 
+/* Utility subfunction to display GSSAPI status */
 static void
-display_status_1(m, code, type)
-     char *m;
-     OM_uint32 code;
-     int type;
+display_status_1(char *m, OM_uint32 code, int type)
 {
     OM_uint32 maj_stat, min_stat;
     gss_buffer_desc msg;
@@ -538,10 +603,7 @@ display_status_1(m, code, type)
  * followed by a newline.
  */
 void
-display_status(msg, maj_stat, min_stat)
-     char *msg;
-     OM_uint32 maj_stat;
-     OM_uint32 min_stat;
+display_status(char *msg, OM_uint32 maj_stat,OM_uint32  min_stat)
 {
     display_status_1(msg, maj_stat, GSS_C_GSS_CODE);
     display_status_1(msg, min_stat, GSS_C_MECH_CODE);
@@ -564,8 +626,7 @@ display_status(msg, maj_stat, min_stat)
  */
 
 void
-display_ctx_flags(flags)
-     OM_uint32 flags;
+display_ctx_flags(OM_uint32 flags)
 {
 
     if (flags & GSS_C_DELEG_FLAG)
@@ -582,14 +643,14 @@ display_ctx_flags(flags)
         write_log(LOG_DEBUG, "context flag: GSS_C_INTEG_FLAG \n");
 }
 
+/* Prints the contents of a raw token in hex, byte by byte */
 void
-print_token(tok)
-     gss_buffer_t tok;
+print_token(gss_buffer_t tok)
 {
     int i;
     unsigned char *p = tok->value;
     char tempsymb[4];
-    char tempbuf[MAXCMDLINE] = "";
+    char tempbuf[MAXBUFFER] = "";
 
     for (i = 0; i < tok->length; i++, p++) {
         snprintf(tempsymb, 4, "%02x ", *p);
@@ -608,5 +669,6 @@ print_token(tok)
     **  mode: c
     **  c-basic-offset: 4
     **  indent-tabs-mode: nil
+    **  end:
     */
 

@@ -25,24 +25,41 @@
 #include <gssapi/gssapi_generic.h>
 #include "gss-utils.h"
 
-int verbose;
-int use_syslog;
+int verbose;       /* Turns on debugging output. */
+int use_syslog;    /* Toggle for sysctl vs stdout/stderr. */
 
 /* These are for storing either the socket for communication with client
-   or the streams that talk to the network in case of inetd/tcpserver */
-int READFD = 0;
-int WRITEFD = 1;
+   or the streams that talk to the network in case of inetd/tcpserver. */
+unsigned short READFD;
+unsigned short WRITEFD;
+
+/* Used in establishing context with gss server. */
+gss_buffer_desc empty_token_buf = { 0, (void *)"" };
+gss_buffer_t empty_token = &empty_token_buf;
 
 void
 usage()
 {
-    fprintf(stderr, "Usage: remctl <options> host type service <parameters>\n");
-    fprintf(stderr, "Options:\n\t[-v]  verbose output\n");
+    static const char usage[] = "\
+Usage: remctl <options> host type service <parameters>\n\
+Options:\n\
+\t-v               debugging level of output\n";
+    fprintf(stderr, usage);
     exit(1);
 }
 
 
-
+/*
+ * Function: parse_oid
+ *
+ * Purpose: Parse a OID string and determite the mechanism type 
+ *
+ * Arguments:
+ *
+ * 	mechanism	(r) the OID string
+ * 	oid		(w) the gss_OID coresponding to the OID string
+ *
+ */
 static void
 parse_oid(char *mechanism, gss_OID * oid)
 {
@@ -95,9 +112,7 @@ parse_oid(char *mechanism, gss_OID * oid)
  * displayed and -1 is returned.
  */
 int
-connect_to_server(host, port)
-     char *host;
-     unsigned short port;
+connect_to_server(char *host, unsigned short port)
 {
     struct sockaddr_in saddr;
     struct hostent *hp;
@@ -132,11 +147,8 @@ connect_to_server(host, port)
  *
  * Arguments:
  *
- * 	s		(r) an established TCP connection to the service
  * 	service_name	(r) the ASCII service name of the service
- *	auth_flag	(r) whether to actually do authentication
- *	oid		(r) OID of the mechanism to use
- * 	context		(w) the established GSS-API context
+ * 	gss_context	(w) the established GSS-API context
  *	ret_flags	(w) the returned flags from init_sec_context
  *
  * Returns: 0 on success, -1 on failure
@@ -154,10 +166,7 @@ connect_to_server(host, port)
  * and -1 is returned.
  */
 int
-client_establish_context(service_name, gss_context, ret_flags)
-     char *service_name;
-     gss_ctx_id_t *gss_context;
-     OM_uint32 *ret_flags;
+client_establish_context(char *service_name, gss_ctx_id_t *gss_context, OM_uint32 *ret_flags)
 {
 
     gss_OID oid = GSS_C_NULL_OID;
@@ -188,7 +197,7 @@ client_establish_context(service_name, gss_context, ret_flags)
     }
 
     /* 
-     * Perform the context-establishement loop.
+     * Perform the context-establishment loop.
      *
      * On each pass through the loop, token_ptr points to the token
      * to send to the server (or GSS_C_NO_BUFFER on the first pass).
@@ -269,75 +278,6 @@ client_establish_context(service_name, gss_context, ret_flags)
 
 
 
-/*
- * Function: process_response
- *
- * Purpose: get the response back from the server, containg the result message
- *
- * Arguments:
- *
- * 	context		(r) the established gssapi context
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- * 
- * Calls a utility function gss_recvmsg to get the token, then disassembles
- *  the data payload, which is in the format of 
- * [<length><data of that length>] and then displays the return code and 
- * message.
- * */
-int
-process_response(context)
-     gss_ctx_id_t context;
-{
-
-    char *cp;
-    int token_flags;
-    int errorcode;
-    int length;
-    int network_length;
-    char *body;
-    char *msg;
-    int msglength;
-
-    if (gss_recvmsg(context, &token_flags, &msg, &msglength) < 0)
-        return (-1);
-
-    cp = msg;
-
-    if (token_flags & TOKEN_ERROR) {
-        bcopy(cp, &network_length, sizeof(int));
-        errorcode = ntohl(network_length);
-        cp += sizeof(int);
-        if (verbose)
-            printf("Error code: %d\n", errorcode);
-    }
-
-    bcopy(cp, &network_length, sizeof(int));
-    cp += sizeof(int);
-
-    length = ntohl(network_length);
-    if (length > MAXCMDLINE || length < 0)
-        length = MAXCMDLINE;
-    if (length > msglength) {
-        fprintf(stderr, "Data unpacking error while processing response\n");
-        exit(-1);
-    }
-
-    body = smalloc(length * sizeof(char) + 1);
-    bcopy(cp, body, length);
-    body[length] = '\0';
-
-    printf("%s\n", body);
-    free(msg);
-
-    return (0);
-
-}
-
-
-
 
 /*
  * Function: process_request
@@ -359,37 +299,43 @@ process_response(context)
  * then calls a utility function gss_sendmsg to send the token over
  * */
 int
-process_request(context, argc, argv)
-     gss_ctx_id_t context;
-     int argc;
-     char **argv;
+process_request(gss_ctx_id_t context, OM_uint32 argc, char ** argv)
 {
-    int length = 0;
-    int network_length;
+    OM_uint32 arglength = 0;
+    OM_uint32 network_ordered;
     char *msg;
     int msglength = 0;
-    char **cp;
-    char *mp;
-    int i;
+    char **cp;           /* Iterator over argv. */
+    char *mp;            /* Iterator over msg. */
+    OM_uint32 i;
 
+    /* Total message is: argc, {arglength, argument}+             */
     cp = argv;
     for (i = 0; i < argc; i++) {
         msglength += strlen(*cp++);
     }
-    msglength += argc * sizeof(int);
+    msglength += (argc + 1) * sizeof(OM_uint32);
+    msg = smalloc(msglength);
 
-    msg = smalloc(msglength * (sizeof(char)));
-
+    /* Iterators over buffers */
     mp = msg;
     cp = argv;
-    while (argc != 0) {
-        length = strlen(*cp);
-        network_length = htonl(length);
-        bcopy(&network_length, mp, sizeof(int));
-        mp += sizeof(int);
-        bcopy(*cp, mp, length);
-        mp += length;
-        argc--;
+    i = argc;
+
+    /* First, put the argc into the message*/
+    network_ordered = htonl(argc);
+    memcpy(mp, &network_ordered, sizeof(OM_uint32));
+    mp += sizeof(OM_uint32);
+
+    /* Now, put in the argv */
+    while (i != 0) {
+        arglength = strlen(*cp);
+        network_ordered = htonl(arglength);
+        memcpy(mp, &network_ordered, sizeof(OM_uint32));
+        mp += sizeof(OM_uint32);
+        memcpy(mp, *cp, arglength);
+        mp += arglength;
+        i--;
         cp++;
     }
 
@@ -403,13 +349,80 @@ process_request(context, argc, argv)
 
 
 /*
+ * Function: process_response
+ *
+ * Purpose: get the response back from the server, containg the result message
+ *
+ * Arguments:
+ *
+ * 	context		(r) the established gssapi context
+ *
+ * Returns: 0 on success, -1 on failure
+ *
+ * Effects:
+ * 
+ * Calls a utility function gss_recvmsg to get the token, then disassembles
+ *  the data payload, which is in the format of 
+ * [<length><data of that length>] and then displays the return code and 
+ * message.
+ * */
+int
+process_response(gss_ctx_id_t context)
+{
+
+    char *msg;
+    OM_uint32 msglength;
+    char *body;      /* Text returned from running the command on the server */
+    OM_uint32 bodylength;
+    char *cp;        /* Iterator over msg */
+    OM_uint32 network_ordered;
+    OM_uint32 token_flags;
+    OM_uint32 errorcode;
+
+    if (gss_recvmsg(context, &token_flags, &msg, &msglength) < 0)
+        return (-1);
+
+    cp = msg;
+
+    /* Extract the error code, if this is an error message */
+    if (token_flags & TOKEN_ERROR) {
+        memcpy(&network_ordered, cp, sizeof(OM_uint32));
+        errorcode = ntohl(network_ordered);
+        cp += sizeof(OM_uint32);
+        if (verbose)
+            printf("Error code: %d\n", errorcode);
+    }
+
+    /* Get the message length */
+    memcpy(&network_ordered, cp, sizeof(OM_uint32));
+    cp += sizeof(OM_uint32);
+    bodylength = ntohl(network_ordered);
+    if (bodylength > MAXBUFFER || bodylength < 0 || bodylength > msglength){
+        fprintf(stderr, "Data unpacking error while processing response\n");
+        exit(-1);
+    }
+
+    /* Get the message body */
+    body = smalloc(bodylength + 1);
+    memcpy(body, cp, bodylength);
+    body[bodylength] = '\0';
+    
+    printf("%s\n", body);
+    free(msg);
+    free(body);
+
+    return (0);
+}
+
+
+
+
+/*
  * The main just parses the arguments, establishes the gssapi context and
  * calls the effector functions to request and process response
  */
 int
-main(argc, argv)
-     int argc;
-     char **argv;
+main(int argc, char ** argv)
 {
     char service_name[500];
     char *server_host;
@@ -504,5 +517,6 @@ main(argc, argv)
     **  mode: c
     **  c-basic-offset: 4
     **  indent-tabs-mode: nil
+    **  end:
     */
 

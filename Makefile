@@ -9,11 +9,13 @@ STATIC_FLAG = -static
 
 all: remctld remctl
 
-remctld: remctld.o gss-utils.o
-	$(CC) $(CFLAGS) $(INCLUDES) $(LIBPATHS) $(LIBOBJS) -o remctld remctld.o gss-utils.o
+remctld: remctld.o gss-utils.o vector.o
+	$(CC) $(CFLAGS) $(INCLUDES) $(LIBPATHS) $(LIBOBJS) -o remctld remctld.o gss-utils.o vector.o
 
 remctl: remctl.o gss-utils.o
 	$(CC) $(CFLAGS) $(INCLUDES) $(LIBPATHS) $(LIBOBJS) -o remctl remctl.o gss-utils.o
+
+vector.o: vector.c vector.h Makefile
 
 gss-utils.o: gss-utils.c gss-utils.h Makefile
 

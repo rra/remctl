@@ -9,31 +9,35 @@
 
 */
 
-#ifndef _GSSMISC_H_
-#define _GSSMISC_H_
+#ifndef _GSSUTILS_H_
+#define _GSSUTILS_H_
 
 #include <gssapi/gssapi_generic.h>
 #include <stdio.h>
 #include <stdarg.h>
 
 void* smalloc(int);
+void* srealloc(void* ptr, size_t size);
+void* sstrdup(const char* s1);
 void lowercase(char string[]);
 
 int gss_sendmsg
-        PROTOTYPE( (gss_ctx_id_t context, int flags, char* msg, int msglength) );
+        PROTOTYPE( (gss_ctx_id_t context, int flags, char* msg, OM_uint32 msglength) );
 
 int gss_recvmsg
-        PROTOTYPE( (gss_ctx_id_t context, int* token_flags, char** msg, int* msglength) );
+        PROTOTYPE( (gss_ctx_id_t context, int* token_flags, char** msg, OM_uint32* msglength) );
 
 int send_token
 	PROTOTYPE( (int flags, gss_buffer_t tok) );
 int recv_token
 	PROTOTYPE( (int *flags, gss_buffer_t tok) );
 
-static int write_all
-	PROTOTYPE( (char *buf, unsigned int nbyte) );
-static int read_all
-	PROTOTYPE( (char *buf, unsigned int nbyte) );
+int write_all
+	PROTOTYPE( (unsigned short writefd, char *buf, unsigned int nbyte) );
+int read_all
+	PROTOTYPE( (unsigned short readfd, char *buf, unsigned int nbyte) );
+int read_two
+	PROTOTYPE( (unsigned short readfd1, unsigned short readfd2, char *buf1, char *buf2, unsigned int nbyte1, unsigned int nbyte2) );
 
 void display_status
 	PROTOTYPE( (char *msg, OM_uint32 maj_stat, OM_uint32 min_stat) );
@@ -53,8 +57,15 @@ void print_token
 #define TOKEN_CONTEXT_NEXT	(1<<5)
 #define TOKEN_SEND_MIC		(1<<6)
 
-#define MAXCMDLINE              64000
+/* Used as the default max buffer for the argv passed into the server, and for 
+   the return message from the server. */
+#define MAXBUFFER               64000  
 
-extern gss_buffer_t empty_token;
+/* The maximum size of argc passed to the server */
+#define MAXCMDARGS              64
+
+/* Maximum encrypted token size. I notices it was roughly 6 - 7 times the clear
+   text, so on the safe size, it's 10 * MAXBUFFER */
+#define MAXENCRYPT              640000
 
 #endif
