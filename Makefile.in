@@ -31,10 +31,6 @@ COMMON_OBJS     = gss-utils.o snprintf.o
 SERVER_OBJS     = remctld.o vector.o $(COMMON_OBJS)
 CLIENT_OBJS     = remctl.o $(COMMON_OBJS)
 
-SOURCE_FILES    = remctld.c remctl.c gss-utils.h vector.c vector.h snprintf.c
-
-EXTRA_FILES     = Makefile.in README configure configure.in
-
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(DEFS) $(CFLAGS) $<
 
@@ -50,7 +46,10 @@ clean:
 	rm -f *.o remctld remctl
 
 distclean: clean
-	rm -f Makefile config.h config.cache config.log config.status remctl.1 remctld.8
+	rm -f Makefile config.h config.cache config.log config.status
+
+maintclean: distclean
+	rm -f config.h.in configure remctl.1 remctld.8
 
 install: remctld remctl remctld.8 remctl.1
 	$(INSTALL) -d $(bindir) $(sbindir) $(mandir)/man1 $(mandir)/man8
@@ -65,7 +64,24 @@ remctl.1: remctl.pod
 remctld.8: remctld.pod
 	pod2man --release=`cat VERSION` --center="System Daemons" $< > $@
 
+dist: remctl.1 remctld.8
+	rm -f remctl-`cat VERSION`.tar.gz
+	mkdir remctl-`cat VERSION`
+	cp Makefile.in NEWS README VERSION config.h.in configure \
+	    configure.in gss-utils.c gss-utils.h install-sh remctl.1 \
+	    remctl.c remctl.pod remctld.8 remctld.c remctld.pod \
+	    snprintf.c vector.c vector.h remctl-`cat VERSION`/
+	mkdir remctl-`cat VERSION`/docs
+	cp docs/design.html docs/remctl.conf remctl-`cat VERSION`/docs/
+	mkdir remctl-`cat VERSION`/java
+	cp java/*.java java/*.conf remctl-`cat VERSION`/java/
+	tar cf remctl-`cat VERSION`.tar remctl-`cat VERSION`
+	gzip -9 remctl-`cat VERSION`.tar
+	rm -rf remctl-`cat VERSION`
+
 # Dependencies.
-snprintf.o: snprintf.c
-vector.o: vector.c vector.h
-gss-utils.o: gss-utils.c gss-utils.h
+gss-utils.o: gss-utils.c config.h gss-utils.h
+remctl.o: remctl.c config.h gss-utils.h
+remctld.o: remctld.c gss-utils.h vector.h
+snprintf.o: snprintf.c config.h
+vector.o: vector.c config.h vector.h gss-utils.h
