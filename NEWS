@@ -1,0 +1,31 @@
+                       User-Visible remctl Changes
+
+remctl 1.3 (2003-07-21)
+
+    Exit with non-zero status if the remote command failed rather than
+    always exiting with zero status if the network exchange worked
+    successfully.
+
+    Adjust logging priorities and include some additional information in
+    the log of the command.
+
+remctl 1.2 (2003-04-04)
+
+    Read from both standard out and standard error of the spawned command
+    in turn to better prevent deadlock.
+
+    Set the REMUSER environment variable to the remote authenticated user
+    (and continue setting SCPRINCIPAL as well for backward compatibility).
+
+remctl 1.1 (2003-02-28)
+
+    Add an snprintf implementation for systems that don't have it and use
+    it for log messages.
+
+    Additional fleshing out of the Java client.
+
+    Lots of code cleanup and style fixes.
+
+remctl 1.0 (2002-11-22)
+
+    Initial release.
