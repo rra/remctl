@@ -410,7 +410,7 @@ process_response(gss_ctx_id_t context)
     memcpy(body, cp, bodylength);
     body[bodylength] = '\0';
     
-    printf("%s\n", body);
+    printf("%s", body);
     free(msg);
     free(body);
 
