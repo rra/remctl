@@ -339,6 +339,8 @@ int process_response(context, code, blob, bloblength)
   if (gss_sendmsg(context, flags, msg, msglength) < 0)
     return(-1);
 
+  free(msg);
+
   return(0);
 }
 
@@ -549,6 +551,7 @@ int process_connection(server_creds)
   char err_message[MAXCMDLINE];
   int ret_length;
 
+  char* tempcommand;
   char* command;
   char* aclfile;
   char* userprincipal;
@@ -627,10 +630,12 @@ int process_connection(server_creds)
     ret_code = acl_check(userprincipal, aclfile);
 
     if (ret_code == -1)
-      strcpy(ret_message, "Access denied: principal not on the acl list");
+      sprintf(ret_message, "Access denied: %s principal not on the acl list", userprincipal);
     else if (ret_code == -2)
       strcpy(ret_message, "Problem reading acl list file: can't open file");
+
   }
+  free(userprincipal);
 
   ret_length = strlen(ret_message);
 
@@ -639,12 +644,17 @@ int process_connection(server_creds)
 
     /* parse out the real program name, and splice it in as the first argument
        in argv passed to the command */
-    cp = strtok (strdup(command),"/");
+    tempcommand = malloc(strlen(command)+1);
+    strcpy(tempcommand, command);
+    cp = strtok (tempcommand,"/");
     while (cp != NULL) {
       program = cp;
       cp = strtok (NULL, "/");
     }
-    req_argv[0] = program;
+    free(req_argv[0]);
+    req_argv[0] = malloc(strlen(program)+1);
+    strcpy(req_argv[0], program);
+    free(tempcommand);
 
 
     /* These pipes are used for communication with the child process that 
@@ -720,6 +730,14 @@ int process_connection(server_creds)
     display_status("while deleting context", maj_stat, min_stat);
     return(-1);
   }
+
+
+  i=0;
+  while (req_argv[i] != '\0') {
+    free(req_argv[i]);
+    i++;
+  }
+  free(req_argv);
 
   if (log)
     fflush(log);
