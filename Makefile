@@ -1,16 +1,19 @@
 
 CC = /usr/pubsw/bin/gcc
 CFLAGS = -g -DDEBUG -Wall -ansi
-LDFLAGS = -lgssapi_krb5 -lsocket -lnsl -lresolv
+INCLUDES = -I/usr/pubsw/include
+LIBPATHS = -R/usr/pubsw/lib
+LIBOBJS = -lgssapi_krb5 -lsocket -lnsl -lresolv
+
 STATIC_FLAG = -static
 
 all: remctld remctl
 
 remctld: remctld.o gss-utils.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o remctld remctld.o gss-utils.o
+	$(CC) $(CFLAGS) $(INCLUDES) $(LIBPATHS) $(LIBOBJS) -o remctld remctld.o gss-utils.o
 
 remctl: remctl.o gss-utils.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o remctl remctl.o gss-utils.o
+	$(CC) $(CFLAGS) $(INCLUDES) $(LIBPATHS) $(LIBOBJS) -o remctl remctl.o gss-utils.o
 
 gss-utils.o: gss-utils.c gss-utils.h Makefile
 
