@@ -1,4 +1,5 @@
 Makefile
+autom4te.cache
 config.cache
 config.h
 config.h.in
