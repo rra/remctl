@@ -1,0 +1,45 @@
+1. Building
+
+  # autoconf
+  # autoheader
+  # ./configure
+  # make
+  # make install
+
+You'll probably have to specify some options to configure. By default
+things gets installed using the prefix /usr/local.  For example,
+/usr/local/sbin, /usr/local/bin, etc.
+
+To change the prefix use the --prefix option:
+
+  # ./configure --prefix=/usr/local
+
+To compile with static libraries (recommended - fewer runtime dependencies):
+ 
+  # ./configure --enable-static
+
+If your kerberos libraries and includes aren't in /usr/local/include and
+/usr/local/lib (or some other include directory and library directory
+searched by default by your compiler), then you need to also specify
+--with-kerberos=path:
+
+  # ../configure --prefix=/usr/local --with-kerberos=/usr/pubsw
+
+
+2. Usage information is described in the man pages included with this 
+distribution. Design document is also available <insert URL>
+
+
+3. Porting
+
+remctl should port reasonably well. It has been tested on:
+
+Solaris 8
+Linux (glibc 2.2)
+AIX 4.3
+
+
+
+Comments, bugs:
+Anton Ushakov <antonu@stanford.edu>
+

@@ -1,0 +1,126 @@
+=head1 NAME
+
+remctld - Server for remctl, a remote command execution utility
+
+=head1 SYNOPSIS
+
+remctld
+
+=head1 DESCRIPTION
+
+B<remctld> is the server for remctl.  It accepts a connection from remctl,
+receives the command to execute and the arguments, verifies authorization
+of the user and executes the command, returning the result back to the client.
+All connections are authenticated using GSSAPI Kerberos V, and all 
+transmissions are also encrypted using Kerberos.
+
+B<remctld> should be started using tcpserver, or from inetd. It must be run 
+as root, since it needs to read the host keytab file, unless otherwise
+configured (see below). B<remctld> logs its activity using syslog(3C).
+
+=head1 ARGUMENTS
+
+=over 4
+
+=item B<-s> I<service>
+
+This option is used to specify the Kerberos service principal for B<remctld>
+to run as, the default is the server host principal: 
+"host/<machinename>.stanford.edu"
+
+=item B<-f> I<conffile>
+
+The configuration file for B<remctld>, containing the definitions of allowed 
+commands and specifying access control information. Default is ./remctl.conf
+Configuration file format is space or tab separated strings, where each line is:
+
+I<type service executable {aclfile}+>
+
+=over 4
+
+=item I<type>
+
+The type of the command being requested, such as "afs" for the afs volume 
+backend. In sysctl terms, the "ss" in "ss:create".
+
+=item I<service>
+
+The service within the type being requested, such as "release" for the afs
+volume backend. In sysctl terms, the "create" in "ss:create". The keyword 
+ALL may be used instead of the service to specify an executable and aclfiles
+for the entire type in one line.
+
+=item I<executable>
+
+The full path to the commmand executable to run for this type-service 
+combination. (See examples below)
+
+=item I<aclfile>
+
+The full paths of one or more access control files, each containing one 
+Kerberos V identity per line, such as username@stanford.edu
+
+The keyword ANYUSER may be used instead of the aclfiles to allow access to all 
+users. Notice the user still needs to authenticate to remctld, this only 
+affects authorization.
+
+=back
+
+=item B<-v>
+
+Verbose logging to syslog(3C)
+
+=back
+
+=head1 EXAMPLES
+
+Typically B<remctld> is to be started as follows, where "hostname" is the 
+machine where remctld will run, and 4444 (arbitrary example) is the port:
+
+   % tcpserver hostname 4444 remctld
+
+Example configuration file:
+
+ # Comments can be used like this.
+ accounts create /usr/local/bin/doaccount  /etc/acl/group1 /etc/acl/group2
+ accounts delete /usr/local/bin/doaccount  /etc/acl/group3
+ accounts view   /usr/local/bin/doaccount  ANYUSER
+ printing ALL    /usr/local/bin/printthing /etc/acl/group2 
+
+
+=head1 SEE ALSO
+
+remctl(1), tcpserver(1), syslog(3C), kerberos(1)
+
+=head1 AUTHOR
+
+Anton Ushakov <antonu@stanford.edu>
+
+=head1 LICENSE
+
+Copyright 1994, 1997, 2001 Board of Trustees, Leland Stanford
+Jr. University
+  
+All rights reserved.
+  
+Export of this software from the United States of America may require a
+specific license from the United States Government.  It is the
+responsibility of any person or organization contemplating export to
+obtain such a license before exporting.
+
+WITHIN THAT CONSTRAINT, permission to use, copy, modify, and distribute
+this software and its documentation for any purpose and without fee is
+hereby granted, provided that the above copyright notice appear in all
+copies and that both that copyright notice and this permission notice
+appear in supporting documentation, and that the name of Stanford
+University not be used in advertising or publicity pertaining to
+distribution of the software without specific, written prior permission.
+Stanford University makes no representations about the suitability of
+this software for any purpose.  It is provided "as is" without express
+or implied warranty.
+
+THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+=cut

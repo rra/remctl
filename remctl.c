@@ -1,4 +1,5 @@
 /*
+   $Id$
 
    The client for a "K5 sysctl" - a service for remote execution of 
    predefined commands. Access is authenticated via GSSAPI Kerberos 5, 
@@ -8,6 +9,8 @@
    Copyright 2002 Board of Trustees, Leland Stanford Jr. University
 
 */
+
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -433,7 +436,7 @@ main(int argc, char ** argv)
     gss_ctx_id_t context;
     gss_buffer_desc out_buf;
 
-    service_name[0] = NULL;
+    service_name[0] = '\0';
     verbose = 0;
     use_syslog = 0;
 

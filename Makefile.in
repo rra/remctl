@@ -1,0 +1,70 @@
+# Makefile for remctl
+# $Id$
+
+srcdir          = @srcdir@
+VPATH           = @srcdir@
+
+prefix          = @prefix@
+exec_prefix     = @exec_prefix@
+
+bindir          = @bindir@
+sbindir         = @sbindir@
+mandir          = @mandir@
+
+CC              = @CC@
+CFLAGS          = @CFLAGS@
+CPPFLAGS        = -I. -I$(srcdir) @CPPFLAGS@ -I$(prefix)/include
+LDFLAGS         = @LDFLAGS@
+LIBS            = @LIBS@
+
+INSTALL         = @INSTALL@
+INSTALL_DATA    = @INSTALL_DATA@
+INSTALL_SCRIPT  = @INSTALL_SCRIPT@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+
+SHELL           = /bin/sh
+
+##############################################################################
+
+COMMON_OBJS     = gss-utils.o
+
+SERVER_OBJS     = remctld.o vector.o $(COMMON_OBJS)
+CLIENT_OBJS     = remctl.o $(COMMON_OBJS)
+
+SOURCE_FILES    = remctld.c remctl.c gss-utils.h vector.c vector.h
+
+EXTRA_FILES     = Makefile.in README configure configure.in
+
+.c.o:
+	$(CC) -c $(CPPFLAGS) $(DEFS) $(CFLAGS) $<
+
+all: remctld remctl remctl.1 remctld.8
+
+remctld: $(SERVER_OBJS)
+	$(CC) $(SERVER_OBJS) $(LDFLAGS) $(LIBS) -o $@
+
+remctl: $(CLIENT_OBJS)
+	$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(LIBS) -o $@
+
+clean:
+	rm -f *.o remctld remctl
+
+distclean: clean
+	rm -f Makefile config.h config.cache config.log config.status remctl.1 remctld.8
+
+install: remctld remctl remctld.8 remctl.1
+	$(INSTALL) -d $(bindir) $(sbindir)
+	$(INSTALL_PROGRAM) remctl $(bindir)/remctl
+	$(INSTALL_PROGRAM) remctld $(sbindir)/remctld
+	$(INSTALL_DATA) $(srcdir)/remctl.1 $(mandir)/man1/remctl.1
+	$(INSTALL_DATA) $(srcdir)/remctld.8 $(mandir)/man1/remctld.1
+
+remctl.1: remctl.pod
+	pod2man --release=`cat VERSION` --center="User Commands" $< > $@
+
+remctld.8: remctld.pod
+	pod2man --release=`cat VERSION` --center="System Daemons" $< > $@
+
+# Dependencies.
+vector.o: vector.c vector.h
+gss-utils.o: gss-utils.c gss-utils.h

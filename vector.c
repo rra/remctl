@@ -22,6 +22,8 @@
 **  as I'm not sure if it's a violation of the C type aliasing rules.
 */
 
+#include "config.h"
+
 #include <ctype.h>
 #include "vector.h"
 #include "gss-utils.h"

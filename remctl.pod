@@ -1,0 +1,97 @@
+=head1 NAME
+
+remctl - Remote execution tool
+
+=head1 SYNOPSIS
+
+remctl [B<-s> I<remctld-service-principal>] [B<-v> I<verbose>] host type service [parameters ...]
+
+=head1 DESCRIPTION
+
+B<remctl> is a program that allows a user to execute commands remotely on a 
+server that is running the remctld deamon. B<remctl> does not interpret the 
+commands given to it, it passes them to the server and displays the return
+message. The commands must be defined on the server-side before a B<remctl>
+client can execute them, and the user running B<remctl> must be authorized
+to execute the particular command on the server.
+
+Access to remote commands is authenticated via GSSAPI Kerberos V, so a user
+must have a ticket granting ticket to use B<remctl>. All transmissions to
+and from the remctld server are encrypted using Kerberos. 
+
+=head1 ARGUMENTS
+
+=over 4
+
+=item B<-s> I<remctld-service-principal>
+
+This option is used to specify the Kerberos service principal that remctld 
+runs as, if it's not the default principal. By default it is the server host 
+principal: "host/<machinename>.stanford.edu".
+
+=item B<-v> I<verbose>
+
+Turn on extra printouts of the client-server interaction.
+
+=item I<host>
+
+The hostname of the target server.
+
+=item I<type>
+
+The type of command being requested, such as "afs" for the afs volume backend.
+In sysctl terms, the "ss" in "ss:create".
+
+=item I<service>
+
+The service within the type being requested, such as "release" for the afs 
+volume backend. In sysctl terms, the "create" in "ss:create".
+
+=item I<parameters>
+
+The command line arguments passed to the specific command being requested.
+
+=back
+
+=head1 EXAMPLES
+
+Release an afs volume called ls.tripwire:
+
+    % remctl lsdb afs release ls.tripwire
+
+=head1 SEE ALSO
+
+remctld(1), kerberos(1), kinit(1)
+
+=head1 AUTHOR
+
+Anton Ushakov <antonu@stanford.edu>.
+
+=head1 LICENSE
+
+Copyright 1994, 1997, 2001 Board of Trustees, Leland Stanford
+Jr. University
+  
+All rights reserved.
+  
+Export of this software from the United States of America may require a
+specific license from the United States Government.  It is the
+responsibility of any person or organization contemplating export to
+obtain such a license before exporting.
+
+WITHIN THAT CONSTRAINT, permission to use, copy, modify, and distribute
+this software and its documentation for any purpose and without fee is
+hereby granted, provided that the above copyright notice appear in all
+copies and that both that copyright notice and this permission notice
+appear in supporting documentation, and that the name of Stanford
+University not be used in advertising or publicity pertaining to
+distribution of the software without specific, written prior permission.
+Stanford University makes no representations about the suitability of
+this software for any purpose.  It is provided "as is" without express
+or implied warranty.
+
+THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+=cut

@@ -1,4 +1,5 @@
 /*
+   $Id$
 
    The deamon for a "K5 sysctl" - a service for remote execution of 
    predefined commands. Access is authenticated via GSSAPI Kerberos 5, 
@@ -734,7 +735,7 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
 
         /* Get the real program name, and use it as the first
            argument in argv passed to the command. */
-        program = strrchr(command, "/");
+        program = strrchr(command, '/');
         if (program == NULL)
             program = command;
         else
@@ -774,7 +775,7 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
             close(0);
 
             /* Tell the exec'ed program who requested it */
-            sprintf(remuser, "REMUSER=%s", userprincipal);
+            sprintf(remuser, "SCPRINCIPAL=%s", userprincipal);
             if (putenv(remuser) < 0) {
                 strcpy(ret_message, 
                        "Cant's set REMUSER environment variable \n");
@@ -948,7 +949,7 @@ main(int argc, char **argv)
     int do_standalone = 0;
     char *conffile = "remctl.conf";
 
-    service_name[0] = NULL;
+    service_name[0] = '\0';
     verbose = 0;
     use_syslog = 1;
 

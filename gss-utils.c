@@ -1,4 +1,5 @@
 /*
+   $Id$
 
    The shared functions for a "K5 sysctl" - a service for remote execution 
    of predefined commands. Access is authenticated via GSSAPI Kerberos 5, 
@@ -8,6 +9,8 @@
    Copyright 2002 Board of Trustees, Leland Stanford Jr. University
 
 */
+
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,7 +59,7 @@ lowercase(char string[])
 {
     int i = 0;
     
-    while (string[i] != NULL) {
+    while (string[i] != '\0') {
         string[i] = tolower(string[i]);
         i++;
     }
@@ -95,7 +98,7 @@ smalloc(int size)
 }
 
 /* Safe strdup, that will check if the allocation succeeded. */
-void *
+char *
 sstrdup(const char* s1)
 {
 

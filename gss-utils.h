@@ -18,7 +18,7 @@
 
 void* smalloc(int);
 void* srealloc(void* ptr, size_t size);
-void* sstrdup(const char* s1);
+char* sstrdup(const char* s1);
 void lowercase(char string[]);
 
 int gss_sendmsg
