@@ -858,7 +858,7 @@ process_command(struct vector *argvector, char *userprincipal,
            the errno information back up the stderr pipe to the parent, and
            dies */
         strcpy(ret_message, strerror(errno));
-        fprintf(stderr, ret_message);
+        fprintf(stderr, "%s\n", ret_message);
 
         exit(-1);
 
