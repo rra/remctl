@@ -691,7 +691,7 @@ log_command(struct vector *argvector,
     strncat(log_message, command, MAXBUFFER - strlen(log_message));
     strcat(log_message, "\n");
     syslog(LOG_INFO,log_message);
-
+    free(command);
 }
 
 /*
