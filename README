@@ -1,4 +1,4 @@
-                            remctl release 1.3
+                            remctl release 1.4
             (remote authenticated command execution with ACLs)
 
               Written by Anton Ushakov <antonu@stanford.edu>
