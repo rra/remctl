@@ -39,13 +39,16 @@ int WRITEFD = 1;
 
 /* This is used for caching the conf file in memory after first reading it */
 typedef struct confline {
-    /* this if for a particular line in the conf file */
+    /* this is for a particular line in the conf file, this is a temp container
+       for parsing the conf file, really */
     char *line;
 
-    /* The following holds these strings: 0 type 1 service 2 full file name
-       of the executable, corresponding to this type 3..N full file names of
-       the acl files that have the principals, authorized to run this
-       command */
+    /* The following holds these strings: 
+       0 type 
+       1 service 
+       2 full file name of the executable, corresponding to this type 
+       3..N full file names of the acl files that have the principals,
+            authorized to run this command */
     char **settings;
 
 } confline;
@@ -742,7 +745,7 @@ acl_check(userprincipal, settings)
  *                        the executable
  *      ret_length    (w) the length of the returned message
  *
- * Returns: 0 on success, -1 on failure
+ * Returns: 0 on success, negative integer on failure
  *
  * Effects:
  *
@@ -849,13 +852,17 @@ process_command(req_argc, req_argv, userprincipal, ret_message, ret_length)
            actually runs the command */
         if (pipe(stdout_pipe) != 0 || pipe(stderr_pipe) != 0) {
             write_log("Can't create pipes\n");
+            strcpy(ret_message, "Can't create pipes\n");
+            *ret_length = strlen(ret_message);
             exit(-1);
         }
 
         switch (fork()) {
         case -1:
             write_log("Can't fork\n");
-            exit(-1);
+            strcpy(ret_message, "Can't fork\n");
+            *ret_length = strlen(ret_message);
+            return(-1);
 
         case 0:                /* this is the code the child runs */
 
@@ -905,6 +912,8 @@ process_command(req_argc, req_argv, userprincipal, ret_message, ret_length)
             }
         }
     }
+
+    return(0);
 }
 
 
