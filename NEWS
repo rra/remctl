@@ -1,9 +1,12 @@
                        User-Visible remctl Changes
 
-remctl 1.5 (in progress)
+remctl 1.5 (2004-03-04)
 
     Fix a bug in remctld where it would segfault when trying to check the
     ACLs for a command not present in the configuration file.
+
+    Portability fix to return the exit status of the command in network
+    byte order.
 
 remctl 1.4 (2003-11-12)
 
