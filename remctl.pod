@@ -4,7 +4,8 @@ remctl - Remote execution tool
 
 =head1 SYNOPSIS
 
-remctl [B<-s> I<remctld-service-principal>] [B<-v> I<verbose>] host type service [parameters ...]
+remctl [B<-s> I<remctld-service-principal>] [B<-v> I<verbose>] I<host>
+I<type> I<service> [I<parameters> ...]
 
 =head1 DESCRIPTION
 
@@ -65,12 +66,11 @@ remctld(1), kerberos(1), kinit(1)
 
 =head1 AUTHOR
 
-Anton Ushakov <antonu@stanford.edu>.
+Anton Ushakov <antonu@stanford.edu>
 
 =head1 LICENSE
 
-Copyright 1994, 1997, 2001 Board of Trustees, Leland Stanford
-Jr. University
+Copyright 2002, 2003 Board of Trustees, Leland Stanford Jr. University.
   
 All rights reserved.
   
@@ -86,9 +86,9 @@ copies and that both that copyright notice and this permission notice
 appear in supporting documentation, and that the name of Stanford
 University not be used in advertising or publicity pertaining to
 distribution of the software without specific, written prior permission.
-Stanford University makes no representations about the suitability of
-this software for any purpose.  It is provided "as is" without express
-or implied warranty.
+Stanford University makes no representations about the suitability of this
+software for any purpose.  It is provided "as is" without express or
+implied warranty.
 
 THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF

@@ -10,13 +10,13 @@ remctld
 
 B<remctld> is the server for remctl.  It accepts a connection from remctl,
 receives the command to execute and the arguments, verifies authorization
-of the user and executes the command, returning the result back to the client.
-All connections are authenticated using GSSAPI Kerberos V, and all 
-transmissions are also encrypted using Kerberos.
+of the user and executes the command, returning the result back to the
+client.  All connections are authenticated using GSSAPI Kerberos V, and
+all transmissions are also encrypted using Kerberos.
 
-B<remctld> should be started using tcpserver, or from inetd. It must be run 
-as root, since it needs to read the host keytab file, unless otherwise
-configured (see below). B<remctld> logs its activity using syslog(3C).
+B<remctld> should be started using tcpserver, or from inetd. It must be
+run as root, since it needs to read the host keytab file, unless otherwise
+configured (see below).  B<remctld> logs its activity using syslog(3C).
 
 =head1 ARGUMENTS
 
@@ -24,15 +24,16 @@ configured (see below). B<remctld> logs its activity using syslog(3C).
 
 =item B<-s> I<service>
 
-This option is used to specify the Kerberos service principal for B<remctld>
-to run as, the default is the server host principal: 
+This option is used to specify the Kerberos service principal for
+B<remctld> to run as, the default is the server host principal:
 "host/<machinename>.stanford.edu"
 
 =item B<-f> I<conffile>
 
-The configuration file for B<remctld>, containing the definitions of allowed 
-commands and specifying access control information. Default is ./remctl.conf
-Configuration file format is space or tab separated strings, where each line is:
+The configuration file for B<remctld>, containing the definitions of
+allowed commands and specifying access control information.  Default is
+F<./remctl.conf>.  Configuration file format is space or tab separated
+strings, where each line is:
 
 I<type service executable {aclfile}+>
 
@@ -61,9 +62,9 @@ combination. (See examples below)
 The full paths of one or more access control files, each containing one 
 Kerberos V identity per line, such as username@stanford.edu
 
-The keyword ANYUSER may be used instead of the aclfiles to allow access to all 
-users. Notice the user still needs to authenticate to remctld, this only 
-affects authorization.
+The keyword ANYUSER may be used instead of the aclfiles to allow access to
+all users.  Notice the user still needs to authenticate to remctld, this
+only affects authorization.
 
 =back
 
@@ -75,7 +76,7 @@ Verbose logging to syslog(3C)
 
 =head1 EXAMPLES
 
-Typically B<remctld> is to be started as follows, where "hostname" is the 
+Typically B<remctld> is to be started as follows, where "hostname" is the
 machine where remctld will run, and 4444 (arbitrary example) is the port:
 
    % tcpserver hostname 4444 remctld
@@ -88,7 +89,6 @@ Example configuration file:
  accounts view   /usr/local/bin/doaccount  ANYUSER
  printing ALL    /usr/local/bin/printthing /etc/acl/group2 
 
-
 =head1 SEE ALSO
 
 remctl(1), tcpserver(1), syslog(3C), kerberos(1)
@@ -99,8 +99,7 @@ Anton Ushakov <antonu@stanford.edu>
 
 =head1 LICENSE
 
-Copyright 1994, 1997, 2001 Board of Trustees, Leland Stanford
-Jr. University
+Copyright 2002, 2003 Board of Trustees, Leland Stanford Jr. University.
   
 All rights reserved.
   
@@ -116,9 +115,9 @@ copies and that both that copyright notice and this permission notice
 appear in supporting documentation, and that the name of Stanford
 University not be used in advertising or publicity pertaining to
 distribution of the software without specific, written prior permission.
-Stanford University makes no representations about the suitability of
-this software for any purpose.  It is provided "as is" without express
-or implied warranty.
+Stanford University makes no representations about the suitability of this
+software for any purpose.  It is provided "as is" without express or
+implied warranty.
 
 THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
