@@ -68,7 +68,7 @@ Options:\n\
 \t-p port          only for standalone mode. default 4444\n";
 
     fprintf(stderr, usage);
-    syslog(LOG_ERR, usage);
+    syslog(LOG_ERR, "invalid usage");
     exit(1);
 }
 
@@ -690,7 +690,7 @@ log_command(struct vector *argvector,
     snprintf(log_message, MAXBUFFER, "COMMAND from %s: ", userprincipal);
     strncat(log_message, command, MAXBUFFER - strlen(log_message));
     strcat(log_message, "\n");
-    syslog(LOG_INFO,log_message);
+    syslog(LOG_INFO, "%s", log_message);
     free(command);
 }
 
@@ -806,7 +806,7 @@ process_command(struct vector *argvector, char *userprincipal,
        actually runs the command. */
     if (pipe(stdout_pipe) != 0 || pipe(stderr_pipe) != 0) {
         strcpy(ret_message, "Can't create pipes\n");
-        syslog(LOG_ERR, ret_message);
+        syslog(LOG_ERR, "%s", ret_message);
         ret_code = -1;
         goto done;
     }
@@ -814,7 +814,7 @@ process_command(struct vector *argvector, char *userprincipal,
     switch (pid = fork()) {
     case -1:
         strcpy(ret_message, "Can't fork\n");
-        syslog(LOG_ERR, ret_message);
+        syslog(LOG_ERR, "%s", ret_message);
         ret_code = -1;
         goto done;
 
