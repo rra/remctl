@@ -22,6 +22,14 @@ configured (see below).  B<remctld> logs its activity using syslog(3C).
 
 =over 4
 
+=item B<-a> I<limit>
+
+Limit logging of command arguments to at most the first I<limit>
+arguments.  This is a hack to avoid logging the arguments of commands that
+take privileged information, and will be removed again once the
+configuration file syntax is smart enough to allow this to be configurable
+on a per-command basis.
+
 =item B<-s> I<service>
 
 This option is used to specify the Kerberos service principal for

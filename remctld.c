@@ -34,6 +34,7 @@
 
 int verbose;       /* Turns on debugging output. */
 int use_syslog;    /* Toggle for sysctl vs stdout/stderr. */
+int limit_args;    /* Limit argument logging to the first N. */
 
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver. */
@@ -60,14 +61,15 @@ usage()
     static const char usage[] = "\
 Usage: remctld <options>\n\
 Options:\n\
-\t-s service       K5 servicename to run as (default host/machine.stanford.edu)\
+\t-a count         Only log the first count arguments\n\
+\t-s service       K5 servicename to run as (default host/machine.stanford.edu)\n\
 \t-f conffile      the default is ./remctl.conf\n\
 \t-v               debugging level of output\n\
 \t-m               standalone single connection mode, meant for testing only\n\
 \t-p port          only for standalone mode. default 4444\n";
 
     fprintf(stderr, usage);
-    syslog(LOG_ERR, usage);
+    syslog(LOG_ERR, "invalid options");
     exit(1);
 }
 
@@ -672,7 +674,7 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
 {
     char *command;
     char *program;
-    char **acls;
+    char **acls = NULL;
     struct confline* cline;
     int stdout_pipe[2];
     int stderr_pipe[2];
@@ -685,7 +687,16 @@ process_command(struct vector *argvector, char *userprincipal, char ret_message[
     int i, pid, pipebuffer;
 
     /* This block logs the requested command. */
-    command = vector_join(argvector, " ");
+    if (limit_args < 0 || (size_t) limit_args < argvector->count) {
+        command = vector_join(argvector, " ");
+    } else {
+        size_t argc;
+
+        argc = argvector->count;
+        argvector->count = 2 + limit_args;
+        command = vector_join(argvector, " ");
+        argvector->count = argc;
+    }
     snprintf(ret_message, MAXBUFFER, "COMMAND from %s: ", userprincipal);
     strncat(ret_message, command, MAXBUFFER - strlen(ret_message));
     strcat(ret_message, "\n");
@@ -974,6 +985,7 @@ main(int argc, char **argv)
     service_name[0] = '\0';
     verbose = 0;
     use_syslog = 1;
+    limit_args = -1;
 
     /* Since we are called from tcpserver, prevent clients from holding on to 
        us forever, and die after an hour. */
@@ -983,7 +995,13 @@ main(int argc, char **argv)
     argc--;
     argv++;
     while (argc) {
-        if (strcmp(*argv, "-p") == 0) {
+        if (strcmp(*argv, "-a") == 0) {
+            argc--;
+            argv++;
+            if (!argc)
+                usage();
+            limit_args = atoi(*argv);
+        } else if (strcmp(*argv, "-p") == 0) {
             argc--;
             argv++;
             if (!argc)
