@@ -535,7 +535,7 @@ read_two(int readfd1, int readfd2, void *buf1, void *buf2, size_t nbyte1,
     ptr2 = buf2;
     ret1 = ret2 = 1;
 
-    while (1) {
+    while (ret1 != 0 || ret2 != 0) {
         FD_ZERO(&readfds);
         if (ret1 != 0)
             FD_SET(readfd1, &readfds);
