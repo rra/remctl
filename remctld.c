@@ -942,9 +942,12 @@ int main(argc, argv)
      if ((*argv)[0] == '-')
 	  usage();
 
-     service_name = *argv;
-
      read_conf_file(conffile);
+
+     /* This specifies the service name, checks out the keytab, etc */
+     service_name = *argv;
+     if (server_acquire_creds(service_name, &server_creds) < 0)
+       return -1;
 
      if (do_inetd) {
        READFD = 0;
@@ -954,10 +957,6 @@ int main(argc, argv)
        close(1);
      } else {
 
-       /* This specifies the service name, checks out the keytab, etc */
-       if (server_acquire_creds(service_name, &server_creds) < 0)
-	 return -1;
-       
        if ((stmp = create_socket(port)) >= 0) {
 	 do {
 	   /* Accept a TCP connection */

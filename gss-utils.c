@@ -345,8 +345,7 @@ int recv_token(flags, tok)
        if (display_file) fprintf(display_file, "reading token flags");
        return -1;
      } else if (! ret) {
-       if (display_file)
-	 fputs("reading token flags: 0 bytes read\n", display_file);
+       if (display_file) fprintf(display_file, "reading token flags: 0 bytes read\n");
        return -1;
      } else {
        *flags = (int) char_flags;
