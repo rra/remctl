@@ -58,8 +58,9 @@ int confsize;
 
 void usage()
 {
-     fprintf(stderr, "Usage: remctl [-port port] [-verbose] [-inetd]\n");
+     fprintf(stderr, "Usage: remctld [-port port] [-verbose] [-inetd]\n");
      fprintf(stderr, "       [-logfile file] [-conf conffile] [service_name]\n");
+     fprintf(stderr, "       service_name is service/instance or service/host.domain.edu\n");
      exit(1);
 }
 
@@ -171,6 +172,8 @@ int server_establish_context(server_creds, context, client_name, ret_flags)
 	 if (verbose && log) {
 	   fprintf(log, "Received token (size=%d): \n", recv_tok.length);
 	   print_token(&recv_tok);
+
+
 	 }
 
 	 maj_stat =
@@ -304,6 +307,26 @@ int create_socket(port)
 
 
 
+/*
+ * Function: process_response
+ *
+ * Purpose: send back the response to the clientr, containg the result message
+ *
+ * Arguments:
+ *
+ * 	context		(r) the established gssapi context
+ * 	code		(r) the return code from running the command
+ * 	blob		(r) the output message gathered from the command
+ * 	bloblength	(r) the the length of the output message
+ *
+ * Returns: 0 on success, -1 on failure
+ *
+ * Effects:
+ * 
+ * Packs the return message payload with it's length in front of it, in case of
+ * error also packing in the error code and designating the error status with 
+ * a token flag. Calls a utility function gss_sendmsg to send the token.
+ * */
 int process_response(context, code, blob, bloblength)
      gss_ctx_id_t context;
      int code;
@@ -345,7 +368,24 @@ int process_response(context, code, blob, bloblength)
 }
 
 
-
+/*
+ * Function: process_request
+ *
+ * Purpose: receives a request token payload and builds an argv stucture for it
+ *
+ * Arguments:
+ *
+ * 	context		(r) the established gssapi context
+ * 	req_argc	(w) pointer to the number of arguments
+ * 	req_argv	(w) pointer to the array of argument strings
+ *
+ * Returns: 0 on success, -1 on failure
+ *
+ * Effects:
+ * 
+ * Gets the packed message payload, unpacks it and proceeds to allocate and 
+ * populate an argv structure for the parameters found in the message
+ * */
 int process_request(context, req_argc, req_argv)
      gss_ctx_id_t context;
      int* req_argc;
@@ -382,7 +422,7 @@ int process_request(context, req_argc, req_argv)
 
      /* Now we actually know argc, and can populate the allocated argv */
 
-     *req_argv = malloc(argvsize * sizeof(char*));
+     *req_argv = malloc((argvsize+1) * sizeof(char*));
 
      cp = msg;
      (*req_argc) = 0;
@@ -415,6 +455,14 @@ int process_request(context, req_argc, req_argv)
 }
 
 
+/*
+ * Function: read_file
+ *
+ * Purpose: reads a file into a char buffer
+ *
+ * Returns: 0 on success, -2 on failure, on purpose, to distinguish with a 
+ * -1 that could happen in a calling function
+ * */
 int read_file(file_name, buf)
     char* file_name;
     char** buf;
@@ -456,6 +504,28 @@ int read_file(file_name, buf)
     return(0);
 }
 
+
+/*
+ * Function: read_conf_file
+ *
+ * Purpose: reads the conf file and parses every line to populate a data
+ *          structure that will be traversed on each request to translate a
+ *          command type into an executable command filepath and aclfile.
+ *
+ * Arguments:
+ *
+ * 	filename	(r) conf file name
+ *
+ * Returns: 0 on success, -1 on failure
+ *
+ * Effects:
+ * 
+ * The confbuffer is a global, this read the conf file into that structure once
+ * at startup of this process. It checks for empty and comment '#' lines in the
+ * conf file and expects the fields to be space-separated. Struct confline
+ * declaration on top of this file details the fields. 
+ *
+ * */
 void read_conf_file(char* filename) {
 
   char* buf;
@@ -508,6 +578,25 @@ void read_conf_file(char* filename) {
 
 }
 
+
+/*
+ * Function: acl_check
+ *
+ * Purpose: checks of a given principal is in a given aclfile
+ *
+ * Arguments:
+ *
+ * 	userprincipal    (r) K5 principal in form   user@stanford.edu
+ * 	aclfile	         (r) acl file filename
+ *
+ * Returns: 0 on success, -1 on failure
+ *
+ * Effects:
+ * 
+ * Just sees if this userprincipal is one of the lines in the file. Ignores
+ * empty lines and comments '#'
+ *
+ * */
 int acl_check(userprincipal, aclfile) 
      char* userprincipal;
      char* aclfile;
@@ -539,6 +628,40 @@ int acl_check(userprincipal, aclfile)
 }
 
 
+/*
+ * Function: process_connection
+ *
+ * Purpose: the main fucntion that processes the entire interaction with one
+ *          client
+ *
+ * Arguments:
+ *
+ * 	server_creds	(r) gssapi server credentials
+ *
+ * Returns: 0 on success, -1 on failure
+ *
+ * Effects:
+ * 
+ * Establishes a context with this client. 
+ *
+ * Calls process_request to get the argv from the client. The first string in 
+ * argv is expected to be a "type" which determines a category of commands - 
+ * often points to a particular command executable. 
+ *
+ * Using the "type" and the "service" - the following argument - a lookup in 
+ * the conf data structure is done to find the command executable and acl file.
+ * If the conf file, and subsequently the conf data structure contains an entry
+ * for this type, with service equal to "all" that is a wildcard match for any 
+ * given service. The first argument is then replaced with the actual program
+ * name to be executed.
+ * 
+ * After checking the acl permissions, the process forks and the child execv's 
+ * the said command with pipes arranged to gather output. The parent waits for
+ * the return code and gathers stdout and stderr pipes. It then calls 
+ * process_response with the message generated by the command execution and
+ * cleans up the context.
+ * 
+ * */
 int process_connection(server_creds)
      gss_cred_id_t server_creds;
 {
@@ -716,7 +839,7 @@ int process_connection(server_creds)
 
       /* this does the crazy >>8 thing to get the real error code */
       if (WIFEXITED(ret_code)) {
-	ret_code = WEXITSTATUS(ret_code);
+	ret_code = (signed) WEXITSTATUS(ret_code);
       }
 
     }
@@ -751,9 +874,12 @@ int process_connection(server_creds)
 
 
 
+/* The main serves to gather arguments and determine the standalone vs inetd
+   mode. It also calls to set up a tcp connection on standalone mode; the 
+   transaction handling is then handed off to process_connection
+*/
 
-int
-main(argc, argv)
+int main(argc, argv)
      int argc;
      char **argv;
 {

@@ -1,6 +1,7 @@
 TODO:
 
 - negative error codes???
+  cast (signed blah)
 - tcpserver/inetd
 - forwardable tickets?
 

@@ -1,24 +1,4 @@
-/*
- * Copyright 1994 by OpenVision Technologies, Inc.
- * 
- * Permission to use, copy, modify, distribute, and sell this software
- * and its documentation for any purpose is hereby granted without fee,
- * provided that the above copyright notice appears in all copies and
- * that both that copyright notice and this permission notice appear in
- * supporting documentation, and that the name of OpenVision not be used
- * in advertising or publicity pertaining to distribution of the software
- * without specific, written prior permission. OpenVision makes no
- * representations about the suitability of this software for any
- * purpose.  It is provided "as is" without express or implied warranty.
- * 
- * OPENVISION DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL OPENVISION BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
- * USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
- * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,9 +27,12 @@ int WRITEFD = 1;
 
 void usage()
 {
-     fprintf(stderr, "Usage: gss-client [-p port] [-d] [-v] host service msg\n");
+     fprintf(stderr, "Usage: \n");
+     fprintf(stderr, "remctl [-p port] [-d] [-v] host remctl_service_name type service <arguments>\n");
      fprintf(stderr, "       -d delegate (only works with a proxiable TGT)\n");
      fprintf(stderr, "       -v verbose\n");
+     fprintf(stderr, "       remctl_service_name is the K5 principal the remctld server runs under.\n");
+ fprintf(stderr, "       It's format should be: service/instance or service/host.domain.edu\n");
      exit(1);
 }
 
@@ -239,7 +222,7 @@ int client_establish_context(service_name, deleg_flag,
 
 	 if (send_tok.length != 0) {
 	   if (verbose)
-	     printf("Sending init_sec_context token (size=%d)...",
+	     printf("Sending init_sec_context token (size=%d)...\n",
 		    send_tok.length);
 	   if (send_token(TOKEN_CONTEXT, &send_tok) < 0) {
 	     (void) gss_release_buffer(&min_stat, &send_tok);
@@ -247,6 +230,7 @@ int client_establish_context(service_name, deleg_flag,
 	     return -1;
 	   }
 	 }
+
 	 (void) gss_release_buffer(&min_stat, &send_tok);
  
 	 if (maj_stat!=GSS_S_COMPLETE && maj_stat!=GSS_S_CONTINUE_NEEDED) {
@@ -258,7 +242,7 @@ int client_establish_context(service_name, deleg_flag,
 					     GSS_C_NO_BUFFER);
 	      return -1;
 	 }
-	  
+
 	 if (maj_stat == GSS_S_CONTINUE_NEEDED) {
 	   if (verbose)
 	     printf("continue needed...");
@@ -280,7 +264,24 @@ int client_establish_context(service_name, deleg_flag,
 
 
 
-
+/*
+ * Function: process_response
+ *
+ * Purpose: get the response back from the server, containg the result message
+ *
+ * Arguments:
+ *
+ * 	context		(r) the established gssapi context
+ *
+ * Returns: 0 on success, -1 on failure
+ *
+ * Effects:
+ * 
+ * Calls a utility function gss_recvmsg to get the token, then disassembles
+ *  the data payload, which is in the format of 
+ * [<length><data of that length>] and then displays the return code and 
+ * message.
+ * */
 int process_response(context)
      gss_ctx_id_t context;
 {
@@ -326,34 +327,24 @@ int process_response(context)
 
 
 /*
- * Function: call_server
+ * Function: process_request
  *
- * Purpose: Call the "sign" service.
+ * Purpose: send the request data over to the server
  *
  * Arguments:
  *
- * 	host		(r) the host providing the service
- * 	port		(r) the port to connect to on host
- * 	service_name	(r) the GSS-API service name to authenticate to
- *	deleg_flag	(r) GSS-API delegation flag (if any)
- *	auth_flag	(r) whether to do authentication
- *	wrap_flag	(r) whether to do message wrapping at all
- *	encrypt_flag	(r) whether to do encryption while wrapping
- *	mic_flag	(r) whether to request a MIC from the server
- * 	msg		(r) the message to have "signed"
- *	use_file	(r) whether to treat msg as an input file name
- *	mcount		(r) the number of times to send the message
+ * 	context		(r) the established gssapi context
+ * 	argc		(r) number of agruments to send
+ * 	argv		(r) the end of the main's argv containing only the 
+ *                          things representing the remote command to send 
  *
  * Returns: 0 on success, -1 on failure
  *
  * Effects:
  * 
- * call_server opens a TCP connection to <host:port> and establishes a
- * GSS-API context with service_name over the connection.  It then
- * seals msg in a GSS-API token with gss_wrap, sends it to the server,
- * reads back a GSS-API signature block for msg from the server, and
- * verifies it with gss_verify.  -1 is returned if any step fails,
- * otherwise 0 is returned.  */
+ * Assembles the data payload in the format of [<length><data of that length>]*
+ * then calls a utility function gss_sendmsg to send the token over
+ * */
 int process_request(context, argc, argv)
      gss_ctx_id_t context;
      int argc;
@@ -391,6 +382,12 @@ int process_request(context, argc, argv)
 
 }
 
+
+
+/*
+ * The main just parses the arguments, establishes the gssapi context and
+ * calls the effector functions to request and process response
+ */
 int main(argc, argv)
      int argc;
      char **argv;
@@ -442,7 +439,8 @@ int main(argc, argv)
      }
 
      /* display the flags */
-     display_ctx_flags(ret_flags);
+     if (verbose)
+       display_ctx_flags(ret_flags);
 
      if (process_request(context, argc, argv) < 0)
        exit(1);

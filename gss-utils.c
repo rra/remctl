@@ -57,7 +57,29 @@ static void display_status_1
 	PROTOTYPE( (char *m, OM_uint32 code, int type) );
 
 
-
+/*
+ * Function: gss_sendmsg
+ *
+ * Purpose: wraps, encrypts and sends a data payload token, gets back a MIC 
+ *          checksum
+ *
+ * Arguments:
+ *
+ * 	context		(r) established gssapi context
+ *	flags	        (r) the flags received with the incoming token
+ * 	msg		(r) the data token, packed [<len><data of len>]*
+ * 	msglength	(r) the data token length
+ *
+ * Returns: 0 on success, -1 on failure
+ *
+ * Effects:
+ *
+ * Calls gss api to wrap the token and sends it. Receives a MIC checksum
+ * and verifies it. 
+ * This is not proof of message integrity, as that is inherent in the 
+ * underlying K5 mechanism -  the MIC is not mandatory to assure secure 
+ * transfer, but present here nonetheless for completeness
+ */
 int gss_sendmsg(context, flags, msg, msglength)
      gss_ctx_id_t context;
      int flags;
@@ -121,6 +143,31 @@ int gss_sendmsg(context, flags, msg, msglength)
 
 }
 
+/*
+ * Function: gss_recvmsg
+ *
+ * Purpose: receives and an wraps a data payload token, send back a MIC 
+ *          checksum
+ *
+ * Arguments:
+ *
+ * 	context		(r) established gssapi context
+ *	token_flags	(w) the flags received with the incoming token
+ * 	msg		(w) the data token, packed [<len><data of len>]*
+ *
+ * Returns: 0 on success, -1 on failure
+ *
+ * Effects:
+ *
+ * Calls lower utility to get the token as it was sent to us. Unwraps and 
+ * unencrypts the payload. Allocates some memory for the payload and passes
+ * it back by reference. 
+ * Also send back a MIC checksum the proves the encryption was in place on the
+ * wire and that we decrypted the token. This is not proof of message 
+ * integrity, as that is inherent in the underlying K5 mechanism -  the MIC is
+ * not mandatory to assure secure transfer, but present here nonetheless for
+ * completeness
+ */
 int gss_recvmsg(context, token_flags, msg, msglength) 
      gss_ctx_id_t context;
      int* token_flags;
@@ -344,7 +391,17 @@ int recv_token(flags, tok)
 }
 
 
-
+/*
+ * Function: write_all
+ *
+ * Purpose: standard socket/file descriptor write
+ *
+ * Arguments:
+ *
+ * 	buf		a buffer fromwhich to write
+ *      nbyte	        number of bytes to write
+ *
+ */
 static int write_all(char *buf, unsigned int nbyte)
 {
      int ret;
@@ -366,6 +423,17 @@ static int write_all(char *buf, unsigned int nbyte)
      return(ptr-buf);
 }
 
+/*
+ * Function: read_all
+ *
+ * Purpose: standard socket/file descriptor read to a particular length
+ *
+ * Arguments:
+ *
+ * 	buf		a buffer into which to read
+ *      nbyte	        number of bytes to read
+ *
+ */
 static int read_all(char *buf, unsigned int nbyte)
 {
      int ret;
