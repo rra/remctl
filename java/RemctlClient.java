@@ -20,12 +20,40 @@ import java.net.*;
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.nio.ByteBuffer;
 
+class RemctlClient implements java.security.PrivilegedExceptionAction {
 
-public class RemctlClient {
+    private ArrayList byteArgs;
+    private String host;
+    private int port;
+    private String servicePrincipal;
 
-    public static void main(String[] args) throws Exception  {
+    public static final int DEFAULT_PORT = 4444;
+
+    /* Token types */
+    private static final int TOKEN_NOOP  =            (1<<0);
+    private static final int TOKEN_CONTEXT =          (1<<1);
+    private static final int TOKEN_DATA =             (1<<2);
+    private static final int TOKEN_MIC =              (1<<3);
+
+    /* Token flags */
+    private static final int TOKEN_CONTEXT_NEXT =     (1<<4);
+    private static final int TOKEN_SEND_MIC =         (1<<5);
+
+    private String clientIdentity;
+    private  String serverIdentity;
+    private int    returnCode;
+    private String returnMessage;
+    private GSSContext context;
+    private MessageProp prop;
+    private Socket socket;
+    private DataInputStream inStream;
+    private DataOutputStream outStream;
+
+    public static void main(String[] args) {
 
         if (args.length < 3) {
             System.err.println("Usage: java <options> RemctlClient "
@@ -33,124 +61,96 @@ public class RemctlClient {
             System.exit(-1);
         }
         
-        // Initialize the LoginContext object
-        LoginContext lc = null;
         try {
-            lc = new LoginContext("RemctlClient", new TextCallbackHandler());
-        } catch (LoginException le) {
-            System.err.println("Cannot create LoginContext. "
-                               + le.getMessage());
-            System.exit(-1);
-        } catch (SecurityException se) {
-            System.err .println("Cannot create LoginContext. "
-                                + se.getMessage());
-            System.exit(-1);
-        }
-        
 
-        // Read the keytab, or the credentials cache
-        try {
-            lc.login();
-        } catch (AccountExpiredException aee) {
-            System.err.println("Your account has expired.  " +
-                               "Please notify your administrator.");
-            System.exit(-1);
-            
-        } catch (CredentialExpiredException cee) {
+            String host = args[0];
+            String remargs[] = new String[args.length-1];
+            for(int i=1; i<args.length; i++)
+                remargs[i-1] = args[i];
 
-            System.err.println("Your credentials have expired.");
-            System.exit(-1);
-
-        } catch (FailedLoginException fle) {
-
-            System.err.println("Authentication Failed");
-            System.exit(-1);
-
+            RemctlClient rc = RemctlClient.withLogin("RemctlClient",
+                                                     remargs,
+                                                     host,
+                                                     0,
+                                                     null);
+            System.out.print(rc.getReturnMessage());
+            System.exit(rc.getReturnCode());
         } catch (Exception e) {
-
-            System.err.println("Unexpected Exception - unable to continue");
+            System.err.println("Error: "+e.getMessage());
             e.printStackTrace();
             System.exit(-1);
         }
 
+    }
 
-        // Run the RemctlAction with the k5 ticket
-        try {
-            Subject.doAsPrivileged(lc.getSubject(),
-                                   new  RemctlAction(args),
-                                   null);
-        } catch (java.security.PrivilegedActionException pae) {
-            pae.printStackTrace();
-            System.exit(-1);
+    public static RemctlClient withLogin(String name,
+                                         String args[],
+                                         String host,
+                                         int port,
+                                         String servicePrincipal)
+        throws javax.security.auth.login.LoginException,
+               java.security.PrivilegedActionException
+    {
+        LoginContext lc = 
+            new LoginContext(name, new TextCallbackHandler());
+        lc.login();
+        RemctlClient rc = new RemctlClient(args, host, 0, null);
+        Subject.doAsPrivileged(lc.getSubject(), rc, null);
+        lc.logout();
+        return rc;
+    }
+
+    public RemctlClient(String args[], String host, 
+                        int port, String servicePrincipal) {
+        this.host = host;
+        this.port = port;
+        this.servicePrincipal = servicePrincipal;
+        this.byteArgs = new ArrayList();
+        for (int i=0; i < args.length; i++) {
+            byteArgs.add(args[i].getBytes());
         }
-
-        System.exit(0);
-    }
-}
-
-class RemctlAction implements java.security.PrivilegedExceptionAction {
-
-    String[] origArgs;
-
-    static int MAXBUFFER = 64000;
-    /* Token types */
-    static int TOKEN_NOOP  =            (1<<0);
-    static int TOKEN_CONTEXT =          (1<<1);
-    static int TOKEN_DATA =             (1<<2);
-    static int TOKEN_MIC =              (1<<3);
-
-    /* Token flags */
-    static int TOKEN_CONTEXT_NEXT =     (1<<4);
-    static int TOKEN_SEND_MIC =         (1<<5);
-
-    public String clientIdentity;
-    public String serverIdentity;
-    public int    returnCode;
-    public String returnMessage;
-
-    GSSContext context;
-    MessageProp prop;
-    Socket socket;
-    DataInputStream inStream;
-    DataOutputStream outStream;
-    ByteBuffer messageBuffer;
-    String hostName;
-    String servicePrincipal;
-    int port;
-
-
-    public RemctlAction(String[] origArgs) {
-        returnCode = 0;
-        this.origArgs = (String[])origArgs.clone();
     }
 
+    public int getReturnCode() {
+        return returnCode;
+    }
 
-    public Object run() throws Exception {
+    public String getReturnMessage() {
+        return returnMessage;
+    }
 
-        InetAddress hostAddress = InetAddress.getByName(origArgs[0]);
-	hostName = hostAddress.getHostName().toLowerCase();
-        servicePrincipal = "host/"+hostName;
-        port = 4444;
+    public String getClientIdentity() {
+        return clientIdentity;
+    }
 
-        messageBuffer = ByteBuffer.allocate(MAXBUFFER);
+    public String getServerIdentity() {
+        return serverIdentity;
+    }
 
-        String remargs[] = new String[origArgs.length-1];
-        for(int i=1; i<origArgs.length; i++)
-            remargs[i-1] = origArgs[i];
+    public Object run() throws GSSException, IOException {
 
-        int returnCode = process(remargs);
+        InetAddress hostAddress = InetAddress.getByName(host);
+	String hostName = hostAddress.getHostName().toLowerCase();
+        if (servicePrincipal == null) 
+            servicePrincipal = "host/"+hostName;
+        if (port == 0)
+            port = DEFAULT_PORT;
 
-        if (returnCode != 0)
-            System.out.println("Error code: "+returnCode);
+        /* Make the socket: */
+        socket =    new Socket(hostName, port);
+        inStream =  new DataInputStream(socket.getInputStream());
+        outStream = new DataOutputStream(socket.getOutputStream());
 
-        System.out.println(returnMessage);
-        // successful completion
+        clientEstablishContext();
+        processRequest();
+        processResponse();
+        context.dispose();
+        socket.close();
         return null;
-
     }
 
     private void clientEstablishContext() 
-        throws GSSException, IOException, RemctlException {
+        throws GSSException, IOException {
 
         /*
          * This Oid is used to represent the Kerberos version 5 GSS-API
@@ -237,46 +237,32 @@ class RemctlAction implements java.security.PrivilegedExceptionAction {
          * client and server were authenticated to each other.
          */
         if (! context.getMutualAuthState()) {
-            throw new RemctlException("Mutual authentication did not take "+
-                                      "place!");
+            throw new IOException("remctl: no mutal authentication");
         }
 
     }
 
+    private void processRequest() throws GSSException, IOException {
 
-    public int process(String args[])  
-        throws GSSException, IOException, RemctlException {
-
-        /* Make the socket: */
-        socket =    new Socket(hostName, port);
-        inStream =  new DataInputStream(socket.getInputStream());
-        outStream = new DataOutputStream(socket.getOutputStream());
-
-        clientEstablishContext();
-        processRequest(args);
-        int returnCode = processResponse();
-
-        context.dispose();
-        socket.close();
-        return returnCode;
-    }
-
-
-    private void processRequest(String args[])  
-        throws GSSException, IOException, RemctlException {
+        /* determine size of buffer we need */
+        int messageLength = 4; /* number of args */
+        for (Iterator it = byteArgs.iterator(); it.hasNext();) {
+            /* add 4 for the length, then the actual length */
+            byte[]  bytes = (byte[]) it.next();
+            messageLength += 4+bytes.length;
+        }
 
         /* Make the message buffer */
-        messageBuffer.putInt(args.length);
-        for(int i=0;i<args.length;i++) {
-            messageBuffer.putInt(args[i].length());
-            messageBuffer.put(args[i].getBytes());
+        ByteBuffer messageBuffer = ByteBuffer.allocate(messageLength);
+        messageBuffer.putInt(byteArgs.size());
+        for (Iterator it = byteArgs.iterator(); it.hasNext(); ) {
+            byte[]  bytes = (byte[]) it.next();
+            messageBuffer.putInt(bytes.length);
+            messageBuffer.put(bytes);
         }
 
         /* Extract the raw bytes of the message */
-        int length = messageBuffer.position();
-        messageBuffer.rewind();
-        byte[] messageBytes = new byte[length];
-        messageBuffer.get(messageBytes);
+        byte[] messageBytes = messageBuffer.array(); /* doesn't copy */
         
         /*
          * The first MessageProp argument is 0 to request
@@ -294,8 +280,8 @@ class RemctlAction implements java.security.PrivilegedExceptionAction {
          * establishing the context.
          */
 
-        byte[] token = context.wrap(messageBytes, 0, messageBytes.length, 
-                                    prop);
+        byte[] token = context.wrap(messageBytes, 0, 
+                                    messageBytes.length, prop);
         outStream.writeByte(TOKEN_DATA | TOKEN_SEND_MIC);
         outStream.writeInt(token.length);
         outStream.write(token);
@@ -316,26 +302,24 @@ class RemctlAction implements java.security.PrivilegedExceptionAction {
         
     }
 
-
-    private int processResponse() 
-        throws GSSException, IOException, RemctlException {
+    private void processResponse() throws GSSException, IOException {
 
         byte flag = inStream.readByte();
 
         if ((flag & TOKEN_DATA) == 0) {
-            throw new RemctlException("Wrong token type received, expected " +
-                                      "TOKEN_DATA");
+            throw new IOException("remctl: Wrong token type received, " +
+                                  "expected TOKEN_DATA");
         }
 
         byte[] token = new byte[inStream.readInt()];
         inStream.readFully(token);
 
         byte[] bytes = context.unwrap(token, 0, token.length, prop);
-        messageBuffer = ByteBuffer.allocate(bytes.length);
+        ByteBuffer messageBuffer = ByteBuffer.allocate(bytes.length);
         messageBuffer.put(bytes);
         messageBuffer.rewind();
 
-        int returnCode = messageBuffer.getInt();
+        returnCode = messageBuffer.getInt();
 
         byte[] responsebytes = new byte[messageBuffer.getInt()];
         messageBuffer.get(responsebytes);
@@ -355,9 +339,6 @@ class RemctlAction implements java.security.PrivilegedExceptionAction {
         outStream.writeInt(token.length);
         outStream.write(token);
         outStream.flush();
-
-        return returnCode;
-    
     }
 }
 
