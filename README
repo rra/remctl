@@ -1,11 +1,11 @@
-                            remctl release 1.4
+                            remctl release 1.5
             (remote authenticated command execution with ACLs)
 
               Written by Anton Ushakov <antonu@stanford.edu>
 
-  Copyright 2002, 2003 Board of Trustees, Leland Stanford Jr. University.
-  This software is distributed under a BSD-style license.  Please see the
-  section LICENSE below for more information.
+  Copyright 2002, 2003, 2004 Board of Trustees, Leland Stanford Jr.
+  University.  This software is distributed under a BSD-style license.
+  Please see the section LICENSE below for more information.
 
 
 DESCRIPTION
@@ -86,7 +86,8 @@ PORTING
 
 LICENSE
 
-  Copyright 2002, 2003 Board of Trustees, Leland Stanford Jr. University
+  Copyright 2002, 2003, 2004 Board of Trustees, Leland Stanford Jr.
+  University
   
   All rights reserved.
     
