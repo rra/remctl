@@ -54,10 +54,6 @@ install: build
 # We have no architecture-independent files to build.
 binary-indep: build install
 
-# This single target is used to build all the packages, all at once, or one at
-# a time.  So keep in mind: any options passed to commands here will affect
-# _all_ packages.  Anything you want to only affect one package should be put
-# in another target, such as the install target.
 binary-arch: build install
 	dh_testdir
 	dh_testroot
