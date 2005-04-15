@@ -1,3 +1,10 @@
+remctl (1.7-2) unstable; urgency=low
+
+  * Uploaded to Debian.  (Closes: #304747)
+  * Use the recommended syntax for the homepage link in the description.
+
+ -- Russ Allbery <rra@stanford.edu>  Fri, 15 Apr 2005 00:25:19 -0700
+
 remctl (1.7-1) unstable; urgency=low
 
   * Initial release.
