@@ -19,4 +19,4 @@ Description: remote Kerberos-authenticated command execution
  Included in this package is both the client (remctl) and the server
  (remctld).  The server will not be started automatically.
  .
- See <http://www.eyrie.org/~eagle/software/remctl/> for more information.
+ Homepage: http://www.eyrie.org/~eagle/software/remctl/
