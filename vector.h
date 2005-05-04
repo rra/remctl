@@ -19,8 +19,8 @@
 
 #include <sys/types.h>
 
-#ifndef INN_VECTOR_H
-#define INN_VECTOR_H 1
+#ifndef VECTOR_H
+#define VECTOR_H 1
 
 struct vector {
     size_t count;
@@ -60,10 +60,10 @@ void cvector_free(struct cvector *);
 /* Split functions build a vector from a string.  vector_split splits on a
    specified character, while vector_split_space splits on any sequence of
    spaces or tabs (not any sequence of whitespace, as just spaces or tabs is
-   more useful for INN).  The cvector versions destructively modify the
-   provided string in-place to insert nul characters between the strings.  If
-   the vector argument is NULL, a new vector is allocated; otherwise, the
-   provided one is reused.
+   more useful).  The cvector versions destructively modify the provided
+   string in-place to insert nul characters between the strings.  If the
+   vector argument is NULL, a new vector is allocated; otherwise, the provided
+   one is reused.
 
    Empty strings will yield zero-length vectors.  Adjacent delimiters are
    treated as a single delimiter by *_split_space, but *not* by *_split, so
@@ -80,4 +80,4 @@ struct cvector *cvector_split_space(char *string, struct cvector *);
 char *vector_join(const struct vector *, const char *seperator);
 char *cvector_join(const struct cvector *, const char *separator);
 
-#endif /* INN_VECTOR_H */
+#endif /* VECTOR_H */

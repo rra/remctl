@@ -424,11 +424,10 @@ cvector_join(const struct cvector *vector, const char *seperator)
 }
 
 
-
 /*
-** Local variables:
-** mode: c
-** c-basic-offset: 4
-** indent-tabs-mode: nil
-** end:
+**  Local variables:
+**  mode: c
+**  c-basic-offset: 4
+**  indent-tabs-mode: nil
+**  end:
 */

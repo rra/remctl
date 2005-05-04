@@ -1,32 +1,32 @@
-/*
-   $Id$
-
-   The deamon for a "K5 sysctl" - a service for remote execution of 
-   predefined commands. Access is authenticated via GSSAPI Kerberos 5, 
-   authorized via aclfiles. Runs as a inetd/tcpserver deamon or a standalone
-   program.
-
-   Written by Anton Ushakov <antonu@stanford.edu>
-   Vector library contributed by Russ Allbery <rra@stanford.edu> 
-   Copyright 2002 Board of Trustees, Leland Stanford Jr. University
-
+/*  $Id$
+**
+**  The deamon for a "K5 sysctl" - a service for remote execution of
+**  predefined commands.  Access is authenticated via GSSAPI Kerberos 5,
+**  authorized via ACL files.  Runs as a inetd/tcpserver deamon or a
+**  standalone program.
+**
+**  Written by Anton Ushakov <antonu@stanford.edu>
+**  Vector library contributed by Russ Allbery <rra@stanford.edu>
+**
+**  See README for copyright and licensing information.
 */
 
-#include <stdlib.h>
-#include <unistd.h>
 #include <ctype.h>
-#include <time.h>
-#include <fcntl.h>
-#include <string.h>
 #include <errno.h>
-#include <syslog.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <syslog.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <time.h>
+#include <unistd.h>
 
 #include <gssapi/gssapi_generic.h>
 #include "gss-utils.h"
@@ -52,11 +52,12 @@ struct confline {
 /* Pointer to the global structure that will hold the parsed conf file. */
 struct confline **confbuffer;
 
-/* The environment */
-extern char **environ; 
 
-void
-usage()
+/*
+**  Display the usage message for remctld.
+*/
+static void
+usage(void)
 {
     static const char usage[] = "\
 Usage: remctld <options>\n\
@@ -73,24 +74,12 @@ Options:\n\
 }
 
 
-
 /*
- * Function: create_socket
- *
- * Purpose: Opens a listening TCP socket. Only for Standalone Mode
- *
- * Arguments:
- *
- * 	port		(r) the port number on which to listen
- *
- * Returns: the listening socket file descriptor, or -1 on failure
- *
- * Effects:
- *
- * A listening socket on the specified port and created and returned.
- * On error, an error message is displayed and -1 is returned.
- */
-int
+**  Given the port number on which to listen, open a listening TCP socket.
+**  Returns the file descriptor or -1 on failure, logging an error message.
+**  This is only used in standalone mode.
+*/
+static int
 create_socket(unsigned short port)
 {
     struct sockaddr_in saddr;
@@ -106,8 +95,8 @@ create_socket(unsigned short port)
         return -1;
     }
     /* Let the socket be reused right away */
-    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on));
-    if (bind(s, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
+    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
+    if (bind(s, (struct sockaddr *) &saddr, sizeof(saddr)) < 0) {
         perror("binding socket");
         close(s);
         return -1;
@@ -122,25 +111,11 @@ create_socket(unsigned short port)
 
 
 /*
- * Function: server_acquire_creds
- *
- * Purpose: imports a service name and acquires credentials for it
- *
- * Arguments:
- *
- * 	service_name	(r) the ASCII service name
- * 	server_creds	(w) the GSS-API service credentials
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- *
- * The service name is imported with gss_import_name, and service
- * credentials are acquired with gss_acquire_cred.  If either opertion
- * fails, an error message is displayed and -1 is returned; otherwise,
- * 0 is returned.
- */
-int
+**  Given a service name, imports it and acquires credentials for it, storing
+**  them in the second argument.  Returns 0 on success and -1 on failure,
+**  logging an error message.
+*/
+static int
 server_acquire_creds(char *service_name, gss_cred_id_t *server_creds)
 {
     gss_buffer_desc name_buf;
@@ -173,31 +148,19 @@ server_acquire_creds(char *service_name, gss_cred_id_t *server_creds)
 
 
 /*
- * Function: server_establish_context
- *
- * Purpose: establishses a GSS-API context as a specified service with
- * an incoming client, and returns the context handle and associated
- * client name
- *
- * Arguments:
- *
- * 	service_creds	(r) server credentials, from gss_acquire_cred
- *      context         (w) gssapi context to be established
- * 	client_name	(w) identity of the connecting client
- * 	ret_flags	(w) flags describing the connection, returned by gssapi
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- *
- * Any valid client request is accepted.  If a context is established,
- * its handle is returned in "context", the type of the conncetion established 
- * is described in the "ret_flags",  and the client name is returned
- * in "client_name" and 0 is returned.  If unsuccessful, an error
- * message is displayed and -1 is returned.
- */
-int
-server_establish_context(gss_cred_id_t server_creds, gss_ctx_id_t* context, gss_buffer_t client_name, OM_uint32 *ret_flags)
+**  Establish a GSS-API context as a specified service with an incoming
+**  client, and returns the context handle, associated client name, and
+**  associated connection flags.  Returns 0 on success and -1 on failure,
+**  logging an error message.
+**
+**  Any valid client request is accepted.  If a context is established, its
+**  handle is returned in context, the type of the conncetion established is
+**  described in the ret_flags, and the client name is returned in
+**  client_name.
+*/
+static int
+server_establish_context(gss_cred_id_t server_creds, gss_ctx_id_t *context,
+                         gss_buffer_t client_name, OM_uint32 *ret_flags)
 {
     gss_buffer_desc send_tok, recv_tok;
     gss_name_t client;
@@ -310,17 +273,12 @@ server_establish_context(gss_cred_id_t server_creds, gss_ctx_id_t* context, gss_
 }
 
 
-
 /*
- * Function: read_file
- *
- * Purpose: reads a file into a char buffer
- *
- * Returns: 0 on success, -2 on failure, on purpose, to distinguish with a 
- * -1 that could happen in a calling function
- * */
-char*
-read_file(char *file_name)
+**  Reads a file into a character buffer, returning the newly allocated buffer
+**  or NULL on failure.
+*/
+static char *
+read_file(const char *file_name)
 {
     int fd, count;
     struct stat stat_buf;
@@ -365,51 +323,41 @@ read_file(char *file_name)
 
 
 /*
- * Function: read_conf_file
- *
- * Purpose: reads the conf file and parses every line to populate a data
- *          structure that will be traversed on each request to translate a
- *          command type into an executable command filepath and aclfile.
- *
- * Arguments:
- *
- * 	filename	(r) conf file name
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- * 
- * The confbuffer is a global, this read the conf file into that structure once
- * at startup of this process. It checks for empty and comment '#' lines in the
- * conf file and expects the fields to be space-separated. Struct confline
- * declaration on top of this file details the fields. 
- *
- * */
-int
-read_conf_file(char *filename)
+**  Reads the configuration file and parses every line, populating a data
+**  structure that will be traversed on each request to translate a command
+**  type into an executable path and ACL file.
+**
+**  The confbuffer is a global file that is populated with the parsed
+**  configuration file at the startup of the process.  Empty lines and lines
+**  beginning with # are ignored.  Each line is divided into fields, separated
+**  by spaces.  The fields are defined by struct confline.
+**
+**  Returns 0 on success and -1 on error, reporting an error message.
+*/
+static int
+read_conf_file(const char *filename)
 {
-
-    char** vlp;
+    char **vlp;
     char *buf;
-    int linenum, i, j, arg_i;
+    int linenum;
+    unsigned int i, j, arg_i;
     struct vector *vline;
     struct vector *vbuf;
     struct confline* cp;
 
-    if ((buf = read_file(filename)) == NULL) {
+    if ((buf = read_file(filename)) == NULL)
         return -1;
-    }
 
     vbuf = vector_new();
     vbuf = vector_split(buf, '\n', vbuf);
     if (vbuf->count == 0) {
-            syslog(LOG_ERR, "Empty conf file\n");
-            return -1;
+        syslog(LOG_ERR, "Empty conf file\n");
+        return -1;
     }
 
     /* How many real content lines are there. */
     linenum = 0;
-    for (i=0; i < vbuf->count; i++) {
+    for (i = 0; i < vbuf->count; i++) {
         vlp = vbuf->strings + i;
         if (*vlp[0] == '\0' || *vlp[0] == '#')
             continue;
@@ -423,7 +371,7 @@ read_conf_file(char *filename)
 
     /* Fill in the confbuffer */
     vline = vector_new();
-    for (i=0; i < vbuf->count; i++) {
+    for (i = 0; i < vbuf->count; i++) {
         vlp = vbuf->strings + i;
         if (*vlp[0] == '\0' || *vlp[0] == '#')
             continue;
@@ -445,7 +393,7 @@ read_conf_file(char *filename)
            to support multiple x=y options */
         if (strncmp(vline->strings[3], "logmask=", 8) == 0) {
             cp->logmask = vector_new();
-            vector_split(vline->strings[3]+8, ',', cp->logmask);
+            vector_split(vline->strings[3] + 8, ',', cp->logmask);
             arg_i = 4;
         } else {
             arg_i = 3;
@@ -457,9 +405,9 @@ read_conf_file(char *filename)
             return -1;
         }
 
-        cp->acls    = smalloc((vline->count-arg_i+1) * sizeof(char*));
-        for (j=0; j < vline->count - arg_i; j++) {
-            cp->acls[j] = strdup(vline->strings[j+arg_i]);
+        cp->acls = smalloc((vline->count-arg_i+1) * sizeof(char*));
+        for (j = 0; j < vline->count - arg_i; j++) {
+            cp->acls[j] = strdup(vline->strings[j + arg_i]);
         }
         cp->acls[j] = NULL;
         linenum++;
@@ -469,32 +417,19 @@ read_conf_file(char *filename)
     vector_free(vbuf);
     vector_free(vline);
     return 0;
-
 }
 
 
 /*
- * Function: acl_check
- *
- * Purpose: checks of a given principal is in a given aclfile
- *
- * Arguments:
- *
- * 	userprincipal    (r) K5 principal in form   user@stanford.edu
- * 	settings	 (r) acl files are in this structure
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- * 
- * Just sees if this userprincipal is one of the lines in the file. Ignores
- * empty lines and comments '#'
- *
- * */
-int
+**  Check to see if a given principal is in a given list of ACL files.  The
+**  list of ACL files should be NULL-terminated.  Empty lines and lines
+**  beginning with # in the ACL file are ignored.
+**
+**  Returns 0 on success and -1 on failure.
+*/
+static int
 acl_check(char *userprincipal, char **acls)
 {
-
     char *buf;
     char *line;
     int authorized = 0;
@@ -503,8 +438,7 @@ acl_check(char *userprincipal, char **acls)
     if (strcmp(acls[i], "ANYUSER") == 0)
         return 0;
 
-    while (acls[i] != 0) {
-
+    while (acls[i] != NULL) {
         if ((buf = read_file(acls[i])) == NULL)
             return -1;
 
@@ -530,25 +464,14 @@ acl_check(char *userprincipal, char **acls)
 
 
 /*
- * Function: process_request
- *
- * Purpose: receives a request token payload and builds an argv stucture for it
- *
- * Arguments:
- *
- * 	context		(r) the established gssapi context
- * 	req_argc	(w) pointer to the number of arguments
- * 	req_argv	(w) pointer to the array of argument strings
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- * 
- * Gets the packed message payload, unpacks it and proceeds to allocate and 
- * populate an argv structure for the parameters found in the message
- * */
-struct vector*
-process_request(gss_ctx_id_t context, char ret_message[])
+**  Receives a request token payload and builds an argv structure for it,
+**  returning that as a vector.  Takes the GSSAPI context and a buffer into
+**  which to put an error message.  If there are any problems with the request
+**  structure, puts the error message in ret_message, logs it, and returns -1.
+**  Otherwise, returns 0.
+*/
+static struct vector *
+process_request(gss_ctx_id_t context, char *ret_message)
 {
     char *msg;
     OM_uint32 msglength;
@@ -572,7 +495,7 @@ process_request(gss_ctx_id_t context, char ret_message[])
     
     syslog(LOG_DEBUG, "argc is: %d\n", req_argc);
     if (req_argc <= 0 || req_argc > MAXCMDARGS) {
-        strcpy (ret_message, "Invalid argc in request message\n");
+        strcpy(ret_message, "Invalid argc in request message\n");
         syslog(LOG_DEBUG, ret_message);
         return NULL;
     }
@@ -580,14 +503,14 @@ process_request(gss_ctx_id_t context, char ret_message[])
     req_argv = vector_new();
     vector_resize(req_argv, req_argc);
 
-    /* Parse out the arguments and store them into a vector */
-    /* Arguments are packed: (<arglength><argument>)+       */
+    /* Parse out the arguments and store them into a vector.  Arguments are
+       packed: (<arglength><argument>)+. */
     while (cp < msg + msglength) {
         memcpy(&network_order, cp, sizeof(OM_uint32));
         arglength = ntohl(network_order);
         cp += sizeof(OM_uint32);
-        if (arglength > MAXBUFFER 
-            || arglength <= 0 
+        if (arglength > MAXBUFFER
+            || arglength <= 0
             || cp + arglength > msg + msglength) {
             strcpy (ret_message, 
                     "Data unpacking error in getting arguments\n");
@@ -608,25 +531,12 @@ process_request(gss_ctx_id_t context, char ret_message[])
 
 
 /*
- * Function: process_response
- *
- * Purpose: send back the response to the clientr, containg the result message
- *
- * Arguments:
- *
- * 	context		(r) the established gssapi context
- * 	code		(r) the return code from running the command
- * 	blob		(r) the output message gathered from the command
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- * 
- * Packs the return message payload with it's length in front of it, in case of
- * error also packing in the error code and designating the error status with 
- * a token flag. Calls a utility function gss_sendmsg to send the token.
- * */
-int
+**  Send a response back to the client.  Takes the GSSAPI context, the return
+**  code from running the command, and the output from the command.  Packs the
+**  return message payload, adds the error code and flag if needed, and then
+**  sends the response back via GSSAPI.
+*/
+static int
 process_response(gss_ctx_id_t context, OM_uint32 code, char *blob)
 {
     OM_uint32 bloblength;
@@ -657,23 +567,23 @@ process_response(gss_ctx_id_t context, OM_uint32 code, char *blob)
 
 
 /*
- * Function: log command
- */
-void
-log_command(struct vector *argvector, 
-            struct confline *cline,
+**  Log a command.  Takes the argument vector, the configuration line that
+**  matched the command, and the principal running the command.
+*/
+static void
+log_command(struct vector *argvector, struct confline *cline,
             char *userprincipal)
 {
     char log_message[MAXBUFFER];
     char *command;
+    unsigned int i, j;
 
     if (cline != NULL && cline->logmask != NULL) {
-        int i,j;
         struct cvector *v = cvector_new();
-        for (i=0; i < argvector->count; i++) {
-            char *a = argvector->strings[i];
-            for (j=0; j< cline->logmask->count; j++) {
-                if (atoi(cline->logmask->strings[j]) == i) {
+        for (i = 0; i < argvector->count; i++) {
+            const char *a = argvector->strings[i];
+            for (j = 0; j < cline->logmask->count; j++) {
+                if (atoi(cline->logmask->strings[j]) == (int) i) {
                     a = "**MASKED**";
                     break;
                 }
@@ -694,36 +604,26 @@ log_command(struct vector *argvector,
     free(command);
 }
 
-/*
- * Function: process_command
- *
- * Purpose: the function that determines the executable for this request,
- * checks the aclfiles and forks off to execute the commend
- *
- * Arguments:
- *
- *      argvector     (r) the arguments vector
- *      userprincipal (r) the identify of the user, making the request
- *      ret_message   (w) used to return the collected output message from
- *                        the executable
- *
- * Returns: 0 on success, negative integer on failure
- *
- * Effects:
- *
- * Using the "type" and the "service" - the following argument - a lookup in
- * the conf data structure is done to find the command executable and acl file.
- * If the conf file, and subsequently the conf data structure contains an entry
- * for this type, with service equal to "all" that is a wildcard match for any
- * given service. The first argument is then replaced with the actual program
- * name to be executed.
- *
- * After checking the acl permissions, the process forks and the child execv's
- * the said command with pipes arranged to gather output. The parent waits for
- * the return code and gathers stdout and stderr pipes. 
-*/
 
-OM_uint32
+/*
+**  Process an incoming command.  Check the configuration files and the ACL
+**  file, and if appropriate, forks off the command.  Takes the argument
+**  vector and the user principal, and a buffer into which to put the output
+**  from the executable or any error message.  Returns 0 on success and a
+**  negative integer on failure.
+**
+**  Using the type and the service, the following argument, a lookup in the
+**  conf data structure is done to find the command executable and acl file.
+**  If the conf file, and subsequently the conf data structure contains an
+**  entry for this type with service equal to "ALL", that is a wildcard match
+**  for any given service.  The first argument is then replaced with the
+**  actual program name to be executed.
+**
+**  After checking the acl permissions, the process forks and the child
+**  execv's the command with pipes arranged to gather output. The parent waits
+**  for the return code and gathers stdout and stderr pipes.
+*/
+static OM_uint32
 process_command(struct vector *argvector, char *userprincipal,
                 char *ret_message)
 {
@@ -739,21 +639,22 @@ process_command(struct vector *argvector, char *userprincipal,
     int ret_length;
     char err_message[MAXBUFFER];
     OM_uint32 ret_code;
-    int i, pid, pipebuffer;
+    int pid, pipebuffer;
+    unsigned int i;
 
     memset(ret_message, 0, MAXBUFFER);
     memset(err_message, 0, MAXBUFFER);
-    /* This is how much is read from each pipe - stderr and stdout. The total
-       size of what we send back has to be not more than MAXBUFFER */
-    pipebuffer = MAXBUFFER/2;
+
+    /* This is how much is read from each pipe, stderr and stdout.  The total
+       size of what we send back has to be not more than MAXBUFFER. */
+    pipebuffer = MAXBUFFER / 2;
 
     command = NULL;
     req_argv = NULL;
 
-    /* Lookup the command and the aclfile from the conf file structure in
+    /* Look up the command and the ACL file from the conf file structure in
        memory. */
-    
-    for (i=0; confbuffer[i] != NULL; i++) {
+    for (i = 0; confbuffer[i] != NULL; i++) {
         cline = confbuffer[i];
         if (strcmp(cline->type, argvector->strings[0]) == 0) {
             if (strcmp(cline->service, "ALL") == 0 ||
@@ -770,13 +671,11 @@ process_command(struct vector *argvector, char *userprincipal,
 
     /* Check the command, aclfile, and the authorization of this client to
        run this command. */
-
     if (command == NULL) {
         ret_code = -1;
         strcpy(ret_message, "Command not defined\n");
         goto done;
     }
-
     ret_code = acl_check(userprincipal, acls);
     if (ret_code != 0) {
         snprintf(ret_message, MAXBUFFER,
@@ -786,7 +685,7 @@ process_command(struct vector *argvector, char *userprincipal,
     }
 
     /* Assemble the argv, envp, and fork off the child to run the command. */
-    req_argv = smalloc((argvector->count + 1) * sizeof(char*));
+    req_argv = smalloc((argvector->count + 1) * sizeof(char *));
 
     /* Get the real program name, and use it as the first argument in argv
        passed to the command. */
@@ -795,7 +694,6 @@ process_command(struct vector *argvector, char *userprincipal,
         program = command;
     else
         program++;
-
     req_argv[0] = strdup(program);
     for (i = 1; i < argvector->count; i++) {
         req_argv[i] = strdup(argvector->strings[i]);
@@ -818,19 +716,17 @@ process_command(struct vector *argvector, char *userprincipal,
         ret_code = -1;
         goto done;
 
-    case 0:                /* This is the code the child runs. */
-
-        /* Close the Child process' STDOUT read end */
+    /* In the child. */
+    case 0:
         dup2(stdout_pipe[1], 1);
         close(stdout_pipe[0]);
         close(stdout_pipe[1]);
 
-        /* Close the Child process' STDERR read end */
         dup2(stderr_pipe[1], 2);
         close(stderr_pipe[0]);
         close(stderr_pipe[1]);
 
-        /* Child doesn't need STDIN at all */
+        /* Child doesn't need stdin at all. */
         close(0);
 
         /* Tell the exec'ed program who requested it */
@@ -856,14 +752,13 @@ process_command(struct vector *argvector, char *userprincipal,
 
         /* This here happens only if the exec failed. In that case this passed
            the errno information back up the stderr pipe to the parent, and
-           dies */
+           dies. */
         strcpy(ret_message, strerror(errno));
         fprintf(stderr, "%s\n", ret_message);
-
         exit(-1);
 
-    default:               /* This is the code the parent runs. */
-
+    /* In the parent. */
+    default:
         close(stdout_pipe[1]);
         close(stderr_pipe[1]);
 
@@ -879,7 +774,7 @@ process_command(struct vector *argvector, char *userprincipal,
         if ((ret_length = read_two(stdout_pipe[0], stderr_pipe[0], 
                                    ret_message, err_message, 
                                    pipebuffer, pipebuffer)) < 0)
-            ret_message = "No output from the command\n";
+            strcpy(ret_message, "No output from the command\n");
 
         /* Both streams could have useful info. */
         strcat(ret_message, err_message);
@@ -889,7 +784,7 @@ process_command(struct vector *argvector, char *userprincipal,
 
         /* This does the crazy >>8 thing to get the real error code. */
         if (WIFEXITED(ret_code)) {
-            ret_code = (signed)WEXITSTATUS(ret_code);
+            ret_code = (signed int) WEXITSTATUS(ret_code);
         }
     }
 
@@ -902,45 +797,21 @@ process_command(struct vector *argvector, char *userprincipal,
         }
         free(req_argv);
     }
-
     return ret_code;
 }
 
 
-
 /*
- * Function: process_connection
- *
- * Purpose: the main fucntion that processes the entire interaction with one
- *          client
- *
- * Arguments:
- *
- * 	server_creds	(r) gssapi server credentials
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- * 
- * This is the main line of control for a particular client interaction. First 
- * establishes a context with this client. 
- *
- * Calls process_request to get the argv from the client. The first string in 
- * argv is expected to be a "type" which determines a category of commands - 
- * often points to a particular command executable. 
- *
- * Calls process_command to figure out the executable for this request, and
- * check the pertaining aclfiles. The command is executed and the response
- * message and return code are returned. 
- *
- * It then calls process_response with the message generated by process_command
- * cleans up the context.
- * 
- * */
-int
+**  Handle the interaction with the client.  Takes the server credentials and
+**  establishes a context with the client.  Then, calls process_request to get
+**  the command and arguments from the client and calls process_command to
+**  find the executable, check the ACL files, and run the command.  Once the
+**  response and exit code have been determined, calls process_response to
+**  send the response back to the client and then cleans up the context.
+*/
+static int
 process_connection(gss_cred_id_t server_creds)
 {
-
     gss_buffer_desc client_name;
     gss_ctx_id_t context;
     OM_uint32 maj_stat, min_stat;
@@ -956,7 +827,6 @@ process_connection(gss_cred_id_t server_creds)
     ret_length = 0;
     req_argv=0;
     memset(ret_message, '\0', MAXBUFFER);
-
 
     /* Establish a context with the client. */
     if (server_establish_context(server_creds, &context,
@@ -977,7 +847,6 @@ process_connection(gss_cred_id_t server_creds)
            (int)client_name.length, (char *)client_name.value);
     
     gss_release_buffer(&min_stat, &client_name);
-
 
     /* Interchange to get the data that makes up the request - basically an
        argv. */
@@ -1001,18 +870,17 @@ process_connection(gss_cred_id_t server_creds)
     }
 
     return 0;
-
 }
 
 
-
-/* The main serves to gather arguments and determine the standalone vs inetd
-   mode. It also calls to set up a tcp connection on standalone mode; the 
-   transaction handling is then handed off to process_connection.
+/*
+**  Main routine.  Parses command-line arguments, determines whether we're
+**  running in stand-alone or inetd mode, and does the connection handling if
+**  running in standalone mode.  User connections are handed off to
+**  process_connection.
 */
-
 int
-main(int argc, char **argv)
+main(int argc, char *argv[])
 {
     char service_name[500];
     char host_name[500];
@@ -1022,7 +890,7 @@ main(int argc, char **argv)
     unsigned short port = 4444;
     int s, stmp;
     int do_standalone = 0;
-    char *conffile = "remctl.conf";
+    const char *conffile = "remctl.conf";
 
     service_name[0] = '\0';
     verbose = 0;
@@ -1111,9 +979,9 @@ main(int argc, char **argv)
                     close(s);
             } while (1);
         }
-    } else { /* Here we read from stdin, and write to stdout to communicate 
-                with the network. */
-
+    /* Here we read from stdin, and write to stdout to communicate with the
+       network. */
+    } else {
         READFD = 0;
         WRITEFD = 1;
         process_connection(server_creds);
@@ -1126,10 +994,11 @@ main(int argc, char **argv)
     return 0;
 }
 
+
 /*
-** Local variables:
-** mode: c
-** c-basic-offset: 4
-** indent-tabs-mode: nil
-** end:
+**  Local variables:
+**  mode: c
+**  c-basic-offset: 4
+**  indent-tabs-mode: nil
+**  end:
 */

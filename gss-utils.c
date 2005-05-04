@@ -1,14 +1,12 @@
-/*
-   $Id$
-
-   The shared functions for a "K5 sysctl" - a service for remote execution 
-   of predefined commands. Access is authenticated via GSSAPI Kerberos 5, 
-   authorized via aclfiles. 
-
-   Written by Anton Ushakov <antonu@stanford.edu>
-   vsnprintf implementation contributed by Russ Allbery <rra@stanford.edu>
-   Copyright 2002 Board of Trustees, Leland Stanford Jr. University
-
+/*  $Id$
+**
+**  Utility functions for remctl.
+**
+**  Written by Anton Ushakov <antonu@stanford.edu>
+**
+**  Defines various utility functions used by both remctl and remctld to
+**  handle the GSSAPI conversation, to encode and decode tokens, to read the
+**  output from programs, to report GSSAPI problems, and similar purposes.
 */
 
 #include "config.h"
@@ -17,17 +15,17 @@
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <syslog.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
 #include <gssapi/gssapi_generic.h>
 #include "gss-utils.h"
-
 
 extern int use_syslog;   /* Toggle for sysctl vs stdout/stderr. */
 extern int verbose;      /* Turns on debugging output. */
@@ -38,9 +36,10 @@ extern int READFD;
 extern int WRITEFD;
 
 
-/* This is used for all error and debugging printouts. It directs the output
-   to whatever log is set to, which is either stdout, a file, or NULL, in which
-   case the program is in "quiet" mode. */
+/*
+**  Used for all error and debugging printouts.  It directs the output to
+**  standard output or error or to syslog as is appropriate.
+*/
 static void
 write_log(int priority, const char *format, ...)
 {
@@ -71,92 +70,88 @@ write_log(int priority, const char *format, ...)
     va_end(args);
 }
 
-void 
-lowercase(char string[])
-{
 
- char *p;
+/*
+**  Lowercase a string in place.
+*/
+void 
+lowercase(char *string)
+{
+    char *p;
 
     for (p = string; *p != '\0'; p++)
         *p = tolower(*p);
-
-    return;
 }
 
-/* Safe realloc, that will check if the allocation succeeded. */
-void* 
-srealloc(void* ptr, size_t size) {
 
+/*
+**  Safe realloc that checks to be sure the allocation succeded and never
+**  returns NULL to the program.
+*/
+void * 
+srealloc(void* ptr, size_t size)
+{
     void *temp;
 
     temp = realloc(ptr, size);
     if (temp == NULL) {
-        write_log(LOG_ERR, "ERROR: Cannot reallocate memory: %s\n", strerror(errno));
+        write_log(LOG_ERR, "ERROR: Cannot reallocate memory: %s\n",
+                  strerror(errno));
         exit(-1);
     }
-
-    return temp;
-
-}
-
-/* Safe malloc, that will check if the allocation succeeded. */
-void *
-smalloc(int size)
-{
-
-    void *temp;
-
-    if ((temp = malloc(size)) == NULL) {
-        write_log(LOG_ERR, "ERROR: Cannot allocate memory: %s\n", strerror(errno));
-        exit(-1);
-    }
-
-    return temp;
-}
-
-/* Safe strdup, that will check if the allocation succeeded. */
-char *
-sstrdup(const char* s1)
-{
-
-    void *temp;
-
-    if ((temp = strdup(s1)) == NULL) {
-        write_log(LOG_ERR, "ERROR: Cannot allocate memory for strdup: %s\n", strerror(errno));
-        exit(-1);
-    }
-
     return temp;
 }
 
 
 /*
- * Function: gss_sendmsg
- *
- * Purpose: wraps, encrypts and sends a data payload token, gets back a MIC 
- *          checksum
- *
- * Arguments:
- *
- * 	context		(r) established gssapi context
- *	flags	        (r) the flags received with the incoming token
- * 	msg		(r) the data token, packed [<len><data of len>]*
- * 	msglength	(r) the data token length
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- *
- * Calls gss api to wrap the token and sends it. Receives a MIC checksum
- * and verifies it. 
- * This is not proof of message integrity, as that is inherent in the 
- * underlying K5 mechanism -  the MIC is not mandatory to assure secure 
- * transfer, but present here nonetheless for completeness
- */
+**  Safe malloc that checks to be sure the allocation succeded and never
+**  returns NULL to the program.
+*/
+void *
+smalloc(int size)
+{
+    void *temp;
+
+    if ((temp = malloc(size)) == NULL) {
+        write_log(LOG_ERR, "ERROR: Cannot allocate memory: %s\n",
+                  strerror(errno));
+        exit(-1);
+    }
+    return temp;
+}
+
+
+/*
+**  Safe strdup that checks to be sure the allocation succeded and never
+**  returns NULL to the program.
+*/
+char *
+sstrdup(const char* s1)
+{
+    void *temp;
+
+    if ((temp = strdup(s1)) == NULL) {
+        write_log(LOG_ERR, "ERROR: Cannot allocate memory for strdup: %s\n",
+                  strerror(errno));
+        exit(-1);
+    }
+    return temp;
+}
+
+
+/*
+**  Wraps, encrypts, and sends a data payload token, getting back a MIC
+**  checksum that it verifies.  Takes the GSSAPI context, the flags received
+**  with the incoming token, the data token, and the length of the token.
+**  Returns 0 on success, -1 on failure.  Writes a log message on errors.
+**
+**  This is not proof of message integrity, as that is inherent in the
+**  underlying K5 mechanism.  The MIC is not mandatory to ensure secure
+**  transfer, but is present here nonetheless for completeness.
+*/
 int
 gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
 {
-
     gss_buffer_desc in_buf, out_buf;
     int state;
     OM_uint32 maj_stat, min_stat;
@@ -184,7 +179,7 @@ gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
         return -1;
     }
 
-    /* Send to server */
+    /* Send to server. */
     if (send_token((flags | TOKEN_SEND_MIC), &out_buf) < 0) {
         close(WRITEFD);
         gss_delete_sec_context(&min_stat, &context, GSS_C_NO_BUFFER);
@@ -214,35 +209,19 @@ gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
     gss_release_buffer(&min_stat, &out_buf);
 
     return 0;
-
 }
 
+
 /*
- * Function: gss_recvmsg
- *
- * Purpose: receives and an wraps a data payload token, send back a MIC 
- *          checksum
- *
- * Arguments:
- *
- * 	context		(r) established gssapi context
- *	token_flags	(w) the flags received with the incoming token
- * 	msg		(w) the data token, packed [<len><data of len>]*
- *      msglength       (w) length of data token
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- *
- * Calls lower utility to get the token as it was sent to us. Unwraps and 
- * unencrypts the payload. Allocates some memory for the payload and passes
- * it back by reference. 
- * Also send back a MIC checksum the proves the encryption was in place on the
- * wire and that we decrypted the token. This is not proof of message 
- * integrity, as that is inherent in the underlying K5 mechanism -  the MIC is
- * not mandatory to assure secure transfer, but present here nonetheless for
- * completeness
- */
+**  Receives and wraps a data payload token, sending back a MIC checksum.
+**  Takes the GSSAPI context and writes the flags, message, and length of the
+**  message into the provided parameters, returning 0 on success and -1 on
+**  failure.  On failure, a log message is also recorded.
+**
+**  The MIC checksum is not proof of message integrity, as that is inherent in
+**  the underlying K5 mechanism.  The MIC is not mandatory to ensure secure
+**  transfer, but is present here nonetheless for completeness.
+*/
 int
 gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg,
             OM_uint32 *msglength)
@@ -251,7 +230,7 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg,
     OM_uint32 maj_stat, min_stat;
     int conf_state;
 
-    /* Receive the message token */
+    /* Receive the message token. */
     if (recv_token(token_flags, &xmit_buf) < 0)
         return (-1);
 
@@ -268,22 +247,18 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg,
         return (-1);
     }
 
-
     if (verbose) {
         write_log(LOG_DEBUG, "Received message of length: %d\n", 
                   msg_buf.length);
         print_token(&msg_buf);
     }
 
-
     /* fill in the return value */
     *msg = malloc(msg_buf.length);
     memcpy(*msg, msg_buf.value, msg_buf.length);
     *msglength = msg_buf.length;
 
-
-    /* send back a MIC checksum */
-
+    /* Send back a MIC checksum. */
     if (*token_flags & TOKEN_SEND_MIC) {
         /* Produce a signature block for the message */
         maj_stat = gss_get_mic(&min_stat, context, GSS_C_QOP_DEFAULT,
@@ -302,33 +277,17 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg,
 
         gss_release_buffer(&min_stat, &xmit_buf);
     }
-
     gss_release_buffer(&min_stat, &msg_buf);
-
-    return (0);
-
+    return 0;
 }
 
+
 /*
- * Function: send_token
- *
- * Purpose: Writes a token to a file descriptor.
- *
- * Arguments:
- *
- *	flags		(r) the flags to write
- * 	tok		(r) the token to write
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- *
- * send_token writes the token flags (a single byte, even though
- * they're passed in in an integer), then the token length (as a
- * network long) and then the token data to the file descriptor s.  It
- * returns 0 on success, and -1 if an error occurs or if it could not
- * write all the data.
- */
+**  Send a token to a file descriptor.  Takes the flags (a single byte, even
+**  though they're passed in as an integer) and the token and writes them to
+**  WRITEFD, returning 0 on success and -1 on error or if all the data could
+**  not be written.  A log message is recorded on error.
+*/
 int
 send_token(int flags, gss_buffer_t tok)
 {
@@ -338,12 +297,12 @@ send_token(int flags, gss_buffer_t tok)
 
     len = htonl(tok->length);
 
-    /* send out the whole message in a single write */
+    /* Send out the whole message in a single write. */
     buflen = 1 + sizeof(OM_uint32) + tok->length;
     buffer = malloc(buflen);
     memcpy(buffer, &char_flags, 1);
-    memcpy(buffer+1, &len, sizeof(OM_uint32));
-    memcpy(buffer+1+sizeof(OM_uint32), tok->value, tok->length);
+    memcpy(buffer + 1, &len, sizeof(OM_uint32));
+    memcpy(buffer + 1 + sizeof(OM_uint32), tok->value, tok->length);
     ret = write_all(WRITEFD, buffer, buflen);
     free(buffer);
     if (ret != buflen) {
@@ -355,42 +314,34 @@ send_token(int flags, gss_buffer_t tok)
 
 
 /*
- * Function: recv_token
- *
- * Purpose: Reads a token from a file descriptor.
- *
- * Arguments:
- *
- *	flags		(w) the read flags
- * 	tok		(w) the read token
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- * 
- * recv_token reads the token flags (a single byte, even though
- * they're stored into an integer, then reads the token length (as a
- * network long), allocates memory to hold the data, and then reads
- * the token data from the file descriptor s.  It blocks to read the
- * length and data, if necessary.  On a successful return, the token
- * should be freed with gss_release_buffer.  It returns 0 on success,
- * and -1 if an error occurs or if it could not read all the data.
- */
+**  Receive a token from a file descriptor.  Takes pointers into which to
+**  store the flags and the token, and returns 0 on success and -1 on failure
+**  or if it can't read all of the data.  A log message is recorded on
+**  failure.
+**
+**  recv_token reads the token flags (a single byte, even though they're
+**  stored into an integer, then reads the token length (as a network long),
+**  allocates memory to hold the data, and then reads the token data from the
+**  file descriptor READFD.  It blocks to read the length and data, if
+**  necessary.  On a successful return, the token should be freed with
+**  gss_release_buffer.
+*/
 int
 recv_token(int *flags, gss_buffer_t tok)
 {
-    OM_uint32 ret, len;
+    ssize_t ret;
+    OM_uint32 len;
     unsigned char char_flags;
 
     ret = read_all(READFD, &char_flags, 1);
     if (ret < 0) {
-            write_log(LOG_ERR, "reading token flags\n");
+        write_log(LOG_ERR, "reading token flags\n");
         return -1;
     } else if (!ret) {
         write_log(LOG_ERR, "reading token flags: 0 bytes read\n");
         return -1;
     } else {
-        *flags = (int)char_flags;
+        *flags = char_flags;
     }
 
     ret = read_all(READFD, &len, sizeof(OM_uint32));
@@ -405,7 +356,7 @@ recv_token(int *flags, gss_buffer_t tok)
 
     tok->length = ntohl(len);
 
-    if (tok->length > MAXENCRYPT || tok->length < 0) {
+    if (tok->length > MAXENCRYPT) {
         write_log(LOG_ERR, "Illegal token length: %d\n", tok->length);
         return -1;
     }
@@ -421,7 +372,7 @@ recv_token(int *flags, gss_buffer_t tok)
         write_log(LOG_ERR, "Error while reading token data");
         free(tok->value);
         return -1;
-    } else if (ret != tok->length) {
+    } else if (ret != (ssize_t) tok->length) {
         write_log(LOG_ERR, "sending token data: only %d of %d bytes written\n",
                  ret, tok->length);
         free(tok->value);
@@ -433,17 +384,9 @@ recv_token(int *flags, gss_buffer_t tok)
 
 
 /*
- * Function: write_all
- *
- * Purpose: standard socket/file descriptor write
- *
- * Arguments:
- *
- *      fd              file descriptor to write to
- * 	buffer		a buffer fromwhich to write
- *      size	        number of bytes to write
- *
- */
+**  Equivalent to write, but handles EINTR or EAGAIN by retrying and repeats
+**  if the write is partial until all the data has been written.
+*/
 ssize_t
 write_all(int fd, const void *buffer, size_t size)
 {
@@ -470,18 +413,11 @@ write_all(int fd, const void *buffer, size_t size)
     return (total < size) ? -1 : (ssize_t) total;
 }
 
+
 /*
- * Function: read_all
- *
- * Purpose: standard socket/file descriptor read to a particular length
- *
- * Arguments:
- *
- *      fd              file descriptor to read from
- * 	buffer		a buffer into which to read
- *      size	        number of bytes to read
- *
- */
+**  Equivalent to read, but reads all the available data up to the buffer
+**  length, using multiple reads if needed and handling EINTR and EAGAIN.
+*/
 ssize_t
 read_all(int fd, void *buffer, size_t size)
 {
@@ -496,7 +432,7 @@ read_all(int fd, void *buffer, size_t size)
     for (total = 0; total < size; total += status) {
         if (++count > 100)
             break;
-        status = read(fd, buffer + total, size - total);
+        status = read(fd, (char *) buffer + total, size - total);
         if (status > 0)
             count = 0;
         if (status < 0) {
@@ -508,19 +444,12 @@ read_all(int fd, void *buffer, size_t size)
     return (total < size) ? -1 : (ssize_t) total;
 }
 
+
 /*
- * Function: read_two
- *
- * Purpose: reads from two streams simultaneously. Stops reading when both 
- *          streams reach EOF.
- *
- * Arguments:
- *
- *      readfd1-2       file descriptor to read from
- * 	buf1-2	        buffer into which to read
- *      nbyte1-2        number of bytes to read
- *
- */
+**  Reads from two streams simultaneously into two different buffers, stopping
+**  when both streams reach EOF.  If the buffer fills, truncate at the buffer
+**  size but always nul-terminate.
+*/
 ssize_t
 read_two(int readfd1, int readfd2, void *buf1, void *buf2, size_t nbyte1, 
          size_t nbyte2)
@@ -554,7 +483,7 @@ read_two(int readfd1, int readfd2, void *buf1, void *buf2, size_t nbyte1,
                     if ((errno != EINTR) && (errno != EAGAIN))
                         return (ret1);
                 } else {
-                    ptr1 += ret1;
+                    ptr1 = (char *) ptr1 + ret1;
                     nbyte1 -= ret1;
                 }
             } else {
@@ -572,7 +501,7 @@ read_two(int readfd1, int readfd2, void *buf1, void *buf2, size_t nbyte1,
                     if ((errno != EINTR) && (errno != EAGAIN))
                         return (ret2);
                 } else {
-                    ptr2 += ret2;
+                    ptr2 = (char *) ptr2 + ret2;
                     nbyte2 -= ret2;
                 }
             } else {
@@ -587,13 +516,16 @@ read_two(int readfd1, int readfd2, void *buf1, void *buf2, size_t nbyte1,
 
     * ((char *)ptr1) = '\0';
     * ((char *)ptr2) = '\0';
-    return (ptr1 - buf1 + ptr2 - buf2);
+    return ((char *) ptr1 - (char *) buf1 + (char *) ptr2 - (char *) buf2);
 }
 
 
-/* Utility subfunction to display GSSAPI status */
+/*
+**  Internal utility function to write a GSSAPI status to the log.  The
+**  message is prepended by "GSS-API" error and the provided string.
+*/
 static void
-display_status_1(char *m, OM_uint32 code, int type)
+display_status_1(const char *m, OM_uint32 code, int type)
 {
     OM_uint32 maj_stat, min_stat;
     gss_buffer_desc msg;
@@ -603,58 +535,33 @@ display_status_1(char *m, OM_uint32 code, int type)
     while (1) {
         maj_stat = gss_display_status(&min_stat, code,
                                       type, GSS_C_NULL_OID, &msg_ctx, &msg);
-        write_log(LOG_ERR, "GSS-API error %s: %s\n", m,(char *)msg.value);
+        write_log(LOG_ERR, "GSS-API error %s: %s\n", m, (char *) msg.value);
         gss_release_buffer(&min_stat, &msg);
-
         if (!msg_ctx)
             break;
     }
 }
 
+
 /*
- * Function: display_status
- *
- * Purpose: displays GSS-API messages
- *
- * Arguments:
- *
- * 	msg		a string to be displayed with the message
- * 	maj_stat	the GSS-API major status code
- * 	min_stat	the GSS-API minor status code
- *
- * Effects:
- *
- * The GSS-API messages associated with maj_stat and min_stat are
- * displayed on stderr, each preceeded by "GSS-API error <msg>: " and
- * followed by a newline.
- */
+**  Write a GSSAPI status to the log.  Displays both the major and minor
+**  status and prepends the provided message to both output lines.
+*/
 void
-display_status(char *msg, OM_uint32 maj_stat,OM_uint32  min_stat)
+display_status(const char *msg, OM_uint32 maj_stat,OM_uint32  min_stat)
 {
     display_status_1(msg, maj_stat, GSS_C_GSS_CODE);
     display_status_1(msg, min_stat, GSS_C_MECH_CODE);
 }
 
-/*
- * Function: display_ctx_flags
- *
- * Purpose: displays the flags returned by context initation in
- *	    a human-readable form
- *
- * Arguments:
- *
- * 	int		ret_flags
- *
- * Effects:
- *
- * Strings corresponding to the context flags are printed on
- * stdout, preceded by "context flag: " and followed by a newline
- */
 
+/*
+**  Write a GSSAPI context flag to the log in a human-readable form, preceeded
+**  by "context flag: ".
+*/
 void
 display_ctx_flags(OM_uint32 flags)
 {
-
     if (flags & GSS_C_DELEG_FLAG)
         write_log(LOG_DEBUG, "context flag: GSS_C_DELEG_FLAG\n");
     if (flags & GSS_C_MUTUAL_FLAG)
@@ -669,17 +576,20 @@ display_ctx_flags(OM_uint32 flags)
         write_log(LOG_DEBUG, "context flag: GSS_C_INTEG_FLAG \n");
 }
 
-/* Prints the contents of a raw token in hex, byte by byte */
+
+/*
+**  Print the contents of a raw token in hex, byte by byte, to the log.
+*/
 void
 print_token(gss_buffer_t tok)
 {
-    int i;
     unsigned char *p = tok->value;
     char tempbuf[5*MAXBUFFER] = "";
-    size_t offset;
+    size_t i, offset;
 
     for (offset = 0, i = 0; i < tok->length; i++, p++) {
-        offset += snprintf(tempbuf + offset, 5*MAXBUFFER - offset, "%02x ", *p);
+        offset += snprintf(tempbuf + offset, 5*MAXBUFFER - offset, "%02x ",
+                           *p);
         if ((i % 16) == 15) {
             strcat(tempbuf, "\n");
             offset++;

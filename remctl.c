@@ -1,13 +1,10 @@
-/*
-   $Id$
-
-   The client for a "K5 sysctl" - a service for remote execution of 
-   predefined commands. Access is authenticated via GSSAPI Kerberos 5, 
-   authorized via aclfiles.
-
-   Written by Anton Ushakov <antonu@stanford.edu>
-   Copyright 2002 Board of Trustees, Leland Stanford Jr. University
-
+/*  $Id$
+**
+**  The client for a "K5 sysctl" - a service for remote execution of 
+**  predefined commands.  Access is authenticated via GSSAPI Kerberos 5, 
+**  authorized via ACL files.
+**
+**  Written by Anton Ushakov <antonu@stanford.edu>
 */
 
 #include "config.h"
@@ -37,11 +34,15 @@ int READFD;
 int WRITEFD;
 
 /* Used in establishing context with gss server. */
-gss_buffer_desc empty_token_buf = { 0, (void *)"" };
+gss_buffer_desc empty_token_buf = { 0, (void *) "" };
 gss_buffer_t empty_token = &empty_token_buf;
 
-void
-usage()
+
+/*
+**  Display the usage message for remctl.
+*/
+static void
+usage(void)
 {
     static const char usage[] = "\
 Usage: remctl <options> host type service <parameters>\n\
@@ -54,18 +55,11 @@ Options:\n\
 
 
 /*
- * Function: parse_oid
- *
- * Purpose: Parse a OID string and determite the mechanism type 
- *
- * Arguments:
- *
- * 	mechanism	(r) the OID string
- * 	oid		(w) the gss_OID coresponding to the OID string
- *
- */
+**  Parse an OID string and determine the mechanism type, returning it in the
+**  oid argument.  Prints an error message if there are any problems.
+*/
 static void
-parse_oid(char *mechanism, gss_OID * oid)
+parse_oid(const char *mechanism, gss_OID *oid)
 {
     char *mechstr = 0, *cp;
     gss_buffer_desc tok;
@@ -83,7 +77,7 @@ parse_oid(char *mechanism, gss_OID * oid)
                 *cp = ' ';
         tok.value = mechstr;
     } else
-        tok.value = mechanism;
+        tok.value = (char *) mechanism;
     tok.length = strlen(tok.value);
     maj_stat = gss_str_to_oid(&min_stat, &tok, oid);
     if (maj_stat != GSS_S_COMPLETE) {
@@ -95,27 +89,12 @@ parse_oid(char *mechanism, gss_OID * oid)
 }
 
 
-
-
 /*
- * Function: connect_to_server
- *
- * Purpose: Opens a TCP connection to the name host and port.
- *
- * Arguments:
- *
- * 	host		(r) the target host name
- * 	port		(r) the target port, in host byte order
- *
- * Returns: the established socket file desciptor, or -1 on failure
- *
- * Effects:
- *
- * The host name is resolved with gethostbyname(), and the socket is
- * opened and connected.  If an error occurs, an error message is
- * displayed and -1 is returned.
- */
-int
+**  Opens a TCP connection to the given hostname and port.  The host name is
+**  resolved by gethostbyname and the socket is opened and connected.  Returns
+**  the file descriptor or -1 on failure, printing an error message.
+*/
+static int
 connect_to_server(char *host, unsigned short port)
 {
     struct sockaddr_in saddr;
@@ -143,36 +122,23 @@ connect_to_server(char *host, unsigned short port)
     return s;
 }
 
-/*
- * Function: client_establish_context
- *
- * Purpose: establishes a GSS-API context with a specified service and
- * returns the context handle
- *
- * Arguments:
- *
- * 	service_name	(r) the ASCII service name of the service
- * 	gss_context	(w) the established GSS-API context
- *	ret_flags	(w) the returned flags from init_sec_context
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- * 
- * service_name is imported as a GSS-API name and a GSS-API context is
- * established with the corresponding service; the service should be
- * listening on the TCP connection s.  The default GSS-API mechanism
- * is used, and mutual authentication and replay detection are
- * requested.
- * 
- * If successful, the context handle is returned in context.  If
- * unsuccessful, the GSS-API error messages are displayed on stderr
- * and -1 is returned.
- */
-int
-client_establish_context(char *service_name, gss_ctx_id_t *gss_context, OM_uint32 *ret_flags)
-{
 
+/*
+**  Given the service name of the remote server, establish a GSSAPI context
+**  and return the context handle and any connection flags in the provided
+**  arguments.  Returns 0 on success, -1 on failure and prints an error
+**  message.
+**
+**
+**  The service name is imported as a GSSAPI name and a GSS-API context is
+**  established with the corresponding service.  The service should be
+**  listening on the TCP connection s.  The default GSS-API mechanism is used,
+**  and mutual authentication and replay detection are requested.
+*/
+static int
+client_establish_context(char *service_name, gss_ctx_id_t *gss_context,
+                         OM_uint32 *ret_flags)
+{
     gss_OID oid = GSS_C_NULL_OID;
     gss_buffer_desc send_tok, recv_tok, *token_ptr;
     gss_name_t target_name;
@@ -181,10 +147,8 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context, OM_uint3
 
     parse_oid("1.2.840.113554.1.2.2", &oid);
 
-    /* 
-     * Import the name into target_name.  Use send_tok to save
-     * local variable space.
-     */
+    /* Import the name into target_name.  Use send_tok to save local variable
+       space. */
     send_tok.value = service_name;
     send_tok.length = strlen(service_name) + 1;
     maj_stat = gss_import_name(&min_stat, &send_tok,
@@ -196,26 +160,22 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context, OM_uint3
 
     if (send_token(TOKEN_NOOP | TOKEN_CONTEXT_NEXT, empty_token) < 0) {
         fprintf(stderr, "Can't send initial token to server\n");
-        (void)gss_release_name(&min_stat, &target_name);
+        gss_release_name(&min_stat, &target_name);
         return -1;
     }
 
-    /* 
-     * Perform the context-establishment loop.
-     *
-     * On each pass through the loop, token_ptr points to the token
-     * to send to the server (or GSS_C_NO_BUFFER on the first pass).
-     * Every generated token is stored in send_tok which is then
-     * transmitted to the server; every received token is stored in
-     * recv_tok, which token_ptr is then set to, to be processed by
-     * the next call to gss_init_sec_context.
-     * 
-     * GSS-API guarantees that send_tok's length will be non-zero
-     * if and only if the server is expecting another token from us,
-     * and that gss_init_sec_context returns GSS_S_CONTINUE_NEEDED if
-     * and only if the server has another token to send us.
-     */
+    /* Perform the context-establishment loop.
 
+       On each pass through the loop, token_ptr points to the token to send to
+       the server (or GSS_C_NO_BUFFER on the first pass).  Every generated
+       token is stored in send_tok which is then transmitted to the server;
+       every received token is stored in recv_tok, which token_ptr is then set
+       to, to be processed by the next call to gss_init_sec_context.
+
+       GSS-API guarantees that send_tok's length will be non-zero if and only
+       if the server is expecting another token from us, and that
+       gss_init_sec_context returns GSS_S_CONTINUE_NEEDED if and only if the
+       server has another token to send us. */
     token_ptr = GSS_C_NO_BUFFER;
     *gss_context = GSS_C_NO_CONTEXT;
 
@@ -235,25 +195,25 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context, OM_uint3
                                         NULL);    /* ignore time_rec */
 
         if (token_ptr != GSS_C_NO_BUFFER)
-            (void)gss_release_buffer(&min_stat, &recv_tok);
+            gss_release_buffer(&min_stat, &recv_tok);
 
         if (send_tok.length != 0) {
             if (verbose)
                 printf("Sending init_sec_context token (size=%d)...\n",
                        send_tok.length);
             if (send_token(TOKEN_CONTEXT, &send_tok) < 0) {
-                (void)gss_release_buffer(&min_stat, &send_tok);
-                (void)gss_release_name(&min_stat, &target_name);
+                gss_release_buffer(&min_stat, &send_tok);
+                gss_release_name(&min_stat, &target_name);
                 return -1;
             }
         }
 
-        (void)gss_release_buffer(&min_stat, &send_tok);
+        gss_release_buffer(&min_stat, &send_tok);
 
         if (maj_stat != GSS_S_COMPLETE && maj_stat != GSS_S_CONTINUE_NEEDED) {
             display_status("while initializing context", maj_stat,
                            init_sec_min_stat);
-            (void)gss_release_name(&min_stat, &target_name);
+            gss_release_name(&min_stat, &target_name);
             if (*gss_context == GSS_C_NO_CONTEXT)
                 gss_delete_sec_context(&min_stat, gss_context,
                                        GSS_C_NO_BUFFER);
@@ -265,7 +225,7 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context, OM_uint3
                 printf("continue needed...");
             if (recv_token(&token_flags, &recv_tok) < 0) {
                 fprintf(stderr, "No token received from server\n");
-                (void)gss_release_name(&min_stat, &target_name);
+                gss_release_name(&min_stat, &target_name);
                 return -1;
             }
             token_ptr = &recv_tok;
@@ -274,36 +234,21 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context, OM_uint3
             printf("\n");
     } while (maj_stat == GSS_S_CONTINUE_NEEDED);
 
-    (void)gss_release_name(&min_stat, &target_name);
-    (void)gss_release_oid(&min_stat, &oid);
+    gss_release_name(&min_stat, &target_name);
+    gss_release_oid(&min_stat, &oid);
 
     return 0;
 }
 
 
-
-
 /*
- * Function: process_request
- *
- * Purpose: send the request data over to the server
- *
- * Arguments:
- *
- * 	context		(r) the established gssapi context
- * 	argc		(r) number of agruments to send
- * 	argv		(r) the end of the main's argv containing only the 
- *                          things representing the remote command to send 
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- * 
- * Assembles the data payload in the format of [<length><data of that length>]*
- * then calls a utility function gss_sendmsg to send the token over
- * */
-int
-process_request(gss_ctx_id_t context, OM_uint32 argc, char ** argv)
+**  Send the request data to the server.  Takes the context, the argument
+**  count, and the argument vector.  Assembles the data payload into the
+**  format of [<length><data>]* and then calls gss_sendmsg to send the token
+**  over.  Returns 0 on success, -1 on failure.
+*/
+static int
+process_request(gss_ctx_id_t context, OM_uint32 argc, char **argv)
 {
     OM_uint32 arglength = 0;
     OM_uint32 network_ordered;
@@ -313,7 +258,7 @@ process_request(gss_ctx_id_t context, OM_uint32 argc, char ** argv)
     char *mp;            /* Iterator over msg. */
     OM_uint32 i;
 
-    /* Allocate total message: argc, {<arglength><argument>}+     */
+    /* Allocate total message: argc, {<arglength><argument>}+. */
     cp = argv;
     for (i = 0; i < argc; i++) {
         msglength += strlen(*cp++);
@@ -326,13 +271,12 @@ process_request(gss_ctx_id_t context, OM_uint32 argc, char ** argv)
     cp = argv;
     i = argc;
 
-    /* First, put the argc into the message*/
+    /* First, put the argc into the message. */
     network_ordered = htonl(argc);
     memcpy(mp, &network_ordered, sizeof(OM_uint32));
     mp += sizeof(OM_uint32);
 
-    /* Now, pack in the argv */
-    /* Arguments are packed: (<arglength><argument>)+       */
+    /* Now, pack in the argv.  Arguments are packed: (<arglength><arg>)+. */
     while (i != 0) {
         arglength = strlen(*cp);
         network_ordered = htonl(arglength);
@@ -348,41 +292,25 @@ process_request(gss_ctx_id_t context, OM_uint32 argc, char ** argv)
         return (-1);
 
     return (0);
-
 }
 
 
-
 /*
- * Function: process_response
- *
- * Purpose: get the response back from the server, containg the result message
- *
- * Arguments:
- *
- * 	context		(r) the established gssapi context
- *      errorcode       (w) error code from the program executed on server
- *
- * Returns: 0 on success, -1 on failure
- *
- * Effects:
- * 
- * Calls a utility function gss_recvmsg to get the token, then disassembles
- *  the data payload, which is in the format of 
- * [<length><data of that length>] and then displays the return code and 
- * message.
- * */
-int
+**  Get the response back from the server, containing the result message and
+**  the exit code.  The response is disassembled and then printed to standard
+**  output, and the exit code is returned in the errorcode argument.  Returns
+**  0 on success and -1 on failure.
+*/
+static int
 process_response(gss_ctx_id_t context, OM_uint32* errorcode)
 {
-
     char *msg;
     OM_uint32 msglength;
     char *body;      /* Text returned from running the command on the server */
     OM_uint32 bodylength;
     char *cp;        /* Iterator over msg */
     OM_uint32 network_ordered;
-    OM_uint32 token_flags;
+    int token_flags;
 
     if (gss_recvmsg(context, &token_flags, &msg, &msglength) < 0)
         return (-1);
@@ -400,7 +328,7 @@ process_response(gss_ctx_id_t context, OM_uint32* errorcode)
     memcpy(&network_ordered, cp, sizeof(OM_uint32));
     cp += sizeof(OM_uint32);
     bodylength = ntohl(network_ordered);
-    if (bodylength > MAXBUFFER || bodylength < 0 || bodylength > msglength){
+    if (bodylength > MAXBUFFER || bodylength > msglength) {
         fprintf(stderr, "Data unpacking error while processing response\n");
         exit(-1);
     }
@@ -418,12 +346,10 @@ process_response(gss_ctx_id_t context, OM_uint32* errorcode)
 }
 
 
-
-
 /*
- * The main just parses the arguments, establishes the gssapi context and
- * calls the effector functions to request and process response
- */
+**  Main routine.  Parse the arguments, establish the GSSAPI context, and then
+**  call process_request and process_response.
+*/
 int
 main(int argc, char ** argv)
 {
@@ -452,7 +378,7 @@ main(int argc, char ** argv)
             if (!argc)
                 usage();
             port = atoi(*argv);
-        } else if (strcmp(*argv, "-s")    == 0) {
+        } else if (strcmp(*argv, "-s") == 0) {
             argc--;
             argv++;
             if (!argc)
@@ -482,21 +408,21 @@ main(int argc, char ** argv)
         strcat(service_name, hostinfo->h_name);
     }
 
-    /* Open connection */
+    /* Open connection. */
     if ((s = connect_to_server(server_host, port)) < 0)
         return -1;
 
     READFD = s;
     WRITEFD = s;
 
-    /* Establish context */
+    /* Establish context. */
     if (client_establish_context(service_name, &context, &ret_flags) < 0) {
         fprintf(stderr, "Can't establish GSS-API context\n");
-        (void)close(s);
+        close(s);
         return -1;
     }
 
-    /* display the flags */
+    /* Display the flags. */
     if (verbose)
         display_ctx_flags(ret_flags);
 
@@ -510,27 +436,26 @@ main(int argc, char ** argv)
         exit(1);
     }
 
-    /* Delete context */
+    /* Delete context. */
     maj_stat = gss_delete_sec_context(&min_stat, &context, &out_buf);
     if (maj_stat != GSS_S_COMPLETE) {
         display_status("while deleting context", maj_stat, min_stat);
-        (void)close(s);
-        (void)gss_delete_sec_context(&min_stat, &context, GSS_C_NO_BUFFER);
+        close(s);
+        gss_delete_sec_context(&min_stat, &context, GSS_C_NO_BUFFER);
         return -1;
     }
 
-    (void)gss_release_buffer(&min_stat, &out_buf);
-    (void)close(s);
+    gss_release_buffer(&min_stat, &out_buf);
+    close(s);
 
     return errorcode;
 }
 
 
-    /*
-    **  Local variables:
-    **  mode: c
-    **  c-basic-offset: 4
-    **  indent-tabs-mode: nil
-    **  end:
-    */
-
+/*
+**  Local variables:
+**  mode: c
+**  c-basic-offset: 4
+**  indent-tabs-mode: nil
+**  end:
+*/
