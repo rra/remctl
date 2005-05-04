@@ -22,6 +22,11 @@ CPPFLAGS        = -I. -I$(srcdir) @CPPFLAGS@ -I$(prefix)/include
 LDFLAGS         = @LDFLAGS@
 LIBS            = @LIBS@
 
+WARNINGS        = -g -O -DDEBUG=1 -Wall -W -Wendif-labels -Wpointer-arith \
+                  -Wbad-function-cast -Wcast-align -Wwrite-strings \
+                  -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs \
+                  -Werror
+
 INSTALL         = @INSTALL@
 INSTALL_DATA    = @INSTALL_DATA@
 INSTALL_SCRIPT  = @INSTALL_SCRIPT@
@@ -38,6 +43,9 @@ CLIENT_OBJS     = remctl.o $(COMMON_OBJS)
 	$(CC) -c $(CPPFLAGS) $(DEFS) $(CFLAGS) $<
 
 all: remctld remctl remctl.1 remctld.8
+
+warnings:
+	$(MAKE) CFLAGS='$(WARNINGS)' all
 
 remctld: $(SERVER_OBJS)
 	$(CC) $(SERVER_OBJS) $(LDFLAGS) $(LIBS) -o $@
@@ -78,6 +86,8 @@ dist: $(srcdir)/remctl.1 $(srcdir)/remctld.8
 	tar cf $(TARNAME) $(TARDIR)
 	gzip -9 $(TARNAME)
 	md5sum $(TARNAME).gz > $(TARNAME).gz.md5
+
+.PHONY: all clean dist distclean install maintclean warnings
 
 # Dependencies.
 gss-utils.o: gss-utils.c config.h gss-utils.h
