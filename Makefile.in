@@ -15,6 +15,7 @@ exec_prefix     = @exec_prefix@
 bindir          = @bindir@
 sbindir         = @sbindir@
 mandir          = @mandir@
+sysconfdir      = @sysconfdir@
 
 CC              = @CC@
 CFLAGS          = @CFLAGS@
