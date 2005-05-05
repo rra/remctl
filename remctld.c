@@ -422,6 +422,8 @@ read_conf_file(struct config *config, const char *name)
                 while ((entry = readdir(dir)) != NULL) {
                     char *path;
 
+                    if (strchr(entry->d_name, '.') != NULL)
+                        continue;
                     length = strlen(included) + 1 + strlen(entry->d_name) + 1;
                     path = smalloc(length);
                     snprintf(path, length, "%s/%s", included, entry->d_name);
