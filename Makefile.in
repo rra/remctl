@@ -52,7 +52,7 @@ warnings:
 remctld: $(SERVER_OBJS)
 	$(CC) $(SERVER_OBJS) $(LDFLAGS) $(LIBS) -o $@
 
-remctld.o: remctld.c
+remctld.o: remctld.c Makefile
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(CONFIG) remctld.c
 
 remctl: $(CLIENT_OBJS)
@@ -65,7 +65,7 @@ $(srcdir)/remctld.8.in: remctld.pod
 	pod2man --release=$(VERSION) --center="System Daemons" \
 	    --section=8 $< > $@
 
-remctld.8: $(srcdir)/remctld.8.in
+remctld.8: $(srcdir)/remctld.8.in Makefile
 	sed 's%@sysconfdir\@%$(sysconfdir)%' < $< > $@
 
 install: remctld remctl remctld.8 remctl.1
