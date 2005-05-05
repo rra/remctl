@@ -1052,6 +1052,7 @@ main(int argc, char *argv[])
 
     /* Here we do standalone operation and listen on a socket. */
     if (do_standalone) {
+        alarm(0);
         if ((stmp = create_socket(port)) >= 0) {
             do {
                 /* Accept a TCP connection. */
