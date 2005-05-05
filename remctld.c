@@ -12,6 +12,7 @@
 */
 
 #include <ctype.h>
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -42,15 +43,20 @@ int WRITEFD = 1;
 
 /* This is used for caching the conf file in memory after first reading it. */
 struct confline {
-    char *type;             /* Service type (ss in ss:create). */
-    char *service;          /* Service name (create in ss:create). */
-    char *program;          /* Full file name of executable. */
-    struct vector *logmask; /* what args to mask in the log */
-    char **acls;            /* Full file names of ACL files. */
+    struct vector *line;        /* The split configuration line. */
+    char *type;                 /* Service type. */
+    char *service;              /* Service name. */
+    char *program;              /* Full file name of executable. */
+    struct cvector *logmask;    /* What args to mask in the log, if any. */
+    char **acls;                /* Full file names of ACL files. */
 };
 
-/* Pointer to the global structure that will hold the parsed conf file. */
-struct confline **confbuffer;
+/* Holds the complete parsed configuration for remctl. */
+struct config {
+    struct confline **rules;
+    size_t count;
+    size_t allocated;
+};
 
 
 /*
@@ -327,95 +333,172 @@ read_file(const char *file_name)
 **  structure that will be traversed on each request to translate a command
 **  type into an executable path and ACL file.
 **
-**  The confbuffer is a global file that is populated with the parsed
-**  configuration file at the startup of the process.  Empty lines and lines
-**  beginning with # are ignored.  Each line is divided into fields, separated
-**  by spaces.  The fields are defined by struct confline.
+**  config is populated with the parsed configuration file.  Empty lines and
+**  lines beginning with # are ignored.  Each line is divided into fields,
+**  separated by spaces.  The fields are defined by struct confline.  Lines
+**  ending in backslash are continued on the next line.
+**
+**  As a special case, include <file> will call read_conf_file recursively to
+**  parse an included file (or, if <file> is a directory, every file in that
+**  directory that doesn't contain a period).
 **
 **  Returns 0 on success and -1 on error, reporting an error message.
 */
 static int
-read_conf_file(const char *filename)
+read_conf_file(struct config *config, const char *name)
 {
-    char **vlp;
-    char *buf;
-    int linenum;
-    unsigned int i, j, arg_i;
-    struct vector *vline;
-    struct vector *vbuf;
-    struct confline* cp;
+    FILE *file;
+    char *buffer, *p;
+    size_t bufsize, length, size, count, i, arg_i;
+    struct vector *line;
+    struct confline *confline;
+    size_t lineno = 0;
 
-    if ((buf = read_file(filename)) == NULL)
-        return -1;
+    bufsize = 1024;
+    buffer = smalloc(bufsize);
+    file = fopen(name, "r");
+    while (fgets(buffer, bufsize, file) != NULL) {
+        length = strlen(buffer);
 
-    vbuf = vector_new();
-    vbuf = vector_split(buf, '\n', vbuf);
-    if (vbuf->count == 0) {
-        syslog(LOG_ERR, "Empty conf file\n");
-        return -1;
-    }
+        /* Allow for long lines and continuation lines.  As long as we've
+           either filled the buffer or have a line ending in a backslash, we
+           keep reading more data.  If we filled the buffer, increase it by
+           another 1KB; otherwise, back up and write over the backslash and
+           newline. */
+        while (length > 2 && (buffer[length - 1] != '\n'
+                              || buffer[length - 2] == '\\')) {
+            if (buffer[length - 1] != '\n') {
+                bufsize += 1024;
+                buffer = srealloc(buffer, bufsize);
+            } else {
+                length -= 2;
+            }
+            if (fgets(buffer + length, bufsize - length, file) == NULL)
+                goto done;
+        }
+        lineno++;
 
-    /* How many real content lines are there. */
-    linenum = 0;
-    for (i = 0; i < vbuf->count; i++) {
-        vlp = vbuf->strings + i;
-        if (*vlp[0] == '\0' || *vlp[0] == '#')
+        /* Skip blank lines or commented-out lines.  Note that because of the
+           above logic, comments can be continued on the next line, so be
+           careful. */
+        p = buffer;
+        while (isspace((int) *p))
+            p++;
+        if (*p == '\0' || *p == '#')
             continue;
-        linenum++;
-    }
 
-    confbuffer = smalloc((linenum+1) * sizeof(struct confline*));
-    confbuffer[linenum] = NULL;
+        /* We have a valid configuration line.  Do a quick syntax check and
+           handle include. */
+        line = vector_split_space(buffer, NULL);
+        if (line->count < 4 && line->count != 2) {
+            const char *included = line->strings[1];
+            struct stat st;
 
-    linenum = 0; /* Its value no longer needed, now it's a confline counter */
+            if (strcmp(line->strings[0], "include") != 0) {
+                vector_free(line);
+                fclose(file);
+                syslog(LOG_ERR, "%s:%d: config parse error", name, lineno);
+                return -1;
+            }
+            if (strcmp(included, name) == 0) {
+                vector_free(line);
+                fclose(file);
+                syslog(LOG_ERR, "%s:%d: %s recursively included", name,
+                       lineno, name);
+                return -1;
+            }
+            if (stat(included, &st) < 0) {
+                vector_free(line);
+                fclose(file);
+                syslog(LOG_ERR, "%s:%d: included file %s not found", name,
+                       lineno, included);
+                return -1;
+            }
+            if (S_ISDIR(st.st_mode)) {
+                DIR *dir;
+                struct dirent *entry;
 
-    /* Fill in the confbuffer */
-    vline = vector_new();
-    for (i = 0; i < vbuf->count; i++) {
-        vlp = vbuf->strings + i;
-        if (*vlp[0] == '\0' || *vlp[0] == '#')
+                dir = opendir(included);
+                while ((entry = readdir(dir)) != NULL) {
+                    char *path;
+
+                    length = strlen(included) + 1 + strlen(entry->d_name) + 1;
+                    path = smalloc(length);
+                    snprintf(path, length, "%s/%s", included, entry->d_name);
+                    vector_free(line);
+                    if (read_conf_file(config, path) < 0) {
+                        closedir(dir);
+                        free(path);
+                        fclose(file);
+                        return -1;
+                    }
+                    closedir(dir);
+                    free(path);
+                }
+            } else {
+                if (read_conf_file(config, included) < 0) {
+                    vector_free(line);
+                    fclose(file);
+                    return -1;
+                }
+                vector_free(line);
+            }
             continue;
-
-        vline = vector_split_space(*vlp, vline);
-        if (vline->count < 4){
-            syslog(LOG_ERR, "Parse error in the conf file on line %d\n", i);
-            return -1;
         }
 
-        confbuffer[linenum] = smalloc(sizeof(struct confline));
-        cp = confbuffer[linenum];
-        memset(cp, 0, sizeof(struct confline));
-        cp->type    = strdup(vline->strings[0]);
-        cp->service = strdup(vline->strings[1]);
-        cp->program = strdup(vline->strings[2]);
+        /* Okay, we have a regular configuration line.  Make sure there's
+           space for it in the config struct and stuff the vector into
+           place. */
+        if (config->count == config->allocated) {
+            if (config->allocated < 4)
+                config->allocated = 4;
+            else
+                config->allocated *= 2;
+            size = config->allocated * sizeof(struct confline *);
+            config->rules = srealloc(config->rules, size);
+        }
+        confline = smalloc(sizeof(struct confline));
+        memset(confline, 0, sizeof(struct confline));
+        config->rules[config->count] = confline;
+        config->count++;
+        confline->line    = line;
+        confline->type    = line->strings[0];
+        confline->service = line->strings[1];
+        confline->program = line->strings[2];
 
-        /* change this to a while vline->string[n] has an "=" in it
-           to support multiple x=y options */
-        if (strncmp(vline->strings[3], "logmask=", 8) == 0) {
-            cp->logmask = vector_new();
-            vector_split(vline->strings[3] + 8, ',', cp->logmask);
+        /* Change this to a while vline->string[n] has an "=" in it to support
+           multiple x=y options. */
+        if (strncmp(line->strings[3], "logmask=", 8) == 0) {
+            confline->logmask = cvector_new();
+            cvector_split(line->strings[3] + 8, ',', confline->logmask);
             arg_i = 4;
-        } else {
+        } else
             arg_i = 3;
-        }
 
-        if (vline->count <= arg_i) {
-            syslog(LOG_ERR, 
-                   "Parse error in the conf file on line %d\n", i);
+        /* One more syntax error possibility here: a line that only has a
+           logmask setting but no ACL files. */
+        if (line->count <= arg_i) {
+            syslog(LOG_ERR, "%s:%d: config parse error", name, lineno);
+            fclose(file);
             return -1;
         }
 
-        cp->acls = smalloc((vline->count-arg_i+1) * sizeof(char*));
-        for (j = 0; j < vline->count - arg_i; j++) {
-            cp->acls[j] = strdup(vline->strings[j + arg_i]);
-        }
-        cp->acls[j] = NULL;
-        linenum++;
+        /* Grab the list of ACL files. */
+        count = line->count - arg_i + 1;
+        confline->acls = smalloc(count * sizeof(char *));
+        for (i = 0; i < line->count - arg_i; i++)
+            confline->acls[i] = line->strings[i + arg_i];
+        confline->acls[i] = NULL;
     }
 
-    free(buf);
-    vector_free(vbuf);
-    vector_free(vline);
+    /* Free allocated memory and return success if fgets succeeded. */
+done:
+    free(buffer);
+    if (ferror(file)) {
+        fclose(file);
+        return -1;
+    }
+    fclose(file);
     return 0;
 }
 
@@ -624,8 +707,8 @@ log_command(struct vector *argvector, struct confline *cline,
 **  for the return code and gathers stdout and stderr pipes.
 */
 static OM_uint32
-process_command(struct vector *argvector, char *userprincipal,
-                char *ret_message)
+process_command(struct config *config, struct vector *argvector,
+                char *userprincipal, char *ret_message)
 {
     char *command;
     char *program;
@@ -654,8 +737,8 @@ process_command(struct vector *argvector, char *userprincipal,
 
     /* Look up the command and the ACL file from the conf file structure in
        memory. */
-    for (i = 0; confbuffer[i] != NULL; i++) {
-        cline = confbuffer[i];
+    for (i = 0; i < config->count; i++) {
+        cline = config->rules[i];
         if (strcmp(cline->type, argvector->strings[0]) == 0) {
             if (strcmp(cline->service, "ALL") == 0 ||
                 strcmp(cline->service, argvector->strings[1]) == 0) {
@@ -810,7 +893,7 @@ process_command(struct vector *argvector, char *userprincipal,
 **  send the response back to the client and then cleans up the context.
 */
 static int
-process_connection(gss_cred_id_t server_creds)
+process_connection(struct config *config, gss_cred_id_t server_creds)
 {
     gss_buffer_desc client_name;
     gss_ctx_id_t context;
@@ -856,7 +939,8 @@ process_connection(gss_cred_id_t server_creds)
     /* Check the acl, the existence of the command, run the command and
        gather the output. */
     if (ret_code == 0)
-        ret_code = process_command(req_argv, userprincipal, ret_message);
+        ret_code = process_command(config, req_argv, userprincipal,
+                                   ret_message);
 
     /* Send back the stuff returned from the exec. */
     process_response(context, ret_code, ret_message);
@@ -891,6 +975,7 @@ main(int argc, char *argv[])
     int s, stmp;
     int do_standalone = 0;
     const char *conffile = "remctl.conf";
+    struct config *config;
 
     service_name[0] = '\0';
     verbose = 0;
@@ -932,7 +1017,8 @@ main(int argc, char *argv[])
         argv++;
     }
 
-    if (read_conf_file(conffile) != 0) {
+    config = smalloc(sizeof(struct config));
+    if (read_conf_file(config, conffile) != 0) {
         syslog(LOG_ERR, "%s%m\n", "Can't read conf file: ");
         exit(1);
     }
@@ -975,7 +1061,7 @@ main(int argc, char *argv[])
                 READFD = s;
                 WRITEFD = s;
 
-                if (process_connection(server_creds) < 0)
+                if (process_connection(config, server_creds) < 0)
                     close(s);
             } while (1);
         }
@@ -984,7 +1070,7 @@ main(int argc, char *argv[])
     } else {
         READFD = 0;
         WRITEFD = 1;
-        process_connection(server_creds);
+        process_connection(config, server_creds);
         close(0);
         close(1);
     }
