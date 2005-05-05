@@ -4,7 +4,7 @@ remctld - Server for remctl, a remote command execution utility
 
 =head1 SYNOPSIS
 
-remctld [B<-f> I<config>] [B<-s> I<service>]
+remctld [B<-mv>] [B<-f> I<config>] [B<-p> I<port>] [B<-s> I<service>]
 
 =head1 DESCRIPTION
 
@@ -14,13 +14,17 @@ of the user and executes the command, returning the result back to the
 client.  All connections are authenticated using GSSAPI Kerberos V, and
 all transmissions are also encrypted using Kerberos.
 
-B<remctld> should be started using tcpserver, or from inetd. It must be
-run as root, since it needs to read the host keytab file, unless otherwise
-configured (see below).  B<remctld> logs its activity using syslog (the
+B<remctld> is normally started using B<tcpserver> or from B<inetd>, but it
+may be run in stand-alone mode as a daemon using B<-m>.  Either B<-s> must
+be given to use an alternate identity (which will require the same flag be
+used for B<remctl> client invocations), or It must be run as root to read
+the host keytab file.  B<remctld> logs its activity using syslog (the
 daemon facility).
 
 The location of the configuration file may be specified with the B<-f>
-option.  The default is F<@sysconfdir@/remctl.conf>.
+option.  The default location is F<@sysconfdir@/remctl.conf>.  For
+information on the format of the configuration file, see L<"CONFIGURATION
+FILE"> below.
 
 =head1 OPTIONS
 
@@ -28,10 +32,36 @@ option.  The default is F<@sysconfdir@/remctl.conf>.
 
 =item B<-f> I<conffile>
 
-The configuration file for B<remctld>, containing the definitions of
-allowed commands and specifying access control information.  The
-configuration file format is lines of space or tab separated strings,
-where each line is:
+The configuration file for B<remctld>, overriding the default path.
+
+=item B<-m>
+
+Enable stand-alone mode.  B<remctld> will listen to its configured port,
+4444 by default, and handle incoming connections one at a time.  This is
+mostly useful for debugging purposes.
+
+=item B<-p> I<port>
+
+When running in stand-alone mode, Listen on port I<port> rather than 4444,
+the default.  This option does nothing unless used with B<-m>.
+
+=item B<-s> I<service>
+
+This option is used to specify the Kerberos service principal for
+B<remctld> to run as, the default is the server host principal:
+"host/<machinename>.stanford.edu"
+
+=item B<-v>
+
+Verbose logging to syslog.
+
+=back
+
+=head1 CONFIGURATION FILE
+
+The configuration file defines the allowed commands and specifies access
+control information.  The configuration file format is lines of space- or
+tab-separated strings, where each line is:
 
     type service executable [logmask=n[,...]] {aclfile}+
 
@@ -46,60 +76,55 @@ The meaning of these fields is:
 =item I<type>
 
 The type of the command being requested, such as "afs" for the afs volume 
-backend. In sysctl terms, the "ss" in "ss:create".
+backend.  This is used to group commands together into a class and allows
+all commands in the same class to be passed to the same backend program.
 
 =item I<service>
 
 The service within the type being requested, such as "release" for the afs
-volume backend. In sysctl terms, the "create" in "ss:create". The keyword 
-ALL may be used instead of the service to specify an executable and aclfiles
-for the entire type in one line. The service is passed as the first argument
-to the executable program that is listed for that service.
+volume backend.  The keyword ALL may be used instead of the service to
+specify an executable and aclfiles for the entire type in one line.  The
+service is always passed as the first argument to the executable program
+that is listed for that service.
 
 =item I<executable>
 
 The full path to the commmand executable to run for this type-service 
-combination. (See examples below)
+combination.  (See examples below.)
 
 =item I<logmask=n[,...]>
 
-Limit logging of command arguments. Any argument listed in the logmask
-list will have its value logged as "**MASKED**". This is to avoid logging
+Limit logging of command arguments.  Any argument listed in the logmask
+list will have its value logged as "**MASKED**".  This is to avoid logging
 the arguments of commands that take privileged information.
 
-For example, if the command is "admin passwd {username} {passwd}", then
-you'd want to set logmask to "3", so the password argument gets logged
-as "**MASKED**".
+For example, if the command is C<admin passwd {username} {passwd}>, then
+you'd want to set logmask to C<3>, so the password argument gets logged as
+C<**MASKED**>.
 
 =item I<aclfile>
 
 The full paths of one or more access control files, each containing one 
-Kerberos V identity per line, such as username@stanford.edu
+Kerberos v5 principal per line, such as C<username@stanford.edu>.
 
 The keyword ANYUSER may be used instead of the aclfiles to allow access to
-all users.  Notice the user still needs to authenticate to remctld, this
-only affects authorization.
-
-=back
-
-=item B<-s> I<service>
-
-This option is used to specify the Kerberos service principal for
-B<remctld> to run as, the default is the server host principal:
-"host/<machinename>.stanford.edu"
-
-=item B<-v>
-
-Verbose logging to syslog.
+all users.  Note the user still needs to authenticate to B<remctld>, this
+only affects authorization.  This can be used for backend programs that
+want to check ACLs themselves and will retrieve the authenticated
+principal from the REMUSER environment variable.
 
 =back
 
 =head1 EXAMPLES
 
 Typically B<remctld> is to be started as follows, where "hostname" is the
-machine where remctld will run, and 4444 (arbitrary example) is the port:
+machine where remctld will run, and 4444 is the port:
 
     tcpserver hostname 4444 remctld
+
+The equivalent line for F</etc/inetd.conf> is:
+
+    4444 stream tcp nowait root /usr/sbin/tcpd /usr/sbin/remctld
 
 Example configuration file:
 
@@ -107,37 +132,44 @@ Example configuration file:
  accounts create /usr/local/bin/doaccount  /etc/acl/group1 /etc/acl/group2
  accounts delete /usr/local/bin/doaccount  /etc/acl/group3
  accounts view   /usr/local/bin/doaccount  ANYUSER
- accounts passwd /usr/local/bin/doaccount logmask=3 /etc/acl/group1
+ accounts passwd /usr/local/bin/dopasswd   logmask=3 /etc/acl/group1
  printing ALL    /usr/local/bin/printthing /etc/acl/group2 
+
+The commands C<accounts create>, C<accounts delete>, and so forth will all
+be passed to /usr/local/bin/doaccount with the first argument being the
+specific subcommand, with the exception of C<accounts passwd>.  That
+command will be passed to /usr/local/bin/dopasswd instead, but it will
+still get C<passwd> as its first argument.  The third argument to
+C<accounts passwd> (presumably the password) will not be logged to syslog.
+All commands starting with C<printing> will be passed to
+/usr/local/bin/printthing.
 
 =head1 SEE ALSO
 
-remctl(1), tcpserver(1), syslog(3C), kerberos(1)
+remctl(1), syslog(3), tcpserver(1)
+
+The current version of this program is available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
 
 =head1 AUTHOR
 
-Anton Ushakov <antonu@stanford.edu>
+Anton Ushakov <antonu@stanford.edu> is the original author.  Updates and
+current maintenance are done by Russ Allbery <rra@stanford.edu>.
 
 =head1 COPYRIGHT AND LICENSE
 
 Copyright 2002, 2003, 2004, 2005 Board of Trustees, Leland Stanford
 Jr. University.  All rights reserved.
   
-Export of this software from the United States of America may require a
-specific license from the United States Government.  It is the
-responsibility of any person or organization contemplating export to
-obtain such a license before exporting.
-
-WITHIN THAT CONSTRAINT, permission to use, copy, modify, and distribute
-this software and its documentation for any purpose and without fee is
-hereby granted, provided that the above copyright notice appear in all
-copies and that both that copyright notice and this permission notice
-appear in supporting documentation, and that the name of Stanford
-University not be used in advertising or publicity pertaining to
-distribution of the software without specific, written prior permission.
-Stanford University makes no representations about the suitability of this
-software for any purpose.  It is provided "as is" without express or
-implied warranty.
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted, provided
+that the above copyright notice appear in all copies and that both that
+copyright notice and this permission notice appear in supporting
+documentation, and that the name of Stanford University not be used in
+advertising or publicity pertaining to distribution of the software
+without specific, written prior permission.  Stanford University makes no
+representations about the suitability of this software for any purpose.
+It is provided "as is" without express or implied warranty.
 
 THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
