@@ -65,7 +65,9 @@ INSTALLATION
 
   Usage information is available in the manual pages which will be
   installed with remctl.  You will need to set up a remctl.conf file for
-  the server; see docs/remctl.conf for an example.
+  the server; see docs/remctl.conf for an example.  The default location
+  for remctl.conf is <prefix>/etc, but can be changed with the
+  --sysconfdir flag to configure.
 
 PORTING
 

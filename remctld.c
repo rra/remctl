@@ -976,7 +976,7 @@ main(int argc, char *argv[])
     unsigned short port = 4444;
     int s, stmp;
     int do_standalone = 0;
-    const char *conffile = "remctl.conf";
+    const char *conffile = CONFIG_FILE;
     struct config *config;
 
     service_name[0] = '\0';

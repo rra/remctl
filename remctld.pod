@@ -16,7 +16,11 @@ all transmissions are also encrypted using Kerberos.
 
 B<remctld> should be started using tcpserver, or from inetd. It must be
 run as root, since it needs to read the host keytab file, unless otherwise
-configured (see below).  B<remctld> logs its activity using syslog(3C).
+configured (see below).  B<remctld> logs its activity using syslog (the
+daemon facility).
+
+The location of the configuration file may be specified with the B<-f>
+option.  The default is F<@sysconfdir@/remctl.conf>.
 
 =head1 OPTIONS
 
@@ -25,11 +29,15 @@ configured (see below).  B<remctld> logs its activity using syslog(3C).
 =item B<-f> I<conffile>
 
 The configuration file for B<remctld>, containing the definitions of
-allowed commands and specifying access control information.  Default is
-F<./remctl.conf>.  Configuration file format is space or tab separated
-strings, where each line is:
+allowed commands and specifying access control information.  The
+configuration file format is lines of space or tab separated strings,
+where each line is:
 
     type service executable [logmask=n[,...]] {aclfile}+
+
+Blank lines and lines beginning with C<#> are ignored.  Lines can be
+continued on the next line by ending them with a backslash (C<\>).  Be
+aware that comments can be continued with a backslash as well.
 
 The meaning of these fields is:
 

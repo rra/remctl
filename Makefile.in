@@ -18,6 +18,7 @@ mandir          = @mandir@
 
 CC              = @CC@
 CFLAGS          = @CFLAGS@
+CONFIG          = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"
 CPPFLAGS        = -I. -I$(srcdir) @CPPFLAGS@ -I$(prefix)/include
 LDFLAGS         = @LDFLAGS@
 LIBS            = @LIBS@
@@ -40,7 +41,7 @@ SERVER_OBJS     = remctld.o vector.o $(COMMON_OBJS)
 CLIENT_OBJS     = remctl.o $(COMMON_OBJS)
 
 .c.o:
-	$(CC) -c $(CPPFLAGS) $(DEFS) $(CFLAGS) $<
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $<
 
 all: remctld remctl remctl.1 remctld.8
 
@@ -50,38 +51,45 @@ warnings:
 remctld: $(SERVER_OBJS)
 	$(CC) $(SERVER_OBJS) $(LDFLAGS) $(LIBS) -o $@
 
+remctld.o: remctld.c
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(CONFIG) remctld.c
+
 remctl: $(CLIENT_OBJS)
 	$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(LIBS) -o $@
 
 $(srcdir)/remctl.1: remctl.pod
 	pod2man --release=$(VERSION) --center="User Commands" $< > $@
 
-$(srcdir)/remctld.8: remctld.pod
+$(srcdir)/remctld.8.in: remctld.pod
 	pod2man --release=$(VERSION) --center="System Daemons" \
 	    --section=8 $< > $@
+
+remctld.8: $(srcdir)/remctld.8.in
+	sed 's%@sysconfdir\@%$(sysconfdir)%' < $< > $@
 
 install: remctld remctl remctld.8 remctl.1
 	$(INSTALL) -d $(bindir) $(sbindir) $(mandir)/man1 $(mandir)/man8
 	$(INSTALL_PROGRAM) remctl $(bindir)/remctl
 	$(INSTALL_PROGRAM) remctld $(sbindir)/remctld
 	$(INSTALL_DATA) $(srcdir)/remctl.1 $(mandir)/man1/remctl.1
-	$(INSTALL_DATA) $(srcdir)/remctld.8 $(mandir)/man8/remctld.8
+	$(INSTALL_DATA) remctld.8 $(mandir)/man8/remctld.8
 
 clean:
 	rm -f *.o remctld remctl
 
 distclean: clean
 	rm -f Makefile config.h config.cache config.log config.status
+	rm -f remctld.8
 	rm -rf autom4te.cache
 
 maintclean: distclean
-	rm -f config.h.in configure remctl.1 remctld.8
+	rm -f config.h.in configure remctl.1 remctld.8.in
 
-dist: $(srcdir)/remctl.1 $(srcdir)/remctld.8
+dist: $(srcdir)/remctl.1 $(srcdir)/remctld.8.in
 	rm -rf $(TARNAME).gz $(TARNAME).gz.md5 $(TARDIR)
 	mkdir $(TARDIR)
 	rsync -C --exclude /debian/ -a $(srcdir)/ $(TARDIR)/
-	rsync -a $(srcdir)/remctl.1 $(srcdir)/remctld.8 $(TARDIR)/
+	rsync -a $(srcdir)/remctl.1 $(srcdir)/remctld.8.in $(TARDIR)/
 	cd $(TARDIR) && autoconf && autoheader && rm -rf autom4te.cache
 	tar cf $(TARNAME) $(TARDIR)
 	gzip -9 $(TARNAME)
