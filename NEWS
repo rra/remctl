@@ -13,6 +13,10 @@ remctl 1.8 (2005-05-04)
     Change the default remctl.conf location to be relative to sysconfdir
     (<prefix>/etc by default) instead of the current directory.
 
+    remctld now only logs the initial connection authentication and the
+    argument count if -v was given, reducing to one the number of syslog
+    messages per command.
+
     Improve the remctld man page, documenting all of the supported options
     including stand-alone mode.
 
