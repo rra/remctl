@@ -357,6 +357,11 @@ read_conf_file(struct config *config, const char *name)
     bufsize = 1024;
     buffer = smalloc(bufsize);
     file = fopen(name, "r");
+    if (file == NULL) {
+        free(buffer);
+        syslog(LOG_ERR, "cannot open config file %s: %m", name);
+        return -1;
+    }
     while (fgets(buffer, bufsize, file) != NULL) {
         length = strlen(buffer);
 
@@ -376,6 +381,7 @@ read_conf_file(struct config *config, const char *name)
             if (fgets(buffer + length, bufsize - length, file) == NULL)
                 goto done;
         }
+        buffer[length - 1] = '\0';
         lineno++;
 
         /* Skip blank lines or commented-out lines.  Note that because of the
@@ -390,28 +396,31 @@ read_conf_file(struct config *config, const char *name)
         /* We have a valid configuration line.  Do a quick syntax check and
            handle include. */
         line = vector_split_space(buffer, NULL);
-        if (line->count < 4 && line->count != 2) {
+        if (line->count < 4) {
             const char *included = line->strings[1];
             struct stat st;
 
-            if (strcmp(line->strings[0], "include") != 0) {
-                vector_free(line);
-                fclose(file);
+            if (line->count != 2 || strcmp(line->strings[0], "include") != 0) {
                 syslog(LOG_ERR, "%s:%d: config parse error", name, lineno);
+                vector_free(line);
+                free(buffer);
+                fclose(file);
                 return -1;
             }
             if (strcmp(included, name) == 0) {
-                vector_free(line);
-                fclose(file);
                 syslog(LOG_ERR, "%s:%d: %s recursively included", name,
                        lineno, name);
+                vector_free(line);
+                free(buffer);
+                fclose(file);
                 return -1;
             }
             if (stat(included, &st) < 0) {
-                vector_free(line);
-                fclose(file);
                 syslog(LOG_ERR, "%s:%d: included file %s not found", name,
                        lineno, included);
+                vector_free(line);
+                free(buffer);
+                fclose(file);
                 return -1;
             }
             if (S_ISDIR(st.st_mode)) {
@@ -431,6 +440,7 @@ read_conf_file(struct config *config, const char *name)
                     if (read_conf_file(config, path) < 0) {
                         closedir(dir);
                         free(path);
+                        free(buffer);
                         fclose(file);
                         return -1;
                     }
@@ -441,6 +451,7 @@ read_conf_file(struct config *config, const char *name)
                 if (read_conf_file(config, included) < 0) {
                     vector_free(line);
                     fclose(file);
+                    free(buffer);
                     return -1;
                 }
                 vector_free(line);
@@ -482,6 +493,7 @@ read_conf_file(struct config *config, const char *name)
         if (line->count <= arg_i) {
             syslog(LOG_ERR, "%s:%d: config parse error", name, lineno);
             fclose(file);
+            free(buffer);
             return -1;
         }
 
