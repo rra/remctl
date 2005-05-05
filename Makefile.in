@@ -20,7 +20,7 @@ sysconfdir      = @sysconfdir@
 CC              = @CC@
 CFLAGS          = @CFLAGS@
 CONFIG          = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"
-CPPFLAGS        = -I. -I$(srcdir) @CPPFLAGS@ -I$(prefix)/include
+CPPFLAGS        = -I. -I$(srcdir) @CPPFLAGS@
 LDFLAGS         = @LDFLAGS@
 LIBS            = @LIBS@
 
