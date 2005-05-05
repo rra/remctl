@@ -589,8 +589,9 @@ process_request(gss_ctx_id_t context, char *ret_message)
     memcpy(&network_order, cp, sizeof(OM_uint32));
     req_argc = ntohl(network_order);
     cp += sizeof(OM_uint32);
-    
-    syslog(LOG_DEBUG, "argc is: %d\n", req_argc);
+
+    if (verbose)
+        syslog(LOG_DEBUG, "argc is: %d\n", req_argc);
     if (req_argc <= 0 || req_argc > MAXCMDARGS) {
         strcpy(ret_message, "Invalid argc in request message\n");
         syslog(LOG_DEBUG, ret_message);
@@ -940,8 +941,9 @@ process_connection(struct config *config, gss_cred_id_t server_creds)
     memcpy(userprincipal, client_name.value, client_name.length);
     userprincipal[client_name.length] = '\0';
 
-    syslog(LOG_DEBUG, "Accepted connection from \"%.*s\"\n",
-           (int)client_name.length, (char *)client_name.value);
+    if (verbose)
+        syslog(LOG_DEBUG, "Accepted connection from \"%.*s\"\n",
+               (int)client_name.length, (char *)client_name.value);
     
     gss_release_buffer(&min_stat, &client_name);
 
