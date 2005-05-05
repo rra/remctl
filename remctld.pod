@@ -69,6 +69,16 @@ Blank lines and lines beginning with C<#> are ignored.  Lines can be
 continued on the next line by ending them with a backslash (C<\>).  Be
 aware that comments can be continued with a backslash as well.
 
+As a special case, a line like:
+
+    include file
+
+will include I<file> as if its contents were pasted verbatim into the
+configuration file at that point.  I<file> may be a directory, in which
+case all files whose names do not contain a period found in that directory
+will be included (in no particular order).  I<file> should be a fully
+qualified path.
+
 The meaning of these fields is:
 
 =over 4
