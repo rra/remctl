@@ -1,5 +1,21 @@
                        User-Visible remctl Changes
 
+remctl 1.8 (2005-05-04)
+
+    Support include <file> in the configuration file.  Also support
+    including a directory, which includes every file in that directory
+    that doesn't have a period in the name.
+
+    Support continuation lines (using backslash) in the configuration
+    file, and clean up the parser to be more flexible about whitespace on
+    otherwise empty lines or comment lines.
+
+    Change the default remctl.conf location to be relative to sysconfdir
+    (<prefix>/etc by default) instead of the current directory.
+
+    Improve the remctld man page, documenting all of the supported options
+    including stand-alone mode.
+
 remctl 1.7 (2005-02-22)
 
     Close extra file descriptors before spawning a child process in
