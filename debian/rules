@@ -39,6 +39,8 @@ install: build
 	dh_clean -k
 	dh_installdirs
 	$(MAKE) install prefix=$(CURDIR)/debian/remctl/usr
+	install -m 644 $(CURDIR)/debian/remctl.conf \
+	    $(CURDIR)/debian/remctl/etc/remctl/remctl.conf
 
 # We have no architecture-independent files to build.
 binary-indep: build install
