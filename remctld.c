@@ -382,7 +382,8 @@ read_conf_file(struct config *config, const char *name)
                 goto done;
             length = strlen(buffer);
         }
-        buffer[length - 1] = '\0';
+        if (length > 0)
+            buffer[length - 1] = '\0';
         lineno++;
 
         /* Skip blank lines or commented-out lines.  Note that because of the
