@@ -380,6 +380,7 @@ read_conf_file(struct config *config, const char *name)
             }
             if (fgets(buffer + length, bufsize - length, file) == NULL)
                 goto done;
+            length = strlen(buffer);
         }
         buffer[length - 1] = '\0';
         lineno++;
