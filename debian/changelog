@@ -1,3 +1,18 @@
+remctl (1.8-1) unstable; urgency=low
+
+  * New upstream release.
+    - Support include and continuation lines in configuration files.
+    - Default configuration file location is now /etc/remctl/remctl.conf.
+    - Reduce the syslog noise unless -v is used.
+    - Remove the misleading export clause from the license.
+  * Add postinst and prerm to add a commented-out invocation of remctld to
+    inetd.conf.
+  * Install a sample remctl.conf in /etc/remctl that includes all
+    fragments in /etc/remctl/conf.d.  Create /etc/remctl/conf.d and
+    /etc/remctl/acl for the use of the local administrator.
+
+ -- Russ Allbery <rra@stanford.edu>  Fri,  6 May 2005 08:52:37 -0700
+
 remctl (1.7-2) unstable; urgency=low
 
   * Uploaded to Debian.  (Closes: #304747)
