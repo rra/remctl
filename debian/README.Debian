@@ -2,15 +2,13 @@ remctl for Debian
 -----------------
 
 This package contains both the client (remctl) and the daemon (remctld).
-The latter is not configured to run by default.  If you want to run it out
-of inetd, add the equivalent of the following inetd.conf line:
+The latter is not configured to run by default, but a commented-out
+invocation is added to /etc/inetd.conf.  You can uncomment it and skill
+-HUP inetd to start it.  (You may wish to modify the inetd.conf line to
+run it under TCP wrappers.)
 
-    4444 stream tcp nowait root /usr/sbin/tcpd \
-        /usr/sbin/remctld -f /etc/remctl.conf
-
-to your inetd configuration (on one line, without the backslash).  You
-don't have to run remctld as root, but of course will need to do so if you
-want it to run any programs that need root privileges or want to run
+You don't have to run remctld as root, but of course will need to do so if
+you want it to run any programs that need root privileges or want to run
 programs that change to various different user identities.
 
 remctl is built to use port 4444 by default.  This is a bad choice in
@@ -19,11 +17,13 @@ uses only UDP, I believe), but it's the upstream default and the server
 and client have to agree.  Using a different port will require always
 specifying the -p option to the client.
 
-remctld looks in the current directory for its configuration file by
-default, so you generally will want to specify the configuration file
-location on the command line with the -f option.
+The default configuration file is /etc/remctl/remctl.conf, but I recommend
+that you leave that file unchanged and drop your configuration into
+/etc/remctl/conf.d as separate files.  Make sure the name of the file
+doesn't contain a period; those are skipped.  See the comments in
+/etc/remctl/remctl.conf for more details.
 
 A Java client is provided in /usr/share/remctl/examples/java.  It may not
 work at your site without some tweaking.
 
- -- Russ Allbery <rra@stanford.edu>, Wed Feb 23 00:24:16 2005
+ -- Russ Allbery <rra@stanford.edu>, Fri May  6 21:53:44 2005
