@@ -438,7 +438,6 @@ read_conf_file(struct config *config, const char *name)
                     length = strlen(included) + 1 + strlen(entry->d_name) + 1;
                     path = smalloc(length);
                     snprintf(path, length, "%s/%s", included, entry->d_name);
-                    vector_free(line);
                     if (read_conf_file(config, path) < 0) {
                         closedir(dir);
                         free(path);
@@ -449,6 +448,7 @@ read_conf_file(struct config *config, const char *name)
                     free(path);
                 }
                 closedir(dir);
+                vector_free(line);
             } else {
                 if (read_conf_file(config, included) < 0) {
                     vector_free(line);
