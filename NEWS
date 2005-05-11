@@ -1,5 +1,11 @@
                        User-Visible remctl Changes
 
+remctl 1.9 (2005-05-10)
+
+    Fix serious bug with inclusion of configuration directories.  When
+    reading any file after the first, remctl would use random bits of
+    memory as the file name.
+
 remctl 1.8 (2005-05-04)
 
     Support include <file> in the configuration file.  Also support
