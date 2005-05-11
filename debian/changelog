@@ -1,3 +1,10 @@
+remctl (1.9-1) unstable; urgency=high
+
+  * New upstream release.
+    - Fix serious bug when including directories of configuration files.
+
+ -- Russ Allbery <rra@stanford.edu>  Tue, 10 May 2005 21:37:12 -0700
+
 remctl (1.8-2) unstable; urgency=low
 
   * Depend on netbase for update-inetd.
