@@ -446,9 +446,9 @@ read_conf_file(struct config *config, const char *name)
                         fclose(file);
                         return -1;
                     }
-                    closedir(dir);
                     free(path);
                 }
+                closedir(dir);
             } else {
                 if (read_conf_file(config, included) < 0) {
                     vector_free(line);
