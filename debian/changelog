@@ -1,3 +1,9 @@
+remctl (1.8-2) unstable; urgency=low
+
+  * Depend on netbase for update-inetd.
+
+ -- Russ Allbery <rra@stanford.edu>  Tue, 10 May 2005 18:01:01 -0700
+
 remctl (1.8-1) unstable; urgency=low
 
   * New upstream release.
