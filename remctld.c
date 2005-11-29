@@ -1000,7 +1000,13 @@ main(int argc, char *argv[])
     /* Since we are called from tcpserver, prevent clients from holding on to 
        us forever, and die after an hour. */
     alarm(60 * 60);
+
+    /* Establish identity and set up logging. */
+    message_program_name = "remctld";
     openlog("remctld", LOG_PID | LOG_NDELAY, LOG_DAEMON);
+    message_handlers_notice(1, message_log_syslog_info);
+    message_handlers_warn(1, message_log_syslog_warning);
+    message_handlers_die(1, message_log_syslog_err);
 
     argc--;
     argv++;
@@ -1012,7 +1018,7 @@ main(int argc, char *argv[])
                 usage();
             port = atoi(*argv);
         } else if (strcmp(*argv, "-v") == 0) {
-            verbose = 1;
+            message_handlers_debug(1, message_log_syslog_debug);
         } else if (strcmp(*argv, "-f")    == 0) {
             argc--;
             argv++;

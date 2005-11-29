@@ -371,6 +371,9 @@ main(int argc, char ** argv)
     verbose = 0;
     use_syslog = 0;
 
+    /* Set up logging and identity. */
+    message_program_name = "remctl";
+
     /* Parse arguments. */
     argc--;
     argv++;
@@ -388,7 +391,7 @@ main(int argc, char ** argv)
                 usage();
             strncpy(service_name, *argv, sizeof(service_name));
         } else if (strcmp(*argv, "-v") == 0) {
-            verbose = 1;
+            message_handlers_debug(1, message_log_stdout);
         } else
             break;
         argc--;
