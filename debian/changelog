@@ -1,3 +1,10 @@
+remctl (1.9-2) unstable; urgency=low
+
+  * Run remctl under tcpd and depend on tcpd.
+  * Use recommended indentation of Homepage link in long description.
+
+ --
+
 remctl (1.9-1) unstable; urgency=high
 
   * New upstream release.

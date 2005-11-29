@@ -7,7 +7,7 @@ Standards-Version: 3.6.1
 
 Package: remctl
 Architecture: any
-Depends: ${shlibs:Depends}, netbase
+Depends: ${shlibs:Depends}, netbase, tcpd
 Description: remote Kerberos-authenticated command execution
  remctl consists of a client and server for executing specific commands on
  a remote system with Kerberos authentication.  The allowable commands
@@ -19,4 +19,4 @@ Description: remote Kerberos-authenticated command execution
  Included in this package is both the client (remctl) and the server
  (remctld).  The server will not be started automatically.
  .
- Homepage: http://www.eyrie.org/~eagle/software/remctl/
+  Homepage: http://www.eyrie.org/~eagle/software/remctl/
