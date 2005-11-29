@@ -30,8 +30,11 @@
 #include <unistd.h>
 
 #include <gssapi/gssapi_generic.h>
+
 #include "gss-utils.h"
+#include "messages.h"
 #include "vector.h"
+#include "xmalloc.h"
 
 int verbose;       /* Turns on debugging output. */
 int use_syslog;    /* Toggle for sysctl vs stdout/stderr. */
@@ -304,12 +307,7 @@ read_file(const char *file_name)
         return NULL;
     }
 
-    if ((buf = smalloc(length + 1)) == 0) {
-        syslog(LOG_ERR, "Couldn't allocate %d byte buffer for reading file\n",
-               length);
-        return NULL;
-    }
-
+    buf = xmalloc(length + 1);
     count = read(fd, buf, length);
     if (count < 0) {
         syslog(LOG_ERR, "Problem during read in read_file\n");
@@ -355,7 +353,7 @@ read_conf_file(struct config *config, const char *name)
     size_t lineno = 0;
 
     bufsize = 1024;
-    buffer = smalloc(bufsize);
+    buffer = xmalloc(bufsize);
     file = fopen(name, "r");
     if (file == NULL) {
         free(buffer);
@@ -374,7 +372,7 @@ read_conf_file(struct config *config, const char *name)
                               || buffer[length - 2] == '\\')) {
             if (buffer[length - 1] != '\n') {
                 bufsize += 1024;
-                buffer = srealloc(buffer, bufsize);
+                buffer = xrealloc(buffer, bufsize);
             } else {
                 length -= 2;
             }
@@ -436,7 +434,7 @@ read_conf_file(struct config *config, const char *name)
                     if (strchr(entry->d_name, '.') != NULL)
                         continue;
                     length = strlen(included) + 1 + strlen(entry->d_name) + 1;
-                    path = smalloc(length);
+                    path = xmalloc(length);
                     snprintf(path, length, "%s/%s", included, entry->d_name);
                     if (read_conf_file(config, path) < 0) {
                         closedir(dir);
@@ -470,9 +468,9 @@ read_conf_file(struct config *config, const char *name)
             else
                 config->allocated *= 2;
             size = config->allocated * sizeof(struct confline *);
-            config->rules = srealloc(config->rules, size);
+            config->rules = xrealloc(config->rules, size);
         }
-        confline = smalloc(sizeof(struct confline));
+        confline = xmalloc(sizeof(struct confline));
         memset(confline, 0, sizeof(struct confline));
         config->rules[config->count] = confline;
         config->count++;
@@ -501,7 +499,7 @@ read_conf_file(struct config *config, const char *name)
 
         /* Grab the list of ACL files. */
         count = line->count - arg_i + 1;
-        confline->acls = smalloc(count * sizeof(char *));
+        confline->acls = xmalloc(count * sizeof(char *));
         for (i = 0; i < line->count - arg_i; i++)
             confline->acls[i] = line->strings[i + arg_i];
         confline->acls[i] = NULL;
@@ -648,7 +646,7 @@ process_response(gss_ctx_id_t context, OM_uint32 code, char *blob)
 
     flags = TOKEN_DATA;
 
-    msg = smalloc((2 * sizeof(OM_uint32) + bloblength));
+    msg = xmalloc((2 * sizeof(OM_uint32) + bloblength));
     msglength = bloblength + 2 * sizeof(OM_uint32);
 
     network_order = htonl(code);
@@ -785,7 +783,7 @@ process_command(struct config *config, struct vector *argvector,
     }
 
     /* Assemble the argv, envp, and fork off the child to run the command. */
-    req_argv = smalloc((argvector->count + 1) * sizeof(char *));
+    req_argv = xmalloc((argvector->count + 1) * sizeof(char *));
 
     /* Get the real program name, and use it as the first argument in argv
        passed to the command. */
@@ -939,7 +937,7 @@ process_connection(struct config *config, gss_cred_id_t server_creds)
     }
 
     /* This is who just connected to us. */
-    userprincipal = smalloc(client_name.length + 1);
+    userprincipal = xmalloc(client_name.length + 1);
     memcpy(userprincipal, client_name.value, client_name.length);
     userprincipal[client_name.length] = '\0';
 
@@ -1035,7 +1033,7 @@ main(int argc, char *argv[])
         argv++;
     }
 
-    config = smalloc(sizeof(struct config));
+    config = xmalloc(sizeof(struct config));
     if (read_conf_file(config, conffile) != 0) {
         syslog(LOG_ERR, "%s%m\n", "Can't read conf file: ");
         exit(1);

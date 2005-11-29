@@ -23,7 +23,10 @@
 #include <fcntl.h>
 
 #include <gssapi/gssapi_generic.h>
+
 #include "gss-utils.h"
+#include "messages.h"
+#include "xmalloc.h"
 
 int verbose;       /* Turns on debugging output. */
 int use_syslog;    /* Toggle for sysctl vs stdout/stderr. */
@@ -66,7 +69,7 @@ parse_oid(const char *mechanism, gss_OID *oid)
     OM_uint32 maj_stat, min_stat;
 
     if (isdigit(mechanism[0])) {
-        mechstr = smalloc(strlen(mechanism) + 5);
+        mechstr = xmalloc(strlen(mechanism) + 5);
         if (!mechstr) {
             fprintf(stderr, "Couldn't allocate mechanism scratch!\n");
             return;
@@ -264,7 +267,7 @@ process_request(gss_ctx_id_t context, OM_uint32 argc, char **argv)
         msglength += strlen(*cp++);
     }
     msglength += (argc + 1) * sizeof(OM_uint32);
-    msg = smalloc(msglength);
+    msg = xmalloc(msglength);
 
     /* Iterators over buffers */
     mp = msg;
@@ -334,7 +337,7 @@ process_response(gss_ctx_id_t context, OM_uint32* errorcode)
     }
 
     /* Get the message body */
-    body = smalloc(bodylength + 1);
+    body = xmalloc(bodylength + 1);
     memcpy(body, cp, bodylength);
     body[bodylength] = '\0';
     

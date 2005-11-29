@@ -27,8 +27,9 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include "gss-utils.h"
+
 #include "vector.h"
+#include "xmalloc.h"
 
 /*
 **  Allocate a new, empty vector.
@@ -38,7 +39,7 @@ vector_new(void)
 {
     struct vector *vector;
 
-    vector = smalloc(sizeof(struct vector));
+    vector = xmalloc(sizeof(struct vector));
     vector->count = 0;
     vector->allocated = 0;
     vector->strings = NULL;
@@ -50,7 +51,7 @@ cvector_new(void)
 {
     struct cvector *vector;
 
-    vector = smalloc(sizeof(struct cvector));
+    vector = xmalloc(sizeof(struct cvector));
     vector->count = 0;
     vector->allocated = 0;
     vector->strings = NULL;
@@ -75,7 +76,7 @@ vector_resize(struct vector *vector, size_t size)
         free(vector->strings);
         vector->strings = NULL;
     } else {
-        vector->strings = srealloc(vector->strings, size * sizeof(char *));
+        vector->strings = xrealloc(vector->strings, size * sizeof(char *));
     }
     vector->allocated = size;
 }
@@ -90,7 +91,7 @@ cvector_resize(struct cvector *vector, size_t size)
         vector->strings = NULL;
     } else {
         vector->strings =
-            srealloc(vector->strings, size * sizeof(const char *));
+            xrealloc(vector->strings, size * sizeof(const char *));
     }
     vector->allocated = size;
 }
@@ -108,7 +109,7 @@ vector_add(struct vector *vector, const char *string)
 
     if (vector->count == vector->allocated)
         vector_resize(vector, vector->allocated + 1);
-    vector->strings[next] = sstrdup(string);
+    vector->strings[next] = xstrdup(string);
     vector->count++;
 }
 
@@ -229,13 +230,13 @@ vector_split(const char *string, char separator, struct vector *vector)
 
     for (start = string, p = string, i = 0; *p; p++)
         if (*p == separator) {
-            vector->strings[i] = smalloc(p - start + 1);
+            vector->strings[i] = xmalloc(p - start + 1);
 	    strncpy(vector->strings[i], start, p - start);
             vector->strings[i][p - start] = '\0';
             i++;
             start = p + 1;
         }
-    vector->strings[i] = smalloc(p - start + 1);
+    vector->strings[i] = xmalloc(p - start + 1);
     strncpy(vector->strings[i], start, p - start);
     vector->strings[i][p - start] = '\0';
     i++;
@@ -322,7 +323,7 @@ vector_split_space(const char *string, struct vector *vector)
     for (start = string, p = string, i = 0; *p; p++)
         if (*p == ' ' || *p == '\t') {
             if (start != p) {
-                vector->strings[i] = smalloc(p - start + 1);
+                vector->strings[i] = xmalloc(p - start + 1);
                 strncpy(vector->strings[i], start, p - start);
                 vector->strings[i][p-start] = '\0';
                 i++;
@@ -330,7 +331,7 @@ vector_split_space(const char *string, struct vector *vector)
             start = p + 1;
         }
     if (start != p) {
-        vector->strings[i] = smalloc(p - start + 1);
+        vector->strings[i] = xmalloc(p - start + 1);
         strncpy(vector->strings[i], start, p - start);
         vector->strings[i][p-start] = '\0';
         i++;
@@ -392,7 +393,7 @@ vector_join(const struct vector *vector, const char *seperator)
         size += strlen(vector->strings[i]);
     size += (vector->count - 1) * seplen;
 
-    string = smalloc(size + 1);
+    string = xmalloc(size + 1);
     strcpy(string, vector->strings[0]);
     for (i = 1; i < vector->count; i++) {
         strcat(string, seperator);
@@ -413,7 +414,7 @@ cvector_join(const struct cvector *vector, const char *seperator)
         size += strlen(vector->strings[i]);
     size += (vector->count - 1) * seplen;
 
-    string = smalloc(size + 1);
+    string = xmalloc(size + 1);
     strcpy(string, vector->strings[0]);
     for (i = 1; i < vector->count; i++) {
         strcat(string, seperator);
