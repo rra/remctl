@@ -85,61 +85,6 @@ lowercase(char *string)
 
 
 /*
-**  Safe realloc that checks to be sure the allocation succeded and never
-**  returns NULL to the program.
-*/
-void * 
-srealloc(void* ptr, size_t size)
-{
-    void *temp;
-
-    temp = realloc(ptr, size);
-    if (temp == NULL) {
-        write_log(LOG_ERR, "ERROR: Cannot reallocate memory: %s\n",
-                  strerror(errno));
-        exit(-1);
-    }
-    return temp;
-}
-
-
-/*
-**  Safe malloc that checks to be sure the allocation succeded and never
-**  returns NULL to the program.
-*/
-void *
-smalloc(int size)
-{
-    void *temp;
-
-    if ((temp = malloc(size)) == NULL) {
-        write_log(LOG_ERR, "ERROR: Cannot allocate memory: %s\n",
-                  strerror(errno));
-        exit(-1);
-    }
-    return temp;
-}
-
-
-/*
-**  Safe strdup that checks to be sure the allocation succeded and never
-**  returns NULL to the program.
-*/
-char *
-sstrdup(const char* s1)
-{
-    void *temp;
-
-    if ((temp = strdup(s1)) == NULL) {
-        write_log(LOG_ERR, "ERROR: Cannot allocate memory for strdup: %s\n",
-                  strerror(errno));
-        exit(-1);
-    }
-    return temp;
-}
-
-
-/*
 **  Wraps, encrypts, and sends a data payload token, getting back a MIC
 **  checksum that it verifies.  Takes the GSSAPI context, the flags received
 **  with the incoming token, the data token, and the length of the token.

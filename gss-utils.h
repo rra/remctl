@@ -14,12 +14,6 @@
 
 #include <gssapi/gssapi_generic.h>
 
-/* Replacement functions that check the results of memory allocation and never
-   fail from the perspective of the rest of the program. */
-void *smalloc(int);
-void *srealloc(void* ptr, size_t size);
-char *sstrdup(const char* s1);
-
 /* Lowercase a string. */
 void lowercase(char *string);
 
