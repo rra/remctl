@@ -23,6 +23,7 @@ CONFIG          = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"
 CPPFLAGS        = -I. -I$(srcdir) @CPPFLAGS@
 LDFLAGS         = @LDFLAGS@
 LIBS            = @LIBS@
+LIBOBJS         = @LIBOBJS@
 
 WARNINGS        = -g -O -DDEBUG=1 -Wall -W -Wendif-labels -Wpointer-arith \
                   -Wbad-function-cast -Wcast-align -Wwrite-strings \
@@ -36,7 +37,7 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 
 SHELL           = /bin/sh
 
-COMMON_OBJS     = gss-utils.o snprintf.o
+COMMON_OBJS     = gss-utils.o messages.o xmalloc.o $(LIBOBJS)
 
 SERVER_OBJS     = remctld.o vector.o $(COMMON_OBJS)
 CLIENT_OBJS     = remctl.o $(COMMON_OBJS)
