@@ -4,8 +4,8 @@ remctl - Remote execution tool
 
 =head1 SYNOPSIS
 
-remctl [B<-p> I<port>] [B<-s> I<service>] [B<-v> I<verbose>] I<host>
-I<type> I<service> [I<parameters> ...]
+remctl [B<-dhv>] [B<-p> I<port>] [B<-s> I<service>] I<host> I<type>
+I<service> [I<parameters> ...]
 
 =head1 DESCRIPTION
 
@@ -30,6 +30,14 @@ command-line parameters to pass to the remote command.
 
 =over 4
 
+=item B<-d>
+
+Turn on extra debugging output of the client-server interaction.
+
+=item B<-h>
+
+Show a brief usage message and then exit.
+
 =item B<-p> I<port>
 
 Connect to the server on I<port> rather than the default of 4444.
@@ -41,9 +49,9 @@ than the default server identity of host/I<hostname>.  This may be
 necessary with, for instance, a server where B<remctld> is not running as
 root.
 
-=item B<-v> I<verbose>
+=item B<-v>
 
-Turn on extra printouts of the client-server interaction.
+Print the version of B<remctl> and exit.
 
 =back
 

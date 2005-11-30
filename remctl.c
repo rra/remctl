@@ -28,6 +28,17 @@
 #include "messages.h"
 #include "xmalloc.h"
 
+/* Usage message. */
+static const char usage_message[] = "\
+Usage: remctl <options> <host> <type> <service> <parameters>\n\
+\n\
+Options:\n\
+    -d            Debugging level of output\n\
+    -h            Display this help\n\
+    -p <port>     remctld port (default: 4444)\n\
+    -s <service>  remctld service principal (default: host/<host>)\n\
+    -v            Display the version of remctl\n";
+
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver. */
 int READFD;
@@ -42,15 +53,10 @@ gss_buffer_t empty_token = &empty_token_buf;
 **  Display the usage message for remctl.
 */
 static void
-usage(void)
+usage(int status)
 {
-    static const char usage[] = "\
-Usage: remctl <options> host type service <parameters>\n\
-Options:\n\
-\t-s     remctld service principal (default host/machine.stanford.edu)\n\
-\t-v     debugging level of output\n";
-    fprintf(stderr, "%s", usage);
-    exit(1);
+    fprintf((status == 0) ? stdout : stderr, "%s", usage_message);
+    exit(status);
 }
 
 
@@ -109,7 +115,7 @@ connect_to_server(char *host, unsigned short port)
     if (s < 0)
         sysdie("error creating socket");
     if (connect(s, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
-        sysdie("cannot connect to %s:%hu", host, port);
+        sysdie("cannot connect to %s (port %hu)", host, port);
 
     return s;
 }
@@ -336,60 +342,61 @@ process_response(gss_ctx_id_t context, OM_uint32* errorcode)
 **  call process_request and process_response.
 */
 int
-main(int argc, char ** argv)
+main(int argc, char *argv[])
 {
-    char service_name[500];
+    int option;
     char *server_host;
-    struct hostent* hostinfo;
+    struct hostent *hostinfo;
+    char *service_name = NULL;
     unsigned short port = 4444;
     OM_uint32 ret_flags, maj_stat, min_stat;
     int s;
     OM_uint32 errorcode = 0;
-
     gss_ctx_id_t context;
     gss_buffer_desc out_buf;
-
-    service_name[0] = '\0';
 
     /* Set up logging and identity. */
     message_program_name = "remctl";
 
-    /* Parse arguments. */
-    argc--;
-    argv++;
-    while (argc) {
-        if (strcmp(*argv, "-p") == 0) {
-            argc--;
-            argv++;
-            if (!argc)
-                usage();
-            port = atoi(*argv);
-        } else if (strcmp(*argv, "-s") == 0) {
-            argc--;
-            argv++;
-            if (!argc)
-                usage();
-            strncpy(service_name, *argv, sizeof(service_name));
-        } else if (strcmp(*argv, "-v") == 0) {
+    /* Parse options. */
+    while ((option = getopt(argc, argv, "dhp:s:v")) != EOF) {
+        switch (option) {
+        case 'd':
             message_handlers_debug(1, message_log_stderr);
-        } else
             break;
-        argc--;
-        argv++;
+        case 'h':
+            usage(0);
+            break;
+        case 'p':
+            port = atoi(optarg);
+            break;
+        case 's':
+            service_name = optarg;
+            break;
+        case 'v':
+            printf("%s\n", PACKAGE_STRING);
+            exit(0);
+            break;
+        default:
+            usage(1);
+            break;
+        }
     }
+    argc -= optind;
+    argv += optind;
     if (argc < 3)
-        usage();
-
+        usage(1);
     server_host = *argv++;
     argc--;
 
-    if (strlen(service_name) == 0) {
+    if (service_name == NULL) {
         hostinfo = gethostbyname(server_host);
         if (hostinfo == NULL)
             die("cannot resolve host %s", server_host);
-        lowercase(hostinfo->h_name);
+        service_name = xmalloc(strlen("host/") + strlen(hostinfo->h_name) + 1);
         strcpy(service_name, "host/");
         strcat(service_name, hostinfo->h_name);
+        lowercase(service_name);
     }
 
     /* Open connection. */
@@ -404,21 +411,20 @@ main(int argc, char ** argv)
     /* Display the flags. */
     display_ctx_flags(ret_flags);
 
+    /* Do the work. */
     if (process_request(context, argc, argv) < 0)
         die("cannot process request");
-
     if (process_response(context, &errorcode) < 0)
         die("cannot process response");
 
-    /* Delete context. */
+    /* Delete context and shut down cleanly. */
     maj_stat = gss_delete_sec_context(&min_stat, &context, &out_buf);
     if (maj_stat != GSS_S_COMPLETE) {
         display_status("while deleting context", maj_stat, min_stat);
         close(s);
         gss_delete_sec_context(&min_stat, &context, GSS_C_NO_BUFFER);
-        return -1;
+        exit(-1);
     }
-
     gss_release_buffer(&min_stat, &out_buf);
     close(s);
 
