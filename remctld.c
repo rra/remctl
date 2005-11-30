@@ -715,8 +715,8 @@ process_command(struct config *config, struct vector *argvector,
     char scprincipal[100];
     int ret_length;
     char err_message[MAXBUFFER];
-    OM_uint32 ret_code;
-    int pid, pipebuffer;
+    int ret_code, pipebuffer;
+    pid_t pid;
     unsigned int i;
 
     memset(ret_message, 0, MAXBUFFER);
@@ -860,9 +860,8 @@ process_command(struct config *config, struct vector *argvector,
         waitpid(pid, &ret_code, 0);
 
         /* This does the crazy >>8 thing to get the real error code. */
-        if (WIFEXITED(ret_code)) {
+        if (WIFEXITED(ret_code))
             ret_code = (signed int) WEXITSTATUS(ret_code);
-        }
     }
 
  done:
@@ -892,7 +891,7 @@ process_connection(struct config *config, gss_cred_id_t server_creds)
     gss_buffer_desc client_name;
     gss_ctx_id_t context;
     OM_uint32 maj_stat, min_stat;
-    int ret_flags;
+    OM_uint32 ret_flags;
     struct vector *req_argv;
     OM_uint32 ret_code;
     char ret_message[MAXBUFFER];
