@@ -1,7 +1,7 @@
 Source: remctl
 Section: net
 Priority: optional
-Maintainer: Russ Allbery <rra@stanford.edu>
+Maintainer: Russ Allbery <rra@debian.org>
 Build-Depends: debhelper (>= 4.0.0), libkrb5-dev
 Standards-Version: 3.6.2
 

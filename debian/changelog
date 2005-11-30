@@ -2,6 +2,7 @@ remctl (1.10-1) unstable; urgency=low
 
   * Run remctl under tcpd and depend on tcpd.
   * Use recommended indentation of Homepage link in long description.
+  * Update maintainer address.
   * Update standards version to 3.6.2 (no changes required).
 
  --
