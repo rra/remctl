@@ -372,7 +372,7 @@ main(int argc, char ** argv)
                 usage();
             strncpy(service_name, *argv, sizeof(service_name));
         } else if (strcmp(*argv, "-v") == 0) {
-            message_handlers_debug(1, message_log_stdout);
+            message_handlers_debug(1, message_log_stderr);
         } else
             break;
         argc--;
