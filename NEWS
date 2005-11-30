@@ -1,5 +1,20 @@
                        User-Visible remctl Changes
 
+remctl 1.10 (in progress)
+
+    Move the -v option to remctl and remctld to -d (debug), since the
+    verbose output or logging is only really useful when debugging.
+
+    Add -h (show usage) and -v (show version) options to both remctl
+    and remctld and add real option parsing (so combining multiple options
+    in one switch should now work).
+
+    Overhaul error and status reporting in remctl and remctld.  Among
+    other advantages, this should eliminate any lingering format string
+    worries and get rid of the trailing newlines in syslog messages from
+    remctld, as well as regularize the text of the error messages and the
+    priority of syslog messages.
+
 remctl 1.9 (2005-05-10)
 
     Fix serious bug with inclusion of configuration directories.  When
