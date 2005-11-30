@@ -277,10 +277,12 @@ process_request(gss_ctx_id_t context, OM_uint32 argc, char **argv)
         cp++;
     }
 
-    if (gss_sendmsg(context, TOKEN_DATA, msg, msglength) < 0)
-        return (-1);
-
-    return (0);
+    if (gss_sendmsg(context, TOKEN_DATA, msg, msglength) < 0) {
+        free(msg);
+        return -1;
+    }
+    free(msg);
+    return 0;
 }
 
 
