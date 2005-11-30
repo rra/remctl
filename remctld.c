@@ -36,9 +36,6 @@
 #include "vector.h"
 #include "xmalloc.h"
 
-int verbose;       /* Turns on debugging output. */
-int use_syslog;    /* Toggle for sysctl vs stdout/stderr. */
-
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver. */
 int READFD = 0;
@@ -78,8 +75,7 @@ Options:\n\
 \t-p port          only for standalone mode. default 4444\n";
 
     fprintf(stderr, usage);
-    syslog(LOG_ERR, "invalid usage");
-    exit(1);
+    die("invalid usage");
 }
 
 
@@ -99,19 +95,21 @@ create_socket(unsigned short port)
     saddr.sin_port = htons(port);
     saddr.sin_addr.s_addr = INADDR_ANY;
 
-    if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("creating socket");
+    s = socket(AF_INET, SOCK_STREAM, 0);
+    if (s < 0) {
+        syswarn("error creating socket");
         return -1;
     }
+
     /* Let the socket be reused right away */
     setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
     if (bind(s, (struct sockaddr *) &saddr, sizeof(saddr)) < 0) {
-        perror("binding socket");
+        syswarn("error binding socket");
         close(s);
         return -1;
     }
     if (listen(s, 5) < 0) {
-        perror("listening on socket");
+        syswarn("error listening on socket");
         close(s);
         return -1;
     }
@@ -183,8 +181,7 @@ server_establish_context(gss_cred_id_t server_creds, gss_ctx_id_t *context,
 
     gss_release_buffer(&min_stat, &recv_tok);
     if (!(token_flags & TOKEN_NOOP)) {
-        syslog(LOG_ERR, "Expected NOOP token, got %d token instead\n",
-               token_flags);
+        warn("expected NOOP token, got %d token instead", token_flags);
         return -1;
     }
 
@@ -192,18 +189,13 @@ server_establish_context(gss_cred_id_t server_creds, gss_ctx_id_t *context,
 
     if (!(token_flags & TOKEN_CONTEXT_NEXT)) {
         client_name->length = *ret_flags = 0;
-        syslog(LOG_DEBUG,"Accepted unauthenticated connection.\n");
+        debug("accepted unauthenticated connection");
     } else {
         do {
             if (recv_token(&token_flags, &recv_tok) < 0)
                 return -1;
-
-            if (verbose) {
-                syslog(LOG_DEBUG, "Received token (size=%d): \n", 
-                       recv_tok.length);
-                print_token(&recv_tok);
-            }
-
+            debug("received token (size=%d)", recv_tok.length);
+            print_token(&recv_tok);
             maj_stat = gss_accept_sec_context(&acc_sec_min_stat, 
                                               context, 
                                               server_creds, 
@@ -220,17 +212,14 @@ server_establish_context(gss_cred_id_t server_creds, gss_ctx_id_t *context,
             gss_release_buffer(&min_stat, &recv_tok);
 
             if (send_tok.length != 0) {
-                if (verbose) {
-                    syslog(LOG_DEBUG,
-                           "Sending accept_sec_context token (size=%d):\n",
-                           send_tok.length);
-                    print_token(&send_tok);
-                }
+                debug("sending accept_sec_context token (size=%d)",
+                      send_tok.length);
+                print_token(&send_tok);
                 if (send_token(TOKEN_CONTEXT, &send_tok) < 0) {
-                    syslog(LOG_ERR, "failure sending token\n");
+                    warn("failure sending token");
+                    gss_release_buffer(&min_stat, &send_tok);
                     return -1;
                 }
-
                 gss_release_buffer(&min_stat, &send_tok);
             }
             if (maj_stat != GSS_S_COMPLETE
@@ -243,28 +232,20 @@ server_establish_context(gss_cred_id_t server_creds, gss_ctx_id_t *context,
                 return -1;
             }
 
-            if (verbose) {
-                if (maj_stat == GSS_S_CONTINUE_NEEDED)
-                    syslog(LOG_DEBUG,"continue needed...\n");
-                else
-                    syslog(LOG_DEBUG,"\n");
-            }
+            if (maj_stat == GSS_S_CONTINUE_NEEDED)
+                debug("continue needed");
         } while (maj_stat == GSS_S_CONTINUE_NEEDED);
 
-
-        if (verbose) {
-            display_ctx_flags(*ret_flags);
-
-            maj_stat = gss_oid_to_str(&min_stat, doid, &oid_name);
-            if (maj_stat != GSS_S_COMPLETE) {
-                display_status("while converting oid->string", maj_stat,
-                               min_stat);
-                return -1;
-            }
-            syslog(LOG_DEBUG,"Accepted connection using mechanism OID %.*s.\n",
-                   (int)oid_name.length, (char *)oid_name.value);
-            gss_release_buffer(&min_stat, &oid_name);
+        display_ctx_flags(*ret_flags);
+        maj_stat = gss_oid_to_str(&min_stat, doid, &oid_name);
+        if (maj_stat != GSS_S_COMPLETE) {
+            display_status("while converting oid to string", maj_stat,
+                           min_stat);
+            return -1;
         }
+        debug("accepted connection using mechanism OID %.*s",
+              (int) oid_name.length, (char *) oid_name.value);
+        gss_release_buffer(&min_stat, &oid_name);
 
         maj_stat = gss_display_name(&min_stat, client, client_name, &doid);
         if (maj_stat != GSS_S_COMPLETE) {
@@ -294,28 +275,28 @@ read_file(const char *file_name)
     int length;
     char* buf;
 
-    if ((fd = open(file_name, O_RDONLY, 0)) < 0) {
-        syslog(LOG_ERR, "Can't open file %s: %m\n", file_name);
+    fd = open(file_name, O_RDONLY, 0);
+    if (fd < 0) {
+        syswarn("cannot open file %s", file_name);
         return NULL;
     }
     if (fstat(fd, &stat_buf) < 0) {
+        syswarn("cannot stat file %s", file_name);
         return NULL;
     }
     length = stat_buf.st_size;
-
-    if (length == 0) {
+    if (length == 0)
         return NULL;
-    }
 
     buf = xmalloc(length + 1);
     count = read(fd, buf, length);
     if (count < 0) {
-        syslog(LOG_ERR, "Problem during read in read_file\n");
+        syswarn("cannot read file %s", file_name);
         return NULL;
     }
     if (count < length) {
-        syslog(LOG_ERR, "Error: only read in %d bytes, expected %d\n",
-               count, length);
+        warn("cannot read file %s: saw %d bytes, expected %d", file_name,
+             count, length);
         return NULL;
     }
 
@@ -357,7 +338,7 @@ read_conf_file(struct config *config, const char *name)
     file = fopen(name, "r");
     if (file == NULL) {
         free(buffer);
-        syslog(LOG_ERR, "cannot open config file %s: %m", name);
+        syswarn("cannot open config file %s", name);
         return -1;
     }
     while (fgets(buffer, bufsize, file) != NULL) {
@@ -401,23 +382,22 @@ read_conf_file(struct config *config, const char *name)
             struct stat st;
 
             if (line->count != 2 || strcmp(line->strings[0], "include") != 0) {
-                syslog(LOG_ERR, "%s:%d: config parse error", name, lineno);
+                warn("%s:%d: config parse error", name, lineno);
                 vector_free(line);
                 free(buffer);
                 fclose(file);
                 return -1;
             }
             if (strcmp(included, name) == 0) {
-                syslog(LOG_ERR, "%s:%d: %s recursively included", name,
-                       lineno, name);
+                warn("%s:%d: %s recursively included", name, lineno, name);
                 vector_free(line);
                 free(buffer);
                 fclose(file);
                 return -1;
             }
             if (stat(included, &st) < 0) {
-                syslog(LOG_ERR, "%s:%d: included file %s not found", name,
-                       lineno, included);
+                warn("%s:%d: included file %s not found", name, lineno,
+                     included);
                 vector_free(line);
                 free(buffer);
                 fclose(file);
@@ -491,7 +471,7 @@ read_conf_file(struct config *config, const char *name)
         /* One more syntax error possibility here: a line that only has a
            logmask setting but no ACL files. */
         if (line->count <= arg_i) {
-            syslog(LOG_ERR, "%s:%d: config parse error", name, lineno);
+            warn("%s:%d: config parse error", name, lineno);
             fclose(file);
             free(buffer);
             return -1;
@@ -590,11 +570,10 @@ process_request(gss_ctx_id_t context, char *ret_message)
     req_argc = ntohl(network_order);
     cp += sizeof(OM_uint32);
 
-    if (verbose)
-        syslog(LOG_DEBUG, "argc is: %d\n", req_argc);
+    debug("argc is %d", req_argc);
     if (req_argc <= 0 || req_argc > MAXCMDARGS) {
         strcpy(ret_message, "Invalid argc in request message\n");
-        syslog(LOG_DEBUG, ret_message);
+        warn("invalid argc in request message");
         return NULL;
     }
         
@@ -610,9 +589,9 @@ process_request(gss_ctx_id_t context, char *ret_message)
         if (arglength > MAXBUFFER
             || arglength <= 0
             || cp + arglength > msg + msglength) {
-            strcpy (ret_message, 
-                    "Data unpacking error in getting arguments\n");
-            syslog(LOG_DEBUG, ret_message);
+            strcpy(ret_message, 
+                   "Data unpacking error in getting arguments\n");
+            warn("data unpacking error in getting arguments");
             return NULL;
         }
         memcpy(argbuf, cp, arglength);
@@ -698,7 +677,7 @@ log_command(struct vector *argvector, struct confline *cline,
     snprintf(log_message, MAXBUFFER, "COMMAND from %s: ", userprincipal);
     strncat(log_message, command, MAXBUFFER - strlen(log_message));
     strcat(log_message, "\n");
-    syslog(LOG_INFO, "%s", log_message);
+    notice("%s", log_message);
     free(command);
 }
 
@@ -779,6 +758,7 @@ process_command(struct config *config, struct vector *argvector,
         snprintf(ret_message, MAXBUFFER,
                  "Access denied: %s principal not on the acl list\n",
                  userprincipal);
+        notice("access denied: %s not on ACL list", userprincipal);
         goto done;
     }
 
@@ -802,7 +782,7 @@ process_command(struct config *config, struct vector *argvector,
        actually runs the command. */
     if (pipe(stdout_pipe) != 0 || pipe(stderr_pipe) != 0) {
         strcpy(ret_message, "Can't create pipes\n");
-        syslog(LOG_ERR, "%s", ret_message);
+        syswarn("cannot create pipes");
         ret_code = -1;
         goto done;
     }
@@ -810,7 +790,7 @@ process_command(struct config *config, struct vector *argvector,
     switch (pid = fork()) {
     case -1:
         strcpy(ret_message, "Can't fork\n");
-        syslog(LOG_ERR, "%s", ret_message);
+        syswarn("cannot fork");
         ret_code = -1;
         goto done;
 
@@ -831,7 +811,7 @@ process_command(struct config *config, struct vector *argvector,
         snprintf(remuser, MAXBUFFER, "REMUSER=%s", userprincipal);
         if (putenv(remuser) < 0) {
             strcpy(ret_message, "Can't set REMUSER environment variable\n");
-            syslog(LOG_ERR, "%s%m", ret_message);
+            syswarn("cannot set REMUSER environment variable");
             fprintf(stderr, ret_message);
             exit(-1);
         }
@@ -841,7 +821,7 @@ process_command(struct config *config, struct vector *argvector,
         if (putenv(scprincipal) < 0) {
             strcpy(ret_message,
                    "Can't set SCPRINCIPAL environment variable\n");
-            syslog(LOG_ERR, "%s%m", ret_message);
+            syswarn("cannot set SCPRINCIPAL environment variable");
             fprintf(stderr, ret_message);
             exit(-1);   
         }
@@ -852,8 +832,7 @@ process_command(struct config *config, struct vector *argvector,
            the errno information back up the stderr pipe to the parent, and
            dies. */
         strcpy(ret_message, strerror(errno));
-        fprintf(stderr, "%s\n", ret_message);
-        exit(-1);
+        sysdie("exec failed");
 
     /* In the parent. */
     default:
@@ -932,7 +911,7 @@ process_connection(struct config *config, gss_cred_id_t server_creds)
         return -1;
 
     if (context == GSS_C_NO_CONTEXT) {
-        syslog(LOG_ERR, "Unauthenticated connection.\n");
+        warn("unauthenticated connection");
         return -1;
     }
 
@@ -941,9 +920,8 @@ process_connection(struct config *config, gss_cred_id_t server_creds)
     memcpy(userprincipal, client_name.value, client_name.length);
     userprincipal[client_name.length] = '\0';
 
-    if (verbose)
-        syslog(LOG_DEBUG, "Accepted connection from \"%.*s\"\n",
-               (int)client_name.length, (char *)client_name.value);
+    debug("accepted connection from %.*s",
+          (int) client_name.length, (char *) client_name.value);
     
     gss_release_buffer(&min_stat, &client_name);
 
@@ -994,8 +972,6 @@ main(int argc, char *argv[])
     struct config *config;
 
     service_name[0] = '\0';
-    verbose = 0;
-    use_syslog = 1;
 
     /* Since we are called from tcpserver, prevent clients from holding on to 
        us forever, and die after an hour. */
@@ -1040,22 +1016,15 @@ main(int argc, char *argv[])
     }
 
     config = xmalloc(sizeof(struct config));
-    if (read_conf_file(config, conffile) != 0) {
-        syslog(LOG_ERR, "%s%m\n", "Can't read conf file: ");
-        exit(1);
-    }
+    if (read_conf_file(config, conffile) != 0)
+        die("cannot read configuration file %s", conffile);
 
     if (strlen(service_name) == 0) {
-        if (gethostname(host_name, sizeof(host_name)) < 0) {
-            syslog(LOG_ERR, "%s%m\n", "Can't get hostname: ");
-            exit(1);
-        }
-        
-        if ((hostinfo = gethostbyname(host_name)) == NULL) {
-            syslog(LOG_ERR, "%s%s %m\n", "Can't resolve given hostname: ", 
-                   host_name);
-            exit(1);
-        }
+        if (gethostname(host_name, sizeof(host_name)) < 0)
+            sysdie("cannot get hostname");
+        hostinfo = gethostbyname(host_name);
+        if (hostinfo == NULL)
+            die("cannot resolve hostname %s", host_name);
 
         /* service_name is for example host/zver.stanford.edu */
         lowercase(hostinfo->h_name);
@@ -1063,8 +1032,7 @@ main(int argc, char *argv[])
         strcat(service_name, hostinfo->h_name);
     }
 
-    if (verbose)
-        syslog(LOG_DEBUG, "service_name: %s\n", service_name);
+    debug("service name: %s", service_name);
 
     /* This specifies the service name, checks out the keytab, etc. */
     if (server_acquire_creds(service_name, &server_creds) < 0)
@@ -1076,14 +1044,13 @@ main(int argc, char *argv[])
         if ((stmp = create_socket(port)) >= 0) {
             do {
                 /* Accept a TCP connection. */
-                if ((s = accept(stmp, NULL, 0)) < 0) {
-                    perror("accepting connection");
+                s = accept(stmp, NULL, 0);
+                if (s < 0) {
+                    syswarn("error accepting connection");
                     continue;
                 }
-
                 READFD = s;
                 WRITEFD = s;
-
                 if (process_connection(config, server_creds) < 0)
                     close(s);
             } while (1);

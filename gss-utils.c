@@ -26,49 +26,13 @@
 
 #include <gssapi/gssapi_generic.h>
 #include "gss-utils.h"
-
-extern int use_syslog;   /* Toggle for sysctl vs stdout/stderr. */
-extern int verbose;      /* Turns on debugging output. */
+#include "messages.h"
+#include "xmalloc.h"
 
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver. */
 extern int READFD;
 extern int WRITEFD;
-
-
-/*
-**  Used for all error and debugging printouts.  It directs the output to
-**  standard output or error or to syslog as is appropriate.
-*/
-static void
-write_log(int priority, const char *format, ...)
-{
-    va_list args;
-
-    va_start(args, format);
-    if (use_syslog == 1) {
-        char *buffer;
-        size_t length;
-
-        length = vsnprintf(NULL, 0, format, args);
-        buffer = malloc(length + 1);
-        if (buffer == NULL) {
-            fprintf(stderr, "ERROR: Cannot allocate memory: %s\n",
-                    strerror(errno));
-            exit(-1);
-        }
-        vsnprintf(buffer, length + 1, format, args);
-
-        syslog(priority, buffer);
-        free(buffer);
-    } else {
-        if (priority == LOG_DEBUG)
-            vfprintf(stdout, format, args);
-        else
-            vfprintf(stderr, format, args);
-    }
-    va_end(args);
-}
 
 
 /*
@@ -106,11 +70,8 @@ gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
     in_buf.value = msg;
     in_buf.length = msglength;
 
-    if (verbose) {
-        write_log(LOG_DEBUG, "Sending message of length: %d\n", in_buf.length);
-        print_token(&in_buf);
-        write_log(LOG_DEBUG, "\n");
-    }
+    debug("sending message of length %d", in_buf.length);
+    print_token(&in_buf);
 
     maj_stat = gss_wrap(&min_stat, context, 1, GSS_C_QOP_DEFAULT,
                         &in_buf, &state, &out_buf);
@@ -119,8 +80,8 @@ gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
         display_status("while wrapping message", maj_stat, min_stat);
         gss_delete_sec_context(&min_stat, &context, GSS_C_NO_BUFFER);
         return -1;
-    } else if (!state) {
-        write_log(LOG_ERR, "Error in gss_sendmsg: Message not encrypted.\n");
+    } else if (state == 0) {
+        warn("gss_sendmsg: message not encrypted");
         return -1;
     }
 
@@ -177,7 +138,7 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg,
 
     /* Receive the message token. */
     if (recv_token(token_flags, &xmit_buf) < 0)
-        return (-1);
+        return -1;
 
     maj_stat = gss_unwrap(&min_stat, context, &xmit_buf, &msg_buf,
                           &conf_state, (gss_qop_t *) NULL);
@@ -185,18 +146,14 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg,
 
     if (maj_stat != GSS_S_COMPLETE) {
         display_status("while unwrapping message", maj_stat, min_stat);
-        return (-1);
+        return -1;
     } else if (!conf_state) {
-
-        write_log(LOG_ERR, "Error in gss_recvmsg: Message not encrypted.\n");
-        return (-1);
+        warn("gss_recvmsg: message not encrypted");
+        return -1;
     }
 
-    if (verbose) {
-        write_log(LOG_DEBUG, "Received message of length: %d\n", 
-                  msg_buf.length);
-        print_token(&msg_buf);
-    }
+    debug("received message of length %d", msg_buf.length);
+    print_token(&msg_buf);
 
     /* fill in the return value */
     *msg = malloc(msg_buf.length);
@@ -205,21 +162,15 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg,
 
     /* Send back a MIC checksum. */
     if (*token_flags & TOKEN_SEND_MIC) {
-        /* Produce a signature block for the message */
         maj_stat = gss_get_mic(&min_stat, context, GSS_C_QOP_DEFAULT,
                                &msg_buf, &xmit_buf);
         if (maj_stat != GSS_S_COMPLETE) {
             display_status("signing message", maj_stat, min_stat);
-            return (-1);
+            return -1;
         }
-
-        /* Send the signature block to the client */
         if (send_token(TOKEN_MIC, &xmit_buf) < 0)
-            return (-1);
-
-        if (verbose)
-            write_log(LOG_DEBUG, "MIC signature sent\n");
-
+            return -1;
+        debug("MIC signature sent");
         gss_release_buffer(&min_stat, &xmit_buf);
     }
     gss_release_buffer(&min_stat, &msg_buf);
@@ -244,14 +195,14 @@ send_token(int flags, gss_buffer_t tok)
 
     /* Send out the whole message in a single write. */
     buflen = 1 + sizeof(OM_uint32) + tok->length;
-    buffer = malloc(buflen);
+    buffer = xmalloc(buflen);
     memcpy(buffer, &char_flags, 1);
     memcpy(buffer + 1, &len, sizeof(OM_uint32));
     memcpy(buffer + 1 + sizeof(OM_uint32), tok->value, tok->length);
     ret = write_all(WRITEFD, buffer, buflen);
     free(buffer);
     if (ret != buflen) {
-        write_log(LOG_ERR, "Error while sending token: %d, %d\n", buflen, ret);
+        warn("error while sending token: %d, %d", buflen, ret);
         return -1;
     }
     return 0;
@@ -280,10 +231,10 @@ recv_token(int *flags, gss_buffer_t tok)
 
     ret = read_all(READFD, &char_flags, 1);
     if (ret < 0) {
-        write_log(LOG_ERR, "reading token flags\n");
+        syswarn("error reading token flags");
         return -1;
     } else if (!ret) {
-        write_log(LOG_ERR, "reading token flags: 0 bytes read\n");
+        warn("error reading token flags: 0 bytes read");
         return -1;
     } else {
         *flags = char_flags;
@@ -291,35 +242,31 @@ recv_token(int *flags, gss_buffer_t tok)
 
     ret = read_all(READFD, &len, sizeof(OM_uint32));
     if (ret < 0) {
-        write_log(LOG_ERR, "Error while reading token length\n");
+        syswarn("error while reading token length");
         return -1;
     } else if (ret != sizeof(OM_uint32)) {
-        write_log(LOG_ERR, "reading token length: %d of %d bytes read\n",
-                  ret, sizeof(OM_uint32));
+        warn("error while reading token length: %d of %d bytes read", ret,
+             sizeof(OM_uint32));
         return -1;
     }
 
     tok->length = ntohl(len);
 
     if (tok->length > MAXENCRYPT) {
-        write_log(LOG_ERR, "Illegal token length: %d\n", tok->length);
+        warn("illegal token length %d", tok->length);
         return -1;
     }
 
-    tok->value = (char *)malloc(tok->length);
-    if (tok->length && tok->value == NULL) {
-        write_log(LOG_ERR, "Out of memory allocating token data\n");
-        return -1;
-    }
+    tok->value = xmalloc(tok->length);
 
-    ret = read_all(READFD, (char *)tok->value, tok->length);
+    ret = read_all(READFD, tok->value, tok->length);
     if (ret < 0) {
-        write_log(LOG_ERR, "Error while reading token data");
+        syswarn("error while reading token data");
         free(tok->value);
         return -1;
     } else if (ret != (ssize_t) tok->length) {
-        write_log(LOG_ERR, "sending token data: only %d of %d bytes written\n",
-                 ret, tok->length);
+        warn("error reading token data: %d of %d bytes read", ret,
+             tok->length);
         free(tok->value);
         return -1;
     }
@@ -467,7 +414,7 @@ read_two(int readfd1, int readfd2, void *buf1, void *buf2, size_t nbyte1,
 
 /*
 **  Internal utility function to write a GSSAPI status to the log.  The
-**  message is prepended by "GSS-API" error and the provided string.
+**  message is prepended by "GSSAPI error" and the provided string.
 */
 static void
 display_status_1(const char *m, OM_uint32 code, int type)
@@ -477,14 +424,12 @@ display_status_1(const char *m, OM_uint32 code, int type)
     OM_uint32 msg_ctx;
 
     msg_ctx = 0;
-    while (1) {
+    do {
         maj_stat = gss_display_status(&min_stat, code,
                                       type, GSS_C_NULL_OID, &msg_ctx, &msg);
-        write_log(LOG_ERR, "GSS-API error %s: %s\n", m, (char *) msg.value);
+        warn("GSSAPI error %s: %s", m, (char *) msg.value);
         gss_release_buffer(&min_stat, &msg);
-        if (!msg_ctx)
-            break;
-    }
+    } while (msg_ctx != 0);
 }
 
 
@@ -508,17 +453,17 @@ void
 display_ctx_flags(OM_uint32 flags)
 {
     if (flags & GSS_C_DELEG_FLAG)
-        write_log(LOG_DEBUG, "context flag: GSS_C_DELEG_FLAG\n");
+        debug("context flag: GSS_C_DELEG_FLAG");
     if (flags & GSS_C_MUTUAL_FLAG)
-        write_log(LOG_DEBUG, "context flag: GSS_C_MUTUAL_FLAG\n");
+        debug("context flag: GSS_C_MUTUAL_FLAG");
     if (flags & GSS_C_REPLAY_FLAG)
-        write_log(LOG_DEBUG, "context flag: GSS_C_REPLAY_FLAG\n");
+        debug("context flag: GSS_C_REPLAY_FLAG");
     if (flags & GSS_C_SEQUENCE_FLAG)
-        write_log(LOG_DEBUG, "context flag: GSS_C_SEQUENCE_FLAG\n");
+        debug("context flag: GSS_C_SEQUENCE_FLAG");
     if (flags & GSS_C_CONF_FLAG)
-        write_log(LOG_DEBUG, "context flag: GSS_C_CONF_FLAG \n");
+        debug("context flag: GSS_C_CONF_FLAG");
     if (flags & GSS_C_INTEG_FLAG)
-        write_log(LOG_DEBUG, "context flag: GSS_C_INTEG_FLAG \n");
+        debug("context flag: GSS_C_INTEG_FLAG");
 }
 
 
@@ -529,20 +474,14 @@ void
 print_token(gss_buffer_t tok)
 {
     unsigned char *p = tok->value;
-    char tempbuf[5*MAXBUFFER] = "";
-    size_t i, offset;
+    char *buf;
+    size_t length, i, offset;
 
-    for (offset = 0, i = 0; i < tok->length; i++, p++) {
-        offset += snprintf(tempbuf + offset, 5*MAXBUFFER - offset, "%02x ",
-                           *p);
-        if ((i % 16) == 15) {
-            strcat(tempbuf, "\n");
-            offset++;
-        }
-    }
-
-    strcat(tempbuf, "\n");
-    write_log(LOG_DEBUG, tempbuf);
+    length = tok->length * 3 + 1;
+    buf = xmalloc(length);
+    for (offset = 0, i = 0; i < tok->length; i++, p++)
+        offset += snprintf(buf + offset, length - offset, "%02x ", *p);
+    debug("%s", buf);
 }
 
 

@@ -52,7 +52,7 @@ Usage: remctl <options> host type service <parameters>\n\
 Options:\n\
 \t-s     remctld service principal (default host/machine.stanford.edu)\n\
 \t-v     debugging level of output\n";
-    fprintf(stderr, usage);
+    fprintf(stderr, "%s", usage);
     exit(1);
 }
 
@@ -70,10 +70,6 @@ parse_oid(const char *mechanism, gss_OID *oid)
 
     if (isdigit(mechanism[0])) {
         mechstr = xmalloc(strlen(mechanism) + 5);
-        if (!mechstr) {
-            fprintf(stderr, "Couldn't allocate mechanism scratch!\n");
-            return;
-        }
         sprintf(mechstr, "{ %s }", mechanism);
         for (cp = mechstr; *cp; cp++)
             if (*cp == '.')
@@ -95,7 +91,7 @@ parse_oid(const char *mechanism, gss_OID *oid)
 /*
 **  Opens a TCP connection to the given hostname and port.  The host name is
 **  resolved by gethostbyname and the socket is opened and connected.  Returns
-**  the file descriptor or -1 on failure, printing an error message.
+**  the file descriptor or dies on failure.
 */
 static int
 connect_to_server(char *host, unsigned short port)
@@ -104,24 +100,20 @@ connect_to_server(char *host, unsigned short port)
     struct hostent *hp;
     int s;
 
-    if ((hp = gethostbyname(host)) == NULL) {
-        fprintf(stderr, "Unknown host: %s\n", host);
-        return -1;
-    }
+    hp = gethostbyname(host);
+    if (hp == NULL)
+        die("unknown host: %s", host);
 
     saddr.sin_family = hp->h_addrtype;
     memcpy((char *)&saddr.sin_addr, hp->h_addr, sizeof(saddr.sin_addr));
     saddr.sin_port = htons(port);
 
-    if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("creating socket");
-        return -1;
-    }
-    if (connect(s, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
-        perror("connecting to server");
-        (void)close(s);
-        return -1;
-    }
+    s = socket(AF_INET, SOCK_STREAM, 0);
+    if (s < 0)
+        sysdie("error creating socket");
+    if (connect(s, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
+        sysdie("cannot connect to %s:%hu", host, port);
+
     return s;
 }
 
@@ -131,7 +123,6 @@ connect_to_server(char *host, unsigned short port)
 **  and return the context handle and any connection flags in the provided
 **  arguments.  Returns 0 on success, -1 on failure and prints an error
 **  message.
-**
 **
 **  The service name is imported as a GSSAPI name and a GSS-API context is
 **  established with the corresponding service.  The service should be
@@ -162,7 +153,7 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context,
     }
 
     if (send_token(TOKEN_NOOP | TOKEN_CONTEXT_NEXT, empty_token) < 0) {
-        fprintf(stderr, "Can't send initial token to server\n");
+        warn("cannot send initial token to server");
         gss_release_name(&min_stat, &target_name);
         return -1;
     }
@@ -201,9 +192,7 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context,
             gss_release_buffer(&min_stat, &recv_tok);
 
         if (send_tok.length != 0) {
-            if (verbose)
-                printf("Sending init_sec_context token (size=%d)...\n",
-                       send_tok.length);
+            debug("sending init_sec_context token, size=%d", send_tok.length);
             if (send_token(TOKEN_CONTEXT, &send_tok) < 0) {
                 gss_release_buffer(&min_stat, &send_tok);
                 gss_release_name(&min_stat, &target_name);
@@ -224,17 +213,14 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context,
         }
 
         if (maj_stat == GSS_S_CONTINUE_NEEDED) {
-            if (verbose)
-                printf("continue needed...");
+            debug("continue needed");
             if (recv_token(&token_flags, &recv_tok) < 0) {
-                fprintf(stderr, "No token received from server\n");
+                warn("no token received from server");
                 gss_release_name(&min_stat, &target_name);
                 return -1;
             }
             token_ptr = &recv_tok;
         }
-        if (verbose)
-            printf("\n");
     } while (maj_stat == GSS_S_CONTINUE_NEEDED);
 
     gss_release_name(&min_stat, &target_name);
@@ -316,7 +302,7 @@ process_response(gss_ctx_id_t context, OM_uint32* errorcode)
     int token_flags;
 
     if (gss_recvmsg(context, &token_flags, &msg, &msglength) < 0)
-        return (-1);
+        return -1;
 
     cp = msg;
 
@@ -324,17 +310,14 @@ process_response(gss_ctx_id_t context, OM_uint32* errorcode)
     memcpy(&network_ordered, cp, sizeof(OM_uint32));
     *errorcode = ntohl(network_ordered);
     cp += sizeof(OM_uint32);
-    if (verbose)
-        printf("Return code: %d\n", *errorcode);
+    debug("return code: %d", *errorcode);
 
     /* Get the message length */
     memcpy(&network_ordered, cp, sizeof(OM_uint32));
     cp += sizeof(OM_uint32);
     bodylength = ntohl(network_ordered);
-    if (bodylength > MAXBUFFER || bodylength > msglength) {
-        fprintf(stderr, "Data unpacking error while processing response\n");
-        exit(-1);
-    }
+    if (bodylength > MAXBUFFER || bodylength > msglength)
+        die("data unpacking error while processing response");
 
     /* Get the message body */
     body = xmalloc(bodylength + 1);
@@ -368,8 +351,6 @@ main(int argc, char ** argv)
     gss_buffer_desc out_buf;
 
     service_name[0] = '\0';
-    verbose = 0;
-    use_syslog = 0;
 
     /* Set up logging and identity. */
     message_program_name = "remctl";
@@ -404,43 +385,31 @@ main(int argc, char ** argv)
     argc--;
 
     if (strlen(service_name) == 0) {
-        if ((hostinfo = gethostbyname(server_host)) == NULL) {
-            fprintf(stderr, "Can't resolve given hostname\n");
-            exit(1);
-        }
-
+        hostinfo = gethostbyname(server_host);
+        if (hostinfo == NULL)
+            die("cannot resolve host %s", server_host);
         lowercase(hostinfo->h_name);
         strcpy(service_name, "host/");
         strcat(service_name, hostinfo->h_name);
     }
 
     /* Open connection. */
-    if ((s = connect_to_server(server_host, port)) < 0)
-        return -1;
-
+    s = connect_to_server(server_host, port);
     READFD = s;
     WRITEFD = s;
 
     /* Establish context. */
-    if (client_establish_context(service_name, &context, &ret_flags) < 0) {
-        fprintf(stderr, "Can't establish GSS-API context\n");
-        close(s);
-        return -1;
-    }
+    if (client_establish_context(service_name, &context, &ret_flags) < 0)
+        die("cannot establish GSSAPI context");
 
     /* Display the flags. */
-    if (verbose)
-        display_ctx_flags(ret_flags);
+    display_ctx_flags(ret_flags);
 
-    if (process_request(context, argc, argv) < 0) {
-        fprintf(stderr, "Can't process request\n");
-        exit(1);
-    }
+    if (process_request(context, argc, argv) < 0)
+        die("cannot process request");
 
-    if (process_response(context, &errorcode) < 0) {
-        fprintf(stderr, "Can't process response\n");
-        exit(1);
-    }
+    if (process_response(context, &errorcode) < 0)
+        die("cannot process response");
 
     /* Delete context. */
     maj_stat = gss_delete_sec_context(&min_stat, &context, &out_buf);
