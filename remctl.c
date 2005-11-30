@@ -28,9 +28,6 @@
 #include "messages.h"
 #include "xmalloc.h"
 
-int verbose;       /* Turns on debugging output. */
-int use_syslog;    /* Toggle for sysctl vs stdout/stderr. */
-
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver. */
 int READFD;
