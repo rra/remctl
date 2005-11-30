@@ -1,5 +1,8 @@
 remctl (1.10-1) unstable; urgency=low
 
+  * New upstream version.
+    - The -v verbose option is now -d (debug) for remctl and remctld.
+    - Better and cleaner error reporting and logging.
   * Run remctl under tcpd and depend on tcpd.
   * Use a better method to optionally run make distclean.
   * Remove unused targets in debian/rules.
