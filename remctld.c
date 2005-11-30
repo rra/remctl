@@ -36,6 +36,19 @@
 #include "vector.h"
 #include "xmalloc.h"
 
+/* Usage message. */
+static const char usage_message[] = "\
+Usage: remctld <options>\n\
+\n\
+Options:\n\
+    -d            Log debugging information to syslog\n\
+    -f <file>     Config file (default: " CONFIG_FILE ")\n\
+    -h            Display this help\n\
+    -m            Stand-alone daemon mode, meant mostly for testing\n\
+    -s <service>  Service principal to use (default: host/<host>)\n\
+    -v            Display the version of remctld\n\
+    -p <port>     Port to use, only for standalone mode (default: 4444)\n";
+
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver. */
 int READFD = 0;
@@ -63,19 +76,13 @@ struct config {
 **  Display the usage message for remctld.
 */
 static void
-usage(void)
+usage(int status)
 {
-    static const char usage[] = "\
-Usage: remctld <options>\n\
-Options:\n\
-\t-s service       K5 servicename to run as (default host/machine.stanford.edu)\
-\t-f conffile      the default is ./remctl.conf\n\
-\t-v               debugging level of output\n\
-\t-m               standalone single connection mode, meant for testing only\n\
-\t-p port          only for standalone mode. default 4444\n";
-
-    fprintf(stderr, usage);
-    die("invalid usage");
+    fprintf((status == 0) ? stdout : stderr, usage_message);
+    if (status == 0)
+        exit(0);
+    else
+        die("invalid usage");
 }
 
 
@@ -651,7 +658,6 @@ static void
 log_command(struct vector *argvector, struct confline *cline,
             char *userprincipal)
 {
-    char log_message[MAXBUFFER];
     char *command;
     unsigned int i, j;
 
@@ -672,12 +678,7 @@ log_command(struct vector *argvector, struct confline *cline,
     } else {
         command = vector_join(argvector, " ");
     }
-
-    /* This block logs the requested command. */
-    snprintf(log_message, MAXBUFFER, "COMMAND from %s: ", userprincipal);
-    strncat(log_message, command, MAXBUFFER - strlen(log_message));
-    strcat(log_message, "\n");
-    notice("%s", log_message);
+    notice("COMMAND from %s: %s", userprincipal, command);
     free(command);
 }
 
@@ -959,9 +960,10 @@ process_connection(struct config *config, gss_cred_id_t server_creds)
 int
 main(int argc, char *argv[])
 {
-    char service_name[500];
+    char *service_name = NULL;
     char host_name[500];
-    struct hostent* hostinfo;
+    int option;
+    struct hostent *hostinfo;
     gss_cred_id_t server_creds;
     OM_uint32 min_stat;
     unsigned short port = 4444;
@@ -970,10 +972,8 @@ main(int argc, char *argv[])
     const char *conffile = CONFIG_FILE;
     struct config *config;
 
-    service_name[0] = '\0';
-
-    /* Since we are called from tcpserver, prevent clients from holding on to 
-       us forever, and die after an hour. */
+    /* Since we are normally called from tcpserver or inetd, prevent clients
+       from holding on to us forever by dying after an hour. */
     alarm(60 * 60);
 
     /* Establish identity and set up logging. */
@@ -983,57 +983,55 @@ main(int argc, char *argv[])
     message_handlers_warn(1, message_log_syslog_warning);
     message_handlers_die(1, message_log_syslog_err);
 
-    argc--;
-    argv++;
-    while (argc) {
-        if (strcmp(*argv, "-p") == 0) {
-            argc--;
-            argv++;
-            if (!argc)
-                usage();
-            port = atoi(*argv);
-        } else if (strcmp(*argv, "-v") == 0) {
+    /* Parse options. */
+    while ((option = getopt(argc, argv, "df:hmp:s:v")) != EOF) {
+        switch (option) {
+        case 'd':
             message_handlers_debug(1, message_log_syslog_debug);
-        } else if (strcmp(*argv, "-f")    == 0) {
-            argc--;
-            argv++;
-            if (!argc)
-                usage();
-            conffile = *argv;
-        } else if (strcmp(*argv, "-s")    == 0) {
-            argc--;
-            argv++;
-            if (!argc)
-                usage();
-            strncpy(service_name, *argv, sizeof(service_name));
-        } else if (strcmp(*argv, "-m")   == 0) {
-            do_standalone = 1;
-        } else
             break;
-        argc--;
-        argv++;
+        case 'f':
+            conffile = optarg;
+            break;
+        case 'h':
+            usage(0);
+            break;
+        case 'm':
+            do_standalone = 1;
+            break;
+        case 'p':
+            port = atoi(optarg);
+            break;
+        case 's':
+            service_name = optarg;
+            break;
+        case 'v':
+            printf("remctld %s\n", PACKAGE_VERSION);
+            exit(0);
+            break;
+        default:
+            usage(1);
+            break;
+        }
     }
 
+    /* Read the configuration file. */
     config = xmalloc(sizeof(struct config));
     if (read_conf_file(config, conffile) != 0)
         die("cannot read configuration file %s", conffile);
 
-    if (strlen(service_name) == 0) {
+    /* This specifies the service name, checks out the keytab, etc. */
+    if (service_name == NULL) {
         if (gethostname(host_name, sizeof(host_name)) < 0)
             sysdie("cannot get hostname");
         hostinfo = gethostbyname(host_name);
         if (hostinfo == NULL)
             die("cannot resolve hostname %s", host_name);
-
-        /* service_name is for example host/zver.stanford.edu */
-        lowercase(hostinfo->h_name);
+        service_name = xmalloc(strlen("host/") + strlen(hostinfo->h_name) + 1);
         strcpy(service_name, "host/");
         strcat(service_name, hostinfo->h_name);
+        lowercase(service_name);
     }
-
     debug("service name: %s", service_name);
-
-    /* This specifies the service name, checks out the keytab, etc. */
     if (server_acquire_creds(service_name, &server_creds) < 0)
         return -1;
 
@@ -1054,6 +1052,7 @@ main(int argc, char *argv[])
                     close(s);
             } while (1);
         }
+
     /* Here we read from stdin, and write to stdout to communicate with the
        network. */
     } else {
@@ -1064,8 +1063,8 @@ main(int argc, char *argv[])
         close(1);
     }
 
+    /* Clean up and exit.  We only reach here in regular mode. */
     gss_release_cred(&min_stat, &server_creds);
-
     return 0;
 }
 

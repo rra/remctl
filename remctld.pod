@@ -4,7 +4,7 @@ remctld - Server for remctl, a remote command execution utility
 
 =head1 SYNOPSIS
 
-remctld [B<-mv>] [B<-f> I<config>] [B<-p> I<port>] [B<-s> I<service>]
+remctld [B<-dhmv>] [B<-f> I<config>] [B<-p> I<port>] [B<-s> I<service>]
 
 =head1 DESCRIPTION
 
@@ -30,9 +30,17 @@ FILE"> below.
 
 =over 4
 
-=item B<-f> I<conffile>
+=item B<-d>
+
+Verbose debug logging to syslog.
+
+=item B<-f> I<config>
 
 The configuration file for B<remctld>, overriding the default path.
+
+=item B<-h>
+
+Show a brief usage message and then exit.
 
 =item B<-m>
 
@@ -53,7 +61,7 @@ B<remctld> to run as, the default is the server host principal:
 
 =item B<-v>
 
-Verbose logging to syslog.
+Print the version of B<remctld> and exit.
 
 =back
 
