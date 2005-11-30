@@ -30,7 +30,9 @@ clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp
-	-$(MAKE) distclean
+ifeq (Makefile,$(wildcard Makefile))
+	$(MAKE) distclean
+endif
 	dh_clean
 
 install: build
@@ -41,9 +43,6 @@ install: build
 	$(MAKE) install prefix=$(CURDIR)/debian/remctl/usr
 	install -m 644 $(CURDIR)/debian/remctl.conf \
 	    $(CURDIR)/debian/remctl/etc/remctl/remctl.conf
-
-# We have no architecture-independent files to build.
-binary-indep: build install
 
 binary-arch: build install
 	dh_testdir
@@ -62,5 +61,5 @@ binary-arch: build install
 	dh_md5sums
 	dh_builddeb
 
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install
+binary: binary-arch
+.PHONY: build clean binary-arch binary install
