@@ -481,7 +481,8 @@ print_token(gss_buffer_t tok)
     buf = xmalloc(length);
     for (offset = 0, i = 0; i < tok->length; i++, p++)
         offset += snprintf(buf + offset, length - offset, "%02x ", *p);
-    debug("%s", buf);
+    debug("token: %s", buf);
+    free(buf);
 }
 
 
