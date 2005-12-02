@@ -16,13 +16,25 @@ AC_ARG_WITH([kerberos],
         CPPFLAGS="$CPPFLAGS -I$withval/include"
      fi])
 
-AC_SEARCH_LIBS(gethostbyname, nsl)
-AC_SEARCH_LIBS(socket, socket, ,
-    [AC_CHECK_LIB(nsl, socket, LIBS="$LIBS -lsocket -lnsl", , -lsocket)])
-AC_SEARCH_LIBS(res_search, resolv)
-AC_SEARCH_LIBS(crypt, crypt)
+reduce_depends=false
+AC_ARG_ENABLE([reduced-depends],
+    AC_HELP_STRING([--enable-reduced-depends],
+        [Try to minimize shared library dependencies]),
+    [if test x"$enableval" = xyes ; then
+         KRBLIBS="$KRBLIBS -lgssapi_krb5"
+         reduce_depends=true
+     else
+         KRBLIBS="$KRBLIBS -lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err"
+     fi],
+    [KRBLIBS="$KRBLIBS -lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err"])
 
-KRBLIBS="$KRBLIBS -lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err"
+if test x"$reduce_depends" != xtrue ; then
+    AC_SEARCH_LIBS(gethostbyname, nsl)
+    AC_SEARCH_LIBS(socket, socket, ,
+        [AC_CHECK_LIB(nsl, socket, LIBS="$LIBS -lsocket -lnsl", , -lsocket)])
+    AC_SEARCH_LIBS(res_search, resolv)
+    AC_SEARCH_LIBS(crypt, crypt)
+fi
 
 AC_ARG_ENABLE([static],
     AC_HELP_STRING([--enable-static],
