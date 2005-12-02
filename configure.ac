@@ -3,7 +3,7 @@ dnl $Id$
 
 AC_REVISION($Revision$)
 AC_PREREQ(2.57)
-AC_INIT([remctl], [1.9], [rra@stanford.edu])
+AC_INIT([remctl], [1.10], [rra@stanford.edu])
 
 AC_PROG_CC
 AC_PROG_INSTALL

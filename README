@@ -1,4 +1,4 @@
-                            remctl release 1.9
+                            remctl release 1.10
             (remote authenticated command execution with ACLs)
 
                          Written by Anton Ushakov
@@ -74,13 +74,12 @@ PORTING
   remctl should port reasonably well.  It has been tested on:
 
       Solaris 8
-      Linux (glibc 2.2)
+      Linux (glibc 2.2, 2.3)
       AIX 4.3
 
   A replacement snprintf is provided for platforms whose snprintf does not
-  comply with C99 (almost all of them as of July 2003 except for Linux).
-  Some minor changes would be necessary to get it to build with Heimdal's
-  GSSAPI libraries rather than MIT Kerberos.
+  comply with C99.  Some minor changes would be necessary to get it to
+  build with Heimdal's GSSAPI libraries rather than MIT Kerberos.
 
 LICENSE
 

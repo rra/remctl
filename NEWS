@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 1.10 (in progress)
+remctl 1.10 (2005-12-01)
 
     Move the -v option to remctl and remctld to -d (debug), since the
     verbose output or logging is only really useful when debugging.
