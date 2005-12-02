@@ -18,7 +18,7 @@ config.status: configure
 	dh_testdir
 	CFLAGS="$(CFLAGS)" ./configure --prefix=/usr \
 	    --mandir=\$${prefix}/share/man --sysconfdir=/etc/remctl \
-	    --enable-reduced-dependencies
+	    --enable-reduced-depends
 
 build: build-stamp
 build-stamp: config.status
