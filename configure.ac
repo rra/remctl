@@ -28,10 +28,11 @@ AC_ARG_ENABLE([reduced-depends],
      fi],
     [KRBLIBS="$KRBLIBS -lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err"])
 
+AC_SEARCH_LIBS(gethostbyname, nsl)
+AC_SEARCH_LIBS(socket, socket, ,
+    [AC_CHECK_LIB(nsl, socket, LIBS="$LIBS -lsocket -lnsl", , -lsocket)])
+
 if test x"$reduce_depends" != xtrue ; then
-    AC_SEARCH_LIBS(gethostbyname, nsl)
-    AC_SEARCH_LIBS(socket, socket, ,
-        [AC_CHECK_LIB(nsl, socket, LIBS="$LIBS -lsocket -lnsl", , -lsocket)])
     AC_SEARCH_LIBS(res_search, resolv)
     AC_SEARCH_LIBS(crypt, crypt)
 fi
