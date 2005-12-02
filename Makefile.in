@@ -102,6 +102,6 @@ dist: $(srcdir)/remctl.1 $(srcdir)/remctld.8.in
 # Dependencies.
 gss-utils.o: gss-utils.c config.h gss-utils.h
 remctl.o: remctl.c config.h gss-utils.h
-remctld.o: remctld.c gss-utils.h vector.h
+remctld.o: remctld.c config.h gss-utils.h vector.h
 snprintf.o: snprintf.c config.h
 vector.o: vector.c config.h vector.h gss-utils.h
