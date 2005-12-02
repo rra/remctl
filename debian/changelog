@@ -8,6 +8,7 @@ remctl (1.10-1) unstable; urgency=low
       reducing unnecessary package dependencies.
   * Build separate remctl-server and remctl-client packages (with a remctl
     transitional package for upgrades).
+  * remctl-server now enables remctld by default.
   * Run remctld under tcpd and depend on tcpd.
   * Use a better method to optionally run make distclean.
   * Remove unused targets in debian/rules.
@@ -18,7 +19,7 @@ remctl (1.10-1) unstable; urgency=low
   * Update maintainer address.
   * Update standards version to 3.6.2 (no changes required).
 
- -- Russ Allbery <rra@debian.org>  Thu,  1 Dec 2005 16:52:27 -0800
+ -- Russ Allbery <rra@debian.org>  Thu,  1 Dec 2005 17:26:08 -0800
 
 remctl (1.9-1) unstable; urgency=high
 
