@@ -1,2 +1,2 @@
-usr/sbin
-usr/share/man/man8
+debian/tmp/usr/sbin
+debian/tmp/usr/share/man/man8
