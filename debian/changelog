@@ -3,6 +3,9 @@ remctl (1.10-1) unstable; urgency=low
   * New upstream version.
     - The -v verbose option is now -d (debug) for remctl and remctld.
     - Better and cleaner error reporting and logging.
+    - Support linking with only the shared libraries called directly and
+      relying on the shared libraries to pull in their own dependencies,
+      reducing unnecessary package dependencies.
   * Build separate remctl-server and remctl-client packages (with a remctl
     transitional package for upgrades).
   * Run remctld under tcpd and depend on tcpd.
@@ -15,7 +18,7 @@ remctl (1.10-1) unstable; urgency=low
   * Update maintainer address.
   * Update standards version to 3.6.2 (no changes required).
 
- -- Russ Allbery <rra@debian.org>  Thu,  1 Dec 2005 16:33:53 -0800
+ -- Russ Allbery <rra@debian.org>  Thu,  1 Dec 2005 16:52:27 -0800
 
 remctl (1.9-1) unstable; urgency=high
 
