@@ -5,18 +5,45 @@ Maintainer: Russ Allbery <rra@debian.org>
 Build-Depends: debhelper (>= 4.0.0), libkrb5-dev
 Standards-Version: 3.6.2
 
-Package: remctl
+Package: remctl-client
 Architecture: any
-Depends: ${shlibs:Depends}, netbase, tcpd
-Description: remote Kerberos-authenticated command execution
- remctl consists of a client and server for executing specific commands on
- a remote system with Kerberos authentication.  The allowable commands
- must be listed in a server configuration file, and the executable run on
- the server may be mapped to any command name.  Each command is also
+Depends: ${shlibs:Depends}
+Conflicts: remctl (<< 1.10-1)
+Replaces: remctl (<< 1.10-1)
+Description: Client for Kerberos-authenticated command execution
+ remctl is a client/server protocol for executing specific commands on a
+ remote system with Kerberos authentication.  The allowable commands must
+ be listed in a server configuration file, and the executable run on the
+ server may be mapped to any command name.  Each command is also
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
  .
- Included in this package is both the client (remctl) and the server
- (remctld).  The server will not be started automatically.
+ This package contains the client program (remctl).
  .
   Homepage: http://www.eyrie.org/~eagle/software/remctl/
+
+Package: remctl-server
+Architecture: any
+Depends: ${shlibs:Depends}, netbase, tcpd
+Conflicts: remctl (<< 1.10-1)
+Replaces: remctl (<< 1.10-1)
+Description: Server for Kerberos-authenticated command execution
+ remctl is a client/server protocol for executing specific commands on a
+ remote system with Kerberos authentication.  The allowable commands must
+ be listed in a server configuration file, and the executable run on the
+ server may be mapped to any command name.  Each command is also
+ associated with an ACL containing a list of Kerberos principals
+ authorized to run that command.
+ .
+ This package contains the server (remctld).
+ .
+  Homepage: http://www.eyrie.org/~eagle/software/remctl/
+
+Package: remctl
+Priority: extra
+Architecture: all
+Depends: remctl-client, remctl-server
+Description: Kerberos-authenticated command execution (transitional package)
+ This is a transitional package depending on both the remctl client and
+ remctl server, which are now in separate packages.  You may remove it
+ once the upgrade is complete and nothing depends on it.

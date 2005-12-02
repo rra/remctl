@@ -1,0 +1,11 @@
+remctl-client for Debian
+------------------------
+
+This package contains only the remctl command-line client.  For usage
+information, see the man page.  For the remctld server, install the
+remctl-server package.
+
+A Java client is provided in /usr/share/remctl/examples/java.  It may not
+work at your site without some tweaking.
+
+ -- Russ Allbery <rra@debian.org>, Thu Dec  1 15:11:02 2005

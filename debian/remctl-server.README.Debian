@@ -1,15 +1,19 @@
-remctl for Debian
------------------
+remctl-server for Debian
+------------------------
 
-This package contains both the client (remctl) and the daemon (remctld).
-The latter is not configured to run by default, but a commented-out
-invocation is added to /etc/inetd.conf.  You can uncomment it and skill
--HUP inetd to start it.  (You may wish to modify the inetd.conf line to
-run it under TCP wrappers.)
+This package contains only the daemon (remctld).  For the client, install
+remctl-client.
+
+remctld is configured to run by default out of inetd under tcpserver so
+that you can further restrict access via /etc/hosts.allow and
+/etc/hosts.deny.  If you plan on running remctld in stand-alone mode or
+under some other network server, comment out the invocation in
+/etc/inetd.conf and it won't be readded by upgrades of this package.
 
 You don't have to run remctld as root, but of course will need to do so if
 you want it to run any programs that need root privileges or want to run
-programs that change to various different user identities.
+programs that change to various different user identities.  By default it
+is set up to run as root.
 
 remctl is built to use port 4444 by default.  This is a bad choice in
 retrospect, since it's the same port used by krb524d (although the latter
@@ -23,7 +27,4 @@ that you leave that file unchanged and drop your configuration into
 doesn't contain a period; those are skipped.  See the comments in
 /etc/remctl/remctl.conf for more details.
 
-A Java client is provided in /usr/share/remctl/examples/java.  It may not
-work at your site without some tweaking.
-
- -- Russ Allbery <rra@stanford.edu>, Fri May  6 21:53:44 2005
+ -- Russ Allbery <rra@debian.org>, Thu Dec  1 15:10:24 2005
