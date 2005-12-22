@@ -81,7 +81,7 @@ clean:
 
 distclean: clean
 	rm -f Makefile config.h config.cache config.log config.status
-	rm -f remctld.8
+	rm -f remctld.8 config.h.in~
 	rm -rf autom4te.cache
 
 maintclean: distclean
