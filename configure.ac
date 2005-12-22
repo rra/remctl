@@ -5,6 +5,8 @@ AC_REVISION($Revision$)
 AC_PREREQ(2.57)
 AC_INIT([remctl], [1.10], [rra@stanford.edu])
 
+m4_include([m4/snprintf.m4])
+
 AC_PROG_CC
 AC_PROG_INSTALL
 
@@ -48,51 +50,7 @@ AC_ARG_ENABLE([static],
     [LIBS="$KRBLIBS $LIBS"])
 
 AC_CHECK_TYPES([long long])
-
-dnl Source used by REMCTL_FUNC_SNPRINTF.
-define([_REMCTL_FUNC_SNPRINTF_SOURCE],
-[[#include <stdio.h>
-#include <stdarg.h>
-
-char buf[2];
-
-int
-test (char *format, ...)
-{
-  va_list args;
-  int count;
-
-  va_start (args, format);
-  count = vsnprintf (buf, sizeof buf, format, args);
-  va_end (args);
-  return count;
-}
-
-int
-main ()
-{
-  return ((test ("%s", "abcd") == 4 && buf[0] == 'a' && buf[1] == '\0'
-           && snprintf(NULL, 0, "%s", "abcd") == 4) ? 0 : 1);
-}]])
-
-dnl Check for a working snprintf.  Some systems have snprintf, but it doesn't
-dnl null-terminate if the buffer isn't large enough or it returns -1 if the
-dnl string doesn't fit instead of returning the number of characters that
-dnl would have been formatted.
-AC_DEFUN([REMCTL_FUNC_SNPRINTF],
-[AC_CACHE_CHECK(for working snprintf, remctl_cv_func_snprintf_works,
-[AC_TRY_RUN(_REMCTL_FUNC_SNPRINTF_SOURCE(),
-            [remctl_cv_func_snprintf_works=yes],
-            [remctl_cv_func_snprintf_works=no],
-            [remctl_cv_func_snprintf_works=no])])
-if test "$remctl_cv_func_snprintf_works" = yes ; then
-    AC_DEFINE([HAVE_SNPRINTF], 1,
-        [Define if your system has a working snprintf function.])
-else
-    AC_LIBOBJ([snprintf])
-fi])
-REMCTL_FUNC_SNPRINTF
-
+RRA_FUNC_SNPRINTF
 AC_TYPE_SIGNAL
 
 AC_CONFIG_HEADER(config.h)
