@@ -32,9 +32,10 @@ DESCRIPTION
 REQUIREMENTS
 
   The remctld server and the standard client are written in C and require
-  a C compiler to build.  They have only been built against MIT Kerberos
-  and would require some (not particularly difficult) porting to build
-  against Heimdal.
+  a C compiler to build.  They currently require MIT Kerberos; remctl will
+  build against Heimdal but the resulting client cannot talk to an MIT
+  Kerberos server (or possibly any server; I haven't been able to check).
+  Any help in fixing this would be greatly appreciated.
 
   A Java client is also available in the java subdirectory, but no Java
   server is available.
@@ -51,17 +52,27 @@ INSTALLATION
   installs itself under /usr/local; you can change that path by passing
   the --prefix=PATH argument to configure.
 
-  If your kerberos libraries and includes aren't in /usr/local/include and
-  /usr/local/lib (or some other include directory and library directory
-  searched by default by your compiler), then you need to specify
+  Normally, configure will use krb5-config to determine the flags to use
+  to compile with your Kerberos libraries.  If krb5-config isn't found, it
+  will look for the standard Kerberos libraries in locations already
+  searched by your compiler.  If the the krb5-config script first in your
+  path is not the one corresponding to the Kerberos libraries you want to
+  use or if your Kerberos libraries and includes aren't in a location
+  searched by default by your compiler, you need to specify
   --with-kerberos=PATH:
 
       ./configure --with-kerberos=/usr/pubsw
 
+  To specify a particular krb5-config script to use, either set the
+  KRB5_CONFIG environment variable or pass it to configure like:
+
+      ./configure KRB5_CONFIG=/path/to/krb5-config
+
   To build against the static versions of the Kerberos libraries so that
   you don't have to have the Kerberos libraries installed on a system
   running the client or server, add --enable-static to ./configure.  This
-  has been tested on Solaris and Linux.
+  has been tested on Solaris and Linux and may not work properly on other
+  platforms.
 
   Usage information is available in the manual pages which will be
   installed with remctl.  You will need to set up a remctl.conf file for
@@ -87,11 +98,9 @@ PORTING
 
       Solaris 8
       Linux (glibc 2.2, 2.3)
-      AIX 4.3
 
-  A replacement snprintf is provided for platforms whose snprintf does not
-  comply with C99.  Some minor changes would be necessary to get it to
-  build with Heimdal's GSSAPI libraries rather than MIT Kerberos.
+  but should work on any Unix varient.  A replacement snprintf is provided
+  for platforms whose snprintf does not comply with C99.
 
 LICENSE
 
