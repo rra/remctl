@@ -1,5 +1,11 @@
                        User-Visible remctl Changes
 
+remctl 1.11 (unreleased)
+
+    Stop option parsing at the first non-option on Linux (this is the
+    standard behavior of getopt on other platforms).  Otherwise, calling
+    remote programs that take options is annoying.
+
 remctl 1.10 (2005-12-01)
 
     Move the -v option to remctl and remctld to -d (debug), since the

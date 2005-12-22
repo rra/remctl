@@ -358,8 +358,12 @@ main(int argc, char *argv[])
     /* Set up logging and identity. */
     message_program_name = "remctl";
 
-    /* Parse options. */
-    while ((option = getopt(argc, argv, "dhp:s:v")) != EOF) {
+    /* Parse options.  The + tells GNU getopt to stop option parsing at the
+       first non-argument rather than proceeding on to find options anywhere.
+       Without this, it's hard to call remote programs that take options.
+       Non-GNU getopt will treat the + as a supported option, which is handled
+       below. */
+    while ((option = getopt(argc, argv, "+dhp:s:v")) != EOF) {
         switch (option) {
         case 'd':
             message_handlers_debug(1, message_log_stderr);
@@ -377,6 +381,8 @@ main(int argc, char *argv[])
             printf("%s\n", PACKAGE_STRING);
             exit(0);
             break;
+        case '+':
+            fprintf(stderr, "%s: invalid option -- +\n", argv[0]);
         default:
             usage(1);
             break;
