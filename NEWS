@@ -9,6 +9,8 @@ remctl 1.11 (unreleased)
     Use krb5-config where available to get Kerberos libraries and compiler
     flags unless --enable-reduced-depends is used.
 
+    Fix builds and installs where builddir != srcdir.
+
     Initial port to Heimdal.  remctl now compiles but isn't able to talk
     to a server built with MIT Kerberos, so further porting is still
     needed.
