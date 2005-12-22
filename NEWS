@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 1.11 (unreleased)
+remctl 1.11 (2005-12-22)
 
     Stop option parsing at the first non-option on Linux (this is the
     standard behavior of getopt on other platforms).  Otherwise, calling

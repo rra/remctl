@@ -1,3 +1,11 @@
+remctl (1.11-1) unstable; urgency=low
+
+  * New upstream version.
+    - remctl stops parsing arguments at the first non-option to make it
+      easier to pass options to remote programs.
+
+ --
+
 remctl (1.10-1) unstable; urgency=low
 
   * New upstream version.
