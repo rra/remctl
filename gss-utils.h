@@ -12,7 +12,13 @@
 #ifndef GSS_UTILS_H
 #define GSS_UTILS_H 1
 
-#include <gssapi/gssapi_generic.h>
+#include "config.h"
+
+#ifdef HAVE_GSSAPI_H
+# include <gssapi.h>
+#else
+# include <gssapi/gssapi_generic.h>
+#endif
 
 /* Lowercase a string. */
 void lowercase(char *string);

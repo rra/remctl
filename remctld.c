@@ -31,12 +31,21 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <gssapi/gssapi_generic.h>
+#ifdef HAVE_GSSAPI_H
+# include <gssapi.h>
+#else
+# include <gssapi/gssapi_generic.h>
+#endif
 
 #include "gss-utils.h"
 #include "messages.h"
 #include "vector.h"
 #include "xmalloc.h"
+
+/* Handle compatibility to older versions of MIT Kerberos. */
+#ifndef HAVE_GSS_RFC_OIDS
+# define GSS_C_NT_USER_NAME gss_nt_user_name
+#endif
 
 /* Usage message. */
 static const char usage_message[] = "\
@@ -141,8 +150,8 @@ server_acquire_creds(char *service_name, gss_cred_id_t *server_creds)
     name_buf.value = service_name;
     name_buf.length = strlen(name_buf.value) + 1;
 
-    maj_stat = gss_import_name(&min_stat, &name_buf,
-                               (gss_OID) gss_nt_user_name, &server_name);
+    maj_stat = gss_import_name(&min_stat, &name_buf, GSS_C_NT_USER_NAME,
+                               &server_name);
 
     if (maj_stat != GSS_S_COMPLETE) {
         display_status("while importing name", maj_stat, min_stat);
@@ -182,7 +191,6 @@ server_establish_context(gss_cred_id_t server_creds, gss_ctx_id_t *context,
     gss_name_t client;
     gss_OID doid;
     OM_uint32 maj_stat, min_stat, acc_sec_min_stat;
-    gss_buffer_desc oid_name;
     int token_flags;
 
     if (recv_token(&token_flags, &recv_tok) < 0)
@@ -246,15 +254,6 @@ server_establish_context(gss_cred_id_t server_creds, gss_ctx_id_t *context,
         } while (maj_stat == GSS_S_CONTINUE_NEEDED);
 
         display_ctx_flags(*ret_flags);
-        maj_stat = gss_oid_to_str(&min_stat, doid, &oid_name);
-        if (maj_stat != GSS_S_COMPLETE) {
-            display_status("while converting oid to string", maj_stat,
-                           min_stat);
-            return -1;
-        }
-        debug("accepted connection using mechanism OID %.*s",
-              (int) oid_name.length, (char *) oid_name.value);
-        gss_release_buffer(&min_stat, &oid_name);
 
         maj_stat = gss_display_name(&min_stat, client, client_name, &doid);
         if (maj_stat != GSS_S_COMPLETE) {

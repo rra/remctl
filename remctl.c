@@ -22,11 +22,26 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <gssapi/gssapi_generic.h>
+#ifdef HAVE_GSSAPI_H
+# include <gssapi.h>
+#else
+# include <gssapi/gssapi_generic.h>
+#endif
 
 #include "gss-utils.h"
 #include "messages.h"
 #include "xmalloc.h"
+
+/* Handle compatibility to older versions of MIT Kerberos. */
+#ifndef HAVE_GSS_RFC_OIDS
+# define GSS_C_NT_USER_NAME gss_nt_user_name
+#endif
+
+/* Heimdal provides a nice #define for this. */
+#ifndef HAVE_DECL_GSS_KRB5_MECHANISM
+# include <gssapi/gssapi_krb5.h>
+# define GSS_KRB5_MECHANISM gss_mech_krb5
+#endif
 
 /* Usage message. */
 static const char usage_message[] = "\
@@ -57,37 +72,6 @@ usage(int status)
 {
     fprintf((status == 0) ? stdout : stderr, "%s", usage_message);
     exit(status);
-}
-
-
-/*
-**  Parse an OID string and determine the mechanism type, returning it in the
-**  oid argument.  Prints an error message if there are any problems.
-*/
-static void
-parse_oid(const char *mechanism, gss_OID *oid)
-{
-    char *mechstr = 0, *cp;
-    gss_buffer_desc tok;
-    OM_uint32 maj_stat, min_stat;
-
-    if (isdigit(mechanism[0])) {
-        mechstr = xmalloc(strlen(mechanism) + 5);
-        sprintf(mechstr, "{ %s }", mechanism);
-        for (cp = mechstr; *cp; cp++)
-            if (*cp == '.')
-                *cp = ' ';
-        tok.value = mechstr;
-    } else
-        tok.value = (char *) mechanism;
-    tok.length = strlen(tok.value);
-    maj_stat = gss_str_to_oid(&min_stat, &tok, oid);
-    if (maj_stat != GSS_S_COMPLETE) {
-        display_status("while str_to_oid", maj_stat, min_stat);
-        return;
-    }
-    if (mechstr)
-        free(mechstr);
 }
 
 
@@ -136,20 +120,17 @@ static int
 client_establish_context(char *service_name, gss_ctx_id_t *gss_context,
                          OM_uint32 *ret_flags)
 {
-    gss_OID oid = GSS_C_NULL_OID;
     gss_buffer_desc send_tok, recv_tok, *token_ptr;
     gss_name_t target_name;
     OM_uint32 maj_stat, min_stat, init_sec_min_stat;
     int token_flags;
 
-    parse_oid("1.2.840.113554.1.2.2", &oid);
-
     /* Import the name into target_name.  Use send_tok to save local variable
        space. */
     send_tok.value = service_name;
     send_tok.length = strlen(service_name) + 1;
-    maj_stat = gss_import_name(&min_stat, &send_tok,
-                               (gss_OID) gss_nt_user_name, &target_name);
+    maj_stat = gss_import_name(&min_stat, &send_tok, GSS_C_NT_USER_NAME,
+                               &target_name);
     if (maj_stat != GSS_S_COMPLETE) {
         display_status("while parsing name", maj_stat, min_stat);
         return -1;
@@ -181,7 +162,7 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context,
                                         GSS_C_NO_CREDENTIAL, 
                                         gss_context, 
                                         target_name, 
-                                        oid, 
+                                        (const gss_OID) GSS_KRB5_MECHANISM,
                                         GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG, 
                                         0, 
                                         NULL,     /* no channel bindings */
@@ -227,7 +208,6 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context,
     } while (maj_stat == GSS_S_CONTINUE_NEEDED);
 
     gss_release_name(&min_stat, &target_name);
-    gss_release_oid(&min_stat, &oid);
 
     return 0;
 }

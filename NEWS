@@ -6,6 +6,17 @@ remctl 1.11 (unreleased)
     standard behavior of getopt on other platforms).  Otherwise, calling
     remote programs that take options is annoying.
 
+    Use krb5-config where available to get Kerberos libraries and compiler
+    flags unless --enable-reduced-depends is used.
+
+    Initial port to Heimdal.  remctl now compiles but isn't able to talk
+    to a server built with MIT Kerberos, so further porting is still
+    needed.
+
+    Remove some debugging code for displaying the GSS-API OID as a string
+    that isn't supported by the Heimdal API and is of questionable
+    usefulness regardless.
+
 remctl 1.10 (2005-12-01)
 
     Move the -v option to remctl and remctld to -d (debug), since the

@@ -24,7 +24,12 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <gssapi/gssapi_generic.h>
+#ifdef HAVE_GSSAPI_H
+# include <gssapi.h>
+#else
+# include <gssapi/gssapi_generic.h>
+#endif
+
 #include "gss-utils.h"
 #include "messages.h"
 #include "xmalloc.h"
@@ -441,7 +446,8 @@ void
 display_status(const char *msg, OM_uint32 maj_stat,OM_uint32  min_stat)
 {
     display_status_1(msg, maj_stat, GSS_C_GSS_CODE);
-    display_status_1(msg, min_stat, GSS_C_MECH_CODE);
+    if (min_stat != 0)
+        display_status_1(msg, min_stat, GSS_C_MECH_CODE);
 }
 
 
