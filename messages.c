@@ -1,4 +1,4 @@
-/* $Id: messages.c,v 1.5 2004/05/16 23:30:18 rra Exp $
+/*  $Id$
 **
 **  Message and error reporting (possibly fatal).
 **

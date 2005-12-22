@@ -1,4 +1,4 @@
-/* $Id: xmalloc.c,v 1.14 2005/04/10 07:23:19 rra Exp $
+/*  $Id$
 **
 **  malloc routines with failure handling.
 **
