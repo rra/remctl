@@ -3,6 +3,8 @@ remctl (1.11-1) unstable; urgency=low
   * New upstream version.
     - remctl stops parsing arguments at the first non-option to make it
       easier to pass options to remote programs.
+    - Include example of how to use remctl like rsh.  Thanks, Romain
+      LENGLET.
 
  --
 
