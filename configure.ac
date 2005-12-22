@@ -89,7 +89,7 @@ if test "$remctl_cv_func_snprintf_works" = yes ; then
     AC_DEFINE([HAVE_SNPRINTF], 1,
         [Define if your system has a working snprintf function.])
 else
-    AC_LIBOBJ([ac_objext])
+    AC_LIBOBJ([snprintf])
 fi])
 REMCTL_FUNC_SNPRINTF
 
