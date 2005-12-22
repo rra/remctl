@@ -38,7 +38,7 @@
 #endif
 
 /* Heimdal provides a nice #define for this. */
-#ifndef HAVE_DECL_GSS_KRB5_MECHANISM
+#if !HAVE_DECL_GSS_KRB5_MECHANISM
 # include <gssapi/gssapi_krb5.h>
 # define GSS_KRB5_MECHANISM gss_mech_krb5
 #endif
