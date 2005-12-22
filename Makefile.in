@@ -45,7 +45,7 @@ CLIENT_OBJS     = remctl.o $(COMMON_OBJS)
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) $<
 
-all: remctld remctl remctl.1 remctld.8
+all: remctld remctl $(srcdir)/remctl.1 remctld.8
 
 warnings:
 	$(MAKE) CFLAGS='$(WARNINGS)' all
@@ -53,8 +53,8 @@ warnings:
 remctld: $(SERVER_OBJS)
 	$(CC) $(SERVER_OBJS) $(LDFLAGS) $(LIBS) -o $@
 
-remctld.o: remctld.c Makefile
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(CONFIG) remctld.c
+remctld.o: $(srcdir)/remctld.c Makefile
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(CONFIG) $(srcdir)/remctld.c
 
 remctl: $(CLIENT_OBJS)
 	$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(LIBS) -o $@
@@ -69,7 +69,7 @@ $(srcdir)/remctld.8.in: remctld.pod
 remctld.8: $(srcdir)/remctld.8.in Makefile
 	sed 's%@sysconfdir\@%$(sysconfdir)%' < $< > $@
 
-install: remctld remctl remctld.8 remctl.1
+install: remctld remctl remctld.8 $(srcdir)/remctl.1
 	$(INSTALL) -d $(bindir) $(sbindir) $(mandir)/man1 $(mandir)/man8
 	$(INSTALL_PROGRAM) remctl $(bindir)/remctl
 	$(INSTALL_PROGRAM) remctld $(sbindir)/remctld
