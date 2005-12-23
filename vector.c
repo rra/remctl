@@ -167,7 +167,7 @@ cvector_free(struct cvector *vector)
 
 /*
 **  Given a vector that we may be reusing, clear it out.  If the first
-**  argument is NULL, allocate a new vector.  Used by vector_split*.
+**  argument is NULL, allocate a new vector.  Used by vector_split.
 */
 static struct vector *
 vector_reuse(struct vector *vector)
