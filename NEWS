@@ -2,6 +2,9 @@
 
 remctl 1.11 (2005-12-22)
 
+    Support include directives in remctld ACL files with the same syntax
+    and semantics as include directives in configuration files.
+
     Stop option parsing at the first non-option on Linux (this is the
     standard behavior of getopt on other platforms).  Otherwise, calling
     remote programs that take options is annoying.

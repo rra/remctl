@@ -272,46 +272,70 @@ server_establish_context(gss_cred_id_t server_creds, gss_ctx_id_t *context,
 
 
 /*
-**  Reads a file into a character buffer, returning the newly allocated buffer
-**  or NULL on failure.
+**  Handles an include request for either read_conf_file or acl_check_file.
+**  Takes the vector that represents the include directive, the current file,
+**  the line number, the function to call for each included file, and a piece
+**  of data to pass to that function.  Handles including either files or
+**  directories.
+**
+**  If the function returns a value less than -1, return its return code.
+**  Otherwise, return the greatest of all status codes returned by the
+**  functions.  Also returns -2 for any error in processing the include
+**  directive.
 */
-static char *
-read_file(const char *file_name)
+static int
+handle_include(struct vector *line, const char *file, int lineno,
+               int (*function)(void *, const char *), void *data)
 {
-    int fd, count;
-    struct stat stat_buf;
-    int length;
-    char* buf;
+    const char *included = line->strings[1];
+    struct stat st;
 
-    fd = open(file_name, O_RDONLY, 0);
-    if (fd < 0) {
-        syswarn("cannot open file %s", file_name);
-        return NULL;
+    /* Validate the directive. */
+    if (line->count != 2 || strcmp(line->strings[0], "include") != 0) {
+        warn("%s:%d: parse error", file, lineno);
+        return -2;
     }
-    if (fstat(fd, &stat_buf) < 0) {
-        syswarn("cannot stat file %s", file_name);
-        return NULL;
+    if (strcmp(included, file) == 0) {
+        warn("%s:%d: %s recursively included", file, lineno, file);
+        return -2;
     }
-    length = stat_buf.st_size;
-    if (length == 0)
-        return NULL;
-
-    buf = xmalloc(length + 1);
-    count = read(fd, buf, length);
-    if (count < 0) {
-        syswarn("cannot read file %s", file_name);
-        return NULL;
-    }
-    if (count < length) {
-        warn("cannot read file %s: saw %d bytes, expected %d", file_name,
-             count, length);
-        return NULL;
+    if (stat(included, &st) < 0) {
+        warn("%s:%d: included file %s not found", file, lineno, included);
+        return -2;
     }
 
-    buf[length] = '\0';
-    close(fd);
+    /* If it's a directory, include everything in the directory that doesn't
+       contain a period.  Otherwise, just include the one file. */
+    if (!S_ISDIR(st.st_mode)) {
+        return (*function)(data, included);
+    } else {
+        DIR *dir;
+        struct dirent *entry;
+        int status = -1;
+        int last;
 
-    return buf;
+        dir = opendir(included);
+        while ((entry = readdir(dir)) != NULL) {
+            char *path;
+            size_t length;
+
+            if (strchr(entry->d_name, '.') != NULL)
+                continue;
+            length = strlen(included) + 1 + strlen(entry->d_name) + 1;
+            path = xmalloc(length);
+            snprintf(path, length, "%s/%s", included, entry->d_name);
+            last = (*function)(data, path);
+            free(path);
+            if (last < -1) {
+                closedir(dir);
+                return status;
+            }
+            if (last > status)
+                status = last;
+        }
+        closedir(dir);
+        return status;
+    }
 }
 
 
@@ -323,23 +347,28 @@ read_file(const char *file_name)
 **  config is populated with the parsed configuration file.  Empty lines and
 **  lines beginning with # are ignored.  Each line is divided into fields,
 **  separated by spaces.  The fields are defined by struct confline.  Lines
-**  ending in backslash are continued on the next line.
+**  ending in backslash are continued on the next line.  config is passed in
+**  as a void * so that read_conf_file and acl_check_file can use common
+**  include handling code.
 **
 **  As a special case, include <file> will call read_conf_file recursively to
 **  parse an included file (or, if <file> is a directory, every file in that
 **  directory that doesn't contain a period).
 **
-**  Returns 0 on success and -1 on error, reporting an error message.
+**  Returns 0 on success and -2 on error, reporting an error message.
 */
 static int
-read_conf_file(struct config *config, const char *name)
+read_conf_file(void *data, const char *name)
 {
+    struct config *config = data;
     FILE *file;
     char *buffer, *p;
     size_t bufsize, length, size, count, i, arg_i;
-    struct vector *line;
-    struct confline *confline;
+    int s;
+    struct vector *line = NULL;
+    struct confline *confline = NULL;
     size_t lineno = 0;
+    DIR *dir = NULL;
 
     bufsize = 1024;
     buffer = xmalloc(bufsize);
@@ -347,26 +376,35 @@ read_conf_file(struct config *config, const char *name)
     if (file == NULL) {
         free(buffer);
         syswarn("cannot open config file %s", name);
-        return -1;
+        return -2;
     }
     while (fgets(buffer, bufsize, file) != NULL) {
         length = strlen(buffer);
+        if (length == 2 && buffer[length - 1] != '\n') {
+            warn("%s:%d: no final newline", name, lineno);
+            goto fail;
+        }
+        if (length < 2)
+            continue;
 
         /* Allow for long lines and continuation lines.  As long as we've
            either filled the buffer or have a line ending in a backslash, we
            keep reading more data.  If we filled the buffer, increase it by
            another 1KB; otherwise, back up and write over the backslash and
            newline. */
-        while (length > 2 && (buffer[length - 1] != '\n'
-                              || buffer[length - 2] == '\\')) {
-            if (buffer[length - 1] != '\n') {
+        p = buffer + length - 2;
+        while (length > 2 && (p[1] != '\n' || p[0] == '\\')) {
+            if (p[1] != '\n') {
                 bufsize += 1024;
                 buffer = xrealloc(buffer, bufsize);
             } else {
                 length -= 2;
+                lineno++;
             }
-            if (fgets(buffer + length, bufsize - length, file) == NULL)
-                goto done;
+            if (fgets(buffer + length, bufsize - length, file) == NULL) {
+                warn("%s:%d: no final line or newline", name, lineno);
+                goto fail;
+            }
             length = strlen(buffer);
         }
         if (length > 0)
@@ -386,64 +424,11 @@ read_conf_file(struct config *config, const char *name)
            handle include. */
         line = vector_split_space(buffer, NULL);
         if (line->count < 4) {
-            const char *included = line->strings[1];
-            struct stat st;
-
-            if (line->count != 2 || strcmp(line->strings[0], "include") != 0) {
-                warn("%s:%d: config parse error", name, lineno);
-                vector_free(line);
-                free(buffer);
-                fclose(file);
-                return -1;
-            }
-            if (strcmp(included, name) == 0) {
-                warn("%s:%d: %s recursively included", name, lineno, name);
-                vector_free(line);
-                free(buffer);
-                fclose(file);
-                return -1;
-            }
-            if (stat(included, &st) < 0) {
-                warn("%s:%d: included file %s not found", name, lineno,
-                     included);
-                vector_free(line);
-                free(buffer);
-                fclose(file);
-                return -1;
-            }
-            if (S_ISDIR(st.st_mode)) {
-                DIR *dir;
-                struct dirent *entry;
-
-                dir = opendir(included);
-                while ((entry = readdir(dir)) != NULL) {
-                    char *path;
-
-                    if (strchr(entry->d_name, '.') != NULL)
-                        continue;
-                    length = strlen(included) + 1 + strlen(entry->d_name) + 1;
-                    path = xmalloc(length);
-                    snprintf(path, length, "%s/%s", included, entry->d_name);
-                    if (read_conf_file(config, path) < 0) {
-                        closedir(dir);
-                        free(path);
-                        free(buffer);
-                        fclose(file);
-                        return -1;
-                    }
-                    free(path);
-                }
-                closedir(dir);
-                vector_free(line);
-            } else {
-                if (read_conf_file(config, included) < 0) {
-                    vector_free(line);
-                    fclose(file);
-                    free(buffer);
-                    return -1;
-                }
-                vector_free(line);
-            }
+            s = handle_include(line, name, lineno, read_conf_file, config);
+            if (s < 0)
+                goto fail;
+            vector_free(line);
+            line = NULL;
             continue;
         }
 
@@ -460,8 +445,6 @@ read_conf_file(struct config *config, const char *name)
         }
         confline = xmalloc(sizeof(struct confline));
         memset(confline, 0, sizeof(struct confline));
-        config->rules[config->count] = confline;
-        config->count++;
         confline->line    = line;
         confline->type    = line->strings[0];
         confline->service = line->strings[1];
@@ -480,9 +463,7 @@ read_conf_file(struct config *config, const char *name)
            logmask setting but no ACL files. */
         if (line->count <= arg_i) {
             warn("%s:%d: config parse error", name, lineno);
-            fclose(file);
-            free(buffer);
-            return -1;
+            goto fail;
         }
 
         /* Grab the list of ACL files. */
@@ -491,59 +472,128 @@ read_conf_file(struct config *config, const char *name)
         for (i = 0; i < line->count - arg_i; i++)
             confline->acls[i] = line->strings[i + arg_i];
         confline->acls[i] = NULL;
+
+        /* Success.  Put the configuration line in place. */
+        config->rules[config->count] = confline;
+        config->count++;
+        confline = NULL;
+        line = NULL;
     }
 
-    /* Free allocated memory and return success if fgets succeeded. */
-done:
+    /* Free allocated memory and return success. */
     free(buffer);
-    if (ferror(file)) {
-        fclose(file);
-        return -1;
-    }
     fclose(file);
     return 0;
+
+    /* Abort with an error. */
+fail:
+    if (dir != NULL)
+        closedir(dir);
+    if (line != NULL)
+        vector_free(line);
+    if (confline != NULL) {
+        if (confline->logmask != NULL)
+            cvector_free(confline->logmask);
+        free(confline);
+    }
+    free(buffer);
+    fclose(file);
+    return -2;
+}
+
+
+/*
+**  Check to see if a given principal is in a given file.  This function is
+**  recursive to handle included ACL files and only does a simple check to
+**  prevent infinite recursion, so be careful.  The first argument is the user
+**  to check, which is passed in as a void * so that acl_check_file and
+**  read_conf_file can share common include-handling code.
+**
+**  Returns 0 if the user is authorized, -1 if they aren't, and -2 on some
+**  sort of failure (such as failure to read a file or a syntax error).
+*/
+static int
+acl_check_file(void *data, const char *aclfile)
+{
+    const char *user = data;
+    FILE *file = NULL;
+    char buffer[BUFSIZ];
+    char *p;
+    int lineno, s;
+    size_t length;
+    struct vector *line = NULL;
+
+    file = fopen(aclfile, "r");
+    if (file == NULL) {
+        syswarn("cannot open ACL file %s", aclfile);
+        return -2;
+    }
+    lineno = 0;
+    while (fgets(buffer, sizeof(buffer), file) != NULL) {
+        lineno++;
+        length = strlen(buffer);
+        if (length >= sizeof(buffer) - 1) {
+            warn("%s:%d: ACL file line too long", aclfile, lineno);
+            goto fail;
+        }
+
+        /* Skip blank lines or commented-out lines and remove trailing
+         * whitespace. */
+        p = buffer + length - 1;
+        while (isspace((int) *p))
+            p--;
+        p[1] = '\0';
+        p = buffer;
+        while (isspace((int) *p))
+            p++;
+        if (*p == '\0' || *p == '#')
+            continue;
+
+        /* Parse the line. */
+        if (strchr(p, ' ') != NULL) {
+            line = vector_split_space(buffer, NULL);
+            s = handle_include(line, aclfile, lineno, acl_check_file, data);
+            vector_free(line);
+            line = NULL;
+            if (s != -1) {
+                fclose(file);
+                return s;
+            }
+        } else if (strcmp(p, user) == 0) {
+            fclose(file);
+            return 0;
+        }
+    }
+    return -1;
+
+fail:
+    if (line != NULL)
+        vector_free(line);
+    if (file != NULL)
+        fclose(file);
+    return -2;
 }
 
 
 /*
 **  Check to see if a given principal is in a given list of ACL files.  The
-**  list of ACL files should be NULL-terminated.  Empty lines and lines
-**  beginning with # in the ACL file are ignored.
+**  list of ACL files should be NULL-terminated.  Special-case "ANYUSER" as
+**  the first filename.
 **
 **  Returns 0 on success and -1 on failure.
 */
 static int
 acl_check(char *userprincipal, char **acls)
 {
-    char *buf;
-    char *line;
-    int authorized = 0;
-    int i = 0;
+    int status, i;
 
-    if (strcmp(acls[i], "ANYUSER") == 0)
+    if (strcmp(acls[0], "ANYUSER") == 0)
         return 0;
-
-    while (acls[i] != NULL) {
-        if ((buf = read_file(acls[i])) == NULL)
-            return -1;
-
-        for (line = strtok(buf, "\n"); line != NULL; line = strtok(NULL, "\n")){
-            if (*line == '\0' || *line == '#')
-                continue;
-            if (strcmp(line, userprincipal) == 0) {
-                authorized = 1;
-                break;
-            }
-        }
-        
-        free(buf);
-
-        if (authorized)
-            return 0;
-        else
-            i++;
+    for (i = 0; acls[i] != NULL; i++) {
+        status = acl_check_file(userprincipal, acls[i]);
+        if (status != -1)
+            return status;
     }
-
     return -1;
 }
 

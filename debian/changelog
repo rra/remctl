@@ -5,8 +5,9 @@ remctl (1.11-1) unstable; urgency=low
       easier to pass options to remote programs.
     - Include example of how to use remctl like rsh.  Thanks, Romain
       LENGLET.
+    - Support include in ACL files.  (Closes: #309418)
 
- --
+ -- Russ Allbery <rra@debian.org>  Thu, 22 Dec 2005 16:43:59 -0800
 
 remctl (1.10-1) unstable; urgency=low
 

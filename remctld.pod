@@ -123,7 +123,14 @@ C<**MASKED**>.
 =item I<aclfile>
 
 The full paths of one or more access control files, each containing one 
-Kerberos v5 principal per line, such as C<username@stanford.edu>.
+Kerberos v5 principal per line, such as C<username@stanford.edu>.  Blank
+lines and lines beginning with C<#> are ignored in the ACL files.  As a
+special case, a line like:
+
+    include file
+
+in an ACL file includes other ACL files and is handled identically to the
+include directive in configuration files.
 
 The keyword ANYUSER may be used instead of the aclfiles to allow access to
 all users.  Note the user still needs to authenticate to B<remctld>, this
