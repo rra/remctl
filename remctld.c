@@ -406,6 +406,7 @@ read_conf_file(void *data, const char *name)
                 goto fail;
             }
             length = strlen(buffer);
+            p = buffer + length - 2;
         }
         if (length > 0)
             buffer[length - 1] = '\0';
