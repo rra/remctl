@@ -444,8 +444,7 @@ read_conf_file(void *data, const char *name)
             size = config->allocated * sizeof(struct confline *);
             config->rules = xrealloc(config->rules, size);
         }
-        confline = xmalloc(sizeof(struct confline));
-        memset(confline, 0, sizeof(struct confline));
+        confline = xcalloc(1, sizeof(struct confline));
         confline->line    = line;
         confline->type    = line->strings[0];
         confline->service = line->strings[1];
@@ -1067,7 +1066,7 @@ main(int argc, char *argv[])
     }
 
     /* Read the configuration file. */
-    config = xmalloc(sizeof(struct config));
+    config = xcalloc(1, sizeof(struct config));
     if (read_conf_file(config, conffile) != 0)
         die("cannot read configuration file %s", conffile);
 
