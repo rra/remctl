@@ -6,6 +6,9 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
 CFLAGS = -Wall -g
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
@@ -45,7 +48,7 @@ install: build
 	install -m 644 $(CURDIR)/debian/remctl.conf \
 	    $(CURDIR)/debian/remctl-server/etc/remctl/remctl.conf
 
-binary-indep: export DH_OPTIONS=-i
+binary-indep: DH_OPTIONS=-i
 binary-indep: build install
 	dh_testdir
 	dh_testroot
@@ -59,7 +62,7 @@ binary-indep: build install
 	dh_md5sums
 	dh_builddeb
 
-binary-arch: export DH_OPTIONS=-a
+binary-arch: DH_OPTIONS=-a
 binary-arch: build install
 	dh_testdir
 	dh_testroot

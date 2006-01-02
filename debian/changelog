@@ -1,3 +1,11 @@
+remctl (1.12-2) unstable; urgency=low
+
+  * Don't assume "rule: export VARIABLE=value" works in debian/rules;
+    instead, export the variable separate from the rule-specific setting.
+    The make on at least one of the buildds didn't like this construct.
+
+ -- Russ Allbery <rra@debian.org>  Sun,  1 Jan 2006 23:25:59 -0800
+
 remctl (1.12-1) unstable; urgency=low
 
   * New upstream release.
