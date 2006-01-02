@@ -1,3 +1,10 @@
+remctl (1.12-1) unstable; urgency=low
+
+  * New upstream release.
+    - Fix memory initialization bug in remctld configuration parsing.
+
+ -- Russ Allbery <rra@debian.org>  Sun,  1 Jan 2006 21:19:13 -0800
+
 remctl (1.11-1) unstable; urgency=low
 
   * New upstream version.
