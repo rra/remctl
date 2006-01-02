@@ -17,7 +17,9 @@ DESCRIPTION
 
   remctld is very similar to a CGI server that uses a different network
   protocol than HTTP and always does strong authentication before
-  executing the desired command.
+  executing the desired command.  Alternately, you can think of it as a
+  very simple combination of Kerberos rsh and sudo, without most of the
+  features of both but with simpler authorization.
 
   This package was developed to replace the use of sysctl, another package
   that allowed remote code execution with Kerberos (v4) authentication.
