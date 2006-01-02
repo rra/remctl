@@ -1,5 +1,9 @@
                        User-Visible remctl Changes
 
+remctl 1.12 (2006-01-01)
+
+    Initialize memory properly when parsing the server configuration file.
+
 remctl 1.11 (2005-12-22)
 
     Support include directives in remctld ACL files with the same syntax
