@@ -3,7 +3,7 @@ dnl $Id$
 
 AC_REVISION($Revision$)
 AC_PREREQ(2.57)
-AC_INIT([remctl], [1.11], [rra@stanford.edu])
+AC_INIT([remctl], [1.12], [rra@stanford.edu])
 
 m4_include([m4/krb5.m4])
 m4_include([m4/snprintf.m4])
