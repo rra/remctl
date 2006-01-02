@@ -45,34 +45,36 @@ install: build
 	install -m 644 $(CURDIR)/debian/remctl.conf \
 	    $(CURDIR)/debian/remctl-server/etc/remctl/remctl.conf
 
+binary-indep: export DH_OPTIONS=-i
 binary-indep: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs -i
-	dh_installdocs -i
-	dh_link -i
-	dh_compress -i
-	dh_fixperms -i
-	dh_installdeb -i
-	dh_gencontrol -i
-	dh_md5sums -i
-	dh_builddeb -i
+	dh_installchangelogs
+	dh_installdocs 
+	dh_link
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
 
+binary-arch: export DH_OPTIONS=-a
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs -a NEWS
-	dh_installdocs -a
-	dh_installexamples -a
-	dh_link -a
-	dh_strip -a
-	dh_compress -a
-	dh_fixperms -a
-	dh_installdeb -a
-	dh_shlibdeps -a
-	dh_gencontrol -a
-	dh_md5sums -a
-	dh_builddeb -a
+	dh_installchangelogs NEWS
+	dh_installdocs
+	dh_installexamples
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
 
 binary: binary-arch binary-indep
 .PHONY: build clean binary-arch binary-indep binary install

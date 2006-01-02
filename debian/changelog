@@ -2,8 +2,9 @@ remctl (1.12-1) unstable; urgency=low
 
   * New upstream release.
     - Fix memory initialization bug in remctld configuration parsing.
+  * Use DH_OPTIONS in debian/rules to avoid -i and -a clutter.
 
- -- Russ Allbery <rra@debian.org>  Sun,  1 Jan 2006 21:19:13 -0800
+ -- Russ Allbery <rra@debian.org>  Sun,  1 Jan 2006 21:21:40 -0800
 
 remctl (1.11-1) unstable; urgency=low
 
