@@ -4,6 +4,10 @@ remctl 1.12 (2006-01-01)
 
     Initialize memory properly when parsing the server configuration file.
 
+    Library probes with --enable-static cannot use krb5-config, since we
+    can't distinguish between the Kerberos libraries that should be static
+    and the system library dependencies that must not be made static.
+
 remctl 1.11 (2005-12-22)
 
     Support include directives in remctld ACL files with the same syntax
