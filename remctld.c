@@ -426,7 +426,7 @@ read_conf_file(void *data, const char *name)
         line = vector_split_space(buffer, NULL);
         if (line->count < 4) {
             s = handle_include(line, name, lineno, read_conf_file, config);
-            if (s < 0)
+            if (s < -1)
                 goto fail;
             vector_free(line);
             line = NULL;

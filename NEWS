@@ -1,5 +1,10 @@
                        User-Visible remctl Changes
 
+remctl 2.0 (unreleased)
+
+    Don't consider inclusion of empty directories in a configuration file
+    an error.
+
 remctl 1.12 (2006-01-01)
 
     Initialize memory properly when parsing the server configuration file.
