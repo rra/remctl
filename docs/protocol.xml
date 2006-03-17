@@ -295,5 +295,78 @@
         MUST immediately close the connection.</t>
       </section>
     </section>
+
+    <section anchor='proto1' title='Network Protocol (version 1)'>
+      <t>The old network protocol supported only 64KB of data payload,
+      only a single command and response, and had some additional
+      unnecessary protocol components.  It SHOULD NOT be used by clients,
+      but MAY be supported by servers for backward compatibility.  It is
+      recognized by the server and client by the lack of TOKEN_PROTOCOL in
+      the flags of the initial security context negotiation.</t>
+
+      <t>The old protocol always uses the following steps:</t>
+
+      <list style='numbers'>
+        <t>Client opens TCP connection to server.</t>
+
+        <t>Client sends message with flags TOKEN_NOOP and
+        TOKEN_CONTEXT_NEXT and an empty payload.</t>
+
+        <t>Server replies with the results of gss_accept_sec_context and
+        flags TOKEN_CONTEXT.</t>
+
+        <t>Client passes data to gss_init_sec_context and replies with the
+        results and TOKEN_CONTEXT.</t>
+
+        <t>Server and client repeat, passing in the payload from the last
+        packet from the other side, for as long as GSSAPI indicates that
+        continuation is required.  Each of these packets have only
+        TOKEN_CONTEXT set in the flags.</t>
+
+        <t>Client sends command with flags TOKEN_DATA and TOKEN_SEND_MIC
+        and the following payload format:  four byte number of arguments,
+        and then for each argument, a four byte length and then the
+        argument value.  All numbers are in network type order.</t>
+
+        <t>Server accepts and decrypts data, generates a MIC with
+        gss_get_mic, and sends the MIC back to the client with flags
+        TOKEN_MIC.  This is the only packet that isn't encrypted with
+        gss_wrap.  Client receives and then SHOULD verify this MIC.</t>
+
+        <t>Server runs the command, collects the output, and sends the
+        output back with flags TOKEN_DATA and the following payload
+        format:  four byte exit status, four byte data length, data.  All
+        numbers are in network byte order.  The exit status is 0 if there
+        were no errors and non-zero otherwise, where the meaning of
+        non-zero values are defined by the application.</t>
+
+        <t>Server and client close connection.</t>
+      </list>
+    </section>
+
+    <section anchor='security' title='Security Considerations'>
+      <t>The old protocol doesn't provide integrity protection for the
+      flags, but since it always follows the same fixed sequence of
+      operations, this should pose no security concerns in practice.  The
+      new protocol only uses the flag field outside of the encrypted
+      section of the packet for initial negotiation and closes the
+      connection if the flags aren't what was expected (avoiding a
+      down-negotiation attack).</t>
+
+      <t>In the old protocol, the server calculated and sent a MIC back to
+      the client, which then verified that the command as received by the
+      server was correct.  Not only does GSSAPI already provide integrity
+      protection, but this verification also happens after the server has
+      already started running the command.  It has been dropped in the new
+      protocol.</t>
+    </section>
   </middle>
+  <back>
+    <section anchor='credits' title='Acknowledgements'>
+      <t>The original remctl protocol design was done by Anton Ushakov,
+      with input from Russ Allbery and Roland Schemers.  Thank you to
+      David Hoffman and Mike Newton for their review of the version 2
+      remctl protocol.</t>
+    </section>
+  </back>
 </rfc>
