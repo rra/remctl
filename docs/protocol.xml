@@ -1,0 +1,299 @@
+<?xml version="1.0"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd">
+<?rfc private="remctl Protocol"?>
+<?rfc toc="yes"?>
+<rfc>
+  <front>
+    <title>remctl: Authenticated Remote Command Execution</title>
+    <author initials='R.' surname='Allbery' fullname='Russ Allbery'>
+      <organization>Stanford University</organization>
+      <address>
+        <postal>
+          <street>255 Panama Street, MC 4136</street>
+          <city>Stanford</city> <region>CA</region>
+          <code>94305-4136</code> <country>US</country>
+        </postal>
+        <email>rra@stanford.edu</email>
+        <uri>http://www.eyrie.org/~eagle/</uri>
+      </address>
+    </author>
+    <date month='March' year='2006' />
+
+    <abstract>
+      <t>This document specifies the remctl wire protocol, used to send
+      commands and arguments to a remote system and receive the results of
+      executing that command.  The protocol uses GSSAPI and Kerberos v5
+      for authentication, confidentiality, and integrity protection.  Both
+      the current (version 2) protocol and the older version 1 protocol
+      are described.  The version 1 protocol should only be implemented
+      for backward compatibility.</t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section anchor='format' title='Basic Packet Format'>
+      <t>The remctl network protocol consists of data packets sent from a
+      client to a server or a server to a client over a TCP connection.
+      Each packet has the following format:</t>
+
+      <figure>
+        <artwork>
+    1 byte      flags
+    4 bytes     length
+    &lt;length>    data payload
+        </artwork>
+      </figure>
+
+      <figure>
+        <preamble>The flag byte contains one or more of the following
+        values, combined with binary xor:</preamble>
+
+        <artwork>
+    0x01        TOKEN_NOOP
+    0x02        TOKEN_CONTEXT
+    0x04        TOKEN_DATA
+    0x08        TOKEN_MIC
+    0x10        TOKEN_CONTEXT_NEXT
+    0x20        TOKEN_SEND_MIC
+    0x40        TOKEN_PROTOCOL
+        </artwork>
+
+        <postamble>Only TOKEN_CONTEXT, TOKEN_CONTEXT_NEXT, TOKEN_DATA, and
+        TOKEN_PROTOCOL are used for version 2 packets.  The other flags
+        are used only with the legacy version 1 protocol.</postamble>
+      </figure>
+
+      <t>The length field is a four-byte length in network byte order,
+      specifying the number of octets in the following data payload.</t>
+
+      <t>The data payload is empty, the results of gss_accept_sec_context,
+      the results of gss_init_sec_context, or a data payload protected
+      with gss_wrap.  The maximum size of the data payload of a remctl
+      packet is constrained by the maximum message size in the GSSAPI
+      protocol, which for Kerberos v5 is 64KB.</t>
+    </section>
+
+    <section anchor='proto2' title='Network Protocol (version 2)'>
+      <section anchor='packet' title='Session Sequence'>
+        <t>A remctl connection is always initiated by a client opening a
+        TCP connection to a server.  The protocol then proceeds as
+        follows:</t>
+
+        <list style='numbers'>
+          <t>Client sends message with an empty payload and flags
+          TOKEN_NOOP, TOKEN_CONTEXT_NEXT, and TOKEN_PROTOCOL (0x51).  If
+          the client doesn't include TOKEN_PROTOCOL, it is speaking the
+          version 1 protocol, and the server MUST either drop the
+          connection or fall back to the version 1 protocol.</t>
+
+          <t>Server replies with the results of gss_accept_sec_context and
+          flags TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  If the server
+          doesn't include TOKEN_PROTOCOL in the flags, it is speaking the
+          version 1 protocol, and the client MUST either drop the
+          connection or fall back to the version 1 protocol.</t>
+
+          <t>Client passes data to gss_init_sec_context and replies with
+          the results and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The
+          client must pass GSS_C_MUTUAL_FLAG, GSS_C_REPLAY_FLAG,
+          GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG as requested flags.</t>
+
+          <t>Server and client repeat, passing in the payload from the
+          last packet from the other side, for as long as GSSAPI indicates
+          that continuation is required.  If either side drops
+          TOKEN_PROTOCOL from the flags, it is an considered an error and
+          the connect MUST be dropped.  (This could be a down-negotiation
+          attack.)  After the establishment of the security context, both
+          client and server MUST confirm that GSS_C_MUTUAL_FLAG,
+          GSS_C_REPLAY_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG are set
+          in the resulting security context and MUST immediately close the
+          connection if this is not the case.</t>
+
+          <t>After the security context has been established, the client
+          and server exchange commands and responses as described below.
+          All commands are sent with flags TOKEN_DATA and TOKEN_PROTOCOL
+          (0x44) and the data payload of all packets is protected with
+          gss_wrap.  The conf_req_flag parameter of gss_wrap MUST be set
+          to non-zero, requesting both confidentiality and integrity
+          services.</t>
+        </list>
+      </section>
+
+      <section anchor='messages' title='Message Format'>
+        <t>All client and server messages will use the following format
+        inside the data payload.  This is the format of the message before
+        passing it to gss_wrap for confidentiality and integrity
+        protection.</t>
+
+        <figure>
+          <artwork>
+    1 byte      protocol version
+    1 byte      message type
+    &lt;command-specific data>
+          </artwork>
+        </figure>
+
+        <t>The protocol version for the version 2 protocol is 2.  (Note
+        that the version 1 protocol does not use this message format, and
+        therefore a protocol version of 1 is invalid.)  See below for
+        protocol version negotiation.</t>
+
+        <figure>
+          <preamble>The message type is one of the following
+          constants:</preamble>
+
+          <artwork>
+    1   MESSAGE_COMMAND
+    2   MESSAGE_QUIT
+    3   MESSAGE_OUTPUT
+    4   MESSAGE_STATUS
+    5   MESSAGE_ERROR
+    6   MESSAGE_VERSION
+          </artwork>
+        </figure>
+
+        <t>The first two message types are client messages and MUST NOT be
+        sent by the server.  The remaining message types are server messages
+        and MUST NOT by sent by the client.</t>
+      </section>
+
+      <section anchor='negotiation' title='Protocol Version Negotiation'>
+        <t>If the server ever receives a message from a client that claims a
+        protocol version higher than the server supports, the server MUST
+        otherwise ignore the contents of the message and SHOULD respond with
+        a message type of MESSAGE_VERSION and the following message
+        payload:</t>
+
+        <figure>
+          <artwork>
+    1 byte      highest supported version
+          </artwork>
+        </figure>
+
+        <t>The client MUST then either send only messages supported at
+        that protocol version or lower or send MESSAGE_QUIT and close the
+        connection.</t>
+      </section>
+
+      <section anchor='command' title='MESSAGE_COMMAND'>
+        <t>Most client messages will be of type MESSAGE_COMMAND, which has
+        the following format:</t>
+
+        <figure>
+          <artwork>
+    1 byte      keep-alive flag
+    1 byte      continue status
+    4 bytes     number of arguments
+    4 bytes     argument length
+    &gt;length>    argument
+    ...
+          </artwork>
+        </figure>
+
+        <t>If the keep-alive flag is 0, the server SHOULD close the
+        connection after processing the command.  If it is 1, the server
+        SHOULD leave the connection open (up to a timeout period) and wait
+        for more commands.  This is similar to HTTP keep-alive.</t>
+
+        <t>If the continue status is 1, it indicates that there is more
+        data coming.  The server should accept the data sent, buffer or
+        process it, and wait for more data before responding.  If the the
+        continue status is 2, it indicates that this message is logically
+        a part of the previous message (which MUST have had a continue
+        status of 1 or 2) and still has more data coming.  If the continue
+        status is 3, it says that this message is logically part of the
+        previous message, like 2, but it also says that this is the end of
+        the command.</t>
+
+        <t>Number of arguments is a four-byte number in network byte order
+        that gives the total number of command arguments.  For each
+        argument, there is then a length and argument data pair, where the
+        length is a four-byte number in network byte order indicating the
+        number of octets of data in the following argument.  Both number
+        of arguments and length may be 0.</t>
+      </section>
+
+      <section anchor='output' title='MESSAGE_OUTPUT and MESSAGE_STATUS'>
+        <t>The server response to MESSAGE_COMMAND is zero or more
+        MESSAGE_OUTPUT messages followed by a MESSAGE_STATUS response.
+        Each MESSAGE_OUTPUT message has the following format:</t>
+
+        <figure>
+          <artwork>
+    1 byte      output stream
+    4 bytes     output length
+    &lt;length>    output
+          </artwork>
+        </figure>
+
+        <t>The output stream is either 1 for standard output or 2 for
+        standard error.  Output length is a four-byte number in network
+        byte order that specifies the length of the following output
+        data.</t>
+
+        <t>The MESSAGE_STATUS message has the following format:</t>
+
+        <figure>
+          <artwork>
+    1 byte      exit status
+          </artwork>
+        </figure>
+
+        <t>MESSAGE_STATUS indicates the command has finished and returns
+        the final exit stauts of the command.  Exit status is 0 for
+        success and non-zero for failure, where the meaning of non-zero
+        exit statuses is left to the application to define.  (This is
+        identical to a Unix command exit status.)</t>
+
+        <t>Unless the MESSAGE_COMMAND message from the client had the
+        keep-alive flag set to 1, the server MUST close the network
+        connection immediately after sending the MESSAGE_STATUS response
+        message.</t>
+      </section>
+
+      <section anchor='error' title='MESSAGE_ERROR'>
+        <t>The server may instead respond to MESSAGE_COMMAND with a
+        MESSAGE_ERROR message.  The format of MESSAGE_ERROR is as
+        follows:</t>
+
+        <figure>
+          <artwork>
+    4 bytes     error code
+    4 bytes     message length
+    &lt;length>    error message
+          </artwork>
+        </figure>
+
+        <t>The error code is a four-byte number in network byte order
+        indicating the type of error.  The error code must be one of the
+        following values:</t>
+
+        <figure>
+          <artwork>
+    TO BE DETERMINED
+          </artwork>
+        </figure>
+
+        <t>The message length is a four-byte number in network byte order
+        that specifies the length in octets of the following error
+        message.  The error message is a free-form informational message
+        intended for human consumption and MUST NOT be interpreted by an
+        automated process.  Software should instead use the error
+        code.</t>
+
+        <t>Unless the MESSAGE_COMMAND message from the client had the
+        keep-alive flag set to 1, the server MUST close the network
+        connection immediately after sending the MESSAGE_ERROR response
+        message.  Otherwise, the server SHOULD still honor that flag,
+        although the server MAY terminate the connection after an
+        unreasonable number of errors.</t>
+      </section>
+
+      <section anchor='quit' title='MESSAGE_QUIT'>
+        <t>MESSAGE_QUIT is a way of terminating the connection cleanly if
+        the client asked for keep-alive and then decided not to use it.
+        There is no message body.  Upon receiving this message, the server
+        MUST immediately close the connection.</t>
+      </section>
+    </section>
+  </middle>
+</rfc>
