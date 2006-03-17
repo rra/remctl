@@ -184,7 +184,7 @@
     1 byte      continue status
     4 bytes     number of arguments
     4 bytes     argument length
-    &gt;length>    argument
+    &lt;length>    argument
     ...
           </artwork>
         </figure>
