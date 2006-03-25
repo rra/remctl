@@ -12,7 +12,6 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: krb5-devel
 Requires: krb5-workstation
 Distribution: EL
-ExclusiveArch: i686
 
 %description
 remctl is a client/server protocol for executing specific commands on a
@@ -26,7 +25,7 @@ that command.
 %setup
 
 %build
-PATH="/sbin:/bin:/usr/sbin:$PATH \
+PATH="/sbin:/bin:/usr/sbin:$PATH" \
 %configure
 %{__make}
 
@@ -41,7 +40,8 @@ install -c -m 0644 examples/xinetd %{buildroot}/etc/xinetd.d/remctl
 %doc NEWS README
 %{_bindir}/*
 %{_sbindir}/*
-%{_mandir)/*/*
+%{_mandir}/*/*
+/etc/xinetd.d/remctl
 
 %post
 # If this is the first remctl install, add remctl to /etc/services and
