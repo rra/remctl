@@ -5,7 +5,7 @@ Release: 3
 Copyright: MIT
 URL: http://www.eyrie.org/~eagle/software/remctl/
 Source: http://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
-Group: Server/Monitoring
+Group: System Environment/Daemons
 Vendor: Stanford University
 Packager: Digant C Kasundra <digant@stanford.edu>
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
