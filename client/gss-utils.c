@@ -31,8 +31,8 @@
 #endif
 
 #include "gss-utils.h"
-#include "messages.h"
-#include "xmalloc.h"
+#include <util/messages.h>
+#include <util/xmalloc.h>
 
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver. */

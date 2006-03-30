@@ -29,8 +29,8 @@
 #endif
 
 #include "gss-utils.h"
-#include "messages.h"
-#include "xmalloc.h"
+#include <util/messages.h>
+#include <util/xmalloc.h>
 
 /* Handle compatibility to older versions of MIT Kerberos. */
 #ifndef HAVE_GSS_RFC_OIDS

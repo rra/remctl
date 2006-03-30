@@ -1,5 +1,5 @@
 dnl snprintf.m4 -- Test for a working C99 snprintf.
-dnl $Id: snprintf.m4 6544 2003-12-26 03:23:31Z rra $
+dnl $Id$
 dnl
 dnl Check for a working snprintf.  Some systems have an snprintf that doesn't
 dnl nul-terminate if the buffer isn't large enough.  Others return -1 if the
@@ -47,5 +47,5 @@ if test "$rra_cv_func_snprintf_works" = yes ; then
     AC_DEFINE([HAVE_SNPRINTF], 1,
         [Define if your system has a working snprintf function.])
 else
-    AC_LIBOBJ([snprintf])
+    AC_LIBOBJ([util/snprintf])
 fi])

@@ -1,4 +1,4 @@
-/*  $Id: messages.h,v 1.5 2004/05/16 23:30:18 rra Exp $
+/*  $Id$
 **
 **  Logging, debugging, and error reporting functions.
 **
