@@ -34,7 +34,6 @@ extern int READFD;
 extern int WRITEFD;
 
 
-
 /*
 **  Wraps, encrypts, and sends a data payload token, getting back a MIC
 **  checksum that it verifies.  Takes the GSSAPI context, the flags received
@@ -321,81 +320,6 @@ read_all(int fd, void *buffer, size_t size)
         }
     }
     return (total < size) ? -1 : (ssize_t) total;
-}
-
-
-/*
-**  Reads from two streams simultaneously into two different buffers, stopping
-**  when both streams reach EOF.  If the buffer fills, truncate at the buffer
-**  size but always nul-terminate.
-*/
-ssize_t
-read_two(int readfd1, int readfd2, void *buf1, void *buf2, size_t nbyte1, 
-         size_t nbyte2)
-{
-    void *ptr1, *ptr2;
-    ssize_t ret1, ret2;
-    char tempbuf[MAXBUFFER];
-    int status, max;
-    fd_set readfds;
-
-    ptr1 = buf1;
-    ptr2 = buf2;
-    ret1 = ret2 = 1;
-
-    while (ret1 != 0 || ret2 != 0) {
-        FD_ZERO(&readfds);
-        if (ret1 != 0)
-            FD_SET(readfd1, &readfds);
-        if (ret2 != 0)
-            FD_SET(readfd2, &readfds);
-        max = (readfd1 > readfd2) ? readfd1 : readfd2;
-        status = select(max + 1, &readfds, NULL, NULL, NULL);
-        if (status == 0)
-            continue;
-        if (status < 0)
-            return status;
-
-        if (FD_ISSET(readfd1, &readfds)) {
-            if (nbyte1 != 0) {
-                if ((ret1 = read(readfd1, ptr1, nbyte1)) < 0) {
-                    if ((errno != EINTR) && (errno != EAGAIN))
-                        return (ret1);
-                } else {
-                    ptr1 = (char *) ptr1 + ret1;
-                    nbyte1 -= ret1;
-                }
-            } else {
-                tempbuf[0] = '\0';
-                if ((ret1 = read(readfd1, tempbuf, MAXBUFFER)) < 0) {
-                    if ((errno != EINTR) && (errno != EAGAIN))
-                        return (ret1);
-                }
-            }
-        }
-
-        if (FD_ISSET(readfd2, &readfds)) {
-            if (nbyte2 != 0) {
-                if ((ret2 = read(readfd2, ptr2, nbyte2)) < 0) {
-                    if ((errno != EINTR) && (errno != EAGAIN))
-                        return (ret2);
-                } else {
-                    ptr2 = (char *) ptr2 + ret2;
-                    nbyte2 -= ret2;
-                }
-            } else {
-                tempbuf[0] = '\0';
-                if ((ret2 = read(readfd2, tempbuf, MAXBUFFER)) < 0) {
-                    if ((errno != EINTR) &&  (errno != EAGAIN))
-                        return (ret2);
-                }
-            }
-        }
-    }
-
-    * ((char *)ptr1) = '\0';
-    * ((char *)ptr2) = '\0';
-    return ((char *) ptr1 - (char *) buf1 + (char *) ptr2 - (char *) buf2);
 }
 
 

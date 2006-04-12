@@ -34,8 +34,6 @@ ssize_t write_all(int fd, const void *buffer, size_t size);
 /* Read all of the available data from a file descriptor or from two file
    descriptors using select to listen to both of them. */
 ssize_t read_all(int fd, void *buffer, size_t size);
-ssize_t read_two(int readfd1, int readfd2, void *buf1, void *buf2,
-                 size_t nbyte1, size_t nbyte2);
 
 /* Display GSSAPI information. */
 void display_status(const char *msg, OM_uint32 maj_stat, OM_uint32 min_stat);
