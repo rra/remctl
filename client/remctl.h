@@ -74,18 +74,11 @@ void remctl_close(struct remctl *);
    On failure, use remctl_error to get the error.  There are two forms of this
    function; remctl_command takes a NULL-terminated array of nul-terminated
    strings and remctl_commandv takes an array of struct iovecs of length
-   count.  The latter form should be used for binary data. */
-int remctl_command(struct remctl *, const char **command);
-int remctl_commandv(struct remctl *, const struct iovec *, size_t count);
-
-/* Send a partial command.  This has the same return status and the same
-   varients as remctl_command but is used for command arguments that are
-   larger than the allowable buffer size or that are more convenient to
-   specify in pieces.  finished is a boolean flag that should be false when
-   the command is not yet complete and true when this is the final segment of
-   the command. */
-int remctl_partial(struct remctl *, const char **command, int finished);
-int remctl_partialv(struct remctl *, const struct iovec *, size_t count,
+   count.  The latter form should be used for binary data.  finished is a
+   boolean flag that should be false when the command is not yet complete and
+   true when this is the final (or only) segment of the command. */
+int remctl_command(struct remctl *, const char **command, int finished);
+int remctl_commandv(struct remctl *, const struct iovec *, size_t count,
                     int finished);
 
 /* Retrieve output from the remote server.  Each call to this function on the
