@@ -34,18 +34,6 @@ extern int READFD;
 extern int WRITEFD;
 
 
-/*
-**  Lowercase a string in place.
-*/
-void 
-lowercase(char *string)
-{
-    char *p;
-
-    for (p = string; *p != '\0'; p++)
-        *p = tolower(*p);
-}
-
 
 /*
 **  Wraps, encrypts, and sends a data payload token, getting back a MIC
