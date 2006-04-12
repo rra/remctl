@@ -22,14 +22,12 @@
 **  as I'm not sure if it's a violation of the C type aliasing rules.
 */
 
-#include "config.h"
+#include <config.h>
+#include <system.h>
 
 #include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "vector.h"
-#include "xmalloc.h"
+#include <util/util.h>
 
 /*
 **  Allocate a new, empty vector.
@@ -230,16 +228,10 @@ vector_split(const char *string, char separator, struct vector *vector)
 
     for (start = string, p = string, i = 0; *p; p++)
         if (*p == separator) {
-            vector->strings[i] = xmalloc(p - start + 1);
-	    strncpy(vector->strings[i], start, p - start);
-            vector->strings[i][p - start] = '\0';
-            i++;
+            vector->strings[i++] = xstrndup(start, p - start);
             start = p + 1;
         }
-    vector->strings[i] = xmalloc(p - start + 1);
-    strncpy(vector->strings[i], start, p - start);
-    vector->strings[i][p - start] = '\0';
-    i++;
+    vector->strings[i++] = xstrndup(start, p - start);
     vector->count = i;
 
     return vector;
@@ -322,20 +314,12 @@ vector_split_space(const char *string, struct vector *vector)
 
     for (start = string, p = string, i = 0; *p; p++)
         if (*p == ' ' || *p == '\t') {
-            if (start != p) {
-                vector->strings[i] = xmalloc(p - start + 1);
-                strncpy(vector->strings[i], start, p - start);
-                vector->strings[i][p-start] = '\0';
-                i++;
-            }
+            if (start != p)
+                vector->strings[i++] = xstrndup(start, p - start);
             start = p + 1;
         }
-    if (start != p) {
-        vector->strings[i] = xmalloc(p - start + 1);
-        strncpy(vector->strings[i], start, p - start);
-        vector->strings[i][p-start] = '\0';
-        i++;
-    }
+    if (start != p)
+        vector->strings[i++] = xstrndup(start, p - start);
     vector->count = i;
 
     return vector;
@@ -391,13 +375,13 @@ vector_join(const struct vector *vector, const char *seperator)
     seplen = strlen(seperator);
     for (size = 0, i = 0; i < vector->count; i++)
         size += strlen(vector->strings[i]);
-    size += (vector->count - 1) * seplen;
+    size += (vector->count - 1) * seplen + 1;
 
-    string = xmalloc(size + 1);
-    strcpy(string, vector->strings[0]);
+    string = xmalloc(size);
+    strlcpy(string, vector->strings[0], size);
     for (i = 1; i < vector->count; i++) {
-        strcat(string, seperator);
-        strcat(string, vector->strings[i]);
+        strlcat(string, seperator, size);
+        strlcat(string, vector->strings[i], size);
     }
 
     return string;
@@ -412,13 +396,13 @@ cvector_join(const struct cvector *vector, const char *seperator)
     seplen = strlen(seperator);
     for (size = 0, i = 0; i < vector->count; i++)
         size += strlen(vector->strings[i]);
-    size += (vector->count - 1) * seplen;
+    size += (vector->count - 1) * seplen + 1;
 
-    string = xmalloc(size + 1);
-    strcpy(string, vector->strings[0]);
+    string = xmalloc(size);
+    strlcpy(string, vector->strings[0], size);
     for (i = 1; i < vector->count; i++) {
-        strcat(string, seperator);
-        strcat(string, vector->strings[i]);
+        strlcat(string, seperator, size);
+        strlcat(string, vector->strings[i], size);
     }
 
     return string;
@@ -426,9 +410,24 @@ cvector_join(const struct cvector *vector, const char *seperator)
 
 
 /*
-**  Local variables:
-**  mode: c
-**  c-basic-offset: 4
-**  indent-tabs-mode: nil
-**  end:
+**  Given a vector and a path to a program, exec that program with the vector
+**  as its arguments.  This requires adding a NULL terminator to the vector
+**  and casting it appropriately.
 */
+int
+vector_exec(const char *path, struct vector *vector)
+{
+    if (vector->allocated == vector->count)
+        vector_resize(vector, vector->count + 1);
+    vector->strings[vector->count] = NULL;
+    return execv(path, (char * const *) vector->strings);
+}
+
+int
+cvector_exec(const char *path, struct cvector *vector)
+{
+    if (vector->allocated == vector->count)
+        cvector_resize(vector, vector->count + 1);
+    vector->strings[vector->count] = NULL;
+    return execv(path, (char * const *) vector->strings);
+}

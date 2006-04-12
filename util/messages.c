@@ -52,17 +52,13 @@
 **  va_list, and the applicable errno value (if any).
 */
 
-#include "config.h"
+#include <config.h>
+#include <system.h>
+
 #include <errno.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
 #include <syslog.h>
 
-#include "messages.h"
-#include "xmalloc.h"
+#include <util/util.h>
 
 /* The default handler lists. */
 static message_handler_func stdout_handlers[2] = {

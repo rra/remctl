@@ -5,6 +5,12 @@ remctl 2.0 (unreleased)
     Don't consider inclusion of empty directories in a configuration file
     an error.
 
+    Add an automated test suite.
+
+    Completely rewrite the build system to use Automake, a supporting
+    utility library, separate subdirectories for different parts of the
+    source tree, and a wrapper include file for system headers.
+
 remctl 1.12 (2006-01-01)
 
     Initialize memory properly when parsing the server configuration file.

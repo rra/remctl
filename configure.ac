@@ -17,8 +17,13 @@ AC_SEARCH_LIBS([socket], [socket], ,
     [AC_CHECK_LIB([nsl], [socket],
         [LIBS="-lnsl -lsocket $LIBS"], , [-lsocket])])
 RRA_LIB_KRB5([gssapi], [false])
+AC_CHECK_HEADERS([inttypes.h stdint.h sys/bitypes.h])
+AC_CHECK_DECLS([snprintf, vsnprintf])
 AC_CHECK_TYPES([long long])
 RRA_FUNC_SNPRINTF
+AC_CHECK_FUNCS([setrlimit])
+AC_CHECK_FUNC([strlcat], [], [AC_LIBOBJ([util/strlcat])])
+AC_CHECK_FUNC([strlcpy], [], [AC_LIBOBJ([util/strlcpy])])
 AC_TYPE_SIGNAL
 
 AC_CONFIG_HEADER([config.h])

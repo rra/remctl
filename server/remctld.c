@@ -11,7 +11,8 @@
 **  See README for copyright and licensing information.
 */
 
-#include "config.h"
+#include <config.h>
+#include <system.h>
 
 #include <ctype.h>
 #include <dirent.h>
@@ -19,17 +20,12 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <syslog.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
-#include <unistd.h>
 
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>
@@ -38,9 +34,7 @@
 #endif
 
 #include "gss-utils.h"
-#include <util/messages.h>
-#include <util/vector.h>
-#include <util/xmalloc.h>
+#include <util/util.h>
 
 /* Handle compatibility to older versions of MIT Kerberos. */
 #ifndef HAVE_GSS_RFC_OIDS

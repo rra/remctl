@@ -9,20 +9,15 @@
 **  output from programs, to report GSSAPI problems, and similar purposes.
 */
 
-#include "config.h"
+#include <config.h>
+#include <system.h>
 
 #include <ctype.h>
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <syslog.h>
-#include <sys/types.h>
 #include <time.h>
-#include <unistd.h>
 
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>
@@ -31,8 +26,7 @@
 #endif
 
 #include "gss-utils.h"
-#include <util/messages.h>
-#include <util/xmalloc.h>
+#include <util/util.h>
 
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver. */

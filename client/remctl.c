@@ -7,20 +7,16 @@
 **  Written by Anton Ushakov <antonu@stanford.edu>
 */
 
-#include "config.h"
+#include <config.h>
+#include <system.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <ctype.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <errno.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
 
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>
@@ -29,8 +25,7 @@
 #endif
 
 #include "gss-utils.h"
-#include <util/messages.h>
-#include <util/xmalloc.h>
+#include <util/util.h>
 
 /* Handle compatibility to older versions of MIT Kerberos. */
 #ifndef HAVE_GSS_RFC_OIDS
