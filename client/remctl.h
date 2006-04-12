@@ -97,10 +97,9 @@ int remctl_commandv(struct remctl *, const struct iovec *, size_t count,
 struct remctl_output *remctl_output(struct remctl *);
 
 /* Call remctl_error after an error return to retrieve the internal error
-   message.  The resulting error message will be a nul-terminated string that
-   can be freed by passing it to remctl_error_free. */
-char *remctl_error(struct remctl *);
-void remctl_error_free(char *);
+   message.  The returned error string will be invalidated by any subsequent
+   call to a remctl library function. */
+const char *remctl_error(struct remctl *);
 
 END_DECLS
 
