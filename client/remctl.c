@@ -60,6 +60,19 @@ gss_buffer_t empty_token = &empty_token_buf;
 
 
 /*
+**  Lowercase a string in place.
+*/
+void 
+lowercase(char *string)
+{
+    char *p;
+
+    for (p = string; *p != '\0'; p++)
+        *p = tolower(*p);
+}
+
+
+/*
 **  Display the usage message for remctl.
 */
 static void
