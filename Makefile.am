@@ -53,4 +53,7 @@ tests_util_xmalloc_LDADD = util/libutil.a
 check-local: $(noinst_PROGRAMS)
 	cd tests && ./runtests TESTS
 
+clean-local:
+	rm -f util/snprintf.o util/strlcat.o util/strlcpy.o
+
 CLEANFILES = server/remctld.8
