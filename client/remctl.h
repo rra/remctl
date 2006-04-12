@@ -64,8 +64,10 @@ struct remctl_result *remctl(const char *host, unsigned short port,
 void remctl_result_free(struct remctl_result *);
 
 /* Now, the more complex persistant interface.  The basic housekeeping
-   functions. */
-struct remctl *remctl_open(const char *host, unsigned short port);
+   functions.  principal may be NULL, in which case host/<host> is used (with
+   no transformations applied to host at all). */
+struct remctl *remctl_open(const char *host, unsigned short port,
+                           const char *principal);
 void remctl_close(struct remctl *);
 
 /* Send a complete remote command.  Returns true on success, false on failure.
