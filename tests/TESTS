@@ -5,3 +5,4 @@ util/strlcat
 util/strlcpy
 util/vector
 util/xmalloc
+util/xwrite
