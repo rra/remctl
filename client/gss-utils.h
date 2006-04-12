@@ -20,9 +20,6 @@
 # include <gssapi/gssapi_generic.h>
 #endif
 
-/* Lowercase a string. */
-void lowercase(char *string);
-
 /* Send or receive a message via GSSAPI. */
 int gss_sendmsg(gss_ctx_id_t, int flags, char *msg, OM_uint32 msglength);
 int gss_recvmsg(gss_ctx_id_t, int *flags, char **msg, OM_uint32 *msglength);
