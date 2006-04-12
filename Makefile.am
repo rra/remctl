@@ -10,9 +10,12 @@ EXTRA_DIST = client/remctl.1 client/remctl.pod docs/design.html \
 	java/gss_jaas2.conf remctl.spec \
 	server/remctld.8.in server/remctld.pod
 
-noinst_LIBRARIES = tests/libtest.a util/libutil.a
+lib_LIBRARIES = client/libremctl.a
+client_libremctl_a_SOURCES = client/api.c
+
+noinst_LIBRARIES = util/libutil.a
 util_libutil_a_SOURCES = util/concat.c util/messages.c util/vector.c \
-	util/xmalloc.c
+	util/xmalloc.c util/xwrite.c
 util_libutil_a_LIBADD = $(LIBOBJS)
 
 bin_PROGRAMS = client/remctl
@@ -36,9 +39,13 @@ $(srcdir)/server/remctld.8.in: $(srcdir)/server/remctld.pod
 server/remctld.8: $(srcdir)/server/remctld.8.in
 	sed 's%@sysconfdir\@%$(sysconfdir)%' < $< > $@
 
-noinst_PROGRAMS = tests/runtests tests/util/concat-t tests/util/messages-t \
+CLEANFILES = server/remctld.8 util/snprintf.o util/strlcat.o util/strlcpy.o
+
+# The bits below are for the test suite, not for the main package.
+check_PROGRAMS = tests/runtests tests/util/concat-t tests/util/messages-t \
 	tests/util/snprintf-t tests/util/strlcat-t tests/util/strlcpy-t \
-	tests/util/vector-t tests/util/xmalloc
+	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
+check_LIBRARIES= tests/libtest.a
 tests_util_concat_t_LDADD = tests/libtest.a util/libutil.a
 tests_util_messages_t_LDADD = tests/libtest.a util/libutil.a
 tests_util_snprintf_t_SOURCES = tests/util/snprintf-t.c tests/util/snprintf.c
@@ -49,11 +56,10 @@ tests_util_strlcpy_t_SOURCES = tests/util/strlcpy-t.c tests/util/strlcpy.c
 tests_util_strlcpy_t_LDADD = tests/libtest.a util/libutil.a
 tests_util_vector_t_LDADD = tests/libtest.a util/libutil.a
 tests_util_xmalloc_LDADD = util/libutil.a
+tests_util_xwrite_t_SOURCES = tests/util/fakewrite.c tests/util/xwrite.c \
+	tests/util/xwrite-t.c
+tests_util_xwrite_t_LDADD = tests/libtest.a util/libutil.a
 
 check-local: $(noinst_PROGRAMS)
 	cd tests && ./runtests TESTS
 
-clean-local:
-	rm -f util/snprintf.o util/strlcat.o util/strlcpy.o
-
-CLEANFILES = server/remctld.8
