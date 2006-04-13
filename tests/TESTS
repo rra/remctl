@@ -1,3 +1,4 @@
+client/api
 util/concat
 util/messages
 util/snprintf

@@ -35,7 +35,8 @@ struct remctl {
 **  remctl_result_free.
 */
 struct remctl_result *
-remctl(const char *host, unsigned short port, const char **command)
+remctl(const char *host, unsigned short port, const char *principal,
+       const char **command)
 {
     return NULL;
 }
