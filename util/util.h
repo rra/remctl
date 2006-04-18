@@ -6,8 +6,10 @@
 **  of remctl.  Many of them came originally from INN.
 */
 
-#ifndef MESSAGES_H
-#define MESSAGES_H 1
+#ifndef UTIL_UTIL_H
+#define UTIL_UTIL_H 1
+
+#include <config.h>
 
 #include <stdarg.h>
 #include <sys/types.h>
@@ -167,6 +169,23 @@ int cvector_exec(const char *path, struct cvector *);
 #define xrealloc(p, size)       x_realloc((p), (size), __FILE__, __LINE__)
 #define xstrdup(p)              x_strdup((p), __FILE__, __LINE__)
 #define xstrndup(p, size)       x_strndup((p), (size), __FILE__, __LINE__)
+#define xvasprintf(p, f, a)     x_vasprintf((p), (f), (a), __FILE__, __LINE__)
+
+/* asprintf is a special case since it takes variable arguments.  If we have
+   support for variadic macros, we can still pass in the file and line and
+   just need to put them somewhere else in the argument list than last.
+   Otherwise, just call x_asprintf directly.  This means that the number of
+   arguments x_asprintf takes must vary depending on whether variadic macros
+   are supported. */
+#ifdef HAVE_C99_VAMACROS
+# define xasprintf(p, f, ...) \
+    x_asprintf((p), __FILE__, __LINE__, (f), __VA_ARGS__)
+#elif HAVE_GNU_VAMACROS
+# define xasprintf(p, f, args...) \
+    x_asprintf((p), __FILE__, __LINE__, (f), args)
+#else
+# define xasprintf x_asprintf
+#endif
 
 /* Last two arguments are always file and line number.  These are internal
    implementations that should not be called directly.  ISO C99 says that
@@ -179,6 +198,14 @@ extern void *x_malloc(size_t, const char *, int);
 extern void *x_realloc(void *, size_t, const char *, int);
 extern char *x_strdup(const char *, const char *, int);
 extern char *x_strndup(const char *, size_t, const char *, int);
+extern int x_vasprintf(char **, const char *, va_list, const char *, int);
+
+/* asprintf special case. */
+#if HAVE_C99_VAMACROS || HAVE_GNU_VAMACROS
+extern int x_asprintf(char **, const char *, int, const char *, ...);
+#else
+extern int x_asprintf(char **, const char *, ...);
+#endif
 
 /* Failure handler takes the function, the size, the file, and the line. */
 typedef void (*xmalloc_handler_type)(const char *, size_t, const char *, int);
@@ -192,4 +219,4 @@ extern xmalloc_handler_type xmalloc_error_handler;
 
 END_DECLS
 
-#endif /* MESSAGES_H */
+#endif /* UTIL_UTIL_H */

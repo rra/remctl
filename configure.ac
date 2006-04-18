@@ -19,9 +19,12 @@ AC_SEARCH_LIBS([socket], [socket], ,
 RRA_LIB_KRB5([gssapi], [false])
 AC_CHECK_HEADERS([inttypes.h stdint.h sys/bitypes.h])
 AC_CHECK_DECLS([snprintf, vsnprintf])
+RRA_C_C99_VAMACROS
+RRA_C_GNU_VAMACROS
 AC_CHECK_TYPES([long long])
 RRA_FUNC_SNPRINTF
 AC_CHECK_FUNCS([setrlimit])
+AC_CHECK_FUNC([asprintf], [], [AC_LIBOBJ([util/asprintf])])
 AC_CHECK_FUNC([strlcat], [], [AC_LIBOBJ([util/strlcat])])
 AC_CHECK_FUNC([strlcpy], [], [AC_LIBOBJ([util/strlcpy])])
 AC_TYPE_SIGNAL

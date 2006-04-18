@@ -1,4 +1,5 @@
 client/api
+util/asprintf
 util/concat
 util/messages
 util/snprintf

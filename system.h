@@ -69,6 +69,10 @@ BEGIN_DECLS
 /* Provide prototypes for functions not declared in system headers.  Use the
    HAVE_DECL macros for those functions that may be prototyped but
    implemented incorrectly or implemented without a prototype. */
+#if !HAVE_ASPRINTF
+extern int              asprintf(char **, const char *, ...);
+extern int              vasprintf(char **, const char *, va_list);
+#endif
 #if !HAVE_DECL_SNPRINTF
 extern int              snprintf(char *, size_t, const char *, ...)
     __attribute__((__format__(printf, 3, 4)));
