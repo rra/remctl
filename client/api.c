@@ -68,12 +68,18 @@ void
 _remctl_set_error(struct remctl *r, const char *format, ...)
 {
     va_list args;
+    int status;
 
     if (r->error != NULL)
         free(r->error);
     va_start(args, format);
-    vasprintf(&r->error, format, args);
+    status = vasprintf(&r->error, format, args);
     va_end(args);
+
+    /* If vasprintf fails, there isn't much we can do, but make sure that at
+       least the error is in a consistent state. */
+    if (status < 0)
+        r->error = NULL;
 }
 
 
