@@ -29,6 +29,99 @@ struct remctl {
 
 
 /*
+**  Handle an internal failure for the simplified interface.  We try to grab
+**  the remctl error and put it into the error field in the remctl result, but
+**  if that fails, we free the remctl result and return NULL to indicate a
+**  fatal error.
+*/
+static struct remctl_result *
+_remctl_fail(struct remctl *r, struct remctl_result *result)
+{
+    const char *error;
+
+    error = remctl_error(r);
+    if (error == NULL) {
+        remctl_close(r);
+        remctl_result_free(result);
+        return NULL;
+    } else {
+        result->error = strdup(error);
+        remctl_close(r);
+        if (result->error != NULL)
+            return result;
+        else {
+            remctl_result_free(result);
+            return NULL;
+        }
+    }
+}
+
+
+/*
+**  Given a struct remctl_result into which we're accumulating output and a
+**  struct remctl_output that contains a fragment of output, append the output
+**  to the appropriate slot in the result.  This is not particularly
+**  efficient.  Returns false if something fails and tries to set
+**  result->error; if we can't even do that, make sure it's set to NULL.
+*/
+static int
+_remctl_output_append(struct remctl_result *result,
+                      struct remctl_output *output)
+{
+    char **buffer = NULL;
+    size_t *length = NULL;
+    char *old, *newbuf;
+    size_t oldlen;
+    int status;
+
+    if (output->type == REMCTL_OUT_ERROR)
+        buffer = &result->error;
+    else if (output->type == REMCTL_OUT_OUTPUT && output->stream == 1) {
+        buffer = &result->stdout;
+        length = &result->stdout_len;
+    } else if (output->type == REMCTL_OUT_OUTPUT && output->stream == 2) {
+        buffer = &result->stderr;
+        length = &result->stderr_len;
+    } else if (output->type == REMCTL_OUT_OUTPUT) {
+        if (result->error != NULL)
+            free(result->error);
+        status = asprintf(&result->error, "bad output stream %d",
+                          output->stream);
+        if (status < 0)
+            result->error = NULL;
+        return 0;
+    } else {
+        if (result->error != NULL)
+            free(result->error);
+        result->error = strdup("internal error: bad output type");
+        return 0;
+    }
+
+    /* We've done our setup, so now we can do the actual manipulation. */
+    old = *buffer;
+    if (length != NULL)
+        oldlen = *length;
+    else
+        oldlen = strlen(old);
+    *length = oldlen + output->length;
+    if (output->type == REMCTL_OUT_ERROR)
+        *length++;
+    newbuf = realloc(*buffer, *length);
+    if (newbuf == NULL) {
+        if (result->error != NULL)
+            free(result->error);
+        result->error = strdup("cannot allocate memory");
+        return 0;
+    }
+    *buffer = newbuf;
+    memcpy(*buffer + oldlen, output->data, output->length);
+    if (output->type == REMCTL_OUT_ERROR)
+        *buffer[*length - 1] = '\0';
+    return 1;
+}
+
+
+/*
 **  The simplified interface.  Given a host, a port, and a command (as a
 **  null-terminated argv-style vector), run the command on that host and port
 **  and return a struct remctl_result.  The result should be freed with
@@ -38,7 +131,43 @@ struct remctl_result *
 remctl(const char *host, unsigned short port, const char *principal,
        const char **command)
 {
-    return NULL;
+    struct remctl *r = NULL;
+    struct remctl_result *result = NULL;
+    enum remctl_output_type type;
+
+    result = calloc(1, sizeof(struct remctl_result));
+    if (result == NULL)
+        return NULL;
+    r = remctl_open(host, port, principal);
+    if (r == NULL)
+        return _remctl_fail(r, result);
+    if (!remctl_command(r, command, 1))
+        return _remctl_fail(r, result);
+    do {
+        struct remctl_output *output;
+
+        output = remctl_output(r);
+        if (output == NULL)
+            return _remctl_fail(r, result);
+        type = output->type;
+        if (type == REMCTL_OUT_OUTPUT || type == REMCTL_OUT_ERROR) {
+            if (!_remctl_output_append(result, output)) {
+                if (result->error != NULL)
+                    return result;
+                else {
+                    remctl_result_free(result);
+                    return NULL;
+                }
+            }
+        } else if (type == REMCTL_OUT_STATUS) {
+            result->status = output->status;
+        } else {
+            remctl_close(r);
+            return result;
+        }
+    } while (type == REMCTL_OUT_OUTPUT);
+    remctl_close(r);
+    return result;
 }
 
 

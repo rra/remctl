@@ -60,8 +60,9 @@ main(void)
     char *principal;
     const char *test[] = { "test", "test", NULL };
     struct iovec *command;
+    struct remctl_result *result;
 
-    test_init(10);
+    test_init(11);
 
     principal = kerberos_setup();
     if (principal == NULL) {
@@ -84,7 +85,9 @@ main(void)
         remctl_close(r);
         ok(9, 1);
 
-        ok(10, remctl("localhost", REMCTL_PORT, principal, test) == NULL);
+        result = remctl("localhost", REMCTL_PORT, principal, test);
+        ok(10, result != NULL);
+        ok_string(11, "Not yet implemented", result->error);
     }
     unlink("data/test.cache");
     exit(0);
