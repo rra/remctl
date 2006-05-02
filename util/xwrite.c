@@ -1,4 +1,4 @@
-/*  $Id: xwrite.c 5771 2002-09-17 17:00:05Z alexk $
+/*  $Id$
 **
 **  write and writev replacements to handle partial writes.
 **
@@ -141,7 +141,9 @@ xwritev(int fd, const struct iovec iov[], int iovcnt)
     for (i = 0; offset >= (size_t) iov[i].iov_len; i++)
         offset -= iov[i].iov_len;
     iovleft = iovcnt - i;
-    tmpiov = xmalloc(iovleft * sizeof(struct iovec));
+    tmpiov = malloc(iovleft * sizeof(struct iovec));
+    if (tmpiov == NULL)
+        return -1;
     memcpy(tmpiov, iov + i, iovleft * sizeof(struct iovec));
 
     /* status now contains the offset into the first iovec struct in tmpiov.
