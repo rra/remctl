@@ -24,17 +24,6 @@
 int gss_sendmsg(gss_ctx_id_t, int flags, char *msg, OM_uint32 msglength);
 int gss_recvmsg(gss_ctx_id_t, int *flags, char **msg, OM_uint32 *msglength);
 
-/* Encode or decode a token. */
-int send_token(int flags, gss_buffer_t tok);
-int recv_token(int *flags, gss_buffer_t tok);
-
-/* Write all of a buffer to a file descriptor, handling partial writes. */
-ssize_t write_all(int fd, const void *buffer, size_t size);
-
-/* Read all of the available data from a file descriptor or from two file
-   descriptors using select to listen to both of them. */
-ssize_t read_all(int fd, void *buffer, size_t size);
-
 /* Display GSSAPI information. */
 void display_status(const char *msg, OM_uint32 maj_stat, OM_uint32 min_stat);
 void display_ctx_flags(OM_uint32 flags);

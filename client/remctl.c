@@ -144,7 +144,7 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context,
         return -1;
     }
 
-    if (send_token(TOKEN_NOOP | TOKEN_CONTEXT_NEXT, empty_token) < 0) {
+    if (token_send(WRITEFD, empty_token, TOKEN_NOOP | TOKEN_CONTEXT_NEXT) < 0) {
         warn("cannot send initial token to server");
         gss_release_name(&min_stat, &target_name);
         return -1;
@@ -185,7 +185,7 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context,
 
         if (send_tok.length != 0) {
             debug("sending init_sec_context token, size=%d", send_tok.length);
-            if (send_token(TOKEN_CONTEXT, &send_tok) < 0) {
+            if (token_send(WRITEFD, &send_tok, TOKEN_CONTEXT) < 0) {
                 gss_release_buffer(&min_stat, &send_tok);
                 gss_release_name(&min_stat, &target_name);
                 return -1;
@@ -206,7 +206,7 @@ client_establish_context(char *service_name, gss_ctx_id_t *gss_context,
 
         if (maj_stat == GSS_S_CONTINUE_NEEDED) {
             debug("continue needed");
-            if (recv_token(&token_flags, &recv_tok) < 0) {
+            if (token_recv(READFD, &recv_tok, &token_flags, MAXENCRYPT) < 0) {
                 warn("no token received from server");
                 gss_release_name(&min_stat, &target_name);
                 return -1;

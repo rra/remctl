@@ -14,6 +14,12 @@
 #include <stdarg.h>
 #include <sys/types.h>
 
+#ifdef HAVE_GSSAPI_H
+# include <gssapi.h>
+#else
+# include <gssapi/gssapi_generic.h>
+#endif
+
 /* __attribute__ is available in gcc 2.5 and later, but only with gcc 2.7
    could you use the __format__ form of the attributes, which is what we use
    (to avoid confusion with other macros). */
@@ -47,6 +53,18 @@ extern char *concat(const char *first, ...);
    The name will be appended to base with a / between them.  Exceptionally, if
    name begins with a slash, it will be strdup'd and returned as-is. */
 extern char *concatpath(const char *base, const char *name);
+
+/* Failure return codes from token_send and token_recv. */
+enum token_status {
+    TOKEN_OK = 0,
+    TOKEN_FAIL_SYSTEM = -1,     /* System call failed, error in errno */
+    TOKEN_FAIL_INVALID = -2,    /* Invalid token from remote site */
+    TOKEN_FAIL_LARGE = -3       /* Token data exceeds max length. */
+};
+
+/* Sending and receiving tokens. */
+enum token_status token_send(int fd, gss_buffer_t, int flags);
+enum token_status token_recv(int fd, gss_buffer_t, int *flags, size_t max);
 
 /* The reporting functions.  The ones prefaced by "sys" add a colon, a space,
    and the results of strerror(errno) to the output and are intended for

@@ -5,6 +5,7 @@ util/messages
 util/snprintf
 util/strlcat
 util/strlcpy
+util/tokens
 util/vector
 util/xmalloc
 util/xwrite

@@ -72,7 +72,7 @@ gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
     }
 
     /* Send to server. */
-    if (send_token((flags | TOKEN_SEND_MIC), &out_buf) < 0) {
+    if (token_send(WRITEFD, &out_buf, flags | TOKEN_SEND_MIC) < 0) {
         close(WRITEFD);
         gss_delete_sec_context(&min_stat, &context, GSS_C_NO_BUFFER);
         return -1;
@@ -81,7 +81,7 @@ gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
     gss_release_buffer(&min_stat, &out_buf);
 
     /* Read signature block into out_buf */
-    if (recv_token(&token_flags, &out_buf) < 0) {
+    if (token_recv(READFD, &out_buf, &token_flags, MAXENCRYPT) < 0) {
         close(READFD);
         gss_delete_sec_context(&min_stat, &context, GSS_C_NO_BUFFER);
         return -1;
@@ -123,7 +123,7 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg,
     int conf_state;
 
     /* Receive the message token. */
-    if (recv_token(token_flags, &xmit_buf) < 0)
+    if (token_recv(READFD, &xmit_buf, token_flags, MAXENCRYPT) < 0)
         return -1;
 
     maj_stat = gss_unwrap(&min_stat, context, &xmit_buf, &msg_buf,
@@ -154,172 +154,13 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg,
             display_status("signing message", maj_stat, min_stat);
             return -1;
         }
-        if (send_token(TOKEN_MIC, &xmit_buf) < 0)
+        if (token_send(WRITEFD, &xmit_buf, TOKEN_MIC) < 0)
             return -1;
         debug("MIC signature sent");
         gss_release_buffer(&min_stat, &xmit_buf);
     }
     gss_release_buffer(&min_stat, &msg_buf);
     return 0;
-}
-
-
-/*
-**  Send a token to a file descriptor.  Takes the flags (a single byte, even
-**  though they're passed in as an integer) and the token and writes them to
-**  WRITEFD, returning 0 on success and -1 on error or if all the data could
-**  not be written.  A log message is recorded on error.
-*/
-int
-send_token(int flags, gss_buffer_t tok)
-{
-    OM_uint32 len, ret, buflen;
-    char *buffer;
-    unsigned char char_flags = (unsigned char)flags;
-
-    len = htonl(tok->length);
-
-    /* Send out the whole message in a single write. */
-    buflen = 1 + sizeof(OM_uint32) + tok->length;
-    buffer = xmalloc(buflen);
-    memcpy(buffer, &char_flags, 1);
-    memcpy(buffer + 1, &len, sizeof(OM_uint32));
-    memcpy(buffer + 1 + sizeof(OM_uint32), tok->value, tok->length);
-    ret = write_all(WRITEFD, buffer, buflen);
-    free(buffer);
-    if (ret != buflen) {
-        warn("error while sending token: %d, %d", buflen, ret);
-        return -1;
-    }
-    return 0;
-}
-
-
-/*
-**  Receive a token from a file descriptor.  Takes pointers into which to
-**  store the flags and the token, and returns 0 on success and -1 on failure
-**  or if it can't read all of the data.  A log message is recorded on
-**  failure.
-**
-**  recv_token reads the token flags (a single byte, even though they're
-**  stored into an integer, then reads the token length (as a network long),
-**  allocates memory to hold the data, and then reads the token data from the
-**  file descriptor READFD.  It blocks to read the length and data, if
-**  necessary.  On a successful return, the token should be freed with
-**  gss_release_buffer.
-*/
-int
-recv_token(int *flags, gss_buffer_t tok)
-{
-    ssize_t ret;
-    OM_uint32 len;
-    unsigned char char_flags;
-
-    ret = read_all(READFD, &char_flags, 1);
-    if (ret < 0) {
-        syswarn("error reading token flags");
-        return -1;
-    } else if (!ret) {
-        warn("error reading token flags: 0 bytes read");
-        return -1;
-    } else {
-        *flags = char_flags;
-    }
-
-    ret = read_all(READFD, &len, sizeof(OM_uint32));
-    if (ret < 0) {
-        syswarn("error while reading token length");
-        return -1;
-    } else if (ret != sizeof(OM_uint32)) {
-        warn("error while reading token length: %d of %d bytes read", ret,
-             sizeof(OM_uint32));
-        return -1;
-    }
-
-    tok->length = ntohl(len);
-
-    if (tok->length > MAXENCRYPT) {
-        warn("illegal token length %d", tok->length);
-        return -1;
-    }
-
-    tok->value = xmalloc(tok->length);
-
-    ret = read_all(READFD, tok->value, tok->length);
-    if (ret < 0) {
-        syswarn("error while reading token data");
-        free(tok->value);
-        return -1;
-    } else if (ret != (ssize_t) tok->length) {
-        warn("error reading token data: %d of %d bytes read", ret,
-             tok->length);
-        free(tok->value);
-        return -1;
-    }
-
-    return 0;
-}
-
-
-/*
-**  Equivalent to write, but handles EINTR or EAGAIN by retrying and repeats
-**  if the write is partial until all the data has been written.
-*/
-ssize_t
-write_all(int fd, const void *buffer, size_t size)
-{
-    size_t total;
-    ssize_t status;
-    int count = 0;
-
-    if (size == 0)
-        return 0;
-
-    /* Abort the write if we try 100 times with no forward progress. */
-    for (total = 0; total < size; total += status) {
-        if (++count > 100)
-            break;
-        status = write(fd, (const char *) buffer + total, size - total);
-        if (status > 0)
-            count = 0;
-        if (status < 0) {
-            if ((errno != EINTR) && (errno != EAGAIN))
-                break;
-            status = 0;
-        }
-    }
-    return (total < size) ? -1 : (ssize_t) total;
-}
-
-
-/*
-**  Equivalent to read, but reads all the available data up to the buffer
-**  length, using multiple reads if needed and handling EINTR and EAGAIN.
-*/
-ssize_t
-read_all(int fd, void *buffer, size_t size)
-{
-    size_t total;
-    ssize_t status;
-    int count = 0;
-
-    if (size == 0)
-        return 0;
-
-    /* Abort the read if we try 100 times with no forward progress. */
-    for (total = 0; total < size; total += status) {
-        if (++count > 100)
-            break;
-        status = read(fd, (char *) buffer + total, size - total);
-        if (status > 0)
-            count = 0;
-        if (status < 0) {
-            if ((errno != EINTR) && (errno != EAGAIN))
-                break;
-            status = 0;
-        }
-    }
-    return (total < size) ? -1 : (ssize_t) total;
 }
 
 

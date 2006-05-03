@@ -15,8 +15,8 @@ lib_LIBRARIES = client/libremctl.a
 client_libremctl_a_SOURCES = client/api.c
 
 noinst_LIBRARIES = util/libutil.a
-util_libutil_a_SOURCES = util/concat.c util/messages.c util/vector.c \
-	util/xmalloc.c util/xwrite.c
+util_libutil_a_SOURCES = util/concat.c util/messages.c util/tokens.c \
+	util/vector.c util/xmalloc.c util/xwrite.c
 util_libutil_a_LIBADD = $(LIBOBJS)
 
 bin_PROGRAMS = client/remctl
@@ -41,12 +41,13 @@ server/remctld.8: $(srcdir)/server/remctld.8.in
 	sed 's%@sysconfdir\@%$(sysconfdir)%' < $< > $@
 
 CLEANFILES = server/remctld.8 util/snprintf.o util/strlcat.o util/strlcpy.o
+MAINTAINERCLEANFILES = config.h.in~
 
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/util/asprintf-t \
 	tests/util/concat-t tests/util/messages-t tests/util/snprintf-t \
-	tests/util/strlcat-t tests/util/strlcpy-t tests/util/vector-t \
-	tests/util/xmalloc tests/util/xwrite-t
+	tests/util/strlcat-t tests/util/strlcpy-t tests/util/tokens-t \
+	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES= tests/libtest.a
 tests_client_api_t_LDADD = client/libremctl.a tests/libtest.a util/libutil.a
 tests_util_asprintf_t_SOURCES = tests/util/asprintf-t.c tests/util/asprintf.c
@@ -59,6 +60,7 @@ tests_util_strlcat_t_SOURCES = tests/util/strlcat-t.c tests/util/strlcat.c
 tests_util_strlcat_t_LDADD = tests/libtest.a util/libutil.a
 tests_util_strlcpy_t_SOURCES = tests/util/strlcpy-t.c tests/util/strlcpy.c
 tests_util_strlcpy_t_LDADD = tests/libtest.a util/libutil.a
+tests_util_tokens_t_LDADD = tests/libtest.a util/libutil.a
 tests_util_vector_t_LDADD = tests/libtest.a util/libutil.a
 tests_util_xmalloc_LDADD = util/libutil.a
 tests_util_xwrite_t_SOURCES = tests/util/fakewrite.c tests/util/xwrite.c \
