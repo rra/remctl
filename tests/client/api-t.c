@@ -5,51 +5,10 @@
 #include <system.h>
 
 #include <sys/uio.h>
-#include <sys/wait.h>
 
 #include <client/remctl.h>
 #include <tests/libtest.h>
 #include <util/util.h>
-
-/* Set up our Kerberos access and return the principal to use for the remote
-   remctl connection, NULL if we couldn't initialize things.  We read the
-   principal to use for authentication out of a file and fork kinit to obtain
-   a Kerberos ticket cache. */
-char *
-kerberos_setup(void)
-{
-    static const char format[] = "kinit -k -K data/test.keytab %s";
-    FILE *file;
-    char principal[256], *command;
-    size_t length;
-    int status;
-
-    if (access("../data/test.keytab", F_OK) == 0)
-        chdir("..");
-    else if (access("tests/data/test.keytab", F_OK) == 0)
-        chdir("tests");
-    file = fopen("data/test.principal", "r");
-    if (file == NULL)
-        return NULL;
-    if (fgets(principal, sizeof(principal), file) == NULL) {
-        fclose(file);
-        return NULL;
-    }
-    fclose(file);
-    if (principal[strlen(principal) - 1] != '\n')
-        return NULL;
-    principal[strlen(principal) - 1] = '\0';
-    length = strlen(format) + strlen(principal);
-    command = xmalloc(length);
-    snprintf(command, length, format, principal);
-    putenv("KRB5CCNAME=data/test.cache");
-    status = system(command);
-    free(command);
-    if (status == -1 || WEXITSTATUS(status) != 0)
-        return 0;
-    return xstrdup(principal);
-}
-
 
 int
 main(void)

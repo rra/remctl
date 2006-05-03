@@ -1,4 +1,4 @@
-/*  $Id: libtest.h 7175 2005-04-10 18:25:21Z rra $
+/*  $Id$
 **
 **  Some utility routines for writing tests.
 */
@@ -50,6 +50,10 @@ void test_init(int count);
    errors_uncapture.  Caller is responsible for freeing errors when done. */
 void errors_capture(void);
 void errors_uncapture(void);
+
+/* Set up Kerberos, returning the test principal if we were successful and
+   false otherwise. */
+char *kerberos_setup(void);
 
 END_DECLS
 

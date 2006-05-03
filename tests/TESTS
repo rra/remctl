@@ -1,6 +1,7 @@
 client/api
 util/asprintf
 util/concat
+util/gss-tokens
 util/messages
 util/snprintf
 util/strlcat

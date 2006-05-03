@@ -59,12 +59,22 @@ enum token_status {
     TOKEN_OK = 0,
     TOKEN_FAIL_SYSTEM = -1,     /* System call failed, error in errno */
     TOKEN_FAIL_INVALID = -2,    /* Invalid token from remote site */
-    TOKEN_FAIL_LARGE = -3       /* Token data exceeds max length. */
+    TOKEN_FAIL_LARGE = -3,      /* Token data exceeds max length */
+    TOKEN_FAIL_GSSAPI = -4      /* GSS-API failure {en,de}crypting token */
 };
 
 /* Sending and receiving tokens. */
 enum token_status token_send(int fd, int flags, gss_buffer_t);
 enum token_status token_recv(int fd, int *flags, gss_buffer_t, size_t max);
+
+/* The same, but with a GSS-API protection layer applied.  On a GSS-API
+   failure, the major and minor status are returned in the final two
+   arguments. */
+enum token_status token_send_priv(int fd, gss_ctx_id_t, int flags,
+                                  gss_buffer_t, OM_uint32 *, OM_uint32 *);
+enum token_status token_recv_priv(int fd, gss_ctx_id_t, int *flags,
+                                  gss_buffer_t, size_t max, OM_uint32 *,
+                                  OM_uint32 *);
 
 /* The reporting functions.  The ones prefaced by "sys" add a colon, a space,
    and the results of strerror(errno) to the output and are intended for
