@@ -72,7 +72,7 @@ gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
     }
 
     /* Send to server. */
-    if (token_send(WRITEFD, &out_buf, flags | TOKEN_SEND_MIC) < 0) {
+    if (token_send(WRITEFD, flags | TOKEN_SEND_MIC, &out_buf) < 0) {
         close(WRITEFD);
         gss_delete_sec_context(&min_stat, &context, GSS_C_NO_BUFFER);
         return -1;
@@ -81,7 +81,7 @@ gss_sendmsg(gss_ctx_id_t context, int flags, char *msg, OM_uint32 msglength)
     gss_release_buffer(&min_stat, &out_buf);
 
     /* Read signature block into out_buf */
-    if (token_recv(READFD, &out_buf, &token_flags, MAXENCRYPT) < 0) {
+    if (token_recv(READFD, &token_flags, &out_buf, MAXENCRYPT) < 0) {
         close(READFD);
         gss_delete_sec_context(&min_stat, &context, GSS_C_NO_BUFFER);
         return -1;
@@ -123,7 +123,7 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg,
     int conf_state;
 
     /* Receive the message token. */
-    if (token_recv(READFD, &xmit_buf, token_flags, MAXENCRYPT) < 0)
+    if (token_recv(READFD, token_flags, &xmit_buf, MAXENCRYPT) < 0)
         return -1;
 
     maj_stat = gss_unwrap(&min_stat, context, &xmit_buf, &msg_buf,
@@ -154,7 +154,7 @@ gss_recvmsg(gss_ctx_id_t context, int *token_flags, char **msg,
             display_status("signing message", maj_stat, min_stat);
             return -1;
         }
-        if (token_send(WRITEFD, &xmit_buf, TOKEN_MIC) < 0)
+        if (token_send(WRITEFD, TOKEN_MIC, &xmit_buf) < 0)
             return -1;
         debug("MIC signature sent");
         gss_release_buffer(&min_stat, &xmit_buf);

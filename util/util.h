@@ -63,8 +63,8 @@ enum token_status {
 };
 
 /* Sending and receiving tokens. */
-enum token_status token_send(int fd, gss_buffer_t, int flags);
-enum token_status token_recv(int fd, gss_buffer_t, int *flags, size_t max);
+enum token_status token_send(int fd, int flags, gss_buffer_t);
+enum token_status token_recv(int fd, int *flags, gss_buffer_t, size_t max);
 
 /* The reporting functions.  The ones prefaced by "sys" add a colon, a space,
    and the results of strerror(errno) to the output and are intended for

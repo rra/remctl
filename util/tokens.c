@@ -59,7 +59,7 @@ xread(int fd, void *buffer, size_t size)
 **  TOKEN_FAIL_SYSTEM on an error (including partial writes).
 */
 enum token_status
-token_send(int fd, gss_buffer_t tok, int flags)
+token_send(int fd, int flags, gss_buffer_t tok)
 {
     ssize_t status;
     size_t buflen;
@@ -101,7 +101,7 @@ token_send(int fd, gss_buffer_t tok, int flags)
 **  a successful return, the token should be freed with gss_release_buffer.
 */
 enum token_status
-token_recv(int fd, gss_buffer_t tok, int *flags, size_t max)
+token_recv(int fd, int *flags, gss_buffer_t tok, size_t max)
 {
     ssize_t status;
     OM_uint32 len;

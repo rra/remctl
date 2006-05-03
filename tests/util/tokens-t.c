@@ -84,7 +84,7 @@ send_regular_token(int fd)
     buffer.value = xmalloc(5);
     memcpy(buffer.value, "hello", 5);
     buffer.length = 5;
-    token_send(fd, &buffer, 3);
+    token_send(fd, 3, &buffer);
 }
 
 int
@@ -124,7 +124,7 @@ main(void)
         exit(0);
     } else {
         client = create_client();
-        status = token_recv(client, &result, &flags, 5);
+        status = token_recv(client, &flags, &result, 5);
         ok_int(3, TOKEN_OK, status);
         ok_int(4, 3, flags);
         ok_int(5, 5, result.length);
@@ -141,7 +141,7 @@ main(void)
         exit(0);
     } else {
         client = create_client();
-        status = token_recv(client, &result, &flags, 200);
+        status = token_recv(client, &flags, &result, 200);
         ok_int(7, TOKEN_FAIL_INVALID, status);
         waitpid(child, NULL, 0);
     }
@@ -155,7 +155,7 @@ main(void)
         exit(0);
     } else {
         client = create_client();
-        status = token_recv(client, &result, &flags, 4);
+        status = token_recv(client, &flags, &result, 4);
         ok_int(8, TOKEN_FAIL_LARGE, status);
         waitpid(child, NULL, 0);
     }
