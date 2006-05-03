@@ -80,7 +80,7 @@ token_send(int fd, int flags, gss_buffer_t tok)
     if (status >= 0 && status != buflen)
         return TOKEN_FAIL_SYSTEM;
     else
-        return 0;
+        return TOKEN_OK;
 }
 
 
