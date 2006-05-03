@@ -4,7 +4,6 @@
 #include <config.h>
 #include <system.h>
 
-#include <krb5.h>
 #include <sys/uio.h>
 #include <sys/wait.h>
 
