@@ -17,6 +17,8 @@
 #include <config.h>
 #include <system.h>
 
+#include <errno.h>
+
 #include <client/remctl.h>
 #include <util/util.h>
 
@@ -253,12 +255,30 @@ remctl_close(struct remctl *r)
 **  NULL-terminated array of nul-terminated strings.  finished is a boolean
 **  flag that should be false when the command is not yet complete and true
 **  when this is the final (or only) segment.
+**
+**  Implement in terms of remctl_commandv.
 */
 int
 remctl_command(struct remctl *r, const char **command, int finished)
 {
-    _remctl_set_error(r, "Not yet implemented");
-    return 0;
+    struct iovec *vector;
+    size_t count, i;
+    int status;
+
+    for (count = 0; command[count] != NULL; count++)
+        ;
+    vector = malloc(sizeof(struct iovec) * count);
+    if (vector == NULL) {
+        _remctl_set_error(r, "Cannot allocate memory: %s", strerror(errno));
+        return 0;
+    }
+    for (i = 0; i < count; i++) {
+        vector[i].iov_base = (void *) command[i];
+        vector[i].iov_len = strlen(command[i]);
+    }
+    status = remctl_commandv(r, vector, count, finished);
+    free(vector);
+    return status;
 }
 
 
