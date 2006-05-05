@@ -19,14 +19,23 @@
 
 #include <errno.h>
 
+#ifdef HAVE_GSSAPI_H
+# include <gssapi.h>
+#else
+# include <gssapi/gssapi_generic.h>
+#endif
+
 #include <client/remctl.h>
 #include <util/util.h>
 
 /* Private structure that holds the details of an open remctl connection. */
 struct remctl {
+    int protocol;
     int fd;
+    gss_ctx_id_t context;
     char *error;
     struct remctl_output *output;
+    int status;
 };
 
 
@@ -225,6 +234,7 @@ remctl_open(const char *host, unsigned short port, const char *principal)
 
     r = xmalloc(sizeof(struct remctl));
     r->fd = -1;
+    r->context = NULL;
     r->error = NULL;
     r->output = NULL;
     return r;
