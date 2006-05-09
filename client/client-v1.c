@@ -30,7 +30,20 @@
 # include <gssapi/gssapi_generic.h>
 #endif
 
+#include <client/internal.h>
+#include <client/remctl.h>
 #include <util/util.h>
+
+/* Handle compatibility to older versions of MIT Kerberos. */
+#ifndef HAVE_GSS_RFC_OIDS
+# define GSS_C_NT_USER_NAME gss_nt_user_name
+#endif
+
+/* Heimdal provides a nice #define for this. */
+#if !HAVE_DECL_GSS_KRB5_MECHANISM
+# include <gssapi/gssapi_krb5.h>
+# define GSS_KRB5_MECHANISM gss_mech_krb5
+#endif
 
 /* We're unwilling to accept tokens from the remote side larger than this.
    FIXME: Figure out what the actual limit is by asking GSSAPI. */
@@ -53,7 +66,7 @@ _remctl_v1_open(struct remctl *r, const char *host, unsigned short port,
     struct hostent *hp;
     int fd, status, flags;
     gss_buffer_desc send_tok, recv_tok, name_buffer, *token_ptr;
-    static const gss_buffer_desc empty_token = { 0, (void *) "" };
+    gss_buffer_desc empty_token = { 0, (void *) "" };
     gss_name_t name;
     gss_ctx_id_t gss_context;
     OM_uint32 major, minor, init_minor, gss_flags;
@@ -80,7 +93,7 @@ _remctl_v1_open(struct remctl *r, const char *host, unsigned short port,
     r->fd = fd;
 
     /* Import the name into target_name. */
-    name_buffer.value = principal;
+    name_buffer.value = (char *) principal;
     name_buffer.length = strlen(principal) + 1;
     major = gss_import_name(&minor, &name_buffer, GSS_C_NT_USER_NAME, &name);
     if (major != GSS_S_COMPLETE) {
@@ -109,7 +122,7 @@ _remctl_v1_open(struct remctl *r, const char *host, unsigned short port,
        gss_init_sec_context returns GSS_S_CONTINUE_NEEDED if and only if the
        server has another token to send us. */
     token_ptr = GSS_C_NO_BUFFER;
-    *gss_context = GSS_C_NO_CONTEXT;
+    gss_context = GSS_C_NO_CONTEXT;
     do {
         major = gss_init_sec_context(&init_minor, GSS_C_NO_CREDENTIAL, 
                     gss_context, name, (const gss_OID) GSS_KRB5_MECHANISM,
@@ -124,25 +137,25 @@ _remctl_v1_open(struct remctl *r, const char *host, unsigned short port,
             status = token_send(fd, TOKEN_CONTEXT, &send_tok);
             if (status != TOKEN_OK) {
                 _remctl_token_error(r, "sending token", status, major, minor);
-                gss_release_buffer(&min_stat, &send_tok);
-                gss_release_name(&min_stat, &target_name);
+                gss_release_buffer(&minor, &send_tok);
+                gss_release_name(&minor, &name);
                 return 0;
             }
         }
-        gss_release_buffer(&min_stat, &send_tok);
+        gss_release_buffer(&minor, &send_tok);
 
         /* On error, report the error and abort. */
         if (major != GSS_S_COMPLETE && major != GSS_S_CONTINUE_NEEDED) {
             _remctl_gssapi_error(r, "initializing context", major,
                                  init_minor);
-            gss_release_name(&min_stat, &target_name);
-            if (*gss_context == GSS_C_NO_CONTEXT)
+            gss_release_name(&minor, &name);
+            if (gss_context == GSS_C_NO_CONTEXT)
                 gss_delete_sec_context(&minor, gss_context, GSS_C_NO_BUFFER);
             return 0;
         }
 
         /* If we're still expecting more, retrieve it. */
-        if (maj_stat == GSS_S_CONTINUE_NEEDED) {
+        if (major == GSS_S_CONTINUE_NEEDED) {
             status = token_recv(fd, &flags, &recv_tok, MAX_TOKEN);
             if (status != TOKEN_OK) {
                 _remctl_token_error(r, "receiving token", status, major,
@@ -152,10 +165,10 @@ _remctl_v1_open(struct remctl *r, const char *host, unsigned short port,
             }
             token_ptr = &recv_tok;
         }
-    } while (maj_stat == GSS_S_CONTINUE_NEEDED);
+    } while (major == GSS_S_CONTINUE_NEEDED);
 
     r->context = gss_context;
-    gss_release_name(&minor, &target_name);
+    gss_release_name(&minor, &name);
     return 1;
 }
 
@@ -199,7 +212,7 @@ _remctl_v1_commandv(struct remctl *r, const struct iovec *command,
         data = htonl(command[i].iov_len);
         memcpy(p, &data, 4);
         p += 4;
-        memcpy(p, command[i].iov_data, command[i].iov_len);
+        memcpy(p, command[i].iov_base, command[i].iov_len);
         p += command[i].iov_len;
     }
 

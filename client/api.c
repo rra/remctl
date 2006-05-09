@@ -25,18 +25,9 @@
 # include <gssapi/gssapi_generic.h>
 #endif
 
+#include <client/internal.h>
 #include <client/remctl.h>
 #include <util/util.h>
-
-/* Private structure that holds the details of an open remctl connection. */
-struct remctl {
-    int protocol;
-    int fd;
-    gss_ctx_id_t context;
-    char *error;
-    struct remctl_output *output;
-    int status;
-};
 
 
 /*
@@ -197,29 +188,6 @@ remctl_result_free(struct remctl_result *result)
             free(result->stderr);
         free(result);
     }
-}
-
-
-/*
-**  Internal function to set the error message, freeing an old error message
-**  if one is present.
-*/
-void
-_remctl_set_error(struct remctl *r, const char *format, ...)
-{
-    va_list args;
-    int status;
-
-    if (r->error != NULL)
-        free(r->error);
-    va_start(args, format);
-    status = vasprintf(&r->error, format, args);
-    va_end(args);
-
-    /* If vasprintf fails, there isn't much we can do, but make sure that at
-       least the error is in a consistent state. */
-    if (status < 0)
-        r->error = NULL;
 }
 
 

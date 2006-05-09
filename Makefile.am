@@ -12,7 +12,7 @@ EXTRA_DIST = client/remctl.1 client/remctl.pod docs/design.html \
 	tests/TESTS tests/data/README tests/util/xmalloc-t
 
 lib_LIBRARIES = client/libremctl.a
-client_libremctl_a_SOURCES = client/api.c
+client_libremctl_a_SOURCES = client/api.c client/client-v1.c client/error.c
 
 noinst_LIBRARIES = util/libutil.a
 util_libutil_a_SOURCES = util/concat.c util/gss-tokens.c util/messages.c \
