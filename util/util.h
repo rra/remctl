@@ -63,6 +63,17 @@ enum token_status {
     TOKEN_FAIL_GSSAPI = -4      /* GSS-API failure {en,de}crypting token */
 };
 
+/* Token types and flags. */
+enum token_flags {
+    TOKEN_NOOP          = (1 << 0),
+    TOKEN_CONTEXT       = (1 << 1),
+    TOKEN_DATA          = (1 << 2),
+    TOKEN_MIC           = (1 << 3),
+    TOKEN_CONTEXT_NEXT  = (1 << 4),
+    TOKEN_SEND_MIC      = (1 << 5),
+    TOKEN_PROTOCOL      = (1 << 6)
+};
+
 /* Sending and receiving tokens. */
 enum token_status token_send(int fd, int flags, gss_buffer_t);
 enum token_status token_recv(int fd, int *flags, gss_buffer_t, size_t max);

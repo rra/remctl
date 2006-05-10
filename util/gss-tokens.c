@@ -37,13 +37,17 @@ enum token_status token_recv(int, int *, gss_buffer_t, size_t);
 **  and TOKEN_FAIL_SYSTEM or TOKEN_FAIL_GSSAPI on failure.  If the latter is
 **  returned, the major and minor status variables will be set to something
 **  useful.
+**
+**  As a hack to support remctl v1, look to see if the flags includes
+**  TOKEN_SEND_MIC and don't include TOKEN_PROTOCOL.  If so, expect the remote
+**  side to reply with a MIC, which we then verify.
 */
 enum token_status
 token_send_priv(int fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
                 OM_uint32 *major, OM_uint32 *minor)
 {
-    gss_buffer_desc out;
-    int state;
+    gss_buffer_desc out, mic;
+    int state, micflags;
     enum token_status status;
 
     *major = gss_wrap(minor, ctx, 1, GSS_C_QOP_DEFAULT, tok, &state, &out);
@@ -51,7 +55,24 @@ token_send_priv(int fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
         return TOKEN_FAIL_GSSAPI;
     status = token_send(fd, flags, &out);
     gss_release_buffer(minor, &out);
-    return status;
+    if (status != TOKEN_OK)
+        return status;
+    if ((flags & TOKEN_SEND_MIC) && !(flags & TOKEN_PROTOCOL)) {
+        status = token_recv(fd, &micflags, &mic, 10 * 1024);
+        if (status != TOKEN_OK)
+            return status;
+        if (micflags != TOKEN_MIC) {
+            gss_release_buffer(minor, &mic);
+            return TOKEN_FAIL_INVALID;
+        }
+        *major = gss_verify_mic(minor, ctx, tok, &mic, NULL);
+        if (*major != GSS_S_COMPLETE) {
+            gss_release_buffer(minor, &mic);
+            return TOKEN_FAIL_GSSAPI;
+        }
+        gss_release_buffer(minor, &mic);
+    }
+    return TOKEN_OK;
 }
 
 
@@ -60,12 +81,16 @@ token_send_priv(int fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
 **  GSS-API context, a pointer into which to storge the flags, a buffer for
 **  the message, and a place to put GSS-API major and minor status.  Returns
 **  TOKEN_OK on success or one of the TOKEN_FAIL_* statuses on failure.
+**
+**  As a hack to support remctl v1, look to see if the flags includes
+**  TOKEN_SEND_MIC and do not include TOKEN_PROTOCOL.  If so, calculate a MIC
+**  and send it back.
 */
 enum token_status
 token_recv_priv(int fd, gss_ctx_id_t ctx, int *flags, gss_buffer_t tok,
                 size_t max, OM_uint32 *major, OM_uint32 *minor)
 {
-    gss_buffer_desc in;
+    gss_buffer_desc in, mic;
     int state;
     enum token_status status;
 
@@ -75,5 +100,17 @@ token_recv_priv(int fd, gss_ctx_id_t ctx, int *flags, gss_buffer_t tok,
     *major = gss_unwrap(minor, ctx, &in, tok, &state, NULL);
     if (*major != GSS_S_COMPLETE)
         return TOKEN_FAIL_GSSAPI;
+    if ((*flags & TOKEN_SEND_MIC) && !(*flags & TOKEN_PROTOCOL)) {
+        *major = gss_get_mic(minor, ctx, GSS_C_QOP_DEFAULT, &in, &mic);
+        if (*major != GSS_S_COMPLETE)
+            return TOKEN_FAIL_GSSAPI;
+        status = token_send(fd, TOKEN_MIC, &mic);
+        if (status != TOKEN_OK) {
+            gss_release_buffer(minor, &mic);
+            return status;
+        }
+        gss_release_buffer(minor, &mic);
+        *flags = (*flags) & ~TOKEN_SEND_MIC;
+    }
     return TOKEN_OK;
 }

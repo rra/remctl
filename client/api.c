@@ -140,8 +140,10 @@ remctl(const char *host, unsigned short port, const char *principal,
     result = calloc(1, sizeof(struct remctl_result));
     if (result == NULL)
         return NULL;
-    r = remctl_open(host, port, principal);
+    r = remctl_new();
     if (r == NULL)
+        return _remctl_fail(r, result);
+    if (!remctl_open(r, host, port, principal))
         return _remctl_fail(r, result);
     if (!remctl_command(r, command, 1))
         return _remctl_fail(r, result);
@@ -192,20 +194,51 @@ remctl_result_free(struct remctl_result *result)
 
 
 /*
-**  Open a new persistant remctl connection to a server, given the host, port,
-**  and principal.
+**  Create a new remctl object.  Don't attempt to connect here; we do that
+**  separately so that we can still use the object to store error messages
+**  from connection failures.  Return NULL on memory allocation failures.
 */
 struct remctl *
-remctl_open(const char *host, unsigned short port, const char *principal)
+remctl_new(void)
 {
     struct remctl *r;
 
-    r = xmalloc(sizeof(struct remctl));
+    r = malloc(sizeof(struct remctl));
+    if (r == NULL)
+        return NULL;
     r->fd = -1;
+    r->host = NULL;
+    r->principal = NULL;
     r->context = NULL;
     r->error = NULL;
     r->output = NULL;
     return r;
+}
+
+
+/*
+**  Open a new persistant remctl connection to a server, given the host, port,
+**  and principal.  Returns true on success and false on failure.
+*/
+int
+remctl_open(struct remctl *r, const char *host, unsigned short port,
+            const char *principal)
+{
+    if (r->fd != -1)
+        close(r->fd);
+    if (r->error != NULL) {
+        free(r->error);
+        r->error = NULL;
+    }
+    if (r->output != NULL) {
+        _remctl_output_wipe(r->output);
+        free(r->output);
+        r->output = NULL;
+    }
+    r->host = host;
+    r->port = port;
+    r->principal = principal;
+    return _remctl_v1_open(r, host, port, principal);
 }
 
 
@@ -268,8 +301,40 @@ int
 remctl_commandv(struct remctl *r, const struct iovec *command, size_t count,
                 int finished)
 {
-    _remctl_set_error(r, "Not yet implemented");
-    return 0;
+    if (r->fd < 0) {
+        if (r->host == NULL) {
+            _remctl_set_error(r, "No connection open");
+            return 0;
+        }
+        if (!remctl_open(r, r->host, r->port, r->principal))
+            return 0;
+    }
+    if (r->error != NULL) {
+        free(r->error);
+        r->error = NULL;
+    }
+    return _remctl_v1_commandv(r, command, count, finished);
+}
+
+
+/*
+**  Helper function for remctl_output implementations.  Free and reset the
+**  elements of the output struct, but don't free the output struct itself.
+*/
+void
+_remctl_output_wipe(struct remctl_output *output)
+{
+    if (output == NULL)
+        return;
+    output->type = REMCTL_OUT_DONE;
+    if (output->data != NULL) {
+        free(output->data);
+        output->data = NULL;
+    }
+    output->length = 0;
+    output->stream = 0;
+    output->status = 0;
+    output->error = 0;
 }
 
 
@@ -290,8 +355,15 @@ remctl_commandv(struct remctl *r, const struct iovec *command, size_t count,
 struct remctl_output *
 remctl_output(struct remctl *r)
 {
-    _remctl_set_error(r, "Not yet implemented");
-    return NULL;
+    if (r->fd < 0 && (r->protocol != 1 || r->host == NULL)) {
+        _remctl_set_error(r, "No connection open");
+        return NULL;
+    }
+    if (r->error != NULL) {
+        free(r->error);
+        r->error = NULL;
+    }
+    return _remctl_v1_output(r);
 }
 
 

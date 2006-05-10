@@ -11,14 +11,33 @@
 
 #include <config.h>
 
+#include <sys/uio.h>
+
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>
 #else
 # include <gssapi/gssapi_generic.h>
 #endif
 
+/* BEGIN_DECLS is used at the beginning of declarations so that C++
+   compilers don't mangle their names.  END_DECLS is used at the end. */
+#undef BEGIN_DECLS
+#undef END_DECLS
+#ifdef __cplusplus
+# define BEGIN_DECLS    extern "C" {
+# define END_DECLS      }
+#else
+# define BEGIN_DECLS    /* empty */
+# define END_DECLS      /* empty */
+#endif
+
+BEGIN_DECLS
+
 /* Private structure that holds the details of an open remctl connection. */
 struct remctl {
+    const char *host;           /* From remctl_open, stored here because */
+    unsigned short port;        /*   remctl v1 requires opening a new    */
+    const char *principal;      /*   connection for each command.        */
     int protocol;
     int fd;
     gss_ctx_id_t context;
@@ -27,15 +46,6 @@ struct remctl {
     int status;
 };
 
-/* Token types and flags. */
-#define TOKEN_NOOP              (1 << 0)
-#define TOKEN_CONTEXT           (1 << 1)
-#define TOKEN_DATA              (1 << 2)
-#define TOKEN_MIC               (1 << 3)
-#define TOKEN_CONTEXT_NEXT      (1 << 4)
-#define TOKEN_SEND_MIC          (1 << 5)
-#define TOKEN_PROTOCOL          (1 << 6)
-
 /* Helper functions to set errors. */
 void _remctl_set_error(struct remctl *, const char *, ...);
 void _remctl_gssapi_error(struct remctl *, const char *error,
@@ -43,5 +53,16 @@ void _remctl_gssapi_error(struct remctl *, const char *error,
 void _remctl_token_error(struct remctl *, const char *error, int status,
                          OM_uint32 major, OM_uint32 minor);
 
+/* Other helper functions. */
+void _remctl_output_wipe(struct remctl_output *);
+
+/* Protocol one functions. */
+int _remctl_v1_open(struct remctl *, const char *host, unsigned short port,
+                    const char *principal);
+int _remctl_v1_commandv(struct remctl *, const struct iovec *command,
+                        size_t count, int finished);
+struct remctl_output *remctl_v1_output(struct remctl *r);
+
+END_DECLS
 
 #endif /* !CLIENT_INTERNAL_H */

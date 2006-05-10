@@ -125,7 +125,7 @@ _remctl_v1_open(struct remctl *r, const char *host, unsigned short port,
     gss_context = GSS_C_NO_CONTEXT;
     do {
         major = gss_init_sec_context(&init_minor, GSS_C_NO_CREDENTIAL, 
-                    gss_context, name, (const gss_OID) GSS_KRB5_MECHANISM,
+                    &gss_context, name, (const gss_OID) GSS_KRB5_MECHANISM,
                     GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG, 0, NULL,
                     token_ptr, NULL, &send_tok, &gss_flags, NULL);
 
@@ -168,6 +168,7 @@ _remctl_v1_open(struct remctl *r, const char *host, unsigned short port,
     } while (major == GSS_S_CONTINUE_NEEDED);
 
     r->context = gss_context;
+    r->protocol = 1;
     gss_release_name(&minor, &name);
     return 1;
 }
@@ -181,11 +182,12 @@ int
 _remctl_v1_commandv(struct remctl *r, const struct iovec *command,
                     size_t count, int finished)
 {
-    gss_buffer_desc token;
+    gss_buffer_desc token, mic;
     size_t i;
     char *p;
     OM_uint32 data, major, minor;
-    int status;
+    int status, flags;
+    gss_qop_t qop_state;
 
     /* Partial commands not supported in protocol version one. */
     if (finished != 1) {
@@ -217,8 +219,8 @@ _remctl_v1_commandv(struct remctl *r, const struct iovec *command,
     }
 
     /* Send the result. */
-    status = token_send_priv(r->fd, r->context, TOKEN_DATA, &token, &major,
-                             &minor);
+    status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_SEND_MIC,
+                             &token, &major, &minor);
     if (status != TOKEN_OK) {
         _remctl_token_error(r, "sending token", status, major, minor);
         free(token.value);
@@ -294,14 +296,14 @@ _remctl_v1_output(struct remctl *r)
        unfortunately, so that we don't have to keep the token around to free
        later. */
     r->output = malloc(sizeof(struct remctl_output));
-    if (r->output != NULL) {
+    if (r->output == NULL) {
         _remctl_set_error(r, "Cannot allocate memory: %s", strerror(errno));
         gss_release_buffer(&minor, &token);
         return NULL;
     }
     r->output->type = REMCTL_OUT_OUTPUT;
     r->output->data = malloc(length);
-    if (r->output->data != NULL) {
+    if (r->output->data == NULL) {
         _remctl_set_error(r, "Cannot allocate memory: %s", strerror(errno));
         gss_release_buffer(&minor, &token);
         return NULL;
@@ -312,5 +314,10 @@ _remctl_v1_output(struct remctl *r)
     /* We always claim everything was stdout since we have no way of knowing
        better with protocol version one. */
     r->output->stream = 1;
+
+    /* We can only do one round with protocol version one, so close the
+       connection now. */
+    close(r->fd);
+    r->fd = -1;
     return r->output;
 }

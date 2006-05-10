@@ -47,16 +47,6 @@ void display_ctx_flags(OM_uint32 flags);
 /* Decode and display a token. */
 void print_token(gss_buffer_t tok);
 
-/* Token types. */
-#define TOKEN_NOOP		(1 << 0)
-#define TOKEN_CONTEXT		(1 << 1)
-#define TOKEN_DATA		(1 << 2)
-#define TOKEN_MIC		(1 << 3)
-
-/* Token flags. */
-#define TOKEN_CONTEXT_NEXT	(1 << 4)
-#define TOKEN_SEND_MIC		(1 << 5)
-
 /* Used as the default max buffer for the argv passed into the server, and for 
    the return message from the server. */
 #define MAXBUFFER               64000  
