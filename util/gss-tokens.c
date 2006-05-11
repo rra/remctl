@@ -101,7 +101,7 @@ token_recv_priv(int fd, gss_ctx_id_t ctx, int *flags, gss_buffer_t tok,
     if (*major != GSS_S_COMPLETE)
         return TOKEN_FAIL_GSSAPI;
     if ((*flags & TOKEN_SEND_MIC) && !(*flags & TOKEN_PROTOCOL)) {
-        *major = gss_get_mic(minor, ctx, GSS_C_QOP_DEFAULT, &in, &mic);
+        *major = gss_get_mic(minor, ctx, GSS_C_QOP_DEFAULT, tok, &mic);
         if (*major != GSS_S_COMPLETE)
             return TOKEN_FAIL_GSSAPI;
         status = token_send(fd, TOKEN_MIC, &mic);
