@@ -5,6 +5,9 @@ remctl 2.0 (unreleased)
     Don't consider inclusion of empty directories in a configuration file
     an error.
 
+    Add the -P flag to remctld to write its PID to a file when invoked in
+    stand-alone mode.
+
     Add an automated test suite.
 
     Completely rewrite the build system to use Automake, a supporting

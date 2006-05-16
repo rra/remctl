@@ -61,7 +61,7 @@ int _remctl_v1_open(struct remctl *, const char *host, unsigned short port,
                     const char *principal);
 int _remctl_v1_commandv(struct remctl *, const struct iovec *command,
                         size_t count, int finished);
-struct remctl_output *remctl_v1_output(struct remctl *r);
+struct remctl_output *_remctl_v1_output(struct remctl *r);
 
 END_DECLS
 

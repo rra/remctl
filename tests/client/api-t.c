@@ -5,6 +5,10 @@
 #include <system.h>
 
 #include <signal.h>
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
+#include <sys/time.h>
 #include <sys/uio.h>
 #include <sys/wait.h>
 
@@ -18,17 +22,30 @@ static pid_t
 spawn_remctl(char *principal)
 {
     pid_t child;
+    struct timeval tv;
 
+    if (access("data/pid", F_OK) == 0)
+        if (unlink("data/pid") != 0)
+            sysdie("cannot unlink data/pid");
     child = fork();
     if (child < 0)
         return child;
     else if (child == 0) {
         putenv("KRB5_KTNAME=data/test.keytab");
         execl("../server/remctld", "remctld", "-m", "-p", "14444", "-s",
-              principal, "-f", "data/simple.conf", (char *) 0);
+              principal, "-P", "data/pid", "-f", "data/simple.conf",
+              (char *) 0);
         _exit(1);
-    } else
+    } else {
+        alarm(1);
+        while (access("data/pid", F_OK) != 0) {
+            tv.tv_sec = 0;
+            tv.tv_usec = 10000;
+            select(0, NULL, NULL, NULL, &tv);
+        }
+        alarm(0);
         return child;
+    }
 }
 
 
@@ -100,5 +117,6 @@ main(void)
         waitpid(remctld, NULL, 0);
     }
     unlink("data/test.cache");
+    unlink("data/pid");
     exit(0);
 }

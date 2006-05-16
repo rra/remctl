@@ -4,7 +4,8 @@ remctld - Server for remctl, a remote command execution utility
 
 =head1 SYNOPSIS
 
-remctld [B<-dhmv>] [B<-f> I<config>] [B<-p> I<port>] [B<-s> I<service>]
+remctld [B<-dhmv>] [B<-f> I<config>] [B<-P> I<file>] [B<-p> I<port>]
+[B<-s> I<service>]
 
 =head1 DESCRIPTION
 
@@ -47,6 +48,11 @@ Show a brief usage message and then exit.
 Enable stand-alone mode.  B<remctld> will listen to its configured port,
 4444 by default, and handle incoming connections one at a time.  This is
 mostly useful for debugging purposes.
+
+=item B<-P> I<file>
+
+When running in stand-alone mode (B<-m>), write the PID of B<remctld> to
+I<file>.  This option is ignored unless B<-m> is also given.
 
 =item B<-p> I<port>
 

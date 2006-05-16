@@ -50,9 +50,10 @@ Options:\n\
     -f <file>     Config file (default: " CONFIG_FILE ")\n\
     -h            Display this help\n\
     -m            Stand-alone daemon mode, meant mostly for testing\n\
+    -P <file>     Write PID to file, only useful with -m\n\
+    -p <port>     Port to use, only for standalone mode (default: 4444)\n\
     -s <service>  Service principal to use (default: host/<host>)\n\
-    -v            Display the version of remctld\n\
-    -p <port>     Port to use, only for standalone mode (default: 4444)\n";
+    -v            Display the version of remctld\n";
 
 /* These are for storing either the socket for communication with client
    or the streams that talk to the network in case of inetd/tcpserver. */
@@ -1006,6 +1007,8 @@ int
 main(int argc, char *argv[])
 {
     char *service_name = NULL;
+    const char *pid_path = NULL;
+    FILE *pid_file;
     char host_name[500];
     int option;
     struct hostent *hostinfo;
@@ -1029,7 +1032,7 @@ main(int argc, char *argv[])
     message_handlers_die(1, message_log_syslog_err);
 
     /* Parse options. */
-    while ((option = getopt(argc, argv, "df:hmp:s:v")) != EOF) {
+    while ((option = getopt(argc, argv, "df:hmP:p:s:v")) != EOF) {
         switch (option) {
         case 'd':
             message_handlers_debug(1, message_log_syslog_debug);
@@ -1042,6 +1045,9 @@ main(int argc, char *argv[])
             break;
         case 'm':
             do_standalone = 1;
+            break;
+        case 'P':
+            pid_path = optarg;
             break;
         case 'p':
             port = atoi(optarg);
@@ -1084,6 +1090,13 @@ main(int argc, char *argv[])
     if (do_standalone) {
         alarm(0);
         if ((stmp = create_socket(port)) >= 0) {
+            if (pid_path != NULL) {
+                pid_file = fopen(pid_path, "w");
+                if (pid_file == NULL)
+                    sysdie("cannot create PID file %s", pid_path);
+                fprintf(pid_file, "%ld\n", (long) getpid());
+                fclose(pid_file);
+            }
             do {
                 /* Accept a TCP connection. */
                 s = accept(stmp, NULL, 0);

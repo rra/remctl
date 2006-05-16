@@ -17,7 +17,7 @@ AC_SEARCH_LIBS([socket], [socket], ,
     [AC_CHECK_LIB([nsl], [socket],
         [LIBS="-lnsl -lsocket $LIBS"], , [-lsocket])])
 RRA_LIB_KRB5([gssapi], [false])
-AC_CHECK_HEADERS([inttypes.h stdint.h sys/bitypes.h])
+AC_CHECK_HEADERS([inttypes.h stdint.h sys/bitypes.h sys/select.h])
 AC_CHECK_DECLS([snprintf, vsnprintf])
 RRA_C_C99_VAMACROS
 RRA_C_GNU_VAMACROS
