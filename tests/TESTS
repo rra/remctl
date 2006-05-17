@@ -1,4 +1,5 @@
 client/api
+client/remctl
 util/asprintf
 util/concat
 util/gss-tokens

@@ -9,7 +9,8 @@ EXTRA_DIST = client/remctl.1 client/remctl.pod docs/design.html \
 	java/Login.java java/RemctlClient.java java/gss_jaas.conf \
 	java/gss_jaas2.conf remctl.spec \
 	server/remctld.8.in server/remctld.pod \
-	tests/TESTS tests/data/README tests/util/xmalloc-t
+	tests/TESTS tests/data/README tests/client/remctl-t \
+	tests/util/xmalloc-t
 
 lib_LIBRARIES = client/libremctl.a
 client_libremctl_a_SOURCES = client/api.c client/client-v1.c client/error.c

@@ -1,0 +1,106 @@
+#! /bin/sh
+# $Id$
+#
+# Test suite for the remctl command-line client.
+
+# The count starts at 1 and is updated each time ok is printed.  printcount
+# takes "ok" or "not ok".
+count=1
+printcount () {
+    echo "$1 $count $2"
+    count=`expr $count + 1`
+}
+
+# Run a program expected to succeed, and print ok if it does and produces
+# the correct output.
+runsuccess () {
+    w_output="$1"
+    shift
+    principal=`cat data/test.principal`
+    output=`$remctl -s "$principal" -p 14444 localhost "$@" 2>&1`
+    status=$?
+    if [ $status = 0 ] && [ x"$output" = x"$w_output" ] ; then
+        printcount "ok"
+    else
+        printcount "not ok"
+        echo "  saw: $output"
+        echo "  not: $w_output"
+    fi
+}
+
+# Run a program expected to fail and make sure it fails with the correct
+# exit status and the correct failure message.  Strip the second colon and
+# everything after it off the error message since it's system-specific.
+runfailure () {
+    w_status="$1"
+    shift
+    w_output="$1"
+    shift
+    principal=`cat data/test.principal`
+    output=`$remctl -s "$principal" -p 14444 localhost "$@" 2>&1`
+    status=$?
+    output=`echo "$output" | sed 's/\(:[^:]*\):.*/\1/'`
+    if [ $status = $w_status ] && [ x"$output" = x"$w_output" ] ; then
+        printcount "ok"
+    else
+        printcount "not ok"
+        echo "  saw: ($status) $output"
+        echo "  not: ($w_status) $w_output"
+    fi
+}
+
+# Find the client program.
+if [ -f ../data/test.keytab ] ; then
+    cd ..
+else
+    if [ -f tests/data/test.keytab ] ; then
+        cd tests
+    fi
+fi
+if [ ! -f data/test.keytab ] ; then
+    for n in 1 2 3 4 5 6 7 ; do
+        echo ok $n \# skip -- no Kerberos configuration
+    done
+fi
+remctl=../client/remctl
+if [ ! -x "$remctl" ] ; then
+    echo 'Cannot locate remctl client binary' >&2
+    exit 1
+fi
+
+# Start the remctld daemon and wait for it to start.
+rm -f data/pid
+KRB5_KTNAME=data/test.keytab; export KRB5_KTNAME
+( ../server/remctld -m -p 14444 -s `cat data/test.principal` -P data/pid \
+    -f data/simple.conf &)
+KRB5CCNAME=data/test.cache; export KRB5CCNAME
+kinit -k -K data/test.keytab `cat data/test.principal` > /dev/null
+if [ $? != 0 ] ; then
+    echo 'Unable to obtain Kerberos tickets' >&2
+fi
+[ -f data/pid ] || sleep 1
+if [ ! -f data/pid ] ; then
+    echo 'remctld did not start' >&2
+    exit 1
+fi
+
+# Print the number of tests.
+echo 7
+
+# Now, we can finally run our tests.
+runsuccess "hello world" test test
+runsuccess "" test status 0
+runfailure 1 "" test status 1
+runfailure 2 "" test status 2
+runfailure 255 \
+    "Access denied: `cat data/test.principal` principal not on the acl list" \
+    test noauth
+runfailure 1 "" test nonexistant
+runfailure 255 "Command not defined" test bad-command
+
+# Clean up.
+rm -f data/test.cache
+if [ -f data/pid ] ; then
+    kill -HUP `cat data/pid`
+    rm -f data/pid
+fi
