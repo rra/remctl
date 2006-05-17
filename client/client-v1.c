@@ -149,7 +149,7 @@ _remctl_v1_open(struct remctl *r, const char *host, unsigned short port,
             _remctl_gssapi_error(r, "initializing context", major,
                                  init_minor);
             gss_release_name(&minor, &name);
-            if (gss_context == GSS_C_NO_CONTEXT)
+            if (gss_context != GSS_C_NO_CONTEXT)
                 gss_delete_sec_context(&minor, gss_context, GSS_C_NO_BUFFER);
             return 0;
         }

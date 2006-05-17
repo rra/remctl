@@ -20,8 +20,8 @@ util_libutil_a_SOURCES = util/concat.c util/gss-tokens.c util/messages.c \
 util_libutil_a_LIBADD = $(LIBOBJS)
 
 bin_PROGRAMS = client/remctl
-client_remctl_SOURCES = client/remctl.c client/gss-utils.c
-client_remctl_LDADD = util/libutil.a
+client_remctl_SOURCES = client/remctl.c
+client_remctl_LDADD = client/libremctl.a util/libutil.a
 
 sbin_PROGRAMS = server/remctld
 server_remctld_SOURCES = server/remctld.c server/gss-utils.c
