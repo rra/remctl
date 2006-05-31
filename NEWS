@@ -2,6 +2,10 @@
 
 remctl 2.0 (unreleased)
 
+    Document the details of the remctl protocol, both the old version 1
+    protocol and the new version 2 protocol, in hopefully sufficient
+    detail for anyone else to implement it.
+
     Don't consider inclusion of empty directories in a configuration file
     an error.
 
