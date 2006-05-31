@@ -84,7 +84,15 @@
           TOKEN_NOOP, TOKEN_CONTEXT_NEXT, and TOKEN_PROTOCOL (0x51).  If
           the client doesn't include TOKEN_PROTOCOL, it is speaking the
           version 1 protocol, and the server MUST either drop the
-          connection or fall back to the version 1 protocol.</t>
+          connection or fall back to the version 1 protocol.  This initial
+          message is useless in a pure version 2 protocol world and is
+          done only for backward compatibility with the version 1
+          protocol.</t>
+
+          <t>Client calls gss_init_sec_context and replies with the
+          results and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The client
+          must pass GSS_C_MUTUAL_FLAG, GSS_C_REPLAY_FLAG, GSS_C_CONF_FLAG,
+          and GSS_C_INTEG_FLAG as requested flags.</t>
 
           <t>Server replies with the results of gss_accept_sec_context and
           flags TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  If the server
@@ -312,11 +320,14 @@
         <t>Client sends message with flags TOKEN_NOOP and
         TOKEN_CONTEXT_NEXT and an empty payload.</t>
 
+        <t>Client calls gss_init_sec_context and sends message with the
+        results and flags TOKEN_CONTEXT.</t>
+
         <t>Server replies with the results of gss_accept_sec_context and
         flags TOKEN_CONTEXT.</t>
 
-        <t>Client passes data to gss_init_sec_context and replies with the
-        results and TOKEN_CONTEXT.</t>
+        <t>Client calls gss_init_sec_context again with the data from the
+        server and replies with the results and flags TOKEN_CONTEXT.</t>
 
         <t>Server and client repeat, passing in the payload from the last
         packet from the other side, for as long as GSSAPI indicates that
