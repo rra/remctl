@@ -14,7 +14,8 @@ EXTRA_DIST = client/remctl.1 client/remctl.pod docs/design.html \
 	tests/client/remctl-t tests/util/xmalloc-t
 
 lib_LIBRARIES = client/libremctl.a
-client_libremctl_a_SOURCES = client/api.c client/client-v1.c client/error.c
+client_libremctl_a_SOURCES = client/api.c client/client-v1.c client/error.c \
+	client/open.c
 
 noinst_LIBRARIES = util/libutil.a
 util_libutil_a_SOURCES = util/concat.c util/gss-tokens.c util/messages.c \
@@ -43,7 +44,7 @@ server/remctld.8: $(srcdir)/server/remctld.8.in
 	sed 's%@sysconfdir\@%$(sysconfdir)%' < $< > $@
 
 CLEANFILES = server/remctld.8
-MAINTAINERCLEANFILES = config.h.in~
+MAINTAINERCLEANFILES = config.h.in config.h.in~ configure
 
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/util/asprintf-t \

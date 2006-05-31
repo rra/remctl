@@ -56,9 +56,11 @@ void _remctl_token_error(struct remctl *, const char *error, int status,
 /* Other helper functions. */
 void _remctl_output_wipe(struct remctl_output *);
 
+/* General connection opening and negotiation function. */
+int _remctl_open(struct remctl *, const char *host, unsigned short port,
+                 const char *principal);
+
 /* Protocol one functions. */
-int _remctl_v1_open(struct remctl *, const char *host, unsigned short port,
-                    const char *principal);
 int _remctl_v1_commandv(struct remctl *, const struct iovec *command,
                         size_t count, int finished);
 struct remctl_output *_remctl_v1_output(struct remctl *r);

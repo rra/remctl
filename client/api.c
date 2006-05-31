@@ -238,7 +238,7 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
     r->host = host;
     r->port = port;
     r->principal = principal;
-    return _remctl_v1_open(r, host, port, principal);
+    return _remctl_open(r, host, port, principal);
 }
 
 
