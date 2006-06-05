@@ -41,7 +41,8 @@ $(srcdir)/server/remctld.8.in: $(srcdir)/server/remctld.pod
 	    --section=8 $< > $@
 
 server/remctld.8: $(srcdir)/server/remctld.8.in
-	sed 's%@sysconfdir\@%$(sysconfdir)%' < $< > $@
+	sed 's%@sysconfdir\@%$(sysconfdir)%' \
+	    < $(srcdir)/server/remctld.8.in > $@
 
 CLEANFILES = server/remctld.8
 MAINTAINERCLEANFILES = config.h.in config.h.in~ configure

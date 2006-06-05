@@ -18,6 +18,9 @@ remctl 2.0 (unreleased)
     utility library, separate subdirectories for different parts of the
     source tree, and a wrapper include file for system headers.
 
+    Don't use $< in non-pattern rules, fixing a build error on some
+    systems with non-GNU make.
+
 remctl 1.12 (2006-01-01)
 
     Initialize memory properly when parsing the server configuration file.
