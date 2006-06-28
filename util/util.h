@@ -46,14 +46,6 @@
 
 BEGIN_DECLS
 
-/* Concatenate NULL-terminated strings into a newly allocated string. */
-extern char *concat(const char *first, ...);
-
-/* Given a baes path and a file name, create a newly allocated path string.
-   The name will be appended to base with a / between them.  Exceptionally, if
-   name begins with a slash, it will be strdup'd and returned as-is. */
-extern char *concatpath(const char *base, const char *name);
-
 /* Failure return codes from token_send and token_recv. */
 enum token_status {
     TOKEN_OK = 0,
@@ -74,6 +66,16 @@ enum token_flags {
     TOKEN_PROTOCOL      = (1 << 6)
 };
 
+/* Message types. */
+enum message_types {
+    MESSAGE_COMMAND = 1,
+    MESSAGE_QUIT    = 2,
+    MESSAGE_OUTPUT  = 3,
+    MESSAGE_STATUS  = 4,
+    MESSAGE_ERROR   = 5,
+    MESSAGE_VERSION = 6
+};
+
 /* Sending and receiving tokens. */
 enum token_status token_send(int fd, int flags, gss_buffer_t);
 enum token_status token_recv(int fd, int *flags, gss_buffer_t, size_t max);
@@ -86,6 +88,14 @@ enum token_status token_send_priv(int fd, gss_ctx_id_t, int flags,
 enum token_status token_recv_priv(int fd, gss_ctx_id_t, int *flags,
                                   gss_buffer_t, size_t max, OM_uint32 *,
                                   OM_uint32 *);
+
+/* Concatenate NULL-terminated strings into a newly allocated string. */
+extern char *concat(const char *first, ...);
+
+/* Given a baes path and a file name, create a newly allocated path string.
+   The name will be appended to base with a / between them.  Exceptionally, if
+   name begins with a slash, it will be strdup'd and returned as-is. */
+extern char *concatpath(const char *base, const char *name);
 
 /* The reporting functions.  The ones prefaced by "sys" add a colon, a space,
    and the results of strerror(errno) to the output and are intended for

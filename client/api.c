@@ -313,7 +313,10 @@ remctl_commandv(struct remctl *r, const struct iovec *command, size_t count,
         free(r->error);
         r->error = NULL;
     }
-    return _remctl_v1_commandv(r, command, count, finished);
+    if (r->protocol == 1)
+        return _remctl_v1_commandv(r, command, count, finished);
+    else
+        return _remctl_v2_commandv(r, command, count, finished);
 }
 
 
@@ -363,7 +366,10 @@ remctl_output(struct remctl *r)
         free(r->error);
         r->error = NULL;
     }
-    return _remctl_v1_output(r);
+    if (r->protocol == 1)
+        return _remctl_v1_output(r);
+    else
+        return _remctl_v2_output(r);
 }
 
 

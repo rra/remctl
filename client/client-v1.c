@@ -89,6 +89,7 @@ _remctl_v1_commandv(struct remctl *r, const struct iovec *command,
         return 0;
     }
     free(token.value);
+    r->ready = 1;
     return 1;
 }
 
@@ -111,7 +112,7 @@ _remctl_v1_output(struct remctl *r)
 
     /* First, see if we already had an output struct.  If so, this is the
        second call and we should just return the exit status. */
-    if (r->output != NULL) {
+    if (r->output != NULL && r->ready == 0) {
         if (r->output->type == REMCTL_OUT_STATUS)
             r->output->type = REMCTL_OUT_DONE;
         else {
@@ -181,5 +182,6 @@ _remctl_v1_output(struct remctl *r)
        connection now. */
     close(r->fd);
     r->fd = -1;
+    r->ready = 0;
     return r->output;
 }

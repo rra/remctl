@@ -44,6 +44,7 @@ struct remctl {
     char *error;
     struct remctl_output *output;
     int status;
+    int ready;                  /* If true, we are expecting server output. */
 };
 
 /* Helper functions to set errors. */
@@ -64,6 +65,11 @@ int _remctl_open(struct remctl *, const char *host, unsigned short port,
 int _remctl_v1_commandv(struct remctl *, const struct iovec *command,
                         size_t count, int finished);
 struct remctl_output *_remctl_v1_output(struct remctl *r);
+
+/* Protocol two functions. */
+int _remctl_v2_commandv(struct remctl *, const struct iovec *command,
+                        size_t count, int finished);
+struct remctl_output *_remctl_v2_output(struct remctl *r);
 
 END_DECLS
 

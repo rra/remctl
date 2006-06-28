@@ -177,6 +177,7 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
     } while (major == GSS_S_CONTINUE_NEEDED);
 
     r->context = gss_context;
+    r->ready = 0;
     gss_release_name(&minor, &name);
     return 1;
 
