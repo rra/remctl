@@ -31,11 +31,6 @@
 #include <client/remctl.h>
 #include <util/util.h>
 
-/* Handle compatibility to older versions of MIT Kerberos. */
-#ifndef HAVE_GSS_RFC_OIDS
-# define GSS_C_NT_USER_NAME gss_nt_user_name
-#endif
-
 /* We're unwilling to accept tokens from the remote side larger than this.
    FIXME: Figure out what the actual limit is by asking GSSAPI. */
 #define MAX_TOKEN       (1024 * 1024)

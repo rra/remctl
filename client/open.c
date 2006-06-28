@@ -29,15 +29,20 @@
 # include <gssapi/gssapi_generic.h>
 #endif
 
-#include <client/internal.h>
-#include <client/remctl.h>
-#include <util/util.h>
+/* Handle compatibility to older versions of MIT Kerberos. */
+#ifndef HAVE_GSS_RFC_OIDS
+# define GSS_C_NT_USER_NAME gss_nt_user_name
+#endif
 
 /* Heimdal provides a nice #define for this. */
 #if !HAVE_DECL_GSS_KRB5_MECHANISM
 # include <gssapi/gssapi_krb5.h>
 # define GSS_KRB5_MECHANISM gss_mech_krb5
 #endif
+
+#include <client/internal.h>
+#include <client/remctl.h>
+#include <util/util.h>
 
 
 /*
