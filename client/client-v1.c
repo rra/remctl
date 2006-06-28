@@ -20,9 +20,6 @@
 #include <system.h>
 
 #include <errno.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>
