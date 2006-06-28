@@ -37,7 +37,6 @@ main(void)
     char *principal;
     gss_buffer_desc name_buf, server_tok, client_tok, *token_ptr;
     gss_name_t server_name, client_name;
-    gss_cred_id_t server_creds;
     gss_ctx_id_t server_ctx, client_ctx;
     OM_uint32 c_stat, c_min_stat, s_stat, s_min_stat, ret_flags;
     gss_OID doid;
@@ -48,7 +47,7 @@ main(void)
     /* Unless we have Kerberos available, we can't really do anything. */
     principal = kerberos_setup();
     if (principal == NULL) {
-        skip_block(1, 8, "Kerberos tests not configured");
+        skip_block(1, 26, "Kerberos tests not configured");
         return 0;
     }
     putenv("KRB5_KTNAME=data/test.keytab");
@@ -61,10 +60,6 @@ main(void)
                              &server_name);
     if (s_stat != GSS_S_COMPLETE)
         die("cannot import name");
-    s_stat = gss_acquire_cred(&s_min_stat, server_name, 0, GSS_C_NULL_OID_SET,
-                              GSS_C_ACCEPT, &server_creds, NULL, NULL);
-    if (s_stat != GSS_S_COMPLETE)
-        die("cannot acquire creds");
     server_ctx = GSS_C_NO_CONTEXT;
     client_ctx = GSS_C_NO_CONTEXT;
     token_ptr = GSS_C_NO_BUFFER;
@@ -80,7 +75,7 @@ main(void)
         if (client_tok.length == 0)
             break;
         s_stat = gss_accept_sec_context(&s_min_stat, &server_ctx,
-                                        server_creds, &client_tok,
+                                        GSS_C_NO_CREDENTIAL, &client_tok,
                                         GSS_C_NO_CHANNEL_BINDINGS,
                                         &client_name, &doid, &server_tok,
                                         &ret_flags, NULL, NULL);
