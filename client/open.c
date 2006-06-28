@@ -1,4 +1,4 @@
-/*  $Id: client-v1.c 2561 2006-05-17 18:00:55Z rra $
+/*  $Id$
 **
 **  Open a connection to a remote server.
 **
