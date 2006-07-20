@@ -80,6 +80,15 @@ extern int              snprintf(char *, size_t, const char *, ...)
 #if !HAVE_DECL_VSNPRINTF
 extern int              vsnprintf(char *, size_t, const char *, va_list);
 #endif
+#if !HAVE_SETENV
+extern int              setenv(const char *, const char *, int);
+#endif
+#if !HAVE_STRLCAT
+extern size_t           strlcat(char *, const char *, size_t);
+#endif
+#if !HAVE_STRLCPY
+extern size_t           strlcpy(char *, const char *, size_t);
+#endif
 
 END_DECLS
 
