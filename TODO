@@ -1,7 +1,34 @@
                             remctl To-Do List
 
+ * Support MESSAGE_QUIT all around.
+
+ * What happens if something fails after we've sent some output but not
+   all of it?  I think we need to change the protocol to allow
+   MESSAGE_ERROR to be sent after some MESSAGE_OUTPUT.
+
+ * Support continued commands in the server.
+
+ * In the generic token library, handle getting EOF from the client and
+   return a distinguished token code.  Add support for reporting on that
+   code to the error reporting functions.
+
  * In standalone mode, remctld doesn't shut down cleanly after a signal
    and in particular doesn't delete its PID file if it was configured to
    write one.
+
+ * In standalone mode, we need to fork a new process for each incoming
+   connection since the connections may be long-lived.
+
+ * Put the IP address and hostname of the remote server in the environment.
+
+ * Refactoring:
+   - GSS-API error reporting should be shared between client and server.
+   - In _remctl_v2_output, reading strings from messages can be shared.
+
+ * Cleanup:
+   - Test make dist.
+   - Add copyright and license statements to every file.
+   - Document special Automake requirement.
+   - Use GSS-API, not GSSAPI, everywhere.
 
  * Testing: Thomas Kula <kula@tproa.net>
