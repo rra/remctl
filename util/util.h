@@ -49,10 +49,10 @@ BEGIN_DECLS
 /* Failure return codes from token_send and token_recv. */
 enum token_status {
     TOKEN_OK = 0,
-    TOKEN_FAIL_SYSTEM = -1,     /* System call failed, error in errno */
+    TOKEN_FAIL_SYSTEM  = -1,    /* System call failed, error in errno */
     TOKEN_FAIL_INVALID = -2,    /* Invalid token from remote site */
-    TOKEN_FAIL_LARGE = -3,      /* Token data exceeds max length */
-    TOKEN_FAIL_GSSAPI = -4      /* GSS-API failure {en,de}crypting token */
+    TOKEN_FAIL_LARGE   = -3,    /* Token data exceeds max length */
+    TOKEN_FAIL_GSSAPI  = -4     /* GSS-API failure {en,de}crypting token */
 };
 
 /* Token types and flags. */
@@ -74,6 +74,16 @@ enum message_types {
     MESSAGE_STATUS  = 4,
     MESSAGE_ERROR   = 5,
     MESSAGE_VERSION = 6
+};
+
+/* Error codes. */
+enum error_codes {
+    ERROR_INTERNAL        = 1,  /* Internal server failure. */
+    ERROR_BAD_TOKEN       = 2,  /* Invalid format in token. */
+    ERROR_UNKNOWN_MESSAGE = 3,  /* Unknown message type. */
+    ERROR_BAD_COMMAND     = 4,  /* Invalid command format in token. */
+    ERROR_UNKNOWN_COMMAND = 5,  /* Unknown command. */
+    ERROR_ACCESS          = 6   /* Access denied. */
 };
 
 /* Sending and receiving tokens. */
