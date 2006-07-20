@@ -5,6 +5,7 @@ util/asprintf
 util/concat
 util/gss-tokens
 util/messages
+util/setenv
 util/snprintf
 util/strlcat
 util/strlcpy
