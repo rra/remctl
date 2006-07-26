@@ -17,6 +17,7 @@
 #include <system.h>
 
 #include <errno.h>
+#include <netinet/in.h>
 
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>
@@ -45,7 +46,7 @@ _remctl_v2_commandv(struct remctl *r, const struct iovec *command,
     size_t i;
     char *p;
     OM_uint32 data, major, minor;
-    int status, flags;
+    int status;
 
     /* Allocate room for the total message. */
     token.length = 1 + 1 + 1 + 1 + 4;
@@ -113,7 +114,7 @@ _remctl_v2_output(struct remctl *r)
     int status, flags;
     gss_buffer_desc token;
     size_t size;
-    OM_uint32 data, major, minor, length;
+    OM_uint32 data, major, minor;
     char *p;
     int type;
 

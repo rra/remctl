@@ -46,6 +46,9 @@
 
 BEGIN_DECLS
 
+/* Forward declarations to avoid includes. */
+struct iovec;
+
 /* Failure return codes from token_send and token_recv. */
 enum token_status {
     TOKEN_OK = 0,
@@ -106,6 +109,13 @@ extern char *concat(const char *first, ...);
    The name will be appended to base with a / between them.  Exceptionally, if
    name begins with a slash, it will be strdup'd and returned as-is. */
 extern char *concatpath(const char *base, const char *name);
+
+/* Like the non-x versions of the same function, but keep writing until either
+   the write is not making progress or there's a real error.  Handle partial
+   writes and EINTR/EAGAIN errors. */
+extern ssize_t xpwrite(int fd, const void *buffer, size_t size, off_t offset);
+extern ssize_t xwrite(int fd, const void *buffer, size_t size);
+extern ssize_t xwritev(int fd, const struct iovec *iov, int iovcnt);
 
 /* The reporting functions.  The ones prefaced by "sys" add a colon, a space,
    and the results of strerror(errno) to the output and are intended for

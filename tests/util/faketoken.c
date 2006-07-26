@@ -12,6 +12,18 @@
 
 #include <util/util.h>
 
+/* __attribute__ is available in gcc 2.5 and later, but only with gcc 2.7
+   could you use the __format__ form of the attributes, which is what we use
+   (to avoid confusion with other macros). */
+#ifndef __attribute__
+# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7)
+#  define __attribute__(spec)   /* empty */
+# endif
+#endif
+
+/* Used for unused parameters to silence gcc warnings. */
+#define UNUSED  __attribute__((__unused__))
+
 enum token_status fake_token_send(int, int, gss_buffer_t);
 enum token_status fake_token_recv(int, int *, gss_buffer_t, size_t);
 
@@ -26,7 +38,7 @@ int recv_flags;
 
 /* Accept a token write request and store it into the buffer. */
 enum token_status
-fake_token_send(int fd, int flags, gss_buffer_t tok)
+fake_token_send(int fd UNUSED, int flags, gss_buffer_t tok)
 {
     if (tok->length > sizeof(send_buffer))
         return TOKEN_FAIL_SYSTEM;
@@ -38,7 +50,7 @@ fake_token_send(int fd, int flags, gss_buffer_t tok)
 
 /* Receive a token from the stored buffer and return it. */
 enum token_status
-fake_token_recv(int fd, int *flags, gss_buffer_t tok, size_t max)
+fake_token_recv(int fd UNUSED, int *flags, gss_buffer_t tok, size_t max)
 {
     if (recv_length > max)
         return TOKEN_FAIL_LARGE;

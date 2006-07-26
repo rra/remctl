@@ -77,7 +77,7 @@ warn_token(const char *error, int status, OM_uint32 major, OM_uint32 minor)
         warn("error %s", error);
         break;
     case TOKEN_FAIL_SYSTEM:
-        syswarn("error %s: %s", error);
+        syswarn("error %s: %s", error, strerror(errno));
         break;
     case TOKEN_FAIL_INVALID:
         warn("error %s: invalid token format", error);

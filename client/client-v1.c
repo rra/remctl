@@ -20,6 +20,7 @@
 #include <system.h>
 
 #include <errno.h>
+#include <netinet/in.h>
 
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>
@@ -44,12 +45,11 @@ int
 _remctl_v1_commandv(struct remctl *r, const struct iovec *command,
                     size_t count, int finished)
 {
-    gss_buffer_desc token, mic;
+    gss_buffer_desc token;
     size_t i;
     char *p;
     OM_uint32 data, major, minor;
-    int status, flags;
-    gss_qop_t qop_state;
+    int status;
 
     /* Partial commands not supported in protocol version one. */
     if (finished != 1) {

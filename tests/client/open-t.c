@@ -125,7 +125,6 @@ main(void)
         skip_block(1, 6, "Kerberos tests not configured");
         return 0;
     }
-    putenv("KRB5_KTNAME=data/test.keytab");
 
     /* We're going to try this three times, for each of the three possible
        different protocol negotiation behaviors that accept_connection can

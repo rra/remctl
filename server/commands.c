@@ -91,7 +91,7 @@ server_process_output(struct client *client, int fds[], int nfds)
             if (!FD_ISSET(fd, &fdset))
                 continue;
             if (client->protocol == 1) {
-                if (left >= 0) {
+                if (left > 0) {
                     status[i] = read(fd, p, left);
                     if (status[i] < 0 && (errno != EINTR && errno != EAGAIN))
                         goto readfail;

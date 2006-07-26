@@ -24,6 +24,9 @@
 **  be lost.
 */
 
+/* Needed before loading unistd.h on some systems to get a pwrite prototype. */
+#define _GNU_SOURCE 1
+
 #include <config.h>
 #include <system.h>
 

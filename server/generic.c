@@ -41,7 +41,9 @@ server_new_client(int fd, gss_cred_id_t creds)
     gss_buffer_desc send_tok, recv_tok, name_buf;
     gss_name_t name = GSS_C_NO_NAME;
     gss_OID doid;
-    OM_uint32 major, minor, acc_minor;
+    OM_uint32 major = 0;
+    OM_uint32 minor = 0;
+    OM_uint32 acc_minor;
     int flags, status;
     static const OM_uint32 req_gss_flags
         = (GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_CONF_FLAG
@@ -49,7 +51,7 @@ server_new_client(int fd, gss_cred_id_t creds)
 
     /* Create and initialize a new client struct. */
     client = xcalloc(1, sizeof(struct client));
-    client->fd = -1;
+    client->fd = fd;
     client->context = GSS_C_NO_CONTEXT;
     client->user = NULL;
     client->output = NULL;
@@ -203,7 +205,7 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
         memcpy(&tmp, p, 4);
         arglen = ntohl(tmp);
         p += 4;
-        if (arglen < 0 || (length - (p - buffer)) < arglen) {
+        if ((length - (p - buffer)) < arglen) {
             warn("command data invalid");
             server_send_error(client, ERROR_BAD_COMMAND,
                               "Invalid command token");

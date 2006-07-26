@@ -216,7 +216,8 @@ kerberos_setup(void)
     length = strlen(format) + strlen(principal);
     command = xmalloc(length);
     snprintf(command, length, format, principal);
-    putenv("KRB5CCNAME=data/test.cache");
+    putenv((char *) "KRB5CCNAME=data/test.cache");
+    putenv((char *) "KRB5_KTNAME=data/test.keytab");
     status = system(command);
     free(command);
     if (status == -1 || WEXITSTATUS(status) != 0)

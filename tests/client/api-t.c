@@ -31,7 +31,6 @@ spawn_remctl(char *principal)
     if (child < 0)
         return child;
     else if (child == 0) {
-        putenv("KRB5_KTNAME=data/test.keytab");
         execl("../server/remctld", "remctld", "-m", "-p", "14444", "-s",
               principal, "-P", "data/pid", "-f", "data/simple.conf",
               (char *) 0);
@@ -53,7 +52,6 @@ int
 main(void)
 {
     struct remctl *r;
-    int n = 1;
     char *principal;
     const char *test[] = { "test", "test", NULL };
     struct iovec *command;
@@ -88,9 +86,9 @@ main(void)
         ok_int(13, REMCTL_OUT_STATUS, output->type);
         ok_int(14, 0, output->status);
         command = xcalloc(2, sizeof(struct iovec));
-        command[0].iov_base = "test";
+        command[0].iov_base = (char *) "test";
         command[0].iov_len = 4;
-        command[1].iov_base = "test";
+        command[1].iov_base = (char *) "test";
         command[1].iov_len = 4;
         ok(15, remctl_commandv(r, command, 2, 1));
         ok_string(16, "No error", remctl_error(r));

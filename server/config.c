@@ -365,7 +365,7 @@ server_config_acl_permit(struct confline *cline, const char *user)
     if (strcmp(acls[0], "ANYUSER") == 0)
         return 1;
     for (i = 0; acls[i] != NULL; i++) {
-        status = acl_check_file(user, acls[i]);
+        status = acl_check_file((void *) user, acls[i]);
         if (status != -1)
             return 1;
     }

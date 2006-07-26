@@ -36,7 +36,7 @@ Options:\n\
 /*
 **  Lowercase a string in place.
 */
-void 
+static void 
 lowercase(char *string)
 {
     char *p;
@@ -90,6 +90,8 @@ process_response(struct remctl *r, int *errorcode)
         case REMCTL_OUT_STATUS:
             *errorcode = out->status;
             return 1;
+        case REMCTL_OUT_DONE:
+            break;
         }
         out = remctl_output(r);
     }

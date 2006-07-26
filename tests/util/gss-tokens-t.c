@@ -50,7 +50,6 @@ main(void)
         skip_block(1, 26, "Kerberos tests not configured");
         return 0;
     }
-    putenv("KRB5_KTNAME=data/test.keytab");
 
     /* We have to set up a context first in order to do this test, which is
        rather annoying. */
@@ -89,7 +88,7 @@ main(void)
         die("cannot establish context");
 
     /* Okay, we should now be able to send and receive a token. */
-    server_tok.value = "hello";
+    server_tok.value = (char *) "hello";
     server_tok.length = 5;
     status = token_send_priv(0, server_ctx, 3, &server_tok, &s_stat,
                              &s_min_stat);
@@ -106,7 +105,7 @@ main(void)
     gss_release_buffer(&c_min_stat, &client_tok);
     client_tok.length = 0;
     client_tok.value = NULL;
-    server_tok.value = "hello";
+    server_tok.value = (char *) "hello";
     server_tok.length = 5;
     status = token_send_priv(0, server_ctx, 3, &server_tok, &s_stat,
                              &s_min_stat);
@@ -136,7 +135,7 @@ main(void)
     /* Now, fake up a token to make sure that token_recv_priv is doing the
        right thing. */
     recv_flags = 5;
-    client_tok.value = "hello";
+    client_tok.value = (char *) "hello";
     client_tok.length = 5;
     c_stat = gss_wrap(&c_min_stat, client_ctx, 1, GSS_C_QOP_DEFAULT,
                       &client_tok, NULL, &server_tok);
@@ -153,7 +152,7 @@ main(void)
     gss_release_buffer(&c_min_stat, &server_tok);
 
     /* Test the stupid protocol v1 MIC stuff. */
-    server_tok.value = "hello";
+    server_tok.value = (char *) "hello";
     server_tok.length = 5;
     c_stat = gss_get_mic(&c_min_stat, client_ctx, GSS_C_QOP_DEFAULT,
                          &server_tok, &client_tok);

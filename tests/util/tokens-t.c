@@ -6,6 +6,7 @@
 
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>

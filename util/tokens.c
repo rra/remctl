@@ -11,6 +11,7 @@
 #include <system.h>
 
 #include <errno.h>
+#include <netinet/in.h>
 
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>
@@ -77,7 +78,7 @@ token_send(int fd, int flags, gss_buffer_t tok)
     memcpy(buffer + 1 + sizeof(OM_uint32), tok->value, tok->length);
     status = xwrite(fd, buffer, buflen);
     free(buffer);
-    if (status >= 0 && status != buflen)
+    if (status >= 0 && (size_t) status != buflen)
         return TOKEN_FAIL_SYSTEM;
     else
         return TOKEN_OK;
