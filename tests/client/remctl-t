@@ -92,11 +92,9 @@ runsuccess "hello world" test test
 runsuccess "" test status 0
 runfailure 1 "" test status 1
 runfailure 2 "" test status 2
-runfailure 255 \
-    "Access denied: `cat data/test.principal` principal not on the acl list" \
-    test noauth
+runfailure 255 "Access denied" test noauth
 runfailure 1 "" test nonexistant
-runfailure 255 "Command not defined" test bad-command
+runfailure 255 "Unknown command" test bad-command
 
 # Clean up.
 rm -f data/test.cache
