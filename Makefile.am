@@ -49,6 +49,17 @@ server/remctld.8: $(srcdir)/server/remctld.8.in
 CLEANFILES = server/remctld.8
 MAINTAINERCLEANFILES = config.h.in config.h.in~ configure
 
+# A set of flags for warnings.  Add -O because gcc won't find some warnings
+# without optimization turned on, and add -DDEBUG=1 so we'll also compile all
+# debugging code and test it.
+WARNINGS = -g -O -DDEBUG=1 -Wall -W -Wendif-labels -Wpointer-arith \
+	-Wbad-function-cast -Wcast-align -Wwrite-strings -Wstrict-prototypes \
+	-Wmissing-prototypes -Wnested-externs -Werror
+
+warnings:
+	$(MAKE) CFLAGS='$(WARNINGS)'
+	$(MAKE) CFLAGS='$(WARNINGS)' $(check_PROGRAMS)
+
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/client/open-t \
 	tests/util/asprintf-t tests/util/concat-t tests/util/gss-tokens-t \
