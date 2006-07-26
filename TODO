@@ -8,10 +8,6 @@
 
  * Support continued commands in the server.
 
- * In the generic token library, handle getting EOF from the client and
-   return a distinguished token code.  Add support for reporting on that
-   code to the error reporting functions.
-
  * In standalone mode, remctld doesn't shut down cleanly after a signal
    and in particular doesn't delete its PID file if it was configured to
    write one.

@@ -111,6 +111,9 @@ _remctl_token_error(struct remctl *r, const char *error, int status,
     case TOKEN_FAIL_LARGE:
         _remctl_set_error(r, "error %s: token too larger", error);
         break;
+    case TOKEN_FAIL_EOF:
+        _remctl_set_error(r, "error %s: unexpected end of file", error);
+        break;
     case TOKEN_FAIL_GSSAPI:
         _remctl_gssapi_error(r, error, major, minor);
         break;

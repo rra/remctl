@@ -55,7 +55,8 @@ enum token_status {
     TOKEN_FAIL_SYSTEM  = -1,    /* System call failed, error in errno */
     TOKEN_FAIL_INVALID = -2,    /* Invalid token from remote site */
     TOKEN_FAIL_LARGE   = -3,    /* Token data exceeds max length */
-    TOKEN_FAIL_GSSAPI  = -4     /* GSS-API failure {en,de}crypting token */
+    TOKEN_FAIL_EOF     = -4,    /* Unexpected end of file while reading */
+    TOKEN_FAIL_GSSAPI  = -5     /* GSS-API failure {en,de}crypting token */
 };
 
 /* Token types and flags. */

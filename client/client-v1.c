@@ -128,6 +128,10 @@ _remctl_v1_output(struct remctl *r)
                              &major, &minor);
     if (status != TOKEN_OK) {
         _remctl_token_error(r, "receiving token", status, major, minor);
+        if (status == TOKEN_FAIL_EOF) {
+            close(r->fd);
+            r->fd = -1;
+        }
         return NULL;
     }
     if (flags != TOKEN_DATA) {

@@ -87,7 +87,8 @@ server_v1_handle_commands(struct client *client, struct config *config)
                              MAX_TOKEN, &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("receiving command token", status, major, minor);
-        server_send_error(client, ERROR_BAD_TOKEN, "Invalid token");
+        if (status != TOKEN_FAIL_EOF)
+            server_send_error(client, ERROR_BAD_TOKEN, "Invalid token");
         return;
     }
 

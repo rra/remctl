@@ -94,6 +94,7 @@ token_send(int fd, int flags, gss_buffer_t tok)
 **      TOKEN_FAIL_SYSTEM       System call failed, errno set.
 **      TOKEN_FAIL_INVALID      Invalid token format.
 **      TOKEN_FAIL_LARGE        Token data larger than provided limit.
+**      TOKEN_FAIL_EOF          Unexpected end of file
 **
 **  recv_token reads the token flags (a single byte, even though they're
 **  stored into an integer, then reads the token length (as a network long),
@@ -112,12 +113,14 @@ token_recv(int fd, int *flags, gss_buffer_t tok, size_t max)
     if (status < 0)
         return TOKEN_FAIL_SYSTEM;
     else if (status == 0)
-        return TOKEN_FAIL_INVALID;
+        return TOKEN_FAIL_EOF;
     *flags = char_flags;
 
     status = xread(fd, &len, sizeof(OM_uint32));
     if (status < 0)
         return TOKEN_FAIL_SYSTEM;
+    else if (status == 0)
+        return TOKEN_FAIL_EOF;
     else if (status != sizeof(OM_uint32))
         return TOKEN_FAIL_INVALID;
     tok->length = ntohl(len);

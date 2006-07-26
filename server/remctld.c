@@ -150,8 +150,10 @@ server_handle_connection(int fd, struct config *config, gss_cred_id_t creds)
 
     /* Establish a context with the client. */
     client = server_new_client(fd, creds);
-    if (client == NULL)
+    if (client == NULL) {
+        close(fd);
         return;
+    }
     debug("accepted connection from %s", client->user);
 
     /* Now, we process incoming commands.  This is handled differently
