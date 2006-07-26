@@ -72,7 +72,7 @@ _remctl_v2_commandv(struct remctl *r, const struct iovec *command,
     p++;
 
     /* Continue status. */
-    *p = (finished) ? 1 : 0;
+    *p = (finished) ? 0 : 1;
     p++;
 
     /* Argument count and then each argument. */
@@ -138,6 +138,10 @@ _remctl_v2_output(struct remctl *r)
                              &major, &minor);
     if (status != TOKEN_OK) {
         _remctl_token_error(r, "receiving token", status, major, minor);
+        if (status == TOKEN_FAIL_EOF) {
+            close(r->fd);
+            r->fd = -1;
+        }
         return NULL;
     }
     if (flags != (TOKEN_DATA | TOKEN_PROTOCOL)) {
@@ -193,6 +197,7 @@ _remctl_v2_output(struct remctl *r)
             return NULL;
         }
         memcpy(r->output->data, p, size);
+        r->output->length = size;
         break;
 
     case MESSAGE_STATUS:
@@ -232,6 +237,7 @@ _remctl_v2_output(struct remctl *r)
             return NULL;
         }
         memcpy(r->output->data, p, size);
+        r->output->length = size;
         r->ready = 0;
         break;
 
