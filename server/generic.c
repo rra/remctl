@@ -86,7 +86,7 @@ server_new_client(int fd, gss_cred_id_t creds)
             goto fail;
         }
         debug("received context token (size=%d)", recv_tok.length);
-        major = gss_accept_sec_context(&acc_minor, client->context, creds,
+        major = gss_accept_sec_context(&acc_minor, &client->context, creds,
                     &recv_tok, GSS_C_NO_CHANNEL_BINDINGS, &name, &doid,
                     &send_tok, &client->flags, NULL, NULL);
         gss_release_buffer(&minor, &recv_tok);
@@ -124,7 +124,7 @@ server_new_client(int fd, gss_cred_id_t creds)
     }
 
     /* Get the display version of the client name and store it. */
-    major = gss_display_name(&minor, &name_buf, name, &doid);
+    major = gss_display_name(&minor, name, &name_buf, &doid);
     if (major != GSS_S_COMPLETE) {
         warn_gssapi("while displaying client name", major, minor);
         goto fail;
@@ -161,6 +161,8 @@ server_free_client(struct client *client)
         free(client->output);
     if (client->user != NULL)
         free(client->user);
+    if (client->fd >= 0)
+        close(client->fd);
     free(client);
 }
 
