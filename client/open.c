@@ -82,6 +82,7 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
     if (connect(fd, (struct sockaddr *) &saddr, sizeof(saddr)) < 0) {
         _remctl_set_error(r, "cannot connect to %s (port %hu): %s", host,
                           port, strerror(errno));
+        close(fd);
         return 0;
     }
     r->fd = fd;
@@ -92,6 +93,8 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
     major = gss_import_name(&minor, &name_buffer, GSS_C_NT_USER_NAME, &name);
     if (major != GSS_S_COMPLETE) {
         _remctl_gssapi_error(r, "parsing name", major, minor);
+        close(fd);
+        r->fd = -1;
         return 0;
     }
 
@@ -101,8 +104,7 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
                         &empty_token);
     if (status != TOKEN_OK) {
         _remctl_token_error(r, "sending initial token", status, major, minor);
-        gss_release_name(&minor, &name);
-        return 0;
+        goto fail;
     }
 
     /* Perform the context-establishment loop.
@@ -182,6 +184,8 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
     return 1;
 
 fail:
+    close(fd);
+    r->fd = -1;
     gss_release_name(&minor, &name);
     if (gss_context != GSS_C_NO_CONTEXT)
         gss_delete_sec_context(&minor, gss_context, GSS_C_NO_BUFFER);
