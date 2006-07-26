@@ -32,7 +32,7 @@ spawn_remctl(char *principal)
         return child;
     else if (child == 0) {
         execl("../server/remctld", "remctld", "-m", "-p", "14444", "-s",
-              principal, "-P", "data/pid", "-f", "data/simple.conf",
+              principal, "-P", "data/pid", "-f", "data/simple.conf", "-d",
               (char *) 0);
         _exit(1);
     } else {
@@ -79,7 +79,10 @@ main(void)
         ok(7, output != NULL);
         ok_int(8, REMCTL_OUT_OUTPUT, output->type);
         ok_int(9, 12, output->length);
-        ok(10, memcmp("hello world\n", output->data, 11) == 0);
+        if (output->data == NULL)
+            ok(10, 0);
+        else
+            ok(10, memcmp("hello world\n", output->data, 11) == 0);
         ok_int(11, 1, output->stream);
         output = remctl_output(r);
         ok(12, output != NULL);
@@ -96,7 +99,10 @@ main(void)
         ok(17, output != NULL);
         ok_int(18, REMCTL_OUT_OUTPUT, output->type);
         ok_int(19, 12, output->length);
-        ok(20, memcmp("hello world\n", output->data, 11) == 0);
+        if (output->data == NULL)
+            ok(20, 0);
+        else
+            ok(20, memcmp("hello world\n", output->data, 11) == 0);
         ok_int(21, 1, output->stream);
         output = remctl_output(r);
         ok(22, output != NULL);
@@ -109,7 +115,10 @@ main(void)
         ok(26, result != NULL);
         ok_int(27, 0, result->status);
         ok_int(28, 12, result->stdout_len);
-        ok(29, memcmp("hello world\n", result->stdout, 11) == 0);
+        if (result->stdout == NULL)
+            ok(29, 0);
+        else
+            ok(29, memcmp("hello world\n", result->stdout, 11) == 0);
         ok(30, result->error == NULL);
         kill(remctld, SIGTERM);
         waitpid(remctld, NULL, 0);
