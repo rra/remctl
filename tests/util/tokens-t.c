@@ -99,7 +99,7 @@ main(void)
 
     alarm(2);
 
-    test_init(8);
+    test_init(9);
 
     child = fork();
     if (child < 0)
@@ -158,6 +158,20 @@ main(void)
         client = create_client();
         status = token_recv(client, &flags, &result, 4);
         ok_int(8, TOKEN_FAIL_LARGE, status);
+        waitpid(child, NULL, 0);
+    }
+
+    child = fork();
+    if (child < 0)
+        sysdie("cannot fork");
+    else if (child == 0) {
+        server = create_server();
+        close(server);
+        exit(0);
+    } else {
+        client = create_client();
+        status = token_recv(client, &flags, &result, 4);
+        ok_int(9, TOKEN_FAIL_EOF, status);
         waitpid(child, NULL, 0);
     }
 
