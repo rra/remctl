@@ -115,6 +115,7 @@ main(void)
     struct remctl_result *result;
     const char *test[] = { "test", "test", NULL };
     int n;
+    struct timeval tv;
 
     test_init(55);
 
@@ -143,8 +144,13 @@ main(void)
             ok(n++, memcmp("hello world\n", result->stdout, 11) == 0);
         ok(n++, result->error == NULL);
 
-        kill(remctld, SIGTERM);
-        waitpid(remctld, NULL, 0);
+        tv.tv_sec = 0;
+        tv.tv_usec = 10000;
+        select(0, NULL, NULL, NULL, &tv);
+        if (waitpid(remctld, NULL, WNOHANG) == 0) {
+            kill(remctld, SIGTERM);
+            waitpid(remctld, NULL, 0);
+        }
     }
     unlink("data/test.cache");
     unlink("data/pid");
