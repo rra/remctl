@@ -2,10 +2,6 @@
 
  * Support MESSAGE_QUIT all around.
 
- * What happens if something fails after we've sent some output but not
-   all of it?  I think we need to change the protocol to allow
-   MESSAGE_ERROR to be sent after some MESSAGE_OUTPUT.
-
  * Support continued commands in the server.
 
  * In standalone mode, remctld doesn't shut down cleanly after a signal

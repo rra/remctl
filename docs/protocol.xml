@@ -222,8 +222,9 @@
 
       <section anchor='output' title='MESSAGE_OUTPUT and MESSAGE_STATUS'>
         <t>The server response to MESSAGE_COMMAND is zero or more
-        MESSAGE_OUTPUT messages followed by a MESSAGE_STATUS response.
-        Each MESSAGE_OUTPUT message has the following format:</t>
+        MESSAGE_OUTPUT messages followed by either a MESSAGE_STATUS or a
+        MESSAGE_ERROR response.  Each MESSAGE_OUTPUT message has the
+        following format:</t>
 
         <figure>
           <artwork>
@@ -259,9 +260,11 @@
       </section>
 
       <section anchor='error' title='MESSAGE_ERROR'>
-        <t>The server may instead respond to MESSAGE_COMMAND with a
-        MESSAGE_ERROR message.  The format of MESSAGE_ERROR is as
-        follows:</t>
+        <t>At any point before sending MESSAGE_STATUS, the server may
+        respond with MESSAGE_ERROR if some error occurred.  This can be
+        the first response after a MESSAGE_COMMAND, or it may be sent
+        after one or more MESSAGE_OUTPUT messages.  The format of
+        MESSAGE_ERROR is as follows:</t>
 
         <figure>
           <artwork>
@@ -272,14 +275,23 @@
         </figure>
 
         <t>The error code is a four-byte number in network byte order
-        indicating the type of error.  The error code must be one of the
+        indicating the type of error.  The error code may be one of the
         following values:</t>
 
         <figure>
           <artwork>
-    TO BE DETERMINED
+    1  ERROR_INTERNAL           Internal server failure
+    2  ERROR_BAD_TOKEN          Invalid format in token
+    3  ERROR_UNKNOWN_MESSAGE    Unknown message type
+    4  ERROR_BAD_COMMAND        Invalid command format in token
+    5  ERROR_UNKNOWN_COMMAND    Unknown command
+    6  ERROR_ACCESS             Access denied
           </artwork>
         </figure>
+
+        <t>Additional error codes may be added without changing the
+        version of the remctl protocol, so clients MUST accept error codes
+        other than the ones above.</t>
 
         <t>The message length is a four-byte number in network byte order
         that specifies the length in octets of the following error
