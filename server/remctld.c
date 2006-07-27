@@ -154,7 +154,8 @@ server_handle_connection(int fd, struct config *config, gss_cred_id_t creds)
         close(fd);
         return;
     }
-    debug("accepted connection from %s", client->user);
+    debug("accepted connection from %s (protocol %d)", client->user,
+          client->protocol);
 
     /* Now, we process incoming commands.  This is handled differently
        depending on the protocol version.  These functions won't exit until
