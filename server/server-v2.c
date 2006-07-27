@@ -213,8 +213,7 @@ server_v2_handle_token(struct client *client, struct config *config,
                                  "Unknown message");
     }
     p += 2;
-    if (p[0])
-        client->keepalive = 1;
+    client->keepalive = p[0] ? 1 : 0;
     if (p[1]) {
         warn("continued command attempted");
         return server_send_error(client, ERROR_BAD_COMMAND,
@@ -246,7 +245,7 @@ server_v2_handle_commands(struct client *client, struct config *config)
     int status, flags;
 
     /* Loop receiving messages until we're finished. */
-    while (1) {
+    do {
         status = token_recv_priv(client->fd, client->context, &flags, &token,
                                  MAX_TOKEN, &major, &minor);
         if (status != TOKEN_OK) {
@@ -259,5 +258,5 @@ server_v2_handle_commands(struct client *client, struct config *config)
         }
         if (!server_v2_handle_token(client, config, &token))
             break;
-    }
+    } while (client->keepalive);
 }
