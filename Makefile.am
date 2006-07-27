@@ -46,8 +46,15 @@ server/remctld.8: $(srcdir)/server/remctld.8.in
 	sed 's%@sysconfdir\@%$(sysconfdir)%' \
 	    < $(srcdir)/server/remctld.8.in > $@
 
+$(srcdir)/docs/protocol.html: $(srcdir)/docs/protocol.xml
+	xml2rfc $(srcdir)/docs/protocol.xml $(srcdir)/docs/protocol.html
+
+$(srcdir)/docs/protocol.txt: $(srcdir)/docs/protocol.xml
+	xml2rfc $(srcdir)/docs/protocol.xml $(srcdir)/docs/protocol.txt
+
 CLEANFILES = server/remctld.8
-MAINTAINERCLEANFILES = config.h.in config.h.in~ configure
+MAINTAINERCLEANFILES = config.h.in config.h.in~ configure client/remctl.1 \
+	docs/protocol.html docs/protocol.txt server/remctld.8.in
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
 # without optimization turned on, and add -DDEBUG=1 so we'll also compile all
