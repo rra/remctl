@@ -69,6 +69,7 @@ struct remctl_output *_remctl_v1_output(struct remctl *r);
 /* Protocol two functions. */
 int _remctl_v2_commandv(struct remctl *, const struct iovec *command,
                         size_t count, int finished);
+int _remctl_v2_quit(struct remctl *);
 struct remctl_output *_remctl_v2_output(struct remctl *r);
 
 END_DECLS

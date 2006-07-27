@@ -1,7 +1,5 @@
                             remctl To-Do List
 
- * Support MESSAGE_QUIT all around.
-
  * Support continued commands in the server.
 
  * In standalone mode, remctld doesn't shut down cleanly after a signal

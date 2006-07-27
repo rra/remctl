@@ -249,6 +249,8 @@ void
 remctl_close(struct remctl *r)
 {
     if (r != NULL) {
+        if (r->protocol > 1 && r->fd != -1)
+            _remctl_v2_quit(r);
         if (r->fd != -1)
             close(r->fd);
         if (r->error != NULL)

@@ -102,6 +102,30 @@ _remctl_v2_commandv(struct remctl *r, const struct iovec *command,
 
 
 /*
+**  Send a quit command to the server using protocol v2.  Returns true on
+**  success, false on failure.
+*/
+int
+_remctl_v2_quit(struct remctl *r)
+{
+    gss_buffer_desc token;
+    char buffer[2] = { 2, MESSAGE_QUIT };
+    OM_uint32 major, minor;
+    int status;
+
+    token.length = 1 + 1;
+    token.value = buffer;
+    status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
+                             &token, &major, &minor);
+    if (status != TOKEN_OK) {
+        _remctl_token_error(r, "sending token", status, major, minor);
+        return 0;
+    }
+    return 1;
+}
+
+
+/*
 **  Retrieve the output from the server using protocol v2 and return it.  This
 **  function may be called any number of times; if the last packet we got from
 **  the server was a REMCTL_OUT_STATUS or REMCTL_OUT_ERROR, we'll return
