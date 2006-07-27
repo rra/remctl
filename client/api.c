@@ -203,7 +203,7 @@ remctl_new(void)
 {
     struct remctl *r;
 
-    r = malloc(sizeof(struct remctl));
+    r = calloc(1, sizeof(struct remctl));
     if (r == NULL)
         return NULL;
     r->fd = -1;

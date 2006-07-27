@@ -98,8 +98,13 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
         return 0;
     }
 
+    /* Default to protocol version two, but if some other protocol is already
+       set in the remctl struct, don't override.  This facility is used only
+       for testing currently. */
+    if (r->protocol == 0)
+        r->protocol = 2;
+
     /* Send the initial negotiation token. */
-    r->protocol = 2;
     status = token_send(fd, TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL,
                         &empty_token);
     if (status != TOKEN_OK) {
