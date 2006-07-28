@@ -55,6 +55,9 @@ void errors_uncapture(void);
    false otherwise. */
 char *kerberos_setup(void);
 
+/* Spawn an external remctld process and return the PID. */
+pid_t spawn_remctld(const char *principal);
+
 END_DECLS
 
 #endif /* LIBTEST_H */

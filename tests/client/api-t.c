@@ -17,37 +17,6 @@
 #include <tests/libtest.h>
 #include <util/util.h>
 
-/* Spawn a remctl server on port 14444 to use for testing and return the PID
-   for later killing. */
-static pid_t
-spawn_remctl(char *principal)
-{
-    pid_t child;
-    struct timeval tv;
-
-    if (access("data/pid", F_OK) == 0)
-        if (unlink("data/pid") != 0)
-            sysdie("cannot unlink data/pid");
-    child = fork();
-    if (child < 0)
-        return child;
-    else if (child == 0) {
-        execl("../server/remctld", "remctld", "-m", "-p", "14444", "-s",
-              principal, "-P", "data/pid", "-f", "data/simple.conf", "-d",
-              (char *) 0);
-        _exit(1);
-    } else {
-        alarm(1);
-        while (access("data/pid", F_OK) != 0) {
-            tv.tv_sec = 0;
-            tv.tv_usec = 10000;
-            select(0, NULL, NULL, NULL, &tv);
-        }
-        alarm(0);
-        return child;
-    }
-}
-
 /* Takes the current test number, the principal, and the protocol version and
    runs a set of tests.  Due to the compatibility layer, we should be able to
    run the same commands regardless of the protocol (we're not testing any of
@@ -123,7 +92,7 @@ main(void)
     if (principal == NULL) {
         skip_block(1, 55, "Kerberos tests not configured");
     } else {
-        remctld = spawn_remctl(principal);
+        remctld = spawn_remctld(principal);
         if (remctld <= 0)
             die("cannot spawn remctld");
 
