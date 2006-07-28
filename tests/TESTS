@@ -3,6 +3,7 @@ client/open
 client/remctl
 server/accept
 server/streaming
+server/version
 util/asprintf
 util/concat
 util/gss-tokens

@@ -70,7 +70,7 @@ warnings:
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/client/open-t \
 	tests/data/cmd-streaming tests/server/accept-t \
-	tests/server/streaming-t \
+	tests/server/streaming-t tests/server/version-t \
 	tests/util/asprintf-t tests/util/concat-t tests/util/gss-tokens-t \
 	tests/util/messages-t tests/util/setenv-t tests/util/snprintf-t \
 	tests/util/strlcat-t tests/util/strlcpy-t tests/util/tokens-t \
@@ -87,6 +87,8 @@ tests_client_open_t_LDADD = client/libremctl.a tests/libtest.a util/libutil.a
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
 tests_server_accept_t_LDADD = tests/libtest.a util/libutil.a
 tests_server_streaming_t_LDADD = client/libremctl.a tests/libtest.a \
+	util/libutil.a
+tests_server_version_t_LDADD = client/libremctl.a tests/libtest.a \
 	util/libutil.a
 tests_util_asprintf_t_SOURCES = tests/util/asprintf-t.c tests/util/asprintf.c
 tests_util_asprintf_t_LDADD = tests/libtest.a util/libutil.a
