@@ -38,9 +38,7 @@
    provide the foil against which to test our connection negotiation.  Takes a
    flag saying what protocol version to use.  1 indicates protocol version 1
    the whole way, 2 indicates version 2 from the start, and 0 starts with
-   version 1 and then goes back to version 2.  Also takes the PID of the
-   parent process so that we can signal our parent when we're ready to
-   proceed. */
+   version 1 and then goes back to version 2. */
 static void
 accept_connection(int protocol)
 {
