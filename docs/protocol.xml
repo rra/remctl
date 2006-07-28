@@ -22,7 +22,7 @@
     <abstract>
       <t>This document specifies the remctl wire protocol, used to send
       commands and arguments to a remote system and receive the results of
-      executing that command.  The protocol uses GSSAPI and Kerberos v5
+      executing that command.  The protocol uses GSS-API and Kerberos v5
       for authentication, confidentiality, and integrity protection.  Both
       the current (version 2) protocol and the older version 1 protocol
       are described.  The version 1 protocol should only be implemented
@@ -69,7 +69,7 @@
       <t>The data payload is empty, the results of gss_accept_sec_context,
       the results of gss_init_sec_context, or a data payload protected
       with gss_wrap.  The maximum size of the data payload of a remctl
-      packet is constrained by the maximum message size in the GSSAPI
+      packet is constrained by the maximum message size in the GSS-API
       protocol, which for Kerberos v5 is 64KB.</t>
     </section>
 
@@ -106,8 +106,8 @@
           GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG as requested flags.</t>
 
           <t>Server and client repeat, passing in the payload from the
-          last packet from the other side, for as long as GSSAPI indicates
-          that continuation is required.  If either side drops
+          last packet from the other side, for as long as GSS-API
+          indicates that continuation is required.  If either side drops
           TOKEN_PROTOCOL from the flags, it is an considered an error and
           the connect MUST be dropped.  (This could be a down-negotiation
           attack.)  After the establishment of the security context, both
@@ -342,7 +342,7 @@
         server and replies with the results and flags TOKEN_CONTEXT.</t>
 
         <t>Server and client repeat, passing in the payload from the last
-        packet from the other side, for as long as GSSAPI indicates that
+        packet from the other side, for as long as GSS-API indicates that
         continuation is required.  Each of these packets have only
         TOKEN_CONTEXT set in the flags.</t>
 
@@ -378,7 +378,7 @@
 
       <t>In the old protocol, the server calculated and sent a MIC back to
       the client, which then verified that the command as received by the
-      server was correct.  Not only does GSSAPI already provide integrity
+      server was correct.  Not only does GSS-API already provide integrity
       protection, but this verification also happens after the server has
       already started running the command.  It has been dropped in the new
       protocol.</t>

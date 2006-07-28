@@ -88,7 +88,7 @@ accept_connection(int protocol)
                        &recv_tok, GSS_C_NO_CHANNEL_BINDINGS, &client, &doid,
                        &send_tok, &ret_flags, NULL, NULL);
         if (major != GSS_S_COMPLETE && major != GSS_S_CONTINUE_NEEDED)
-            die("GSSAPI failure: %ld %ld\n", (long) major, (long) minor);
+            die("GSS-API failure: %ld %ld\n", (long) major, (long) minor);
         gss_release_buffer(&minor, &recv_tok);
         if (send_tok.length != 0) {
             flags = TOKEN_CONTEXT;

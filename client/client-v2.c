@@ -30,7 +30,7 @@
 #include <util/util.h>
 
 /* We're unwilling to accept tokens from the remote side larger than this.
-   FIXME: Figure out what the actual limit is by asking GSSAPI. */
+   FIXME: Figure out what the actual limit is by asking GSS-API. */
 #define MAX_TOKEN       (1024 * 1024)
 
 

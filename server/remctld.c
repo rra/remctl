@@ -1,9 +1,8 @@
 /*  $Id$
 **
-**  The deamon for a "K5 sysctl" - a service for remote execution of
-**  predefined commands.  Access is authenticated via GSSAPI Kerberos 5,
-**  authorized via ACL files.  Runs as a inetd/tcpserver deamon or a
-**  standalone program.
+**  The deamon for a service for remote execution of predefined commands.
+**  Access is authenticated via GSS-API Kerberos 5, authorized via ACL files.
+**  Runs as a inetd/tcpserver deamon or a standalone program.
 **
 **  Written by Anton Ushakov <antonu@stanford.edu>
 **  Vector library contributed by Russ Allbery <rra@stanford.edu>

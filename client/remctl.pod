@@ -16,9 +16,9 @@ return message.  The commands must be defined on the server-side before a
 B<remctl> client can execute them, and the user running B<remctl> must be
 authorized to execute the particular command on the server.
 
-Access to remote commands is authenticated via Kerberos v5 over GSSAPI, so
-a user must have a ticket granting ticket to use B<remctl>.  All
-transmissions to and from the remctld server are encrypted using GSSAPI's
+Access to remote commands is authenticated via Kerberos v5 GSS-API, so a
+user must have a ticket granting ticket to use B<remctl>.  All
+transmissions to and from the remctld server are encrypted using GSS-API's
 security layer.
 
 I<host> is the hostname of the target server.  I<type> and I<service>

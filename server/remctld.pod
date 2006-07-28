@@ -12,8 +12,8 @@ remctld [B<-dhmv>] [B<-f> I<config>] [B<-P> I<file>] [B<-p> I<port>]
 B<remctld> is the server for remctl.  It accepts a connection from remctl,
 receives the command to execute and the arguments, verifies authorization
 of the user and executes the command, returning the result back to the
-client.  All connections are authenticated using GSSAPI Kerberos V, and
-all transmissions are also encrypted using Kerberos.
+client.  All connections are authenticated using GSS-API Kerberos v5, and
+all transmissions are also encrypted using the GSS-API privacy layer.
 
 B<remctld> is normally started using B<tcpserver> or from B<inetd>, but it
 may be run in stand-alone mode as a daemon using B<-m>.  Either B<-s> must

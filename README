@@ -12,7 +12,7 @@
 DESCRIPTION
 
   remctl is a client/server application that supports remote execution of
-  specific commands, using Kerberos v5 GSSAPI for authentication.  Which
+  specific commands, using Kerberos v5 GSS-API for authentication.  Which
   commands a given user can execute is controlled by a configuration file
   and ACL files and can be easily tightly limited, unlike with rsh.
 

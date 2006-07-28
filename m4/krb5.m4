@@ -14,13 +14,14 @@ dnl be either "true" (if the program doesn't otherwise use the networking
 dnl libraries) or "false" (if it is already probing for the networking
 dnl libraries separately).
 
-dnl Does the appropriate library checks for reduced-dependency GSSAPI linkage.
+dnl Does the appropriate library checks for reduced-dependency GSS-API
+dnl linkage.
 AC_DEFUN([_RRA_LIB_KRB5_GSSAPI_REDUCED],
 [AC_CHECK_LIB([gssapi], [gss_import_name],
     [KRBLIBS="-lgssapi"],
     [AC_CHECK_LIB([gssapi_krb5], [gss_import_name],
         [KRBLIBS="-lgssapi_krb5"],
-        [AC_MSG_ERROR([cannot find usable GSSAPI library])])])])
+        [AC_MSG_ERROR([cannot find usable GSS-API library])])])])
 
 dnl Does the appropriate library checks for reduced-dependency krb5 linkage.
 AC_DEFUN([_RRA_LIB_KRB5_KRB5_REDUCED],
@@ -35,7 +36,7 @@ AC_DEFUN([_RRA_LIB_KRB5_KRB4_REDUCED],
     [AC_CHECK_LIB([krb], [krb_get_svc_in_tkt], [KRBLIBS="-lkrb"],
         [AC_MSG_ERROR([cannot find usable Kerberos v4 library])])])])
 
-dnl Does the appropriate library checks for GSSAPI linkage.
+dnl Does the appropriate library checks for GSS-API linkage.
 AC_DEFUN([_RRA_LIB_KRB5_GSSAPI],
 [AC_CHECK_LIB([gssapi], [gss_import_name],
     [KRBLIBS="-lgssapi -lkrb5 -lasn1 -lroken -lcrypto -lcom_err"],
@@ -47,7 +48,7 @@ AC_DEFUN([_RRA_LIB_KRB5_GSSAPI],
             [KRB5EXTRA="$KRB5EXTRA -lkrb5support"])])
      AC_CHECK_LIB([gssapi_krb5], [gss_import_name],
         [KRBLIBS="-lgssapi_krb5 $KRB5EXTRA"],
-        [AC_MSG_ERROR([cannot find usable GSSAPI library])],
+        [AC_MSG_ERROR([cannot find usable GSS-API library])],
         [$KRB5EXTRA])],
     [-lkrb5 -lasn1 -lroken -lcrypto -lcom_err])])
 
@@ -88,7 +89,7 @@ AC_CHECK_LIB([krb], [krb_get_svc_in_tkt],
         [$KRB5EXTRA])],
     [$KRB4EXTRA])])
 
-dnl Additional checks for portability between MIT and Heimdal if GSSAPI
+dnl Additional checks for portability between MIT and Heimdal if GSS-API
 dnl libraries were requested.
 AC_DEFUN([_RRA_LIB_KRB5_GSSAPI_EXTRA],
 [AC_CHECK_HEADERS([gssapi.h])

@@ -1,8 +1,7 @@
 /*  $Id$
 **
-**  The client for a "K5 sysctl" - a service for remote execution of 
-**  predefined commands.  Access is authenticated via GSSAPI Kerberos 5, 
-**  authorized via ACL files.
+**  The client for a service for remote execution of predefined commands.
+**  Access is authenticated via GSS-API Kerberos 5, authorized via ACL files.
 **
 **  Originally written by Anton Ushakov <antonu@stanford.edu>
 **  Extensive modifications by Russ Allbery <rra@stanford.edu>

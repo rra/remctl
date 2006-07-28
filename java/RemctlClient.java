@@ -2,7 +2,7 @@
    $Id$
 
    The java client for a "K5 sysctl" - a service for remote execution of 
-   predefined commands. Access is authenticated via GSSAPI Kerberos 5, 
+   predefined commands. Access is authenticated via GSS-API Kerberos 5, 
    authorized via aclfiles.
 
    Written by Anton Ushakov <antonu@stanford.edu>

@@ -19,7 +19,6 @@
    - Test make dist.
    - Add copyright and license statements to every file.
    - Document special Automake requirement.
-   - Use GSS-API, not GSSAPI, everywhere.
    - Rename _remctl functions to use a better namespace.
 
  * Testing: Thomas Kula <kula@tproa.net>
