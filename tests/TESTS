@@ -1,6 +1,7 @@
 client/api
 client/open
 client/remctl
+server/accept
 util/asprintf
 util/concat
 util/gss-tokens

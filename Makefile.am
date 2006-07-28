@@ -69,13 +69,22 @@ warnings:
 
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/client/open-t \
+	tests/server/accept-t \
 	tests/util/asprintf-t tests/util/concat-t tests/util/gss-tokens-t \
 	tests/util/messages-t tests/util/setenv-t tests/util/snprintf-t \
 	tests/util/strlcat-t tests/util/strlcpy-t tests/util/tokens-t \
 	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES= tests/libtest.a
+
+# Used for server tests.
+SERVER_FILES = server/commands.c server/config.c server/generic.c \
+	server/logging.c server/server-v1.c server/server-v2.c
+
+# All of the test programs.
 tests_client_api_t_LDADD = client/libremctl.a tests/libtest.a util/libutil.a
 tests_client_open_t_LDADD = client/libremctl.a tests/libtest.a util/libutil.a
+tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
+tests_server_accept_t_LDADD = tests/libtest.a util/libutil.a
 tests_util_asprintf_t_SOURCES = tests/util/asprintf-t.c tests/util/asprintf.c
 tests_util_asprintf_t_LDADD = tests/libtest.a util/libutil.a
 tests_util_concat_t_LDADD = tests/libtest.a util/libutil.a
