@@ -25,6 +25,7 @@ AC_CHECK_TYPES([long long])
 RRA_FUNC_SNPRINTF
 AC_CHECK_FUNCS([setrlimit])
 AC_CHECK_FUNC([asprintf], [], [AC_LIBOBJ([util/asprintf])])
+AC_CHECK_FUNC([setenv], [], [AC_LIBOBJ([util/setenv])])
 AC_CHECK_FUNC([strlcat], [], [AC_LIBOBJ([util/strlcat])])
 AC_CHECK_FUNC([strlcpy], [], [AC_LIBOBJ([util/strlcpy])])
 AC_TYPE_SIGNAL
