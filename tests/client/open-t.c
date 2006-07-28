@@ -120,7 +120,7 @@ main(void)
     /* Unless we have Kerberos available, we can't really do anything. */
     principal = kerberos_setup();
     if (principal == NULL) {
-        skip_block(1, 6, "Kerberos tests not configured");
+        skip_block(1, 15, "Kerberos tests not configured");
         return 0;
     }
 
