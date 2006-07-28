@@ -18,7 +18,6 @@
  * Cleanup:
    - Test make dist.
    - Add copyright and license statements to every file.
-   - Document special Automake requirement.
    - Rename _remctl functions to use a better namespace.
 
  * Testing: Thomas Kula <kula@tproa.net>

@@ -35,13 +35,18 @@ DESCRIPTION
 REQUIREMENTS
 
   The remctld server and the standard client are written in C and require
-  a C compiler to build.  They currently require MIT Kerberos; remctl will
-  build against Heimdal but the resulting client cannot talk to an MIT
-  Kerberos server (or possibly any server; I haven't been able to check).
-  Any help in fixing this would be greatly appreciated.
+  a C compiler to build.  Both will build against either MIT Kerberos or
+  Heimdal.
 
   A Java client is also available in the java subdirectory, but no Java
-  server is available.
+  server is available.  The Java client only supports the older version
+  one protocol.  Contribution of a Java client for the version two
+  protocol is welcome.
+
+  If you change the Automake files and need to regenerate Makefile.in, you
+  currently will need a patch to Automake.  See README.automake for more
+  information.  This requirement will hopefully be removed after the
+  release of Automake 1.10.
 
 INSTALLATION
 
@@ -95,6 +100,21 @@ INSTALLATION
   shared library migrations more difficult.  If none of the above made any
   sense to you, don't bother with this flag.
 
+TESTING
+
+  remctl comes with an extensive test suite which you can run after
+  building remctl with:
+
+      make check
+
+  In order to do more than limited tests of the low-level routines, you
+  should first create a keytab for testing use containing the key for a
+  principal in your local domain.  See tests/data/README for instructions
+  on what to create and where to place the files.
+
+  If a test case fails, please run that individual test case directly and
+  send me the output when reporting the problem.
+
 PORTING
 
   remctl should port reasonably well.  It has been tested on:
@@ -102,8 +122,7 @@ PORTING
       Solaris 8
       Linux (glibc 2.2, 2.3)
 
-  but should work on any Unix varient.  A replacement snprintf is provided
-  for platforms whose snprintf does not comply with C99.
+  but should work on any Unix varient.
 
 LICENSE
 
