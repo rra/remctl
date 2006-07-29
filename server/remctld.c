@@ -4,10 +4,12 @@
 **  Access is authenticated via GSS-API Kerberos 5, authorized via ACL files.
 **  Runs as a inetd/tcpserver deamon or a standalone program.
 **
-**  Written by Anton Ushakov <antonu@stanford.edu>
-**  Vector library contributed by Russ Allbery <rra@stanford.edu>
+**  Written by Anton Ushakov
+**  Extensive modifications by Russ Allbery <rra@stanford.edu>
+**  Copyright 2002, 2003, 2004, 2005, 2006
+**      Board of Trustees, Leland Stanford Jr. University
 **
-**  See README for copyright and licensing information.
+**  See README for licensing terms.
 */
 
 #include <config.h>

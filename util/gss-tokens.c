@@ -7,6 +7,13 @@
 **  token_send_priv and token_recv_priv are similar to token_send and
 **  token_recv except that they also take a GSS-API context and a GSS-API
 **  major and minor status to report errors.
+**
+**  Originally written by Anton Ushakov
+**  Extensive modifications by Russ Allbery <rra@stanford.edu>
+**  Copyright 2002, 2003, 2004, 2005, 2006
+**      Board of Trustees, Leland Stanford Jr. University
+**
+**  See README for licensing terms.
 */
 
 #include <config.h>

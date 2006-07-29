@@ -13,6 +13,10 @@ dnl
 dnl    #define macro(args...) fprintf(stderr, args)
 dnl
 dnl They set HAVE_C99_VAMACROS or HAVE_GNU_VAMACROS as appropriate.
+dnl
+dnl Written by Russ Allbery <rra@stanford.edu>
+dnl Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+dnl See README for licensing terms.
 
 AC_DEFUN([RRA_C_C99_VAMACROS],
 [AC_CACHE_CHECK([for C99 variadic macros], [rra_cv_c_c99_vamacros],

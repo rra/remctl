@@ -1,13 +1,12 @@
-/*
-   $Id$
-
-   The java client for a "K5 sysctl" - a service for remote execution of 
-   predefined commands. Access is authenticated via GSS-API Kerberos 5, 
-   authorized via aclfiles.
-
-   Written by Anton Ushakov <antonu@stanford.edu>
-   Copyright 2002 Board of Trustees, Leland Stanford Jr. University
-
+/*  $Id$
+**
+**  The Java client for a service for remote execution of predefined
+**  commands. Access is authenticated via GSS-API Kerberos 5, authorized via
+**  aclfiles.
+**
+**  Written by Anton Ushakov <antonu@stanford.edu>
+**  Copyright 2002 Board of Trustees, Leland Stanford Jr. University
+**  See README for licensing terms.
 */
 
 import javax.security.auth.callback.*;

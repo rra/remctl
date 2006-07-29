@@ -2,6 +2,10 @@
 # $Id$
 #
 # Test suite for the remctl command-line client.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+# See README for licensing terms.
 
 # The count starts at 1 and is updated each time ok is printed.  printcount
 # takes "ok" or "not ok".

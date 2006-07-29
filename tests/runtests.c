@@ -1,53 +1,49 @@
-/* $Id: runtests.c 6875 2004-05-21 22:53:51Z rra $
-
-   Run a set of tests, reporting results.
-
-   Copyright 2000, 2001, 2004 Russ Allbery <rra@stanford.edu>
-
-   Please note that this file is maintained separately from INN by the above
-   author (which is why the coding style is slightly different).  Any fixes
-   added to the INN tree should also be reported to the above author if
-   necessary.
-
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the
-   "Software"), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-   Usage:
-
-        runtests <test-list>
-
-   Expects a list of executables located in the given file, one line per
-   executable.  For each one, runs it as part of a test suite, reporting
-   results.  Test output should start with a line containing the number of
-   tests (numbered from 1 to this number), and then each line should be in
-   the following format:
-
-        ok <number>
-        not ok <number>
-        ok <number> # skip
-
-   where <number> is the number of the test.  ok indicates success, not ok
-   indicates failure, and "# skip" indicates the test was skipped for some
-   reason (maybe because it doesn't apply to this platform).
-
-   Any bug reports, bug fixes, and improvements are very much welcome and
-   should be sent to the e-mail address above. */
+/*  $Id$
+**
+**  Run a set of tests, reporting results.
+**
+**  Usage:
+**
+**       runtests <test-list>
+**
+**  Expects a list of executables located in the given file, one line per
+**  executable.  For each one, runs it as part of a test suite, reporting
+**  results.  Test output should start with a line containing the number of
+**  tests (numbered from 1 to this number), and then each line should be in
+**  the following format:
+**
+**       ok <number>
+**       not ok <number>
+**       ok <number> # skip
+**
+**  where <number> is the number of the test.  ok indicates success, not ok
+**  indicates failure, and "# skip" indicates the test was skipped for some
+**  reason (maybe because it doesn't apply to this platform).
+**
+**  Any bug reports, bug fixes, and improvements are very much welcome and
+**  should be sent to the e-mail address below.
+**
+**  Copyright 2000, 2001, 2004 Russ Allbery <rra@stanford.edu>
+**
+**  Permission is hereby granted, free of charge, to any person obtaining a
+**  copy of this software and associated documentation files (the
+**  "Software"), to deal in the Software without restriction, including
+**  without limitation the rights to use, copy, modify, merge, publish,
+**  distribute, sublicense, and/or sell copies of the Software, and to
+**  permit persons to whom the Software is furnished to do so, subject to
+**  the following conditions:
+**
+**  The above copyright notice and this permission notice shall be included
+**  in all copies or substantial portions of the Software.
+**
+**  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+**  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+**  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+**  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+**  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+**  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+**  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 #include <config.h>
 #include <system.h>

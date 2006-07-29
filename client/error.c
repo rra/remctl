@@ -2,12 +2,15 @@
 **
 **  Error handling for the remctl client library.
 **
-**  Written by Russ Allbery <rra@stanford.edu>
-**
 **  A set of helper routines to do error handling inside the remctl client
 **  library.  These mostly involve setting the error parameter in the remctl
 **  struct to something appropriate so that the next call to remctl_error will
 **  return the appropriate details.
+**
+**  Written by Russ Allbery <rra@stanford.edu>
+**  Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+**
+**  See README for licensing terms.
 */
 
 #include <config.h>

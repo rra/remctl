@@ -5,6 +5,13 @@
 **  Low-level routines to send and receive remctl tokens.  token_send and
 **  token_recv do not do anything to their provided input or output except
 **  wrapping flags and a length around them.
+**
+**  Originally written by Anton Ushakov
+**  Extensive modifications by Russ Allbery <rra@stanford.edu>
+**  Copyright 2002, 2003, 2004, 2005, 2006
+**      Board of Trustees, Leland Stanford Jr. University
+**
+**  See README for licensing terms.
 */
 
 #include <config.h>

@@ -1,5 +1,9 @@
 # Makefile.am -- Top-level Automake makefile for remctl.
 # $Id$
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+# See README for licensing terms.
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4

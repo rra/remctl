@@ -1,6 +1,10 @@
 /* $Id: asprintf-t.c 7519 2006-04-17 23:13:40Z eagle $ */
 /* asprintf and vasprintf test suite. */
 
+/* Written by Russ Allbery <rra@stanford.edu>
+   Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+   See README for licensing terms. */
+
 #include <config.h>
 #include <system.h>
 

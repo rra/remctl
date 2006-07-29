@@ -13,6 +13,10 @@ dnl libraries in the non-krb5-config, non-reduced-dependencies case and should
 dnl be either "true" (if the program doesn't otherwise use the networking
 dnl libraries) or "false" (if it is already probing for the networking
 dnl libraries separately).
+dnl
+dnl Written by Russ Allbery <rra@stanford.edu>
+dnl Copyright 2005, 2006 Board of Trustees, Leland Stanford Jr. University
+dnl See README for licensing terms.
 
 dnl Does the appropriate library checks for reduced-dependency GSS-API
 dnl linkage.
