@@ -8,6 +8,28 @@
 **  output using the arguments, and print out something appropriate for that
 **  test number.  Other utility routines help in constructing more complex
 **  tests.
+**
+**  Copyright (c) 2006
+**      Board of Trustees, Leland Stanford Jr. University
+**  Copyright (c) 2004, 2005, 2006
+**      by Internet Systems Consortium, Inc. ("ISC")
+**  Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+**      2002, 2003 by The Internet Software Consortium and Rich Salz
+**
+**  This code is derived from software contributed to the Internet Software
+**  Consortium by Rich Salz.
+**
+**  Permission to use, copy, modify, and distribute this software for any
+**  purpose with or without fee is hereby granted, provided that the above
+**  copyright notice and this permission notice appear in all copies.
+**
+**  THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+**  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+**  MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
+**  SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+**  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+**  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+**  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
 #include <config.h>
@@ -188,11 +210,16 @@ errors_uncapture(void)
 **  remctl connection, NULL if we couldn't initialize things.  We read the
 **  principal to use for authentication out of a file and fork kinit to obtain
 **  a Kerberos ticket cache.
+**
+**  We support either the standard kinit flags or the weird Stanford flags.
 */
 char *
 kerberos_setup(void)
 {
-    static const char format[] = "kinit -k -K data/test.keytab %s";
+    static const char format1[]
+        = "kinit -t -k data/test.keytab %s >/dev/null 2>&1";
+    static const char format2[]
+        = "kinit -k -K data/test.keytab %s >/dev/null 2>&1";
     FILE *file;
     char principal[256], *command;
     size_t length;
@@ -213,13 +240,20 @@ kerberos_setup(void)
     if (principal[strlen(principal) - 1] != '\n')
         return NULL;
     principal[strlen(principal) - 1] = '\0';
-    length = strlen(format) + strlen(principal);
-    command = xmalloc(length);
-    snprintf(command, length, format, principal);
     putenv((char *) "KRB5CCNAME=data/test.cache");
     putenv((char *) "KRB5_KTNAME=data/test.keytab");
+    length = strlen(format1) + strlen(principal);
+    command = xmalloc(length);
+    snprintf(command, length, format1, principal);
     status = system(command);
     free(command);
+    if (status == -1 || WEXITSTATUS(status) != 0) {
+        length = strlen(format2) + strlen(principal);
+        command = xmalloc(length);
+        snprintf(command, length, format2, principal);
+        status = system(command);
+        free(command);
+    }
     if (status == -1 || WEXITSTATUS(status) != 0)
         return NULL;
     return xstrdup(principal);
