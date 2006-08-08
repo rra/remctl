@@ -50,7 +50,7 @@ $(srcdir)/server/remctld.8.in: $(srcdir)/server/remctld.pod
 	    --section=8 $< > $@
 
 server/remctld.8: $(srcdir)/server/remctld.8.in
-	sed 's%@sysconfdir\@%$(sysconfdir)%' \
+	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \
 	    < $(srcdir)/server/remctld.8.in > $@
 
 $(srcdir)/docs/protocol.html: $(srcdir)/docs/protocol.xml
