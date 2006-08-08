@@ -8,6 +8,7 @@
 #include <config.h>
 #include <system.h>
 
+#include <signal.h>
 #include <sys/wait.h>
 
 #ifdef HAVE_GSSAPI_H

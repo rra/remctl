@@ -8,6 +8,7 @@
 #include <config.h>
 #include <system.h>
 
+#include <signal.h>
 #include <sys/wait.h>
 
 #include <client/internal.h>
