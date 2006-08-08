@@ -7,15 +7,15 @@
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = client/remctl.1 client/remctl.pod \
-	docs/design.html docs/protocol.txt docs/protocol.html \
-	docs/protocol.xml docs/remctl.conf examples/rsh-wrapper \
-	examples/xinetd java/Login.java java/RemctlClient.java \
-	java/gss_jaas.conf java/gss_jaas2.conf remctl.spec \
-	server/remctld.8.in server/remctld.pod \
-	tests/TESTS tests/data/README tests/data/acl-nonexistant \
-	tests/data/cmd-hello tests/data/cmd-status tests/data/simple.conf \
-	tests/client/remctl-t tests/util/xmalloc-t
+EXTRA_DIST = client/remctl.1 client/remctl.pod docs/design.html \
+	docs/protocol.txt docs/protocol.html docs/protocol.xml \
+	docs/remctl.conf examples/rsh-wrapper examples/xinetd \
+	java/Login.java java/RemctlClient.java java/gss_jaas.conf \
+	java/gss_jaas2.conf remctl.spec server/remctld.8.in \
+	server/remctld.pod system.h tests/TESTS tests/data/README \
+	tests/data/acl-nonexistant tests/data/cmd-hello \
+	tests/data/cmd-status tests/data/simple.conf tests/client/remctl-t \
+	tests/util/xmalloc-t
 
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
@@ -97,6 +97,7 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/open-t \
 	tests/util/strlcat-t tests/util/strlcpy-t tests/util/tokens-t \
 	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES= tests/libtest.a
+tests_libtest_a_SOURCES = tests/libtest.c tests/libtest.h
 
 # Used for server tests.
 SERVER_FILES = server/commands.c server/config.c server/generic.c \
