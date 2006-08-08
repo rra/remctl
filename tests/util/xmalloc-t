@@ -76,28 +76,28 @@ runsuccess "v" "128000" "0"
 # Now limit our memory to 96KB and then try the large ones again, all of
 # which should fail.
 runfailure "m" "128000" "96000" \
-    "failed to malloc 128000 bytes at lib/xmalloc.c line 36"
+    "failed to malloc 128000 bytes at tests/util/xmalloc.c line 54"
 runfailure "r" "128000" "96000" \
-    "failed to realloc 128000 bytes at lib/xmalloc.c line 62"
+    "failed to realloc 128000 bytes at tests/util/xmalloc.c line 80"
 runfailure "s" "64000"  "96000" \
-    "failed to strdup 64000 bytes at lib/xmalloc.c line 91"
+    "failed to strdup 64000 bytes at tests/util/xmalloc.c line 109"
 runfailure "n" "64000"  "96000" \
-    "failed to strndup 64000 bytes at lib/xmalloc.c line 115"
+    "failed to strndup 64000 bytes at tests/util/xmalloc.c line 133"
 runfailure "c" "128000" "96000" \
-    "failed to calloc 128000 bytes at lib/xmalloc.c line 137"
+    "failed to calloc 128000 bytes at tests/util/xmalloc.c line 155"
 runfailure "a" "64000" "96000" \
-    "failed to asprintf 64000 bytes at lib/xmalloc.c line 181"
+    "failed to asprintf 64000 bytes at tests/util/xmalloc.c line 177"
 runfailure "v" "64000" "96000" \
-    "failed to vasprintf 64000 bytes at lib/xmalloc.c line 200"
+    "failed to vasprintf 64000 bytes at tests/util/xmalloc.c line 196"
 
 # Check our custom error handler.
-runfailure "M" "128000" "96000" "malloc 128000 lib/xmalloc.c 36"
-runfailure "R" "128000" "96000" "realloc 128000 lib/xmalloc.c 62"
-runfailure "S" "64000"  "96000" "strdup 64000 lib/xmalloc.c 91"
-runfailure "N" "64000"  "96000" "strndup 64000 lib/xmalloc.c 115"
-runfailure "C" "128000" "96000" "calloc 128000 lib/xmalloc.c 137"
-runfailure "A" "64000"  "96000" "asprintf 64000 lib/xmalloc.c 181"
-runfailure "V" "64000"  "96000" "vasprintf 64000 lib/xmalloc.c 200"
+runfailure "M" "128000" "96000" "malloc 128000 tests/util/xmalloc.c 54"
+runfailure "R" "128000" "96000" "realloc 128000 tests/util/xmalloc.c 80"
+runfailure "S" "64000"  "96000" "strdup 64000 tests/util/xmalloc.c 109"
+runfailure "N" "64000"  "96000" "strndup 64000 tests/util/xmalloc.c 133"
+runfailure "C" "128000" "96000" "calloc 128000 tests/util/xmalloc.c 155"
+runfailure "A" "64000"  "96000" "asprintf 64000 tests/util/xmalloc.c 177"
+runfailure "V" "64000"  "96000" "vasprintf 64000 tests/util/xmalloc.c 196"
 
 # Check the smaller ones again just for grins.
 runsuccess "m" "21" "96000"
