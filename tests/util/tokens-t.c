@@ -8,8 +8,11 @@
 #include <config.h>
 #include <system.h>
 
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/wait.h>
 
 #ifdef HAVE_GSSAPI_H
@@ -33,7 +36,7 @@ static const char token[] = { 3, 0, 0, 0, 5, 'h', 'e', 'l', 'l', 'o' };
 static int
 create_server(void)
 {
-    int fd, conn;
+    int fd, conn, marker;
     struct sockaddr_in saddr;
     int on = 1;
 
@@ -48,6 +51,9 @@ create_server(void)
         sysdie("error binding socket");
     if (listen(fd, 1) < 0)
         sysdie("error listening on socket");
+    marker = open("server-ready", O_CREAT | O_TRUNC, 0666);
+    if (marker < 0)
+        sysdie("cannot create marker file");
     conn = accept(fd, NULL, 0);
     if (conn < 0)
         sysdie("error accepting connection");
@@ -61,6 +67,7 @@ create_client(void)
 {
     int fd;
     struct sockaddr_in saddr;
+    struct timeval tv;
 
     saddr.sin_family = AF_INET;
     saddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
@@ -68,6 +75,13 @@ create_client(void)
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0)
         sysdie("error creating socket");
+    alarm(1);
+    while (access("server-ready", F_OK) != 0) {
+        tv.tv_sec = 0;
+        tv.tv_usec = 10000;
+        select(0, NULL, NULL, NULL, &tv);
+    }
+    alarm(0);
     if (connect(fd, (struct sockaddr *) &saddr, sizeof(saddr)) < 0)
         sysdie("error connecting");
     return fd;
@@ -105,6 +119,7 @@ main(void)
 
     test_init(9);
 
+    unlink("server-ready");
     child = fork();
     if (child < 0)
         sysdie("cannot fork");
@@ -120,6 +135,7 @@ main(void)
         waitpid(child, NULL, 0);
     }
 
+    unlink("server-ready");
     child = fork();
     if (child < 0)
         sysdie("cannot fork");
@@ -137,6 +153,7 @@ main(void)
         waitpid(child, NULL, 0);
     }
 
+    unlink("server-ready");
     child = fork();
     if (child < 0)
         sysdie("cannot fork");
@@ -151,6 +168,7 @@ main(void)
         waitpid(child, NULL, 0);
     }
 
+    unlink("server-ready");
     child = fork();
     if (child < 0)
         sysdie("cannot fork");
@@ -165,6 +183,7 @@ main(void)
         waitpid(child, NULL, 0);
     }
 
+    unlink("server-ready");
     child = fork();
     if (child < 0)
         sysdie("cannot fork");
@@ -179,5 +198,6 @@ main(void)
         waitpid(child, NULL, 0);
     }
 
+    unlink("server-ready");
     return 0;
 }
