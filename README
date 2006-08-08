@@ -1,4 +1,4 @@
-                            remctl release 1.12
+                            remctl release 2.0
             (remote authenticated command execution with ACLs)
 
                          Written by Anton Ushakov
@@ -113,7 +113,9 @@ TESTING
   on what to create and where to place the files.
 
   If a test case fails, please run that individual test case directly and
-  send me the output when reporting the problem.
+  send me the output when reporting the problem.  Note that on
+  particularly slow or loaded systems, you may see intermittant failures
+  from the server/streaming test because it's timing-sensitive.
 
 PORTING
 

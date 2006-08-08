@@ -1,13 +1,13 @@
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 1.12
-Release: 3
+Version: 2.0
+Release: 1
 Copyright: MIT
 URL: http://www.eyrie.org/~eagle/software/remctl/
 Source: http://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
 Vendor: Stanford University
-Packager: Digant C Kasundra <digant@stanford.edu>
+Packager: Russ Allbery <rra@stanford.edu>
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: krb5-devel
 Requires: krb5-workstation
@@ -37,9 +37,11 @@ install -c -m 0644 examples/xinetd %{buildroot}/etc/xinetd.d/remctl
 
 %files
 %defattr(-, root, root, 0755)
-%doc NEWS README
+%doc NEWS README TODO
 %{_bindir}/*
 %{_sbindir}/*
+%{_libdir}/*
+%{_includedir}/*
 %{_mandir}/*/*
 /etc/xinetd.d/remctl
 
@@ -78,6 +80,10 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Mon Aug  7 2006 Russ Allbery <rra@stanford.edu> 2.0-1
+- New upstream release that now provides a library as well.
+- Add TODO to documentation files.
+
 * Fri Mar 24 2006 Russ Allbery <rra@stanford.edu> 1.12-3
 - Lots of modifications based on the contributed kstart spec file.
 - Use more internal RPM variables.
