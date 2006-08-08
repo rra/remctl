@@ -14,5 +14,3 @@
  * Refactoring:
    - GSS-API error reporting should be shared between client and server.
    - In _remctl_v2_output, reading strings from messages can be shared.
-
- * Testing: Thomas Kula <kula@tproa.net>
