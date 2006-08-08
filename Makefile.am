@@ -21,7 +21,7 @@ lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
 	client/client-v2.c client/error.c client/internal.h client/open.c
 client_libremctl_la_LDFLAGS = -version-info 1:0:0
-client_libremctl_la_LIBADD = util/libutil.a
+client_libremctl_la_LIBADD = util/libutil.la
 include_HEADERS = client/remctl.h
 
 noinst_LTLIBRARIES = util/libutil.la
@@ -59,7 +59,7 @@ $(srcdir)/docs/protocol.html: $(srcdir)/docs/protocol.xml
 $(srcdir)/docs/protocol.txt: $(srcdir)/docs/protocol.xml
 	xml2rfc $(srcdir)/docs/protocol.xml $(srcdir)/docs/protocol.txt
 
-CLEANFILES = server/remctld.8
+CLEANFILES = server/remctld.8 $(LIBOBJS) $(LTLIBOBJS)
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 config.h.in config.h.in~ \
 	configure client/remctl.1 docs/protocol.html docs/protocol.txt \
 	server/remctld.8.in
