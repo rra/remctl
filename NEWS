@@ -2,6 +2,13 @@
 
 remctl 2.0 (unreleased)
 
+    Implement a new version 2 protocol, with automatic down-negotiation
+    to the old protocol for backward compatibility.  The new protocol is
+    more binary-safe for command arguments, supports streaming output
+    from the server, allows distinguishing between stdout output and
+    stderr output, has no arbitrary limits on output size, and supports
+    persistant connections.
+
     Document the details of the remctl protocol, both the old version 1
     protocol and the new version 2 protocol, in hopefully sufficient
     detail for anyone else to implement it.
