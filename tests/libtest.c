@@ -220,6 +220,8 @@ kerberos_setup(void)
     static const char format1[]
         = "kinit -t -k data/test.keytab %s >/dev/null 2>&1";
     static const char format2[]
+        = "kinit -t data/test.keytab %s >/dev/null 2>&1";
+    static const char format3[]
         = "kinit -k -K data/test.keytab %s >/dev/null 2>&1";
     FILE *file;
     char principal[256], *command;
@@ -252,6 +254,13 @@ kerberos_setup(void)
         length = strlen(format2) + strlen(principal);
         command = xmalloc(length);
         snprintf(command, length, format2, principal);
+        status = system(command);
+        free(command);
+    }
+    if (status == -1 || WEXITSTATUS(status) != 0) {
+        length = strlen(format3) + strlen(principal);
+        command = xmalloc(length);
+        snprintf(command, length, format3, principal);
         status = system(command);
         free(command);
     }
