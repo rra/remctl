@@ -18,12 +18,12 @@ main(void)
     fprintf(stdout, "This is the first line\n");
     fflush(stdout);
     tv.tv_sec = 0;
-    tv.tv_usec = 10000;
+    tv.tv_usec = 100000;
     select(0, NULL, NULL, NULL, &tv);
     fprintf(stderr, "This is the second line\n");
     fflush(stderr);
     tv.tv_sec = 0;
-    tv.tv_usec = 10000;
+    tv.tv_usec = 100000;
     select(0, NULL, NULL, NULL, &tv);
     fprintf(stdout, "This is the third line\n");
 
