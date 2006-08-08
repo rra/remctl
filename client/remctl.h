@@ -25,9 +25,9 @@
 /* Used to hold the return from a simple remctl call. */
 struct remctl_result {
     char *error;                /* remctl error if non-NULL. */
-    char *stdout;               /* Standard output. */
+    char *stdout_buf;           /* Standard output. */
     size_t stdout_len;          /* Length of standard output. */
-    char *stderr;               /* Standard error. */
+    char *stderr_buf;           /* Standard error. */
     size_t stderr_len;          /* Length of standard error. */
     int status;                 /* Exit status of remote command. */
 };

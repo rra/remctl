@@ -39,8 +39,8 @@
 **  false on failure.
 */
 int
-_remctl_v2_commandv(struct remctl *r, const struct iovec *command,
-                    size_t count, int finished)
+internal_v2_commandv(struct remctl *r, const struct iovec *command,
+                     size_t count, int finished)
 {
     gss_buffer_desc token;
     size_t i;
@@ -54,7 +54,7 @@ _remctl_v2_commandv(struct remctl *r, const struct iovec *command,
         token.length += 4 + command[i].iov_len;
     token.value = malloc(token.length);
     if (token.value == NULL) {
-        _remctl_set_error(r, "Cannot allocate memory: %s", strerror(errno));
+        internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
         return 0;
     }
 
@@ -91,7 +91,7 @@ _remctl_v2_commandv(struct remctl *r, const struct iovec *command,
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
                              &token, &major, &minor);
     if (status != TOKEN_OK) {
-        _remctl_token_error(r, "sending token", status, major, minor);
+        internal_token_error(r, "sending token", status, major, minor);
         free(token.value);
         return 0;
     }
@@ -106,7 +106,7 @@ _remctl_v2_commandv(struct remctl *r, const struct iovec *command,
 **  success, false on failure.
 */
 int
-_remctl_v2_quit(struct remctl *r)
+internal_v2_quit(struct remctl *r)
 {
     gss_buffer_desc token;
     char buffer[2] = { 2, MESSAGE_QUIT };
@@ -118,7 +118,7 @@ _remctl_v2_quit(struct remctl *r)
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
                              &token, &major, &minor);
     if (status != TOKEN_OK) {
-        _remctl_token_error(r, "sending token", status, major, minor);
+        internal_token_error(r, "sending token", status, major, minor);
         return 0;
     }
     return 1;
@@ -133,7 +133,7 @@ _remctl_v2_quit(struct remctl *r)
 **  on success and NULL on failure.
 */
 struct remctl_output *
-_remctl_v2_output(struct remctl *r)
+internal_v2_output(struct remctl *r)
 {
     int status, flags;
     gss_buffer_desc token;
@@ -147,13 +147,13 @@ _remctl_v2_output(struct remctl *r)
     if (r->output == NULL) {
         r->output = malloc(sizeof(struct remctl_output));
         if (r->output == NULL) {
-            _remctl_set_error(r, "Cannot allocate memory: %s",
-                              strerror(errno));
+            internal_set_error(r, "Cannot allocate memory: %s",
+                               strerror(errno));
             return NULL;
         }
         r->output->data = NULL;
     }
-    _remctl_output_wipe(r->output);
+    internal_output_wipe(r->output);
     if (!r->ready)
         return r->output;
 
@@ -161,7 +161,7 @@ _remctl_v2_output(struct remctl *r)
     status = token_recv_priv(r->fd, r->context, &flags, &token, MAX_TOKEN,
                              &major, &minor);
     if (status != TOKEN_OK) {
-        _remctl_token_error(r, "receiving token", status, major, minor);
+        internal_token_error(r, "receiving token", status, major, minor);
         if (status == TOKEN_FAIL_EOF) {
             close(r->fd);
             r->fd = -1;
@@ -169,12 +169,12 @@ _remctl_v2_output(struct remctl *r)
         return NULL;
     }
     if (flags != (TOKEN_DATA | TOKEN_PROTOCOL)) {
-        _remctl_set_error(r, "Unexpected token from server");
+        internal_set_error(r, "Unexpected token from server");
         gss_release_buffer(&minor, &token);
         return NULL;
     }
     if (token.length < 2) {
-        _remctl_set_error(r, "Malformed result token from server");
+        internal_set_error(r, "Malformed result token from server");
         gss_release_buffer(&minor, &token);
         return NULL;
     }
@@ -182,7 +182,7 @@ _remctl_v2_output(struct remctl *r)
     /* Extract the message protocol and type. */
     p = token.value;
     if (p[0] != 2) {
-        _remctl_set_error(r, "Unexpected protocol %d from server", p[0]);
+        internal_set_error(r, "Unexpected protocol %d from server", p[0]);
         gss_release_buffer(&minor, &token);
         return NULL;
     }
@@ -193,13 +193,13 @@ _remctl_v2_output(struct remctl *r)
     switch (type) {
     case MESSAGE_OUTPUT:
         if (token.length < 2 + 6) {
-            _remctl_set_error(r, "Malformed result token from server");
+            internal_set_error(r, "Malformed result token from server");
             gss_release_buffer(&minor, &token);
             return NULL;
         }
         r->output->type = REMCTL_OUT_OUTPUT;
         if (p[0] != 1 && p[0] != 2) {
-            _remctl_set_error(r, "Unexpected stream %d from server", p[0]);
+            internal_set_error(r, "Unexpected stream %d from server", p[0]);
             gss_release_buffer(&minor, &token);
             return NULL;
         }
@@ -209,14 +209,14 @@ _remctl_v2_output(struct remctl *r)
         p += 4;
         size = ntohl(data);
         if (size != token.length - (p - (char *) token.value)) {
-            _remctl_set_error(r, "Malformed result token from server");
+            internal_set_error(r, "Malformed result token from server");
             gss_release_buffer(&minor, &token);
             return NULL;
         }
         r->output->data = malloc(size);
         if (r->output->data == NULL) {
-            _remctl_set_error(r, "Cannot allocate memory: %s",
-                              strerror(errno));
+            internal_set_error(r, "Cannot allocate memory: %s",
+                               strerror(errno));
             gss_release_buffer(&minor, &token);
             return NULL;
         }
@@ -226,7 +226,7 @@ _remctl_v2_output(struct remctl *r)
 
     case MESSAGE_STATUS:
         if (token.length < 2 + 1) {
-            _remctl_set_error(r, "Malformed result token from server");
+            internal_set_error(r, "Malformed result token from server");
             gss_release_buffer(&minor, &token);
             return NULL;
         }
@@ -237,7 +237,7 @@ _remctl_v2_output(struct remctl *r)
 
     case MESSAGE_ERROR:
         if (token.length < 2 + 8) {
-            _remctl_set_error(r, "Malformed result token from server");
+            internal_set_error(r, "Malformed result token from server");
             gss_release_buffer(&minor, &token);
             return NULL;
         }
@@ -249,13 +249,13 @@ _remctl_v2_output(struct remctl *r)
         p += 4;
         size = ntohl(data);
         if (size != token.length - (p - (char *) token.value)) {
-            _remctl_set_error(r, "Malformed result token from server");
+            internal_set_error(r, "Malformed result token from server");
             gss_release_buffer(&minor, &token);
             return NULL;
         }
         r->output->data = malloc(size);
         if (r->output->data == NULL) {
-            _remctl_set_error(r, "Cannot allocate memory: %s",
+            internal_set_error(r, "Cannot allocate memory: %s",
                               strerror(errno));
             gss_release_buffer(&minor, &token);
             return NULL;
@@ -266,7 +266,7 @@ _remctl_v2_output(struct remctl *r)
         break;
 
     default:
-        _remctl_set_error(r, "Unknown message type %d from server", type);
+        internal_set_error(r, "Unknown message type %d from server", type);
         gss_release_buffer(&minor, &token);
         return NULL;
     }

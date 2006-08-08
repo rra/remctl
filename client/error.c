@@ -32,7 +32,7 @@
 **  if one is present.
 */
 void
-_remctl_set_error(struct remctl *r, const char *format, ...)
+internal_set_error(struct remctl *r, const char *format, ...)
 {
     va_list args;
     int status;
@@ -55,8 +55,8 @@ _remctl_set_error(struct remctl *r, const char *format, ...)
 **  message.  Uses gss_display_status to get the internal error message.
 */
 void
-_remctl_gssapi_error(struct remctl *r, const char *error, OM_uint32 major,
-                     OM_uint32 minor)
+internal_gssapi_error(struct remctl *r, const char *error, OM_uint32 major,
+                      OM_uint32 minor)
 {
     char *string, *old;
     gss_buffer_desc msg;
@@ -98,30 +98,30 @@ _remctl_gssapi_error(struct remctl *r, const char *error, OM_uint32 major,
 **  functions and their *_priv counterparts.
 */
 void
-_remctl_token_error(struct remctl *r, const char *error, int status,
-                    OM_uint32 major, OM_uint32 minor)
+internal_token_error(struct remctl *r, const char *error, int status,
+                     OM_uint32 major, OM_uint32 minor)
 {
     switch (status) {
     case TOKEN_OK:
-        _remctl_set_error(r, "error %s", error);
+        internal_set_error(r, "error %s", error);
         break;
     case TOKEN_FAIL_SYSTEM:
-        _remctl_set_error(r, "error %s: %s", error, strerror(errno));
+        internal_set_error(r, "error %s: %s", error, strerror(errno));
         break;
     case TOKEN_FAIL_INVALID:
-        _remctl_set_error(r, "error %s: invalid token format", error);
+        internal_set_error(r, "error %s: invalid token format", error);
         break;
     case TOKEN_FAIL_LARGE:
-        _remctl_set_error(r, "error %s: token too larger", error);
+        internal_set_error(r, "error %s: token too larger", error);
         break;
     case TOKEN_FAIL_EOF:
-        _remctl_set_error(r, "error %s: unexpected end of file", error);
+        internal_set_error(r, "error %s: unexpected end of file", error);
         break;
     case TOKEN_FAIL_GSSAPI:
-        _remctl_gssapi_error(r, error, major, minor);
+        internal_gssapi_error(r, error, major, minor);
         break;
     default:
-        _remctl_set_error(r, "error %s: unknown error", error);
+        internal_set_error(r, "error %s: unknown error", error);
         break;
     }
 }

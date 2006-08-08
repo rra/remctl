@@ -48,29 +48,29 @@ struct remctl {
 };
 
 /* Helper functions to set errors. */
-void _remctl_set_error(struct remctl *, const char *, ...);
-void _remctl_gssapi_error(struct remctl *, const char *error,
+void internal_set_error(struct remctl *, const char *, ...);
+void internal_gssapi_error(struct remctl *, const char *error,
+                           OM_uint32 major, OM_uint32 minor);
+void internal_token_error(struct remctl *, const char *error, int status,
                           OM_uint32 major, OM_uint32 minor);
-void _remctl_token_error(struct remctl *, const char *error, int status,
-                         OM_uint32 major, OM_uint32 minor);
 
 /* Other helper functions. */
-void _remctl_output_wipe(struct remctl_output *);
+void internal_output_wipe(struct remctl_output *);
 
 /* General connection opening and negotiation function. */
-int _remctl_open(struct remctl *, const char *host, unsigned short port,
-                 const char *principal);
+int internal_open(struct remctl *, const char *host, unsigned short port,
+                  const char *principal);
 
 /* Protocol one functions. */
-int _remctl_v1_commandv(struct remctl *, const struct iovec *command,
-                        size_t count, int finished);
-struct remctl_output *_remctl_v1_output(struct remctl *r);
+int internal_v1_commandv(struct remctl *, const struct iovec *command,
+                         size_t count, int finished);
+struct remctl_output *internal_v1_output(struct remctl *r);
 
 /* Protocol two functions. */
-int _remctl_v2_commandv(struct remctl *, const struct iovec *command,
-                        size_t count, int finished);
-int _remctl_v2_quit(struct remctl *);
-struct remctl_output *_remctl_v2_output(struct remctl *r);
+int internal_v2_commandv(struct remctl *, const struct iovec *command,
+                         size_t count, int finished);
+int internal_v2_quit(struct remctl *);
+struct remctl_output *internal_v2_output(struct remctl *r);
 
 END_DECLS
 

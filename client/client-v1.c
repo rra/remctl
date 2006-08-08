@@ -42,8 +42,8 @@
 **  false on failure.
 */
 int
-_remctl_v1_commandv(struct remctl *r, const struct iovec *command,
-                    size_t count, int finished)
+internal_v1_commandv(struct remctl *r, const struct iovec *command,
+                     size_t count, int finished)
 {
     gss_buffer_desc token;
     size_t i;
@@ -53,7 +53,7 @@ _remctl_v1_commandv(struct remctl *r, const struct iovec *command,
 
     /* Partial commands not supported in protocol version one. */
     if (finished != 1) {
-        _remctl_set_error(r, "Partial commands not supported");
+        internal_set_error(r, "Partial commands not supported");
         return 0;
     }
 
@@ -63,7 +63,7 @@ _remctl_v1_commandv(struct remctl *r, const struct iovec *command,
         token.length += 4 + command[i].iov_len;
     token.value = malloc(token.length);
     if (token.value == NULL) {
-        _remctl_set_error(r, "Cannot allocate memory: %s", strerror(errno));
+        internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
         return 0;
     }
 
@@ -84,7 +84,7 @@ _remctl_v1_commandv(struct remctl *r, const struct iovec *command,
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_SEND_MIC,
                              &token, &major, &minor);
     if (status != TOKEN_OK) {
-        _remctl_token_error(r, "sending token", status, major, minor);
+        internal_token_error(r, "sending token", status, major, minor);
         free(token.value);
         return 0;
     }
@@ -103,7 +103,7 @@ _remctl_v1_commandv(struct remctl *r, const struct iovec *command,
 **  on success and NULL on failure.
 */
 struct remctl_output *
-_remctl_v1_output(struct remctl *r)
+internal_v1_output(struct remctl *r)
 {
     int status, flags;
     gss_buffer_desc token;
@@ -116,7 +116,7 @@ _remctl_v1_output(struct remctl *r)
         if (r->output->type == REMCTL_OUT_STATUS)
             r->output->type = REMCTL_OUT_DONE;
         else {
-            _remctl_output_wipe(r->output);
+            internal_output_wipe(r->output);
             r->output->type = REMCTL_OUT_STATUS;
         }
         r->output->status = r->status;
@@ -127,7 +127,7 @@ _remctl_v1_output(struct remctl *r)
     status = token_recv_priv(r->fd, r->context, &flags, &token, MAX_TOKEN,
                              &major, &minor);
     if (status != TOKEN_OK) {
-        _remctl_token_error(r, "receiving token", status, major, minor);
+        internal_token_error(r, "receiving token", status, major, minor);
         if (status == TOKEN_FAIL_EOF) {
             close(r->fd);
             r->fd = -1;
@@ -135,14 +135,14 @@ _remctl_v1_output(struct remctl *r)
         return NULL;
     }
     if (flags != TOKEN_DATA) {
-        _remctl_set_error(r, "Unexpected token from server");
+        internal_set_error(r, "Unexpected token from server");
         gss_release_buffer(&minor, &token);
         return NULL;
     }
 
     /* Extract the return code, message length, and data. */
     if (token.length < 8) {
-        _remctl_set_error(r, "Malformed result token from server");
+        internal_set_error(r, "Malformed result token from server");
         gss_release_buffer(&minor, &token);
         return NULL;
     }
@@ -154,7 +154,7 @@ _remctl_v1_output(struct remctl *r)
     length = ntohl(data);
     p += 4;
     if (length != token.length - 8) {
-        _remctl_set_error(r, "Malformed result token from server");
+        internal_set_error(r, "Malformed result token from server");
         gss_release_buffer(&minor, &token);
         return NULL;
     }
@@ -164,14 +164,14 @@ _remctl_v1_output(struct remctl *r)
        later. */
     r->output = malloc(sizeof(struct remctl_output));
     if (r->output == NULL) {
-        _remctl_set_error(r, "Cannot allocate memory: %s", strerror(errno));
+        internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
         gss_release_buffer(&minor, &token);
         return NULL;
     }
     r->output->type = REMCTL_OUT_OUTPUT;
     r->output->data = malloc(length);
     if (r->output->data == NULL) {
-        _remctl_set_error(r, "Cannot allocate memory: %s", strerror(errno));
+        internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
         gss_release_buffer(&minor, &token);
         return NULL;
     }

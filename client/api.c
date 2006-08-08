@@ -37,7 +37,7 @@
 **  fatal error.
 */
 static struct remctl_result *
-_remctl_fail(struct remctl *r, struct remctl_result *result)
+internal_fail(struct remctl *r, struct remctl_result *result)
 {
     const char *error;
 
@@ -67,8 +67,8 @@ _remctl_fail(struct remctl *r, struct remctl_result *result)
 **  result->error; if we can't even do that, make sure it's set to NULL.
 */
 static int
-_remctl_output_append(struct remctl_result *result,
-                      struct remctl_output *output)
+internal_output_append(struct remctl_result *result,
+                       struct remctl_output *output)
 {
     char **buffer = NULL;
     size_t *length = NULL;
@@ -79,10 +79,10 @@ _remctl_output_append(struct remctl_result *result,
     if (output->type == REMCTL_OUT_ERROR)
         buffer = &result->error;
     else if (output->type == REMCTL_OUT_OUTPUT && output->stream == 1) {
-        buffer = &result->stdout;
+        buffer = &result->stdout_buf;
         length = &result->stdout_len;
     } else if (output->type == REMCTL_OUT_OUTPUT && output->stream == 2) {
-        buffer = &result->stderr;
+        buffer = &result->stderr_buf;
         length = &result->stderr_len;
     } else if (output->type == REMCTL_OUT_OUTPUT) {
         if (result->error != NULL)
@@ -142,20 +142,20 @@ remctl(const char *host, unsigned short port, const char *principal,
         return NULL;
     r = remctl_new();
     if (r == NULL)
-        return _remctl_fail(r, result);
+        return internal_fail(r, result);
     if (!remctl_open(r, host, port, principal))
-        return _remctl_fail(r, result);
+        return internal_fail(r, result);
     if (!remctl_command(r, command, 1))
-        return _remctl_fail(r, result);
+        return internal_fail(r, result);
     do {
         struct remctl_output *output;
 
         output = remctl_output(r);
         if (output == NULL)
-            return _remctl_fail(r, result);
+            return internal_fail(r, result);
         type = output->type;
         if (type == REMCTL_OUT_OUTPUT || type == REMCTL_OUT_ERROR) {
-            if (!_remctl_output_append(result, output)) {
+            if (!internal_output_append(result, output)) {
                 if (result->error != NULL)
                     return result;
                 else {
@@ -184,10 +184,10 @@ remctl_result_free(struct remctl_result *result)
     if (result != NULL) {
         if (result->error != NULL)
             free(result->error);
-        if (result->stdout != NULL)
-            free(result->stdout);
-        if (result->stderr != NULL)
-            free(result->stderr);
+        if (result->stdout_buf != NULL)
+            free(result->stdout_buf);
+        if (result->stderr_buf != NULL)
+            free(result->stderr_buf);
         free(result);
     }
 }
@@ -231,14 +231,14 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
         r->error = NULL;
     }
     if (r->output != NULL) {
-        _remctl_output_wipe(r->output);
+        internal_output_wipe(r->output);
         free(r->output);
         r->output = NULL;
     }
     r->host = host;
     r->port = port;
     r->principal = principal;
-    return _remctl_open(r, host, port, principal);
+    return internal_open(r, host, port, principal);
 }
 
 
@@ -250,7 +250,7 @@ remctl_close(struct remctl *r)
 {
     if (r != NULL) {
         if (r->protocol > 1 && r->fd != -1)
-            _remctl_v2_quit(r);
+            internal_v2_quit(r);
         if (r->fd != -1)
             close(r->fd);
         if (r->error != NULL)
@@ -282,7 +282,7 @@ remctl_command(struct remctl *r, const char **command, int finished)
         ;
     vector = malloc(sizeof(struct iovec) * count);
     if (vector == NULL) {
-        _remctl_set_error(r, "Cannot allocate memory: %s", strerror(errno));
+        internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
         return 0;
     }
     for (i = 0; i < count; i++) {
@@ -305,7 +305,7 @@ remctl_commandv(struct remctl *r, const struct iovec *command, size_t count,
 {
     if (r->fd < 0) {
         if (r->host == NULL) {
-            _remctl_set_error(r, "No connection open");
+            internal_set_error(r, "No connection open");
             return 0;
         }
         if (!remctl_open(r, r->host, r->port, r->principal))
@@ -316,9 +316,9 @@ remctl_commandv(struct remctl *r, const struct iovec *command, size_t count,
         r->error = NULL;
     }
     if (r->protocol == 1)
-        return _remctl_v1_commandv(r, command, count, finished);
+        return internal_v1_commandv(r, command, count, finished);
     else
-        return _remctl_v2_commandv(r, command, count, finished);
+        return internal_v2_commandv(r, command, count, finished);
 }
 
 
@@ -327,7 +327,7 @@ remctl_commandv(struct remctl *r, const struct iovec *command, size_t count,
 **  elements of the output struct, but don't free the output struct itself.
 */
 void
-_remctl_output_wipe(struct remctl_output *output)
+internal_output_wipe(struct remctl_output *output)
 {
     if (output == NULL)
         return;
@@ -361,7 +361,7 @@ struct remctl_output *
 remctl_output(struct remctl *r)
 {
     if (r->fd < 0 && (r->protocol != 1 || r->host == NULL)) {
-        _remctl_set_error(r, "No connection open");
+        internal_set_error(r, "No connection open");
         return NULL;
     }
     if (r->error != NULL) {
@@ -369,9 +369,9 @@ remctl_output(struct remctl *r)
         r->error = NULL;
     }
     if (r->protocol == 1)
-        return _remctl_v1_output(r);
+        return internal_v1_output(r);
     else
-        return _remctl_v2_output(r);
+        return internal_v2_output(r);
 }
 
 

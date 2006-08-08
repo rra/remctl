@@ -50,8 +50,8 @@
 **  failure.  On failure, sets the error message appropriately.
 */
 int
-_remctl_open(struct remctl *r, const char *host, unsigned short port,
-             const char *principal)
+internal_open(struct remctl *r, const char *host, unsigned short port,
+              const char *principal)
 {
     struct sockaddr_in saddr;
     struct hostent *hp;
@@ -68,7 +68,7 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
     /* Look up the remote host and open a TCP connection. */
     hp = gethostbyname(host);
     if (hp == NULL) {
-        _remctl_set_error(r, "unknown host: %s", host);
+        internal_set_error(r, "unknown host: %s", host);
         return 0;
     }
     saddr.sin_family = hp->h_addrtype;
@@ -76,12 +76,12 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
     saddr.sin_port = htons(port);
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
-        _remctl_set_error(r, "error creating socket: %s", strerror(errno));
+        internal_set_error(r, "error creating socket: %s", strerror(errno));
         return 0;
     }
     if (connect(fd, (struct sockaddr *) &saddr, sizeof(saddr)) < 0) {
-        _remctl_set_error(r, "cannot connect to %s (port %hu): %s", host,
-                          port, strerror(errno));
+        internal_set_error(r, "cannot connect to %s (port %hu): %s", host,
+                           port, strerror(errno));
         close(fd);
         return 0;
     }
@@ -92,7 +92,7 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
     name_buffer.length = strlen(principal) + 1;
     major = gss_import_name(&minor, &name_buffer, GSS_C_NT_USER_NAME, &name);
     if (major != GSS_S_COMPLETE) {
-        _remctl_gssapi_error(r, "parsing name", major, minor);
+        internal_gssapi_error(r, "parsing name", major, minor);
         close(fd);
         r->fd = -1;
         return 0;
@@ -108,7 +108,7 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
     status = token_send(fd, TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL,
                         &empty_token);
     if (status != TOKEN_OK) {
-        _remctl_token_error(r, "sending initial token", status, major, minor);
+        internal_token_error(r, "sending initial token", status, major, minor);
         goto fail;
     }
 
@@ -146,7 +146,7 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
                 flags |= TOKEN_PROTOCOL;
             status = token_send(fd, flags, &send_tok);
             if (status != TOKEN_OK) {
-                _remctl_token_error(r, "sending token", status, major, minor);
+                internal_token_error(r, "sending token", status, major, minor);
                 gss_release_buffer(&minor, &send_tok);
                 goto fail;
             }
@@ -155,16 +155,16 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
 
         /* On error, report the error and abort. */
         if (major != GSS_S_COMPLETE && major != GSS_S_CONTINUE_NEEDED) {
-            _remctl_gssapi_error(r, "initializing context", major,
-                                 init_minor);
+            internal_gssapi_error(r, "initializing context", major,
+                                  init_minor);
             goto fail;
         }
 
         /* If the flags we get back from the server are bad and we're doing
            protocol v2, report an error and abort. */
         if (r->protocol > 1 && (gss_flags & req_gss_flags) != req_gss_flags) {
-            _remctl_set_error(r, "server did not negotiate appropriate GSS-API"
-                              " flags");
+            internal_set_error(r, "server did not negotiate appropriate"
+                               " GSS-API flags");
             goto fail;
         }
 
@@ -173,8 +173,8 @@ _remctl_open(struct remctl *r, const char *host, unsigned short port,
         if (major == GSS_S_CONTINUE_NEEDED) {
             status = token_recv(fd, &flags, &recv_tok, 64 * 1024);
             if (status != TOKEN_OK) {
-                _remctl_token_error(r, "receiving token", status, major,
-                                    minor);
+                internal_token_error(r, "receiving token", status, major,
+                                     minor);
                 goto fail;
             }
             if (r->protocol > 1 && (flags & TOKEN_PROTOCOL) != TOKEN_PROTOCOL)

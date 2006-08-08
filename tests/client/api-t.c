@@ -111,10 +111,10 @@ main(void)
         ok(n++, result != NULL);
         ok_int(n++, 0, result->status);
         ok_int(n++, 12, result->stdout_len);
-        if (result->stdout == NULL)
+        if (result->stdout_buf == NULL)
             ok(n++, 0);
         else
-            ok(n++, memcmp("hello world\n", result->stdout, 11) == 0);
+            ok(n++, memcmp("hello world\n", result->stdout_buf, 11) == 0);
         ok(n++, result->error == NULL);
 
         tv.tv_sec = 0;
