@@ -59,10 +59,23 @@ $(srcdir)/docs/protocol.html: $(srcdir)/docs/protocol.xml
 $(srcdir)/docs/protocol.txt: $(srcdir)/docs/protocol.xml
 	xml2rfc $(srcdir)/docs/protocol.xml $(srcdir)/docs/protocol.txt
 
-CLEANFILES = server/remctld.8 $(LIBOBJS) $(LTLIBOBJS)
+# We shouldn't have to explicitly list $(LIBOBJS) and $(LTLIBOBJS) here.
+# This is a bug in the non-recursive support.
+MOSTLYCLEANFILES = $(LIBOBJS) $(LTLIBOBJS)
+CLEANFILES = server/remctld.8
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 config.h.in config.h.in~ \
 	configure client/remctl.1 docs/protocol.html docs/protocol.txt \
 	server/remctld.8.in
+
+# Automake should deal with this automatically, but it doesn't.  Probably a
+# bug in the non-recursive support.
+clean-local:
+	-rm -rf server/.libs tests/.libs tests/client/.libs tests/data/.libs \
+	    tests/server/.libs tests/util/.libs
+
+# More bugs in the non-recursive support.
+distclean-local:
+	-rm -rf .deps
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
 # without optimization turned on, and add -DDEBUG=1 so we'll also compile all
