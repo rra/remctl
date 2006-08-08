@@ -157,15 +157,15 @@ AC_ARG_ENABLE([reduced-depends],
 
 dnl Support static linkage as best we can.  Set a variable and do the
 dnl wrapping later on.
-static=false
-AC_ARG_ENABLE([static],
-    AC_HELP_STRING([--enable-static],
+krb5_static=false
+AC_ARG_ENABLE([krb5-static],
+    AC_HELP_STRING([--enable-krb5-static],
         [Link against the static Kerberos libraries]),
     [if test x"$enableval" = xyes ; then
          if test x"$reduce_depends" = xtrue ; then
-AC_MSG_ERROR([--enable-static cannot be used with --enable-reduced-depends])
+AC_MSG_ERROR([--enable-krb5-static conflicts with --enable-reduced-depends])
          fi
-         static=true
+         krb5_static=true
      fi])
 
 dnl Checking for the neworking libraries shouldn't be necessary for the
@@ -192,7 +192,7 @@ if test x"$reduce_depends" != xtrue ; then
     # We can't use krb5-config if building static since we can't tell what
     # of the libraries it gives us should be static and which should be
     # dynamic.
-    if test x"$KRB5_CONFIG" != x && test x"$static" != xtrue ; then
+    if test x"$KRB5_CONFIG" != x && test x"$krb5_static" != xtrue ; then
         AC_MSG_CHECKING([for $1 support in krb5-config])
         if "$KRB5_CONFIG" | grep '$1' > /dev/null 2>&1 ; then
             AC_MSG_RESULT([yes])
@@ -227,7 +227,7 @@ if test x"$reduce_depends" != xtrue ; then
 fi
 
 dnl Generate the final library list and put it into the standard variables.
-if test x"$static" = xtrue ; then
+if test x"$krb5_static" = xtrue ; then
     LIBS="-Wl,-Bstatic $KRBLIBS -Wl,-Bdynamic $LIBS"
 else
     LIBS="$KRBLIBS $LIBS"
