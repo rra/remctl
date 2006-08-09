@@ -8,6 +8,7 @@ remctl (2.0-1) unstable; urgency=low
     - Don't consider inclusion of empty directories in a configuration
       file an error.
     - New protocol documentation.
+  * Update standards version to 3.7.2 (no changes required).
 
  --
 
