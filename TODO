@@ -1,5 +1,35 @@
                             remctl To-Do List
 
+ * Allow a more expressive configuration syntax that can set more options
+   per command.  Among the things we want to configure (besides the
+   logmask configuration we already have) are changing users before
+   running the command, specifying an argument to pass on standard input
+   (see below), or supporting things like LDAP ACLs.
+
+ * Implement file upload in the remctl client.  On the server side, since
+   we want to handle file data that contains nul characters, we'll also
+   need to support passing one of the arguments to the executed command on
+   standard input.  This may depend on the new configuration syntax.
+
+ * Support continuation of commands in the library through a lower-level
+   command interface.
+
+ * Implement Perl bindings for the remctl client library.
+
+ * Support LDAP-based ACLs in addition to file system ACLs.
+
+ * Support IPv6.
+
+ * Add readline support to the remctl client for multiple commands to the
+   same server in the same authenticated session.
+
+ * Set REMOTE_USER in addition to REMUSER in the server.
+
+ * Drop setting SCPRINCIPAL unless the user requests sysctl compatibility
+   at configure time.
+
+ * Put the IP address and hostname of the remote server in the environment.
+
  * In standalone mode, remctld doesn't shut down cleanly after a signal
    and in particular doesn't delete its PID file if it was configured to
    write one.
@@ -7,8 +37,13 @@
  * In standalone mode, we need to fork a new process for each incoming
    connection since the connections may be long-lived.
 
- * Put the IP address and hostname of the remote server in the environment.
+ * GSS-API error reporting should be shared between client and server.
 
- * Refactoring:
-   - GSS-API error reporting should be shared between client and server.
-   - In _remctl_v2_output, reading strings from messages can be shared.
+ * In internal_v2_output, reading strings from messages can be shared.
+
+ * There is duplicate code between server_v2_handle_commands and
+   server_v2_handle_token that needs to be refactored.
+
+ * Add a test suite for the client environment variables.
+
+ * Add a test suite for configuration and ACL parsing.
