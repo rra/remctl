@@ -53,6 +53,9 @@ runfailure () {
     fi
 }
 
+# Print the number of tests.
+echo 7
+
 # Find the client program.
 if [ -f ../data/test.keytab ] ; then
     cd ..
@@ -87,9 +90,6 @@ if [ ! -f data/pid ] ; then
     echo 'remctld did not start' >&2
     exit 1
 fi
-
-# Print the number of tests.
-echo 7
 
 # Now, we can finally run our tests.
 runsuccess "hello world" test test
