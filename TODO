@@ -1,7 +1,5 @@
                             remctl To-Do List
 
- * Support continued commands in the server.
-
  * In standalone mode, remctld doesn't shut down cleanly after a signal
    and in particular doesn't delete its PID file if it was configured to
    write one.

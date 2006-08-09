@@ -43,19 +43,13 @@
 */
 int
 internal_v1_commandv(struct remctl *r, const struct iovec *command,
-                     size_t count, int finished)
+                     size_t count)
 {
     gss_buffer_desc token;
     size_t i;
     char *p;
     OM_uint32 data, major, minor;
     int status;
-
-    /* Partial commands not supported in protocol version one. */
-    if (finished != 1) {
-        internal_set_error(r, "Partial commands not supported");
-        return 0;
-    }
 
     /* Allocate room for the total message: argc, {<length><arg>}+. */
     token.length = 4;

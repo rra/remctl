@@ -45,6 +45,7 @@ struct remctl {
     struct remctl_output *output;
     int status;
     int ready;                  /* If true, we are expecting server output. */
+    int continued;              /* If true, the last command was continued. */
 };
 
 /* Helper functions to set errors. */
@@ -63,12 +64,12 @@ int internal_open(struct remctl *, const char *host, unsigned short port,
 
 /* Protocol one functions. */
 int internal_v1_commandv(struct remctl *, const struct iovec *command,
-                         size_t count, int finished);
+                         size_t count);
 struct remctl_output *internal_v1_output(struct remctl *r);
 
 /* Protocol two functions. */
 int internal_v2_commandv(struct remctl *, const struct iovec *command,
-                         size_t count, int finished);
+                         size_t count);
 int internal_v2_quit(struct remctl *);
 struct remctl_output *internal_v2_output(struct remctl *r);
 

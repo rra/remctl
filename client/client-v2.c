@@ -40,7 +40,7 @@
 */
 int
 internal_v2_commandv(struct remctl *r, const struct iovec *command,
-                     size_t count, int finished)
+                     size_t count)
 {
     gss_buffer_desc token;
     size_t i;
@@ -72,7 +72,7 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
     p++;
 
     /* Continue status. */
-    *p = (finished) ? 0 : 1;
+    *p = 0;
     p++;
 
     /* Argument count and then each argument. */

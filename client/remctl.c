@@ -175,7 +175,7 @@ main(int argc, char *argv[])
         die("%s", remctl_error(r));
 
     /* Do the work. */
-    if (!remctl_command(r, (const char **) argv, 1))
+    if (!remctl_command(r, (const char **) argv))
         die("%s", remctl_error(r));
     if (!process_response(r, &errorcode))
         die("%s", remctl_error(r));

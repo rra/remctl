@@ -43,7 +43,7 @@ main(void)
     r = remctl_new();
     ok(1, r != NULL);
     ok(2, remctl_open(r, "localhost", 14444, principal));
-    ok(3, remctl_command(r, command, 1));
+    ok(3, remctl_command(r, command));
     output = remctl_output(r);
     ok(4, output != NULL);
     ok_int(5, REMCTL_OUT_OUTPUT, output->type);
@@ -82,7 +82,7 @@ main(void)
     r->protocol = 1;
     ok(22, r != NULL);
     ok(23, remctl_open(r, "localhost", 14444, principal));
-    ok(24, remctl_command(r, command, 1));
+    ok(24, remctl_command(r, command));
     output = remctl_output(r);
     ok(25, output != NULL);
     ok_int(26, REMCTL_OUT_OUTPUT, output->type);

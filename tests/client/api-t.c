@@ -39,7 +39,7 @@ do_tests(int n, const char *principal, int protocol)
     r->protocol = protocol;
     ok(n++, remctl_open(r, "localhost", 14444, principal));
     ok_string(n++, "No error", remctl_error(r));
-    ok(n++, remctl_command(r, test, 1));
+    ok(n++, remctl_command(r, test));
     ok_string(n++, "No error", remctl_error(r));
     output = remctl_output(r);
     ok(n++, output != NULL);
@@ -59,7 +59,7 @@ do_tests(int n, const char *principal, int protocol)
     command[0].iov_len = 4;
     command[1].iov_base = (char *) "test";
     command[1].iov_len = 4;
-    ok(n++, remctl_commandv(r, command, 2, 1));
+    ok(n++, remctl_commandv(r, command, 2));
     ok_string(n++, "No error", remctl_error(r));
     output = remctl_output(r);
     ok(n++, output != NULL);

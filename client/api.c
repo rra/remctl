@@ -145,7 +145,7 @@ remctl(const char *host, unsigned short port, const char *principal,
         return internal_fail(r, result);
     if (!remctl_open(r, host, port, principal))
         return internal_fail(r, result);
-    if (!remctl_command(r, command, 1))
+    if (!remctl_command(r, command))
         return internal_fail(r, result);
     do {
         struct remctl_output *output;
@@ -272,7 +272,7 @@ remctl_close(struct remctl *r)
 **  Implement in terms of remctl_commandv.
 */
 int
-remctl_command(struct remctl *r, const char **command, int finished)
+remctl_command(struct remctl *r, const char **command)
 {
     struct iovec *vector;
     size_t count, i;
@@ -289,7 +289,7 @@ remctl_command(struct remctl *r, const char **command, int finished)
         vector[i].iov_base = (void *) command[i];
         vector[i].iov_len = strlen(command[i]);
     }
-    status = remctl_commandv(r, vector, count, finished);
+    status = remctl_commandv(r, vector, count);
     free(vector);
     return status;
 }
@@ -300,8 +300,7 @@ remctl_command(struct remctl *r, const char **command, int finished)
 **  instead.  Use this form for binary data.
 */
 int
-remctl_commandv(struct remctl *r, const struct iovec *command, size_t count,
-                int finished)
+remctl_commandv(struct remctl *r, const struct iovec *command, size_t count)
 {
     if (r->fd < 0) {
         if (r->host == NULL) {
@@ -316,9 +315,9 @@ remctl_commandv(struct remctl *r, const struct iovec *command, size_t count,
         r->error = NULL;
     }
     if (r->protocol == 1)
-        return internal_v1_commandv(r, command, count, finished);
+        return internal_v1_commandv(r, command, count);
     else
-        return internal_v2_commandv(r, command, count, finished);
+        return internal_v2_commandv(r, command, count);
 }
 
 

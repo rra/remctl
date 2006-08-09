@@ -197,31 +197,77 @@ server_v2_handle_token(struct client *client, struct config *config,
                        gss_buffer_t token)
 {
     char *p;
-    size_t length;
+    size_t length, total;
     struct vector *argv = NULL;
+    char *buffer = NULL;
+    int status, flags;
+    OM_uint32 major, minor;
+    int continued = 0;
 
-    /* Parse the token. */
-    p = token->value;
-    if (p[0] != 2)
-        return server_v2_send_version(client);
-    if (p[1] == MESSAGE_QUIT) {
-        debug("quit received, closing connection");
-        return 0;
-    } else if (p[1] != MESSAGE_COMMAND) {
-        warn("unknown message type %d from client", (int) p[1]);
-        return server_send_error(client, ERROR_UNKNOWN_MESSAGE,
-                                 "Unknown message");
-    }
-    p += 2;
-    client->keepalive = p[0] ? 1 : 0;
-    if (p[1]) {
-        warn("continued command attempted");
-        return server_send_error(client, ERROR_BAD_COMMAND,
-                                 "Invalid command token");
-    }
-    p += 2;
-    length = token->length - (p - (char *) token->value);
-    argv = server_parse_command(client, p, length);
+    /* Loop on tokens until we have a complete command, allowing for continued
+       commands.  We're going to accumulate the full command in buffer until
+       we've seen all of it.  If the command isn't continued, we can use the
+       token as the buffer. */
+    total = 0;
+    do {
+        p = token->value;
+        if (p[0] != 2)
+            return server_v2_send_version(client);
+        if (p[1] == MESSAGE_QUIT) {
+            debug("quit received, closing connection");
+            return 0;
+        } else if (p[1] != MESSAGE_COMMAND) {
+            warn("unknown message type %d from client", (int) p[1]);
+            return server_send_error(client, ERROR_UNKNOWN_MESSAGE,
+                                     "Unknown message");
+        }
+        p += 2;
+        client->keepalive = p[0] ? 1 : 0;
+
+        /* Make sure the continuation is sane. */
+        if ((p[1] == 1 && continued) || (p[1] > 1 && !continued) || p[1] > 3) {
+            warn("bad continue status %d", (int) p[1]);
+            return server_send_error(client, ERROR_BAD_COMMAND,
+                                     "Invalid command token");
+        }
+        continued = (p[1] == 1 || p[1] == 2);
+
+        /* Read the token data.  If the command is continued *or* if buffer is
+           non-NULL (meaning the command was previously continued), we copy
+           the data into the buffer. */
+        p += 2;
+        length = token->length - (p - (char *) token->value);
+        if (continued || buffer != NULL) {
+            if (buffer == NULL)
+                buffer = xmalloc(length);
+            else
+                buffer = xrealloc(buffer, total + length);
+            memcpy(buffer + total, p, length);
+            total += length;
+        }
+
+        /* If the command was continued, we have to read the next token.
+           Otherwise, if buffer is NULL (no continuation), we just use this
+           token as the complete buffer. */
+        if (continued) {
+            status = token_recv_priv(client->fd, client->context, &flags,
+                                     token, MAX_TOKEN, &major, &minor);
+            if (status != TOKEN_OK) {
+                warn_token("receiving command token", status, major, minor);
+                if (status == TOKEN_FAIL_EOF)
+                    return 0;
+                return server_send_error(client, ERROR_BAD_TOKEN,
+                                         "Invalid token");
+            }
+        } else if (buffer == NULL) {
+            buffer = p;
+            total = length;
+        }
+    } while (continued);
+
+    /* Okay, we now have a complete command that was possibly spread over
+       multiple tokens.  Now we can parse it.  */
+    argv = server_parse_command(client, buffer, total);
     if (argv == NULL)
         return !client->fatal;
 
