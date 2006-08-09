@@ -160,7 +160,8 @@ The equivalent line for F</etc/inetd.conf> is:
 Example configuration file:
 
  # Comments can be used like this.
- accounts create /usr/local/bin/doaccount  /etc/acl/group1 /etc/acl/group2
+ accounts create /usr/local/bin/doaccount  /etc/acl/group1 \
+     /etc/acl/group2
  accounts delete /usr/local/bin/doaccount  /etc/acl/group3
  accounts view   /usr/local/bin/doaccount  ANYUSER
  accounts passwd /usr/local/bin/dopasswd   logmask=3 /etc/acl/group1
@@ -174,6 +175,15 @@ still get C<passwd> as its first argument.  The third argument to
 C<accounts passwd> (presumably the password) will not be logged to syslog.
 All commands starting with C<printing> will be passed to
 /usr/local/bin/printthing.
+
+=head1 NOTES
+
+When using Heimdal with triple-DES keys and talking to old clients that
+only speak version one of the remctl protocol, B<remctld> may have
+problems with MIC verification.  This doesn't affect new clients and
+servers since the version two protocol doesn't use MICs.  If you are using
+Heimdal and run into MIC verification problems, see the COMPATIBILITY
+section of gssapi(3).
 
 =head1 SEE ALSO
 

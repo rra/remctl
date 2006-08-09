@@ -61,6 +61,15 @@ Release an afs volume called ls.tripwire:
 
     remctl lsdb afs release ls.tripwire
 
+=head1 NOTES
+
+When using Heimdal with triple-DES keys and talking to old servers that
+only speak version one of the remctl protocol, B<remctl> may have problems
+with MIC verification.  This doesn't affect new clients and servers since
+the version two protocol doesn't use MICs.  If you are using Heimdal and
+run into MIC verification problems, see the COMPATIBILITY section of
+gssapi(3).
+
 =head1 SEE ALSO
 
 kinit(1), remctld(1)
