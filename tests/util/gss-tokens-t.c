@@ -117,8 +117,8 @@ main(void)
     memcpy(recv_buffer, send_buffer, send_length);
     recv_length = send_length;
     recv_flags = send_flags;
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 64, &s_stat,
-                             &c_min_stat);
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024,
+                             &s_stat, &c_min_stat);
     ok_int(8, TOKEN_OK, status);
     ok_int(9, 5, client_tok.length);
     ok(10, memcmp(client_tok.value, "hello", 5) == 0);
@@ -132,8 +132,8 @@ main(void)
 
     /* Test receiving a corrupt token. */
     recv_length = 4;
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 64, &s_stat,
-                             &s_min_stat);
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024,
+                             &s_stat, &s_min_stat);
     ok_int(13, TOKEN_FAIL_GSSAPI, status);
 
     /* Now, fake up a token to make sure that token_recv_priv is doing the
@@ -147,8 +147,8 @@ main(void)
     recv_length = server_tok.length;
     memcpy(recv_buffer, server_tok.value, server_tok.length);
     gss_release_buffer(&c_min_stat, &server_tok);
-    status = token_recv_priv(0, server_ctx, &flags, &server_tok, 64, &s_stat,
-                             &s_min_stat);
+    status = token_recv_priv(0, server_ctx, &flags, &server_tok, 1024,
+                             &s_stat, &s_min_stat);
     ok_int(15, TOKEN_OK, status);
     ok_int(16, 5, flags);
     ok_int(17, 5, server_tok.length);
@@ -170,8 +170,8 @@ main(void)
     memcpy(recv_buffer, send_buffer, send_length);
     recv_length = send_length;
     recv_flags = send_flags;
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 64, &c_stat,
-                             &c_min_stat);
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024,
+                             &c_stat, &c_min_stat);
     ok_int(21, TOKEN_OK, status);
     ok_int(22, TOKEN_DATA, flags);
     ok_int(23, 5, client_tok.length);
