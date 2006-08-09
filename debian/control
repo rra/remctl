@@ -5,6 +5,37 @@ Maintainer: Russ Allbery <rra@debian.org>
 Build-Depends: debhelper (>= 4.0.0), libkrb5-dev
 Standards-Version: 3.6.2
 
+Package: libremctl1
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Library for Kerberos-authenticated command execution
+ remctl is a client/server protocol for executing specific commands on a
+ remote system with Kerberos authentication.  The allowable commands must
+ be listed in a server configuration file, and the executable run on the
+ server may be mapped to any command name.  Each command is also
+ associated with an ACL containing a list of Kerberos principals
+ authorized to run that command.
+ .
+ This package contains the client libraries linked against MIT Kerberos.
+ .
+  Homepage: http://www.eyrie.org/~eagle/software/remctl/
+
+Package: libremctl-dev
+Architecture: any
+Depends: ${shlibs:Depends}, libkrb53-dev
+Description: Development files for Kerberos-authenticated command execution
+ remctl is a client/server protocol for executing specific commands on a
+ remote system with Kerberos authentication.  The allowable commands must
+ be listed in a server configuration file, and the executable run on the
+ server may be mapped to any command name.  Each command is also
+ associated with an ACL containing a list of Kerberos principals
+ authorized to run that command.
+ .
+ This package contains the development files for client libraries linked
+ against MIT Kerberos.
+ .
+  Homepage: http://www.eyrie.org/~eagle/software/remctl/
+
 Package: remctl-client
 Architecture: any
 Depends: ${shlibs:Depends}
