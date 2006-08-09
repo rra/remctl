@@ -79,6 +79,7 @@ binary-arch: build install
 	dh_strip
 	dh_compress
 	dh_fixperms
+	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps -l $(CURDIR)/debian/libremctl1/usr/lib -L libremctl1
 	dh_gencontrol
