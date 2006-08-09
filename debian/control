@@ -6,6 +6,7 @@ Build-Depends: debhelper (>= 4.0.0), libkrb5-dev
 Standards-Version: 3.7.2
 
 Package: libremctl1
+Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}
 Description: Library for Kerberos-authenticated command execution
@@ -21,6 +22,8 @@ Description: Library for Kerberos-authenticated command execution
   Homepage: http://www.eyrie.org/~eagle/software/remctl/
 
 Package: libremctl-dev
+Section: libdevel
+Priority: extra
 Architecture: any
 Depends: ${shlibs:Depends}, libkrb53-dev
 Description: Development files for Kerberos-authenticated command execution
