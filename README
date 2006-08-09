@@ -123,8 +123,18 @@ PORTING
 
       Solaris 8
       Linux (glibc 2.2, 2.3)
+      NetBSD
 
   but should work on any Unix varient.
+
+THANKS
+
+  To Roland Schemers, for extensive review of the initial code and
+  protocol and help with the original Java client.
+
+  To Romain LENGLET, for the idea and code for examples/rsh-wrapper.
+
+  To Thomas Kula, for testing of remctl 2.0 on NetBSD and Heimdal.
 
 LICENSE
 
