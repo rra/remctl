@@ -8,9 +8,11 @@ remctl (2.0-1) unstable; urgency=low
     - Don't consider inclusion of empty directories in a configuration
       file an error.
     - New protocol documentation.
+  * Use a better way to optionally run make distclean.
+  * Always pass the system type into configure.
   * Update standards version to 3.7.2 (no changes required).
 
- --
+ -- Russ Allbery <rra@debian.org>  Wed,  9 Aug 2006 09:38:55 -0700
 
 remctl (1.12-2) unstable; urgency=low
 

@@ -9,8 +9,16 @@
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
 
-CFLAGS = -Wall -g
+# Tell Autoconf the correct system types.
+DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
+    SYSTEM = --build $(DEB_HOST_GNU_TYPE)
+else
+    SYSTEM = --build $(DEB_BUILD_GNU_TYPE) --host $(DEB_HOST_GNU_TYPE)
+endif
 
+CFLAGS = -Wall -g
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
     CFLAGS += -O0
 else
@@ -21,7 +29,7 @@ config.status: configure
 	dh_testdir
 	CFLAGS="$(CFLAGS)" ./configure --prefix=/usr \
 	    --mandir=\$${prefix}/share/man --sysconfdir=/etc/remctl \
-	    --enable-reduced-depends
+	    --enable-reduced-depends $(SYSTEM)
 
 build: build-stamp
 build-stamp: config.status
@@ -33,9 +41,7 @@ clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp
-ifeq (Makefile,$(wildcard Makefile))
-	$(MAKE) distclean
-endif
+	[ ! -f Makefile ] || $(MAKE) distclean
 	dh_clean
 
 install: build
