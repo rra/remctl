@@ -1,3 +1,10 @@
+remctl (2.0-2) unstable; urgency=low
+
+  * The development package for MIT Kerberos is libkrb5-dev, not
+    libkrb53-dev.  Thanks, Luk Claes.  (Closes: #383136)
+
+ -- Russ Allbery <rra@debian.org>  Tue, 15 Aug 2006 09:04:44 -0700
+
 remctl (2.0-1) unstable; urgency=low
 
   * New upstream release.
