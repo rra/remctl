@@ -2,7 +2,7 @@
 # $Id$
 #
 # Run this shell script to bootstrap as necessary after a fresh checkout
-# from CVS.
+# from Subversion.
 
 autoreconf
 rm -rf autom4te.cache
