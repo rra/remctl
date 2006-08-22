@@ -27,13 +27,6 @@
  * Add readline support to the remctl client for multiple commands to the
    same server in the same authenticated session.
 
- * Set REMOTE_USER in addition to REMUSER in the server.
-
- * Drop setting SCPRINCIPAL unless the user requests sysctl compatibility
-   at configure time.
-
- * Put the IP address and hostname of the remote server in the environment.
-
  * In standalone mode, remctld doesn't shut down cleanly after a signal
    and in particular doesn't delete its PID file if it was configured to
    write one.
@@ -41,13 +34,15 @@
  * In standalone mode, we need to fork a new process for each incoming
    connection since the connections may be long-lived.
 
+ * Add a command-line flag to remctld to send its messages to stdout and
+   stderr, for use with the test suite to avoid spamming syslog when
+   running make check.
+
  * GSS-API error reporting should be shared between client and server.
 
  * In internal_v2_output, reading strings from messages can be shared.
 
  * There is duplicate code between server_v2_handle_commands and
    server_v2_handle_token that needs to be refactored.
-
- * Add a test suite for the client environment variables.
 
  * Add a test suite for configuration and ACL parsing.
