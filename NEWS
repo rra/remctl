@@ -1,5 +1,10 @@
                        User-Visible remctl Changes
 
+remctl 2.1 (unreleased)
+
+    Properly nul-terminate error replies when using the simplified remctl
+    client API.
+
 remctl 2.0 (2006-08-09)
 
     Implement a new version 2 protocol, with automatic down-negotiation

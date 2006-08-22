@@ -107,7 +107,7 @@ internal_output_append(struct remctl_result *result,
         oldlen = strlen(old);
     *length = oldlen + output->length;
     if (output->type == REMCTL_OUT_ERROR)
-        *length++;
+        (*length)++;
     newbuf = realloc(*buffer, *length);
     if (newbuf == NULL) {
         if (result->error != NULL)
