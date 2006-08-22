@@ -2,9 +2,9 @@ dnl krb5.m4 -- Find the compiler and linker flags for Kerberos v5.
 dnl $Id$
 dnl
 dnl Finds the compiler and linker flags and adds them to CPPFLAGS and LIBS.
-dnl Provides --with-kerberos, --enable-reduced-depends, and --enable-static
-dnl configure options to control how linking with Kerberos is done.  Uses
-dnl krb5-config where available unless reduced dependencies is requested.
+dnl Provides --with-kerberos and --enable-reduced-depends configure options
+dnl to control how linking with Kerberos is done.  Uses krb5-config where
+dnl available unless reduced dependencies is requested.
 dnl
 dnl Provides the macro RRA_LIB_KRB5, which takes two arguments.  The first
 dnl argument is the type of Kerberos libraries desired (one of the arguments
@@ -155,19 +155,6 @@ AC_ARG_ENABLE([reduced-depends],
          reduce_depends=true
      fi])
 
-dnl Support static linkage as best we can.  Set a variable and do the
-dnl wrapping later on.
-krb5_static=false
-AC_ARG_ENABLE([krb5-static],
-    AC_HELP_STRING([--enable-krb5-static],
-        [Link against the static Kerberos libraries]),
-    [if test x"$enableval" = xyes ; then
-         if test x"$reduce_depends" = xtrue ; then
-AC_MSG_ERROR([--enable-krb5-static conflicts with --enable-reduced-depends])
-         fi
-         krb5_static=true
-     fi])
-
 dnl Checking for the neworking libraries shouldn't be necessary for the
 dnl krb5-config case, but apparently it is at least for MIT Kerberos 1.2.
 dnl This will unfortunately mean multiple -lsocket -lnsl references when
@@ -189,10 +176,7 @@ if test x"$reduce_depends" != xtrue ; then
         AC_PATH_PROG([KRB5_CONFIG], [krb5-config])
     fi
 
-    # We can't use krb5-config if building static since we can't tell what
-    # of the libraries it gives us should be static and which should be
-    # dynamic.
-    if test x"$KRB5_CONFIG" != x && test x"$krb5_static" != xtrue ; then
+    if test x"$KRB5_CONFIG" != x ; then
         AC_MSG_CHECKING([for $1 support in krb5-config])
         if "$KRB5_CONFIG" | grep '$1' > /dev/null 2>&1 ; then
             AC_MSG_RESULT([yes])
@@ -227,11 +211,7 @@ if test x"$reduce_depends" != xtrue ; then
 fi
 
 dnl Generate the final library list and put it into the standard variables.
-if test x"$krb5_static" = xtrue ; then
-    LIBS="-Wl,-Bstatic $KRBLIBS -Wl,-Bdynamic $LIBS"
-else
-    LIBS="$KRBLIBS $LIBS"
-fi
+LIBS="$KRBLIBS $LIBS"
 CPPFLAGS=`echo "$CPPFLAGS" | sed 's/^  *//'`
 LDFLAGS=`echo "$LDFLAGS" | sed 's/^  *//'`
 
