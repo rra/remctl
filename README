@@ -138,6 +138,9 @@ THANKS
   To Ralf Wildenhues, for help in getting make check to work with builddir
   != srcdir builds.
 
+  To Darren Patterson and Digant Kasundra, for contributions to the RPM
+  spec file and testing on Red Hat.
+
 LICENSE
 
   Copyright 2002, 2003, 2004, 2005, 2006 Board of Trustees, Leland
