@@ -5,8 +5,10 @@ remctl (2.1-1) unstable; urgency=low
       by remctld in addition to REMUSER.
     - No longer sets SCPRINCIPAL.
   * Copy the upstream examples/remctl.conf instead of supplying our own.
+  * Remove unnecessary comments about the behavior of dh_installdeb from
+    the maintainer scripts.
 
- -- Russ Allbery <rra@debian.org>  Tue, 22 Aug 2006 16:10:15 -0700
+ -- Russ Allbery <rra@debian.org>  Tue, 22 Aug 2006 16:13:30 -0700
 
 remctl (2.0-2) unstable; urgency=low
 
