@@ -9,7 +9,7 @@ AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = client/remctl.1 client/remctl.pod docs/design.html \
 	docs/protocol.txt docs/protocol.html docs/protocol.xml \
-	docs/remctl.conf examples/rsh-wrapper examples/xinetd \
+	examples/remctl.conf examples/rsh-wrapper examples/xinetd \
 	java/Login.java java/RemctlClient.java java/gss_jaas.conf \
 	java/gss_jaas2.conf remctl.spec server/remctld.8.in \
 	server/remctld.pod system.h tests/TESTS tests/data/README \
