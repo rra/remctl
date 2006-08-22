@@ -93,10 +93,10 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/open-t \
 	tests/data/cmd-streaming tests/server/accept-t \
 	tests/server/continue-t tests/server/env-t tests/server/streaming-t \
 	tests/server/version-t tests/util/asprintf-t tests/util/concat-t \
-	tests/util/gss-tokens-t tests/util/messages-t tests/util/setenv-t \
-	tests/util/snprintf-t tests/util/strlcat-t tests/util/strlcpy-t \
-	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc \
-	tests/util/xwrite-t
+	tests/util/gss-tokens-t tests/util/inet_ntop-t tests/util/messages-t \
+	tests/util/setenv-t tests/util/snprintf-t tests/util/strlcat-t \
+	tests/util/strlcpy-t tests/util/tokens-t tests/util/vector-t \
+	tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES= tests/libtest.a
 tests_libtest_a_SOURCES = tests/libtest.c tests/libtest.h
 
@@ -122,6 +122,9 @@ tests_util_concat_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_gss_tokens_t_SOURCES = tests/util/faketoken.c \
 	tests/util/gss-tokens.c tests/util/gss-tokens-t.c
 tests_util_gss_tokens_t_LDADD = tests/libtest.a util/libutil.la
+tests_util_inet_ntop_t_SOURCES = tests/util/inet_ntop-t.c \
+	tests/util/inet_ntop.c
+tests_util_inet_ntop_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_messages_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_setenv_t_SOURCES = tests/util/setenv-t.c tests/util/setenv.c
 tests_util_setenv_t_LDADD = tests/libtest.a util/libutil.la

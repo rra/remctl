@@ -8,6 +8,7 @@ server/version
 util/asprintf
 util/concat
 util/gss-tokens
+util/inet_ntop
 util/messages
 util/setenv
 util/snprintf

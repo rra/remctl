@@ -29,13 +29,22 @@ AC_CHECK_DECLS([snprintf, vsnprintf])
 RRA_C_C99_VAMACROS
 RRA_C_GNU_VAMACROS
 AC_CHECK_TYPES([long long])
+AC_CHECK_TYPE([socklen_t], ,
+    [AC_DEFINE([socklen_t], [int],
+        [Define to int if <sys/socket.h> does not define.])],
+[#include <sys/types.h>
+#include <sys/socket.h>])
 RRA_FUNC_SNPRINTF
 AC_CHECK_FUNCS([setrlimit])
-AC_CHECK_FUNC([asprintf], [], [AC_LIBOBJ([util/asprintf])])
-AC_CHECK_FUNC([setenv], [], [AC_LIBOBJ([util/setenv])])
-AC_CHECK_FUNC([strlcat], [], [AC_LIBOBJ([util/strlcat])])
-AC_CHECK_FUNC([strlcpy], [], [AC_LIBOBJ([util/strlcpy])])
+AC_CHECK_FUNCS([asprintf], [], [AC_LIBOBJ([util/asprintf])])
+AC_CHECK_FUNCS([inet_ntop], [], [AC_LIBOBJ([util/inet_ntop])])
+AC_CHECK_FUNCS([setenv], [], [AC_LIBOBJ([util/setenv])])
+AC_CHECK_FUNCS([strlcat], [], [AC_LIBOBJ([util/strlcat])])
+AC_CHECK_FUNCS([strlcpy], [], [AC_LIBOBJ([util/strlcpy])])
 AC_TYPE_SIGNAL
+
+dnl Needed to get prototypes for functions like asprintf on Linux.
+AC_DEFINE([_GNU_SOURCE], [1], [Define to 1 on Linux to get full prototypes.])
 
 dnl In order to run the test suite out of the build directory when doing a
 dnl VPATH build, we need to copy some of the test suite files that aren't

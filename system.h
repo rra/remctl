@@ -69,6 +69,9 @@ BEGIN_DECLS
 /* Provide prototypes for functions not declared in system headers.  Use the
    HAVE_DECL macros for those functions that may be prototyped but
    implemented incorrectly or implemented without a prototype. */
+#if !HAVE_INET_NTOP
+extern const char *     inet_ntop(int, const void *, char *, socklen_t);
+#endif
 #if !HAVE_ASPRINTF
 extern int              asprintf(char **, const char *, ...);
 extern int              vasprintf(char **, const char *, va_list);

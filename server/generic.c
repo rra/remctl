@@ -30,6 +30,11 @@
 #include <server/internal.h>
 #include <util/util.h>
 
+/* This may already be defined by the system headers. */
+#ifndef INET_ADDRSTRLEN
+# define INET_ADDRSTRLEN 16
+#endif
+
 
 /*
 **  Create a new client struct from a file descriptor and establish a GSS-API
