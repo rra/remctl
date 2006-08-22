@@ -13,7 +13,7 @@ EXTRA_DIST = client/remctl.1 client/remctl.pod docs/design.html \
 	java/Login.java java/RemctlClient.java java/gss_jaas.conf \
 	java/gss_jaas2.conf remctl.spec server/remctld.8.in \
 	server/remctld.pod system.h tests/TESTS tests/data/README \
-	tests/data/acl-nonexistant tests/data/cmd-hello \
+	tests/data/acl-nonexistant tests/data/cmd-hello tests/data/cmd-env \
 	tests/data/cmd-status tests/data/simple.conf tests/client/remctl-t \
 	tests/util/xmalloc-t
 
@@ -91,7 +91,7 @@ warnings:
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/client/open-t \
 	tests/data/cmd-streaming tests/server/accept-t \
-	tests/server/continue-t tests/server/streaming-t \
+	tests/server/continue-t tests/server/env-t tests/server/streaming-t \
 	tests/server/version-t tests/util/asprintf-t tests/util/concat-t \
 	tests/util/gss-tokens-t tests/util/messages-t tests/util/setenv-t \
 	tests/util/snprintf-t tests/util/strlcat-t tests/util/strlcpy-t \
@@ -111,6 +111,7 @@ tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
 tests_server_accept_t_LDADD = tests/libtest.a util/libutil.la
 tests_server_continue_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
+tests_server_env_t_LDADD = client/libremctl.la tests/libtest.a util/libutil.la
 tests_server_streaming_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_version_t_LDADD = client/libremctl.la tests/libtest.a \

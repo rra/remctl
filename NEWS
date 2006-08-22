@@ -2,6 +2,16 @@
 
 remctl 2.1 (unreleased)
 
+    Set REMOTE_USER in the environment for commands run by remctld, using
+    the same value as REMUSER.  This makes it easier to use programs that
+    also run as CGI scripts.  Also set REMOTE_ADDR to the IP address of
+    the remote host and set REMOTE_HOST to the hostname if available.
+
+    Stop setting SCPRINCIPAL in the environment.  This was for backward
+    compatibility with sysctl and it's highly unlikely that anyone still
+    cares (not to mention that the value was qualified with the realm and
+    therefore didn't match sysctld's setting anyway).
+
     Properly nul-terminate error replies when using the simplified remctl
     client API.
 

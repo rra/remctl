@@ -2,6 +2,7 @@ client/api
 client/open
 client/remctl
 server/accept
+server/env
 server/streaming
 server/version
 util/asprintf

@@ -16,7 +16,10 @@
 #include <config.h>
 #include <system.h>
 
+/* BSDI needs <netinet/in.h> before <arpa/inet.h>. */
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>
@@ -38,6 +41,11 @@ struct client *
 server_new_client(int fd, gss_cred_id_t creds)
 {
     struct client *client;
+    struct sockaddr_in sin;
+    socklen_t socklen;
+    size_t length;
+    struct hostent *host;
+    char *buffer;
     gss_buffer_desc send_tok, recv_tok, name_buf;
     gss_name_t name = GSS_C_NO_NAME;
     gss_OID doid;
@@ -55,12 +63,31 @@ server_new_client(int fd, gss_cred_id_t creds)
     client->context = GSS_C_NO_CONTEXT;
     client->user = NULL;
     client->output = NULL;
+    client->hostname = NULL;
+    client->ipaddress = NULL;
+
+    /* Fill in hostname and IP address.  FIXME: Changes needed for IPv6. */
+    socklen = sizeof(sin);
+    if (getpeername(fd, (struct sockaddr *) &sin, &socklen) != 0) {
+        syswarn("cannot get peer address");
+        goto fail;
+    }
+    length = INET_ADDRSTRLEN + 1;
+    buffer = xmalloc(length);
+    client->ipaddress = buffer;
+    if (inet_ntop(sin.sin_family, &sin.sin_addr, buffer, length) == NULL) {
+        syswarn("cannot translate IP address of client");
+        goto fail;
+    }
+    host = gethostbyaddr(&sin.sin_addr, sizeof(sin.sin_addr), sin.sin_family);
+    if (host != NULL)
+        client->hostname = xstrdup(host->h_name);
 
     /* Accept the initial (worthless) token. */
     status = token_recv(client->fd, &flags, &recv_tok, 64 * 1024);
     if (status != TOKEN_OK) {
         warn_token("receiving initial token", status, major, minor);
-        return NULL;
+        goto fail;
     }
     gss_release_buffer(&minor, &recv_tok);
     if (flags == (TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL))
@@ -69,7 +96,7 @@ server_new_client(int fd, gss_cred_id_t creds)
         client->protocol = 1;
     else {
         warn("bad token flags %d in initial token", flags);
-        return NULL;
+        goto fail;
     }
 
     /* Now, do the real work of negotiating the context. */
@@ -139,6 +166,10 @@ fail:
         gss_delete_sec_context(&minor, client->context, GSS_C_NO_BUFFER);
     if (name != GSS_C_NO_NAME)
         gss_release_name(&minor, name);
+    if (client->ipaddress != NULL)
+        free(client->ipaddress);
+    if (client->hostname != NULL)
+        free(client->hostname);
     free(client);
     return NULL;
 }

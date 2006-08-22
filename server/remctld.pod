@@ -18,7 +18,7 @@ all transmissions are also encrypted using the GSS-API privacy layer.
 B<remctld> is normally started using B<tcpserver> or from B<inetd>, but it
 may be run in stand-alone mode as a daemon using B<-m>.  Either B<-s> must
 be given to use an alternate identity (which will require the same flag be
-used for B<remctl> client invocations), or It must be run as root to read
+used for B<remctl> client invocations), or it must be run as root to read
 the host keytab file.  B<remctld> logs its activity using syslog (the
 daemon facility).
 
@@ -26,6 +26,10 @@ The location of the configuration file may be specified with the B<-f>
 option.  The default location is F<@sysconfdir@/remctl.conf>.  For
 information on the format of the configuration file, see L<"CONFIGURATION
 FILE"> below.
+
+When the command is run, several environment variables will be set
+providing information about the remote connection.  See L<ENVIRONMENT>
+below for more information.
 
 =head1 OPTIONS
 
@@ -142,9 +146,41 @@ The keyword ANYUSER may be used instead of the aclfiles to allow access to
 all users.  Note the user still needs to authenticate to B<remctld>, this
 only affects authorization.  This can be used for backend programs that
 want to check ACLs themselves and will retrieve the authenticated
-principal from the REMUSER environment variable.
+principal from the REMOTE_USER environment variable.
 
 =back
+
+=head1 ENVIRONMENT
+
+The following environment variables will be set for any commands run via
+B<remctld>:
+
+=over 4
+
+=item REMOTE_USER
+
+=item REMUSER
+
+Set to the Kerberos principal of the authenticated client.  REMUSER has
+always been set by B<remctld>; REMOTE_USER is also set (to the same value)
+starting with remctl 2.1.
+
+=item REMOTE_ADDR
+
+The IP address of the remote host.  Currently, this is always an IPv4
+address, but in the future it may be set to an IPv6 address.  This
+environment variable was added in remctl 2.1.
+
+=item REMOTE_HOST
+
+The hostname of the remote host, if it was available.  If reverse name
+resolution failed, this environment variable will not be set.  This
+variable was added in remctl 2.1.
+
+=back
+
+B<remctld> also used to set SCPRINCIPAL for (partial) backward
+compatibility with B<sysctld>, but stopped doing so as of remctl 2.1.
 
 =head1 EXAMPLES
 

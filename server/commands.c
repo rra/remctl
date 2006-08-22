@@ -238,15 +238,26 @@ server_run_command(struct client *client, struct config *config,
         /* Child doesn't need stdin at all. */
         close(0);
 
-        /* Put the authenticated principal in the environment.  SCPRINCIPAL is
-           for backwards compatibility with sysctl. */
+        /* Put the authenticated principal and other connection information in
+           the environment.  REMUSER is for backwards compatibility with
+           earlier versions of remctl. */
         if (setenv("REMUSER", client->user, 1) < 0) {
             syswarn("cannot set REMUSER in environment");
             exit(-1);
         }
-        if (setenv("SCPRINCIPAL", client->user, 1) < 0) {
-            syswarn("cannot set SCPRINCIPAL in environment");
+        if (setenv("REMOTE_USER", client->user, 1) < 0) {
+            syswarn("cannot set REMOTE_USER in environment");
             exit(-1);
+        }
+        if (setenv("REMOTE_ADDR", client->ipaddress, 1) < 0) {
+            syswarn("cannot set REMOTE_ADDR in environment");
+            exit(-1);
+        }
+        if (client->hostname != NULL) {
+            if (setenv("REMOTE_HOST", client->hostname, 1) < 0) {
+                syswarn("cannot set REMOTE_HOST in environment");
+                exit(-1);
+            }
         }
 
         /* Run the command. */

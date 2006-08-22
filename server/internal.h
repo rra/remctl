@@ -49,6 +49,8 @@ BEGIN_DECLS
 /* Holds the information about a client connection. */
 struct client {
     int fd;                     /* File descriptor of client connection. */
+    char *hostname;             /* Hostname of client (if available). */
+    char *ipaddress;            /* IP address of client as a string. */
     int protocol;               /* Protocol version number. */
     gss_ctx_id_t context;       /* GSS-API context. */
     char *user;                 /* Name of the client as a string. */
