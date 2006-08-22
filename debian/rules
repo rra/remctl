@@ -52,7 +52,7 @@ install: build
 	dh_installdirs
 	$(MAKE) install prefix=$(CURDIR)/debian/tmp/usr
 	dh_install --fail-missing
-	install -m 644 $(CURDIR)/debian/remctl.conf \
+	install -m 644 $(CURDIR)/examples/remctl.conf \
 	    $(CURDIR)/debian/remctl-server/etc/remctl/remctl.conf
 
 binary-indep: DH_OPTIONS=-i
