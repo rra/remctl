@@ -76,11 +76,10 @@ INSTALLATION
 
       ./configure KRB5_CONFIG=/path/to/krb5-config
 
-  To build against the static versions of the Kerberos libraries so that
-  you don't have to have the Kerberos libraries installed on a system
-  running the client or server, add --enable-static to ./configure.  This
-  has been tested on Solaris and Linux and may not work properly on other
-  platforms.
+  You can build remctl in a different directory from the source if you
+  wish.  To do this, create a new empty directory, cd to that directory,
+  and then give the path to configure when running configure.  Everything
+  else should work as above.
 
   Usage information is available in the manual pages which will be
   installed with remctl.  You will need to set up a remctl.conf file for
@@ -135,6 +134,9 @@ THANKS
   To Romain LENGLET, for the idea and code for examples/rsh-wrapper.
 
   To Thomas Kula, for testing of remctl 2.0 on NetBSD and Heimdal.
+
+  To Ralf Wildenhues, for help in getting make check to work with builddir
+  != srcdir builds.
 
 LICENSE
 

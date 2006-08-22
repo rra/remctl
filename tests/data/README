@@ -7,3 +7,8 @@ to the key in the keytab on a single line ending with a newline.
 
 The presence of these two files will enable the tests that actually do
 GSS-API authentication.
+
+If you are building in a different directory tree than the source tree,
+don't put the files in this directory.  Instead, after running configure,
+you will have an empty tests/data directory in your build tree.  Put the
+test.keytab and test.principal files in that directory instead.

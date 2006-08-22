@@ -37,5 +37,17 @@ AC_CHECK_FUNC([strlcat], [], [AC_LIBOBJ([util/strlcat])])
 AC_CHECK_FUNC([strlcpy], [], [AC_LIBOBJ([util/strlcpy])])
 AC_TYPE_SIGNAL
 
+dnl In order to run the test suite out of the build directory when doing a
+dnl VPATH build, we need to copy some of the test suite files that aren't
+dnl otherwise touched during the build process into the build directory.
+AC_CONFIG_COMMANDS([tests/TESTS],
+    [if test x"$ac_srcdir" != x. && test x"$ac_srcdir" != x ; then
+        for f in TESTS client/remctl-t data/acl-nonexistant data/cmd-env \
+                 data/cmd-hello data/cmd-status data/simple.conf \
+                 util/xmalloc-t ; do
+            (cd tests && cp "$ac_srcdir/$f" "$f")
+        done
+     fi], [LN_S="$LN_S"])
+
 AC_CONFIG_HEADER([config.h])
 AC_OUTPUT([Makefile])
