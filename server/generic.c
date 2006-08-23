@@ -20,6 +20,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <sys/socket.h>
 
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>

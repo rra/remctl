@@ -1,5 +1,9 @@
                        User-Visible remctl Changes
 
+remctl 2.2 (unreleased)
+
+    Include <sys/socket.h> in appropriate places for socklen_t on Solaris.
+
 remctl 2.1 (2006-08-22)
 
     Set REMOTE_USER in the environment for commands run by remctld, using

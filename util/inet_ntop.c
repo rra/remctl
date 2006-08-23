@@ -17,6 +17,7 @@
 
 #include <errno.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
 /* This may already be defined by the system headers. */
 #ifndef INET_ADDRSTRLEN
