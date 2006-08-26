@@ -4,5 +4,5 @@
 # Run this shell script to bootstrap as necessary after a fresh checkout
 # from Subversion.
 
-autoreconf
+autoreconf -i
 rm -rf autom4te.cache
