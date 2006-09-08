@@ -82,9 +82,28 @@ KRB5_KTNAME=data/test.keytab; export KRB5_KTNAME
 ( ../server/remctld -m -p 14444 -s `cat data/test.principal` -P data/pid \
     -f data/simple.conf &)
 KRB5CCNAME=data/test.cache; export KRB5CCNAME
-kinit -k -K data/test.keytab `cat data/test.principal` > /dev/null
-if [ $? != 0 ] ; then
+kinit -t -k data/test.keytab `cat data/test.principal` >/dev/null </dev/null
+status=$?
+if [ $status != 0 ] ; then
+    kinit -t data/test.keytab `cat data/test.principal` >/dev/null </dev/null
+    status=$?
+fi
+if [ $status != 0 ] ; then
+    kinit -k -K data/test.keytab `cat data/test.principal` >/dev/null \
+        </dev/null
+    status=$?
+fi
+if [ $status != 0 ] ; then
     echo 'Unable to obtain Kerberos tickets' >&2
+    [ -f data/pid ] || sleep 1
+    if [ -f data/pid ] ; then
+        kill -HUP `cat data/pid`
+    fi
+    rm -f data/pid
+    for n in 1 2 3 4 5 6 7 ; do
+        echo ok $n \# skip -- no Kerberos configuration
+    done
+    exit 0
 fi
 [ -f data/pid ] || sleep 1
 if [ ! -f data/pid ] ; then

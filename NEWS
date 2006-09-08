@@ -18,6 +18,9 @@ remctl 2.2 (unreleased)
     Redirect /dev/null into kinit in the test suite so that the Heimdal
     syntax doesn't cause an MIT kinit to hang.
 
+    Try all kinit varients in the remctl client test as well as the C API
+    tests.
+
 remctl 2.1 (2006-08-22)
 
     Set REMOTE_USER in the environment for commands run by remctld, using
