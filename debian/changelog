@@ -1,3 +1,14 @@
+remctl (2.2-1) unstable; urgency=low
+
+  * New upstream release.
+    - Work around an interaction between glibc headers and gcc 4.1 that
+      produces compilation errors when calling wait W* macros on int
+      members of const structs.  Thanks to Martin Michlmayr for the report
+      and analysis.  (Closes: #386438)
+    - Better type safety in printf on 64-bit systems.
+
+ -- Russ Allbery <rra@debian.org>  Fri,  8 Sep 2006 14:18:05 -0700
+
 remctl (2.1-1) unstable; urgency=low
 
   * New upstream release.
