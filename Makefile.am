@@ -54,10 +54,10 @@ server/remctld.8: $(srcdir)/server/remctld.8.in
 	    < $(srcdir)/server/remctld.8.in > $@
 
 $(srcdir)/docs/protocol.html: $(srcdir)/docs/protocol.xml
-	xml2rfc $(srcdir)/docs/protocol.xml $(srcdir)/docs/protocol.html
+	cd $(srcdir)/docs && xml2rfc protocol.xml protocol.html
 
 $(srcdir)/docs/protocol.txt: $(srcdir)/docs/protocol.xml
-	xml2rfc $(srcdir)/docs/protocol.xml $(srcdir)/docs/protocol.txt
+	cd $(srcdir)/docs && xml2rfc protocol.xml protocol.txt
 
 # We shouldn't have to explicitly list $(LIBOBJS) and $(LTLIBOBJS) here.
 # This is a bug in the non-recursive support.
