@@ -218,11 +218,11 @@ char *
 kerberos_setup(void)
 {
     static const char format1[]
-        = "kinit -t -k data/test.keytab %s >/dev/null 2>&1";
+        = "kinit -t -k data/test.keytab %s >/dev/null 2>&1 </dev/null";
     static const char format2[]
-        = "kinit -t data/test.keytab %s >/dev/null 2>&1";
+        = "kinit -t data/test.keytab %s >/dev/null 2>&1 </dev/null";
     static const char format3[]
-        = "kinit -k -K data/test.keytab %s >/dev/null 2>&1";
+        = "kinit -k -K data/test.keytab %s >/dev/null 2>&1 </dev/null";
     FILE *file;
     char principal[256], *command;
     size_t length;

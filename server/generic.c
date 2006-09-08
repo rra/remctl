@@ -118,7 +118,8 @@ server_new_client(int fd, gss_cred_id_t creds)
             warn("bad token flags %d in context token", flags);
             goto fail;
         }
-        debug("received context token (size=%d)", recv_tok.length);
+        debug("received context token (size=%lu)",
+              (unsigned long) recv_tok.length);
         major = gss_accept_sec_context(&acc_minor, &client->context, creds,
                     &recv_tok, GSS_C_NO_CHANNEL_BINDINGS, &name, &doid,
                     &send_tok, &client->flags, NULL, NULL);
@@ -126,7 +127,8 @@ server_new_client(int fd, gss_cred_id_t creds)
 
         /* Send back a token if we need to. */
         if (send_tok.length != 0) {
-            debug("sending context token (size=%d)", send_tok.length);
+            debug("sending context token (size=%lu)",
+                  (unsigned long) send_tok.length);
             flags = TOKEN_CONTEXT;
             if (client->protocol > 1)
                 flags |= TOKEN_PROTOCOL;
@@ -224,9 +226,9 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
     memcpy(&tmp, p, 4);
     argc = ntohl(tmp);
     p += 4;
-    debug("argc is %d", argc);
+    debug("argc is %lu", (unsigned long) argc);
     if (argc <= 0 || argc > MAXCMDARGS) {
-        warn("invalid argc %d in request message", argc);
+        warn("invalid argc %lu in request message", (unsigned long) argc);
         server_send_error(client, ERROR_BAD_COMMAND, "Invalid command token");
         return NULL;
     }

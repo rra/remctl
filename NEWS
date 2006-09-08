@@ -2,10 +2,21 @@
 
 remctl 2.2 (unreleased)
 
+    Add appropriate casts when passing size_t variables to printf on
+    64-bit systems.
+
     Include <sys/socket.h> in appropriate places for socklen_t on Solaris.
 
     Make the xmalloc test suite indifferent to filename differences from
     builddir != srcdir builds.
+
+    Work around strange GCC 4.1 behavior on AMD64 that creates a const
+    temporary variable in the macro expansion of the W* wait macros on
+    glibc systems, causing the build of runtests to fail.  For some reason
+    this apparently only affects AMD64.
+
+    Redirect /dev/null into kinit in the test suite so that the Heimdal
+    syntax doesn't cause an MIT kinit to hang.
 
 remctl 2.1 (2006-08-22)
 

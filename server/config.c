@@ -140,7 +140,7 @@ read_conf_file(void *data, const char *name)
     while (fgets(buffer, bufsize, file) != NULL) {
         length = strlen(buffer);
         if (length == 2 && buffer[length - 1] != '\n') {
-            warn("%s:%d: no final newline", name, lineno);
+            warn("%s:%lu: no final newline", name, (unsigned long) lineno);
             goto fail;
         }
         if (length < 2)
@@ -161,7 +161,8 @@ read_conf_file(void *data, const char *name)
                 lineno++;
             }
             if (fgets(buffer + length, bufsize - length, file) == NULL) {
-                warn("%s:%d: no final line or newline", name, lineno);
+                warn("%s:%lu: no final line or newline", name,
+                     (unsigned long) lineno);
                 goto fail;
             }
             length = strlen(buffer);
@@ -221,7 +222,7 @@ read_conf_file(void *data, const char *name)
         /* One more syntax error possibility here: a line that only has a
            logmask setting but no ACL files. */
         if (line->count <= arg_i) {
-            warn("%s:%d: config parse error", name, lineno);
+            warn("%s:%lu: config parse error", name, (unsigned long) lineno);
             goto fail;
         }
 

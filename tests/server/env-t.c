@@ -49,7 +49,7 @@ test_env(struct remctl *r, const char *variable)
         case REMCTL_OUT_ERROR:
             if (value != NULL)
                 free(value);
-            warn("test env returned error: %.*s", output->length,
+            warn("test env returned error: %.*s", (int) output->length,
                  output->data);
             return NULL;
         case REMCTL_OUT_DONE:
