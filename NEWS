@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 2.2 (unreleased)
+remctl 2.2 (2006-09-08)
 
     Add appropriate casts when passing size_t variables to printf on
     64-bit systems.

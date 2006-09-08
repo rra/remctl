@@ -1,4 +1,4 @@
-                            remctl release 2.1
+                            remctl release 2.2
             (remote authenticated command execution with ACLs)
 
                          Written by Anton Ushakov
