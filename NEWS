@@ -8,6 +8,11 @@ remctl 2.3 (unreleased)
 
     Document the exit status of the remctl client.
 
+    Require Automake 1.10 and Autoconf 2.60 and use AC_CONFIG_LIBOBJ_DIR
+    to locate replacements for missing system functions.  This means that
+    an Automake patch is no longer required for bootstrapping and remctl
+    will now work with stock Autoconf and Automake.
+
 remctl 2.2 (2006-09-08)
 
     Add appropriate casts when passing size_t variables to printf on

@@ -44,9 +44,9 @@ REQUIREMENTS
   protocol is welcome.
 
   If you change the Automake files and need to regenerate Makefile.in, you
-  currently will need a patch to Automake.  See README.automake for more
-  information.  This requirement will hopefully be removed after the
-  release of Automake 1.10.
+  will need Automake 1.10 or later.  If you change configure.ac or any of
+  the m4 files it includes and need to regenerate configure or
+  config.h.in, you will need Autoconf 2.60 or later.
 
 INSTALLATION
 

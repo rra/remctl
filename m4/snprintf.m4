@@ -51,5 +51,5 @@ if test "$rra_cv_func_snprintf_works" = yes ; then
     AC_DEFINE([HAVE_SNPRINTF], 1,
         [Define if your system has a working snprintf function.])
 else
-    AC_LIBOBJ([util/snprintf])
+    AC_LIBOBJ([snprintf])
 fi])

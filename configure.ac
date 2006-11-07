@@ -8,10 +8,11 @@ dnl
 dnl See README for licensing terms.
 
 AC_REVISION($Revision$)
-AC_PREREQ(2.57)
+AC_PREREQ(2.60)
 AC_INIT([remctl], [2.2], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([tools])
-AM_INIT_AUTOMAKE
+AC_CONFIG_LIBOBJ_DIR([util])
+AM_INIT_AUTOMAKE([1.10])
 AM_MAINTAINER_MODE
 
 AC_PROG_CC
@@ -35,11 +36,7 @@ AC_CHECK_TYPE([socklen_t], ,
 #include <sys/socket.h>])
 RRA_FUNC_SNPRINTF
 AC_CHECK_FUNCS([setrlimit])
-AC_CHECK_FUNCS([asprintf], [], [AC_LIBOBJ([util/asprintf])])
-AC_CHECK_FUNCS([inet_ntop], [], [AC_LIBOBJ([util/inet_ntop])])
-AC_CHECK_FUNCS([setenv], [], [AC_LIBOBJ([util/setenv])])
-AC_CHECK_FUNCS([strlcat], [], [AC_LIBOBJ([util/strlcat])])
-AC_CHECK_FUNCS([strlcpy], [], [AC_LIBOBJ([util/strlcpy])])
+AC_REPLACE_FUNCS([asprintf inet_ntop setenv strlcat strlcpy])
 AC_TYPE_SIGNAL
 
 dnl Needed to get prototypes for functions like asprintf on Linux.
