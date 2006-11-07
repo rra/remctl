@@ -54,7 +54,7 @@ runfailure () {
 }
 
 # Print the number of tests.
-echo 7
+echo 8
 
 # Find the client program.
 if [ -f ../data/test.keytab ] ; then
@@ -65,7 +65,7 @@ else
     fi
 fi
 if [ ! -f data/test.keytab ] ; then
-    for n in 1 2 3 4 5 6 7 ; do
+    for n in 1 2 3 4 5 6 7 8 ; do
         echo ok $n \# skip -- no Kerberos configuration
     done
     exit 0
@@ -100,7 +100,7 @@ if [ $status != 0 ] ; then
         kill -HUP `cat data/pid`
     fi
     rm -f data/pid
-    for n in 1 2 3 4 5 6 7 ; do
+    for n in 1 2 3 4 5 6 7 8 ; do
         echo ok $n \# skip -- no Kerberos configuration
     done
     exit 0
@@ -119,6 +119,13 @@ runfailure 2 "" test status 2
 runfailure 255 "Access denied" test noauth
 runfailure 255 "Cannot execute" test nonexistant
 runfailure 255 "Unknown command" test bad-command
+runsuccess "201" test argv \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a
 
 # Clean up.
 rm -f data/test.cache
