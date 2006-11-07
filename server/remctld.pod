@@ -37,7 +37,8 @@ below for more information.
 
 =item B<-d>
 
-Verbose debug logging to syslog.
+Enable verbose debug logging to syslog (or to standard output if B<-S> is
+also given).
 
 =item B<-f> I<config>
 
@@ -62,6 +63,12 @@ I<file>.  This option is ignored unless B<-m> is also given.
 
 When running in stand-alone mode, Listen on port I<port> rather than 4444,
 the default.  This option does nothing unless used with B<-m>.
+
+=item B<-S>
+
+Rather than logging to syslog, log debug and routine connection messages
+to standard output and error messages to standard error.  This option is
+mostly useful for testing and debugging.
 
 =item B<-s> I<service>
 

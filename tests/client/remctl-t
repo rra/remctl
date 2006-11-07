@@ -43,7 +43,7 @@ runfailure () {
     principal=`cat data/test.principal`
     output=`$remctl -s "$principal" -p 14444 localhost "$@" 2>&1`
     status=$?
-    output=`echo "$output" | sed 's/\(:[^:]*\):.*/\1/'`
+    output=`echo "$output" | sed 's/^\([^:]*\):.*/\1/'`
     if [ $status = $w_status ] && [ x"$output" = x"$w_output" ] ; then
         printcount "ok"
     else
@@ -80,7 +80,7 @@ fi
 rm -f data/pid
 KRB5_KTNAME=data/test.keytab; export KRB5_KTNAME
 ( ../server/remctld -m -p 14444 -s `cat data/test.principal` -P data/pid \
-    -f data/simple.conf &)
+    -f data/simple.conf -d -S &)
 KRB5CCNAME=data/test.cache; export KRB5CCNAME
 kinit -t -k data/test.keytab `cat data/test.principal` >/dev/null </dev/null
 status=$?
@@ -117,7 +117,7 @@ runsuccess "" test status 0
 runfailure 1 "" test status 1
 runfailure 2 "" test status 2
 runfailure 255 "Access denied" test noauth
-runfailure 1 "" test nonexistant
+runfailure 255 "Cannot execute" test nonexistant
 runfailure 255 "Unknown command" test bad-command
 
 # Clean up.

@@ -34,10 +34,6 @@
  * In standalone mode, we need to fork a new process for each incoming
    connection since the connections may be long-lived.
 
- * Add a command-line flag to remctld to send its messages to stdout and
-   stderr, for use with the test suite to avoid spamming syslog when
-   running make check.
-
  * GSS-API error reporting should be shared between client and server.
 
  * In internal_v2_output, reading strings from messages can be shared.

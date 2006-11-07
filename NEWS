@@ -8,6 +8,10 @@ remctl 2.3 (unreleased)
 
     Document the exit status of the remctl client.
 
+    Add the -S flag to remctld, which tells it to log to standard output
+    and standard error rather than syslog.  Use this flag in the test
+    suite so that make check doesn't spew into a system's syslog.
+
     Require Automake 1.10 and Autoconf 2.60 and use AC_CONFIG_LIBOBJ_DIR
     to locate replacements for missing system functions.  This means that
     an Automake patch is no longer required for bootstrapping and remctl

@@ -219,6 +219,10 @@ server_run_command(struct client *client, struct config *config,
         goto done;
     }
 
+    /* Flush output before forking, mostly in case -S was given and we've
+       therefore been writing log messages to standard output that may not
+       have been flushed yet. */
+    fflush(stdout);
     pid = fork();
     switch (pid) {
     case -1:
@@ -263,9 +267,10 @@ server_run_command(struct client *client, struct config *config,
         /* Run the command. */
         execv(path, req_argv);
 
-        /* This happens only if the exec fails.  Print out an error to pass up
-           the stderr pipe; that's the best that we can do. */
-        sysdie("exec failed");
+        /* This happens only if the exec fails.  Print out an error message to
+           the stderr pipe and fail; that's the best that we can do. */
+        fprintf(stderr, "Cannot execute: %s\n", strerror(errno));
+        exit(-1);
 
     /* In the parent. */
     default:

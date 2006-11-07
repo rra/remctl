@@ -40,12 +40,13 @@ static const char usage_message[] = "\
 Usage: remctld <options>\n\
 \n\
 Options:\n\
-    -d            Log debugging information to syslog\n\
+    -d            Log verbose debugging information\n\
     -f <file>     Config file (default: " CONFIG_FILE ")\n\
     -h            Display this help\n\
     -m            Stand-alone daemon mode, meant mostly for testing\n\
     -P <file>     Write PID to file, only useful with -m\n\
     -p <port>     Port to use, only for standalone mode (default: 4444)\n\
+    -S            Log to standard output/error rather than syslog\n\
     -s <service>  Service principal to use (default: host/<host>)\n\
     -v            Display the version of remctld\n";
 
@@ -189,6 +190,8 @@ main(int argc, char *argv[])
     unsigned short port = 4444;
     int s, stmp;
     int do_standalone = 0;
+    int do_stdout = 0;
+    int do_debug = 0;
     const char *conffile = CONFIG_FILE;
     struct config *config;
 
@@ -196,18 +199,14 @@ main(int argc, char *argv[])
        from holding on to us forever by dying after an hour. */
     alarm(60 * 60);
 
-    /* Establish identity and set up logging. */
+    /* Establish identity. */
     message_program_name = "remctld";
-    openlog("remctld", LOG_PID | LOG_NDELAY, LOG_DAEMON);
-    message_handlers_notice(1, message_log_syslog_info);
-    message_handlers_warn(1, message_log_syslog_warning);
-    message_handlers_die(1, message_log_syslog_err);
 
     /* Parse options. */
-    while ((option = getopt(argc, argv, "df:hmP:p:s:v")) != EOF) {
+    while ((option = getopt(argc, argv, "df:hmP:p:Ss:v")) != EOF) {
         switch (option) {
         case 'd':
-            message_handlers_debug(1, message_log_syslog_debug);
+            do_debug = 1;
             break;
         case 'f':
             conffile = optarg;
@@ -224,6 +223,9 @@ main(int argc, char *argv[])
         case 'p':
             port = atoi(optarg);
             break;
+        case 'S':
+            do_stdout = 1;
+            break;
         case 's':
             service = optarg;
             break;
@@ -235,6 +237,20 @@ main(int argc, char *argv[])
             usage(1);
             break;
         }
+    }
+
+    /* Set up syslog unless stdout/stderr was requested.  Set up debug logging
+       if requestsed. */
+    if (do_stdout) {
+        if (do_debug)
+            message_handlers_debug(1, message_log_stdout);
+    } else {
+        openlog("remctld", LOG_PID | LOG_NDELAY, LOG_DAEMON);
+        message_handlers_notice(1, message_log_syslog_info);
+        message_handlers_warn(1, message_log_syslog_warning);
+        message_handlers_die(1, message_log_syslog_err);
+        if (do_debug)
+            message_handlers_debug(1, message_log_syslog_debug);
     }
 
     /* Read the configuration file. */
