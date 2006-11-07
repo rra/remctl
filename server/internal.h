@@ -41,8 +41,9 @@
    the return message from the server. */
 #define MAXBUFFER       64000  
 
-/* The maximum size of argc passed to the server. */
-#define MAXCMDARGS      64
+/* The maximum size of argc passed to the server.  This is an arbitrary limit
+   to protect against memory-based denial of service attacks on the server. */
+#define MAXCMDARGS      (4 * 1024)
 
 BEGIN_DECLS
 

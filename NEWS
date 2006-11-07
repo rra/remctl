@@ -2,6 +2,10 @@
 
 remctl 2.3 (unreleased)
 
+    Increase the maximum number of arguments the server will accept for a
+    command to 4096 from 64.  This is an arbitrary limit to protect
+    against memory-consumption denial-of-service attacks.
+
     Document the exit status of the remctl client.
 
 remctl 2.2 (2006-09-08)
