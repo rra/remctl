@@ -1,5 +1,9 @@
                        User-Visible remctl Changes
 
+remctl 2.3 (unreleased)
+
+    Document the exit status of the remctl client.
+
 remctl 2.2 (2006-09-08)
 
     Add appropriate casts when passing size_t variables to printf on

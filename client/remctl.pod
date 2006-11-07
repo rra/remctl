@@ -55,6 +55,13 @@ Print the version of B<remctl> and exit.
 
 =back
 
+=head1 EXIT STATUS
+
+B<remctl> will exit with the exit status returned by the remote command.
+If some network or authentication error occurred and B<remctl> was unable
+to run the remote command or retrieve its exit status, or if B<remctl> was
+called with invalid arguments, B<remctl> will exit with status 1.
+
 =head1 EXAMPLES
 
 Release an afs volume called ls.tripwire:
