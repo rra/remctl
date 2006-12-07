@@ -1,7 +1,7 @@
-                            remctl release 2.2
+                            remctl release 2.3
             (remote authenticated command execution with ACLs)
 
-                         Written by Anton Ushakov
+                   Originally written by Anton Ushakov
          Currently maintained by Russ Allbery <rra@stanford.edu>
 
   Copyright 2002, 2003, 2004, 2005, 2006 Board of Trustees, Leland
