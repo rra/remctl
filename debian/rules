@@ -31,10 +31,16 @@ config.status: configure
 	    --mandir=\$${prefix}/share/man --sysconfdir=/etc/remctl \
 	    --enable-reduced-depends $(SYSTEM)
 
+# We rebuild the remctl client because Automake and Libtool combine to force
+# remctl to be linked against all the dependencies of libremctl, which creates
+# unnecessary dependencies.  Ones that probably won't matter, mind, but let's
+# do this right anyway.
 build: build-stamp
 build-stamp: config.status
 	dh_testdir
 	$(MAKE)
+	gcc -g -O2 -o client/.libs/remctl client/remctl.o \
+	    client/.libs/libremctl.so util/.libs/libutil.a
 	$(MAKE) check
 	touch build-stamp
 

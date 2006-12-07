@@ -1,3 +1,15 @@
+remctl (2.3-1) unstable; urgency=low
+
+  * New upstream release.
+    - Increase the maximum number of arguments the server will accept for
+      a command to 4096 from 64.
+    - Add the -S flag to remctld for testing.
+    - Document the exit status of remctl.
+  * Relink remctl after building to eliminte the unneceesary dependencies
+    on the Kerberos libraries.
+
+ -- Russ Allbery <rra@debian.org>  Wed,  6 Dec 2006 20:07:14 -0800
+
 remctl (2.2-1) unstable; urgency=low
 
   * New upstream release.
