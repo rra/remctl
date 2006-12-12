@@ -54,5 +54,6 @@ AC_CONFIG_COMMANDS([tests/TESTS],
         done
      fi], [LN_S="$LN_S"])
 
+AC_CONFIG_FILES([Makefile])
 AC_CONFIG_HEADER([config.h])
-AC_OUTPUT([Makefile])
+AC_OUTPUT
