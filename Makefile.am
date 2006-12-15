@@ -43,11 +43,12 @@ server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"
 man_MANS = client/remctl.1 server/remctld.8
 
 $(srcdir)/client/remctl.1: $(srcdir)/client/remctl.pod
-	pod2man --release=$(VERSION) --center="User Commands" $< > $@
+	pod2man --release=$(VERSION) --center="User Commands" \
+	    $(srcdir)/client/remctl.pod > $@
 
 $(srcdir)/server/remctld.8.in: $(srcdir)/server/remctld.pod
 	pod2man --release=$(VERSION) --center="System Daemons" \
-	    --section=8 $< > $@
+	    --section=8 $(srcdir)/server/remctld.pod > $@
 
 server/remctld.8: $(srcdir)/server/remctld.8.in
 	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \

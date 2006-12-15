@@ -1,5 +1,12 @@
                        User-Visible remctl Changes
 
+remctl 2.4 (unreleased)
+
+    Don't use $< in non-pattern rules (again), fixing a build error on
+    some systems with non-GNU make (although since the generated man
+    pages are part of the distribution, only those modifying the POD
+    source would have seen this error).
+
 remctl 2.3 (2006-12-06)
 
     Increase the maximum number of arguments the server will accept for a
