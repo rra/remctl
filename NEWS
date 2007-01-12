@@ -2,6 +2,9 @@
 
 remctl 2.4 (unreleased)
 
+    When sending tokens, correctly check for network errors rather than
+    ignoring them due to a miswritten test.
+
     Don't use $< in non-pattern rules (again), fixing a build error on
     some systems with non-GNU make (although since the generated man
     pages are part of the distribution, only those modifying the POD
