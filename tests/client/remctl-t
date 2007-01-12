@@ -127,8 +127,18 @@ runsuccess "201" test argv \
     a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
     a a a a a a a a a a a a a a a a a a a a a a a a a
 
+# Make sure that error messages end in a newline.
+principal=`cat data/test.principal`
+$remctl -s "$principal" -p 14444 localhost test noauth > data/output 2>&1
+echo 'foo' >> data/output
+if [ `wc -l data/output | sed 's/ d.*//'` -eq 2 ] ; then
+    printcount "ok"
+else
+    printcount "not ok"
+fi
+
 # Clean up.
-rm -f data/test.cache
+rm -f data/test.cache data/output
 if [ -f data/pid ] ; then
     kill -HUP `cat data/pid`
     rm -f data/pid

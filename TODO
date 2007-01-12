@@ -45,6 +45,3 @@
 
  * Add a distinguished protocol error for too many arguments to a command
    so that we can send a more useful custom error message.
-
- * The remctl client should add a newline to the end of an error message,
-   since the server doesn't.

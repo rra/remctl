@@ -85,6 +85,7 @@ process_response(struct remctl *r, int *errorcode)
         case REMCTL_OUT_ERROR:
             *errorcode = 255;
             fwrite(out->data, out->length, 1, stderr);
+            fputc('\n', stderr);
             return 1;
         case REMCTL_OUT_STATUS:
             *errorcode = out->status;
