@@ -54,7 +54,7 @@ runfailure () {
 }
 
 # Print the number of tests.
-echo 8
+echo 9
 
 # Find the client program.
 if [ -f ../data/test.keytab ] ; then
@@ -65,7 +65,7 @@ else
     fi
 fi
 if [ ! -f data/test.keytab ] ; then
-    for n in 1 2 3 4 5 6 7 8 ; do
+    for n in 1 2 3 4 5 6 7 8 9 ; do
         echo ok $n \# skip -- no Kerberos configuration
     done
     exit 0
@@ -100,7 +100,7 @@ if [ $status != 0 ] ; then
         kill -HUP `cat data/pid`
     fi
     rm -f data/pid
-    for n in 1 2 3 4 5 6 7 8 ; do
+    for n in 1 2 3 4 5 6 7 8 9 ; do
         echo ok $n \# skip -- no Kerberos configuration
     done
     exit 0
