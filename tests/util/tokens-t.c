@@ -117,7 +117,7 @@ main(void)
 
     alarm(2);
 
-    test_init(9);
+    test_init(10);
 
     unlink("server-ready");
     child = fork();
@@ -197,7 +197,21 @@ main(void)
         ok_int(9, TOKEN_FAIL_EOF, status);
         waitpid(child, NULL, 0);
     }
-
     unlink("server-ready");
+
+    /* Special test for error handling when sending tokens. */
+    server = open("/dev/full", O_RDWR);
+    if (server < 0)
+        skip(10, "/dev/full not available");
+    else {
+        result.value = xmalloc(5);
+        memcpy(result.value, "hello", 5);
+        result.length = 5;
+        status = token_send(server, 3, &result);
+        free(result.value);
+        ok_int(10, TOKEN_FAIL_SYSTEM, status);
+        close(server);
+    }
+
     return 0;
 }
