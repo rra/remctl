@@ -2,7 +2,7 @@
 # $Id$
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+# Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
 # See README for licensing terms.
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
@@ -92,12 +92,13 @@ warnings:
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/client/open-t \
 	tests/data/cmd-streaming tests/server/accept-t \
-	tests/server/continue-t tests/server/env-t tests/server/streaming-t \
-	tests/server/version-t tests/util/asprintf-t tests/util/concat-t \
-	tests/util/gss-tokens-t tests/util/inet_ntop-t tests/util/messages-t \
-	tests/util/setenv-t tests/util/snprintf-t tests/util/strlcat-t \
-	tests/util/strlcpy-t tests/util/tokens-t tests/util/vector-t \
-	tests/util/xmalloc tests/util/xwrite-t
+	tests/server/continue-t tests/server/env-t tests/server/errors-t \
+	tests/server/streaming-t tests/server/version-t \
+	tests/util/asprintf-t tests/util/concat-t tests/util/gss-tokens-t \
+	tests/util/inet_ntop-t tests/util/messages-t tests/util/setenv-t \
+	tests/util/snprintf-t tests/util/strlcat-t tests/util/strlcpy-t \
+	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc \
+	tests/util/xwrite-t
 check_LIBRARIES= tests/libtest.a
 tests_libtest_a_SOURCES = tests/libtest.c tests/libtest.h
 
@@ -113,6 +114,8 @@ tests_server_accept_t_LDADD = tests/libtest.a util/libutil.la
 tests_server_continue_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_env_t_LDADD = client/libremctl.la tests/libtest.a util/libutil.la
+tests_server_errors_t_LDADD = client/libremctl.la tests/libtest.a \
+	util/libutil.la
 tests_server_streaming_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_version_t_LDADD = client/libremctl.la tests/libtest.a \

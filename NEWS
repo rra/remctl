@@ -8,6 +8,12 @@ remctl 2.4 (unreleased)
     In the remctl command-line client, print a newline after protocol
     error messages from the server.
 
+    Add error messages to the protocol specification for sending too many
+    arguments in a command and sending too much data with a command.
+    Return the more specific error message if the number of command
+    arguments exceed the current hard-coded limit rather than just
+    reporting a bad command token.
+
     Don't use $< in non-pattern rules (again), fixing a build error on
     some systems with non-GNU make (although since the generated man
     pages are part of the distribution, only those modifying the POD

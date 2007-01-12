@@ -87,7 +87,9 @@ enum error_codes {
     ERROR_UNKNOWN_MESSAGE = 3,  /* Unknown message type. */
     ERROR_BAD_COMMAND     = 4,  /* Invalid command format in token. */
     ERROR_UNKNOWN_COMMAND = 5,  /* Unknown command. */
-    ERROR_ACCESS          = 6   /* Access denied. */
+    ERROR_ACCESS          = 6,  /* Access denied. */
+    ERROR_TOOMANY_ARGS    = 7,  /* Argument count exceeds server limit. */
+    ERROR_TOOMUCH_DATA    = 8   /* Argument size exceeds server limit. */
 };
 
 /* Sending and receiving tokens. */

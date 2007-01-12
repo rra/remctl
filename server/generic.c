@@ -7,7 +7,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -227,9 +227,14 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
     argc = ntohl(tmp);
     p += 4;
     debug("argc is %lu", (unsigned long) argc);
-    if (argc <= 0 || argc > MAXCMDARGS) {
+    if (argc <= 0) {
         warn("invalid argc %lu in request message", (unsigned long) argc);
         server_send_error(client, ERROR_BAD_COMMAND, "Invalid command token");
+        return NULL;
+    }
+    if (argc > MAXCMDARGS) {
+        warn("too large argc %lu in request message", (unsigned long) argc);
+        server_send_error(client, ERROR_TOOMANY_ARGS, "Too many arguments");
         return NULL;
     }
     if (length - (p - buffer) < 4 * argc) {
