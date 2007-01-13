@@ -8,9 +8,14 @@ server/streaming
 server/version
 util/asprintf
 util/concat
+util/getaddrinfo
+util/getnameinfo
 util/gss-tokens
+util/inet_aton
+util/inet_ntoa
 util/inet_ntop
 util/messages
+util/network
 util/setenv
 util/snprintf
 util/strlcat

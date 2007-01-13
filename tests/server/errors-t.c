@@ -98,7 +98,7 @@ main(void)
     pid_t remctld;
     int status;
 
-    test_init(4);
+    test_init(3);
 
     /* Unless we have Kerberos available, we can't really do anything. */
     principal = kerberos_setup();

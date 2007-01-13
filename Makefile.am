@@ -26,7 +26,8 @@ include_HEADERS = client/remctl.h
 
 noinst_LTLIBRARIES = util/libutil.la
 util_libutil_la_SOURCES = util/concat.c util/gss-tokens.c util/messages.c \
-	util/tokens.c util/util.h util/vector.c util/xmalloc.c util/xwrite.c
+	util/network.c util/tokens.c util/util.h util/vector.c \
+	util/xmalloc.c util/xwrite.c
 util_libutil_la_LIBADD = $(LTLIBOBJS)
 
 bin_PROGRAMS = client/remctl
@@ -94,8 +95,10 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/open-t \
 	tests/data/cmd-streaming tests/server/accept-t \
 	tests/server/continue-t tests/server/env-t tests/server/errors-t \
 	tests/server/streaming-t tests/server/version-t \
-	tests/util/asprintf-t tests/util/concat-t tests/util/gss-tokens-t \
-	tests/util/inet_ntop-t tests/util/messages-t tests/util/setenv-t \
+	tests/util/asprintf-t tests/util/concat-t tests/util/getaddrinfo-t \
+	tests/util/getnameinfo-t tests/util/gss-tokens-t \
+	tests/util/inet_aton-t tests/util/inet_ntoa-t tests/util/inet_ntop-t \
+	tests/util/messages-t tests/util/network-t tests/util/setenv-t \
 	tests/util/snprintf-t tests/util/strlcat-t tests/util/strlcpy-t \
 	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc \
 	tests/util/xwrite-t
@@ -123,13 +126,26 @@ tests_server_version_t_LDADD = client/libremctl.la tests/libtest.a \
 tests_util_asprintf_t_SOURCES = tests/util/asprintf-t.c tests/util/asprintf.c
 tests_util_asprintf_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_concat_t_LDADD = tests/libtest.a util/libutil.la
+tests_util_getaddrinfo_t_SOURCES = tests/util/getaddrinfo-t.c \
+	tests/util/getaddrinfo.c
+tests_util_getaddrinfo_t_LDADD = tests/libtest.a util/libutil.la
+tests_util_getnameinfo_t_SOURCES = tests/util/getnameinfo-t.c \
+	tests/util/getnameinfo.c
+tests_util_getnameinfo_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_gss_tokens_t_SOURCES = tests/util/faketoken.c \
 	tests/util/gss-tokens.c tests/util/gss-tokens-t.c
 tests_util_gss_tokens_t_LDADD = tests/libtest.a util/libutil.la
+tests_util_inet_aton_t_SOURCES = tests/util/inet_aton-t.c \
+	tests/util/inet_aton.c
+tests_util_inet_aton_t_LDADD = tests/libtest.a util/libutil.la
+tests_util_inet_ntoa_t_SOURCES = tests/util/inet_ntoa-t.c \
+	tests/util/inet_ntoa.c
+tests_util_inet_ntoa_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_inet_ntop_t_SOURCES = tests/util/inet_ntop-t.c \
 	tests/util/inet_ntop.c
 tests_util_inet_ntop_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_messages_t_LDADD = tests/libtest.a util/libutil.la
+tests_util_network_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_setenv_t_SOURCES = tests/util/setenv-t.c tests/util/setenv.c
 tests_util_setenv_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_snprintf_t_SOURCES = tests/util/snprintf-t.c tests/util/snprintf.c

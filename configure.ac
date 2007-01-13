@@ -26,17 +26,39 @@ AC_SEARCH_LIBS([socket], [socket], ,
 RRA_LIB_KRB5([gssapi], [false])
 AC_CHECK_HEADERS([inttypes.h stdint.h sys/bitypes.h sys/select.h])
 AC_CHECK_DECLS([snprintf, vsnprintf])
+AC_CHECK_DECLS([inet_aton, inet_ntoa], , ,
+    [#include <sys/types.h>
+     #include <netinet/in.h>
+     #include <arpa/inet.h>])
 RRA_C_C99_VAMACROS
 RRA_C_GNU_VAMACROS
+AC_CHECK_MEMBERS([struct sockaddr.sa_len], , ,
+    [#include <sys/types.h>
+     #include <sys/socket.h>])
 AC_CHECK_TYPES([long long])
 AC_CHECK_TYPE([socklen_t], ,
     [AC_DEFINE([socklen_t], [int],
         [Define to int if <sys/socket.h> does not define.])],
-[#include <sys/types.h>
-#include <sys/socket.h>])
+    [#include <sys/types.h>
+     #include <sys/socket.h>])
+AC_CHECK_TYPES([struct sockaddr_in6],
+    [AC_DEFINE([HAVE_INET6], [1],
+        [Define to 1 if IPv6 library interfaces are available.])], ,
+    [#include <sys/types.h>
+     #include <netinet/in.h>])
+AC_CHECK_TYPES([struct sockaddr_storage],
+    [AC_CHECK_MEMBERS([struct sockaddr_storage.ss_family], , ,
+        [#include <sys/types.h>
+         #include <sys/socket.h>])], ,
+    [#include <sys/types.h>
+     #include <sys/socket.h>])
+RRA_MACRO_IN6_ARE_ADDR_EQUAL
+RRA_MACRO_SA_LEN
+RRA_FUNC_INET_NTOA
 RRA_FUNC_SNPRINTF
 AC_CHECK_FUNCS([setrlimit])
-AC_REPLACE_FUNCS([asprintf inet_ntop setenv strlcat strlcpy])
+AC_REPLACE_FUNCS([asprintf getaddrinfo getnameinfo inet_aton inet_ntop \
+                  setenv strlcat strlcpy])
 AC_TYPE_SIGNAL
 
 dnl Needed to get prototypes for functions like asprintf on Linux.
