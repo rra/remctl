@@ -15,12 +15,7 @@
 
 #include <config.h>
 #include <system.h>
-
-/* BSDI needs <netinet/in.h> before <arpa/inet.h>. */
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/socket.h>
+#include <portable/socket.h>
 
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>
@@ -30,11 +25,6 @@
 
 #include <server/internal.h>
 #include <util/util.h>
-
-/* This may already be defined by the system headers. */
-#ifndef INET_ADDRSTRLEN
-# define INET_ADDRSTRLEN 16
-#endif
 
 
 /*
@@ -47,10 +37,9 @@ struct client *
 server_new_client(int fd, gss_cred_id_t creds)
 {
     struct client *client;
-    struct sockaddr_in sin;
+    struct sockaddr_storage ss;
     socklen_t socklen;
     size_t length;
-    struct hostent *host;
     char *buffer;
     gss_buffer_desc send_tok, recv_tok, name_buf;
     gss_name_t name = GSS_C_NO_NAME;
@@ -72,22 +61,30 @@ server_new_client(int fd, gss_cred_id_t creds)
     client->hostname = NULL;
     client->ipaddress = NULL;
 
-    /* Fill in hostname and IP address.  FIXME: Changes needed for IPv6. */
-    socklen = sizeof(sin);
-    if (getpeername(fd, (struct sockaddr *) &sin, &socklen) != 0) {
+    /* Fill in hostname and IP address. */
+    socklen = sizeof(ss);
+    if (getpeername(fd, (struct sockaddr *) &ss, &socklen) != 0) {
         syswarn("cannot get peer address");
         goto fail;
     }
-    length = INET_ADDRSTRLEN + 1;
+    length = INET6_ADDRSTRLEN;
     buffer = xmalloc(length);
     client->ipaddress = buffer;
-    if (inet_ntop(sin.sin_family, &sin.sin_addr, buffer, length) == NULL) {
-        syswarn("cannot translate IP address of client");
+    status = getnameinfo((struct sockaddr *) &ss, socklen, buffer, length,
+                         NULL, 0, NI_NUMERICHOST);
+    if (status != 0) {
+        syswarn("cannot translate IP address of client: %s",
+                gai_strerror(status));
         goto fail;
     }
-    host = gethostbyaddr(&sin.sin_addr, sizeof(sin.sin_addr), sin.sin_family);
-    if (host != NULL)
-        client->hostname = xstrdup(host->h_name);
+    length = NI_MAXHOST;
+    buffer = xmalloc(length);
+    status = getnameinfo((struct sockaddr *) &ss, socklen, buffer, length,
+                         NULL, 0, NI_NAMEREQD);
+    if (status == 0)
+        client->hostname = buffer;
+    else
+        free(buffer);
 
     /* Accept the initial (worthless) token. */
     status = token_recv(client->fd, &flags, &recv_tok, 64 * 1024);

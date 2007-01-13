@@ -31,6 +31,16 @@
 #define NI_NUMERICSERV  0x0008
 #define NI_DGRAM        0x0010
 
+/* Maximum length of hostnames and service names.  Our implementation doesn't
+   use these values, so they're taken from Linux.  They're provided just for
+   code that uses them to size buffers. */
+#ifndef NI_MAXHOST
+# define NI_MAXHOST     1025
+#endif
+#ifndef NI_MAXSERV
+# define NI_MAXSERV     32
+#endif
+
 /* BEGIN_DECLS is used at the beginning of declarations so that C++
    compilers don't mangle their names.  END_DECLS is used at the end. */
 #undef BEGIN_DECLS

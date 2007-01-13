@@ -6,7 +6,7 @@
 **
 **  Written by Anton Ushakov
 **  Extensive modifications by Russ Allbery <rra@stanford.edu>
-**  Copyright 2002, 2003, 2004, 2005, 2006
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -14,11 +14,9 @@
 
 #include <config.h>
 #include <system.h>
+#include <portable/socket.h>
 
-#include <netinet/in.h>
-#include <netdb.h>
 #include <syslog.h>
-#include <sys/socket.h>
 #include <time.h>
 
 #ifdef HAVE_GSSAPI_H
@@ -62,44 +60,6 @@ usage(int status)
         exit(0);
     else
         die("invalid usage");
-}
-
-
-/*
-**  Given the port number on which to listen, open a listening TCP socket.
-**  Returns the file descriptor or -1 on failure, logging an error message.
-**  This is only used in standalone mode.
-*/
-static int
-create_socket(unsigned short port)
-{
-    struct sockaddr_in saddr;
-    int s;
-    int on = 1;
-
-    saddr.sin_family = AF_INET;
-    saddr.sin_port = htons(port);
-    saddr.sin_addr.s_addr = INADDR_ANY;
-
-    s = socket(AF_INET, SOCK_STREAM, 0);
-    if (s < 0) {
-        syswarn("error creating socket");
-        return -1;
-    }
-
-    /* Let the socket be reused right away */
-    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
-    if (bind(s, (struct sockaddr *) &saddr, sizeof(saddr)) < 0) {
-        syswarn("error binding socket");
-        close(s);
-        return -1;
-    }
-    if (listen(s, 5) < 0) {
-        syswarn("error listening on socket");
-        close(s);
-        return -1;
-    }
-    return s;
 }
 
 
@@ -274,9 +234,11 @@ main(int argc, char *argv[])
         server_handle_connection(0, config, creds);
     } else {
         alarm(0);
-        stmp = create_socket(port);
+        stmp = network_bind_ipv4("any", port);
         if (stmp < 0)
             sysdie("cannot create socket");
+        if (listen(stmp, 5) < 0)
+            sysdie("error listening on socket");
         if (pid_path != NULL) {
             pid_file = fopen(pid_path, "w");
             if (pid_file == NULL)

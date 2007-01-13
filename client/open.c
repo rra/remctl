@@ -9,7 +9,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -17,11 +17,9 @@
 
 #include <config.h>
 #include <system.h>
+#include <portable/socket.h>
 
 #include <errno.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 
 #ifdef HAVE_GSSAPI_H
 # include <gssapi.h>
@@ -53,8 +51,8 @@ int
 internal_open(struct remctl *r, const char *host, unsigned short port,
               const char *principal)
 {
-    struct sockaddr_in saddr;
-    struct hostent *hp;
+    struct addrinfo hints, *ai;
+    char portbuf[16];
     int fd, status, flags;
     gss_buffer_desc send_tok, recv_tok, name_buffer, *token_ptr;
     gss_buffer_desc empty_token = { 0, (void *) "" };
@@ -65,24 +63,24 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
         = (GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_CONF_FLAG
            | GSS_C_INTEG_FLAG);
 
-    /* Look up the remote host and open a TCP connection. */
-    hp = gethostbyname(host);
-    if (hp == NULL) {
-        internal_set_error(r, "unknown host: %s", host);
+    /* Look up the remote host and open a TCP connection.  Call getaddrinfo
+       and network_connect instead of network_connect_host so that we can
+       report the complete error on host resolution. */
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    snprintf(portbuf, sizeof(portbuf), "%hu", port);
+    status = getaddrinfo(host, portbuf, &hints, &ai);
+    if (status != 0) {
+        internal_set_error(r, "unknown host %s: %s", host,
+                           gai_strerror(status));
         return 0;
     }
-    saddr.sin_family = hp->h_addrtype;
-    memcpy(&saddr.sin_addr, hp->h_addr, sizeof(saddr.sin_addr));
-    saddr.sin_port = htons(port);
-    fd = socket(AF_INET, SOCK_STREAM, 0);
+    fd = network_connect(ai, NULL);
+    freeaddrinfo(ai);
     if (fd < 0) {
-        internal_set_error(r, "error creating socket: %s", strerror(errno));
-        return 0;
-    }
-    if (connect(fd, (struct sockaddr *) &saddr, sizeof(saddr)) < 0) {
         internal_set_error(r, "cannot connect to %s (port %hu): %s", host,
                            port, strerror(errno));
-        close(fd);
         return 0;
     }
     r->fd = fd;

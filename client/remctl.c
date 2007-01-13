@@ -13,9 +13,9 @@
 
 #include <config.h>
 #include <system.h>
+#include <portable/socket.h>
 
 #include <ctype.h>
-#include <netdb.h>
 
 #include <client/remctl.h>
 #include <util/util.h>
@@ -110,9 +110,9 @@ process_response(struct remctl *r, int *errorcode)
 int
 main(int argc, char *argv[])
 {
-    int option;
+    int option, status;
     char *server_host;
-    struct hostent *hostinfo;
+    struct addrinfo hints, *ai;
     char *service_name = NULL;
     unsigned short port = 4444;
     struct remctl *r;
@@ -159,12 +159,16 @@ main(int argc, char *argv[])
     argc--;
 
     if (service_name == NULL) {
-        hostinfo = gethostbyname(server_host);
-        if (hostinfo == NULL)
-            die("cannot resolve host %s", server_host);
-        service_name = xmalloc(strlen("host/") + strlen(hostinfo->h_name) + 1);
+        memset(&hints, 0, sizeof(hints));
+        hints.ai_flags = AI_CANONNAME;
+        status = getaddrinfo(server_host, NULL, &hints, &ai);
+        if (status != 0)
+            die("cannot resolve host %s: %s", server_host,
+                gai_strerror(status));
+        service_name = xmalloc(strlen("host/") + strlen(ai->ai_canonname) + 1);
         strcpy(service_name, "host/");
-        strcat(service_name, hostinfo->h_name);
+        strcat(service_name, ai->ai_canonname);
+        freeaddrinfo(ai);
         lowercase(service_name);
     }
 

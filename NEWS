@@ -2,6 +2,11 @@
 
 remctl 2.4 (unreleased)
 
+    IPv6 support is now automatically enabled on systems that support it.
+    The remctl code uniformly uses the new IPv6-aware host and address
+    functions, using replacements on systems that don't provide them in
+    libc.  Thanks to Jonathan Kollasch for the initial patch.
+
     When sending tokens, correctly check for network errors rather than
     ignoring them due to a miswritten test.
 
