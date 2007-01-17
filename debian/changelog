@@ -1,3 +1,13 @@
+remctl (2.4-1) unstable; urgency=low
+
+  * New upstream release.
+    - IPv6 support.
+    - Correctly check for network errors when sending tokens.
+    - Print a newline after error messages in the command-line client.
+    - Return better error messages for too many arguments.
+
+ -- Russ Allbery <rra@debian.org>  Wed, 17 Jan 2007 11:55:32 -0800
+
 remctl (2.3-1) unstable; urgency=low
 
   * New upstream release.
