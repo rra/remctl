@@ -2,14 +2,14 @@ dnl Process this file with autoconf to produce a configure script.
 dnl $Id$
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2002, 2003, 2004, 2005, 2006
+dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007
 dnl     Board of Trustees, Leland Stanford Jr. University
 dnl
 dnl See README for licensing terms.
 
 AC_REVISION([$Revision$])
 AC_PREREQ([2.60])
-AC_INIT([remctl], [2.3], [rra@stanford.edu])
+AC_INIT([remctl], [2.4], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([tools])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AM_INIT_AUTOMAKE([1.10])

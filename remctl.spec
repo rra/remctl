@@ -2,7 +2,7 @@
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 2.1
+Version: 2.4
 Release: 1.EL%{rel}
 Copyright: MIT
 URL: http://www.eyrie.org/~eagle/software/remctl/
@@ -45,6 +45,11 @@ install -c -m 0644 examples/xinetd %{buildroot}/etc/xinetd.d/remctl
 mkdir -p %{buildroot}/etc/remctl/acl
 mkdir -p %{buildroot}/etc/remctl/conf.d
 install -c -m 0644 examples/remctl.conf %{buildroot}/etc/remctl/remctl.conf
+%ifarch x86_64
+if [ -d %{buildroot}/usr/lib/ ]; then
+    mv %{buildroot}/usr/lib/ %{buildroot}/%{ldir}
+fi
+%endif
 
 %files
 %defattr(-, root, root, 0755)
@@ -57,8 +62,9 @@ install -c -m 0644 examples/remctl.conf %{buildroot}/etc/remctl/remctl.conf
 %dir /etc/remctl/
 %defattr(0640, root, root)
 %config(noreplace) /etc/remctl/remctl.conf
-%defattr(0750, root, root)
+%defattr(0755, root, root)
 %dir /etc/remctl/acl/
+%defattr(0750, root, root)
 %dir /etc/remctl/conf.d/
 %defattr(0644, root, root)
 %{ldir}/libremctl.a
@@ -104,6 +110,11 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Wed Jan 17 2007 Russ Allbery <rra@stanford.edu> 2.4-1
+- Update for 2.4.
+- Changed permissions on the ACL directory to allow any user read.
+- Added fix for /usr/lib64 directory on x86_64.
+
 * Tue Aug 22 2006 Russ Allbery <rra@stanford.edu> 2.1-1
 - Update for 2.1.
 - Incorporate changes by Digant Kasundra and Darren Patterson to the

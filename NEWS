@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 2.4 (unreleased)
+remctl 2.4 (2007-01-17)
 
     IPv6 support is now automatically enabled on systems that support it.
     The remctl code uniformly uses the new IPv6-aware host and address
