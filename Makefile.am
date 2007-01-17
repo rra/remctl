@@ -75,7 +75,7 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 config.h.in config.h.in~ \
 # bug in the non-recursive support.
 clean-local:
 	-rm -rf server/.libs tests/.libs tests/client/.libs tests/data/.libs \
-	    tests/server/.libs tests/util/.libs
+	    tests/portable/.libs tests/server/.libs tests/util/.libs
 
 # More bugs in the non-recursive support.
 distclean-local:
