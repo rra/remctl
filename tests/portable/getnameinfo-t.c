@@ -44,6 +44,7 @@ main(void)
     struct sockaddr *sa = (struct sockaddr *) &sin;
     int status;
     struct hostent *hp;
+    struct servent *serv;
     char *name;
 
     test_init(26);
@@ -61,15 +62,20 @@ main(void)
     status = test_getnameinfo(sa, sizeof(sin), NULL, 0, service,
                               sizeof(service), 0);
     ok_int(3, 0, status);
-    ok_string(4, "nntp", service);
-    service[0] = '\0';
-    status = test_getnameinfo(sa, sizeof(sin), NULL, 0, service, 1, 0);
-    ok_int(5, EAI_OVERFLOW, status);
-    status = test_getnameinfo(sa, sizeof(sin), NULL, 0, service, 4, 0);
-    ok_int(6, EAI_OVERFLOW, status);
-    status = test_getnameinfo(sa, sizeof(sin), NULL, 0, service, 5, 0);
-    ok_int(7, 0, status);
-    ok_string(8, "nntp", service);
+    serv = getservbyname("nntp", "tcp");
+    if (serv == NULL)
+        skip_block(4, 5, "nntp service not found");
+    else {
+        ok_string(4, "nntp", service);
+        service[0] = '\0';
+        status = test_getnameinfo(sa, sizeof(sin), NULL, 0, service, 1, 0);
+        ok_int(5, EAI_OVERFLOW, status);
+        status = test_getnameinfo(sa, sizeof(sin), NULL, 0, service, 4, 0);
+        ok_int(6, EAI_OVERFLOW, status);
+        status = test_getnameinfo(sa, sizeof(sin), NULL, 0, service, 5, 0);
+        ok_int(7, 0, status);
+        ok_string(8, "nntp", service);
+    }
     status = test_getnameinfo(sa, sizeof(sin), NULL, 0, service,
                               sizeof(service), NI_NUMERICSERV);
     ok_int(9, 0, status);
@@ -78,11 +84,19 @@ main(void)
     status = test_getnameinfo(sa, sizeof(sin), NULL, 0, service,
                               sizeof(service), 0);
     ok_int(11, 0, status);
-    ok_string(12, "exec", service);
+    serv = getservbyname("exec", "tcp");
+    if (serv == NULL)
+        skip(12, "exec service not found");
+    else
+        ok_string(12, "exec", service);
     status = test_getnameinfo(sa, sizeof(sin), NULL, 0, service,
                               sizeof(service), NI_DGRAM);
     ok_int(13, 0, status);
-    ok_string(14, "biff", service);
+    serv = getservbyname("biff", "udp");
+    if (serv == NULL)
+        skip(14, "biff service not found");
+    else
+        ok_string(14, "biff", service);
     status = test_getnameinfo(sa, sizeof(sin), node, sizeof(node), NULL, 0,
                               NI_NUMERICHOST);
     ok_int(15, 0, status);
