@@ -11,7 +11,8 @@ EXTRA_DIST = autogen client/remctl.1 client/remctl.pod docs/design.html \
 	docs/protocol.txt docs/protocol.html docs/protocol.xml \
 	examples/remctl.conf examples/rsh-wrapper examples/xinetd \
 	java/Login.java java/RemctlClient.java java/gss_jaas.conf \
-	java/gss_jaas2.conf remctl.spec server/remctld.8.in \
+	java/gss_jaas2.conf portable/getaddrinfo.h portable/getnameinfo.h \
+	portable/socket.h remctl.spec server/remctld.8.in \
 	server/remctld.pod system.h tests/TESTS tests/data/README \
 	tests/data/acl-nonexistant tests/data/cmd-hello tests/data/cmd-env \
 	tests/data/cmd-status tests/data/simple.conf tests/client/remctl-t \
