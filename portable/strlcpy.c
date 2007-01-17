@@ -1,4 +1,4 @@
-/*  $Id: strlcpy.c 5681 2002-08-29 04:07:50Z rra $
+/*  $Id$
 **
 **  Replacement for a missing strlcpy.
 **
