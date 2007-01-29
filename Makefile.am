@@ -95,14 +95,14 @@ warnings:
 
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/client/open-t \
-	tests/data/cmd-streaming tests/portable/asprintf-t \
-	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t \
-	tests/portable/inet_aton-t tests/portable/inet_ntoa-t \
-	tests/portable/inet_ntop-t tests/portable/setenv-t \
-	tests/portable/snprintf-t tests/portable/strlcat-t \
-	tests/portable/strlcpy-t tests/server/accept-t \
-	tests/server/continue-t tests/server/env-t tests/server/errors-t \
-	tests/server/streaming-t tests/server/version-t \
+	tests/data/cmd-closed tests/data/cmd-streaming \
+	tests/portable/asprintf-t tests/portable/getaddrinfo-t \
+	tests/portable/getnameinfo-t tests/portable/inet_aton-t \
+	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t \
+	tests/portable/setenv-t tests/portable/snprintf-t \
+	tests/portable/strlcat-t tests/portable/strlcpy-t \
+	tests/server/accept-t tests/server/continue-t tests/server/env-t \
+	tests/server/errors-t tests/server/streaming-t tests/server/version-t \
 	tests/util/concat-t tests/util/gss-tokens-t tests/util/messages-t \
 	tests/util/network-t tests/util/tokens-t tests/util/vector-t \
 	tests/util/xmalloc tests/util/xwrite-t

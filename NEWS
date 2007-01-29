@@ -1,5 +1,11 @@
                        User-Visible remctl Changes
 
+remctl 2.5 (unreleased)
+
+    When the server runs a command, open /dev/null for standard input
+    rather than leaving standard input closed.  Some programs don't cope
+    with a closed standard input.
+
 remctl 2.4 (2007-01-17)
 
     IPv6 support is now automatically enabled on systems that support it.

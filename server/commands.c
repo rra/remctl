@@ -158,7 +158,7 @@ server_run_command(struct client *client, struct config *config,
     int stdout_pipe[2], stderr_pipe[2], fds[2];
     char **req_argv = NULL;
     size_t i;
-    int ret_code, ok;
+    int ret_code, ok, fd;
     pid_t pid;
 
     /* We refer to these a lot, so give them good aliases. */
@@ -239,8 +239,14 @@ server_run_command(struct client *client, struct config *config,
         close(stderr_pipe[0]);
         close(stderr_pipe[1]);
 
-        /* Child doesn't need stdin at all. */
+        /* Child doesn't need stdin at all, but just closing it causes
+           problems for puppet.  Reopen on /dev/null instead.  Ignore failure
+           here, since it probably won't matter and worst case is that we
+           leave stdin closed. */
         close(0);
+        fd = open("/dev/null", O_RDONLY);
+        if (fd > 0)
+            dup2(fd, 0);
 
         /* Put the authenticated principal and other connection information in
            the environment.  REMUSER is for backwards compatibility with
