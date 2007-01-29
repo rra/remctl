@@ -20,7 +20,7 @@ main(void)
         printf("Okay");
         exit(0);
     } else if (count > 0) {
-        printf("Read %d bytes\n");
+        printf("Read %d bytes\n", (int) count);
         exit(1);
     } else {
         printf("Failed with error: %s\n", strerror(errno));
