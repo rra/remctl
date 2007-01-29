@@ -253,6 +253,8 @@ main(int argc, char *argv[])
                 continue;
             }
             server_handle_connection(s, config, creds);
+            if (do_stdout)
+                fflush(stdout);
         } while (1);
     }
 
