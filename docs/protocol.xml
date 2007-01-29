@@ -38,14 +38,17 @@
 
       <figure>
         <artwork>
-    1 byte      flags
-    4 bytes     length
+    1 octet     flags
+    4 octets    length
     &lt;length>    data payload
         </artwork>
       </figure>
 
+      <t>The total size of each token, including the five octet prefix,
+      MUST NOT be larger than 1,048,576 octets (1MB).</t>
+
       <figure>
-        <preamble>The flag byte contains one or more of the following
+        <preamble>The flag octet contains one or more of the following
         values, combined with binary xor:</preamble>
 
         <artwork>
@@ -63,14 +66,14 @@
         are used only with the legacy version 1 protocol.</postamble>
       </figure>
 
-      <t>The length field is a four-byte length in network byte order,
+      <t>The length field is a four-octet length in network byte order,
       specifying the number of octets in the following data payload.</t>
 
       <t>The data payload is empty, the results of gss_accept_sec_context,
       the results of gss_init_sec_context, or a data payload protected
-      with gss_wrap.  The maximum size of the data payload of a remctl
-      packet is constrained by the maximum message size in the GSS-API
-      protocol, which for Kerberos v5 is 64KB.</t>
+      with gss_wrap.  The length of the data passed to gss_wrap MUST NOT
+      be larger than 65,536 octets (64KB), even if the underlying Kerberos
+      implementation supports longer input buffers.</t>
     </section>
 
     <section anchor='proto2' title='Network Protocol (version 2)'>
@@ -134,8 +137,8 @@
 
         <figure>
           <artwork>
-    1 byte      protocol version
-    1 byte      message type
+    1 octet     protocol version
+    1 octet     message type
     &lt;command-specific data>
           </artwork>
         </figure>
@@ -173,7 +176,7 @@
 
         <figure>
           <artwork>
-    1 byte      highest supported version
+    1 octet     highest supported version
           </artwork>
         </figure>
 
@@ -188,10 +191,10 @@
 
         <figure>
           <artwork>
-    1 byte      keep-alive flag
-    1 byte      continue status
-    4 bytes     number of arguments
-    4 bytes     argument length
+    1 octet     keep-alive flag
+    1 octet     continue status
+    4 octets    number of arguments
+    4 octets    argument length
     &lt;length>    argument
     ...
           </artwork>
@@ -212,10 +215,22 @@
         previous message, like 2, but it also says that this is the end of
         the command.</t>
 
-        <t>Number of arguments is a four-byte number in network byte order
-        that gives the total number of command arguments.  For each
+        <t>A continuation of a message starts with the keep-alive flag and
+        continue status and then the next chunk of data.  To reconstruct a
+        continued message, remove the first two octets from each chunk and
+        concatenate the pieces together.  The result is the portion of a
+        MESSAGE_COMMAND starting with the number of arguments.  Messages
+        may be broken into multiple MESSAGE_COMMANDs even in the middle of
+        the number of arguments or an argument length.  In other words,
+        the first three octets of the number of arguments could be in the
+        first MESSAGE_COMMAND (with continue status 1) and the last octet
+        would then be in the next MESSAGE_COMMAND (with continue status 2
+        or 3).</t>
+
+        <t>Number of arguments is a four-octet number in network byte
+        order that gives the total number of command arguments.  For each
         argument, there is then a length and argument data pair, where the
-        length is a four-byte number in network byte order indicating the
+        length is a four-octet number in network byte order indicating the
         number of octets of data in the following argument.  Argument
         length may be 0, but there MUST be at least one argument.</t>
 
@@ -234,14 +249,14 @@
 
         <figure>
           <artwork>
-    1 byte      output stream
-    4 bytes     output length
+    1 octet     output stream
+    4 octets    output length
     &lt;length>    output
           </artwork>
         </figure>
 
         <t>The output stream is either 1 for standard output or 2 for
-        standard error.  Output length is a four-byte number in network
+        standard error.  Output length is a four-octet number in network
         byte order that specifies the length of the following output
         data.</t>
 
@@ -249,7 +264,7 @@
 
         <figure>
           <artwork>
-    1 byte      exit status
+    1 octet     exit status
           </artwork>
         </figure>
 
@@ -274,13 +289,13 @@
 
         <figure>
           <artwork>
-    4 bytes     error code
-    4 bytes     message length
+    4 octets    error code
+    4 octets    message length
     &lt;length>    error message
           </artwork>
         </figure>
 
-        <t>The error code is a four-byte number in network byte order
+        <t>The error code is a four-octet number in network byte order
         indicating the type of error.  The error code may be one of the
         following values:</t>
 
@@ -301,7 +316,7 @@
         version of the remctl protocol, so clients MUST accept error codes
         other than the ones above.</t>
 
-        <t>The message length is a four-byte number in network byte order
+        <t>The message length is a four-octet number in network byte order
         that specifies the length in octets of the following error
         message.  The error message is a free-form informational message
         intended for human consumption and MUST NOT be interpreted by an
@@ -355,8 +370,8 @@
         TOKEN_CONTEXT set in the flags.</t>
 
         <t>Client sends command with flags TOKEN_DATA and TOKEN_SEND_MIC
-        and the following payload format:  four byte number of arguments,
-        and then for each argument, a four byte length and then the
+        and the following payload format:  four-octet number of arguments,
+        and then for each argument, a four-octet length and then the
         argument value.  All numbers are in network type order.</t>
 
         <t>Server accepts and decrypts data, generates a MIC with
@@ -366,9 +381,9 @@
 
         <t>Server runs the command, collects the output, and sends the
         output back with flags TOKEN_DATA and the following payload
-        format:  four byte exit status, four byte data length, data.  All
-        numbers are in network byte order.  The exit status is 0 if there
-        were no errors and non-zero otherwise, where the meaning of
+        format:  four-octet exit status, four-octet data length, data.
+        All numbers are in network byte order.  The exit status is 0 if
+        there were no errors and non-zero otherwise, where the meaning of
         non-zero values are defined by the application.</t>
 
         <t>Server and client close connection.</t>

@@ -9,6 +9,11 @@ remctl 2.5 (unreleased)
     Add a newline to the end of error messages when converting to protocol
     version one replies.  The old remctl client didn't add a newline.
 
+    Document the limits on token size and unencrypted data size in the
+    protocol specification.  Improve the protocol documentation for the
+    continue status for MESSAGE_COMMAND.  Use octet instead of byte
+    uniformly.
+
 remctl 2.4 (2007-01-17)
 
     IPv6 support is now automatically enabled on systems that support it.
