@@ -32,13 +32,17 @@ do_tests(int n, const char *principal, int protocol)
     struct iovec *command;
     struct remctl_output *output;
     const char *test[] = { "test", "test", NULL };
+    const char *error[] = { "test", "bad-command", NULL };
 
+    /* Open the connection. */
     r = remctl_new();
     ok(n++, r != NULL);
     ok_string(n++, "No error", remctl_error(r));
     r->protocol = protocol;
     ok(n++, remctl_open(r, "localhost", 14444, principal));
     ok_string(n++, "No error", remctl_error(r));
+
+    /* Send a successful command. */
     ok(n++, remctl_command(r, test));
     ok_string(n++, "No error", remctl_error(r));
     output = remctl_output(r);
@@ -74,6 +78,33 @@ do_tests(int n, const char *principal, int protocol)
     ok(n++, output != NULL);
     ok_int(n++, REMCTL_OUT_STATUS, output->type);
     ok_int(n++, 0, output->status);
+
+    /* Send a failing command. */
+    ok(n++, remctl_command(r, error));
+    ok_string(n++, "No error", remctl_error(r));
+    output = remctl_output(r);
+    ok(n++, output != NULL);
+    if (protocol == 1) {
+        ok_int(n++, REMCTL_OUT_OUTPUT, output->type);
+        ok_int(n++, 16, output->length);
+        if (output->data == NULL)
+            ok(n++, 0);
+        else
+            ok(n++, memcmp("Unknown command\n", output->data, 16) == 0);
+        ok_int(n++, 1, output->stream);
+        output = remctl_output(r);
+        ok(n++, output != NULL);
+        ok_int(n++, REMCTL_OUT_STATUS, output->type);
+        ok_int(n++, -1, output->status);
+    } else {
+        ok_int(n++, REMCTL_OUT_ERROR, output->type);
+        ok_int(n++, 15, output->length);
+        if (output->data == NULL)
+            ok(n++, 0);
+        else
+            ok(n++, memcmp("Unknown command", output->data, 15) == 0);
+        ok_int(n++, ERROR_UNKNOWN_COMMAND, output->error);
+    }
     remctl_close(r);
     ok(n++, 1);
 
@@ -90,7 +121,7 @@ main(void)
     int n;
     struct timeval tv;
 
-    test_init(55);
+    test_init(72);
 
     principal = kerberos_setup();
     if (principal == NULL) {

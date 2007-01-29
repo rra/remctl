@@ -284,9 +284,10 @@ server_send_error(struct client *client, enum error_codes error,
     else {
         if (client->output != NULL)
             free(client->output);
-        client->output = xmalloc(strlen(message));
+        client->output = xmalloc(strlen(message) + 1);
         memcpy(client->output, message, strlen(message));
-        client->outlen = strlen(message);
+        client->output[strlen(message)] = '\n';
+        client->outlen = strlen(message) + 1;
         return server_v1_send_output(client, -1);
     }
 }
