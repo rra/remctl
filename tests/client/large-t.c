@@ -59,6 +59,7 @@ main(void)
         ok(2, remctl_open(r, "localhost", 14444, principal));
         ok(3, remctl_commandv(r, command, 5));
         output = remctl_output(r);
+        printf("\n");
         ok(4, output != NULL);
         if (output != NULL) {
             ok_int(5, REMCTL_OUT_ERROR, output->type);
