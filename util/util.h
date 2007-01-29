@@ -107,6 +107,10 @@ enum token_status token_recv_priv(int fd, gss_ctx_id_t, int *flags,
                                   gss_buffer_t, size_t max, OM_uint32 *,
                                   OM_uint32 *);
 
+/* Convert a GSS-API error code pair into a human-readable string.  Returns a
+   newly allocated string that the caller must free. */
+char *gssapi_error_string(const char *prefix, OM_uint32, OM_uint32);
+
 /* Concatenate NULL-terminated strings into a newly allocated string. */
 extern char *concat(const char *first, ...);
 

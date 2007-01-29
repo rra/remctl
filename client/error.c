@@ -52,43 +52,15 @@ internal_set_error(struct remctl *r, const char *format, ...)
 
 /*
 **  Internal function to set the remctl error message from a GSS-API error
-**  message.  Uses gss_display_status to get the internal error message.
+**  message.
 */
 void
 internal_gssapi_error(struct remctl *r, const char *error, OM_uint32 major,
                       OM_uint32 minor)
 {
-    char *string, *old;
-    gss_buffer_desc msg;
-    OM_uint32 msg_ctx, status;
-
     if (r->error != NULL)
         free(r->error);
-    string = NULL;
-    msg_ctx = 0;
-    do {
-        gss_display_status(&status, major, GSS_C_GSS_CODE, GSS_C_NULL_OID,
-                           &msg_ctx, &msg);
-        if (string != NULL) {
-            old = string;
-            string = concat(string, ", ", msg.value, (char *) 0);
-            free(old);
-        } else {
-            string = concat("GSS-API error ", error, ": ", msg.value,
-                           (char *) 0);
-        }
-    } while (msg_ctx != 0);
-    if (minor != 0) {
-        msg_ctx = 0;
-        do {
-            gss_display_status(&status, minor, GSS_C_MECH_CODE,
-                               GSS_C_NULL_OID, &msg_ctx, &msg);
-            old = string;
-            string = concat(string, ", ", msg.value, (char *) 0);
-            free(old);
-        } while (msg_ctx != 0);
-    }
-    r->error = string;
+    r->error = gssapi_error_string(error, major, minor);
 }
 
 
