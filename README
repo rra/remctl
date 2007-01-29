@@ -44,7 +44,8 @@ REQUIREMENTS
 
   The remctld server and the standard client are written in C and require
   a C compiler to build.  Both will build against either MIT Kerberos or
-  Heimdal.
+  Heimdal; however, Heimdal 0.7 or later is required.  remctl triggers a
+  segfault inside the GSS-API library in Heimdal 0.6.
 
   A Java client is also available in the java subdirectory, but no Java
   server is available.  The Java client only supports the older version
@@ -128,7 +129,7 @@ PORTING
 
   remctl should port reasonably well.  It has been tested on:
 
-      Solaris 8
+      Solaris 8, 9
       Linux (glibc 2.2, 2.3)
       NetBSD
 
@@ -148,6 +149,9 @@ THANKS
 
   To Darren Patterson and Digant Kasundra, for contributions to the RPM
   spec file and testing on Red Hat.
+
+  To Jonathan Kollasch, for the initial IPv6 patch and for identifying all
+  of the places the code was making IPv4 assuptions.
 
 LICENSE
 
