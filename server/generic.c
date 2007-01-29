@@ -87,7 +87,7 @@ server_new_client(int fd, gss_cred_id_t creds)
         free(buffer);
 
     /* Accept the initial (worthless) token. */
-    status = token_recv(client->fd, &flags, &recv_tok, 64 * 1024);
+    status = token_recv(client->fd, &flags, &recv_tok, TOKEN_MAX_LENGTH);
     if (status != TOKEN_OK) {
         warn_token("receiving initial token", status, major, minor);
         goto fail;
@@ -104,7 +104,7 @@ server_new_client(int fd, gss_cred_id_t creds)
 
     /* Now, do the real work of negotiating the context. */
     do {
-        status = token_recv(client->fd, &flags, &recv_tok, 64 * 1024);
+        status = token_recv(client->fd, &flags, &recv_tok, TOKEN_MAX_LENGTH);
         if (status != TOKEN_OK) {
             warn_token("receiving context token", status, major, minor);
             goto fail;
@@ -244,7 +244,7 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
 
     /* Parse out the arguments and store them into a vector.  Arguments are
        packed: (<arglength><argument>)+. */
-    while (p < buffer + length - 4) {
+    while (p <= buffer + length - 4) {
         memcpy(&tmp, p, 4);
         arglen = ntohl(tmp);
         p += 4;
@@ -265,6 +265,14 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
         argv->strings[argv->count][arglen] = '\0';
         argv->count++;
         p += arglen;
+        debug("arg %lu has length %lu", (unsigned long) argv->count,
+              (unsigned long) arglen);
+    }
+    if (argv->count != argc || p != buffer + length) {
+        warn("argument count differs from arguments seen");
+        server_send_error(client, ERROR_BAD_COMMAND, "Invalid command token");
+        vector_free(argv);
+        return NULL;
     }
     return argv;
 }

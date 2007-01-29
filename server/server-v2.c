@@ -224,6 +224,14 @@ server_v2_handle_token(struct client *client, struct config *config,
         p += 2;
         client->keepalive = p[0] ? 1 : 0;
 
+        /* Check the data size. */
+        if (token->length > TOKEN_MAX_DATA) {
+            warn("command data length %lu exceeds 64KB",
+                 (unsigned long) token->length);
+            return server_send_error(client, ERROR_TOOMUCH_DATA,
+                                     "Too much data");
+        }
+
         /* Make sure the continuation is sane. */
         if ((p[1] == 1 && continued) || (p[1] > 1 && !continued) || p[1] > 3) {
             warn("bad continue status %d", (int) p[1]);
@@ -251,7 +259,7 @@ server_v2_handle_token(struct client *client, struct config *config,
            token as the complete buffer. */
         if (continued) {
             status = token_recv_priv(client->fd, client->context, &flags,
-                                     token, MAX_TOKEN, &major, &minor);
+                                     token, TOKEN_MAX_LENGTH, &major, &minor);
             if (status != TOKEN_OK) {
                 warn_token("receiving command token", status, major, minor);
                 if (status == TOKEN_FAIL_EOF)
@@ -293,7 +301,7 @@ server_v2_handle_commands(struct client *client, struct config *config)
     /* Loop receiving messages until we're finished. */
     do {
         status = token_recv_priv(client->fd, client->context, &flags, &token,
-                                 MAX_TOKEN, &major, &minor);
+                                 TOKEN_MAX_LENGTH, &major, &minor);
         if (status != TOKEN_OK) {
             warn_token("receiving command token", status, major, minor);
             if (status == TOKEN_FAIL_EOF)

@@ -32,10 +32,6 @@
 #include <client/remctl.h>
 #include <util/util.h>
 
-/* We're unwilling to accept tokens from the remote side larger than this.
-   FIXME: Figure out what the actual limit is by asking GSS-API. */
-#define MAX_TOKEN       (1024 * 1024)
-
 
 /*
 **  Send a command to the server using protocol v1.  Returns true on success,
@@ -118,8 +114,8 @@ internal_v1_output(struct remctl *r)
     }
 
     /* Otherwise, we have to read the token from the server. */
-    status = token_recv_priv(r->fd, r->context, &flags, &token, MAX_TOKEN,
-                             &major, &minor);
+    status = token_recv_priv(r->fd, r->context, &flags, &token,
+                             TOKEN_MAX_LENGTH, &major, &minor);
     if (status != TOKEN_OK) {
         internal_token_error(r, "receiving token", status, major, minor);
         if (status == TOKEN_FAIL_EOF) {

@@ -57,6 +57,8 @@ token_send_priv(int fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
     int state, micflags;
     enum token_status status;
 
+    if (tok->length > TOKEN_MAX_DATA)
+        return TOKEN_FAIL_LARGE;
     *major = gss_wrap(minor, ctx, 1, GSS_C_QOP_DEFAULT, tok, &state, &out);
     if (*major != GSS_S_COMPLETE)
         return TOKEN_FAIL_GSSAPI;

@@ -51,6 +51,10 @@ struct addrinfo;
 struct iovec;
 struct sockaddr;
 
+/* Maximum lengths from the protocol specification of tokens and data. */
+#define TOKEN_MAX_LENGTH        (1024 * 1024)
+#define TOKEN_MAX_DATA          (64 * 1024)
+
 /* Failure return codes from token_send and token_recv. */
 enum token_status {
     TOKEN_OK = 0,

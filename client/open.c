@@ -166,10 +166,9 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
             goto fail;
         }
 
-        /* If we're still expecting more, retrieve it.  The token size limit
-           here is very arbitrary. */
+        /* If we're still expecting more, retrieve it. */
         if (major == GSS_S_CONTINUE_NEEDED) {
-            status = token_recv(fd, &flags, &recv_tok, 64 * 1024);
+            status = token_recv(fd, &flags, &recv_tok, TOKEN_MAX_LENGTH);
             if (status != TOKEN_OK) {
                 internal_token_error(r, "receiving token", status, major,
                                      minor);

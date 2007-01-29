@@ -11,8 +11,14 @@
    need to support passing one of the arguments to the executed command on
    standard input.  This may depend on the new configuration syntax.
 
- * Support continuation of commands in the library through a lower-level
-   command interface.
+ * Add support for running commands as filters, passing standard input
+   asynchronously from the client.  This requires significant
+   re-engineering of the client loop and should wait for better
+   configuration since we don't want to do this with every command.
+
+ * Maximum argument count and maximum data size in MESSAGE_COMMAND should
+   be configurable parameters of the server rather than hard-coded
+   values.  This may need to wait for better configuration parsing.
 
  * Implement Perl bindings for the remctl client library.
 
@@ -39,10 +45,7 @@
 
  * Add a test suite for configuration and ACL parsing.
 
- * Maximum argument count and maximum data size in MESSAGE_COMMAND should
-   be configurable parameters of the server rather than hard-coded
-   values.  This may need to wait for better configuration parsing.
-
- * Determine from the GSS-API library the maximum size of a wrapped token
-   and use that to determine strategy when sending commands and
-   responses rather than using the current hard-coded limit.
+ * Change the token_recv and token_recv_priv functions to free the storage
+   associated with the output buffer, and check all callers to make sure
+   that buffers are zeroed when allocated off the stack.  Right now, we're
+   leaking memory in some cases.

@@ -2,9 +2,26 @@
 
 remctl 2.5 (unreleased)
 
+    Automatically use a continued MESSAGE_COMMAND if the total command
+    length is larger than 64KB (minus token overhead).  The remctl client
+    library can now send arbitrarily large commands, at some cost in
+    memory consumption on the client and server.  The server is still
+    limited by the OS-imposed maximum length of a command line.
+
     When the server runs a command, open /dev/null for standard input
     rather than leaving standard input closed.  Some programs don't cope
     with a closed standard input.
+
+    Use the same limit (1MB) on token size everywhere.  Enforce the
+    protocol limit on unencrypted data size (64KB) in both the server and
+    when sending messages in the client.
+
+    Correctly handle a zero-length argument at the end of a command in the
+    server.  Previously, that argument was ignored.
+
+    Check that the expected argument count matches the count of arguments
+    seen in the server and that all of the client data was consumed when
+    parsing arguments.
 
     Add a newline to the end of error messages when converting to protocol
     version one replies.  The old remctl client didn't add a newline.

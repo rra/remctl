@@ -84,11 +84,21 @@ server_v1_handle_commands(struct client *client, struct config *config)
 
     /* Receive the message. */
     status = token_recv_priv(client->fd, client->context, &flags, &token,
-                             MAX_TOKEN, &major, &minor);
+                             TOKEN_MAX_LENGTH, &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("receiving command token", status, major, minor);
-        if (status != TOKEN_FAIL_EOF)
+        if (status == TOKEN_FAIL_LARGE)
+            server_send_error(client, ERROR_TOOMUCH_DATA, "Too much data");
+        else if (status != TOKEN_FAIL_EOF)
             server_send_error(client, ERROR_BAD_TOKEN, "Invalid token");
+        return;
+    }
+
+    /* Check the data size. */
+    if (token.length > TOKEN_MAX_DATA) {
+        warn("command data length %lu exceeds 64KB",
+             (unsigned long) token.length);
+        server_send_error(client, ERROR_TOOMUCH_DATA, "Too much data");
         return;
     }
 

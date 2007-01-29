@@ -94,8 +94,8 @@ warnings:
 	$(MAKE) CFLAGS='$(WARNINGS)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
-check_PROGRAMS = tests/runtests tests/client/api-t tests/client/open-t \
-	tests/data/cmd-closed tests/data/cmd-streaming \
+check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t \
+	tests/client/open-t tests/data/cmd-closed tests/data/cmd-streaming \
 	tests/portable/asprintf-t tests/portable/getaddrinfo-t \
 	tests/portable/getnameinfo-t tests/portable/inet_aton-t \
 	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t \
@@ -116,6 +116,8 @@ SERVER_FILES = server/commands.c server/config.c server/generic.c \
 # All of the test programs.
 tests_client_api_t_LDADD = client/libremctl.la tests/libtest.a util/libutil.la
 tests_client_open_t_LDADD = client/libremctl.la tests/libtest.a util/libutil.la
+tests_client_large_t_LDADD = client/libremctl.la tests/libtest.a \
+	util/libutil.la
 tests_portable_asprintf_t_SOURCES = tests/portable/asprintf-t.c \
 	tests/portable/asprintf.c
 tests_portable_asprintf_t_LDADD = tests/libtest.a util/libutil.la

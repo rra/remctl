@@ -29,10 +29,6 @@
 #include <client/remctl.h>
 #include <util/util.h>
 
-/* We're unwilling to accept tokens from the remote side larger than this.
-   FIXME: Figure out what the actual limit is by asking GSS-API. */
-#define MAX_TOKEN       (1024 * 1024)
-
 
 /*
 **  Send a command to the server using protocol v2.  Returns true on success,
@@ -42,60 +38,97 @@ int
 internal_v2_commandv(struct remctl *r, const struct iovec *command,
                      size_t count)
 {
+    size_t length, iov, offset, sent, left, delta;
     gss_buffer_desc token;
-    size_t i;
     char *p;
     OM_uint32 data, major, minor;
     int status;
 
-    /* Allocate room for the total message. */
-    token.length = 1 + 1 + 1 + 1 + 4;
-    for (i = 0; i < count; i++)
-        token.length += 4 + command[i].iov_len;
-    token.value = malloc(token.length);
-    if (token.value == NULL) {
-        internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
-        return 0;
-    }
+    /* Determine the total length of the message. */
+    length = 4;
+    for (iov = 0; iov < count; iov++)
+        length += 4 + command[iov].iov_len;
 
-    /* Protocol version. */
-    p = token.value;
-    *p = 2;
-    p++;
+    /* Now, loop until we've conveyed the entire message. */
+    iov = 0;
+    offset = 0;
+    sent = 0;
+    while (sent < length) {
+        if (length - sent > TOKEN_MAX_DATA - 4)
+            token.length = TOKEN_MAX_DATA;
+        else
+            token.length = length - sent + 4;
+        token.value = malloc(token.length);
+        if (token.value == NULL) {
+            internal_set_error(r, "Cannot allocate memory: %s",
+                               strerror(errno));
+            return 0;
+        }
+        left = token.length - 4;
 
-    /* Message type. */
-    *p = MESSAGE_COMMAND;
-    p++;
+        /* Each token begins with the protocol version and message type. */
+        p = token.value;
+        p[0] = 2;
+        p[1] = MESSAGE_COMMAND;
+        p += 2;
 
-    /* Keep-alive flag.  Always set to true for now. */
-    *p = 1;
-    p++;
+        /* Keep-alive flag.  Always set to true for now. */
+        *p = 1;
+        p++;
 
-    /* Continue status. */
-    *p = 0;
-    p++;
+        /* Continue status. */
+        if (token.length == length - sent + 4)
+            *p = (sent == 0) ? 0 : 3;
+        else
+            *p = (sent == 0) ? 1 : 2;
+        p++;
 
-    /* Argument count and then each argument. */
-    data = htonl(count);
-    memcpy(p, &data, 4);
-    p += 4;
-    for (i = 0; i < count; i++) {
-        data = htonl(command[i].iov_len);
-        memcpy(p, &data, 4);
-        p += 4;
-        memcpy(p, command[i].iov_base, command[i].iov_len);
-        p += command[i].iov_len;
-    }
+        /* Argument count if we haven't sent anything yet. */
+        if (sent == 0) {
+            data = htonl(count);
+            memcpy(p, &data, 4);
+            p += 4;
+            sent += 4;
+            left -= 4;
+        }
 
-    /* Send the result. */
-    status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
-                             &token, &major, &minor);
-    if (status != TOKEN_OK) {
-        internal_token_error(r, "sending token", status, major, minor);
+        /* Now, as many arguments as will fit. */
+        for (; iov < count; iov++) {
+            if (offset == 0) {
+                if (left < 4)
+                    break;
+                data = htonl(command[iov].iov_len);
+                memcpy(p, &data, 4);
+                p += 4;
+                sent += 4;
+                left -= 4;
+            }
+            if (left >= command[iov].iov_len - offset)
+                delta = command[iov].iov_len - offset;
+            else
+                delta = left;
+            memcpy(p, (char *) command[iov].iov_base + offset, delta);
+            p += delta;
+            sent += delta;
+            offset += delta;
+            left -= delta;
+            if (offset < command[iov].iov_len)
+                break;
+            offset = 0;
+        }
+
+        /* Send the result. */
+        token.length -= left;
+        status = token_send_priv(r->fd, r->context,
+                                 TOKEN_DATA | TOKEN_PROTOCOL, &token,
+                                 &major, &minor);
+        if (status != TOKEN_OK) {
+            internal_token_error(r, "sending token", status, major, minor);
+            free(token.value);
+            return 0;
+        }
         free(token.value);
-        return 0;
     }
-    free(token.value);
     r->ready = 1;
     return 1;
 }
@@ -158,8 +191,8 @@ internal_v2_output(struct remctl *r)
         return r->output;
 
     /* Otherwise, we have to read the token from the server. */
-    status = token_recv_priv(r->fd, r->context, &flags, &token, MAX_TOKEN,
-                             &major, &minor);
+    status = token_recv_priv(r->fd, r->context, &flags, &token,
+                             TOKEN_MAX_LENGTH, &major, &minor);
     if (status != TOKEN_OK) {
         internal_token_error(r, "receiving token", status, major, minor);
         if (status == TOKEN_FAIL_EOF) {
