@@ -1,3 +1,16 @@
+remctl (2.5-1) unstable; urgency=low
+
+  * New upstream release.
+    - The remctl client library now supports arbitrarily large commands
+      transparently, at the cost of some memory consumption on the client
+      and server.
+    - Commands are run with stdin open to /dev/null rather than closed.
+    - Clean up memory leaks and more strictly check command input.
+    - Clean up handling of token size limits.
+  * Update copyright statement and dates.
+
+ -- Russ Allbery <rra@debian.org>  Sat,  3 Feb 2007 21:02:25 -0800
+
 remctl (2.4-1) unstable; urgency=low
 
   * New upstream release.

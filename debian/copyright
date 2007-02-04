@@ -11,14 +11,15 @@ Upstream author:
 
 Debian packaging copyright:
 
-    Copyright 2005, 2006 Board of Trustees, Leland Stanford Jr. University
+    Copyright 2005, 2006, 2007 Board of Trustees, Leland Stanford
+    Jr. University
 
     All files and modifications related to Debian packaging are covered
     under the same license terms as the rest of the package.
 
 Copyright:
 
-    Copyright 2002, 2003, 2004, 2005, 2006 Board of Trustees, Leland
+    Copyright 2002, 2003, 2004, 2005, 2006, 2007 Board of Trustees, Leland
     Stanford Jr. University.  All rights reserved.
       
     Permission to use, copy, modify, and distribute this software and its
@@ -35,3 +36,27 @@ Copyright:
     THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
     WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+Some code in remctl was taken from INN and contributions to INN by Russ
+Allbery.  That code is either in the public domain or covered by the
+following copyright and license:
+
+    Copyright (c) 2004, 2005, 2006, 2007
+        by Internet Systems Consortium, Inc. ("ISC")
+    Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+        2002, 2003 by The Internet Software Consortium and Rich Salz
+
+    This code is derived from software contributed to the Internet
+    Software Consortium by Rich Salz.
+
+    Permission to use, copy, modify, and distribute this software for any
+    purpose with or without fee is hereby granted, provided that the above
+    copyright notice and this permission notice appear in all copies.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+    REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+    MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
+    SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+    OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
