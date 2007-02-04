@@ -1,5 +1,11 @@
                        User-Visible remctl Changes
 
+remctl 2.6 (2007-02-03)
+
+    SECURITY: If an ACL listed for a command didn't exist, the
+    authorization check was treated as a success instead of a failure.
+    This had, embarassingly, apparently been broken since at least 2.0.
+
 remctl 2.5 (2007-02-03)
 
     Automatically use a continued MESSAGE_COMMAND if the total command
