@@ -1,3 +1,9 @@
+remctl (2.2-3) unstable; urgency=high
+
+  * Remove extraneous changes to Automake files.
+
+ -- Russ Allbery <rra@debian.org>  Sat,  3 Feb 2007 23:42:05 -0800
+
 remctl (2.2-2) unstable; urgency=high
 
   * SECURITY: Apply upstream patch to prevent a non-existent ACL file from
