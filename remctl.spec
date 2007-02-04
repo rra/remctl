@@ -2,7 +2,7 @@
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 2.4
+Version: 2.5
 Release: 1.EL%{rel}
 Copyright: MIT
 URL: http://www.eyrie.org/~eagle/software/remctl/
@@ -12,7 +12,6 @@ Vendor: Stanford University
 Packager: Russ Allbery <rra@stanford.edu>
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: krb5-devel
-Requires: krb5-workstation
 Distribution: EL
 
 %ifarch x86_64
@@ -28,6 +27,34 @@ be listed in a server configuration file, and the executable run on the
 server may be mapped to any command name.  Each command is also associated
 with an ACL containing a list of Kerberos principals authorized to run
 that command.
+
+%package server
+Summary: Server for Kerberos-authenticated command execution
+Group: System Environment/Daemons
+
+%description server
+remctl is a client/server protocol for executing specific commands on a
+remote system with Kerberos authentication.  The allowable commands must
+be listed in a server configuration file, and the executable run on the
+server may be mapped to any command name.  Each command is also associated
+with an ACL containing a list of Kerberos principals authorized to run
+that command.
+
+This package contains the server (remctld).
+
+%package client
+Summary: Client for Kerberos-authenticated command execution
+Group: Applications/Internet
+
+%description client
+remctl is a client/server protocol for executing specific commands on a
+remote system with Kerberos authentication.  The allowable commands must
+be listed in a server configuration file, and the executable run on the
+server may be mapped to any command name.  Each command is also associated
+with an ACL containing a list of Kerberos principals authorized to run
+that command.
+
+This package contains the client program (remctl) and the client libraries.
 
 %prep
 %setup -n remctl-%{version}
@@ -51,14 +78,23 @@ if [ -d %{buildroot}/usr/lib/ ]; then
 fi
 %endif
 
-%files
+%files client
 %defattr(-, root, root, 0755)
 %doc NEWS README TODO
 %{_bindir}/*
-%{_sbindir}/*
-%{_mandir}/*/*
-/etc/xinetd.d/remctl
+%{_mandir}/*/remctl.*
+%defattr(0644, root, root)
 /usr/include/remctl.h
+%{ldir}/libremctl.a
+%{ldir}/libremctl.la
+%{ldir}/libremctl.so.1.0.0
+
+%files server
+%defattr(-, root, root, 0755)
+%doc NEWS README TODO
+%{_sbindir}/*
+%{_mandir}/*/remctld.*
+/etc/xinetd.d/remctl
 %dir /etc/remctl/
 %defattr(0640, root, root)
 %config(noreplace) /etc/remctl/remctl.conf
@@ -66,14 +102,11 @@ fi
 %dir /etc/remctl/acl/
 %defattr(0750, root, root)
 %dir /etc/remctl/conf.d/
-%defattr(0644, root, root)
-%{ldir}/libremctl.a
-%{ldir}/libremctl.la
-%{ldir}/libremctl.so.1.0.0
 
-%post
+%post client
 /sbin/ldconfig
 
+%post server
 # If this is the first remctl install, add remctl to /etc/services and
 # restart xinetd to pick up its new configuration.
 if [ "$1" = 1 ] ; then
@@ -87,9 +120,10 @@ if [ "$1" = 1 ] ; then
     fi
 fi
 
-%postun
+%postun client
 /sbin/ldconfig
 
+%postun server
 # If we're the last remctl package, remove the /etc/services line and
 # restart xinetd to reflect its new configuration.
 if [ "$1" = 0 ] ; then
@@ -110,6 +144,11 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Sat Feb 3 2007 Russ Allbery <rra@stanford.edu> 2.5-1
+- Update for 2.5.
+- Incorporate changes by Darren Patterson to split into subpackages for
+  client and server and remove krb5-workstation requirement.
+
 * Wed Jan 17 2007 Russ Allbery <rra@stanford.edu> 2.4-1
 - Update for 2.4.
 - Changed permissions on the ACL directory to allow any user read.
