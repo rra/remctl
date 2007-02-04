@@ -159,30 +159,25 @@ static int
 server_v2_send_version(struct client *client)
 {
     gss_buffer_desc token;
-    char *p;
+    char buffer[1 + 1 + 1];
     OM_uint32 major, minor;
     int status;
 
     /* Build the version token. */
     token.length = 1 + 1 + 1;
-    token.value = xmalloc(token.length);
-    p = token.value;
-    *p = 2;
-    p++;
-    *p = MESSAGE_VERSION;
-    p++;
-    *p = 2;
+    token.value = &buffer;
+    buffer[0] = 2;
+    buffer[1] = MESSAGE_VERSION;
+    buffer[2] = 2;
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
                  TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending version token", status, major, minor);
-        free(token.value);
         client->fatal = 1;
         return 0;
     }
-    free(token.value);
     return 1;
 }
 
@@ -258,6 +253,7 @@ server_v2_handle_token(struct client *client, struct config *config,
            Otherwise, if buffer is NULL (no continuation), we just use this
            token as the complete buffer. */
         if (continued) {
+            gss_release_buffer(&minor, token);
             status = token_recv_priv(client->fd, client->context, &flags,
                                      token, TOKEN_MAX_LENGTH, &major, &minor);
             if (status != TOKEN_OK) {
@@ -310,7 +306,10 @@ server_v2_handle_commands(struct client *client, struct config *config)
                 break;
             continue;
         }
-        if (!server_v2_handle_token(client, config, &token))
+        if (!server_v2_handle_token(client, config, &token)) {
+            gss_release_buffer(&minor, &token);
             break;
+        }
+        gss_release_buffer(&minor, &token);
     } while (client->keepalive);
 }

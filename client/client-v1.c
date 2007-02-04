@@ -167,6 +167,7 @@ internal_v1_output(struct remctl *r)
     }
     memcpy(r->output->data, p, length);
     r->output->length = length;
+    gss_release_buffer(&minor, &token);
 
     /* We always claim everything was stdout since we have no way of knowing
        better with protocol version one. */

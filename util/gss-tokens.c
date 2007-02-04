@@ -89,7 +89,10 @@ token_send_priv(int fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
 **  Receives and unwraps a data payload token.  Takes the file descriptor,
 **  GSS-API context, a pointer into which to storge the flags, a buffer for
 **  the message, and a place to put GSS-API major and minor status.  Returns
-**  TOKEN_OK on success or one of the TOKEN_FAIL_* statuses on failure.
+**  TOKEN_OK on success or one of the TOKEN_FAIL_* statuses on failure.  On
+**  success, tok will contain newly allocated memory and should be freed when
+**  no longer needed using gss_release_buffer.  On failure, any allocated
+**  memory will be freed.
 **
 **  As a hack to support remctl v1, look to see if the flags includes
 **  TOKEN_SEND_MIC and do not include TOKEN_PROTOCOL.  If so, calculate a MIC
@@ -109,12 +112,16 @@ token_recv_priv(int fd, gss_ctx_id_t ctx, int *flags, gss_buffer_t tok,
     *major = gss_unwrap(minor, ctx, &in, tok, &state, NULL);
     if (*major != GSS_S_COMPLETE)
         return TOKEN_FAIL_GSSAPI;
+    gss_release_buffer(minor, &in);
     if ((*flags & TOKEN_SEND_MIC) && !(*flags & TOKEN_PROTOCOL)) {
         *major = gss_get_mic(minor, ctx, GSS_C_QOP_DEFAULT, tok, &mic);
-        if (*major != GSS_S_COMPLETE)
+        if (*major != GSS_S_COMPLETE) {
+            gss_release_buffer(minor, tok);
             return TOKEN_FAIL_GSSAPI;
+        }
         status = token_send(fd, TOKEN_MIC, &mic);
         if (status != TOKEN_OK) {
+            gss_release_buffer(minor, tok);
             gss_release_buffer(minor, &mic);
             return status;
         }

@@ -12,6 +12,9 @@ remctl 2.5 (unreleased)
     rather than leaving standard input closed.  Some programs don't cope
     with a closed standard input.
 
+    Audited memory handling of buffers sent to and read from the network
+    and closed several memory leaks.
+
     Use the same limit (1MB) on token size everywhere.  Enforce the
     protocol limit on unencrypted data size (64KB) in both the server and
     when sending messages in the client.

@@ -113,6 +113,7 @@ server_new_client(int fd, gss_cred_id_t creds)
             client->protocol = 1;
         else if (flags != (TOKEN_CONTEXT | TOKEN_PROTOCOL)) {
             warn("bad token flags %d in context token", flags);
+            gss_release_buffer(&minor, &recv_tok);
             goto fail;
         }
         debug("received context token (size=%lu)",

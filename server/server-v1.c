@@ -99,6 +99,7 @@ server_v1_handle_commands(struct client *client, struct config *config)
         warn("command data length %lu exceeds 64KB",
              (unsigned long) token.length);
         server_send_error(client, ERROR_TOOMUCH_DATA, "Too much data");
+        gss_release_buffer(&minor, &token);
         return;
     }
 
@@ -106,6 +107,7 @@ server_v1_handle_commands(struct client *client, struct config *config)
        code for v2 (v2 just pulls more data off the front of the token
        first). */
     argv = server_parse_command(client, token.value, token.length);
+    gss_release_buffer(&minor, &token);
     if (argv == NULL)
         return;
 
