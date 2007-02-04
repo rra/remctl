@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 2.5 (unreleased)
+remctl 2.5 (2007-02-03)
 
     Automatically use a continued MESSAGE_COMMAND if the total command
     length is larger than 64KB (minus token overhead).  The remctl client
