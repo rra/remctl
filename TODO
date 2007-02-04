@@ -44,3 +44,6 @@
    server_v2_handle_token that needs to be refactored.
 
  * Add a test suite for configuration and ACL parsing.
+
+ * Write a portable/gssapi.h header that encapsulates all the GSSAPI
+   variations.
