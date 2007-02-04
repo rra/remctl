@@ -3,6 +3,9 @@
 # GNU copyright 1997 to 1999 by Joey Hess.
 # Further updates by Russ Allbery <rra@stanford.edu>
 
+# Use quilt to manage patches.
+include /usr/share/quilt/quilt.make
+
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
@@ -32,13 +35,13 @@ config.status: configure
 	    --enable-reduced-depends $(SYSTEM)
 
 build: build-stamp
-build-stamp: config.status
+build-stamp: patch config.status
 	dh_testdir
 	$(MAKE)
 	$(MAKE) check
 	touch build-stamp
 
-clean:
+clean: unpatch
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp

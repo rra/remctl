@@ -1,0 +1,63 @@
+Index: server/config.c
+===================================================================
+--- server/config.c	(revision 2963)
++++ server/config.c	(working copy)
+@@ -367,7 +367,7 @@
+         return 1;
+     for (i = 0; acls[i] != NULL; i++) {
+         status = acl_check_file((void *) user, acls[i]);
+-        if (status != -1)
++        if (status == 0)
+             return 1;
+     }
+     return 0;
+Index: tests/data/simple.conf
+===================================================================
+--- tests/data/simple.conf	(revision 2963)
++++ tests/data/simple.conf	(working copy)
+@@ -2,5 +2,6 @@
+ test status data/cmd-status ANYUSER
+ test nonexistant data/cmd-nonexistant ANYUSER
+ test noauth data/cmd-hello data/acl-nonexistant
++test noacl data/cmd-hello data/acl-no-such-file
+ test streaming data/cmd-streaming ANYUSER
+ test env data/cmd-env ANYUSER
+Index: tests/client/remctl-t
+===================================================================
+--- tests/client/remctl-t	(revision 2963)
++++ tests/client/remctl-t	(working copy)
+@@ -54,7 +54,7 @@
+ }
+ 
+ # Print the number of tests.
+-echo 7
++echo 8
+ 
+ # Find the client program.
+ if [ -f ../data/test.keytab ] ; then
+@@ -65,7 +65,7 @@
+     fi
+ fi
+ if [ ! -f data/test.keytab ] ; then
+-    for n in 1 2 3 4 5 6 7 ; do
++    for n in 1 2 3 4 5 6 7 8 ; do
+         echo ok $n \# skip -- no Kerberos configuration
+     done
+     exit 0
+@@ -100,7 +100,7 @@
+         kill -HUP `cat data/pid`
+     fi
+     rm -f data/pid
+-    for n in 1 2 3 4 5 6 7 ; do
++    for n in 1 2 3 4 5 6 7 8 ; do
+         echo ok $n \# skip -- no Kerberos configuration
+     done
+     exit 0
+@@ -117,6 +117,7 @@
+ runfailure 1 "" test status 1
+ runfailure 2 "" test status 2
+ runfailure 255 "Access denied" test noauth
++runfailure 255 "Access denied" test noacl
+ runfailure 1 "" test nonexistant
+ runfailure 255 "Unknown command" test bad-command
+ 
