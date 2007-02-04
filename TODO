@@ -44,8 +44,3 @@
    server_v2_handle_token that needs to be refactored.
 
  * Add a test suite for configuration and ACL parsing.
-
- * Change the token_recv and token_recv_priv functions to free the storage
-   associated with the output buffer, and check all callers to make sure
-   that buffers are zeroed when allocated off the stack.  Right now, we're
-   leaking memory in some cases.
