@@ -59,11 +59,12 @@ test_excess_args(struct remctl *r)
     const char **command;
     size_t i;
 
-    command = xmalloc((10 * 1024 + 2) * sizeof(const char *));
+    command = xmalloc((10 * 1024 + 3) * sizeof(const char *));
     command[0] = "test";
     command[1] = "echo";
     for (i = 2; i < (10 * 1024) + 2; i++)
         command[i] = "a";
+    command[10 * 1024 + 2] = NULL;
     if (!remctl_command(r, command)) {
         warn("remctl error %s", remctl_error(r));
         return ERROR_INTERNAL;
