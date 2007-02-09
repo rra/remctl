@@ -32,6 +32,9 @@
 #include <tests/libtest.h>
 #include <util/util.h>
 
+/* Set this globally to 0 if IPv6 is available but doesn't work. */
+static int ipv6 = 1;
+
 /* The server portion of the test.  Listens to a socket and accepts a
    connection, making sure what is printed on that connection matches what the
    client is supposed to print. */
@@ -127,6 +130,7 @@ test_ipv6(int n, const char *source)
     if (fd < 0) {
         if (errno == EAFNOSUPPORT || errno == EPROTONOSUPPORT
             || errno == EADDRNOTAVAIL) {
+            ipv6 = 0;
             skip_block(n, 3, "IPv6 not supported");
             return n + 3;
         } else
@@ -290,15 +294,29 @@ main(void)
 
     test_init(117);
 
+    /* If IPv6 support appears to be available but doesn't work, we have to
+       skip the test_all tests since they'll create a socket that we then
+       can't connect to.  This is the case on Solaris 8 without IPv6
+       configured. */
     n = test_ipv4(1, NULL);                     /* Tests  1-3.  */
     n = test_ipv6(n, NULL);                     /* Tests  4-6.  */
-    n = test_all(n, NULL, NULL);                /* Tests  7-12. */
+    if (ipv6)
+        n = test_all(n, NULL, NULL);            /* Tests  7-12. */
+    else {
+        skip_block(n, 6, "IPv6 not configured");
+        n += 6;
+    }
     n = test_create_ipv4(n, NULL);              /* Tests 13-15. */
 
     /* This won't make a difference for loopback connections. */
     n = test_ipv4(n, "127.0.0.1");              /* Tests 16-18. */
     n = test_ipv6(n, "::1");                    /* Tests 19-21. */
-    n = test_all(n, "127.0.0.1", "::1");        /* Tests 22-27. */
+    if (ipv6)
+        n = test_all(n, "127.0.0.1", "::1");    /* Tests 22-27. */
+    else {
+        skip_block(n, 6, "IPv6 not configured");
+        n += 6;
+    }
     n = test_create_ipv4(n, "127.0.0.1");       /* Tests 28-30. */
 
     /* Skip a block of tests that are only applicable to INN. */
