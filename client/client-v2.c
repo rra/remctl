@@ -112,7 +112,7 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
             sent += delta;
             offset += delta;
             left -= delta;
-            if (offset < command[iov].iov_len)
+            if (offset < (size_t) command[iov].iov_len)
                 break;
             offset = 0;
         }

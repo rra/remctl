@@ -86,7 +86,8 @@ lookup_name(const struct in_addr *addr, char *node, socklen_t nodelen,
 
     /* Do the name lookup first unless told not to. */
     if (!(flags & NI_NUMERICHOST)) {
-        host = gethostbyaddr(addr, sizeof(struct in_addr), AF_INET);
+        host = gethostbyaddr((const void *) addr, sizeof(struct in_addr),
+                             AF_INET);
         if (host == NULL) {
             if (flags & NI_NAMEREQD)
                 return EAI_NONAME;

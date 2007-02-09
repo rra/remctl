@@ -86,7 +86,7 @@ distclean-local:
 # without optimization turned on, and add -DDEBUG=1 so we'll also compile all
 # debugging code and test it.
 WARNINGS = -g -O -DDEBUG=1 -Wall -W -Wendif-labels -Wpointer-arith \
-	-Wbad-function-cast -Wcast-align -Wwrite-strings -Wstrict-prototypes \
+	-Wbad-function-cast -Wwrite-strings -Wstrict-prototypes \
 	-Wmissing-prototypes -Wnested-externs -Werror
 
 warnings:

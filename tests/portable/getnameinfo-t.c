@@ -121,7 +121,8 @@ main(void)
         skip_block(21, 2, "cannot look up www.isc.org");
     else {
         memcpy(&sin.sin_addr, hp->h_addr, sizeof(sin.sin_addr));
-        hp = gethostbyaddr(&sin.sin_addr, sizeof(sin.sin_addr), AF_INET);
+        hp = gethostbyaddr((const void *) &sin.sin_addr, sizeof(sin.sin_addr),
+                           AF_INET);
         if (hp == NULL || strchr(hp->h_name, '.') == NULL)
             skip_block(21, 2, "cannot reverse-lookup www.isc.org");
         else {
