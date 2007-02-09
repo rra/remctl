@@ -125,7 +125,8 @@ test_ipv6(int n, const char *source)
 
     fd = network_bind_ipv6("::1", 11119);
     if (fd < 0) {
-        if (errno == EAFNOSUPPORT || errno == EPROTONOSUPPORT) {
+        if (errno == EAFNOSUPPORT || errno == EPROTONOSUPPORT
+            || errno == EADDRNOTAVAIL) {
             skip_block(n, 3, "IPv6 not supported");
             return n + 3;
         } else
