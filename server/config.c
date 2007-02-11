@@ -7,7 +7,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -19,12 +19,6 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <sys/stat.h>
-
-#ifdef HAVE_GSSAPI_H
-# include <gssapi.h>
-#else
-# include <gssapi/gssapi_generic.h>
-#endif
 
 #include <server/internal.h>
 #include <util/util.h>

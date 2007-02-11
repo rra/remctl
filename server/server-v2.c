@@ -14,14 +14,9 @@
 
 #include <config.h>
 #include <system.h>
+#include <portable/gssapi.h>
 
 #include <netinet/in.h>
-
-#ifdef HAVE_GSSAPI_H
-# include <gssapi.h>
-#else
-# include <gssapi/gssapi_generic.h>
-#endif
 
 #include <server/internal.h>
 #include <util/util.h>

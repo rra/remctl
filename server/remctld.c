@@ -14,24 +14,14 @@
 
 #include <config.h>
 #include <system.h>
+#include <portable/gssapi.h>
 #include <portable/socket.h>
 
 #include <syslog.h>
 #include <time.h>
 
-#ifdef HAVE_GSSAPI_H
-# include <gssapi.h>
-#else
-# include <gssapi/gssapi_generic.h>
-#endif
-
 #include <server/internal.h>
 #include <util/util.h>
-
-/* Handle compatibility to older versions of MIT Kerberos. */
-#ifndef HAVE_GSS_RFC_OIDS
-# define GSS_C_NT_USER_NAME gss_nt_user_name
-#endif
 
 /* Usage message. */
 static const char usage_message[] = "\

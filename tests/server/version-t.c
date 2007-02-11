@@ -2,20 +2,15 @@
 /* Test suite for version negotiation in the server. */
 
 /* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+   Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
    See README for licensing terms. */
 
 #include <config.h>
 #include <system.h>
+#include <portable/gssapi.h>
 
 #include <signal.h>
 #include <sys/wait.h>
-
-#ifdef HAVE_GSSAPI_H
-# include <gssapi.h>
-#else
-# include <gssapi/gssapi_generic.h>
-#endif
 
 #include <client/internal.h>
 #include <client/remctl.h>

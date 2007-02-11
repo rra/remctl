@@ -18,12 +18,7 @@
 
 #include <config.h>
 #include <system.h>
-
-#ifdef HAVE_GSSAPI_H
-# include <gssapi.h>
-#else
-# include <gssapi/gssapi_generic.h>
-#endif
+#include <portable/gssapi.h>
 
 #include <util/util.h>
 

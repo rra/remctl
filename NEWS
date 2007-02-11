@@ -5,6 +5,9 @@ remctl 2.7 (unreleased)
     Various minor fixes so that make warnings and make check work on a
     Solaris 8 system without IPv6 configured.
 
+    Use a portability wrapper around the GSS-API header to avoid repeating
+    the same portability code in every file.
+
 remctl 2.6 (2007-02-03)
 
     SECURITY: If an ACL listed for a command didn't exist, the

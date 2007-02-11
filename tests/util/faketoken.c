@@ -8,12 +8,6 @@
 #include <config.h>
 #include <system.h>
 
-#ifdef HAVE_GSSAPI_H
-# include <gssapi.h>
-#else
-# include <gssapi/gssapi_generic.h>
-#endif
-
 #include <util/util.h>
 
 /* __attribute__ is available in gcc 2.5 and later, but only with gcc 2.7

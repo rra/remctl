@@ -4,21 +4,23 @@
 **
 **  This is a variety of utility functions that are used internally by pieces
 **  of remctl.  Many of them came originally from INN.
+**
+**  Written by Russ Allbery <rra@stanford.edu>
+**  Based on prior work by Anton Ushakov <antonu@stanford.edu>
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**      Board of Trustees, Leland Stanford Jr. University
+**
+**  See README for licensing terms.
 */
 
 #ifndef UTIL_UTIL_H
 #define UTIL_UTIL_H 1
 
 #include <config.h>
+#include <portable/gssapi.h>
 
 #include <stdarg.h>
 #include <sys/types.h>
-
-#ifdef HAVE_GSSAPI_H
-# include <gssapi.h>
-#else
-# include <gssapi/gssapi_generic.h>
-#endif
 
 /* __attribute__ is available in gcc 2.5 and later, but only with gcc 2.7
    could you use the __format__ form of the attributes, which is what we use

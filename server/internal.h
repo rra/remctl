@@ -3,7 +3,7 @@
 **  Internal support functions for the remctld daemon.
 **
 **  Written by Russ Allbery <rra@stanford.edu>
-**  Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+**  Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
 */
@@ -12,12 +12,7 @@
 #define SERVER_INTERNAL_H 1
 
 #include <config.h>
-
-#ifdef HAVE_GSSAPI_H
-# include <gssapi.h>
-#else
-# include <gssapi/gssapi_generic.h>
-#endif
+#include <portable/gssapi.h>
 
 #include <util/util.h>
 

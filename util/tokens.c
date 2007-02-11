@@ -16,15 +16,10 @@
 
 #include <config.h>
 #include <system.h>
+#include <portable/gssapi.h>
 
 #include <errno.h>
 #include <netinet/in.h>
-
-#ifdef HAVE_GSSAPI_H
-# include <gssapi.h>
-#else
-# include <gssapi/gssapi_generic.h>
-#endif
 
 #include <util/util.h>
 

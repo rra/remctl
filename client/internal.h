@@ -4,20 +4,19 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on prior work by Anton Ushakov <antonu@stanford.edu>
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**      Board of Trustees, Leland Stanford Jr. University
+**
+**  See README for licensing terms.
 */
 
 #ifndef CLIENT_INTERNAL_H
 #define CLIENT_INTERNAL_H 1
 
 #include <config.h>
+#include <portable/gssapi.h>
 
 #include <sys/uio.h>
-
-#ifdef HAVE_GSSAPI_H
-# include <gssapi.h>
-#else
-# include <gssapi/gssapi_generic.h>
-#endif
 
 /* BEGIN_DECLS is used at the beginning of declarations so that C++
    compilers don't mangle their names.  END_DECLS is used at the end. */

@@ -7,6 +7,7 @@
 
 #include <config.h>
 #include <system.h>
+#include <portable/gssapi.h>
 
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -14,12 +15,6 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
-
-#ifdef HAVE_GSSAPI_H
-# include <gssapi.h>
-#else
-# include <gssapi/gssapi_generic.h>
-#endif
 
 #include <tests/libtest.h>
 #include <util/util.h>
