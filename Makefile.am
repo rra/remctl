@@ -1,4 +1,4 @@
-# Makefile.am -- Top-level Automake makefile for remctl.
+# Makefile.am -- Automake makefile for remctl.
 # $Id$
 #
 # Written by Russ Allbery <rra@stanford.edu>
