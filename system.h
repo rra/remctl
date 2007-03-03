@@ -1,4 +1,4 @@
-/*  $Id: clibrary.h 7121 2005-01-06 00:40:37Z rra $
+/*  $Id$
 **
 **  Declarations of routines and variables in the C library.  Including this
 **  file is the equivalent of including all of the following headers,
