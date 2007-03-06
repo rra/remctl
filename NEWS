@@ -2,6 +2,13 @@
 
 remctl 2.7 (unreleased)
 
+    When the command-line remctl canonicalizes the name of the server host
+    to get the right principal, it then needs to connect to the canonical
+    hostname.  Otherwise, DNS schemes that return a different answer each
+    time one asks for a given host may cause remctl to connect to a
+    different host than the canonical name used for the principal,
+    resulting in authentication failure.
+
     Various minor fixes so that make warnings and make check work on a
     Solaris 8 system without IPv6 configured.
 

@@ -158,6 +158,23 @@ main(int argc, char *argv[])
     server_host = *argv++;
     argc--;
 
+    /*
+     * If service_name isn't set, we use host/<server>.  However, if the
+     * server to which we're connecting is a DNS-load-balanced name, we have
+     * to be careful what principal name we use.  Canonicalize the name with
+     * DNS (usually meaning a forward and reverse lookup).
+     *
+     * We then have to make sure that we connect to the same host that we're
+     * using for the principal name.  If we get a different answer each time
+     * we ask DNS (possible with DNS load balancing), we need to connect to
+     * the canonical name rather than the original name given on the command
+     * line.
+     *
+     * Note that this opens the possibility of a subtle attack through DNS
+     * spoofing, since both the principal used and the host to which we're
+     * connecting can be changed by varying the DNS response.  Providing a
+     * service on the command-line will deactivate this behavior.
+     */
     if (service_name == NULL) {
         memset(&hints, 0, sizeof(hints));
         hints.ai_flags = AI_CANONNAME;
@@ -165,6 +182,7 @@ main(int argc, char *argv[])
         if (status != 0)
             die("cannot resolve host %s: %s", server_host,
                 gai_strerror(status));
+        server_host = xstrdup(ai->ai_canonname);
         service_name = xmalloc(strlen("host/") + strlen(ai->ai_canonname) + 1);
         strcpy(service_name, "host/");
         strcat(service_name, ai->ai_canonname);
