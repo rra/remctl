@@ -1,3 +1,9 @@
+remctl (2.6-2) unstable; urgency=low
+
+  * libremctl-dev should depend on libremctl1.
+
+ -- Russ Allbery <rra@debian.org>  Thu,  8 Mar 2007 20:10:16 -0800
+
 remctl (2.6-1) unstable; urgency=high
 
   * Urgency high for security fix.
