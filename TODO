@@ -11,10 +11,16 @@
    need to support passing one of the arguments to the executed command on
    standard input.  This may depend on the new configuration syntax.
 
+   The best way to implement this may be to pass only the service on the
+   command line and pass all other parameters on standard input, using
+   counted strings or some similar encoding protocol.
+
  * Add support for running commands as filters, passing standard input
    asynchronously from the client.  This requires significant
    re-engineering of the client loop and should wait for better
-   configuration since we don't want to do this with every command.
+   configuration since we don't want to do this with every command.  It
+   also introduces out-of-order responses and possible deadlocks to the
+   protocol, which is disturbing.
 
  * Maximum argument count and maximum data size in MESSAGE_COMMAND should
    be configurable parameters of the server rather than hard-coded
