@@ -23,6 +23,14 @@
 #include <server/internal.h>
 #include <util/util.h>
 
+/* Data structure used to hold details about a running process. */
+struct process {
+    int reaped;                 /* Whether we've reaped the process. */
+    int fds[2];                 /* Array of file descriptors for output. */
+    pid_t pid;                  /* Process ID of child. */
+    int status;                 /* Exit status. */
+};
+
 
 /*
 **  Processes the output from an external program.  Takes the client struct,
@@ -38,12 +46,12 @@
 **  Returns true on success, false on failure.
 */
 static int
-server_process_output(struct client *client, int fds[], int nfds)
+server_process_output(struct client *client, struct process *process)
 {
     char junk[BUFSIZ];
     char *p;
     size_t left = MAXBUFFER;
-    ssize_t *status;
+    ssize_t status[2];
     int i, maxfd, fd, result;
     fd_set fdset;
 
@@ -52,22 +60,30 @@ server_process_output(struct client *client, int fds[], int nfds)
         client->output = xmalloc(MAXBUFFER);
     p = client->output;
 
-    /* Allocate the array of read statuses. */
-    status = xmalloc(nfds * sizeof(ssize_t));
-    for (i = 0; i < nfds; i++)
-        status[i] = -1;
+    /* Initialize read status for standard output and standard error. */
+    status[0] = -1;
+    status[1] = -1;
 
     /* Now, loop while we have input.  We no longer have input if the return
        status of read is 0 on all file descriptors.  At that point, we break
-       out of the loop. */
+       out of the loop.
+
+       Exceptionally, however, we want to catch the case where our child
+       process ran some other command that didn't close its inherited standard
+       output and error and then exited itself.  This is not uncommon with
+       init scripts that start poorly-written daemons.  Once our child process
+       is finished, we're done, even if standard output and error from the
+       child process aren't closed yet.  To catch this case, call waitpid with
+       the WNOHANG flag each time through the select loop and decide we're
+       done as soon as our child has exited. */
     while (1) {
         FD_ZERO(&fdset);
         maxfd = -1;
-        for (i = 0; i < nfds; i++) {
+        for (i = 0; i < 2; i++) {
             if (status[i] != 0) {
-                FD_SET(fds[i], &fdset);
-                if (fds[i] > maxfd)
-                    maxfd = fds[i];
+                FD_SET(process->fds[i], &fdset);
+                if (process->fds[i] > maxfd)
+                    maxfd = process->fds[i];
             }
         }
         if (maxfd == -1)
@@ -86,8 +102,8 @@ server_process_output(struct client *client, int fds[], int nfds)
            we're using protocol version one, we append all the output together
            into the buffer.  Otherwise, we send an output token for each bit
            of output as we see it. */
-        for (i = 0; i < nfds; i++) {
-            fd = fds[i];
+        for (i = 0; i < 2; i++) {
+            fd = process->fds[i];
             if (!FD_ISSET(fd, &fdset))
                 continue;
             if (client->protocol == 1) {
@@ -115,6 +131,12 @@ server_process_output(struct client *client, int fds[], int nfds)
                 }
             }
         }
+
+        /* Check to see if our child has exited. */
+        if (waitpid(process->pid, &process->status, WNOHANG) > 0) {
+            process->reaped = 1;
+            break;
+        }
     }
     if (client->protocol == 1)
         client->outlen = p - client->output;
@@ -124,7 +146,6 @@ readfail:
     syswarn("read failed");
     server_send_error(client, ERROR_INTERNAL, "Internal failure");
 fail:
-    free(status);
     return 0;
 }
 
@@ -155,11 +176,11 @@ server_run_command(struct client *client, struct config *config,
     char *path = NULL;
     const char *type, *service, *user;
     struct confline *cline = NULL;
-    int stdout_pipe[2], stderr_pipe[2], fds[2];
+    int stdout_pipe[2], stderr_pipe[2];
     char **req_argv = NULL;
     size_t i;
-    int ret_code, ok, fd;
-    pid_t pid;
+    int ok, fd;
+    struct process process = { 0, { 0, 0 }, -1, 0 };
 
     /* We refer to these a lot, so give them good aliases. */
     type = argv->strings[0];
@@ -223,8 +244,8 @@ server_run_command(struct client *client, struct config *config,
        therefore been writing log messages to standard output that may not
        have been flushed yet. */
     fflush(stdout);
-    pid = fork();
-    switch (pid) {
+    process.pid = fork();
+    switch (process.pid) {
     case -1:
         syswarn("cannot fork");
         server_send_error(client, ERROR_INTERNAL, "Internal failure");
@@ -292,20 +313,23 @@ server_run_command(struct client *client, struct config *config,
 
         /* This collects output from both pipes iteratively, while the child
            is executing, and processes it. */
-        fds[0] = stdout_pipe[0];
-        fds[1] = stderr_pipe[0];
-        ok = server_process_output(client, fds, 2);
-        waitpid(pid, &ret_code, 0);
-        if (WIFEXITED(ret_code))
-            ret_code = (signed int) WEXITSTATUS(ret_code);
+        process.fds[0] = stdout_pipe[0];
+        process.fds[1] = stderr_pipe[0];
+        ok = server_process_output(client, &process);
+        if (!process.reaped)
+            waitpid(process.pid, &process.status, 0);
+        if (WIFEXITED(process.status))
+            process.status = (signed int) WEXITSTATUS(process.status);
         else
-            ret_code = -1;
+            process.status = -1;
         if (ok) {
             if (client->protocol == 1)
-                server_v1_send_output(client, ret_code);
+                server_v1_send_output(client, process.status);
             else
-                server_v2_send_status(client, ret_code);
+                server_v2_send_status(client, process.status);
         }
+        close(process.fds[0]);
+        close(process.fds[1]);
     }
 
  done:
