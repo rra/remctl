@@ -116,11 +116,12 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
            beginning of an argument and need to send the length.  Make sure,
            if we're at the beginning of an argument, that we can add at least
            five octets to this token.  The length plus at least one octet must
-           fit.  Otherwise, we'll send the length but no data, leave offset at
-           0, and the next time around we'll send the length again. */
+           fit (or just the length if that argument is zero-length).
+           Otherwise, we'll send the length but no data, leave offset at 0,
+           and the next time around we'll send the length again. */
         for (; iov < count; iov++) {
             if (offset == 0) {
-                if (left < 5 && left < length - sent)
+                if (left < 4 || (left < 5 && command[iov].iov_len > 0))
                     break;
                 data = htonl(command[iov].iov_len);
                 memcpy(p, &data, 4);
