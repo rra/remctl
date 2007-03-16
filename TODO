@@ -44,8 +44,6 @@
  * In standalone mode, we need to fork a new process for each incoming
    connection since the connections may be long-lived.
 
- * In internal_v2_output, reading strings from messages can be shared.
-
  * There is duplicate code between server_v2_handle_commands and
    server_v2_handle_token that needs to be refactored.
 

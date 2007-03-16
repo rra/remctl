@@ -28,6 +28,15 @@
 /*
 **  Send a command to the server using protocol v2.  Returns true on success,
 **  false on failure.
+**
+**  All of the complexity in this function comes from implementing command
+**  continuation.  The protocol specifies that commands can be continued by
+**  tresting the command as one huge token, chopping it into as many pieces as
+**  desired, and putting the MESSAGE_COMMAND header on each piece with the
+**  appropriate continue status.  We don't take full advantage of that (we
+**  don't, for instance, ever split numbers across token boundaries), but we
+**  do use this to handle commands where all the data is longer than
+**  TOKEN_MAX_DATA.
 */
 int
 internal_v2_commandv(struct remctl *r, const struct iovec *command,
@@ -44,7 +53,23 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
     for (iov = 0; iov < count; iov++)
         length += 4 + command[iov].iov_len;
 
-    /* Now, loop until we've conveyed the entire message. */
+    /* Now, loop until we've conveyed the entire message.  Each token we send
+       to the server must include the standard header and the continue
+       status.  The first token then has the argument count, and the remainder
+       of the command consists of pairs of argument length and argument data.
+
+       If the entire message length plus the overhead for the header is less
+       than TOKEN_MAX_DATA, we send it in one go.  Otherwise, each time
+       through this loop, we pull off as much data as we can.  We break the
+       tokens either in the middle of an argument or just before an argument
+       length; we never send part of the argument length number and we always
+       include at least one byte of the argument after the argument length.
+       The protocol is more lenient, but those constraints make bookkeeping
+       easier.
+
+       iov is the index of the argument we're currently sending.  offset is
+       the amount of that argument data we've already sent.  sent holds the
+       total length sent so far so that we can tell when we're done.  */
     iov = 0;
     offset = 0;
     sent = 0;
@@ -87,10 +112,15 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
             left -= 4;
         }
 
-        /* Now, as many arguments as will fit. */
+        /* Now, as many arguments as will fit.  If offset is 0, we're at the
+           beginning of an argument and need to send the length.  Make sure,
+           if we're at the beginning of an argument, that we can add at least
+           five octets to this token.  The length plus at least one octet must
+           fit.  Otherwise, we'll send the length but no data, leave offset at
+           0, and the next time around we'll send the length again. */
         for (; iov < count; iov++) {
             if (offset == 0) {
-                if (left < 4)
+                if (left < 5 && left < length - sent)
                     break;
                 data = htonl(command[iov].iov_len);
                 memcpy(p, &data, 4);
@@ -154,6 +184,37 @@ internal_v2_quit(struct remctl *r)
 
 
 /*
+**  Read a string from a server token, with its length starting at the given
+**  offset, and store it in newly allocated memory in the remctl struct.
+**  Returns true on success and false on any failure (also setting the error).
+*/
+static int
+internal_v2_read_string(struct remctl *r, gss_buffer_t token, size_t offset)
+{
+    size_t size;
+    OM_uint32 data;
+    const char *p;
+
+    p = (const char *) token->value + offset;
+    memcpy(&data, p, 4);
+    p += 4;
+    size = ntohl(data);
+    if (size != token->length - (p - (char *) token->value)) {
+        internal_set_error(r, "Malformed result token from server");
+        return 0;
+    }
+    r->output->data = malloc(size);
+    if (r->output->data == NULL) {
+        internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
+        return 0;
+    }
+    memcpy(r->output->data, p, size);
+    r->output->length = size;
+    return 1;
+}
+
+
+/*
 **  Retrieve the output from the server using protocol v2 and return it.  This
 **  function may be called any number of times; if the last packet we got from
 **  the server was a REMCTL_OUT_STATUS or REMCTL_OUT_ERROR, we'll return
@@ -165,7 +226,6 @@ internal_v2_output(struct remctl *r)
 {
     int status, flags;
     gss_buffer_desc token;
-    size_t size;
     OM_uint32 data, major, minor;
     char *p;
     int type;
@@ -198,108 +258,71 @@ internal_v2_output(struct remctl *r)
     }
     if (flags != (TOKEN_DATA | TOKEN_PROTOCOL)) {
         internal_set_error(r, "Unexpected token from server");
-        gss_release_buffer(&minor, &token);
-        return NULL;
+        goto fail;
     }
     if (token.length < 2) {
         internal_set_error(r, "Malformed result token from server");
-        gss_release_buffer(&minor, &token);
-        return NULL;
+        goto fail;
     }
 
     /* Extract the message protocol and type. */
     p = token.value;
     if (p[0] != 2) {
         internal_set_error(r, "Unexpected protocol %d from server", p[0]);
-        gss_release_buffer(&minor, &token);
-        return NULL;
+        goto fail;
     }
     type = p[1];
-    p += 2;
 
     /* Now, what we do depends on the message type. */
     switch (type) {
     case MESSAGE_OUTPUT:
-        if (token.length < 2 + 6) {
+        if (token.length < 2 + 5) {
             internal_set_error(r, "Malformed result token from server");
-            gss_release_buffer(&minor, &token);
-            return NULL;
+            goto fail;
         }
         r->output->type = REMCTL_OUT_OUTPUT;
-        if (p[0] != 1 && p[0] != 2) {
+        if (p[2] != 1 && p[2] != 2) {
             internal_set_error(r, "Unexpected stream %d from server", p[0]);
-            gss_release_buffer(&minor, &token);
-            return NULL;
+            goto fail;
         }
-        r->output->stream = p[0];
-        p++;
-        memcpy(&data, p, 4);
-        p += 4;
-        size = ntohl(data);
-        if (size != token.length - (p - (char *) token.value)) {
-            internal_set_error(r, "Malformed result token from server");
-            gss_release_buffer(&minor, &token);
-            return NULL;
-        }
-        r->output->data = malloc(size);
-        if (r->output->data == NULL) {
-            internal_set_error(r, "Cannot allocate memory: %s",
-                               strerror(errno));
-            gss_release_buffer(&minor, &token);
-            return NULL;
-        }
-        memcpy(r->output->data, p, size);
-        r->output->length = size;
+        r->output->stream = p[2];
+        if (!internal_v2_read_string(r, &token, 3))
+            goto fail;
         break;
 
     case MESSAGE_STATUS:
-        if (token.length < 2 + 1) {
+        if (token.length != 2 + 1) {
             internal_set_error(r, "Malformed result token from server");
-            gss_release_buffer(&minor, &token);
-            return NULL;
+            goto fail;
         }
         r->output->type = REMCTL_OUT_STATUS;
-        r->output->status = p[0];
+        r->output->status = p[2];
         r->ready = 0;
         break;
 
     case MESSAGE_ERROR:
         if (token.length < 2 + 8) {
             internal_set_error(r, "Malformed result token from server");
-            gss_release_buffer(&minor, &token);
-            return NULL;
+            goto fail;
         }
         r->output->type = REMCTL_OUT_ERROR;
-        memcpy(&data, p, 4);
-        p += 4;
+        memcpy(&data, p + 2, 4);
         r->output->error = ntohl(data);
-        memcpy(&data, p, 4);
-        p += 4;
-        size = ntohl(data);
-        if (size != token.length - (p - (char *) token.value)) {
-            internal_set_error(r, "Malformed result token from server");
-            gss_release_buffer(&minor, &token);
-            return NULL;
-        }
-        r->output->data = malloc(size);
-        if (r->output->data == NULL) {
-            internal_set_error(r, "Cannot allocate memory: %s",
-                              strerror(errno));
-            gss_release_buffer(&minor, &token);
-            return NULL;
-        }
-        memcpy(r->output->data, p, size);
-        r->output->length = size;
+        if (!internal_v2_read_string(r, &token, 6))
+            goto fail;
         r->ready = 0;
         break;
 
     default:
         internal_set_error(r, "Unknown message type %d from server", type);
-        gss_release_buffer(&minor, &token);
-        return NULL;
+        goto fail;
     }
 
     /* We've finished analyzing the packet.  Return the results. */
     gss_release_buffer(&minor, &token);
     return r->output;
+
+fail:
+    gss_release_buffer(&minor, &token);
+    return NULL;
 }

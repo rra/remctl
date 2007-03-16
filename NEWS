@@ -14,7 +14,11 @@ remctl 2.7 (unreleased)
     to connect to a different host than the canonical name used for the
     principal, resulting in authentication failure.
 
-    Fix memory and file descriptor leaks in remctld that only become
+    Fixed a subtle bookkeeping error when sending commands larger than the
+    maximum token size that would have resulted in malformed tokens for
+    boundary cases of argument lengths.
+
+    Fixed memory and file descriptor leaks in remctld that only become
     apparent when the server runs many commands before exiting.
 
     Various minor fixes so that make warnings and make check work on a
