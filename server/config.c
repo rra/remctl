@@ -79,10 +79,6 @@ handle_include(struct vector *line, const char *file, int lineno,
             snprintf(path, length, "%s/%s", included, entry->d_name);
             last = (*function)(data, path);
             free(path);
-            if (last < -1) {
-                closedir(dir);
-                return status;
-            }
             if (last > status)
                 status = last;
         }
