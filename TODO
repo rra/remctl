@@ -47,4 +47,4 @@
  * There is duplicate code between server_v2_handle_commands and
    server_v2_handle_token that needs to be refactored.
 
- * Add a test suite for configuration and ACL parsing.
+ * Add a test suite for configuration parsing.

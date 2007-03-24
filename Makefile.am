@@ -14,9 +14,12 @@ EXTRA_DIST = autogen client/remctl.1 client/remctl.pod docs/design.html \
 	java/gss_jaas2.conf portable/getaddrinfo.h portable/getnameinfo.h \
 	portable/gssapi.h portable/socket.h remctl.spec server/remctld.8.in \
 	server/remctld.pod system.h tests/TESTS tests/data/README \
-	tests/data/acl-nonexistant tests/data/cmd-argv tests/data/cmd-env \
-	tests/data/cmd-hello tests/data/cmd-status tests/data/simple.conf \
-	tests/client/remctl-t tests/util/xmalloc-t
+	tests/data/acl-nonexistant tests/data/acl-simple \
+	tests/data/acls/bad-include tests/data/acls/bad-syntax \
+	tests/data/acls/recursive tests/data/acls/too-long \
+	tests/data/acls/valid tests/data/acls/valid-2 tests/data/cmd-argv \
+	tests/data/cmd-env tests/data/cmd-hello tests/data/cmd-status \
+	tests/data/simple.conf tests/client/remctl-t tests/util/xmalloc-t
 
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
@@ -101,7 +104,7 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t \
 	tests/portable/inet_aton-t tests/portable/inet_ntoa-t \
 	tests/portable/inet_ntop-t tests/portable/setenv-t \
 	tests/portable/snprintf-t tests/portable/strlcat-t \
-	tests/portable/strlcpy-t tests/server/accept-t \
+	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t \
 	tests/server/background-t tests/server/continue-t \
 	tests/server/env-t tests/server/errors-t tests/server/streaming-t \
 	tests/server/version-t tests/util/concat-t tests/util/gss-tokens-t \
@@ -151,6 +154,8 @@ tests_portable_strlcpy_t_SOURCES = tests/portable/strlcpy-t.c \
 tests_portable_strlcpy_t_LDADD = tests/libtest.a util/libutil.la
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
 tests_server_accept_t_LDADD = tests/libtest.a util/libutil.la
+tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
+tests_server_acl_t_LDADD = tests/libtest.a util/libutil.la
 tests_server_background_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_continue_t_LDADD = client/libremctl.la tests/libtest.a \
