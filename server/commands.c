@@ -91,12 +91,28 @@ server_process_output(struct client *client, struct process *process)
         if (maxfd == -1)
             break;
 
-        /* We have to wake up periodically to check to see if the child
-           process exited, since otherwise there's a race condition between
-           running  waitpid and calling select.
+        /* We want to wait until either our child exits or until we get data
+           on its output file descriptors.  Normally, the SIGCHLD signal from
+           the child exiting would break us out of our select loop.  However,
+           the child could exit between the waitpid call and the select call,
+           in which case select could block forever since there's nothing to
+           wake it up.
 
-           If our child process has already exited, we poll a final time for
-           output and then call the command finished. */
+           The POSIX-correct way of doing this is to block SIGCHLD and then
+           use pselect instead of select with a signal mask that allows
+           SIGCHLD.  This allows SIGCHLD from the exiting child process to
+           reliably interrupt pselect without race conditions from the child
+           exiting before pselect is called.
+
+           Unfortunately, Linux didn't implement a proper pselect until 2.6.16
+           and the glibc wrapper that emulates it leaves us open to exactly
+           the race condition we're trying to avoid.  This unfortunately
+           leaves us with no choice but to set a timeout and wake up every
+           five seconds to see if our child died.  (The wait time is arbitrary
+           but makes the test suite less annoying.)
+
+           If we see that the child has already exited, do one final poll of
+           our output file descriptors and then call the command finished. */
         timeout.tv_sec = 5;
         timeout.tv_usec = 0;
         if (waitpid(process->pid, &process->status, WNOHANG) > 0) {
@@ -104,9 +120,7 @@ server_process_output(struct client *client, struct process *process)
             timeout.tv_sec = 0;
         }
         result = select(maxfd + 1, &fdset, NULL, NULL, &timeout);
-        if (result == 0)
-            continue;
-        if (result < 0) {
+        if (result < 0 && errno != EINTR) {
             syswarn("select failed");
             server_send_error(client, ERROR_INTERNAL, "Internal failure");
             free(status);
