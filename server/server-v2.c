@@ -178,6 +178,30 @@ server_v2_send_version(struct client *client)
 
 
 /*
+**  Receive a new token from the client, handling reporting of errors.  Takes
+**  the client struct and a pointer to storage for the token.  Returns
+**  TOKEN_OK on success, TOKEN_FAIL_EOF if the other end has gone away, and a
+**  different error code on a recoverable error.
+*/
+static int
+server_v2_read_token(struct client *client, gss_buffer_t token)
+{
+    OM_uint32 major, minor;
+    int status, flags;
+    
+    status = token_recv_priv(client->fd, client->context, &flags, token,
+                             TOKEN_MAX_LENGTH, &major, &minor);
+    if (status != TOKEN_OK) {
+        warn_token("receiving command token", status, major, minor);
+        if (status != TOKEN_FAIL_EOF)
+            if (!server_send_error(client, ERROR_BAD_TOKEN, "Invalid token"))
+                return TOKEN_FAIL_EOF;
+    }
+    return status;
+}
+
+
+/*
 **  Handles a single token from the client, responding or running a command as
 **  appropriate.  Returns true if we should continue, false if an error
 **  occurred or QUIT was received and we should stop processing tokens.
@@ -190,8 +214,8 @@ server_v2_handle_token(struct client *client, struct config *config,
     size_t length, total;
     struct vector *argv = NULL;
     char *buffer = NULL;
-    int status, flags;
-    OM_uint32 major, minor;
+    int status;
+    OM_uint32 minor;
     int continued = 0;
 
     /* Loop on tokens until we have a complete command, allowing for continued
@@ -249,15 +273,11 @@ server_v2_handle_token(struct client *client, struct config *config,
            token as the complete buffer. */
         if (continued) {
             gss_release_buffer(&minor, token);
-            status = token_recv_priv(client->fd, client->context, &flags,
-                                     token, TOKEN_MAX_LENGTH, &major, &minor);
-            if (status != TOKEN_OK) {
-                warn_token("receiving command token", status, major, minor);
-                if (status == TOKEN_FAIL_EOF)
-                    return 0;
-                return server_send_error(client, ERROR_BAD_TOKEN,
-                                         "Invalid token");
-            }
+            status = server_v2_read_token(client, token);
+            if (status == TOKEN_FAIL_EOF)
+                return 0;
+            else if (status != TOKEN_OK)
+                return 1;
         } else if (buffer == NULL) {
             buffer = p;
             total = length;
@@ -286,21 +306,16 @@ void
 server_v2_handle_commands(struct client *client, struct config *config)
 {
     gss_buffer_desc token;
-    OM_uint32 major, minor;
-    int status, flags;
+    OM_uint32 minor;
+    int status;
 
     /* Loop receiving messages until we're finished. */
     do {
-        status = token_recv_priv(client->fd, client->context, &flags, &token,
-                                 TOKEN_MAX_LENGTH, &major, &minor);
-        if (status != TOKEN_OK) {
-            warn_token("receiving command token", status, major, minor);
-            if (status == TOKEN_FAIL_EOF)
-                break;
-            if (!server_send_error(client, ERROR_BAD_TOKEN, "Invalid token"))
-                break;
+        status = server_v2_read_token(client, &token);
+        if (status == TOKEN_FAIL_EOF)
+            break;
+        else if (status != TOKEN_OK)
             continue;
-        }
         if (!server_v2_handle_token(client, config, &token)) {
             gss_release_buffer(&minor, &token);
             break;

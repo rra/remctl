@@ -44,7 +44,4 @@
  * In standalone mode, we need to fork a new process for each incoming
    connection since the connections may be long-lived.
 
- * There is duplicate code between server_v2_handle_commands and
-   server_v2_handle_token that needs to be refactored.
-
  * Add a test suite for configuration parsing.
