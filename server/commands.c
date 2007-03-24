@@ -123,7 +123,7 @@ server_process_output(struct client *client, struct process *process)
         if (result < 0 && errno != EINTR) {
             syswarn("select failed");
             server_send_error(client, ERROR_INTERNAL, "Internal failure");
-            return 0;
+            goto fail;
         }
 
         /* Iterate through each set file descriptor and read its output.   If
