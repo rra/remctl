@@ -18,6 +18,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/time.h>
 #include <sys/wait.h>
 
 #include <server/internal.h>
@@ -54,6 +55,7 @@ server_process_output(struct client *client, struct process *process)
     ssize_t status[2];
     int i, maxfd, fd, result;
     fd_set fdset;
+    struct timeval timeout;
 
     /* If we haven't allocated an output buffer, do so now. */
     if (client->output == NULL)
@@ -76,7 +78,7 @@ server_process_output(struct client *client, struct process *process)
        child process aren't closed yet.  To catch this case, call waitpid with
        the WNOHANG flag each time through the select loop and decide we're
        done as soon as our child has exited. */
-    while (1) {
+    while (!process->reaped) {
         FD_ZERO(&fdset);
         maxfd = -1;
         for (i = 0; i < 2; i++) {
@@ -88,7 +90,20 @@ server_process_output(struct client *client, struct process *process)
         }
         if (maxfd == -1)
             break;
-        result = select(maxfd + 1, &fdset, NULL, NULL, NULL);
+
+        /* We have to wake up periodically to check to see if the child
+           process exited, since otherwise there's a race condition between
+           running  waitpid and calling select.
+
+           If our child process has already exited, we poll a final time for
+           output and then call the command finished. */
+        timeout.tv_sec = 5;
+        timeout.tv_usec = 0;
+        if (waitpid(process->pid, &process->status, WNOHANG) > 0) {
+            process->reaped = 1;
+            timeout.tv_sec = 0;
+        }
+        result = select(maxfd + 1, &fdset, NULL, NULL, &timeout);
         if (result == 0)
             continue;
         if (result < 0) {
@@ -130,12 +145,6 @@ server_process_output(struct client *client, struct process *process)
                         goto fail;
                 }
             }
-        }
-
-        /* Check to see if our child has exited. */
-        if (waitpid(process->pid, &process->status, WNOHANG) > 0) {
-            process->reaped = 1;
-            break;
         }
     }
     if (client->protocol == 1)
