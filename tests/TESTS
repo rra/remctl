@@ -13,6 +13,7 @@ portable/snprintf
 portable/strlcat
 portable/strlcpy
 server/accept
+server/acl
 server/background
 server/env
 server/errors
