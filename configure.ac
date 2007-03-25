@@ -8,7 +8,7 @@ dnl
 dnl See README for licensing terms.
 
 AC_REVISION([$Revision$])
-AC_PREREQ([2.60])
+AC_PREREQ([2.61])
 AC_INIT([remctl], [2.6], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([tools])
 AC_CONFIG_LIBOBJ_DIR([portable])
@@ -69,12 +69,16 @@ dnl VPATH build, we need to copy some of the test suite files that aren't
 dnl otherwise touched during the build process into the build directory.
 AC_CONFIG_COMMANDS([tests/TESTS],
     [if test x"$ac_srcdir" != x. && test x"$ac_srcdir" != x ; then
-        for f in TESTS client/remctl-t data/acl-nonexistant data/cmd-argv \
-                 data/cmd-env data/cmd-hello data/cmd-status \
-                 data/simple.conf util/xmalloc-t ; do
+        AS_MKDIR_P([tests/data/acls])
+        for f in TESTS client/remctl-t data/acl-nonexistant data/acl-simple \
+                 data/acls/bad-include data/acls/bad-syntax \
+                 data/acls/recursive data/acls/too-long data/acls/valid \
+                 data/acls/valid-2 data/cmd-argv data/cmd-env \
+                 data/cmd-hello data/cmd-status data/simple.conf \
+                 util/xmalloc-t ; do
             (cd tests && cp "$ac_srcdir/$f" "$f")
         done
-     fi], [LN_S="$LN_S"])
+     fi])
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_HEADER([config.h])
