@@ -80,7 +80,7 @@ fi
 rm -f data/pid
 KRB5_KTNAME=data/test.keytab; export KRB5_KTNAME
 ( ../server/remctld -m -p 14444 -s `cat data/test.principal` -P data/pid \
-    -f data/simple.conf -d -S &)
+    -f data/conf-simple -d -S &)
 KRB5CCNAME=data/test.cache; export KRB5CCNAME
 kinit -t -k data/test.keytab `cat data/test.principal` >/dev/null </dev/null
 status=$?

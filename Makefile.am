@@ -19,7 +19,7 @@ EXTRA_DIST = autogen client/remctl.1 client/remctl.pod docs/design.html \
 	tests/data/acl-simple tests/data/acl-too-long \
 	tests/data/acls/valid tests/data/acls/valid-2 tests/data/cmd-argv \
 	tests/data/cmd-env tests/data/cmd-hello tests/data/cmd-status \
-	tests/data/simple.conf tests/client/remctl-t tests/util/xmalloc-t
+	tests/data/conf-simple tests/client/remctl-t tests/util/xmalloc-t
 
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
