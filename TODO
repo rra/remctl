@@ -43,5 +43,3 @@
 
  * In standalone mode, we need to fork a new process for each incoming
    connection since the connections may be long-lived.
-
- * Add a test suite for configuration parsing.

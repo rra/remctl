@@ -19,7 +19,8 @@ EXTRA_DIST = autogen client/remctl.1 client/remctl.pod docs/design.html \
 	tests/data/acl-simple tests/data/acl-too-long \
 	tests/data/acls/valid tests/data/acls/valid-2 tests/data/cmd-argv \
 	tests/data/cmd-env tests/data/cmd-hello tests/data/cmd-status \
-	tests/data/conf-simple tests/client/remctl-t tests/util/xmalloc-t
+	tests/data/conf-simple tests/data/conf-test tests/client/remctl-t \
+	tests/util/xmalloc-t
 
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
@@ -105,11 +106,12 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t \
 	tests/portable/inet_ntop-t tests/portable/setenv-t \
 	tests/portable/snprintf-t tests/portable/strlcat-t \
 	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t \
-	tests/server/background-t tests/server/continue-t \
-	tests/server/env-t tests/server/errors-t tests/server/streaming-t \
-	tests/server/version-t tests/util/concat-t tests/util/gss-tokens-t \
-	tests/util/messages-t tests/util/network-t tests/util/tokens-t \
-	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
+	tests/server/background-t tests/server/config-t \
+	tests/server/continue-t tests/server/env-t tests/server/errors-t \
+	tests/server/streaming-t tests/server/version-t tests/util/concat-t \
+	tests/util/gss-tokens-t tests/util/messages-t tests/util/network-t \
+	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc \
+	tests/util/xwrite-t
 check_LIBRARIES= tests/libtest.a
 tests_libtest_a_SOURCES = tests/libtest.c tests/libtest.h
 
@@ -158,6 +160,8 @@ tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
 tests_server_acl_t_LDADD = tests/libtest.a util/libutil.la
 tests_server_background_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
+tests_server_config_t_SOURCES = tests/server/config-t.c $(SERVER_FILES)
+tests_server_config_t_LDADD = tests/libtest.a util/libutil.la
 tests_server_continue_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_env_t_LDADD = client/libremctl.la tests/libtest.a util/libutil.la

@@ -74,7 +74,7 @@ AC_CONFIG_COMMANDS([tests/TESTS],
                  data/acl-bad-syntax data/acl-nonexistant data/acl-recursive \
                  data/acl-too-long data/acls/valid data/acls/valid-2 \
                  data/cmd-argv data/cmd-env data/cmd-hello data/cmd-status \
-                 data/conf-simple util/xmalloc-t ; do
+                 data/conf-simple data/conf-test util/xmalloc-t ; do
             (cd tests && cp "$ac_srcdir/$f" "$f")
         done
      fi])
