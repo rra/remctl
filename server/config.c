@@ -79,6 +79,10 @@ handle_include(struct vector *line, const char *file, int lineno,
             snprintf(path, length, "%s/%s", included, entry->d_name);
             last = (*function)(data, path);
             free(path);
+            if (last == -2) {
+                closedir(dir);
+                return last;
+            }
             if (last > status)
                 status = last;
         }
@@ -359,6 +363,8 @@ server_config_acl_permit(struct confline *cline, const char *user)
         status = acl_check_file((void *) user, acls[i]);
         if (status == 0)
             return 1;
+        else if (status < -1)
+            return 0;
     }
     return 0;
 }

@@ -21,12 +21,6 @@ remctl 2.7 (unreleased)
     Fixed memory and file descriptor leaks in remctld that only become
     apparent when the server runs many commands before exiting.
 
-    When including a directory of ACLs or configuration fragments,
-    continue parsing the remaining files in the directory even if one has
-    a syntax error.  Particularly for configuration fragments, it's more
-    useful if one broken configuration file doesn't break remctld in
-    general.
-
     Various minor fixes so that make warnings and make check work on a
     Solaris 8 system without IPv6 configured.
 

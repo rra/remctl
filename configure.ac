@@ -70,12 +70,11 @@ dnl otherwise touched during the build process into the build directory.
 AC_CONFIG_COMMANDS([tests/TESTS],
     [if test x"$ac_srcdir" != x. && test x"$ac_srcdir" != x ; then
         AS_MKDIR_P([tests/data/acls])
-        for f in TESTS client/remctl-t data/acl-nonexistant data/acl-simple \
-                 data/acls/bad-include data/acls/bad-syntax \
-                 data/acls/recursive data/acls/too-long data/acls/valid \
-                 data/acls/valid-2 data/cmd-argv data/cmd-env \
-                 data/cmd-hello data/cmd-status data/simple.conf \
-                 util/xmalloc-t ; do
+        for f in TESTS client/remctl-t data/acl-simple data/acl-bad-include \
+                 data/acl-bad-syntax data/acl-nonexistant data/acl-recursive \
+                 data/acl-too-long data/acls/valid data/acls/valid-2 \
+                 data/cmd-argv data/cmd-env data/cmd-hello data/cmd-status \
+                 data/simple.conf util/xmalloc-t ; do
             (cd tests && cp "$ac_srcdir/$f" "$f")
         done
      fi])

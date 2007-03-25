@@ -32,9 +32,6 @@ main(void)
     acls[1] = NULL;
     acls[2] = NULL;
 
-    /* Turn off error handling for the initial tests; it's just noise. */
-    message_handlers_warn(0);
-
     ok(1, server_config_acl_permit(&confline, "rra@example.org"));
     ok(2, server_config_acl_permit(&confline, "rra@EXAMPLE.COM"));
     ok(3, server_config_acl_permit(&confline, "cindy@EXAMPLE.COM"));
@@ -47,36 +44,36 @@ main(void)
     ok(9, !server_config_acl_permit(&confline, "peter@EXAMPLE.COM"));
 
     /* Okay, now capture and check the errors. */
-    acls[0] = "data/acls/bad-include";
+    acls[0] = "data/acl-bad-include";
     acls[1] = "data/acls/valid";
     errors_capture();
-    ok(10, server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok_string(11, "data/acls/bad-include:1: included file"
+    ok(10, !server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
+    ok_string(11, "data/acl-bad-include:1: included file"
               " data/acl-nosuchfile not found\n", errors);
-    acls[0] = "data/acls/recursive";
+    acls[0] = "data/acl-recursive";
     errors_capture();
-    ok(12, server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok_string(13, "data/acls/recursive:3: data/acls/recursive recursively"
+    ok(12, !server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
+    ok_string(13, "data/acl-recursive:3: data/acl-recursive recursively"
               " included\n", errors);
     acls[0] = "data/acls/valid-2";
-    acls[1] = "data/acls/too-long";
+    acls[1] = "data/acl-too-long";
     errors_capture();
     ok(14, server_config_acl_permit(&confline, "test2@EXAMPLE.COM"));
     ok(15, errors == NULL);
     ok(16, !server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok_string(17, "data/acls/too-long:1: ACL file line too long\n", errors);
-    acls[0] = "data/acls/no-such-file";
+    ok_string(17, "data/acl-too-long:1: ACL file line too long\n", errors);
+    acls[0] = "data/acl-no-such-file";
     acls[1] = "data/acls/valid";
     errors_capture();
-    ok(18, server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok_string(19, "cannot open ACL file data/acls/no-such-file\n", errors);
+    ok(18, !server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
+    ok_string(19, "cannot open ACL file data/acl-no-such-file\n", errors);
     errors_capture();
     ok(20, !server_config_acl_permit(&confline, "test2@EXAMPLE.COM"));
-    ok_string(21, "cannot open ACL file data/acls/no-such-file\n", errors);
-    acls[0] = "data/acls/bad-syntax";
+    ok_string(21, "cannot open ACL file data/acl-no-such-file\n", errors);
+    acls[0] = "data/acl-bad-syntax";
     errors_capture();
-    ok(22, server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok_string(23, "data/acls/bad-syntax:2: parse error\n", errors);
+    ok(22, !server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
+    ok_string(23, "data/acl-bad-syntax:2: parse error\n", errors);
     errors_uncapture();
 
     return 0;
