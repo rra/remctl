@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 2.7 (unreleased)
+remctl 2.7 (2007-03-25)
 
     In remctld, consider the command complete once the child process
     exits.  Do not wait for its standard output and error to be closed,

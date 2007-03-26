@@ -2,7 +2,7 @@
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 2.6
+Version: 2.7
 Release: 1.EL%{rel}
 Copyright: MIT
 URL: http://www.eyrie.org/~eagle/software/remctl/
@@ -144,7 +144,10 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
-* Sat Feb 3 2007 Russ Allbery <rra@stanford.edu> 2.5-1
+* Sun Mar 25 2007 Russ Allbery <rra@stanford.edu> 2.7-1
+- Update for 2.7.
+
+* Sat Feb 3 2007 Russ Allbery <rra@stanford.edu> 2.6-1
 - Update for 2.6.
 
 * Sat Feb 3 2007 Russ Allbery <rra@stanford.edu> 2.5-1
