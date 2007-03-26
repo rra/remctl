@@ -1,3 +1,14 @@
+remctl (2.7-1) unstable; urgency=low
+
+  * New upstream release.
+    - remctld considers a command complete when it exits rather than
+      waiting for standard output and error to be closed.
+    - Properly canonicalize the remote host in the command-line client.
+    - Fix protocol errors with commands larger than the token size.
+    - Fix memory and file descriptor leaks in remctld.
+
+ -- Russ Allbery <rra@debian.org>  Sun, 25 Mar 2007 17:17:00 -0700
+
 remctl (2.6-2) unstable; urgency=low
 
   * libremctl-dev should depend on libremctl1.
