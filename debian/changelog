@@ -2,6 +2,7 @@ remctl (2.7-2) unstable; urgency=low
 
   * Remove the remctl transitional package now that etch is released.
   * Add build-arch and build-indep targets, just in case.
+  * Update debhelper compatibility level to V5.
 
  --
 
