@@ -4,10 +4,12 @@ remctl (2.7-2) unstable; urgency=low
     openbsd-inetd | inet-superserver, since it will run without inetd but
     calls update-inetd in its postinst.
   * Remove the remctl transitional package now that etch is released.
+  * Support reconfigure in the remctl-server postinst.
+  * Don't fail on unknown arguments to maintainer scripts.
   * Add build-arch and build-indep targets, just in case.
   * Update debhelper compatibility level to V5.
 
- -- Russ Allbery <rra@debian.org>  Fri, 13 Apr 2007 08:48:57 -0700
+ -- Russ Allbery <rra@debian.org>  Fri, 13 Apr 2007 08:52:30 -0700
 
 remctl (2.7-1) unstable; urgency=low
 
