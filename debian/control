@@ -58,7 +58,8 @@ Description: Client for Kerberos-authenticated command execution
 
 Package: remctl-server
 Architecture: any
-Depends: ${shlibs:Depends}, netbase, tcpd
+Depends: ${shlibs:Depends}, update-inetd, tcpd
+Recommends: openbsd-inetd | inet-superserver
 Conflicts: remctl (<< 1.10-1)
 Replaces: remctl (<< 1.10-1)
 Description: Server for Kerberos-authenticated command execution

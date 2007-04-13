@@ -3,19 +3,9 @@
 
 set -e
 
-case "$1" in
-remove|deconfigure)
+if [ "$1" = "remove" ] || [ "$1" = "deconfigure" ] ; then
     update-inetd --remove '4444.*/usr/sbin/remctld'
-    ;;
-
-upgrade|failed-upgrade)
-    ;;
-
-*)
-    echo "prerm called with unknown argument \`$1'" >&2
-    exit 1
-    ;;
-esac
+fi
 
 #DEBHELPER#
 
