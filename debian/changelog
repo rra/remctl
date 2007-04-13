@@ -1,3 +1,10 @@
+remctl (2.7-2) unstable; urgency=low
+
+  * Remove the remctl transitional package now that etch is released.
+  * Add build-arch and build-indep targets, just in case.
+
+ --
+
 remctl (2.7-1) unstable; urgency=low
 
   * New upstream release.

@@ -72,12 +72,3 @@ Description: Server for Kerberos-authenticated command execution
  This package contains the server (remctld).
  .
   Homepage: http://www.eyrie.org/~eagle/software/remctl/
-
-Package: remctl
-Priority: extra
-Architecture: all
-Depends: remctl-client, remctl-server
-Description: Kerberos-authenticated command execution (transitional package)
- This is a transitional package depending on both the remctl client and
- remctl server, which are now in separate packages.  You may remove it
- once the upgrade is complete and nothing depends on it.

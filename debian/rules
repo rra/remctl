@@ -25,18 +25,21 @@ else
     CFLAGS += -O2
 endif
 
-config.status: configure
+configure-stamp:
 	dh_testdir
 	CFLAGS="$(CFLAGS)" ./configure --prefix=/usr \
 	    --mandir=\$${prefix}/share/man --sysconfdir=/etc/remctl \
 	    --enable-reduced-depends $(SYSTEM)
+	touch configure-stamp
 
 # We rebuild the remctl client because Automake and Libtool combine to force
 # remctl to be linked against all the dependencies of libremctl, which creates
 # unnecessary dependencies.  Ones that probably won't matter, mind, but let's
 # do this right anyway.
-build: build-stamp
-build-stamp: config.status
+build: build-arch build-indep
+build-arch: build-stamp
+build-indep:
+build-stamp: configure-stamp
 	dh_testdir
 	$(MAKE)
 	gcc -g -O2 -o client/.libs/remctl client/remctl.o \
@@ -47,11 +50,11 @@ build-stamp: config.status
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp
+	rm -f configure-stamp build-stamp
 	[ ! -f Makefile ] || $(MAKE) distclean
 	dh_clean
 
-install: build
+install: build-stamp
 	dh_testdir
 	dh_testroot
 	dh_clean -k
@@ -61,22 +64,10 @@ install: build
 	install -m 644 $(CURDIR)/examples/remctl.conf \
 	    $(CURDIR)/debian/remctl-server/etc/remctl/remctl.conf
 
-binary-indep: DH_OPTIONS=-i
-binary-indep: build install
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs
-	dh_installdocs 
-	dh_link
-	dh_compress
-	dh_fixperms
-	dh_installdeb
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
+binary: binary-arch binary-indep
+binary-indep:
 binary-arch: DH_OPTIONS=-a
-binary-arch: build install
+binary-arch: build-stamp install
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs NEWS
@@ -93,5 +84,5 @@ binary-arch: build install
 	dh_md5sums
 	dh_builddeb
 
-binary: binary-arch binary-indep
-.PHONY: build clean binary-arch binary-indep binary install
+.PHONY: build build-arch build-indep clean binary binary-arch binary-indep
+.PHONY: install
