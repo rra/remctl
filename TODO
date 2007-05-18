@@ -43,3 +43,15 @@
 
  * In standalone mode, we need to fork a new process for each incoming
    connection since the connections may be long-lived.
+
+ * Add support for external ACL checking programs.  This can be added to
+   the existing ACL file syntax without too much trouble, perhaps with a
+   program keyword that works similarly to the include keyword.  If the
+   program exits with a zero status, access is granted.  If it exits 1,
+   access is not granted but checking continues.  If it exits with any
+   other exit status, access is not granted and checking aborts.
+
+   Ideally, for writing generic ACL checking programs, the program should
+   get the type and service of the remctl command as well as any
+   arguments.  However, I also want to support passing other arguments
+   into the program as specified in the ACL file.
