@@ -2,6 +2,9 @@
 
 remctl 2.8 (unreleased)
 
+    Fix various null pointer dereferences in the simplified remctl client
+    library call when the server returns an error.
+
     Fix problems with the parameter types for GSS-API memory freeing
     functions in some error cases.
 

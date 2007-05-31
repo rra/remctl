@@ -118,14 +118,15 @@ main(void)
     pid_t remctld;
     struct remctl_result *result;
     const char *test[] = { "test", "test", NULL };
+    const char *error[] = { "test", "bad-command", NULL };
     int n;
     struct timeval tv;
 
-    test_init(72);
+    test_init(78);
 
     principal = kerberos_setup();
     if (principal == NULL) {
-        skip_block(1, 72, "Kerberos tests not configured");
+        skip_block(1, 78, "Kerberos tests not configured");
     } else {
         remctld = spawn_remctld(principal);
         if (remctld <= 0)
@@ -141,12 +142,24 @@ main(void)
         result = remctl("localhost", 14444, principal, test);
         ok(n++, result != NULL);
         ok_int(n++, 0, result->status);
+        ok_int(n++, 0, result->stderr_len);
         ok_int(n++, 12, result->stdout_len);
         if (result->stdout_buf == NULL)
             ok(n++, 0);
         else
             ok(n++, memcmp("hello world\n", result->stdout_buf, 11) == 0);
         ok(n++, result->error == NULL);
+        remctl_result_free(result);
+        result = remctl("localhost", 14444, principal, error);
+        ok(n++, result != NULL);
+        ok_int(n++, 0, result->status);
+        ok_int(n++, 0, result->stdout_len);
+        ok_int(n++, 0, result->stderr_len);
+        if (result->error == NULL)
+            ok(n++, 0);
+        else
+            ok_string(n++, "Unknown command", result->error);
+        remctl_result_free(result);
 
         tv.tv_sec = 0;
         tv.tv_usec = 10000;

@@ -68,7 +68,7 @@ internal_output_append(struct remctl_result *result,
     char **buffer = NULL;
     size_t *length = NULL;
     char *old, *newbuf;
-    size_t oldlen;
+    size_t oldlen, newlen;
     int status;
 
     if (output->type == REMCTL_OUT_ERROR)
@@ -98,12 +98,14 @@ internal_output_append(struct remctl_result *result,
     old = *buffer;
     if (length != NULL)
         oldlen = *length;
+    else if (old == NULL)
+        oldlen = 0;
     else
         oldlen = strlen(old);
-    *length = oldlen + output->length;
+    newlen = oldlen + output->length;
     if (output->type == REMCTL_OUT_ERROR)
-        (*length)++;
-    newbuf = realloc(*buffer, *length);
+        newlen++;
+    newbuf = realloc(*buffer, newlen);
     if (newbuf == NULL) {
         if (result->error != NULL)
             free(result->error);
@@ -111,9 +113,11 @@ internal_output_append(struct remctl_result *result,
         return 0;
     }
     *buffer = newbuf;
+    if (length != NULL)
+        *length = newlen;
     memcpy(*buffer + oldlen, output->data, output->length);
     if (output->type == REMCTL_OUT_ERROR)
-        *buffer[*length - 1] = '\0';
+        (*buffer)[newlen - 1] = '\0';
     return 1;
 }
 
