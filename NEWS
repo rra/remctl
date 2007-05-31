@@ -1,5 +1,9 @@
                        User-Visible remctl Changes
 
+remctl 2.8 (unreleased)
+
+    In the test suite, fix the kinit flags for MIT Kerberos 1.6.
+
 remctl 2.7 (2007-03-25)
 
     In remctld, consider the command complete once the child process
