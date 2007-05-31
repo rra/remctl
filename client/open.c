@@ -174,6 +174,6 @@ fail:
     r->fd = -1;
     gss_release_name(&minor, &name);
     if (gss_context != GSS_C_NO_CONTEXT)
-        gss_delete_sec_context(&minor, gss_context, GSS_C_NO_BUFFER);
+        gss_delete_sec_context(&minor, &gss_context, GSS_C_NO_BUFFER);
     return 0;
 }

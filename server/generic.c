@@ -164,9 +164,9 @@ server_new_client(int fd, gss_cred_id_t creds)
 
 fail:
     if (client->context != GSS_C_NO_CONTEXT)
-        gss_delete_sec_context(&minor, client->context, GSS_C_NO_BUFFER);
+        gss_delete_sec_context(&minor, &client->context, GSS_C_NO_BUFFER);
     if (name != GSS_C_NO_NAME)
-        gss_release_name(&minor, name);
+        gss_release_name(&minor, &name);
     if (client->ipaddress != NULL)
         free(client->ipaddress);
     if (client->hostname != NULL)

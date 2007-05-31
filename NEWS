@@ -2,6 +2,9 @@
 
 remctl 2.8 (unreleased)
 
+    Fix problems with the parameter types for GSS-API memory freeing
+    functions in some error cases.
+
     In the test suite, fix the kinit flags for MIT Kerberos 1.6.
 
 remctl 2.7 (2007-03-25)
