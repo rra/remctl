@@ -79,7 +79,7 @@ gssapi(3).
 
 =head1 SEE ALSO
 
-kinit(1), remctld(1)
+kinit(1), remctld(8)
 
 The current version of this program is available from its web page at
 L<http://www.eyrie.org/~eagle/software/remctl/>.
