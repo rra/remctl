@@ -1,3 +1,9 @@
+remctl (2.7-3) unstable; urgency=low
+
+  * Use ${binary:Version} instead of ${Source-Version} in debian/control.
+
+ --
+
 remctl (2.7-2) unstable; urgency=low
 
   * remctl-server now depends on update-inetd directly and recommends
