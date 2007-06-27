@@ -46,7 +46,7 @@ WriteMakefile (
     ($] >= 5.005 ?
       (ABSTRACT_FROM  => 'Remctl.pm',
        AUTHOR         => 'Russ Allbery (rra@stanford.edu)') : ()),
-    INC               => '-I@top_srcdir@/src/libwebauth',
+    INC               => '-I@top_srcdir@/client',
     LDDLFLAGS         => $lddlflags,
     LIBS              => "$additions -lremctl @LIBS@",
 );
