@@ -26,8 +26,6 @@
    be configurable parameters of the server rather than hard-coded
    values.  This may need to wait for better configuration parsing.
 
- * Implement Perl bindings for the remctl client library.
-
  * Support LDAP-based ACLs in addition to file system ACLs.
 
  * The port that remctld uses is rather stupid and frequently blocked due
