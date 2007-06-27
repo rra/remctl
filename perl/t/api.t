@@ -24,8 +24,7 @@ sub change_directory {
 
 # Returns the principal to use for authentication.
 sub get_principal {
-    open (PRINC, 'data/test.principal')
-        or die "cannot open data/test.principal: $!\n";
+    open (PRINC, 'data/test.principal') or return;
     my $princ = <PRINC>;
     close PRINC;
     chomp $princ;
@@ -41,7 +40,8 @@ sub start_remctld {
     if (not defined $pid) {
         die "cannot fork: $!\n";
     } elsif ($pid == 0) {
-        exec ('../server/remctld', '-m', '-p', '14444', '-s', $princ,
+        exec ('../server/remctld', '-m', '-p', '14444',
+              (defined ($princ) ? ('-s', $princ) : ()),
               '-P', 'data/pid', '-f', 'data/conf-simple', '-d', '-S')
             or die "cannot exec ../server/remctld: $!\n";
     }
@@ -62,6 +62,7 @@ sub stop_remctld {
 sub run_kinit {
     $ENV{KRB5CCNAME} = 'data/test.cache';
     my $princ = get_principal;
+    return unless $princ;
     my @commands = ([ qw(kinit -k -t data/test.keytab), $princ ],
                     [ qw(kinit -t data/test.keytab), $princ ],
                     [ qw(kinit -k -K data/test.keytab), $princ ]);
