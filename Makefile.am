@@ -68,6 +68,18 @@ $(srcdir)/docs/protocol.html: $(srcdir)/docs/protocol.xml
 $(srcdir)/docs/protocol.txt: $(srcdir)/docs/protocol.xml
 	cd $(srcdir)/docs && xml2rfc protocol.xml protocol.txt
 
+# Build and install the Perl bindings if desired.
+if BUILD_PERL
+all-local: perl/Remctl.o
+
+perl/Remctl.o:
+	cd perl && perl Makefile.PL
+	cd perl && $(MAKE)
+
+install-data-local: perl/Remctl.o
+	cd perl && $(MAKE) install
+endif
+
 # We shouldn't have to explicitly list $(LIBOBJS) and $(LTLIBOBJS) here.
 # This is a bug in the non-recursive support.
 MOSTLYCLEANFILES = $(LIBOBJS) $(LTLIBOBJS)
@@ -76,15 +88,24 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 config.h.in config.h.in~ \
 	configure client/remctl.1 docs/protocol.html docs/protocol.txt \
 	server/remctld.8.in
 
-# Automake should deal with this automatically, but it doesn't.  Probably a
-# bug in the non-recursive support.
+# Automake should deal with the first part of this automatically, but it
+# doesn't.  Probably a bug in the non-recursive support.  Also run make clean
+# in the perl directory if needed.
 clean-local:
 	-rm -rf server/.libs tests/.libs tests/client/.libs tests/data/.libs \
 	    tests/portable/.libs tests/server/.libs tests/util/.libs
+	set -e; cd perl && if [ -f Makefile ] ; then \
+	    $(MAKE) clean ; \
+	    [ ! -f Makefile.old ] || mv Makefile.old Makefile ; \
+	fi
 
-# More bugs in the non-recursive support.
+# More bugs in the non-recursive support, plus running make distclean in the
+# perl directory.
 distclean-local:
 	-rm -rf .deps
+	set -e; if [ -f perl/Makefile ] ; then \
+	    cd perl && $(MAKE) distclean ; \
+	fi
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
 # without optimization turned on, and add -DDEBUG=1 so we'll also compile all
@@ -186,4 +207,6 @@ tests_util_xwrite_t_LDADD = tests/libtest.a util/libutil.la
 
 check-local: $(noinst_PROGRAMS)
 	cd tests && ./runtests TESTS
-
+	set -e; if [ -f perl/Makefile ] ; then \
+	    cd perl && $(MAKE) test ; \
+	fi

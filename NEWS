@@ -2,6 +2,10 @@
 
 remctl 2.8 (unreleased)
 
+    Add a Net::Remctl Perl module, optionally compiled (and enabled with
+    the --enable-perl configure flag), that provides native Perl bindings
+    to the libremctl client library.
+
     Fix various null pointer dereferences in the simplified remctl client
     library call when the server returns an error.
 

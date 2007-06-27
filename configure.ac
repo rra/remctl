@@ -64,9 +64,20 @@ AC_TYPE_SIGNAL
 dnl Needed to get prototypes for functions like asprintf on Linux.
 AC_DEFINE([_GNU_SOURCE], [1], [Define to 1 on Linux to get full prototypes.])
 
+dnl Whether to build the Perl bindings.  Put this late so that it shows up
+dnl near the bottom of the --help output.
+build_perl=
+AC_ARG_ENABLE([perl],
+    AC_HELP_STRING([--enable-perl], [Build Perl libremctl bindings]),
+    [if test x"$enableval" = xyes ; then
+        build_perl=yes
+     fi])
+AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
+
 dnl In order to run the test suite out of the build directory when doing a
 dnl VPATH build, we need to copy some of the test suite files that aren't
-dnl otherwise touched during the build process into the build directory.
+dnl otherwise touched during the build process into the build directory.  This
+dnl is an ugly hack.  There should be some better way to do this.
 AC_CONFIG_COMMANDS([tests/TESTS],
     [if test x"$ac_srcdir" != x. && test x"$ac_srcdir" != x ; then
         AS_MKDIR_P([tests/data/acls])
@@ -79,6 +90,24 @@ AC_CONFIG_COMMANDS([tests/TESTS],
         done
      fi])
 
+dnl Link all of the Perl binding files into the build tree, since Perl doesn't
+dnl support the VPATH thing.
+if test x"$build_perl" = xyes ; then
+    AC_CONFIG_COMMANDS([perl/Remctl.xs],
+        [if test x"$ac_srcdir" != x. && test x"$ac_srcdir" != x ; then
+            for f in Remctl.pm Remctl.xs typemap ; do
+                $LN_S "$ac_srcdir/$f" "perl/$f"
+            done
+            AS_MKDIR_P([perl/t])
+            for f in api.t pod.t ; do
+                $LN_S "$ac_srcdir/t/$f" "perl/t/$f"
+            done
+        fi], [LN_S="$LN_S"])
+fi
+
 AC_CONFIG_FILES([Makefile])
+if test x"$build_perl" = xyes ; then
+    AC_CONFIG_FILES([perl/Makefile.PL])
+fi
 AC_CONFIG_HEADER([config.h])
 AC_OUTPUT
