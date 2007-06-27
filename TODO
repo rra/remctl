@@ -13,7 +13,8 @@
 
    The best way to implement this may be to pass only the service on the
    command line and pass all other parameters on standard input, using
-   counted strings or some similar encoding protocol.
+   counted strings or some similar encoding protocol.  On the other hand,
+   that adds a lot of complexity for the commands.
 
  * Add support for running commands as filters, passing standard input
    asynchronously from the client.  This requires significant
@@ -37,7 +38,7 @@
 
  * In standalone mode, remctld doesn't shut down cleanly after a signal
    and in particular doesn't delete its PID file if it was configured to
-   write one.
+   write one.  It should also re-read its configuration file on SIGHUP.
 
  * Add support for external ACL checking programs.  This can be added to
    the existing ACL file syntax without too much trouble, perhaps with a
@@ -50,3 +51,7 @@
    get the type and service of the remctl command as well as any
    arguments.  However, I also want to support passing other arguments
    into the program as specified in the ACL file.
+
+ * Add Python bindings for the libremctl client library.
+
+ * Provide manual pages for the libremctl interfaces.
