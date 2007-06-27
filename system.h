@@ -83,6 +83,9 @@ extern int              snprintf(char *, size_t, const char *, ...)
 #if !HAVE_DECL_VSNPRINTF
 extern int              vsnprintf(char *, size_t, const char *, va_list);
 #endif
+#if !HAVE_DAEMON
+extern int              daemon(int, int);
+#endif
 #if !HAVE_SETENV
 extern int              setenv(const char *, const char *, int);
 #endif

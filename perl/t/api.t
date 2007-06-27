@@ -34,7 +34,6 @@ sub get_principal {
 # Do the bizarre dance to start a test version of remctld.
 sub start_remctld {
     unlink ('data/pid');
-    $ENV{KRB5_KTNAME} = 'data/test.keytab';
     my $princ = get_principal;
     my $pid = fork;
     if (not defined $pid) {
@@ -42,7 +41,8 @@ sub start_remctld {
     } elsif ($pid == 0) {
         exec ('../server/remctld', '-m', '-p', '14444',
               (defined ($princ) ? ('-s', $princ) : ()),
-              '-P', 'data/pid', '-f', 'data/conf-simple', '-d', '-S')
+              '-P', 'data/pid', '-f', 'data/conf-simple', '-d', '-S', '-F',
+              '-k', 'data/test.keytab')
             or die "cannot exec ../server/remctld: $!\n";
     }
 }

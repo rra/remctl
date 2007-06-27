@@ -9,6 +9,16 @@ remctl 2.8 (unreleased)
     Fix various null pointer dereferences in the simplified remctl client
     library call when the server returns an error.
 
+    When running in stand-alone mode, remctld now forks a new child for
+    each incoming connection and can therefore handle multiple
+    simultaneous connections.  This makes stand-alone mode useful for more
+    than just testing.  Also, remctld now backgrounds itself by default in
+    stand-alone mode; disable this with the -F flag.  Based on a patch by
+    Andrew Mortensen.
+
+    Add a new -k flag to remctld to tell it to use a non-default keytab.
+    Thanks, Andrew Mortensen.
+
     Fix problems with the parameter types for GSS-API memory freeing
     functions in some error cases.
 

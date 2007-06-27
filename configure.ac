@@ -36,6 +36,11 @@ AC_CHECK_MEMBERS([struct sockaddr.sa_len], , ,
     [#include <sys/types.h>
      #include <sys/socket.h>])
 AC_CHECK_TYPES([long long])
+AC_CHECK_TYPE([sig_atomic_t], ,
+    [AC_DEFINE([sig_atomic_t], [int],
+        [Define to int if <signal.h> does not define.])],
+    [#include <sys/types.h>
+     #include <signal.h>])
 AC_CHECK_TYPE([socklen_t], ,
     [AC_DEFINE([socklen_t], [int],
         [Define to int if <sys/socket.h> does not define.])],
@@ -56,9 +61,9 @@ RRA_MACRO_IN6_ARE_ADDR_EQUAL
 RRA_MACRO_SA_LEN
 RRA_FUNC_INET_NTOA
 RRA_FUNC_SNPRINTF
-AC_CHECK_FUNCS([setrlimit])
-AC_REPLACE_FUNCS([asprintf getaddrinfo getnameinfo inet_aton inet_ntop \
-                  setenv strlcat strlcpy])
+AC_CHECK_FUNCS([setrlimit setsid])
+AC_REPLACE_FUNCS([asprintf daemon getaddrinfo getnameinfo inet_aton \
+                  inet_ntop setenv strlcat strlcpy])
 AC_TYPE_SIGNAL
 
 dnl Needed to get prototypes for functions like asprintf on Linux.

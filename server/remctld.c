@@ -17,11 +17,17 @@
 #include <portable/gssapi.h>
 #include <portable/socket.h>
 
+#include <signal.h>
 #include <syslog.h>
+#include <sys/wait.h>
 #include <time.h>
 
 #include <server/internal.h>
 #include <util/util.h>
+
+/* Flag indicating whether we've received a SIGCHLD and need to reap children
+   (only used in standalone mode). */
+static volatile sig_atomic_t child_signaled = 0;
 
 /* Usage message. */
 static const char usage_message[] = "\
@@ -50,6 +56,18 @@ usage(int status)
         exit(0);
     else
         die("invalid usage");
+}
+
+
+/*
+**  Signal handler for child processes forked when running in standalone mode.
+**  Just increment the child_signaled global so that we know to reap the
+**  processes later.
+*/
+static RETSIGTYPE
+child_handler(int sig UNUSED)
+{
+    child_signaled = 1;
 }
 
 
@@ -123,6 +141,103 @@ server_handle_connection(int fd, struct config *config, gss_cred_id_t creds)
 
 
 /*
+**  Gather information about an exited child and log an appropriate message.
+**  We keep the log level to debug unless something interesting happened, like
+**  a non-zero exit status.
+*/
+static void
+server_log_child(pid_t pid, int status)
+{
+    if (WIFEXITED(status)) {
+        if (WEXITSTATUS(status) != 0)
+            warn("child %lu exited with %d", (unsigned long) pid,
+                 WEXITSTATUS(status));
+        else
+            debug("child %lu done", (unsigned long) pid);
+    } else if (WIFSIGNALED(status)) {
+        warn("child %lu died on signal %d", (unsigned long) pid,
+             WTERMSIG(status));
+    } else {
+        warn("child %lu died", (unsigned long) pid);
+    }
+}
+
+
+/*
+**  Run as a daemon.  This is the main dispatch loop, which listens for
+**  network connections, forks a child to process each connection, and reaps
+**  the children when they're done.  This is only used in standalone mode;
+**  when run from inetd or tcpserver, remctld processes one connection and
+**  then exits.
+*/
+static void
+server_daemon(unsigned short port, struct config *config, gss_cred_id_t creds,
+              int do_stdout)
+{
+    int s, stmp, status;
+    pid_t child;
+    struct sigaction sa, oldsa;
+    struct sockaddr_storage ss;
+    socklen_t sslen;
+    char ip[INET6_ADDRSTRLEN];
+
+    /* Set up a SIGCHLD handler so that we know when to reap children. */
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = child_handler;
+    if (sigaction(SIGCHLD, &sa, &oldsa) < 0)
+        sysdie("cannot set SIGCHLD handler");
+
+    /* Bind to the network socket. */
+    stmp = network_bind_ipv4("any", port);
+    if (stmp < 0)
+        sysdie("cannot create socket");
+    if (listen(stmp, 5) < 0)
+        sysdie("error listening on socket");
+
+    /* The main processing loop.  Each time through the loop, check to see if
+       we need to reap children, see if we have a new connection, and if so,
+       fork a child to handle it.
+
+       Note that there are no limits here on the number of simultaneous
+       processes, so you may want to set system resource limits to prevent an
+       attacker from consuming all available processes. */
+    do {
+        if (child_signaled) {
+            child_signaled = 0;
+            while ((child = waitpid(0, &status, WNOHANG)) > 0)
+                server_log_child(child, status);
+            if (child < 0 && errno != ECHILD)
+                sysdie("waitpid failed");
+        }
+        sslen = sizeof(ss);
+        s = accept(stmp, (struct sockaddr *) &ss, &sslen);
+        if (s < 0) {
+            if (errno != EINTR)
+                syswarn("error accepting connection");
+            continue;
+        }
+        child = fork();
+        if (child < 0) {
+            syswarn("forking a new child failed");
+            warn("sleeping ten seconds in the hope we recover...");
+            sleep(10);
+        } else if (child == 0) {
+            if (sigaction(SIGCHLD, &oldsa, NULL) < 0)
+                syswarn("cannot reset SIGCHLD handler");
+            server_handle_connection(s, config, creds);
+            if (do_stdout)
+                fflush(stdout);
+            exit(0);
+        } else {
+            close(s);
+            network_sockaddr_sprint(ip, sizeof(ip), (struct sockaddr *) &ss);
+            debug("child %lu for %s", (unsigned long) child, ip);
+        }
+    } while (1);
+}
+
+
+/*
 **  Main routine.  Parses command-line arguments, determines whether we're
 **  running in stand-alone or inetd mode, and does the connection handling if
 **  running in standalone mode.  User connections are handed off to
@@ -138,7 +253,7 @@ main(int argc, char *argv[])
     gss_cred_id_t creds = GSS_C_NO_CREDENTIAL;
     OM_uint32 minor;
     unsigned short port = 4444;
-    int s, stmp;
+    int do_foreground = 0;
     int do_standalone = 0;
     int do_stdout = 0;
     int do_debug = 0;
@@ -153,16 +268,23 @@ main(int argc, char *argv[])
     message_program_name = "remctld";
 
     /* Parse options. */
-    while ((option = getopt(argc, argv, "df:hmP:p:Ss:v")) != EOF) {
+    while ((option = getopt(argc, argv, "dFf:hk:mP:p:Ss:v")) != EOF) {
         switch (option) {
         case 'd':
             do_debug = 1;
+            break;
+        case 'F':
+            do_foreground = 1;
             break;
         case 'f':
             conffile = optarg;
             break;
         case 'h':
             usage(0);
+            break;
+        case 'k':
+            if (setenv("KRB5_KTNAME", optarg, 1) < 0)
+                sysdie("cannot set KRB5_KTNAME");
             break;
         case 'm':
             do_standalone = 1;
@@ -188,6 +310,10 @@ main(int argc, char *argv[])
             break;
         }
     }
+
+    /* Daemonize if told to do so. */
+    if (do_standalone && !do_foreground)
+        daemon(0, do_stdout);
 
     /* Set up syslog unless stdout/stderr was requested.  Set up debug logging
        if requestsed. */
@@ -217,36 +343,23 @@ main(int argc, char *argv[])
             die("unable to acquire creds, aborting");
     }
 
+    /* Set up our PID file now after we've daemonized, since we may have
+       changed PIDs in the process. */
+    if (do_standalone && pid_path != NULL) {
+        pid_file = fopen(pid_path, "w");
+        if (pid_file == NULL)
+            sysdie("cannot create PID file %s", pid_path);
+        fprintf(pid_file, "%ld\n", (long) getpid());
+        fclose(pid_file);
+    }
+
     /* If we're not running as a daemon, just process the connection.
        Otherwise, create a socket and listen on the socket, processing each
        incoming connection. */
-    if (!do_standalone) {
+    if (!do_standalone)
         server_handle_connection(0, config, creds);
-    } else {
-        alarm(0);
-        stmp = network_bind_ipv4("any", port);
-        if (stmp < 0)
-            sysdie("cannot create socket");
-        if (listen(stmp, 5) < 0)
-            sysdie("error listening on socket");
-        if (pid_path != NULL) {
-            pid_file = fopen(pid_path, "w");
-            if (pid_file == NULL)
-                sysdie("cannot create PID file %s", pid_path);
-            fprintf(pid_file, "%ld\n", (long) getpid());
-            fclose(pid_file);
-        }
-        do {
-            s = accept(stmp, NULL, 0);
-            if (s < 0) {
-                syswarn("error accepting connection");
-                continue;
-            }
-            server_handle_connection(s, config, creds);
-            if (do_stdout)
-                fflush(stdout);
-        } while (1);
-    }
+    else
+        server_daemon(port, config, creds, do_stdout);
 
     /* Clean up and exit.  We only reach here in regular mode. */
     if (creds != GSS_C_NO_CREDENTIAL)

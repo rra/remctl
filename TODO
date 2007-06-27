@@ -39,9 +39,6 @@
    and in particular doesn't delete its PID file if it was configured to
    write one.
 
- * In standalone mode, we need to fork a new process for each incoming
-   connection since the connections may be long-lived.
-
  * Add support for external ACL checking programs.  This can be added to
    the existing ACL file syntax without too much trouble, perhaps with a
    program keyword that works similarly to the include keyword.  If the

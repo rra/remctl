@@ -40,6 +40,13 @@ below for more information.
 Enable verbose debug logging to syslog (or to standard output if B<-S> is
 also given).
 
+=item B<-F>
+
+Normally when running in stand-alone mode (B<-m>), B<remctld> backgrounds
+itself to run as a daemon, changes directory to F</>, and drops any
+controlling terminal.  This flag suppresses this behavior, usually for
+debugging or so that B<remctld> can be monitored by other processes.
+
 =item B<-f> I<config>
 
 The configuration file for B<remctld>, overriding the default path.
@@ -48,11 +55,20 @@ The configuration file for B<remctld>, overriding the default path.
 
 Show a brief usage message and then exit.
 
+=item B<-k> I<keytab>
+
+Use I<keytab> as the keytab for server credentials rather than the system
+default or the value of the KRB5_KTNAME environment variable.  Using B<-k>
+just sets the KRB5_KTNAME environment variable internally in the process.
+
 =item B<-m>
 
 Enable stand-alone mode.  B<remctld> will listen to its configured port,
-4444 by default, and handle incoming connections one at a time.  This is
-mostly useful for debugging purposes.
+4444 by default, and fork a new child for each incoming connection.  By
+default, when this option is used, B<remctld> also changes directory to
+F</>, backgrounds itself, and closes standard input, output, and error.
+To not background, pass B<-F> as well.  To not close standard output and
+error and continue using them for logging, pass B<-S> as well.
 
 =item B<-P> I<file>
 
@@ -189,6 +205,11 @@ variable was added in remctl 2.1.
 B<remctld> also used to set SCPRINCIPAL for (partial) backward
 compatibility with B<sysctld>, but stopped doing so as of remctl 2.1.
 
+If the B<-k> flag is used, B<remctld> will also set KRB5_KTNAME to the
+provided keytab path.  This is primarily for communication with the
+GSS-API library, but this setting will also be inherited by any commands
+run by B<remctld>.
+
 =head1 EXAMPLES
 
 Typically B<remctld> is to be started as follows, where "hostname" is the
@@ -199,6 +220,10 @@ machine where remctld will run, and 4444 is the port:
 The equivalent line for F</etc/inetd.conf> is:
 
     4444 stream tcp nowait root /usr/sbin/tcpd /usr/sbin/remctld
+
+To start B<remctld> in stand-alone mode instead, run:
+
+    remctld -m
 
 Example configuration file:
 
@@ -242,8 +267,8 @@ current maintenance are done by Russ Allbery <rra@stanford.edu>.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2002, 2003, 2004, 2005, 2006 Board of Trustees, Leland Stanford
-Jr. University.  All rights reserved.
+Copyright 2002, 2003, 2004, 2005, 2006, 2007 Board of Trustees, Leland
+Stanford Jr. University.  All rights reserved.
   
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose and without fee is hereby granted, provided

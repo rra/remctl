@@ -340,8 +340,10 @@ server_config_load(const char *file)
 
     /* Read the configuration file. */
     config = xcalloc(1, sizeof(struct config));
-    if (read_conf_file(config, file) != 0)
-        warn("cannot read configuration file %s", file);
+    if (read_conf_file(config, file) != 0) {
+        free(config);
+        return NULL;
+    }
     return config;
 }
 

@@ -289,7 +289,7 @@ spawn_remctld(const char *principal)
     else if (child == 0) {
         execl("../server/remctld", "remctld", "-m", "-p", "14444", "-s",
               principal, "-P", "data/pid", "-f", "data/conf-simple", "-d",
-              "-S", (char *) 0);
+              "-S", "-F", (char *) 0);
         _exit(1);
     } else {
         alarm(1);

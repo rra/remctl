@@ -78,9 +78,8 @@ fi
 
 # Start the remctld daemon and wait for it to start.
 rm -f data/pid
-KRB5_KTNAME=data/test.keytab; export KRB5_KTNAME
 ( ../server/remctld -m -p 14444 -s `cat data/test.principal` -P data/pid \
-    -f data/conf-simple -d -S &)
+    -f data/conf-simple -d -S -F -k data/test.keytab &)
 KRB5CCNAME=data/test.cache; export KRB5CCNAME
 kinit -k -t data/test.keytab `cat data/test.principal` >/dev/null </dev/null
 status=$?
