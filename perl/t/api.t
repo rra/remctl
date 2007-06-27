@@ -3,7 +3,7 @@
 #
 # t/api.t -- Tests for the Net::Remctl API.
 
-BEGIN { our $total = 5 }
+BEGIN { our $total = 30 }
 use Test::More tests => $total;
 
 use Net::Remctl;
@@ -60,6 +60,7 @@ sub stop_remctld {
 # Obtain tickets, which requires iterating through several different possible
 # ways of running kinit.
 sub run_kinit {
+    $ENV{KRB5CCNAME} = 'data/test.cache';
     my $princ = get_principal;
     my @commands = ([ qw(kinit -k -t data/test.keytab), $princ ],
                     [ qw(kinit -t data/test.keytab), $princ ],
@@ -89,14 +90,50 @@ SKIP: {
     sleep 1 unless -f 'data/pid';
     die "remctld did not start" unless -f 'data/pid';
 
-    # Now we can finally run our tests.
+    # Now we can finally run our tests.  Basic interface, success.
     my $principal = get_principal;
     my $result = remctl ('localhost', 14444, $principal, 'test', 'test');
-    ok (defined $result, 'Basic remctl returns result');
-    is ($result->status, 0, '  ... exit status');
-    is ($result->stdout, "hello world\n", '  ... stdout output');
-    is ($result->stderr, undef, '  ... stderr output');
-    is ($result->error, undef, '  ... error return');
+    isa_ok ($result, 'Net::Remctl::Result', 'Basic remctl return');
+    is ($result->status, 0, '... exit status');
+    is ($result->stdout, "hello world\n", '... stdout output');
+    is ($result->stderr, undef, '... stderr output');
+    is ($result->error, undef, '... error return');
+
+    # Basic interface, failure.
+    $result = remctl ('localhost', 14444, $principal, 'test', 'bad-command');
+    isa_ok ($result, 'Net::Remctl::Result', 'Error remctl return');
+    is ($result->status, 0, '... exit status');
+    is ($result->stdout, undef, '... stdout output');
+    is ($result->stderr, undef, '... stderr output');
+    is ($result->error, 'Unknown command', '... error return');
+
+    # Complex interface, success.
+    my $remctl = Net::Remctl->new;
+    isa_ok ($remctl, 'Net::Remctl', 'Object');
+    is ($remctl->error, 'No error', '... no error set');
+    ok ($remctl->open ('localhost', 14444, $principal), 'Connect to server');
+    is ($remctl->error, 'No error', '... no error set');
+    ok ($remctl->command ('test', 'test'), 'Send successful command');
+    is ($remctl->error, 'No error', '... no error set');
+    my $output = $remctl->output;
+    isa_ok ($output, 'Net::Remctl::Output', 'Output token');
+    is ($output->type, 'output', '... of type output');
+    is ($output->length, 12, '... and length 12');
+    is ($output->data, "hello world\n", '... with the right data');
+    is ($output->stream, 1, '... and the right stream');
+    $output = $remctl->output;
+    isa_ok ($output, 'Net::Remctl::Output', 'Second output token');
+    is ($output->type, 'status', '... of type status');
+    is ($output->status, 0, '... with status 0');
+
+    # Complex interface, failure.
+    ok ($remctl->command ('test', 'bad-command'), 'Send failing command');
+    is ($remctl->error, 'No error', '... no error set');
+    $output = $remctl->output;
+    isa_ok ($output, 'Net::Remctl::Output', 'Output token');
+    is ($output->type, 'error', '... of type error');
+    is ($output->data, 'Unknown command', '... with the error message');
+    is ($output->error, 5, '... and the right code');
 }
 
 END {
