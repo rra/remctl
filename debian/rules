@@ -29,19 +29,25 @@ configure-stamp:
 	dh_testdir
 	CFLAGS="$(CFLAGS)" ./configure --prefix=/usr \
 	    --mandir=\$${prefix}/share/man --sysconfdir=/etc/remctl \
-	    --enable-reduced-depends $(SYSTEM)
+	    --enable-reduced-depends --enable-perl $(SYSTEM)
 	touch configure-stamp
 
 # We rebuild the remctl client because Automake and Libtool combine to force
 # remctl to be linked against all the dependencies of libremctl, which creates
 # unnecessary dependencies.  Ones that probably won't matter, mind, but let's
 # do this right anyway.
+#
+# We also rebuild the Perl module to encode the right installation paths,
+# since otherwise it defaults to using the local site module path.
 build: build-arch build-indep
 build-arch: build-stamp
 build-indep:
 build-stamp: configure-stamp
 	dh_testdir
 	$(MAKE)
+	cd $(CURDIR)/perl && perl Makefile.PL INSTALLDIRS=vendor \
+	    LIBS=-lremctl PREFIX=$(CURDIR)/debian/tmp/usr
+	cd $(CURDIR)/perl && $(MAKE) OPTIMIZE="$(CFLAGS)"
 	gcc -g -O2 -o client/.libs/remctl client/remctl.o \
 	    client/.libs/libremctl.so util/.libs/libutil.a
 	$(MAKE) check
@@ -54,6 +60,8 @@ clean:
 	[ ! -f Makefile ] || $(MAKE) distclean
 	dh_clean
 
+# The Perl module has to be installed separately, so we do a little dance
+# to prevent the main 
 install: build-stamp
 	dh_testdir
 	dh_testroot

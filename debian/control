@@ -73,3 +73,20 @@ Description: Server for Kerberos-authenticated command execution
  This package contains the server (remctld).
  .
   Homepage: http://www.eyrie.org/~eagle/software/remctl/
+
+Package: libnet-remctl-perl
+Section: perl
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Perl client for Kerberos-authenticated command execution
+ remctl is a client/server protocol for executing specific commands on a
+ remote system with Kerberos authentication.  The allowable commands must
+ be listed in a server configuration file, and the executable run on the
+ server may be mapped to any command name.  Each command is also
+ associated with an ACL containing a list of Kerberos principals
+ authorized to run that command.
+ .
+ This package contains the Net::Remctl Perl library, which provides native
+ Perl bindings to the libremctl client library.
+ .
+  Homepage: http://www.eyrie.org/~eagle/software/remctl/
