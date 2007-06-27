@@ -1,5 +1,13 @@
-remctl (2.7-3) unstable; urgency=low
+remctl (2.8-1) unstable; urgency=low
 
+  * New upstream release.
+    - New libnet-remctl-perl package with the Perl libremctl bindings.
+    - Fix null pointer dereferences in remctl call on errors.
+    - Fork for each connection in stand-alone mode.
+    - Background by default in stand-alone mode (-F to disable).
+    - New remctld -k option to use a non-default keytab.
+    - remctld exits properly if it can't parse its configuration file.
+    - Fix GSS-API memory free calls in some error cases.
   * Use ${binary:Version} instead of ${Source-Version} in debian/control.
 
  --
