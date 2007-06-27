@@ -89,10 +89,14 @@ remctl(host, port, principal, ...)
     RETVAL
 
 Net::Remctl
-remctl_new()
-  POSTCALL:
+remctl_new(class)
+    const char *class
+  CODE:
+    RETVAL = remctl_new();
     if (RETVAL == NULL)
         croak("Error creating Net::Remctl object: %s", strerror(errno));
+  OUTPUT:
+    RETVAL
 
 void
 DESTROY(self)
