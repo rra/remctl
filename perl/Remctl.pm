@@ -128,7 +128,7 @@ persistant connection, use the full interface described below.
 
 =back
 
-=head1 Full Interface
+=head2 Full Interface
 
 The full remctl library interface requires that the user do more
 bookkeeping, but it provides more flexibility and allows one to issue
