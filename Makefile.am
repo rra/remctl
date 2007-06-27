@@ -5,6 +5,20 @@
 # Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
 # See README for licensing terms.
 
+# These two lists of files are needed for Perl builds and for the test suite
+# and are not generated or touched by configure.  They're listed here to be
+# added to EXTRA_DIST and so that they can be copied over properly for
+# builddir != srcdir builds.
+PERL_FILES = perl/Remctl.pm perl/Remctl.xs perl/typemap perl/t/api.t \
+	perl/t/pod.t
+TEST_FILES = tests/TESTS tests/data/README tests/data/acl-bad-include \
+	tests/data/acl-bad-syntax tests/data/acl-nonexistant \
+	tests/data/acl-recursive tests/data/acl-simple \
+	tests/data/acl-too-long tests/data/acls/valid \
+	tests/data/acls/valid-2 tests/data/cmd-argv tests/data/cmd-env \
+	tests/data/cmd-hello tests/data/cmd-status tests/data/conf-simple \
+	tests/data/conf-test tests/client/remctl-t tests/util/xmalloc-t
+
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = autogen client/remctl.1 client/remctl.pod docs/design.html \
@@ -13,14 +27,7 @@ EXTRA_DIST = autogen client/remctl.1 client/remctl.pod docs/design.html \
 	java/Login.java java/RemctlClient.java java/gss_jaas.conf \
 	java/gss_jaas2.conf portable/getaddrinfo.h portable/getnameinfo.h \
 	portable/gssapi.h portable/socket.h remctl.spec server/remctld.8.in \
-	server/remctld.pod system.h tests/TESTS tests/data/README \
-	tests/data/acl-bad-include tests/data/acl-bad-syntax \
-	tests/data/acl-nonexistant tests/data/acl-recursive \
-	tests/data/acl-simple tests/data/acl-too-long \
-	tests/data/acls/valid tests/data/acls/valid-2 tests/data/cmd-argv \
-	tests/data/cmd-env tests/data/cmd-hello tests/data/cmd-status \
-	tests/data/conf-simple tests/data/conf-test tests/client/remctl-t \
-	tests/util/xmalloc-t
+	server/remctld.pod system.h $(PERL_FILES) $(TEST_FILES)
 
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
@@ -67,18 +74,6 @@ $(srcdir)/docs/protocol.html: $(srcdir)/docs/protocol.xml
 
 $(srcdir)/docs/protocol.txt: $(srcdir)/docs/protocol.xml
 	cd $(srcdir)/docs && xml2rfc protocol.xml protocol.txt
-
-# Build and install the Perl bindings if desired.
-if BUILD_PERL
-all-local: perl/Remctl.o
-
-perl/Remctl.o:
-	cd perl && perl Makefile.PL
-	cd perl && $(MAKE)
-
-install-data-local: perl/Remctl.o
-	cd perl && $(MAKE) install
-endif
 
 # We shouldn't have to explicitly list $(LIBOBJS) and $(LTLIBOBJS) here.
 # This is a bug in the non-recursive support.
@@ -204,8 +199,38 @@ tests_util_xwrite_t_SOURCES = tests/util/fakewrite.c tests/util/xwrite.c \
 tests_util_xwrite_t_LDADD = tests/libtest.a util/libutil.la
 
 check-local: $(noinst_PROGRAMS)
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
+	    mkdir tests/data/acls 2>/dev/null || true ; \
+	    for f in $(TEST_FILES) ; do \
+	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
+	    done \
+	fi
 	cd tests && ./runtests TESTS
 	set -e; if [ -f perl/Makefile ] ; then \
 	    cd perl && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
 	        $(MAKE) test ; \
 	fi
+
+# The following section sets up the Perl module build properly.  Most of the
+# complexity is here to handle building outside of the source directory, in
+# which case we need to copy various files from the source directory and make
+# sure they're up to date since Perl can't handle VPATH builds.
+
+perl/Remctl.o: $(srcdir)/perl/Remctl.pm $(srcdir)/perl/Remctl.xs \
+		$(srcdir)/perl/typemap
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
+	    mkdir perl/t 2>/dev/null || true ; \
+	    for f in $(PERL_FILES) ; do \
+	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
+	    done \
+	fi
+	cd perl && perl Makefile.PL
+	cd perl && $(MAKE)
+
+# Build and install the Perl bindings if desired.
+if BUILD_PERL
+all-local: perl/Remctl.o
+
+install-data-local: perl/Remctl.o
+	cd perl && $(MAKE) install
+endif

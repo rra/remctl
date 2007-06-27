@@ -74,37 +74,6 @@ AC_ARG_ENABLE([perl],
      fi])
 AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
 
-dnl In order to run the test suite out of the build directory when doing a
-dnl VPATH build, we need to copy some of the test suite files that aren't
-dnl otherwise touched during the build process into the build directory.  This
-dnl is an ugly hack.  There should be some better way to do this.
-AC_CONFIG_COMMANDS([tests/TESTS],
-    [if test x"$ac_srcdir" != x. && test x"$ac_srcdir" != x ; then
-        AS_MKDIR_P([tests/data/acls])
-        for f in TESTS client/remctl-t data/acl-simple data/acl-bad-include \
-                 data/acl-bad-syntax data/acl-nonexistant data/acl-recursive \
-                 data/acl-too-long data/acls/valid data/acls/valid-2 \
-                 data/cmd-argv data/cmd-env data/cmd-hello data/cmd-status \
-                 data/conf-simple data/conf-test util/xmalloc-t ; do
-            (cd tests && cp "$ac_srcdir/$f" "$f")
-        done
-     fi])
-
-dnl Link all of the Perl binding files into the build tree, since Perl doesn't
-dnl support the VPATH thing.
-if test x"$build_perl" = xyes ; then
-    AC_CONFIG_COMMANDS([perl/Remctl.xs],
-        [if test x"$ac_srcdir" != x. && test x"$ac_srcdir" != x ; then
-            for f in Remctl.pm Remctl.xs typemap ; do
-                $LN_S "$ac_srcdir/$f" "perl/$f"
-            done
-            AS_MKDIR_P([perl/t])
-            for f in api.t pod.t ; do
-                $LN_S "$ac_srcdir/t/$f" "perl/t/$f"
-            done
-        fi], [LN_S="$LN_S"])
-fi
-
 AC_CONFIG_FILES([Makefile])
 if test x"$build_perl" = xyes ; then
     AC_CONFIG_FILES([perl/Makefile.PL])
