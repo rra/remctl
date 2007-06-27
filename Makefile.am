@@ -208,5 +208,6 @@ tests_util_xwrite_t_LDADD = tests/libtest.a util/libutil.la
 check-local: $(noinst_PROGRAMS)
 	cd tests && ./runtests TESTS
 	set -e; if [ -f perl/Makefile ] ; then \
-	    cd perl && $(MAKE) test ; \
+	    cd perl && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
+	        $(MAKE) test ; \
 	fi
