@@ -102,10 +102,8 @@ clean-local:
 # More bugs in the non-recursive support, plus running make distclean in the
 # perl directory.
 distclean-local:
+	-rm -f perl/Makefile
 	-rm -rf .deps
-	set -e; if [ -f perl/Makefile ] ; then \
-	    cd perl && $(MAKE) distclean ; \
-	fi
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
 # without optimization turned on, and add -DDEBUG=1 so we'll also compile all
