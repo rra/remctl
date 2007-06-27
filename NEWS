@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 2.8 (unreleased)
+remctl 2.8 (2007-06-27)
 
     Add a Net::Remctl Perl module, optionally compiled (and enabled with
     the --enable-perl configure flag), that provides native Perl bindings
