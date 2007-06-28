@@ -83,9 +83,11 @@ sub run_kinit {
 
 # Test setup.
 change_directory;
-unlink ('data/pid');
-start_remctld;
-my $okay = run_kinit;
+my $okay = (-f 'data/test.principal' && -f 'data/test.keytab');
+if ($okay) {
+    start_remctld;
+    $okay = run_kinit;
+}
 SKIP: {
     skip "no Kerberos configuration", $total unless $okay;
 
