@@ -37,8 +37,8 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
 {
     struct addrinfo hints, *ai;
     char portbuf[16];
+    char *defprinc = NULL;
     int status, flags;
-    int free_princ = 0;
     int fd = -1;
     gss_buffer_desc send_tok, recv_tok, name_buffer, *token_ptr;
     gss_buffer_desc empty_token = { 0, (void *) "" };
@@ -54,8 +54,8 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     if (port == 0)
         port = REMCTL_PORT;
     if (principal == NULL) {
-        principal = concat("host/", host, (char *) 0);
-        free_princ = 1;
+        defprinc = concat("host/", host, (char *) 0);
+        principal = defprinc;
     }
 
     /* Look up the remote host and open a TCP connection.  Call getaddrinfo
@@ -179,8 +179,8 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     return 1;
 
 fail:
-    if (free_princ)
-        free(principal);
+    if (defprinc != NULL)
+        free(defprinc);
     if (fd >= 0)
         close(fd);
     r->fd = -1;
