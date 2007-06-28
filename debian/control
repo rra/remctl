@@ -2,7 +2,7 @@ Source: remctl
 Section: net
 Priority: optional
 Maintainer: Russ Allbery <rra@debian.org>
-Build-Depends: debhelper (>= 5), libkrb5-dev
+Build-Depends: debhelper (>= 5), libkrb5-dev, libtest-pod-perl
 Standards-Version: 3.7.2
 
 Package: libremctl1
