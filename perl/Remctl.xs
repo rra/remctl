@@ -73,6 +73,8 @@ remctl(host, port, principal, ...)
   CODE:
     if (items <= 3)
         croak("Too few arguments to Net::Remctl::remctl");
+    if (principal != NULL && *principal == '\0')
+        principal = NULL;
     command = malloc(sizeof(char *) * (count + 1));
     if (command == NULL)
         croak("Error allocating memory in Net::Remctl::remctl: %s",
@@ -112,6 +114,8 @@ remctl_open(self, host, port, principal)
     unsigned short port
     const char *principal
   PPCODE:
+    if (principal != NULL && *principal == '\0')
+        principal = NULL;
     if (remctl_open(self, host, port, principal))
         XSRETURN_YES;
     else

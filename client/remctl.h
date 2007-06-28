@@ -55,18 +55,19 @@ struct remctl;
 
 BEGIN_DECLS
 
-/* First, the simple interface.  Given a host, a port, the principal to
-   authenticate as (may be NULL to use host/<host>), and a command (as a
-   null-terminated argv-style vector), run the command on that host and port
-   and return a struct remctl_result.  The result should be freed with
-   remctl_result_free. */
+/* First, the simple interface.  Given a host, a port (may be 0 to use
+   REMCTL_PORT), the principal to authenticate as (may be NULL to use
+   host/<host>), and a command (as a null-terminated argv-style vector), run
+   the command on that host and port and return a struct remctl_result.  The
+   result should be freed with remctl_result_free. */
 struct remctl_result *remctl(const char *host, unsigned short port,
                              const char *principal, const char **command);
 void remctl_result_free(struct remctl_result *);
 
 /* Now, the more complex persistant interface.  The basic housekeeping
-   functions.  principal may be NULL, in which case host/<host> is used (with
-   no transformations applied to host at all). */
+   functions.  port may be 0, in which case REMCTL_PORT is used.  principal
+   may be NULL, in which case host/<host> is used (with no transformations
+   applied to host at all). */
 struct remctl *remctl_new(void);
 int remctl_open(struct remctl *, const char *host, unsigned short port,
                 const char *principal);

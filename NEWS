@@ -19,6 +19,8 @@ remctl 2.8 (2007-06-27)
     Add a new -k flag to remctld to tell it to use a non-default keytab.
     Thanks, Andrew Mortensen.
 
+    Default to port 4444 in the library if a port of 0 is passed in.
+
     remctld now exits properly when it can't parse its configuration file
     rather than proceeding with a null configuration.
 

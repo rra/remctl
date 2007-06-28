@@ -47,6 +47,10 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
         = (GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_CONF_FLAG
            | GSS_C_INTEG_FLAG);
 
+    /* If port is 0, default to the standard port. */
+    if (port == 0)
+        port = REMCTL_PORT;
+
     /* Look up the remote host and open a TCP connection.  Call getaddrinfo
        and network_connect instead of network_connect_host so that we can
        report the complete error on host resolution. */
