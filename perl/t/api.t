@@ -83,6 +83,7 @@ sub run_kinit {
 
 # Test setup.
 change_directory;
+unlink ('data/pid');
 start_remctld;
 my $okay = run_kinit;
 SKIP: {
