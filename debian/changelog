@@ -8,12 +8,13 @@ remctl (2.8-1) unstable; urgency=low
     - New remctld -k option to use a non-default keytab.
     - remctld exits properly if it can't parse its configuration file.
     - Fix GSS-API memory free calls in some error cases.
+    - Library now properly supports default ports and principals.
   * Use ${binary:Version} instead of ${Source-Version} in debian/control.
   * libremctl-dev contains no binaries with shared library dependencies
     and never will, so drop ${shlibs:Depends} from its control entry to
     avoid a warning.
 
- -- Russ Allbery <rra@debian.org>  Wed, 27 Jun 2007 17:27:51 -0700
+ -- Russ Allbery <rra@debian.org>  Wed, 27 Jun 2007 18:07:25 -0700
 
 remctl (2.7-2) unstable; urgency=low
 
