@@ -94,7 +94,7 @@ remctl_new(class)
   CODE:
     RETVAL = remctl_new();
     if (RETVAL == NULL)
-        croak("Error creating Net::Remctl object: %s", strerror(errno));
+        croak("Error creating %s object: %s", class, strerror(errno));
   OUTPUT:
     RETVAL
 
@@ -105,19 +105,19 @@ DESTROY(self)
     if (self != NULL)
         remctl_close(self);
 
-SV *
+void
 remctl_open(self, host, port, principal)
     Net::Remctl self
     const char *host
     unsigned short port
     const char *principal
-  CODE:
+  PPCODE:
     if (remctl_open(self, host, port, principal))
         XSRETURN_YES;
     else
         XSRETURN_UNDEF;
 
-SV *
+void
 remctl_command(self, ...)
     Net::Remctl self
   PREINIT:
@@ -125,7 +125,7 @@ remctl_command(self, ...)
     size_t count = items - 1;
     size_t i;
     int status;
-  CODE:
+  PPCODE:
     if (count == 0)
         croak("Too few arguments to Net::Remctl::command");
     args = malloc(sizeof(struct iovec) * count);

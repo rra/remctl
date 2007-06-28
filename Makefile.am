@@ -225,7 +225,7 @@ perl/Remctl.o: $(srcdir)/perl/Remctl.pm $(srcdir)/perl/Remctl.xs \
 	    done \
 	fi
 	cd perl && perl Makefile.PL
-	cd perl && $(MAKE)
+	cd perl && $(MAKE) OPTIMIZE="$(CFLAGS) -Wno-write-strings"
 
 # Build and install the Perl bindings if desired.
 if BUILD_PERL
