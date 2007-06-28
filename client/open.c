@@ -37,19 +37,26 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
 {
     struct addrinfo hints, *ai;
     char portbuf[16];
-    int fd, status, flags;
+    int status, flags;
+    int free_princ = 0;
+    int fd = -1;
     gss_buffer_desc send_tok, recv_tok, name_buffer, *token_ptr;
     gss_buffer_desc empty_token = { 0, (void *) "" };
-    gss_name_t name;
+    gss_name_t name = GSS_C_NO_NAME;
     gss_ctx_id_t gss_context;
     OM_uint32 major, minor, init_minor, gss_flags;
     static const OM_uint32 req_gss_flags
         = (GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_CONF_FLAG
            | GSS_C_INTEG_FLAG);
 
-    /* If port is 0, default to the standard port. */
+    /* If port is 0, default to the standard port.  If principal is NULL, use
+       host/<host> in the default realm. */
     if (port == 0)
         port = REMCTL_PORT;
+    if (principal == NULL) {
+        principal = concat("host/", host, (char *) 0);
+        free_princ = 1;
+    }
 
     /* Look up the remote host and open a TCP connection.  Call getaddrinfo
        and network_connect instead of network_connect_host so that we can
@@ -62,14 +69,14 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     if (status != 0) {
         internal_set_error(r, "unknown host %s: %s", host,
                            gai_strerror(status));
-        return 0;
+        goto fail;
     }
     fd = network_connect(ai, NULL);
     freeaddrinfo(ai);
     if (fd < 0) {
         internal_set_error(r, "cannot connect to %s (port %hu): %s", host,
                            port, strerror(errno));
-        return 0;
+        goto fail;
     }
     r->fd = fd;
 
@@ -79,9 +86,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     major = gss_import_name(&minor, &name_buffer, GSS_C_NT_USER_NAME, &name);
     if (major != GSS_S_COMPLETE) {
         internal_gssapi_error(r, "parsing name", major, minor);
-        close(fd);
-        r->fd = -1;
-        return 0;
+        goto fail;
     }
 
     /* Default to protocol version two, but if some other protocol is already
@@ -174,9 +179,13 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     return 1;
 
 fail:
-    close(fd);
+    if (free_princ)
+        free(principal);
+    if (fd >= 0)
+        close(fd);
     r->fd = -1;
-    gss_release_name(&minor, &name);
+    if (name != GSS_C_NO_NAME)
+        gss_release_name(&minor, &name);
     if (gss_context != GSS_C_NO_CONTEXT)
         gss_delete_sec_context(&minor, &gss_context, GSS_C_NO_BUFFER);
     return 0;
