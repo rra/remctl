@@ -11,13 +11,14 @@
 # builddir != srcdir builds.
 PERL_FILES = perl/Remctl.pm perl/Remctl.xs perl/typemap perl/t/api.t \
 	perl/t/pod.t
-TEST_FILES = tests/TESTS tests/data/README tests/data/acl-bad-include \
+TEST_FILES = tests/TESTS tests/client/pod-t tests/client/remctl-t \
+	tests/data/README tests/data/acl-bad-include \
 	tests/data/acl-bad-syntax tests/data/acl-nonexistant \
 	tests/data/acl-recursive tests/data/acl-simple \
 	tests/data/acl-too-long tests/data/acls/valid \
 	tests/data/acls/valid-2 tests/data/cmd-argv tests/data/cmd-env \
 	tests/data/cmd-hello tests/data/cmd-status tests/data/conf-simple \
-	tests/data/conf-test tests/client/remctl-t tests/util/xmalloc-t
+	tests/data/conf-test tests/util/xmalloc-t
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
