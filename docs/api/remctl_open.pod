@@ -1,0 +1,46 @@
+=head1 NAME
+
+remctl_open - Connect to a remote remctl server
+
+=head1 SYNOPSIS
+
+#include <remctl.h>
+
+int
+remctl_open(struct remctl *I<r>, const char *I<host>, unsigned short I<port>,
+            const char *I<principal>);
+
+=head1 DESCRIPTION
+
+remctl_open() opens a TCP connection to the given I<host> on the given
+I<port> and then authenticates using the remctl protocol and the service
+principal I<principal>.  I<r> is a remctl struct created via remctl_new().
+I<host> must not be NULL.  If I<port> is 0, the default port of 4444 is
+used.  If I<principal> is NULL, a service principal of C<host/I<host>> in
+the default local realm is used.
+
+The remctl protocol uses Kerberos v5 via GSS-API for authentication.  The
+underlying GSS-API library will use the default ticket cache for
+authentication, so to successfully use remctl_open(), the caller should
+already have Kerberos tickets for an appropriate realm stored in its
+default ticket cache.  The environment variable KRB5CCNAME can be used to
+control which ticket cache is used.
+
+=head1 RETURN VALUE
+
+remctl_open() returns true on success and false on failure.  On failure,
+the caller should call remctl_error() to retrieve the error message.
+
+=head1 SEE ALSO
+
+remctl_new(3), remctl_error(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=head1 AUTHOR
+
+Russ Allbery <rra@stanford.edu>
+
+=cut

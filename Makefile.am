@@ -21,13 +21,19 @@ TEST_FILES = tests/TESTS tests/data/README tests/data/acl-bad-include \
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = autogen client/remctl.1 client/remctl.pod docs/design.html \
-	docs/protocol.txt docs/protocol.html docs/protocol.xml \
-	examples/remctl.conf examples/rsh-wrapper examples/xinetd \
-	java/Login.java java/RemctlClient.java java/gss_jaas.conf \
-	java/gss_jaas2.conf portable/getaddrinfo.h portable/getnameinfo.h \
-	portable/gssapi.h portable/socket.h remctl.spec server/remctld.8.in \
-	server/remctld.pod system.h $(PERL_FILES) $(TEST_FILES)
+EXTRA_DIST = autogen docs/api/remctl.3 docs/api/remctl.pod \
+	docs/api/remctl_close.3 docs/api/remctl_close.pod \
+	docs/api/remctl_command.3 docs/api/remctl_command.pod \
+	docs/api/remctl_error.3 docs/api/remctl_error.pod \
+	docs/api/remctl_new.3 docs/api/remctl_new.pod docs/api/remctl_open.3 \
+	docs/api/remctl_open.pod docs/api/remctl_output.3 \
+	docs/api/remctl_output.pod docs/design.html docs/protocol.txt \
+	docs/protocol.html docs/protocol.xml docs/remctl.1 docs/remctl.pod \
+	docs/remctld.8.in docs/remctld.pod examples/remctl.conf \
+	examples/rsh-wrapper examples/xinetd java/Login.java \
+	java/RemctlClient.java java/gss_jaas.conf java/gss_jaas2.conf \
+	portable/getaddrinfo.h portable/getnameinfo.h portable/gssapi.h \
+	portable/socket.h remctl.spec system.h $(PERL_FILES) $(TEST_FILES)
 
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
@@ -55,19 +61,50 @@ server_remctld_SOURCES = server/commands.c server/config.c server/generic.c \
 server_remctld_LDADD = util/libutil.la
 server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"
 
-man_MANS = client/remctl.1 server/remctld.8
+man_MANS = docs/api/remctl.3 docs/api/remctl_close.3 \
+	docs/api/remctl_command.3 docs/api/remctl_error.3 \
+	docs/api/remctl_new.3 docs/api/remctl_open.3 \
+	docs/api/remctl_output.3 docs/remctl.1 docs/remctld.8
 
-$(srcdir)/client/remctl.1: $(srcdir)/client/remctl.pod
+$(srcdir)/docs/remctl.1: $(srcdir)/docs/remctl.pod
 	pod2man --release=$(VERSION) --center="User Commands" \
-	    $(srcdir)/client/remctl.pod > $@
+	    $(srcdir)/docs/remctl.pod > $@
 
-$(srcdir)/server/remctld.8.in: $(srcdir)/server/remctld.pod
+$(srcdir)/docs/remctld.8.in: $(srcdir)/docs/remctld.pod
 	pod2man --release=$(VERSION) --center="System Daemons" \
-	    --section=8 $(srcdir)/server/remctld.pod > $@
+	    --section=8 $(srcdir)/docs/remctld.pod > $@
 
-server/remctld.8: $(srcdir)/server/remctld.8.in
+docs/remctld.8: $(srcdir)/docs/remctld.8.in
 	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \
-	    < $(srcdir)/server/remctld.8.in > $@
+	    < $(srcdir)/docs/remctld.8.in > $@
+
+$(srcdir)/docs/api/remctl.3: $(srcdir)/docs/api/remctl.pod
+	pod2man --release=$(VERSION) --center="remctl Library Reference" \
+	    $(srcdir)/docs/api/remctl.pod > $@
+
+$(srcdir)/docs/api/remctl_close.3: $(srcdir)/docs/api/remctl_close.pod
+	pod2man --release=$(VERSION) --center="remctl Library Reference" \
+	    $(srcdir)/docs/api/remctl_close.pod > $@
+
+$(srcdir)/docs/api/remctl_command.3: $(srcdir)/docs/api/remctl_command.pod
+	pod2man --release=$(VERSION) --center="remctl Library Reference" \
+	    $(srcdir)/docs/api/remctl_command.pod > $@
+
+$(srcdir)/docs/api/remctl_error.3: $(srcdir)/docs/api/remctl_error.pod
+	pod2man --release=$(VERSION) --center="remctl Library Reference" \
+	    $(srcdir)/docs/api/remctl_error.pod > $@
+
+$(srcdir)/docs/api/remctl_new.3: $(srcdir)/docs/api/remctl_new.pod
+	pod2man --release=$(VERSION) --center="remctl Library Reference" \
+	    $(srcdir)/docs/api/remctl_new.pod > $@
+
+$(srcdir)/docs/api/remctl_open.3: $(srcdir)/docs/api/remctl_open.pod
+	pod2man --release=$(VERSION) --center="remctl Library Reference" \
+	    $(srcdir)/docs/api/remctl_open.pod > $@
+
+$(srcdir)/docs/api/remctl_output.3: $(srcdir)/docs/api/remctl_output.pod
+	pod2man --release=$(VERSION) --center="remctl Library Reference" \
+	    $(srcdir)/docs/api/remctl_output.pod > $@
 
 $(srcdir)/docs/protocol.html: $(srcdir)/docs/protocol.xml
 	cd $(srcdir)/docs && xml2rfc protocol.xml protocol.html
@@ -75,13 +112,18 @@ $(srcdir)/docs/protocol.html: $(srcdir)/docs/protocol.xml
 $(srcdir)/docs/protocol.txt: $(srcdir)/docs/protocol.xml
 	cd $(srcdir)/docs && xml2rfc protocol.xml protocol.txt
 
+# Add symlinks for the man pages that document multiple functions.
+install-data-hook:
+	$(LN_S) remctl.3 $(DESTDIR)$(man3dir)/remctl_result_free.3
+	$(LN_S) remctl_command.3 $(DESTDIR)$(man3dir)/remctl_commandv.3
+
 # We shouldn't have to explicitly list $(LIBOBJS) and $(LTLIBOBJS) here.
 # This is a bug in the non-recursive support.
 MOSTLYCLEANFILES = $(LIBOBJS) $(LTLIBOBJS)
-CLEANFILES = server/remctld.8
+CLEANFILES = docs/remctld.8
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 config.h.in config.h.in~ \
-	configure client/remctl.1 docs/protocol.html docs/protocol.txt \
-	server/remctld.8.in
+	configure docs/api/*.3 docs/protocol.html docs/protocol.txt \
+	docs/remctl.1 docs/remctld.8.in
 
 # Automake should deal with the first part of this automatically, but it
 # doesn't.  Probably a bug in the non-recursive support.  Also run make clean

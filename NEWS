@@ -5,6 +5,9 @@ remctl 2.9 (unreleased)
     Fix remctl client library crashes due to an uninitialized variable
     when the network connection fails.
 
+    Added complete C API documentation (as section 3 manual pages) for the
+    libremctl library.
+
     Fix several inaccuracies in the Net::Remctl API documentation.
     Thanks, Alf Wachsmann.
 

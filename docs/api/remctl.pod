@@ -1,0 +1,88 @@
+=head1 NAME
+
+remctl, remctl_result_free - Simple remctl call to a remote server
+
+=head1 SYNOPSIS
+
+#include <remctl.h>
+
+struct remctl_result *
+remctl(const char *I<host>, unsigned short I<port>, const char *I<principal>,
+       const char **I<command>);
+
+void
+remctl_result_free(struct remctl_result *I<result>);
+
+=head1 DESCRIPTION
+
+remctl() provides a simplified client API for the remctl protocol.  Given
+the host, port, service principal for authentication, and command to run,
+it opens a connection to the remote system, sends the command via the
+remctl protocol, reads the results, closes the connection, and returns the
+result as a remctl_result struct.  I<host> is a hostname or IP address and
+must be non-NULL.  I<port> is the port to connect to; if 0, the default
+port of 4444 is used.  I<principal> is the service principal to use for
+authentication; if NULL, C<host/I<host>> in the default local realm is
+used.  I<command> is the command to run as a NULL-terminated array of
+nul-terminated strings.
+
+The remctl protocol uses Kerberos v5 via GSS-API for authentication.  The
+underlying GSS-API library will use the default ticket cache for
+authentication, so to successfully use remctl(), the caller should already
+have Kerberos tickets for an appropriate realm stored in its default
+ticket cache.  The environment variable KRB5CCNAME can be used to control
+which ticket cache is used.
+
+remctl() returns a newly allocated remctl_result struct, which has the
+following members:
+
+    struct remctl_result {
+        char *error;                /* remctl error if non-NULL. */
+        char *stdout_buf;           /* Standard output. */
+        size_t stdout_len;          /* Length of standard output. */
+        char *stderr_buf;           /* Standard error. */
+        size_t stderr_len;          /* Length of standard error. */
+        int status;                 /* Exit status of remote command. */
+    };
+
+If error is non-NULL, a protocol error occurred and the command was not
+successfully completed.  Otherwise, standard output from the command will
+be stored in stdout_buf with the length in stdout_len, standard error from
+the command will be stored in stderr_buf with the length in stderr_len,
+and status will hold the exit status of the command.  Following the
+standard Unix convention, a 0 status should normally be considered success
+and any non-zero status should normally be considered failure, although a
+given command may have its own exit status conventions.
+
+remctl_result_free() frees the remctl_result struct when the calling
+program is through with it.
+
+If you want more control over the steps of the protocol, if you want to
+issue multiple commands on the same connection, or if you need to send
+data as part of the command that contains nuls, use the full API described
+in remctl_new(3), remctl_open(3), remctl_commandv(3), and
+remctl_output(3).
+
+=head1 RETURN VALUE
+
+remctl() returns NULL on failure to allocate a new remctl_result struct or
+on failure to allocate space to store an error message.  Otherwise, it
+returns a newly allocated remctl_result struct with either an error
+message in the error field or the results of the command filled out as
+described above.  If remctl() returns NULL, errno will be set to an
+appropriate error code (generally ENOMEM).
+
+=head1 SEE ALSO
+
+remctl_new(3), remctl_open(3), remctl_command(3), remctl_commandv(3),
+remctl_output(3), remctl_close(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=head1 AUTHOR
+
+Russ Allbery <rra@stanford.edu>
+
+=cut

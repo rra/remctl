@@ -53,5 +53,3 @@
    into the program as specified in the ACL file.
 
  * Add Python bindings for the libremctl client library.
-
- * Provide manual pages for the libremctl interfaces.
