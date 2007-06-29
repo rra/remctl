@@ -53,8 +53,9 @@ Net::Remctl - Perl bindings for remctl (Kerberos remote command execution)
         or die "Cannot connect to hostname: ", $remctl->error, "\n";
     $remctl->command("test", "echo", "Hi there")
         or die "Cannot send command: ", $remctl->error, "\n";
+    my $output;
     do {
-        my $output = $remctl->output;
+        $output = $remctl->output;
         if ($output->type eq 'output') {
             if ($output->stream == 1) {
                 print $output->data;
@@ -157,7 +158,7 @@ allocate memory.
 Retrieves the error message from the last failing operation and returns it
 as a string.
 
-=item connect(HOSTNAME[, PORT[, PRINCIPAL]])
+=item open(HOSTNAME[, PORT[, PRINCIPAL]])
 
 Connect to HOSTNAME on port PORT using PRINCIPAL as the remote server's
 principal for authentication.  If PORT is omitted, undef, or 0, use the
