@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 2.9 (unreleased)
+remctl 2.9 (2007-06-29)
 
     Fix remctl client library crashes due to an uninitialized variable
     when the network connection fails.

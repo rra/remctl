@@ -18,7 +18,7 @@ use warnings;
 
 # This should be kept at the same revision as the overall remctl package that
 # it's part of for minimum confusion.
-our $VERSION = '2.8';
+our $VERSION = '2.09';
 
 require Exporter;
 require DynaLoader;

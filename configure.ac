@@ -9,7 +9,7 @@ dnl See README for licensing terms.
 
 AC_REVISION([$Revision$])
 AC_PREREQ([2.61])
-AC_INIT([remctl], [2.8], [rra@stanford.edu])
+AC_INIT([remctl], [2.9], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([tools])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AM_INIT_AUTOMAKE([1.10])
