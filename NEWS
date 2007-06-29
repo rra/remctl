@@ -1,5 +1,10 @@
                        User-Visible remctl Changes
 
+remctl 2.9 (unreleased)
+
+    Fix remctl client library crashes due to an uninitialized variable
+    when the network connection fails.
+
 remctl 2.8 (2007-06-27)
 
     Add a Net::Remctl Perl module, optionally compiled (and enabled with

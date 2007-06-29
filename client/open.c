@@ -43,7 +43,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     gss_buffer_desc send_tok, recv_tok, name_buffer, *token_ptr;
     gss_buffer_desc empty_token = { 0, (void *) "" };
     gss_name_t name = GSS_C_NO_NAME;
-    gss_ctx_id_t gss_context;
+    gss_ctx_id_t gss_context = GSS_C_NO_CONTEXT;
     OM_uint32 major, minor, init_minor, gss_flags;
     static const OM_uint32 req_gss_flags
         = (GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_CONF_FLAG
@@ -120,7 +120,6 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
        the server ever drops TOKEN_PROTOCOL from the response, we fall back to
        v1. */
     token_ptr = GSS_C_NO_BUFFER;
-    gss_context = GSS_C_NO_CONTEXT;
     do {
         major = gss_init_sec_context(&init_minor, GSS_C_NO_CREDENTIAL, 
                     &gss_context, name, (const gss_OID) GSS_KRB5_MECHANISM,

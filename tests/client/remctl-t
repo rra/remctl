@@ -54,7 +54,7 @@ runfailure () {
 }
 
 # Print the number of tests.
-echo 11
+echo 12
 
 # Find the client program.
 if [ -f ../data/test.keytab ] ; then
@@ -65,7 +65,7 @@ else
     fi
 fi
 if [ ! -f data/test.keytab ] ; then
-    for n in 1 2 3 4 5 6 7 8 9 10 11 ; do
+    for n in 1 2 3 4 5 6 7 8 9 10 11 12 ; do
         echo ok $n \# skip -- no Kerberos configuration
     done
     exit 0
@@ -99,7 +99,7 @@ if [ $status != 0 ] ; then
         kill -HUP `cat data/pid`
     fi
     rm -f data/pid
-    for n in 1 2 3 4 5 6 7 8 9 10 11 ; do
+    for n in 1 2 3 4 5 6 7 8 9 10 11 12 ; do
         echo ok $n \# skip -- no Kerberos configuration
     done
     exit 0
@@ -136,6 +136,16 @@ if [ `wc -l data/output | sed 's/ d.*//'` -eq 2 ] ; then
     printcount "ok"
 else
     printcount "not ok"
+fi
+
+# Check refused connections.
+$remctl -p 14445 localhost test noauth > data/output 2>&1
+output=`sed 's/):.*/)/' data/output`
+if [ "$output" = "remctl: cannot connect to localhost (port 14445)" ] ; then
+    printcount "ok"
+else
+    printcount "not ok"
+    echo "  saw: $output"
 fi
 
 # Clean up.

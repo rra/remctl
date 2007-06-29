@@ -97,18 +97,37 @@ accept_connection(int protocol)
 int
 main(void)
 {
-    char *principal;
+    char *principal, *p;
+    const char *error;
     struct remctl *r;
     int protocol, n;
     pid_t child;
     struct timeval tv;
 
-    test_init(5 * 3);
+    test_init(5 * 3 + 3);
 
-    /* Unless we have Kerberos available, we can't really do anything. */
+    /* Now, check that the right thing happens when we try to connect to a
+       port where nothing is listening.  Modifying the returned error is not
+       actually allowed, but we know enough about the internals to know that
+       we can get away with it. */
+    n = 1;
+    r = remctl_new();
+    ok(n++, !remctl_open(r, "127.0.0.1", 14445, NULL));
+    error = remctl_error(r);
+    ok(n++, error != NULL);
+    if (error != NULL && strchr(error, ':') != NULL) {
+        p = strchr(error, ':');
+        *p = '\0';
+        ok_string(n++, "cannot connect to 127.0.0.1 (port 14445)", error);
+    } else {
+        ok(n++, 0);
+    }
+    remctl_close(r);
+
+    /* Unless we have Kerberos available, we can't really do anything else. */
     principal = kerberos_setup();
     if (principal == NULL) {
-        skip_block(1, 15, "Kerberos tests not configured");
+        skip_block(1, 5 * 3, "Kerberos tests not configured");
         return 0;
     }
 
@@ -116,7 +135,6 @@ main(void)
        different protocol negotiation behaviors that accept_connection can
        test.  Each time, we're going to check that we got a context and that
        we negotiated the appropriate protocol. */
-    n = 1;
     for (protocol = 0; protocol <= 2; protocol++) {
         r = remctl_new();
         child = fork();
