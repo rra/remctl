@@ -1,3 +1,15 @@
+remctl (2.9-1) unstable; urgency=low
+
+  * New upstream release.
+    - Fix error handling bug when a client network connection fails.
+    - Add C API man pages.
+    - Fix several documentation errors in the Net::Remctl module.
+  * Use DESTDIR in the install target in debian/rules rather than
+    resetting prefix now that the Perl module installation also supports
+    it.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 29 Jun 2007 10:51:36 -0700
+
 remctl (2.8-1) unstable; urgency=low
 
   * New upstream release.

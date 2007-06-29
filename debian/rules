@@ -46,7 +46,7 @@ build-stamp: configure-stamp
 	dh_testdir
 	$(MAKE)
 	cd $(CURDIR)/perl && perl Makefile.PL INSTALLDIRS=vendor \
-	    LIBS="-L../client/.libs -lremctl" PREFIX=$(CURDIR)/debian/tmp/usr
+	    LIBS="-L../client/.libs -lremctl"
 	cd $(CURDIR)/perl && $(MAKE) OPTIMIZE="$(CFLAGS)"
 	gcc -g -O2 -o client/.libs/remctl client/remctl.o \
 	    client/.libs/libremctl.so util/.libs/libutil.a
@@ -67,7 +67,7 @@ install: build-stamp
 	dh_testroot
 	dh_clean -k
 	dh_installdirs
-	$(MAKE) install prefix=$(CURDIR)/debian/tmp/usr
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
 	dh_install --fail-missing
 	install -m 644 $(CURDIR)/examples/remctl.conf \
 	    $(CURDIR)/debian/remctl-server/etc/remctl/remctl.conf
