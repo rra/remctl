@@ -39,4 +39,4 @@ TYPE="$0"
 HOST="$1"
 SERVICE="$2"
 shift 2
-exec remctl "${REMOTEHOST}" "${TYPE}" "${SERVICE}" "$@"
+exec remctl "${HOST}" "${TYPE}" "${SERVICE}" "$@"
