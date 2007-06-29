@@ -232,5 +232,5 @@ if BUILD_PERL
 all-local: perl/Remctl.o
 
 install-data-local: perl/Remctl.o
-	cd perl && $(MAKE) install
+	cd perl && $(MAKE) install DESTDIR=$(DESTDIR)
 endif

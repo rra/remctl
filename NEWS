@@ -8,6 +8,9 @@ remctl 2.9 (unreleased)
     Fix several inaccuracies in the Net::Remctl API documentation.
     Thanks, Alf Wachsmann.
 
+    Pass DESTDIR to the Perl module installation as well.  Thanks, Darren
+    Patterson.
+
 remctl 2.8 (2007-06-27)
 
     Add a Net::Remctl Perl module, optionally compiled (and enabled with
