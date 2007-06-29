@@ -2,3 +2,4 @@ debian/tmp/usr/include
 debian/tmp/usr/lib/libremctl.a
 debian/tmp/usr/lib/libremctl.la
 debian/tmp/usr/lib/libremctl.so
+debian/tmp/usr/share/man/man3/*.3
