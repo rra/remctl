@@ -6,8 +6,7 @@ remctl_new - Create a new remctl client
 
 #include <remctl.h>
 
-struct remctl *
-remctl_new(void);
+struct remctl *B<remctl_new>(void);
 
 =head1 DESCRIPTION
 

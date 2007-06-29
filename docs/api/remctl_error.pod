@@ -6,8 +6,7 @@ remctl_error - Retrieve the error from a failed remctl operation
 
 #include <remctl.h>
 
-const char *
-remctl_error(struct remctl *I<r>);
+const char *B<remctl_error>(struct remctl *I<r>);
 
 =head1 DESCRIPTION
 

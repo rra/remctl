@@ -6,9 +6,9 @@ remctl_open - Connect to a remote remctl server
 
 #include <remctl.h>
 
-int
-remctl_open(struct remctl *I<r>, const char *I<host>, unsigned short I<port>,
-            const char *I<principal>);
+int B<remctl_open>(struct remctl *I<r>, const char *I<host>,
+                   unsigned short I<port>,
+                   const char *I<principal>);
 
 =head1 DESCRIPTION
 

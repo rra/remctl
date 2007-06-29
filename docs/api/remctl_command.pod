@@ -6,15 +6,12 @@ remctl_command, remctl_commandv - Send a command to a remctl server
 
 #include <remctl.h>
 
-int
-remctl_command(struct remctl *I<r>, const char **I<command>);
+int B<remctl_command>(struct remctl *I<r>, const char **I<command>);
 
-#include <sys/types.h>
 #include <sys/uio.h>
 
-int
-remctl_commandv(struct remctl *I<r>, const struct iovec *I<iov>,
-                size_t count);
+int B<remctl_commandv>(struct remctl *I<r>, const struct iovec *I<iov>,
+                    size_t I<count>);
 
 =head1 DESCRIPTION
 

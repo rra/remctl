@@ -6,8 +6,7 @@ remctl_close - Close a remctl connection and free the client object
 
 #include <remctl.h>
 
-void
-remctl_close(struct remctl *I<r>);
+void B<remctl_close>(struct remctl *I<r>);
 
 =head1 DESCRIPTION
 

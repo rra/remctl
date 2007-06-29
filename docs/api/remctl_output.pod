@@ -6,8 +6,7 @@ remctl_output - Retrieve the results of a remctl command
 
 #include <remctl.h>
 
-struct remctl_output *
-remctl_output(struct remctl *I<r>);
+struct remctl_output *B<remctl_output>(struct remctl *I<r>);
 
 =head1 DESCRIPTION
 
