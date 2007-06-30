@@ -81,31 +81,37 @@ docs/remctld.8: $(srcdir)/docs/remctld.8.in
 
 $(srcdir)/docs/api/remctl.3: $(srcdir)/docs/api/remctl.pod
 	pod2man --release=$(VERSION) --center="remctl Library Reference" \
-	    --section=3 $(srcdir)/docs/api/remctl.pod > $@
+	    --section=3 --name=REMCTL $(srcdir)/docs/api/remctl.pod > $@
 
 $(srcdir)/docs/api/remctl_close.3: $(srcdir)/docs/api/remctl_close.pod
 	pod2man --release=$(VERSION) --center="remctl Library Reference" \
-	    --section=3 $(srcdir)/docs/api/remctl_close.pod > $@
+	    --section=3 --name=REMCTL_CLOSE \
+	    $(srcdir)/docs/api/remctl_close.pod > $@
 
 $(srcdir)/docs/api/remctl_command.3: $(srcdir)/docs/api/remctl_command.pod
 	pod2man --release=$(VERSION) --center="remctl Library Reference" \
-	    --section=3 $(srcdir)/docs/api/remctl_command.pod > $@
+	    --section=3 --name=REMCTL_COMMAND \
+	    $(srcdir)/docs/api/remctl_command.pod > $@
 
 $(srcdir)/docs/api/remctl_error.3: $(srcdir)/docs/api/remctl_error.pod
 	pod2man --release=$(VERSION) --center="remctl Library Reference" \
-	    --section=3 $(srcdir)/docs/api/remctl_error.pod > $@
+	    --section=3 --name=REMCTL_ERROR \
+	    $(srcdir)/docs/api/remctl_error.pod > $@
 
 $(srcdir)/docs/api/remctl_new.3: $(srcdir)/docs/api/remctl_new.pod
 	pod2man --release=$(VERSION) --center="remctl Library Reference" \
-	    --section=3 $(srcdir)/docs/api/remctl_new.pod > $@
+	    --section=3 --name=REMCTL_NEW \
+	    $(srcdir)/docs/api/remctl_new.pod > $@
 
 $(srcdir)/docs/api/remctl_open.3: $(srcdir)/docs/api/remctl_open.pod
 	pod2man --release=$(VERSION) --center="remctl Library Reference" \
-	    --section=3 $(srcdir)/docs/api/remctl_open.pod > $@
+	    --section=3 --name=REMCTL_OPEN \
+	    $(srcdir)/docs/api/remctl_open.pod > $@
 
 $(srcdir)/docs/api/remctl_output.3: $(srcdir)/docs/api/remctl_output.pod
 	pod2man --release=$(VERSION) --center="remctl Library Reference" \
-	    --section=3 $(srcdir)/docs/api/remctl_output.pod > $@
+	    --section=3 --name=REMCTL_OUTPUT \
+	    $(srcdir)/docs/api/remctl_output.pod > $@
 
 $(srcdir)/docs/protocol.html: $(srcdir)/docs/protocol.xml
 	cd $(srcdir)/docs && xml2rfc protocol.xml protocol.html
