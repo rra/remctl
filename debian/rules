@@ -82,9 +82,9 @@ binary-arch: build-stamp install
 	dh_installdocs
 	dh_installexamples
 	dh_link
+	dh_fixperms
 	dh_strip
 	dh_compress
-	dh_fixperms
 	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps -l $(CURDIR)/debian/libremctl1/usr/lib -L libremctl1

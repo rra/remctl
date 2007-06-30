@@ -7,8 +7,10 @@ remctl (2.9-1) unstable; urgency=low
   * Use DESTDIR in the install target in debian/rules rather than
     resetting prefix now that the Perl module installation also supports
     it.
+  * Run dh_fixperms before dh_strip so that Perl modules are properly
+    stripped.
 
- -- Russ Allbery <rra@debian.org>  Fri, 29 Jun 2007 10:51:36 -0700
+ -- Russ Allbery <rra@debian.org>  Fri, 29 Jun 2007 17:04:34 -0700
 
 remctl (2.8-1) unstable; urgency=low
 
