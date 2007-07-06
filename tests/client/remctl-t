@@ -151,6 +151,6 @@ fi
 # Clean up.
 rm -f data/test.cache data/output
 if [ -f data/pid ] ; then
-    kill -HUP `cat data/pid`
+    kill -TERM `cat data/pid`
     rm -f data/pid
 fi

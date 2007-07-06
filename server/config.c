@@ -349,6 +349,29 @@ server_config_load(const char *file)
 
 
 /*
+**  Free the config structure created by calling server_config_load.
+*/
+void
+server_config_free(struct config *config)
+{
+    struct confline *rule;
+    size_t i;
+
+    for (i = 0; i < config->count; i++) {
+        rule = config->rules[i];
+        if (rule->logmask != NULL)
+            cvector_free(rule->logmask);
+        if (rule->acls != NULL)
+            free(rule->acls);
+        if (rule->line != NULL)
+            vector_free(rule->line);
+    }
+    free(config->rules);
+    free(config);
+}
+
+
+/*
 **  Given the confline corresponding to the command and the principal
 **  requesting access, see if the command is allowed.  Return true if so,
 **  false otherwise.

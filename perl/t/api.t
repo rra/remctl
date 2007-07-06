@@ -52,7 +52,7 @@ sub stop_remctld {
     if (open (PID, 'data/pid')) {
         my $pid = <PID>;
         chomp $pid;
-        kill (1, $pid);
+        kill (15, $pid);
         unlink ('data/pid');
     }
 }

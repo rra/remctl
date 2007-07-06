@@ -29,6 +29,14 @@
    (only used in standalone mode). */
 static volatile sig_atomic_t child_signaled = 0;
 
+/* Flag indicating whether we've received a signal asking us to re-read our
+   configuration file (only used in standalone mode). */
+static volatile sig_atomic_t config_signaled = 0;
+
+/* Flag indicating whether we've received a signal asking us to exit (only
+   used in standalone mode). */
+static volatile sig_atomic_t exit_signaled = 0;
+
 /* Usage message. */
 static const char usage_message[] = "\
 Usage: remctld <options>\n\
@@ -43,6 +51,18 @@ Options:\n\
     -S            Log to standard output/error rather than syslog\n\
     -s <service>  Service principal to use (default: host/<host>)\n\
     -v            Display the version of remctld\n";
+
+/* Structure used to store program options. */
+struct options {
+    int foreground;
+    int standalone;
+    int stdout;
+    int debug;
+    unsigned short port;
+    char *service;
+    const char *config_path;
+    const char *pid_path;
+};
 
 
 /*
@@ -61,13 +81,37 @@ usage(int status)
 
 /*
 **  Signal handler for child processes forked when running in standalone mode.
-**  Just increment the child_signaled global so that we know to reap the
-**  processes later.
+**  Just set the child_signaled global so that we know to reap the processes
+**  later.
 */
 static RETSIGTYPE
 child_handler(int sig UNUSED)
 {
     child_signaled = 1;
+}
+
+
+/*
+**  Signal handler for signals asking us to re-read our configuration file
+**  when running in standalone mode.  Set the config_signaled global so that
+**  we do this the next time through the processing loop.
+*/
+static RETSIGTYPE
+config_handler(int sig UNUSED)
+{
+    config_signaled = 1;
+}
+
+
+/*
+**  Signal handler for signals asking for a clean shutdown when running in
+**  standalone mode.  Set the exit_signaled global so that we exit cleanly the
+**  next time through the processing loop.
+*/
+static RETSIGTYPE
+exit_handler(int sig UNUSED)
+{
+    exit_signaled = 1;
 }
 
 
@@ -171,8 +215,8 @@ server_log_child(pid_t pid, int status)
 **  then exits.
 */
 static void
-server_daemon(unsigned short port, struct config *config, gss_cred_id_t creds,
-              int do_stdout)
+server_daemon(struct options *options, struct config *config,
+              gss_cred_id_t creds)
 {
     int s, stmp, status;
     pid_t child;
@@ -187,16 +231,32 @@ server_daemon(unsigned short port, struct config *config, gss_cred_id_t creds,
     if (sigaction(SIGCHLD, &sa, &oldsa) < 0)
         sysdie("cannot set SIGCHLD handler");
 
+    /* Set up exit handlers for signals that call for a clean shutdown. */
+    sa.sa_handler = exit_handler;
+    if (sigaction(SIGINT, &sa, NULL) < 0)
+        sysdie("cannot set SIGINT handler");
+    if (sigaction(SIGTERM, &sa, NULL) < 0)
+        sysdie("cannot set SIGTERM handler");
+
+    /* Set up a SIGHUP handler so that we know when to re-read our config. */
+    sa.sa_handler = config_handler;
+    if (sigaction(SIGHUP, &sa, NULL) < 0)
+        sysdie("cannot set SIGHUP handler");
+
+    /* Log a starting message. */
+    notice("starting");
+
     /* Bind to the network socket. */
-    stmp = network_bind_ipv4("any", port);
+    stmp = network_bind_ipv4("any", options->port);
     if (stmp < 0)
         sysdie("cannot create socket");
     if (listen(stmp, 5) < 0)
         sysdie("error listening on socket");
 
     /* The main processing loop.  Each time through the loop, check to see if
-       we need to reap children, see if we have a new connection, and if so,
-       fork a child to handle it.
+       we need to reap children, check to see if we should re-read our
+       configuration, and check to see if we're exiting.  Then see if we have
+       a new connection, and if so, fork a child to handle it.
 
        Note that there are no limits here on the number of simultaneous
        processes, so you may want to set system resource limits to prevent an
@@ -208,6 +268,20 @@ server_daemon(unsigned short port, struct config *config, gss_cred_id_t creds,
                 server_log_child(child, status);
             if (child < 0 && errno != ECHILD)
                 sysdie("waitpid failed");
+        }
+        if (config_signaled) {
+            config_signaled = 0;
+            notice("re-reading configuration");
+            server_config_free(config);
+            config = server_config_load(options->config_path);
+            if (config == NULL)
+                die("cannot load configuration file %s", options->config_path);
+        }
+        if (exit_signaled) {
+            notice("signal received, exiting");
+            if (options->pid_path != NULL)
+                unlink(options->pid_path);
+            exit(0);
         }
         sslen = sizeof(ss);
         s = accept(stmp, (struct sockaddr *) &ss, &sslen);
@@ -225,7 +299,7 @@ server_daemon(unsigned short port, struct config *config, gss_cred_id_t creds,
             if (sigaction(SIGCHLD, &oldsa, NULL) < 0)
                 syswarn("cannot reset SIGCHLD handler");
             server_handle_connection(s, config, creds);
-            if (do_stdout)
+            if (options->stdout)
                 fflush(stdout);
             exit(0);
         } else {
@@ -246,18 +320,11 @@ server_daemon(unsigned short port, struct config *config, gss_cred_id_t creds,
 int
 main(int argc, char *argv[])
 {
-    char *service = NULL;
-    const char *pid_path = NULL;
+    struct options options;
     FILE *pid_file;
     int option;
     gss_cred_id_t creds = GSS_C_NO_CREDENTIAL;
     OM_uint32 minor;
-    unsigned short port = 4444;
-    int do_foreground = 0;
-    int do_standalone = 0;
-    int do_stdout = 0;
-    int do_debug = 0;
-    const char *conffile = CONFIG_FILE;
     struct config *config;
 
     /* Since we are normally called from tcpserver or inetd, prevent clients
@@ -267,17 +334,24 @@ main(int argc, char *argv[])
     /* Establish identity. */
     message_program_name = "remctld";
 
+    /* Initialize options. */
+    memset(&options, 0, sizeof(options));
+    options.port = 4444;
+    options.service = NULL;
+    options.pid_path = NULL;
+    options.config_path = CONFIG_FILE;
+
     /* Parse options. */
     while ((option = getopt(argc, argv, "dFf:hk:mP:p:Ss:v")) != EOF) {
         switch (option) {
         case 'd':
-            do_debug = 1;
+            options.debug = 1;
             break;
         case 'F':
-            do_foreground = 1;
+            options.foreground = 1;
             break;
         case 'f':
-            conffile = optarg;
+            options.config_path = optarg;
             break;
         case 'h':
             usage(0);
@@ -287,19 +361,19 @@ main(int argc, char *argv[])
                 sysdie("cannot set KRB5_KTNAME");
             break;
         case 'm':
-            do_standalone = 1;
+            options.standalone = 1;
             break;
         case 'P':
-            pid_path = optarg;
+            options.pid_path = optarg;
             break;
         case 'p':
-            port = atoi(optarg);
+            options.port = atoi(optarg);
             break;
         case 'S':
-            do_stdout = 1;
+            options.stdout = 1;
             break;
         case 's':
-            service = optarg;
+            options.service = optarg;
             break;
         case 'v':
             printf("remctld %s\n", PACKAGE_VERSION);
@@ -312,43 +386,43 @@ main(int argc, char *argv[])
     }
 
     /* Daemonize if told to do so. */
-    if (do_standalone && !do_foreground)
-        daemon(0, do_stdout);
+    if (options.standalone && !options.foreground)
+        daemon(0, options.stdout);
 
     /* Set up syslog unless stdout/stderr was requested.  Set up debug logging
        if requestsed. */
-    if (do_stdout) {
-        if (do_debug)
+    if (options.stdout) {
+        if (options.debug)
             message_handlers_debug(1, message_log_stdout);
     } else {
         openlog("remctld", LOG_PID | LOG_NDELAY, LOG_DAEMON);
         message_handlers_notice(1, message_log_syslog_info);
         message_handlers_warn(1, message_log_syslog_warning);
         message_handlers_die(1, message_log_syslog_err);
-        if (do_debug)
+        if (options.debug)
             message_handlers_debug(1, message_log_syslog_debug);
     }
 
     /* Read the configuration file. */
-    config = server_config_load(conffile);
+    config = server_config_load(options.config_path);
     if (config == NULL)
-        die("cannot read configuration file %s", conffile);
+        die("cannot read configuration file %s", options.config_path);
 
     /* If a service was specified, we should load only those credentials since
        those are the only ones we're allowed to use.  Otherwise, creds will
        keep its default value of GSS_C_NO_CREDENTIAL, which means support
        anything that's in the keytab. */
-    if (service != NULL) {
-        if (!acquire_creds(service, &creds))
+    if (options.service != NULL) {
+        if (!acquire_creds(options.service, &creds))
             die("unable to acquire creds, aborting");
     }
 
     /* Set up our PID file now after we've daemonized, since we may have
        changed PIDs in the process. */
-    if (do_standalone && pid_path != NULL) {
-        pid_file = fopen(pid_path, "w");
+    if (options.standalone && options.pid_path != NULL) {
+        pid_file = fopen(options.pid_path, "w");
         if (pid_file == NULL)
-            sysdie("cannot create PID file %s", pid_path);
+            sysdie("cannot create PID file %s", options.pid_path);
         fprintf(pid_file, "%ld\n", (long) getpid());
         fclose(pid_file);
     }
@@ -356,10 +430,10 @@ main(int argc, char *argv[])
     /* If we're not running as a daemon, just process the connection.
        Otherwise, create a socket and listen on the socket, processing each
        incoming connection. */
-    if (!do_standalone)
+    if (!options.standalone)
         server_handle_connection(0, config, creds);
     else
-        server_daemon(port, config, creds, do_stdout);
+        server_daemon(&options, config, creds);
 
     /* Clean up and exit.  We only reach here in regular mode. */
     if (creds != GSS_C_NO_CREDENTIAL)

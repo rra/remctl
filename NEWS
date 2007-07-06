@@ -8,6 +8,13 @@ remctl 2.10 (unreleased)
     tokens in an effort to keep bugs like this from going unnoticed in the
     future.
 
+    remctld when running in stand-alone mode now removes the PID file (if
+    any) and exits cleanly after receiving SIGINT or SIGTERM.  Based on a
+    patch by Marcus Watts.
+
+    remctld when running in stand-alone mode now re-reads its
+    configuration file file after receiving a SIGHUP.
+
     Allow port and principal to be omitted in calls to Net::Remctl::open,
     matching the documentation.  Thanks, Marcus Watts.
 

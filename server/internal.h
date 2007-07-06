@@ -77,6 +77,7 @@ void server_log_command(struct vector *, struct confline *, const char *user);
 
 /* Configuration file functions. */
 struct config *server_config_load(const char *file);
+void server_config_free(struct config *);
 int server_config_acl_permit(struct confline *, const char *user);
 
 /* Running commands. */
