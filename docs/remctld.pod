@@ -4,8 +4,8 @@ remctld - Server for remctl, a remote command execution utility
 
 =head1 SYNOPSIS
 
-remctld [B<-dhmv>] [B<-f> I<config>] [B<-P> I<file>] [B<-p> I<port>]
-[B<-s> I<service>]
+remctld [B<-dFhmSv>] [B<-f> I<config>] [B<-k> I<keytab>] [B<-P> I<file>]
+[B<-p> I<port>] [B<-s> I<service>]
 
 =head1 DESCRIPTION
 
