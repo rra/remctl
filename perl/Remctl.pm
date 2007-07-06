@@ -91,11 +91,15 @@ output and exit status, you can use the exported remctl() function:
 
 Runs a command on the remote system and returns a Net::Remctl::Result object
 (see below).  HOSTNAME is the remote host to contact.  PORT is the port of
-the remote B<remctld> server and may be 0 or undef to tell the library to
-use the default (4444).  PRINCIPAL is the principal of the server to use for
-authentication; leave this blank to use the default of host/I<hostname> in
-the default local realm.  The remaining arguments are the remctl command and
-arguments passed to the remote server.
+the remote B<remctld> server and may be 0 to tell the library to use the
+default (4444).  PRINCIPAL is the principal of the server to use for
+authentication; pass in the empty string to use the default of
+host/I<hostname> in the default local realm.  The remaining arguments are
+the remctl command and arguments passed to the remote server.
+
+As far as the module is concerned, undef may be passed as PORT and PRINCIPAL
+and is the same as 0 and the empty string respectively.  However, Perl will
+warn about passing undef explicitly as a function argument.
 
 The return value is a Net::Remctl::Result object which supports the
 following methods:

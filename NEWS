@@ -8,6 +8,10 @@ remctl 2.10 (unreleased)
     tokens in an effort to keep bugs like this from going unnoticed in the
     future.
 
+    Change the Net::Remctl documentation for remctl() to suggest 0 and the
+    empty string as default values for port and principal, since this
+    avoids Perl warnings.
+
 remctl 2.9 (2007-06-29)
 
     Fix remctl client library crashes due to an uninitialized variable
