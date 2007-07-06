@@ -239,8 +239,16 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
     vector_resize(argv, argc);
 
     /* Parse out the arguments and store them into a vector.  Arguments are
-       packed: (<arglength><argument>)+. */
+       packed: (<arglength><argument>)+.  Make sure each time through the loop
+       that they didn't send more arguments than they claimed to have. */
     while (p <= buffer + length - 4) {
+        if (argv->count >= argc) {
+            warn("sent more arguments than argc %lu", (unsigned long) argc);
+            server_send_error(client, ERROR_BAD_COMMAND,
+                              "Invalid command token");
+            vector_free(argv);
+            return NULL;
+        }
         memcpy(&tmp, p, 4);
         arglen = ntohl(tmp);
         p += 4;

@@ -171,10 +171,10 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t \
 	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t \
 	tests/server/background-t tests/server/config-t \
 	tests/server/continue-t tests/server/env-t tests/server/errors-t \
-	tests/server/streaming-t tests/server/version-t tests/util/concat-t \
-	tests/util/gss-tokens-t tests/util/messages-t tests/util/network-t \
-	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc \
-	tests/util/xwrite-t
+	tests/server/invalid-t tests/server/streaming-t \
+	tests/server/version-t tests/util/concat-t tests/util/gss-tokens-t \
+	tests/util/messages-t tests/util/network-t tests/util/tokens-t \
+	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES= tests/libtest.a
 tests_libtest_a_SOURCES = tests/libtest.c tests/libtest.h
 
@@ -229,6 +229,8 @@ tests_server_continue_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_env_t_LDADD = client/libremctl.la tests/libtest.a util/libutil.la
 tests_server_errors_t_LDADD = client/libremctl.la tests/libtest.a \
+	util/libutil.la
+tests_server_invalid_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_streaming_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la

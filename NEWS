@@ -1,5 +1,13 @@
                        User-Visible remctl Changes
 
+remctl 2.10 (unreleased)
+
+    Fix a (non-exploitable) remctld crash when the client sent more
+    command arguments than it claimed it was going to send.  Thanks,
+    Marcus Watts.  Also added a test with a variety of malformed command
+    tokens in an effort to keep bugs like this from going unnoticed in the
+    future.
+
 remctl 2.9 (2007-06-29)
 
     Fix remctl client library crashes due to an uninitialized variable
