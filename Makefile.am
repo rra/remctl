@@ -257,7 +257,8 @@ check-local: $(noinst_PROGRAMS)
 	    done \
 	fi
 	cd tests && ./runtests TESTS
-	set -e; if [ -f perl/Makefile ] ; then \
+	@set -e; if [ -f perl/Makefile ] ; then \
+	    echo '' ; \
 	    cd perl && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
 	        $(MAKE) test ; \
 	fi
