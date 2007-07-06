@@ -108,14 +108,20 @@ DESTROY(self)
         remctl_close(self);
 
 void
-remctl_open(self, host, port, principal)
+remctl_open(self, host, ...)
     Net::Remctl self
     const char *host
-    unsigned short port
-    const char *principal
+  PREINIT:
+    size_t count = items - 2;
+    unsigned short port = 0;
+    const char *principal = NULL;
   PPCODE:
-    if (principal != NULL && *principal == '\0')
-        principal = NULL;
+    if (count > 2)
+        croak("Too many arguments to Net::Remctl::open");
+    if (count >= 1)
+        port = SvUV(ST(2));
+    if (count >= 2 && ST(3) != &PL_sv_undef)
+        principal = SvPV_nolen(ST(3));
     if (remctl_open(self, host, port, principal))
         XSRETURN_YES;
     else
