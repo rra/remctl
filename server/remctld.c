@@ -225,6 +225,9 @@ server_daemon(struct options *options, struct config *config,
     socklen_t sslen;
     char ip[INET6_ADDRSTRLEN];
 
+    /* We're running as a daemon, so don't self-destruct. */
+    alarm(0);
+
     /* Set up a SIGCHLD handler so that we know when to reap children. */
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = child_handler;

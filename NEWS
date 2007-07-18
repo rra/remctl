@@ -15,6 +15,9 @@ remctl 2.10 (unreleased)
     remctld when running in stand-alone mode now re-reads its
     configuration file file after receiving a SIGHUP.
 
+    Don't self-destruct after an hour in stand-alone mode, fixing a bug
+    introduced in 2.8.
+
     Allow port and principal to be omitted in calls to Net::Remctl::open,
     matching the documentation.  Thanks, Marcus Watts.
 
