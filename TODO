@@ -51,3 +51,6 @@
  * Add Python bindings for the libremctl client library.
 
  * Add symbol versioning to the client library.
+
+ * Add sequence protection to the required GSSAPI flags.  Make replay
+   protection optional, since remctl 0.6 doesn't support it.
