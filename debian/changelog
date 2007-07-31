@@ -1,3 +1,9 @@
+remctl (2.9-2) UNRELEASED; urgency=low
+
+  * Allow inet-superserver to satisfy the update-inetd requirement.
+
+ -- Russ Allbery <rra@debian.org>  Mon, 30 Jul 2007 23:25:18 -0700
+
 remctl (2.9-1) unstable; urgency=low
 
   * New upstream release.
