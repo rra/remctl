@@ -84,4 +84,5 @@ if test x"$build_perl" = xyes ; then
     AC_CONFIG_FILES([perl/Makefile.PL])
 fi
 AC_CONFIG_HEADER([config.h])
+AC_CONFIG_COMMANDS([docs], [test -d docs || mkdir docs])
 AC_OUTPUT

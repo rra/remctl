@@ -21,6 +21,9 @@ remctl 2.10 (unreleased)
     Allow port and principal to be omitted in calls to Net::Remctl::open,
     matching the documentation.  Thanks, Marcus Watts.
 
+    Fix builds outside the source directory by creating the docs directory
+    properly.  Based on a patch by Marcus Watts.
+
     Change the Net::Remctl documentation for remctl() to suggest 0 and the
     empty string as default values for port and principal, since this
     avoids Perl warnings.

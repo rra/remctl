@@ -55,7 +55,5 @@
  * Add sequence protection to the required GSSAPI flags.  Make replay
    protection optional, since remctl 0.6 doesn't support it.
 
- * Create the docs directory when builddir != srcdir.
-
  * Add a dummy object to libportable in case it would otherwise be empty,
    needed for Solaris 10.
