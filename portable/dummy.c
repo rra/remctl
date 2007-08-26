@@ -11,6 +11,9 @@
 **  one symbol.
 */
 
+/* Prototype to avoid gcc warnings. */
+int portable_dummy(void);
+
 int
 portable_dummy(void)
 {
