@@ -80,6 +80,7 @@ AC_ARG_ENABLE([perl],
 AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
 
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([tests/client/pod-t], [chmod +x tests/client/pod-t])
 if test x"$build_perl" = xyes ; then
     AC_CONFIG_FILES([perl/Makefile.PL])
 fi

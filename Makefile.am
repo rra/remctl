@@ -11,7 +11,7 @@
 # builddir != srcdir builds.
 PERL_FILES = perl/Remctl.pm perl/Remctl.xs perl/typemap perl/t/api.t \
 	perl/t/pod.t
-TEST_FILES = tests/TESTS tests/client/pod-t tests/client/remctl-t \
+TEST_FILES = tests/TESTS tests/client/pod-t.in tests/client/remctl-t \
 	tests/data/README tests/data/acl-bad-include \
 	tests/data/acl-bad-syntax tests/data/acl-nonexistant \
 	tests/data/acl-recursive tests/data/acl-simple \
@@ -138,9 +138,9 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 config.h.in config.h.in~ \
 clean-local:
 	-rm -rf server/.libs tests/.libs tests/client/.libs tests/data/.libs \
 	    tests/portable/.libs tests/server/.libs tests/util/.libs
-	set -e; cd perl && if [ -f Makefile ] ; then \
-	    $(MAKE) clean ; \
-	    [ ! -f Makefile.old ] || mv Makefile.old Makefile ; \
+	set -e; if [ -f "perl/Makefile" ] ; then \
+	    cd perl && $(MAKE) clean ; \
+	    cd perl && [ ! -f Makefile.old ] || mv Makefile.old Makefile ; \
 	fi
 
 # More bugs in the non-recursive support, plus running make distclean in the

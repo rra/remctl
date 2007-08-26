@@ -8,12 +8,7 @@ use strict;
 use Test::More;
 eval "use Test::Pod 1.00";
 plan skip_all => "Test::Pod 1.00 required for testing POD" if $@;
-if (! -d 'docs') {
-    if (-d '../docs') {
-        chdir '..' or die "$0: cannot chdir to ..: $!\n";
-    } elsif (-d '../../docs') {
-        chdir '../..' or die "$0: cannot chdir to ../..: $!\n";
-    }
-}
+my $srcdir = '@abs_top_srcdir@';
+chdir "$srcdir" or die "$0: cannot chdir to $srcdir: $!\n";
 my @poddirs = qw(docs);
 all_pod_files_ok (all_pod_files (@poddirs));
