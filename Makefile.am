@@ -39,7 +39,7 @@ EXTRA_DIST = autogen docs/api/remctl.3 docs/api/remctl.pod \
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
 	client/client-v2.c client/error.c client/internal.h client/open.c
-client_libremctl_la_LDFLAGS = -version-info 1:0:0
+client_libremctl_la_LDFLAGS = -version-info 1:1:0 @VERSION_LDFLAGS@
 client_libremctl_la_LIBADD = util/libutil.la
 include_HEADERS = client/remctl.h
 

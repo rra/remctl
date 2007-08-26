@@ -23,6 +23,8 @@ remctl 2.10 (unreleased)
     Don't self-destruct after an hour in stand-alone mode, fixing a bug
     introduced in 2.8.
 
+    The libremctl client library now uses symbol versioning on Linux.
+
     Allow port and principal to be omitted in calls to Net::Remctl::open,
     matching the documentation.  Thanks, Marcus Watts.
 

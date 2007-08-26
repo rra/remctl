@@ -50,7 +50,6 @@
 
  * Add Python bindings for the libremctl client library.
 
- * Add symbol versioning to the client library.
-
- * Add a dummy object to libportable in case it would otherwise be empty,
-   needed for Solaris 10.
+ * Add logic to detect Solaris vs. GNU ld on Solaris and pass the
+   appropriate option to use the symbol versioning map file on Solaris as
+   well.

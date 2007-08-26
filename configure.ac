@@ -69,6 +69,20 @@ AC_TYPE_SIGNAL
 dnl Needed to get prototypes for functions like asprintf on Linux.
 AC_DEFINE([_GNU_SOURCE], [1], [Define to 1 on Linux to get full prototypes.])
 
+dnl If and only if we're on a GNU system, use mapfile to do symbol versioning
+dnl of the libremctl library.  libtool doesn't know how to do this itself.
+dnl This is supported on Solaris as well but we need to know if we're
+dnl the GNU linker or the Solaris linker.
+case "$host" in
+*-gnu*)
+    VERSION_LDFLAGS='-Wl,--version-script=${srcdir}/client/mapfile'
+    ;;
+*)
+    VERSION_LDFLAGS=""
+    ;;
+esac
+AC_SUBST([VERSION_LDFLAGS])
+
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.
 build_perl=
