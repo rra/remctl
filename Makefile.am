@@ -22,7 +22,7 @@ TEST_FILES = tests/TESTS tests/client/pod-t.in tests/client/remctl-t \
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = autogen docs/api/remctl.3 docs/api/remctl.pod \
+EXTRA_DIST = autogen client/mapfile docs/api/remctl.3 docs/api/remctl.pod \
 	docs/api/remctl_close.3 docs/api/remctl_close.pod \
 	docs/api/remctl_command.3 docs/api/remctl_command.pod \
 	docs/api/remctl_error.3 docs/api/remctl_error.pod \
@@ -132,6 +132,7 @@ install-data-hook:
 # This is a bug in the non-recursive support.
 MOSTLYCLEANFILES = $(LIBOBJS) $(LTLIBOBJS)
 CLEANFILES = docs/remctld.8
+DISTCLEANFILES = tests/client/pod-t
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 config.h.in config.h.in~ \
 	configure docs/api/*.3 docs/protocol.html docs/protocol.txt \
 	docs/remctl.1 docs/remctld.8.in
