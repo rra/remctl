@@ -38,8 +38,8 @@ DESCRIPTION
   does only the portions we actually needed.
 
   Both C and Java clients are provided, as well as Perl bindings for the C
-  client library.  The design documentation is available in
-  docs/design.html.
+  client library.  For more information about the Java client, see
+  java/README.  The design documentation is available in docs/design.html.
 
 REQUIREMENTS
 
@@ -180,7 +180,9 @@ THANKS
   that surround them.
 
   To Marcus Watts for testing and various bug fixes, lots of improvements
-  to the standalone server mode, and fixes for the Perl API.
+  to the standalone server mode, and fixes for the Perl API.  Marcus also
+  rewrote the Java client, adding support for protocol version two and a
+  server implementation.
 
 LICENSE
 

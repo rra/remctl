@@ -2,6 +2,10 @@
 
 remctl 2.10 (unreleased)
 
+    Include a rewritten Java client and a Java server implementation, both
+    by Marcus Watts.  The rewritten Java client supports protocol version
+    two and works with Sun Java 1.4.2, 5, and 6.
+
     Fix a (non-exploitable) remctld crash when the client sent more
     command arguments than it claimed it was going to send.  Thanks,
     Marcus Watts.  Also added a test with a variety of malformed command

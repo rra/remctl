@@ -31,10 +31,14 @@ EXTRA_DIST = autogen docs/api/remctl.3 docs/api/remctl.pod \
 	docs/api/remctl_output.pod docs/design.html docs/protocol.txt \
 	docs/protocol.html docs/protocol.xml docs/remctl.1 docs/remctl.pod \
 	docs/remctld.8.in docs/remctld.pod examples/remctl.conf \
-	examples/rsh-wrapper examples/xinetd java/Login.java \
-	java/RemctlClient.java java/gss_jaas.conf java/gss_jaas2.conf \
-	portable/getaddrinfo.h portable/getnameinfo.h portable/gssapi.h \
-	portable/socket.h remctl.spec system.h $(PERL_FILES) $(TEST_FILES)
+	examples/rsh-wrapper examples/xinetd java/.classpath java/.project \
+	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf \
+	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java \
+	java/org/eyrie/eagle/remctl/RemctlClient.java \
+	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java \
+	java/t7.java portable/getaddrinfo.h portable/getnameinfo.h \
+	portable/gssapi.h portable/socket.h remctl.spec system.h \
+	$(PERL_FILES) $(TEST_FILES)
 
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
