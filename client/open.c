@@ -45,9 +45,11 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     gss_name_t name = GSS_C_NO_NAME;
     gss_ctx_id_t gss_context = GSS_C_NO_CONTEXT;
     OM_uint32 major, minor, init_minor, gss_flags;
+    static const OM_uint32 wanted_gss_flags
+        = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG
+           | GSS_C_REPLAY_FLAG | GSS_C_SEQUENCE_FLAG);
     static const OM_uint32 req_gss_flags
-        = (GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_CONF_FLAG
-           | GSS_C_INTEG_FLAG);
+        = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
 
     /* If port is 0, default to the standard port.  If principal is NULL, use
        host/<host> in the default realm. */
@@ -123,7 +125,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     do {
         major = gss_init_sec_context(&init_minor, GSS_C_NO_CREDENTIAL, 
                     &gss_context, name, (const gss_OID) GSS_KRB5_MECHANISM,
-                    req_gss_flags, 0, NULL, token_ptr, NULL, &send_tok,
+                    wanted_gss_flags, 0, NULL, token_ptr, NULL, &send_tok,
                     &gss_flags, NULL);
 
         if (token_ptr != GSS_C_NO_BUFFER)
@@ -153,7 +155,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
         /* If the flags we get back from the server are bad and we're doing
            protocol v2, report an error and abort. */
         if (r->protocol > 1 && (gss_flags & req_gss_flags) != req_gss_flags) {
-            internal_set_error(r, "server did not negotiate appropriate"
+            internal_set_error(r, "server did not negotiate acceptable"
                                " GSS-API flags");
             goto fail;
         }

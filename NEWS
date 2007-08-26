@@ -8,6 +8,11 @@ remctl 2.10 (unreleased)
     tokens in an effort to keep bugs like this from going unnoticed in the
     future.
 
+    The remctl client now also requests sequence protection, but the
+    client and server do not insist on it or on replay protection since
+    Heimdal 0.6 doesn't support replay protection.  This has been
+    documented in the protocol specification as well.
+
     remctld when running in stand-alone mode now removes the PID file (if
     any) and exits cleanly after receiving SIGINT or SIGTERM.  Based on a
     patch by Marcus Watts.

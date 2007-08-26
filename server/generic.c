@@ -44,8 +44,7 @@ server_new_client(int fd, gss_cred_id_t creds)
     OM_uint32 acc_minor;
     int flags, status;
     static const OM_uint32 req_gss_flags
-        = (GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_CONF_FLAG
-           | GSS_C_INTEG_FLAG);
+        = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
 
     /* Create and initialize a new client struct. */
     client = xcalloc(1, sizeof(struct client));

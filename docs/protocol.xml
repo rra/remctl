@@ -94,8 +94,9 @@
 
           <t>Client calls gss_init_sec_context and replies with the
           results and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The client
-          must pass GSS_C_MUTUAL_FLAG, GSS_C_REPLAY_FLAG, GSS_C_CONF_FLAG,
-          and GSS_C_INTEG_FLAG as requested flags.</t>
+          MUST pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and
+          GSS_C_INTEG_FLAG as requested flags and SHOULD pass
+          GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG.</t>
 
           <t>Server replies with the results of gss_accept_sec_context and
           flags TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  If the server
@@ -105,8 +106,9 @@
 
           <t>Client passes data to gss_init_sec_context and replies with
           the results and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The
-          client must pass GSS_C_MUTUAL_FLAG, GSS_C_REPLAY_FLAG,
-          GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG as requested flags.</t>
+          client must pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and
+          GSS_C_INTEG_FLAG as requested flags and SHOULD pass
+          GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG.</t>
 
           <t>Server and client repeat, passing in the payload from the
           last packet from the other side, for as long as GSS-API
@@ -115,9 +117,9 @@
           the connect MUST be dropped.  (This could be a down-negotiation
           attack.)  After the establishment of the security context, both
           client and server MUST confirm that GSS_C_MUTUAL_FLAG,
-          GSS_C_REPLAY_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG are set
-          in the resulting security context and MUST immediately close the
-          connection if this is not the case.</t>
+          GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG are set in the resulting
+          security context and MUST immediately close the connection if
+          this is not the case.</t>
 
           <t>After the security context has been established, the client
           and server exchange commands and responses as described below.
@@ -356,13 +358,18 @@
         TOKEN_CONTEXT_NEXT and an empty payload.</t>
 
         <t>Client calls gss_init_sec_context and sends message with the
-        results and flags TOKEN_CONTEXT.</t>
+        results and flags TOKEN_CONTEXT.  The client MUST pass
+        GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG as
+        requested flags and SHOULD pass GSS_C_REPLAY_FLAG and
+        GSS_C_SEQUENCE_FLAG, although the version one protocol does not
+        check the results of this negotiation.</t>
 
         <t>Server replies with the results of gss_accept_sec_context and
         flags TOKEN_CONTEXT.</t>
 
         <t>Client calls gss_init_sec_context again with the data from the
-        server and replies with the results and flags TOKEN_CONTEXT.</t>
+        server and replies with the results and flags TOKEN_CONTEXT, using
+        the same requested flags as described above.</t>
 
         <t>Server and client repeat, passing in the payload from the last
         packet from the other side, for as long as GSS-API indicates that
@@ -372,7 +379,10 @@
         <t>Client sends command with flags TOKEN_DATA and TOKEN_SEND_MIC
         and the following payload format:  four-octet number of arguments,
         and then for each argument, a four-octet length and then the
-        argument value.  All numbers are in network type order.</t>
+        argument value.  All numbers are in network type order.  The
+        payload MUST be protected with gss_wrap and the conf_req_flag
+        parameter of gss_wrap MUST be set to non-zero, requesting both
+        confidentiality and integrity services.</t>
 
         <t>Server accepts and decrypts data, generates a MIC with
         gss_get_mic, and sends the MIC back to the client with flags
@@ -384,13 +394,22 @@
         format:  four-octet exit status, four-octet data length, data.
         All numbers are in network byte order.  The exit status is 0 if
         there were no errors and non-zero otherwise, where the meaning of
-        non-zero values are defined by the application.</t>
+        non-zero values are defined by the application.  The payload MUST
+        be protected with gss_wrap with a conf_req_flag set to
+        non-zero.</t>
 
         <t>Server and client close connection.</t>
       </list>
     </section>
 
     <section anchor='security' title='Security Considerations'>
+      <t>It would be preferrable to insist on replay and sequence
+      protection (GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG) for all
+      contexts, but some older Kerberos GSS-API implementations don't
+      support this and hence it is not mandatory in the protocol.  Clients
+      SHOULD always request replay and sequence protection, however, and
+      servers MAY require such protection be negotiated.</t>
+
       <t>The old protocol doesn't provide integrity protection for the
       flags, but since it always follows the same fixed sequence of
       operations, this should pose no security concerns in practice.  The
@@ -405,6 +424,13 @@
       protection, but this verification also happens after the server has
       already started running the command.  It has been dropped in the new
       protocol.</t>
+
+      <t>The old protocol doesn't require the client and server check the
+      results of the GSS-API flag negotiation, although all old protocol
+      clients passed GSS_C_MUTUAL_FLAG.  However, the old protocol
+      requires gss_wrap be used for all payload with conf_req_flag set to
+      non-zero, so any context that didn't negotiate confidentiality and
+      integrity services would fail later.</t>
     </section>
   </middle>
   <back>
