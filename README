@@ -155,21 +155,32 @@ PORTING
 
 THANKS
 
-  To Roland Schemers, for extensive review of the initial code and
-  protocol and help with the original Java client.
+  To Roland Schemers for extensive review of the initial code and protocol
+  and help with the original Java client.
 
-  To Romain LENGLET, for the idea and code for examples/rsh-wrapper.
+  To Romain LENGLET for the idea and code for examples/rsh-wrapper.
 
-  To Thomas Kula, for testing of remctl 2.0 on NetBSD and Heimdal.
+  To Thomas Kula for testing of remctl 2.0 on NetBSD and Heimdal.
 
-  To Ralf Wildenhues, for help in getting make check to work with builddir
+  To Ralf Wildenhues for help in getting make check to work with builddir
   != srcdir builds.
 
-  To Darren Patterson and Digant Kasundra, for contributions to the RPM
+  To Darren Patterson and Digant Kasundra for contributions to the RPM
   spec file and testing on Red Hat.
 
-  To Jonathan Kollasch, for the initial IPv6 patch and for identifying all
+  To Jonathan Kollasch for the initial IPv6 patch and for identifying all
   of the places the code was making IPv4 assuptions.
+
+  To Andrew Mortensen for the initial -F and -k flag support for remctld.
+
+  To Alf Wachsmann for catching inaccuracies in the Perl documentation.
+
+  To Jeffrey Hutzelman and Chaskiel Grundman for testing with Heimdal 0.6
+  and teaching me a great deal about GSS-API flags and the security issues
+  that surround them.
+
+  To Marcus Watts for testing and various bug fixes, lots of improvements
+  to the standalone server mode, and fixes for the Perl API.
 
 LICENSE
 
