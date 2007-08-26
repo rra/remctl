@@ -26,6 +26,10 @@ remctl 2.10 (unreleased)
     Allow port and principal to be omitted in calls to Net::Remctl::open,
     matching the documentation.  Thanks, Marcus Watts.
 
+    Include a dummy symbol in libportable so that it always contains at
+    least one object.  Fixes compilation problems on Mac OS X 10.4 and
+    Solaris 10.
+
     Fix builds outside the source directory by creating the docs directory
     properly, based on a patch by Marcus Watts.  Also fix make clean and
     the POD tests when run outside the source directory.

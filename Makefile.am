@@ -44,7 +44,7 @@ client_libremctl_la_LIBADD = util/libutil.la
 include_HEADERS = client/remctl.h
 
 noinst_LTLIBRARIES = portable/libportable.la util/libutil.la
-portable_libportable_la_SOURCES =
+portable_libportable_la_SOURCES = portable/dummy.c
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
 util_libutil_la_SOURCES = util/concat.c util/gss-errors.c util/gss-tokens.c \
 	util/messages.c util/network.c util/tokens.c util/util.h \
