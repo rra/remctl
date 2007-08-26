@@ -19,12 +19,13 @@ dnl Copyright 2005, 2006 Board of Trustees, Leland Stanford Jr. University
 dnl See README for licensing terms.
 
 dnl Does the appropriate library checks for reduced-dependency GSS-API
-dnl linkage.
+dnl linkage.  Check for MIT Kerberos first since it has the least generic name
+dnl for the GSS-API library.
 AC_DEFUN([_RRA_LIB_KRB5_GSSAPI_REDUCED],
-[AC_CHECK_LIB([gssapi], [gss_import_name],
-    [KRBLIBS="-lgssapi"],
-    [AC_CHECK_LIB([gssapi_krb5], [gss_import_name],
-        [KRBLIBS="-lgssapi_krb5"],
+[AC_CHECK_LIB([gssapi_krb5], [gss_import_name],
+    [KRBLIBS="-lgssapi_krb5"],
+    [AC_CHECK_LIB([gssapi], [gss_import_name],
+        [KRBLIBS="-lgssapi"],
         [AC_MSG_ERROR([cannot find usable GSS-API library])])])])
 
 dnl Does the appropriate library checks for reduced-dependency krb5 linkage.

@@ -44,6 +44,9 @@ remctl 2.10 (unreleased)
     empty string as default values for port and principal, since this
     avoids Perl warnings.
 
+    Check for the MIT Kerberos GSS-API library first in reduced dependency
+    mode for improved reproducibility of the Debian build.
+
 remctl 2.9 (2007-06-29)
 
     Fix remctl client library crashes due to an uninitialized variable
