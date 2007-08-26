@@ -13,8 +13,11 @@ remctl (2.10-1) unstable; urgency=low
   * Allow inet-superserver to satisfy the update-inetd requirement.
   * Move tcpd to Recommends for remctld.  It's used by the default
     inetd.conf line but isn't strictly required.
+  * Stop including the Java client as an example; it's no longer just a
+    few files.  Refer the curious to the source package in remctl-client's
+    README.Debian.
 
- -- Russ Allbery <rra@debian.org>  Sun, 26 Aug 2007 13:24:46 -0700
+ -- Russ Allbery <rra@debian.org>  Sun, 26 Aug 2007 13:39:22 -0700
 
 remctl (2.9-1) unstable; urgency=low
 
