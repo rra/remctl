@@ -1,8 +1,11 @@
 %define rel %(cat /etc/redhat-release | cut -d' ' -f7)
 
+# Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
+%{!?buildperl:%define buildperl 1}
+
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 2.7
+Version: 2.10
 Release: 1.EL%{rel}
 Copyright: MIT
 URL: http://www.eyrie.org/~eagle/software/remctl/
@@ -60,8 +63,12 @@ This package contains the client program (remctl) and the client libraries.
 %setup -n remctl-%{version}
 
 %build
+options="--prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc/remctl"
+%if %{buildperl}
+options="$options --enable-perl"
+%endif
 PATH="/sbin:/bin:/usr/sbin:$PATH" \
-%configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc/remctl
+%configure $options
 %{__make}
 
 %install
@@ -77,22 +84,31 @@ if [ -d %{buildroot}/usr/lib/ ]; then
     mv %{buildroot}/usr/lib/ %{buildroot}/%{ldir}
 fi
 %endif
+%if %{buildperl}
+find %{buildroot} -name perllocal.pod -exec rm {} \;
+%endif
 
 %files client
 %defattr(-, root, root, 0755)
-%doc NEWS README TODO
 %{_bindir}/*
-%{_mandir}/*/remctl.*
 %defattr(0644, root, root)
+%doc NEWS README TODO
 /usr/include/remctl.h
 %{ldir}/libremctl.a
 %{ldir}/libremctl.la
 %{ldir}/libremctl.so.1.0.0
+%{_mandir}/*/remctl.*
+%{_mandir}/*/remctl_*
+%if %{buildperl}
+%{ldir}/perl5/site_perl/
+%{_mandir}/*/Net::Remctl.3pm*
+%endif
 
 %files server
 %defattr(-, root, root, 0755)
-%doc NEWS README TODO
 %{_sbindir}/*
+%defattr(0644, root, root)
+%doc NEWS README TODO
 %{_mandir}/*/remctld.*
 /etc/xinetd.d/remctl
 %dir /etc/remctl/
@@ -127,8 +143,6 @@ fi
 # If we're the last remctl package, remove the /etc/services line and
 # restart xinetd to reflect its new configuration.
 if [ "$1" = 0 ] ; then
-    # This check will be necessary with client and server are split into
-    # two packages.
     if [ ! -f /usr/sbin/remctld ] ; then
         if grep -q "^remctl" /etc/services ; then
             grep -v "^remctl" /etc/services > /etc/services.tmp
@@ -144,6 +158,10 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Sun Aug 26 2007 Russ Allbery <rra@stanford.edu> 2.10-1
+- Update for 2.10.
+- Incorporate changes by Darren Patterson to install the Perl module.
+
 * Sun Mar 25 2007 Russ Allbery <rra@stanford.edu> 2.7-1
 - Update for 2.7.
 
