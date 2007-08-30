@@ -52,7 +52,7 @@ warn_token(const char *error, int status, OM_uint32 major, OM_uint32 minor)
         warn("error %s: invalid token format", error);
         break;
     case TOKEN_FAIL_LARGE:
-        warn("error %s: token too larger", error);
+        warn("error %s: token too large", error);
         break;
     case TOKEN_FAIL_EOF:
         warn("error %s: unexpected end of file", error);
