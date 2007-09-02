@@ -28,37 +28,15 @@
 
 
 /*
-**  Open a new connection to a server.  Returns true on success, false on
-**  failure.  On failure, sets the error message appropriately.
+**  Given the remctl object (for error reporting), host, and port, attempt a
+**  network connection.  Returns the file descriptor if successful or -1 on
+**  failure.
 */
-int
-internal_open(struct remctl *r, const char *host, unsigned short port,
-              const char *principal)
+static int
+internal_connect(struct remctl *r, const char *host, unsigned short port)
 {
     struct addrinfo hints, *ai;
     char portbuf[16];
-    char *defprinc = NULL;
-    int status, flags;
-    int fd = -1;
-    gss_buffer_desc send_tok, recv_tok, name_buffer, *token_ptr;
-    gss_buffer_desc empty_token = { 0, (void *) "" };
-    gss_name_t name = GSS_C_NO_NAME;
-    gss_ctx_id_t gss_context = GSS_C_NO_CONTEXT;
-    OM_uint32 major, minor, init_minor, gss_flags;
-    static const OM_uint32 wanted_gss_flags
-        = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG
-           | GSS_C_REPLAY_FLAG | GSS_C_SEQUENCE_FLAG);
-    static const OM_uint32 req_gss_flags
-        = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
-
-    /* If port is 0, default to the standard port.  If principal is NULL, use
-       host/<host> in the default realm. */
-    if (port == 0)
-        port = REMCTL_PORT;
-    if (principal == NULL) {
-        defprinc = concat("host/", host, (char *) 0);
-        principal = defprinc;
-    }
 
     /* Look up the remote host and open a TCP connection.  Call getaddrinfo
        and network_connect instead of network_connect_host so that we can
@@ -71,15 +49,59 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     if (status != 0) {
         internal_set_error(r, "unknown host %s: %s", host,
                            gai_strerror(status));
-        goto fail;
+        return -1;
     }
     fd = network_connect(ai, NULL);
     freeaddrinfo(ai);
     if (fd < 0) {
         internal_set_error(r, "cannot connect to %s (port %hu): %s", host,
                            port, strerror(errno));
-        goto fail;
+        return -1;
     }
+}
+
+
+/*
+**  Open a new connection to a server.  Returns true on success, false on
+**  failure.  On failure, sets the error message appropriately.
+*/
+int
+internal_open(struct remctl *r, const char *host, unsigned short port,
+              const char *principal)
+{
+    char *defprinc = NULL;
+    int status, flags;
+    int port_fallback = 0;
+    int fd = -1;
+    gss_buffer_desc send_tok, recv_tok, name_buffer, *token_ptr;
+    gss_buffer_desc empty_token = { 0, (void *) "" };
+    gss_name_t name = GSS_C_NO_NAME;
+    gss_ctx_id_t gss_context = GSS_C_NO_CONTEXT;
+    OM_uint32 major, minor, init_minor, gss_flags;
+    static const OM_uint32 wanted_gss_flags
+        = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG
+           | GSS_C_REPLAY_FLAG | GSS_C_SEQUENCE_FLAG);
+    static const OM_uint32 req_gss_flags
+        = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
+
+    /* If port is 0, default to trying the standard port and then falling back
+       on the old port.  If principal is NULL, use host/<host> in the default
+       realm. */
+    if (port == 0) {
+        port = REMCTL_PORT;
+        port_fallback = 1;
+    }
+    if (principal == NULL) {
+        defprinc = concat("host/", host, (char *) 0);
+        principal = defprinc;
+    }
+
+    /* Make the network connection. */
+    fd = internal_connect(r, host, port);
+    if (fd < 0 && port_fallback)
+        fd = internal_connect(r, host, REMCTL_PORT_OLD);
+    if (fd < 0)
+        goto fail;
     r->fd = fd;
 
     /* Import the name into target_name. */

@@ -14,5 +14,5 @@ service remctl
     wait        = no
     user        = root
     server      = /usr/sbin/remctld
-    port        = 4444
+    port        = 4373
 }

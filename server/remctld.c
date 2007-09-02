@@ -47,7 +47,7 @@ Options:\n\
     -h            Display this help\n\
     -m            Stand-alone daemon mode, meant mostly for testing\n\
     -P <file>     Write PID to file, only useful with -m\n\
-    -p <port>     Port to use, only for standalone mode (default: 4444)\n\
+    -p <port>     Port to use, only for standalone mode (default: 4373)\n\
     -S            Log to standard output/error rather than syslog\n\
     -s <service>  Service principal to use (default: host/<host>)\n\
     -v            Display the version of remctld\n";
@@ -339,7 +339,7 @@ main(int argc, char *argv[])
 
     /* Initialize options. */
     memset(&options, 0, sizeof(options));
-    options.port = 4444;
+    options.port = 4373;
     options.service = NULL;
     options.pid_path = NULL;
     options.config_path = CONFIG_FILE;

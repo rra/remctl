@@ -19,8 +19,12 @@
 # define END_DECLS      /* empty */
 #endif
 
-/* The standard remctl port. */
-#define REMCTL_PORT     4444
+/* The standard remctl port and the legacy port used before 2.11. */
+#define REMCTL_PORT     4373
+#define REMCTL_PORT_OLD 4444
+
+/* The standard remctl service name for /etc/services. */
+#define REMCTL_SERVICE  "remctl"
 
 /* Used to hold the return from a simple remctl call. */
 struct remctl_result {

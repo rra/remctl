@@ -15,9 +15,11 @@ int B<remctl_open>(struct remctl *I<r>, const char *I<host>,
 remctl_open() opens a TCP connection to the given I<host> on the given
 I<port> and then authenticates using the remctl protocol and the service
 principal I<principal>.  I<r> is a remctl struct created via remctl_new().
-I<host> must not be NULL.  If I<port> is 0, the default port of 4444 is
-used.  If I<principal> is NULL, a service principal of C<host/I<host>> in
-the default local realm is used.
+I<host> must not be NULL.  If I<port> is 0, the library first attempts to
+connect to the registered port of 4373 and then tries the legacy port of
+4444 if that fails.  Future versions of the library will drop this
+fallback to 4444.  If I<principal> is NULL, a service principal of
+C<host/I<host>> in the default local realm is used.
 
 The remctl protocol uses Kerberos v5 via GSS-API for authentication.  The
 underlying GSS-API library will use the default ticket cache for
@@ -30,6 +32,19 @@ control which ticket cache is used.
 
 remctl_open() returns true on success and false on failure.  On failure,
 the caller should call remctl_error() to retrieve the error message.
+
+=head1 CAVEATS
+
+The default behavior, when a port of 0 is given, of trying 4373 and
+falling back to 4444 will be removed in a future version of this library
+in favor of using the C<remctl> service in F</etc/services> if set and
+then falling back on only 4373.  4444 was the poorly-chosen original
+remctl port and should be phased out.
+
+=head1 NOTES
+
+The remctl port number, 4373, was derived by tracing the diagonals of a
+QWERTY keyboard up from the letters C<remc> to the number row.
 
 =head1 SEE ALSO
 

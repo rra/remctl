@@ -4,7 +4,7 @@
 <?rfc toc="yes"?>
 <rfc>
   <front>
-    <title>remctl: Authenticated Remote Command Execution</title>
+    <title>remctl: Remote Authenticated Command Service</title>
     <author initials='R.' surname='Allbery' fullname='Russ Allbery'>
       <organization>Stanford University</organization>
       <address>
@@ -17,7 +17,7 @@
         <uri>http://www.eyrie.org/~eagle/</uri>
       </address>
     </author>
-    <date month='March' year='2006' />
+    <date month='September' year='2007' />
 
     <abstract>
       <t>This document specifies the remctl wire protocol, used to send
@@ -34,7 +34,9 @@
     <section anchor='format' title='Basic Packet Format'>
       <t>The remctl network protocol consists of data packets sent from a
       client to a server or a server to a client over a TCP connection.
-      Each packet has the following format:</t>
+      The remctl protocol may be used over any port, but the
+      IANA-registered port and the RECOMMENDED default for the protocol is
+      4373.  Each data packet has the following format:</t>
 
       <figure>
         <artwork>

@@ -29,10 +29,6 @@
 
  * Support LDAP-based ACLs in addition to file system ACLs.
 
- * The port that remctld uses is rather stupid and frequently blocked due
-   to Windows viruses and other issues.  We need to transition to a new
-   port, and hopefully one that's registered with IANA.
-
  * Add readline support to the remctl client for multiple commands to the
    same server in the same authenticated session.
 

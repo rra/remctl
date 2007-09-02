@@ -2,6 +2,16 @@
 
 remctl 2.11 (unreleased)
 
+    remctl now has an official port registered with IANA (4373), replacing
+    the original, poorly-chosen port of 4444.  The previous port conflicts
+    with the krb524 service.  The remctld server and example configuration
+    files have been changed to bind to port 4373 by default if no port is
+    specified.  The client will attempt to connect to port 4373 first if
+    no port is specified and then fall back to trying 4444.  All sites
+    running remctl are encouraged to upgrade their clients and then
+    migrate their servers to the new port.  Support for the old port
+    without explicit configuration will be phased out in a future release.
+
     Ported to the Kerberos GSS-API implementation shipped with AIX 5.2.
     Thanks to Sandor Sklar for bug reports and testing.
 

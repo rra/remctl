@@ -63,12 +63,17 @@ just sets the KRB5_KTNAME environment variable internally in the process.
 
 =item B<-m>
 
-Enable stand-alone mode.  B<remctld> will listen to its configured port,
-4444 by default, and fork a new child for each incoming connection.  By
-default, when this option is used, B<remctld> also changes directory to
-F</>, backgrounds itself, and closes standard input, output, and error.
-To not background, pass B<-F> as well.  To not close standard output and
-error and continue using them for logging, pass B<-S> as well.
+Enable stand-alone mode.  B<remctld> will listen to its configured port
+and fork a new child for each incoming connection.  By default, when this
+option is used, B<remctld> also changes directory to F</>, backgrounds
+itself, and closes standard input, output, and error.  To not background,
+pass B<-F> as well.  To not close standard output and error and continue
+using them for logging, pass B<-S> as well.
+
+To determine the port, B<remctld> attempts to look up the C<remctl>
+service in the local F</etc/services> file and uses the port defined
+there.  If the C<remctl> service could not be found, it uses 4373, the
+registered remctl port.
 
 =item B<-P> I<file>
 
@@ -77,8 +82,8 @@ I<file>.  This option is ignored unless B<-m> is also given.
 
 =item B<-p> I<port>
 
-When running in stand-alone mode, Listen on port I<port> rather than 4444,
-the default.  This option does nothing unless used with B<-m>.
+When running in stand-alone mode, Listen on port I<port> rather than the
+default.  This option does nothing unless used with B<-m>.
 
 =item B<-S>
 
@@ -213,13 +218,19 @@ run by B<remctld>.
 =head1 EXAMPLES
 
 Typically B<remctld> is to be started as follows, where "hostname" is the
-machine where remctld will run, and 4444 is the port:
+machine where remctld will run, and 4373 is the port:
 
-    tcpserver hostname 4444 remctld
+    tcpserver hostname 4373 remctld
 
 The equivalent line for F</etc/inetd.conf> is:
 
-    4444 stream tcp nowait root /usr/sbin/tcpd /usr/sbin/remctld
+    4373 stream tcp nowait root /usr/sbin/tcpd /usr/sbin/remctld
+
+or:
+
+    remctl stream tcp nowait root /usr/sbin/tcpd /usr/sbin/remctld
+
+if the C<remctl> service is listed in your F</etc/services> file.
 
 To start B<remctld> in stand-alone mode instead, run:
 
@@ -244,7 +255,7 @@ C<accounts passwd> (presumably the password) will not be logged to syslog.
 All commands starting with C<printing> will be passed to
 /usr/local/bin/printthing.
 
-=head1 NOTES
+=head1 CAVEATS
 
 When using Heimdal with triple-DES keys and talking to old clients that
 only speak version one of the remctl protocol, B<remctld> may have
@@ -252,6 +263,11 @@ problems with MIC verification.  This doesn't affect new clients and
 servers since the version two protocol doesn't use MICs.  If you are using
 Heimdal and run into MIC verification problems, see the COMPATIBILITY
 section of gssapi(3).
+
+=head1 NOTES
+
+The remctl port number, 4373, was derived by tracing the diagonals of a
+QWERTY keyboard up from the letters C<remc> to the number row.
 
 =head1 SEE ALSO
 

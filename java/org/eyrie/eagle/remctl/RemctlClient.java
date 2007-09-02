@@ -61,7 +61,7 @@ public class RemctlClient extends Remctl {
 	 * @param args  array of args to pass to remctl server
 	 * @param host  host name of remctl server. 
 	 * @param port  port of remctl server. If 0, uses the default
-	 *              port of 4444 (Remctl.DEFAULT_PORT).
+	 *              port of 4373 (Remctl.DEFAULT_PORT).
 	 * @param princ Principal to use. If null, uses the default
 	 *              principal of <code>"host/"+host</code>.
 	 * @param lcName  Name passed to the <code>LoginContext</code> constructor.
@@ -138,7 +138,7 @@ public class RemctlClient extends Remctl {
 	 * @param args  array of args to pass to remctl server
 	 * @param host  host name of remctl server. 
 	 * @param port  port of remctl server. If 0, uses the default
-	 *              port of 4444 (Remctl.DEFAULT_PORT).
+	 *              port of 4373 (Remctl.DEFAULT_PORT).
 	 * @param servicePrincipal Principal to use. If null, uses the default
 	 *              principal of <code>"host/"+host</code>.
 	 * @param p_out Writer to receive stdout from remote job.

@@ -18,7 +18,7 @@ use warnings;
 
 # This should be kept at the same revision as the overall remctl package that
 # it's part of for minimum confusion.
-our $VERSION = '2.09';
+our $VERSION = '2.11';
 
 require Exporter;
 require DynaLoader;
@@ -92,8 +92,9 @@ output and exit status, you can use the exported remctl() function:
 Runs a command on the remote system and returns a Net::Remctl::Result object
 (see below).  HOSTNAME is the remote host to contact.  PORT is the port of
 the remote B<remctld> server and may be 0 to tell the library to use the
-default (4444).  PRINCIPAL is the principal of the server to use for
-authentication; pass in the empty string to use the default of
+default (first try 4373, the registered remctl port, and fall back to the
+legacy 4444 port if that fails).  PRINCIPAL is the principal of the server
+to use for authentication; pass in the empty string to use the default of
 host/I<hostname> in the default local realm.  The remaining arguments are
 the remctl command and arguments passed to the remote server.
 
@@ -166,9 +167,10 @@ as a string.
 
 Connect to HOSTNAME on port PORT using PRINCIPAL as the remote server's
 principal for authentication.  If PORT is omitted, undef, or 0, use the
-default port (4444).  If PRINCIPAL is omitted or undef, use the default of
-host/I<hostname> in the local realm.  Returns true on success, false on
-failure.  On failure, call error() to get the failure message.
+default (first try 4373, the registered remctl port, and fall back to the
+legacy 4444 port if that fails).  If PRINCIPAL is omitted or undef, use the
+default of host/I<hostname> in the local realm.  Returns true on success,
+false on failure.  On failure, call error() to get the failure message.
 
 =item command(COMMAND[, ARGS, ...])
 
@@ -237,6 +239,19 @@ next call to command() or output() or by destroying the producing
 Net::Remctl object.  Therefore, any data in the output token should be
 processed and stored if needed before making any further Net::Remctl method
 calls on the same object.
+
+=head1 CAVEATS
+
+The default behavior, when the port is not specified, of trying 4373 and
+falling back to 4444 will be removed in a future version of this module in
+favor of using the C<remctl> service in F</etc/services> if set and then
+falling back on only 4373.  4444 was the poorly-chosen original remctl port
+and should be phased out.
+
+=head1 NOTES
+
+The remctl port number, 4373, was derived by tracing the diagonals of a
+QWERTY keyboard up from the letters C<remc> to the number row.
 
 =head1 SEE ALSO
 

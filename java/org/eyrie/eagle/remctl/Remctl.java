@@ -42,7 +42,7 @@ import java.nio.ByteBuffer;
 
 public class Remctl {
 	/** Default remctl server port to use */
-	public static final int DEFAULT_PORT = 4444;
+	public static final int DEFAULT_PORT = 4373;
 
 	/** Default name to use in the login configuration file */
 	public static final String DEFAULT_NAME = "RemctlClient";

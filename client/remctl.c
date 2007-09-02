@@ -27,7 +27,7 @@ Usage: remctl <options> <host> <type> <service> <parameters>\n\
 Options:\n\
     -d            Debugging level of output\n\
     -h            Display this help\n\
-    -p <port>     remctld port (default: 4444)\n\
+    -p <port>     remctld port (default: 4373 falling back to 4444)\n\
     -s <service>  remctld service principal (default: host/<host>)\n\
     -v            Display the version of remctl\n";
 
@@ -114,7 +114,7 @@ main(int argc, char *argv[])
     char *server_host;
     struct addrinfo hints, *ai;
     char *service_name = NULL;
-    unsigned short port = 4444;
+    unsigned short port = 0;
     struct remctl *r;
     int errorcode = 0;
 

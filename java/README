@@ -73,11 +73,11 @@ RUNNING
 
       java -Djavax.security.auth.useSubjectCredsOnly=false \
           -Djava.security.auth.login.config=bcsKeytab.conf \
-          t7 4444 <principal>
+          t7 4373 <principal>
 
   This will start the server defined in t7.java, which just returns
-  information about what command it received.  4444 is the port to listen
-  to (4444 is the default value for remctl).  Replace <principal> for the
+  information about what command it received.  4373 is the port to listen
+  to (4373 is the default value for remctl).  Replace <principal> for the
   principal you created a keytab for.
 
   To run this from Eclipse, select from the Run, Run..., "java

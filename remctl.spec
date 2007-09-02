@@ -129,7 +129,7 @@ if [ "$1" = 1 ] ; then
     if grep -q '^remctl' /etc/services ; then
         :
     else
-        echo 'remctl    4444/tcp' >> /etc/services
+        echo 'remctl    4373/tcp' >> /etc/services
     fi
     if [ -f /var/run/xinetd.pid ] ; then
         kill -HUP `cat /var/run/xinetd.pid`
