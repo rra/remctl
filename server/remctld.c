@@ -56,7 +56,7 @@ Options:\n\
 struct options {
     int foreground;
     int standalone;
-    int stdout;
+    int log_stdout;
     int debug;
     unsigned short port;
     char *service;
@@ -302,7 +302,7 @@ server_daemon(struct options *options, struct config *config,
             if (sigaction(SIGCHLD, &oldsa, NULL) < 0)
                 syswarn("cannot reset SIGCHLD handler");
             server_handle_connection(s, config, creds);
-            if (options->stdout)
+            if (options->log_stdout)
                 fflush(stdout);
             exit(0);
         } else {
@@ -373,7 +373,7 @@ main(int argc, char *argv[])
             options.port = atoi(optarg);
             break;
         case 'S':
-            options.stdout = 1;
+            options.log_stdout = 1;
             break;
         case 's':
             options.service = optarg;
@@ -390,11 +390,11 @@ main(int argc, char *argv[])
 
     /* Daemonize if told to do so. */
     if (options.standalone && !options.foreground)
-        daemon(0, options.stdout);
+        daemon(0, options.log_stdout);
 
     /* Set up syslog unless stdout/stderr was requested.  Set up debug logging
        if requestsed. */
-    if (options.stdout) {
+    if (options.log_stdout) {
         if (options.debug)
             message_handlers_debug(1, message_log_stdout);
     } else {
