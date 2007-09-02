@@ -45,8 +45,8 @@ REQUIREMENTS
 
   The remctld server and the standard client are written in C and require
   a C compiler to build.  Both will build against either MIT Kerberos or
-  Heimdal; however, Heimdal 0.7 or later is required.  remctl triggers a
-  segfault inside the GSS-API library in Heimdal 0.6.
+  Heimdal (tested with Heimdal 0.6 and later).  remctl will also build
+  against the Kerberos GSS-API implementation shipped with AIX 5.2.
 
   To build the Perl bindings for the C client library, you will need Perl
   5.6.0 or later.  To run the full test suite for the Perl bindings, the
@@ -55,10 +55,15 @@ REQUIREMENTS
   separately, but the POD tests will be skipped without interfering with
   the rest of the tests if it's not installed.
 
-  A Java client is also available in the java subdirectory, but no Java
-  server is available.  The Java client only supports the older version
-  one protocol.  Contribution of a Java client for the version two
-  protocol is welcome.
+  A Java client and Java server are available in the java subdirectory,
+  but they are not integrated into the normal build or built by default.
+  There is a basic Makefile in that directory that may require some
+  tweaking.  It currently requires the Sun Java JDK (1.4.2, 5, or 6).
+
+  To run the test suite, it will need to be able to build to 127.0.0.1 on
+  port 11119 to run test network server programs.  In order to fully test
+  remctl, you will also need to create a keytab for a valid Kerberos
+  principal in your local realm.
 
   If you change the Automake files and need to regenerate Makefile.in, you
   will need Automake 1.10 or later.  If you change configure.ac or any of
@@ -125,6 +130,10 @@ INSTALLATION
   shared library migrations more difficult.  If none of the above made any
   sense to you, don't bother with this flag.
 
+  The Java client and server aren't integrated with the regular build
+  system.  For information on building and installing them, see
+  java/README.
+
 TESTING
 
   remctl comes with an extensive test suite which you can run after
@@ -150,17 +159,23 @@ PORTING
       Linux (glibc 2.2, 2.3, 2.5, 2.6, 2.6.1)
       Mac OS X 10.4
       NetBSD
+      AIX 5.2
 
-  but should work on any Unix varient.
+  but should work on any Unix varient that meets the requirements noted
+  above.
 
 THANKS
+
+  To Anton Ushakov for the original design document, much of the version
+  one protocol design, and the initial implementation.
 
   To Roland Schemers for extensive review of the initial code and protocol
   and help with the original Java client.
 
   To Romain LENGLET for the idea and code for examples/rsh-wrapper.
 
-  To Thomas Kula for testing of remctl 2.0 on NetBSD and Heimdal.
+  To Thomas Kula for testing of remctl 2.0 and later versions on NetBSD
+  and Heimdal.
 
   To Ralf Wildenhues for help in getting make check to work with builddir
   != srcdir builds.
@@ -183,6 +198,10 @@ THANKS
   to the standalone server mode, and fixes for the Perl API.  Marcus also
   rewrote the Java client, adding support for protocol version two and a
   server implementation.
+
+  To Sandor Sklar for testing multiple patches for the remctl build on AIX
+  5.2 and providing an account so that I could investigate test suite
+  issues.
 
 LICENSE
 

@@ -1,5 +1,10 @@
                        User-Visible remctl Changes
 
+remctl 2.11 (unreleased)
+
+    Ported to the Kerberos GSS-API implementation shipped with AIX 5.2.
+    Thanks to Sandor Sklar for bug reports and testing.
+
 remctl 2.10 (2007-08-26)
 
     Include a rewritten Java client and a Java server implementation, both
