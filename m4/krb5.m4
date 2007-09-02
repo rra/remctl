@@ -45,7 +45,11 @@ dnl Does the appropriate library checks for GSS-API linkage.
 AC_DEFUN([_RRA_LIB_KRB5_GSSAPI],
 [AC_CHECK_LIB([gssapi], [gss_import_name],
     [KRBLIBS="-lgssapi -lkrb5 -lasn1 -lroken -lcrypto -lcom_err"],
-    [KRB5EXTRA="-lkrb5 -lk5crypto -lcom_err"
+    [KRB5EXTRA="-lkrb5"
+     AC_CHECK_LIB([k5crypto], [krb5int_hash_md5],
+        [KRB5EXTRA="$KRB5EXTRA -lk5crypto"])
+     AC_CHECK_LIB([com_err], [error_message],
+        [KRB5EXTRA="$KRB5EXTRA -lcom_err"])
      AC_CHECK_LIB([krb5support], [krb5int_getspecific],
         [KRB5EXTRA="$KRB5EXTRA -lkrb5support"],
         [AC_SEARCH_LIBS([pthread_setspecific], [pthreads pthread])
