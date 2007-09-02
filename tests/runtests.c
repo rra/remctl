@@ -59,6 +59,11 @@
 /* sys/time.h must be included before sys/resource.h on some platforms. */
 #include <sys/resource.h>
 
+/* AIX doesn't have WCOREDUMP. */
+#ifndef WCOREDUMP
+# define WCOREDUMP(status)      ((unsigned)(status) & 0x80)
+#endif
+
 /* Test status codes. */
 enum test_status {
     TEST_FAIL,
