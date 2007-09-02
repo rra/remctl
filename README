@@ -61,9 +61,9 @@ REQUIREMENTS
   tweaking.  It currently requires the Sun Java JDK (1.4.2, 5, or 6).
 
   To run the test suite, it will need to be able to build to 127.0.0.1 on
-  port 11119 to run test network server programs.  In order to fully test
-  remctl, you will also need to create a keytab for a valid Kerberos
-  principal in your local realm.
+  port 11119 and 14444 to run test network server programs.  In order to
+  fully test remctl, you will also need to create a keytab for a valid
+  Kerberos principal in your local realm.
 
   If you change the Automake files and need to regenerate Makefile.in, you
   will need Automake 1.10 or later.  If you change configure.ac or any of
