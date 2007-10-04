@@ -116,4 +116,4 @@ END_DECLS
 # endif
 #endif
 
-#endif /* !CLIBRARY_H */
+#endif /* !SYSTEM_H */

@@ -9,6 +9,10 @@
 **  Based on prior work by Anton Ushakov <antonu@stanford.edu>
 **  Copyright 2002, 2003, 2004, 2005, 2006, 2007
 **      Board of Trustees, Leland Stanford Jr. University
+**  Copyright (c) 2004, 2005, 2006, 2007
+**      by Internet Systems Consortium, Inc. ("ISC")
+**  Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+**      2002, 2003 by The Internet Software Consortium and Rich Salz
 **
 **  See README for licensing terms.
 */
@@ -120,7 +124,7 @@ char *gssapi_error_string(const char *prefix, OM_uint32, OM_uint32);
 /* Concatenate NULL-terminated strings into a newly allocated string. */
 extern char *concat(const char *first, ...);
 
-/* Given a baes path and a file name, create a newly allocated path string.
+/* Given a base path and a file name, create a newly allocated path string.
    The name will be appended to base with a / between them.  Exceptionally, if
    name begins with a slash, it will be strdup'd and returned as-is. */
 extern char *concatpath(const char *base, const char *name);
