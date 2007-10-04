@@ -53,3 +53,7 @@
  * Incorporate a program that can generate a Kerberos ticket cache from
    a keytab and use that for running the Kerberos tests instead of
    requiring the user to generate a keytab.
+
+ * Possibly support binding to both the new and the old port in the
+   standalone server for backward compatibility (only if requested by
+   another flag).
