@@ -12,6 +12,9 @@ remctl 2.11 (unreleased)
     migrate their servers to the new port.  Support for the old port
     without explicit configuration will be phased out in a future release.
 
+    Stop using stdout and stderr as structure members, fixing compilation
+    problems on AIX, NetBSD, and other platforms.
+
     Ported to the Kerberos GSS-API implementation shipped with AIX 5.2.
     Thanks to Sandor Sklar for bug reports and testing.
 
