@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 2.11 (unreleased)
+remctl 2.11 (2007-11-09)
 
     remctl now has an official port registered with IANA (4373), replacing
     the original, poorly-chosen port of 4444.  The previous port conflicts
