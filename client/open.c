@@ -37,6 +37,7 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
 {
     struct addrinfo hints, *ai;
     char portbuf[16];
+    int status, fd;
 
     /* Look up the remote host and open a TCP connection.  Call getaddrinfo
        and network_connect instead of network_connect_host so that we can
@@ -58,6 +59,7 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
                            port, strerror(errno));
         return -1;
     }
+    return fd;
 }
 
 
