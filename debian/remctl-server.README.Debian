@@ -15,16 +15,10 @@ you want it to run any programs that need root privileges or want to run
 programs that change to various different user identities.  By default it
 is set up to run as root.
 
-remctl is built to use port 4444 by default.  This is a bad choice in
-retrospect, since it's the same port used by krb524d (although the latter
-uses only UDP, I believe), but it's the upstream default and the server
-and client have to agree.  Using a different port will require always
-specifying the -p option to the client.
-
 The default configuration file is /etc/remctl/remctl.conf, but I recommend
 that you leave that file unchanged and drop your configuration into
 /etc/remctl/conf.d as separate files.  Make sure the name of the file
 doesn't contain a period; those are skipped.  See the comments in
 /etc/remctl/remctl.conf for more details.
 
- -- Russ Allbery <rra@debian.org>, Thu Dec  1 15:10:24 2005
+ -- Russ Allbery <rra@debian.org>, Fri,  9 Nov 2007 00:02:30 -0800
