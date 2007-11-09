@@ -15,8 +15,16 @@ remctl 2.11 (unreleased)
     Stop using stdout and stderr as structure members, fixing compilation
     problems on AIX, NetBSD, and other platforms.
 
-    Ported to the Kerberos GSS-API implementation shipped with AIX 5.2.
+    Fix (non-exploitable) segfaults in remctld when sent a command with a
+    type and no service (not permitted by the command-line client but
+    possible with the library API).  Thanks to Marcus Watts for the
+    analysis.
+
+    Port to the Kerberos GSS-API implementation shipped with AIX 5.2.
     Thanks to Sandor Sklar for bug reports and testing.
+
+    Improve the configuration file documentation in the remctld man page.
+    Document the first-match properties.
 
 remctl 2.10 (2007-08-26)
 

@@ -111,6 +111,10 @@ tab-separated strings, where each line is:
 
     type service executable [logmask=n[,...]] {aclfile}+
 
+Each command consists of a type, a service, and zero or more arguments.
+Each configuration line defines an acceptable commands (or, if C<ALL> is
+used as mentioned below under I<service>, a set of commands).
+
 Blank lines and lines beginning with C<#> are ignored.  Lines can be
 continued on the next line by ending them with a backslash (C<\>).  Be
 aware that comments can be continued with a backslash as well.
@@ -131,17 +135,28 @@ The meaning of these fields is:
 
 =item I<type>
 
-The type of the command being requested, such as "afs" for the afs volume 
-backend.  This is used to group commands together into a class and allows
-all commands in the same class to be passed to the same backend program.
+The type of the command being requested.  Normally, related commands (such
+as all commands for managing a particular service) are grouped together
+under one type.
 
 =item I<service>
 
-The service within the type being requested, such as "release" for the afs
-volume backend.  The keyword ALL may be used instead of the service to
-specify an executable and aclfiles for the entire type in one line.  The
-service is always passed as the first argument to the executable program
-that is listed for that service.
+The service within the type being requested, such as C<release> for the
+release function of the AFS volume backend.  I<service> can also be
+thought of as the sub-command.  If the keyword C<ALL> is used instead of
+a specific service, this line matches all commands with the given type and
+can be used to dispatch all services under that type to the same
+executable with the same ACLs.  The first matching entry is used; one may
+list specific services first and then an C<ALL> catch-all.
+
+B<remctld> accepts commands with no service argument, only a type, such
+commands will only match a line in the configuration file if an C<ALL>
+line is present for that type.  (The B<remctl> client will not send such
+commands, but they can be sent using the client library or via another
+implementation.)
+
+The service is always passed as the first argument to the executable
+program that is listed for that service unless no service was given.
 
 =item I<executable>
 
@@ -171,10 +186,12 @@ in an ACL file includes other ACL files and is handled identically to the
 include directive in configuration files.
 
 The keyword ANYUSER may be used instead of the aclfiles to allow access to
-all users.  Note the user still needs to authenticate to B<remctld>, this
-only affects authorization.  This can be used for backend programs that
-want to check ACLs themselves and will retrieve the authenticated
-principal from the REMOTE_USER environment variable.
+all users.  The user still needs to authenticate to B<remctld>; this only
+affects authorization.  This can be used for backend programs that want to
+check ACLs themselves and will retrieve the authenticated principal from
+the REMOTE_USER environment variable.  Note that ANYUSER accepts B<any>
+authenticated user, including cross-realm users from foreign Kerberos
+realms.
 
 =back
 
