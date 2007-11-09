@@ -196,31 +196,44 @@ server_run_command(struct client *client, struct config *config,
 {
     char *program;
     char *path = NULL;
-    const char *type, *service, *user;
+    const char *type, *service;
     struct confline *cline = NULL;
     int stdout_pipe[2], stderr_pipe[2];
     char **req_argv = NULL;
     size_t i;
     int ok, fd;
     struct process process = { 0, { 0, 0 }, -1, 0 };
+    const char *user = client->user;
+
+    /* We need at least one argument.  This is also rejected earlier when
+       parsing the command and checking argc, but may as well be sure. */
+    if (argv->count == 0) {
+        notice("empty command from user %s", user);
+        server_send_error(client, ERROR_BAD_COMMAND, "Invalid command token");
+        goto done;
+    }
 
     /* We refer to these a lot, so give them good aliases. */
     type = argv->strings[0];
-    service = argv->strings[1];
-    user = client->user;
+    service = (argv->count > 1) ? argv->strings[1] : NULL;
 
     /* Look up the command and the ACL file from the conf file structure in
-       memory. */
+       memory.  Commands with no service argument will only match lines
+       with the ALL wildcard. */
     for (i = 0; i < config->count; i++) {
         cline = config->rules[i];
         if (strcmp(cline->type, type) == 0) {
             if (strcmp(cline->service, "ALL") == 0
-                || strcmp(cline->service, service) == 0) {
+                || (service != NULL && strcmp(cline->service, service) == 0)) {
                 path = cline->program;
                 break;
             }
         }
     }
+
+    /* From this point on, service is used only for logging. */
+    if (service == NULL)
+        service = "(null)";
 
     /* log after we look for command so we can get potentially get logmask */
     server_log_command(argv, path == NULL ? NULL : cline, user);

@@ -17,7 +17,8 @@
 #include <util/util.h>
 
 /* Run the given command and return the error code from the server, or
-   ERROR_INTERNAL if the command unexpectedly succeeded. */
+   ERROR_INTERNAL if the command unexpectedly succeeded or we didn't get an
+   error code. */
 static int
 test_error(struct remctl *r, const char *arg)
 {
@@ -99,12 +100,12 @@ main(void)
     pid_t remctld;
     int status;
 
-    test_init(3);
+    test_init(4);
 
     /* Unless we have Kerberos available, we can't really do anything. */
     principal = kerberos_setup();
     if (principal == NULL) {
-        skip_block(1, 3, "Kerberos tests not configured");
+        skip_block(1, 4, "Kerberos tests not configured");
         return 0;
     }
 
@@ -123,6 +124,8 @@ main(void)
     ok_int(2, ERROR_ACCESS, status);
     status = test_excess_args(r);
     ok_int(3, ERROR_TOOMANY_ARGS, status);
+    status = test_error(r, NULL);
+    ok_int(4, ERROR_UNKNOWN_COMMAND, status);
     remctl_close(r);
 
     kill(remctld, SIGTERM);

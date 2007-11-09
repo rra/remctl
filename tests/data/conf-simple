@@ -8,3 +8,4 @@ test env data/cmd-env ANYUSER
 test argv data/cmd-argv ANYUSER
 test closed data/cmd-closed ANYUSER
 test background data/cmd-background ANYUSER
+all ALL data/cmd-hello ANYUSER

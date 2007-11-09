@@ -33,6 +33,7 @@ do_tests(int n, const char *principal, int protocol)
     struct remctl_output *output;
     const char *test[] = { "test", "test", NULL };
     const char *error[] = { "test", "bad-command", NULL };
+    const char *no_service[] = { "all", NULL };
 
     /* Open the connection. */
     r = remctl_new();
@@ -105,6 +106,25 @@ do_tests(int n, const char *principal, int protocol)
             ok(n++, memcmp("Unknown command", output->data, 15) == 0);
         ok_int(n++, ERROR_UNKNOWN_COMMAND, output->error);
     }
+
+    /* Send a command with no service. */
+    ok(n++, remctl_command(r, no_service));
+    ok_string(n++, "No error", remctl_error(r));
+    output = remctl_output(r);
+    ok(n++, output != NULL);
+    ok_int(n++, REMCTL_OUT_OUTPUT, output->type);
+    ok_int(n++, 12, output->length);
+    if (output->data == NULL)
+        ok(n++, 0);
+    else
+        ok(n++, memcmp("hello world\n", output->data, 11) == 0);
+    ok_int(n++, 1, output->stream);
+    output = remctl_output(r);
+    ok(n++, output != NULL);
+    ok_int(n++, REMCTL_OUT_STATUS, output->type);
+    ok_int(n++, 0, output->status);
+
+    /* All done. */
     remctl_close(r);
     ok(n++, 1);
 
@@ -122,7 +142,7 @@ main(void)
     int n;
     struct timeval tv;
 
-    test_init(78);
+    test_init(98);
 
     principal = kerberos_setup();
     if (principal == NULL) {
