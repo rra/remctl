@@ -146,7 +146,7 @@ main(void)
 
     principal = kerberos_setup();
     if (principal == NULL) {
-        skip_block(1, 78, "Kerberos tests not configured");
+        skip_block(1, 98, "Kerberos tests not configured");
     } else {
         remctld = spawn_remctld(principal);
         if (remctld <= 0)
