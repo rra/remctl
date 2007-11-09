@@ -4,7 +4,7 @@
 <?rfc toc="yes"?>
 <rfc>
   <front>
-    <title>remctl: Remote Authenticated Command Service</title>
+    <title abbrev="remctl">remctl: Remote Authenticated Command Service</title>
     <author initials='R.' surname='Allbery' fullname='Russ Allbery'>
       <organization>Stanford University</organization>
       <address>
