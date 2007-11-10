@@ -125,7 +125,9 @@ $(srcdir)/docs/protocol.txt: $(srcdir)/docs/protocol.xml
 
 # Add symlinks for the man pages that document multiple functions.
 install-data-hook:
+	rm -f $(DESTDIR)$(man3dir)/remctl_result_free.3
 	$(LN_S) remctl.3 $(DESTDIR)$(man3dir)/remctl_result_free.3
+	rm -f $(DESTDIR)$(man3dir)/remctl_commandv.3
 	$(LN_S) remctl_command.3 $(DESTDIR)$(man3dir)/remctl_commandv.3
 
 # We shouldn't have to explicitly list $(LIBOBJS) and $(LTLIBOBJS) here.
