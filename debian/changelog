@@ -7,8 +7,10 @@ remctl (2.11-1) unstable; urgency=low
     - Improve remctld man page.
   * Change the port number when creating the initial inetd.conf entry.
   * Remove inetd.conf entries for both 4444 and 4373 on package removal.
+  * Move Homepage pseudo-headers to a proper control header now that dpkg
+    supports this.
 
- -- Russ Allbery <rra@debian.org>  Fri, 09 Nov 2007 00:09:10 -0800
+ -- Russ Allbery <rra@debian.org>  Sun, 11 Nov 2007 13:28:28 -0800
 
 remctl (2.10-1) unstable; urgency=low
 

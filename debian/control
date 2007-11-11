@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Russ Allbery <rra@debian.org>
 Build-Depends: debhelper (>= 5), libkrb5-dev, libtest-pod-perl
 Standards-Version: 3.7.2
+Homepage: http://www.eyrie.org/~eagle/software/remctl/
 
 Package: libremctl1
 Section: libs
@@ -18,8 +19,6 @@ Description: Library for Kerberos-authenticated command execution
  authorized to run that command.
  .
  This package contains the client libraries linked against MIT Kerberos.
- .
-  Homepage: http://www.eyrie.org/~eagle/software/remctl/
 
 Package: libremctl-dev
 Section: libdevel
@@ -36,8 +35,6 @@ Description: Development files for Kerberos-authenticated command execution
  .
  This package contains the development files for client libraries linked
  against MIT Kerberos.
- .
-  Homepage: http://www.eyrie.org/~eagle/software/remctl/
 
 Package: remctl-client
 Architecture: any
@@ -53,8 +50,6 @@ Description: Client for Kerberos-authenticated command execution
  authorized to run that command.
  .
  This package contains the client program (remctl).
- .
-  Homepage: http://www.eyrie.org/~eagle/software/remctl/
 
 Package: remctl-server
 Architecture: any
@@ -71,8 +66,6 @@ Description: Server for Kerberos-authenticated command execution
  authorized to run that command.
  .
  This package contains the server (remctld).
- .
-  Homepage: http://www.eyrie.org/~eagle/software/remctl/
 
 Package: libnet-remctl-perl
 Section: perl
@@ -88,5 +81,3 @@ Description: Perl client for Kerberos-authenticated command execution
  .
  This package contains the Net::Remctl Perl library, which provides native
  Perl bindings to the libremctl client library.
- .
-  Homepage: http://www.eyrie.org/~eagle/software/remctl/
