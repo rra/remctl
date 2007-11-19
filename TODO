@@ -57,3 +57,5 @@
  * Possibly support binding to both the new and the old port in the
    standalone server for backward compatibility (only if requested by
    another flag).
+
+ * Add pkgconfig support for libremctl.
