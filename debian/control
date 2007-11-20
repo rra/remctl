@@ -2,7 +2,8 @@ Source: remctl
 Section: net
 Priority: optional
 Maintainer: Russ Allbery <rra@debian.org>
-Build-Depends: debhelper (>= 5), libkrb5-dev, libtest-pod-perl
+Build-Depends: debhelper (>= 5.0.61), dpkg-dev (>= 1.14.9), libkrb5-dev,
+ libtest-pod-perl
 Standards-Version: 3.7.2
 Homepage: http://www.eyrie.org/~eagle/software/remctl/
 
