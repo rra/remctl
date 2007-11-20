@@ -5,6 +5,10 @@ remctl 2.12 (unreleased)
     Delete the man page symlinks before recreating them so that reinstalls
     work.  Thanks, Nicholas Riley.
 
+    Belatedly bump the libtool versioning for libremctl for the port
+    number change in the previous release.  (This is primarily for
+    documentation purposes and doesn't change the library SONAME.)
+
 remctl 2.11 (2007-11-09)
 
     remctl now has an official port registered with IANA (4373), replacing
