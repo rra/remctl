@@ -85,7 +85,7 @@ binary-arch: build-stamp install
 	dh_fixperms
 	dh_strip
 	dh_compress
-	dh_makeshlibs
+	dh_makeshlibs -V 'libremctl1 (>= 2.10)'
 	dh_installdeb
 	dh_shlibdeps -l $(CURDIR)/debian/libremctl1/usr/lib -L libremctl1
 	dh_gencontrol
