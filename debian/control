@@ -71,7 +71,7 @@ Description: Server for Kerberos-authenticated command execution
 Package: libnet-remctl-perl
 Section: perl
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${perl:Depends}
 Description: Perl client for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
