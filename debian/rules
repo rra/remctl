@@ -60,8 +60,6 @@ clean:
 	[ ! -f Makefile ] || $(MAKE) distclean
 	dh_clean
 
-# The Perl module has to be installed separately, so we do a little dance
-# to prevent the main 
 install: build-stamp
 	dh_testdir
 	dh_testroot
