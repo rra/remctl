@@ -1,6 +1,8 @@
 remctl (2.11-3) UNRELEASED; urgency=low
 
   * Add the correct Perl dependencies for libnet-remctl-perl.
+  * Really rebuild the Perl module to remove an unnecessary libgssapi_krb5
+    dependency.
 
  -- Russ Allbery <rra@debian.org>  Fri, 30 Nov 2007 19:59:01 -0800
 

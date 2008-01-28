@@ -45,8 +45,8 @@ build-indep:
 build-stamp: configure-stamp
 	dh_testdir
 	$(MAKE)
-	cd $(CURDIR)/perl && perl Makefile.PL INSTALLDIRS=vendor \
-	    LIBS="-L$(CURDIR)/client/.libs -lremctl"
+	cd $(CURDIR)/perl && $(MAKE) clean && perl Makefile.PL \
+	    INSTALLDIRS=vendor LIBS="-L$(CURDIR)/client/.libs -lremctl"
 	cd $(CURDIR)/perl && $(MAKE) OPTIMIZE="$(CFLAGS)"
 	gcc -g -O2 -o client/.libs/remctl client/remctl.o \
 	    client/.libs/libremctl.so util/.libs/libutil.a
