@@ -2,6 +2,10 @@
 
 remctl 2.12 (unreleased)
 
+    When passing a variable set to undef into remctl_open in the Perl API,
+    the hostname was converted to the empty string.  Adjust Net::Remctl to
+    recognize the empty string as an unspecified hostname.
+
     Delete the man page symlinks before recreating them so that reinstalls
     work.  Thanks, Nicholas Riley.
 

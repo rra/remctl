@@ -166,11 +166,17 @@ as a string.
 =item open(HOSTNAME[, PORT[, PRINCIPAL]])
 
 Connect to HOSTNAME on port PORT using PRINCIPAL as the remote server's
-principal for authentication.  If PORT is omitted, undef, or 0, use the
-default (first try 4373, the registered remctl port, and fall back to the
-legacy 4444 port if that fails).  If PRINCIPAL is omitted or undef, use the
-default of host/I<hostname> in the local realm.  Returns true on success,
-false on failure.  On failure, call error() to get the failure message.
+principal for authentication.  If PORT is omitted or 0, use the default
+(first try 4373, the registered remctl port, and fall back to the legacy
+4444 port if that fails).  If PRINCIPAL is omitted or the empty string,
+use the default of host/I<hostname> in the local realm.  Returns true on
+success, false on failure.  On failure, call error() to get the failure
+message.
+
+As far as the module is concerned, undef may be passed as PORT and
+PRINCIPAL and is the same as 0 and the empty string respectively.
+However, Perl will warn about passing undef explicitly as a function
+argument.
 
 =item command(COMMAND[, ARGS, ...])
 
