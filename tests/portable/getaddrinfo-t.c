@@ -208,7 +208,7 @@ main(void)
     /* Included because it had multiple A records. */
     host = gethostbyname("cnn.com");
     if (host == NULL)
-        skip_block(73, 3, "cannot look up cnn.com");
+        skip_block(69, 3, "cannot look up cnn.com");
     else {
         ok(69, test_getaddrinfo("cnn.com", "80", NULL, &ai) == 0);
         saddr = (struct sockaddr_in *) ai->ai_addr;
