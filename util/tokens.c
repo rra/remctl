@@ -115,7 +115,8 @@ token_send(int fd, int flags, gss_buffer_t tok)
 **  stored into an integer, then reads the token length (as a network long),
 **  allocates memory to hold the data, and then reads the token data from the
 **  file descriptor.  It blocks to read the length and data, if necessary.  On
-**  a successful return, the token should be freed with gss_release_buffer.
+**  a successful return, the value member of the token should be freed with
+**  free().
 */
 enum token_status
 token_recv(int fd, int *flags, gss_buffer_t tok, size_t max)

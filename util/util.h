@@ -110,7 +110,9 @@ enum error_codes {
     ERROR_TOOMUCH_DATA    = 8   /* Argument size exceeds server limit. */
 };
 
-/* Sending and receiving tokens. */
+/* Sending and receiving tokens.  Do not use gss_release_buffer to free the
+   token returned by token_recv; this will cause crashes on Windows.  Call
+   free on the value member instead. */
 enum token_status token_send(int fd, int flags, gss_buffer_t);
 enum token_status token_recv(int fd, int *flags, gss_buffer_t, size_t max);
 
