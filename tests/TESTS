@@ -6,6 +6,7 @@ client/remctl
 portable/asprintf
 portable/getaddrinfo
 portable/getnameinfo
+portable/getopt
 portable/inet_aton
 portable/inet_ntoa
 portable/inet_ntop

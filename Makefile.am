@@ -172,13 +172,13 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t \
 	tests/client/open-t tests/data/cmd-background tests/data/cmd-closed \
 	tests/data/cmd-streaming tests/portable/asprintf-t \
 	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t \
-	tests/portable/inet_aton-t tests/portable/inet_ntoa-t \
-	tests/portable/inet_ntop-t tests/portable/setenv-t \
-	tests/portable/snprintf-t tests/portable/strlcat-t \
-	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t \
-	tests/server/background-t tests/server/config-t \
-	tests/server/continue-t tests/server/env-t tests/server/errors-t \
-	tests/server/invalid-t tests/server/streaming-t \
+	tests/portable/getopt-t tests/portable/inet_aton-t \
+	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t \
+	tests/portable/setenv-t tests/portable/snprintf-t \
+	tests/portable/strlcat-t tests/portable/strlcpy-t \
+	tests/server/accept-t tests/server/acl-t tests/server/background-t \
+	tests/server/config-t tests/server/continue-t tests/server/env-t \
+	tests/server/errors-t tests/server/invalid-t tests/server/streaming-t \
 	tests/server/version-t tests/util/concat-t tests/util/gss-tokens-t \
 	tests/util/messages-t tests/util/network-t tests/util/tokens-t \
 	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
@@ -203,6 +203,9 @@ tests_portable_getaddrinfo_t_LDADD = tests/libtest.a util/libutil.la
 tests_portable_getnameinfo_t_SOURCES = tests/portable/getnameinfo-t.c \
 	tests/portable/getnameinfo.c
 tests_portable_getnameinfo_t_LDADD = tests/libtest.a util/libutil.la
+tests_portable_getopt_t_SOURCES = tests/portable/getopt-t.c \
+	tests/portable/getopt.c
+tests_portable_getopt_t_LDADD = tests/libtest.a util/libutil.la
 tests_portable_inet_aton_t_SOURCES = tests/portable/inet_aton-t.c \
 	tests/portable/inet_aton.c
 tests_portable_inet_aton_t_LDADD = tests/libtest.a util/libutil.la

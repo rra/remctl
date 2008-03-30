@@ -33,6 +33,19 @@
 #include <system.h>
 #include <portable/getopt.h>
 
+/*
+ * If we're running the test suite, rename getopt and the global variables to
+ * avoid conflicts with the system version.
+ */
+#if TESTING
+# define getopt test_getopt
+int test_getopt(int, char **, const char *);
+# define optind test_optind
+# define opterr test_opterr
+# define optopt test_optopt
+# define optarg test_optarg
+#endif
+
 /* Initialize global interface variables. */
 int optind = 1;
 int opterr = 1;
@@ -58,7 +71,7 @@ getopt(int argc, char *argv[], const char *optstring)
     int option = -1;
 
     /* Holds the current position in the parameter being parsed. */
-    static int charind = NULL;
+    static int charind = 0;
 
     /*
      * By default, getopt permutes argv as it scans and leaves all non-options
@@ -101,7 +114,7 @@ getopt(int argc, char *argv[], const char *optstring)
             option = -1;
         } else if (argv[optind][0] != '-' || argv[optind][1] == '\0') {
             char *tmp;
-            int i, j, k;
+            int i, j, k, end;
 
             if (mode == '+')
                 option = -1;
@@ -117,16 +130,19 @@ getopt(int argc, char *argv[], const char *optstring)
                         while (i > j) {
                             --i;
                             tmp = argv[i];
-                            for (k = i; k + 1 < optind; k++)
+                            end = (charind == 0) ? optind - 1 : optind;
+                            for (k = i; k + 1 <= end; k++) {
                                 argv[k] = argv[k + 1];
+                            }
+                            argv[end] = tmp;
                             --optind;
-                            argv[optind] = tmp;
                         }
                         break;
                     }
                 if (i == argc)
                     option = -1;
             }
+            return option;
         } else {
             charind = 1;
         }
@@ -137,7 +153,7 @@ getopt(int argc, char *argv[], const char *optstring)
             if (optopt == *p) {
                 p++;
                 if (*p == ':') {
-                    if (argv[optind][charind + 1]) {
+                    if (argv[optind][charind + 1] != '\0') {
                         optarg = &argv[optind][charind + 1];
                         optind++;
                         charind = 0;
