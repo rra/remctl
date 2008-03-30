@@ -24,7 +24,8 @@ AC_SEARCH_LIBS([socket], [socket], ,
     [AC_CHECK_LIB([nsl], [socket],
         [LIBS="-lnsl -lsocket $LIBS"], , [-lsocket])])
 RRA_LIB_KRB5([gssapi], [false])
-AC_CHECK_HEADERS([inttypes.h stdint.h sys/bitypes.h sys/select.h unistd.h])
+AC_CHECK_HEADERS([inttypes.h stdint.h sys/bitypes.h sys/select.h sys/uio.h \
+                  syslog.h])
 AC_CHECK_DECLS([snprintf, vsnprintf])
 AC_CHECK_DECLS([inet_aton, inet_ntoa], , ,
     [#include <sys/types.h>
