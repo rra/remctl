@@ -26,37 +26,6 @@
 #include <client/remctl.h>
 #include <util/util.h>
 
-/* Windows requires explicit initialization and shutdown. */
-#ifndef _WIN32
-# define internal_socket_init()         /* empty */
-# define internal_socket_shutdown()     /* empty */
-#else
-# define internal_socket_shutdown()     WSACleanup()
-#endif
-
-
-#ifdef _WIN32
-/*
-**  Initializes the Windows socket library.  The returned parameter provides
-**  information about the socket library, none of which we care about.
-**
-**  WSACleanup closes all open socket operations for the whole process, but
-**  only if it's been called as many times as WSAStartup.  Each call to
-**  WSAStartup in essence increases a reference counter, WSAcleanup decrements
-**  the counter, and when it reaches zero, everything is shut down.  So we
-**  call the init function from remctl_new and the cleanup function from
-**  remctl_close and everything should work properly.
-*/
-void
-internal_socket_init(void)
-{
-    WSADATA *data;
-
-    if (WSAStartup(MAKEWORD(2,2), &data))
-        die("failed to initialize socket library");
-}
-#endif
-
 
 /*
 **  Handle an internal failure for the simplified interface.  We try to grab
@@ -228,13 +197,16 @@ remctl_result_free(struct remctl_result *result)
 /*
 **  Create a new remctl object.  Don't attempt to connect here; we do that
 **  separately so that we can still use the object to store error messages
-**  from connection failures.  Return NULL on memory allocation failures.
+**  from connection failures.  Return NULL on memory allocation failures or
+**  socket initialization failures (Windows).
 */
 struct remctl *
 remctl_new(void)
 {
     struct remctl *r;
 
+    if (!socket_init())
+        return NULL;
     r = calloc(1, sizeof(struct remctl));
     if (r == NULL)
         return NULL;
@@ -244,7 +216,6 @@ remctl_new(void)
     r->context = NULL;
     r->error = NULL;
     r->output = NULL;
-    internal_socket_init();
     return r;
 }
 
@@ -292,7 +263,7 @@ remctl_close(struct remctl *r)
             free(r->output);
         free(r);
     }
-    internal_socket_shutdown();
+    socket_shutdown();
 }
 
 

@@ -88,13 +88,19 @@ extern const char *     inet_ntop(int, const void *, char *, socklen_t);
 
 /* Used for portability to Windows, which requires different functions be
    called to close sockets, send data to or read from sockets, and get socket
-   errors than the regular functions and variables. */
+   errors than the regular functions and variables.  socket_init() must be
+   called before socket functions are used and socket_shutdown() at the end
+   of the program. */
 #ifdef _WIN32
+int socket_init(void);
+# define socket_shutdown()      WSACleanup()
 # define socket_close(fd)       closesocket(fd)
 # define socket_errno           WSAGetLastError()
 # define socket_read(fd, b, s)  recv((fd), (b), (s), 0)
 # define socket_write(fd, b, s) send((fd), (b), (s), 0)
 #else
+# define socket_init()          1
+# define socket_shutdown()      /* empty */
 # define socket_close(fd)       close(fd)
 # define socket_errno           errno
 # define socket_read(fd, b, s)  read((fd), (b), (s))

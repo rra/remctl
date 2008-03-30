@@ -21,14 +21,6 @@
 #include <client/remctl.h>
 #include <util/util.h>
 
-/* Windows requires explicit initialization and shutdown. */
-#ifndef _WIN32
-# define socket_init()          /* empty */
-# define socket_shutdown()      /* empty */
-#else
-# define socket_shutdown()      WSACleanup()
-#endif
-
 /* Usage message. */
 static const char usage_message[] = "\
 Usage: remctl <options> <host> <type> <service> <parameters>\n\
@@ -39,22 +31,6 @@ Options:\n\
     -p <port>     remctld port (default: 4373 falling back to 4444)\n\
     -s <service>  remctld service principal (default: host/<host>)\n\
     -v            Display the version of remctl\n";
-
-
-#ifdef _WIN32
-/*
-**  Initializes the Windows socket library.  The returned parameter provides
-**  information about the socket library, none of which we care about.
-*/
-void
-socket_init(void)
-{
-    WSADATA *data;
-
-    if (WSAStartup(MAKEWORD(2,2), &data))
-        die("failed to initialize socket library");
-}
-#endif
 
 
 /*
@@ -145,7 +121,8 @@ main(int argc, char *argv[])
 
     /* Set up logging and identity. */
     message_program_name = "remctl";
-    socket_init();
+    if (!socket_init())
+        die("failed to initialize socket library");
 
     /* Parse options.  The + tells GNU getopt to stop option parsing at the
        first non-argument rather than proceeding on to find options anywhere.
