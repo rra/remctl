@@ -19,7 +19,7 @@ remctl.dll: api.obj client-v1.obj client-v2.obj error.obj open.obj network.obj a
 {portable\}.c{}.obj::
 	$(cc) $(cdebug) $(cflags) $(cvars) /c $<
 
-.rc.res::
+{client\}.rc{}.res::
 	$(rc) $(rcflags) $(rcvars) $<
 
 clean:
