@@ -63,7 +63,7 @@ internal_fail(struct remctl *r, struct remctl_result *result)
 **  efficient.  Returns false if something fails and tries to set
 **  result->error; if we can't even do that, make sure it's set to NULL.
 */
-static int
+static bool
 internal_output_append(struct remctl_result *result,
                        struct remctl_output *output)
 {
@@ -88,12 +88,12 @@ internal_output_append(struct remctl_result *result,
                           output->stream);
         if (status < 0)
             result->error = NULL;
-        return 0;
+        return false;
     } else {
         if (result->error != NULL)
             free(result->error);
         result->error = strdup("internal error: bad output type");
-        return 0;
+        return false;
     }
 
     /* We've done our setup, so now we can do the actual manipulation. */
@@ -112,7 +112,7 @@ internal_output_append(struct remctl_result *result,
         if (result->error != NULL)
             free(result->error);
         result->error = strdup("cannot allocate memory");
-        return 0;
+        return false;
     }
     *buffer = newbuf;
     if (length != NULL)
@@ -120,7 +120,7 @@ internal_output_append(struct remctl_result *result,
     memcpy(*buffer + oldlen, output->data, output->length);
     if (output->type == REMCTL_OUT_ERROR)
         (*buffer)[newlen - 1] = '\0';
-    return 1;
+    return true;
 }
 
 

@@ -42,7 +42,7 @@ lowercase(char *string)
     char *p;
 
     for (p = string; *p != '\0'; p++)
-        *p = tolower(*p);
+        *p = tolower((unsigned char) *p);
 }
 
 
@@ -64,7 +64,7 @@ usage(int status)
 **  error.  Returns true on success, false if some protocol-level error
 **  occurred when reading the responses.
 */
-static int
+static bool
 process_response(struct remctl *r, int *errorcode)
 {
     struct remctl_output *out;
@@ -87,10 +87,10 @@ process_response(struct remctl *r, int *errorcode)
             *errorcode = 255;
             fwrite(out->data, out->length, 1, stderr);
             fputc('\n', stderr);
-            return 1;
+            return true;
         case REMCTL_OUT_STATUS:
             *errorcode = out->status;
-            return 1;
+            return true;
         case REMCTL_OUT_DONE:
             break;
         }
@@ -98,9 +98,9 @@ process_response(struct remctl *r, int *errorcode)
     }
     if (out == NULL) {
         die("error reading from server: %s", remctl_error(r));
-        return 0;
+        return false;
     } else
-        return 1;
+        return true;
 }
 
 
@@ -186,9 +186,7 @@ main(int argc, char *argv[])
             die("cannot resolve host %s: %s", server_host,
                 gai_strerror(status));
         server_host = xstrdup(ai->ai_canonname);
-        service_name = xmalloc(strlen("host/") + strlen(ai->ai_canonname) + 1);
-        strcpy(service_name, "host/");
-        strcat(service_name, ai->ai_canonname);
+        service_name = concat("host/", ai->ai_canonname, (char *) 0);
         freeaddrinfo(ai);
         lowercase(service_name);
     }

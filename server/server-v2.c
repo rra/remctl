@@ -6,7 +6,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -28,7 +28,7 @@
 **  buffer in the client struct.  Returns true on success, false on failure
 **  (and logs a message on failure).
 */
-int
+bool
 server_v2_send_output(struct client *client, int stream)
 {
     gss_buffer_desc token;
@@ -60,11 +60,11 @@ server_v2_send_output(struct client *client, int stream)
     if (status != TOKEN_OK) {
         warn_token("sending output token", status, major, minor);
         free(token.value);
-        client->fatal = 1;
-        return 0;
+        client->fatal = true;
+        return false;
     }
     free(token.value);
-    return 1;
+    return true;
 }
 
 
@@ -73,7 +73,7 @@ server_v2_send_output(struct client *client, int stream)
 **  token to the client.  Returns true on success, false on failure (and logs
 **  a message on failure).
 */
-int
+bool
 server_v2_send_status(struct client *client, int exit_status)
 {
     gss_buffer_desc token;
@@ -93,10 +93,10 @@ server_v2_send_status(struct client *client, int exit_status)
                  TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending status token", status, major, minor);
-        client->fatal = 1;
-        return 0;
+        client->fatal = true;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 
@@ -105,7 +105,7 @@ server_v2_send_status(struct client *client, int exit_status)
 **  protocol v2 error token to the client.  Returns true on success, false on
 **  failure (and logs a message on failure).
 */
-int
+bool
 server_v2_send_error(struct client *client, enum error_codes code,
                      const char *message)
 {
@@ -136,11 +136,11 @@ server_v2_send_error(struct client *client, enum error_codes code,
     if (status != TOKEN_OK) {
         warn_token("sending error token", status, major, minor);
         free(token.value);
-        client->fatal = 1;
-        return 0;
+        client->fatal = true;
+        return false;
     }
     free(token.value);
-    return 1;
+    return true;
 }
 
 
@@ -150,7 +150,7 @@ server_v2_send_error(struct client *client, enum error_codes code,
 **  Returns true on success, false on failure (and logs a message on
 **  failure).
 */
-static int
+static bool
 server_v2_send_version(struct client *client)
 {
     gss_buffer_desc token;
@@ -170,10 +170,10 @@ server_v2_send_version(struct client *client)
                  TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending version token", status, major, minor);
-        client->fatal = 1;
-        return 0;
+        client->fatal = true;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 
@@ -206,7 +206,7 @@ server_v2_read_token(struct client *client, gss_buffer_t token)
 **  appropriate.  Returns true if we should continue, false if an error
 **  occurred or QUIT was received and we should stop processing tokens.
 */
-static int
+static bool
 server_v2_handle_token(struct client *client, struct config *config,
                        gss_buffer_t token)
 {
@@ -216,7 +216,7 @@ server_v2_handle_token(struct client *client, struct config *config,
     char *buffer = NULL;
     int status;
     OM_uint32 minor;
-    int continued = 0;
+    bool continued = false;
 
     /* Loop on tokens until we have a complete command, allowing for continued
        commands.  We're going to accumulate the full command in buffer until
@@ -229,14 +229,14 @@ server_v2_handle_token(struct client *client, struct config *config,
             return server_v2_send_version(client);
         if (p[1] == MESSAGE_QUIT) {
             debug("quit received, closing connection");
-            return 0;
+            return false;
         } else if (p[1] != MESSAGE_COMMAND) {
             warn("unknown message type %d from client", (int) p[1]);
             return server_send_error(client, ERROR_UNKNOWN_MESSAGE,
                                      "Unknown message");
         }
         p += 2;
-        client->keepalive = p[0] ? 1 : 0;
+        client->keepalive = p[0] ? true : false;
 
         /* Check the data size. */
         if (token->length > TOKEN_MAX_DATA) {
@@ -275,9 +275,9 @@ server_v2_handle_token(struct client *client, struct config *config,
             gss_release_buffer(&minor, token);
             status = server_v2_read_token(client, token);
             if (status == TOKEN_FAIL_EOF)
-                return 0;
+                return false;
             else if (status != TOKEN_OK)
-                return 1;
+                return true;
         } else if (buffer == NULL) {
             buffer = p;
             total = length;

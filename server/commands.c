@@ -26,7 +26,7 @@
 
 /* Data structure used to hold details about a running process. */
 struct process {
-    int reaped;                 /* Whether we've reaped the process. */
+    bool reaped;                /* Whether we've reaped the process. */
     int fds[2];                 /* Array of file descriptors for output. */
     pid_t pid;                  /* Process ID of child. */
     int status;                 /* Exit status. */
@@ -116,7 +116,7 @@ server_process_output(struct client *client, struct process *process)
         timeout.tv_sec = 5;
         timeout.tv_usec = 0;
         if (waitpid(process->pid, &process->status, WNOHANG) > 0) {
-            process->reaped = 1;
+            process->reaped = true;
             timeout.tv_sec = 0;
         }
         result = select(maxfd + 1, &fdset, NULL, NULL, &timeout);
@@ -201,7 +201,8 @@ server_run_command(struct client *client, struct config *config,
     int stdout_pipe[2], stderr_pipe[2];
     char **req_argv = NULL;
     size_t i;
-    int ok, fd;
+    bool ok;
+    int fd;
     struct process process = { 0, { 0, 0 }, -1, 0 };
     const char *user = client->user;
 

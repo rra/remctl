@@ -3,7 +3,8 @@
 **  Internal support functions for the remctld daemon.
 **
 **  Written by Russ Allbery <rra@stanford.edu>
-**  Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+**  Copyright 2006, 2007, 2008
+**      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
 */
@@ -13,6 +14,7 @@
 
 #include <config.h>
 #include <portable/gssapi.h>
+#include <portable/stdbool.h>
 
 #include <util/util.h>
 
@@ -47,10 +49,10 @@ struct client {
     gss_ctx_id_t context;       /* GSS-API context. */
     char *user;                 /* Name of the client as a string. */
     OM_uint32 flags;            /* Connection flags. */
-    int keepalive;              /* Whether keep-alive was set. */
+    bool keepalive;             /* Whether keep-alive was set. */
     char *output;               /* Stores output to send to the client. */
     size_t outlen;              /* Length of output to send to client. */
-    int fatal;                  /* Whether a fatal error has occurred. */
+    bool fatal;                 /* Whether a fatal error has occurred. */
 };
 
 /* Holds the configuration for a single command. */
@@ -78,7 +80,7 @@ void server_log_command(struct vector *, struct confline *, const char *user);
 /* Configuration file functions. */
 struct config *server_config_load(const char *file);
 void server_config_free(struct config *);
-int server_config_acl_permit(struct confline *, const char *user);
+bool server_config_acl_permit(struct confline *, const char *user);
 
 /* Running commands. */
 void server_run_command(struct client *, struct config *, struct vector *);
@@ -87,16 +89,16 @@ void server_run_command(struct client *, struct config *, struct vector *);
 struct client *server_new_client(int fd, gss_cred_id_t creds);
 void server_free_client(struct client *);
 struct vector *server_parse_command(struct client *, const char *, size_t);
-int server_send_error(struct client *, enum error_codes, const char *);
+bool server_send_error(struct client *, enum error_codes, const char *);
 
 /* Protocol v1 functions. */
-int server_v1_send_output(struct client *, int status);
+bool server_v1_send_output(struct client *, int status);
 void server_v1_handle_commands(struct client *, struct config *);
 
 /* Protocol v2 functions. */
-int server_v2_send_output(struct client *, int stream);
-int server_v2_send_status(struct client *, int);
-int server_v2_send_error(struct client *, enum error_codes, const char *);
+bool server_v2_send_output(struct client *, int stream);
+bool server_v2_send_status(struct client *, int);
+bool server_v2_send_error(struct client *, enum error_codes, const char *);
 void server_v2_handle_commands(struct client *, struct config *);
 
 END_DECLS

@@ -33,7 +33,7 @@
 **  Send a command to the server using protocol v1.  Returns true on success,
 **  false on failure.
 */
-int
+bool
 internal_v1_commandv(struct remctl *r, const struct iovec *command,
                      size_t count)
 {
@@ -50,7 +50,7 @@ internal_v1_commandv(struct remctl *r, const struct iovec *command,
     token.value = malloc(token.length);
     if (token.value == NULL) {
         internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
-        return 0;
+        return false;
     }
 
     /* First, the argument count.  Then, each argument. */
@@ -72,11 +72,11 @@ internal_v1_commandv(struct remctl *r, const struct iovec *command,
     if (status != TOKEN_OK) {
         internal_token_error(r, "sending token", status, major, minor);
         free(token.value);
-        return 0;
+        return false;
     }
     free(token.value);
-    r->ready = 1;
-    return 1;
+    r->ready = true;
+    return true;
 }
 
 
@@ -98,7 +98,7 @@ internal_v1_output(struct remctl *r)
 
     /* First, see if we already had an output struct.  If so, this is the
        second call and we should just return the exit status. */
-    if (r->output != NULL && r->ready == 0) {
+    if (r->output != NULL && !r->ready) {
         if (r->output->type == REMCTL_OUT_STATUS)
             r->output->type = REMCTL_OUT_DONE;
         else {
@@ -173,6 +173,6 @@ internal_v1_output(struct remctl *r)
        connection now. */
     socket_close(r->fd);
     r->fd = -1;
-    r->ready = 0;
+    r->ready = false;
     return r->output;
 }

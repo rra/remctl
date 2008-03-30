@@ -67,13 +67,13 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
 **  Open a new connection to a server.  Returns true on success, false on
 **  failure.  On failure, sets the error message appropriately.
 */
-int
+bool
 internal_open(struct remctl *r, const char *host, unsigned short port,
               const char *principal)
 {
     char *defprinc = NULL;
     int status, flags;
-    int port_fallback = 0;
+    bool port_fallback = false;
     int fd = -1;
     gss_buffer_desc send_tok, recv_tok, name_buffer, *token_ptr;
     gss_buffer_desc empty_token = { 0, (void *) "" };
@@ -91,7 +91,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
        realm. */
     if (port == 0) {
         port = REMCTL_PORT;
-        port_fallback = 1;
+        port_fallback = true;
     }
     if (principal == NULL) {
         defprinc = concat("host/", host, (char *) 0);
@@ -203,7 +203,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     r->context = gss_context;
     r->ready = 0;
     gss_release_name(&minor, &name);
-    return 1;
+    return true;
 
 fail:
     if (defprinc != NULL)
@@ -215,5 +215,5 @@ fail:
         gss_release_name(&minor, &name);
     if (gss_context != GSS_C_NO_CONTEXT)
         gss_delete_sec_context(&minor, &gss_context, GSS_C_NO_BUFFER);
-    return 0;
+    return false;
 }

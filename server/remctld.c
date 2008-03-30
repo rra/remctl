@@ -54,10 +54,10 @@ Options:\n\
 
 /* Structure used to store program options. */
 struct options {
-    int foreground;
-    int standalone;
-    int log_stdout;
-    int debug;
+    bool foreground;
+    bool standalone;
+    bool log_stdout;
+    bool debug;
     unsigned short port;
     char *service;
     const char *config_path;
@@ -124,7 +124,7 @@ exit_handler(int sig UNUSED)
 **  the underlying GSS-API library choose the appropriate credentials from a
 **  keytab for each incoming connection.
 */
-static int
+static bool
 acquire_creds(char *service, gss_cred_id_t *creds)
 {
     gss_buffer_desc buffer;
@@ -136,16 +136,16 @@ acquire_creds(char *service, gss_cred_id_t *creds)
     major = gss_import_name(&minor, &buffer, GSS_C_NT_USER_NAME, &name);
     if (major != GSS_S_COMPLETE) {
         warn_gssapi("while importing name", major, minor);
-        return 0;
+        return false;
     }
     major = gss_acquire_cred(&minor, name, 0, GSS_C_NULL_OID_SET,
                              GSS_C_ACCEPT, creds, NULL, NULL);
     if (major != GSS_S_COMPLETE) {
         warn_gssapi("while acquiring credentials", major, minor);
-        return 0;
+        return false;
     }
     gss_release_name(&minor, &name);
-    return 1;
+    return true;
 }
 
 
@@ -350,10 +350,10 @@ main(int argc, char *argv[])
     while ((option = getopt(argc, argv, "dFf:hk:mP:p:Ss:v")) != EOF) {
         switch (option) {
         case 'd':
-            options.debug = 1;
+            options.debug = true;
             break;
         case 'F':
-            options.foreground = 1;
+            options.foreground = true;
             break;
         case 'f':
             options.config_path = optarg;
@@ -366,7 +366,7 @@ main(int argc, char *argv[])
                 sysdie("cannot set KRB5_KTNAME");
             break;
         case 'm':
-            options.standalone = 1;
+            options.standalone = true;
             break;
         case 'P':
             options.pid_path = optarg;
@@ -375,7 +375,7 @@ main(int argc, char *argv[])
             options.port = atoi(optarg);
             break;
         case 'S':
-            options.log_stdout = 1;
+            options.log_stdout = true;
             break;
         case 's':
             options.service = optarg;

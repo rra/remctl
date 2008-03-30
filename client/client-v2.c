@@ -39,7 +39,7 @@
 **  do use this to handle commands where all the data is longer than
 **  TOKEN_MAX_DATA.
 */
-int
+bool
 internal_v2_commandv(struct remctl *r, const struct iovec *command,
                      size_t count)
 {
@@ -83,7 +83,7 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
         if (token.value == NULL) {
             internal_set_error(r, "Cannot allocate memory: %s",
                                strerror(errno));
-            return 0;
+            return false;
         }
         left = token.length - 4;
 
@@ -152,12 +152,12 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
         if (status != TOKEN_OK) {
             internal_token_error(r, "sending token", status, major, minor);
             free(token.value);
-            return 0;
+            return false;
         }
         free(token.value);
     }
-    r->ready = 1;
-    return 1;
+    r->ready = true;
+    return true;
 }
 
 
@@ -165,7 +165,7 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
 **  Send a quit command to the server using protocol v2.  Returns true on
 **  success, false on failure.
 */
-int
+bool
 internal_v2_quit(struct remctl *r)
 {
     gss_buffer_desc token;
@@ -179,9 +179,9 @@ internal_v2_quit(struct remctl *r)
                              &token, &major, &minor);
     if (status != TOKEN_OK) {
         internal_token_error(r, "sending token", status, major, minor);
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 
@@ -190,7 +190,7 @@ internal_v2_quit(struct remctl *r)
 **  offset, and store it in newly allocated memory in the remctl struct.
 **  Returns true on success and false on any failure (also setting the error).
 */
-static int
+static bool
 internal_v2_read_string(struct remctl *r, gss_buffer_t token, size_t offset)
 {
     size_t size;
@@ -203,16 +203,16 @@ internal_v2_read_string(struct remctl *r, gss_buffer_t token, size_t offset)
     size = ntohl(data);
     if (size != token->length - (p - (char *) token->value)) {
         internal_set_error(r, "Malformed result token from server");
-        return 0;
+        return false;
     }
     r->output->data = malloc(size);
     if (r->output->data == NULL) {
         internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
-        return 0;
+        return false;
     }
     memcpy(r->output->data, p, size);
     r->output->length = size;
-    return 1;
+    return true;
 }
 
 

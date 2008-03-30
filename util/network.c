@@ -376,7 +376,7 @@ network_client_create(int domain, int type, const char *source)
 **  generally it should always be as large as the latter.  Returns success or
 **  failure.
 */
-int
+bool
 network_sockaddr_sprint(char *dst, size_t size, const struct sockaddr *addr)
 {
     const char *result;
@@ -404,7 +404,7 @@ network_sockaddr_sprint(char *dst, size_t size, const struct sockaddr *addr)
         return (result != NULL);
     } else {
         socket_set_errno(EAFNOSUPPORT);
-        return 0;
+        return false;
     }
 }
 
@@ -414,7 +414,7 @@ network_sockaddr_sprint(char *dst, size_t size, const struct sockaddr *addr)
 **  IPv4 addresses that have been mapped to IPv6 addresses compare equal to
 **  the corresponding IPv4 address.
 */
-int
+bool
 network_sockaddr_equal(const struct sockaddr *a, const struct sockaddr *b)
 {
     const struct sockaddr_in *a4 = (const struct sockaddr_in *) a;
@@ -436,9 +436,9 @@ network_sockaddr_equal(const struct sockaddr *a, const struct sockaddr *b)
         if (b->sa_family == AF_INET6)
             return IN6_ARE_ADDR_EQUAL(&a6->sin6_addr, &b6->sin6_addr);
         else if (b->sa_family != AF_INET)
-            return 0;
+            return false;
         else if (!IN6_IS_ADDR_V4MAPPED(&a6->sin6_addr))
-            return 0;
+            return false;
         else {
             struct in_addr in;
 
@@ -449,7 +449,7 @@ network_sockaddr_equal(const struct sockaddr *a, const struct sockaddr *b)
 #endif
 
     if (a->sa_family != AF_INET || b->sa_family != AF_INET)
-        return 0;
+        return false;
     return (a4->sin_addr.s_addr == b4->sin_addr.s_addr);
 }
 
@@ -485,7 +485,7 @@ network_sockaddr_port(const struct sockaddr *sa)
 **  otherwise, including on syntax errors in the addresses or mask
 **  specification.
 */
-int
+bool
 network_addr_match(const char *a, const char *b, const char *mask)
 {
     struct in_addr a4, b4, tmp;
@@ -507,14 +507,14 @@ network_addr_match(const char *a, const char *b, const char *mask)
         else if (strchr(mask, '.') == NULL) {
             cidr = strtoul(mask, &end, 10);
             if (cidr > 32 || *end != '\0')
-                return 0;
+                return false;
             for (bits = 0, i = 0; i < cidr; i++)
                 bits |= (1 << (31 - i));
             addr_mask = htonl(bits);
         } else if (inet_aton(mask, &tmp))
             addr_mask = tmp.s_addr;
         else
-            return 0;
+            return false;
         return (a4.s_addr & addr_mask) == (b4.s_addr & addr_mask);
     }
             
@@ -522,27 +522,27 @@ network_addr_match(const char *a, const char *b, const char *mask)
     /* Otherwise, if the address is IPv6, the mask is required to be a CIDR
        subnet designation. */
     if (!inet_pton(AF_INET6, a, &a6) || !inet_pton(AF_INET6, b, &b6))
-        return 0;
+        return false;
     if (mask == NULL)
         cidr = 128;
     else {
         cidr = strtoul(mask, &end, 10);
         if (cidr > 128 || *end != '\0')
-            return 0;
+            return false;
     }
     for (i = 0; i * 8 < cidr; i++) {
         if ((i + 1) * 8 <= cidr) {
             if (a6.s6_addr[i] != b6.s6_addr[i])
-                return 0;
+                return false;
         } else {
             for (addr_mask = 0, bits = 0; bits < cidr % 8; bits++)
                 addr_mask |= (1 << (7 - bits));
             if ((a6.s6_addr[i] & addr_mask) != (b6.s6_addr[i] & addr_mask))
-                return 0;
+                return false;
         }
     }
-    return 1;
+    return true;
 #else
-    return 0;
+    return false;
 #endif
 }

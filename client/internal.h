@@ -15,6 +15,7 @@
 
 #include <config.h>
 #include <portable/gssapi.h>
+#include <portable/stdbool.h>
 
 /* Forward declaration to avoid unnecessary includes. */
 struct iovec;
@@ -38,14 +39,13 @@ struct remctl {
     const char *host;           /* From remctl_open, stored here because */
     unsigned short port;        /*   remctl v1 requires opening a new    */
     const char *principal;      /*   connection for each command.        */
-    int protocol;
+    int protocol;               /* Protocol version. */
     int fd;
     gss_ctx_id_t context;
     char *error;
     struct remctl_output *output;
     int status;
-    int ready;                  /* If true, we are expecting server output. */
-    int continued;              /* If true, the last command was continued. */
+    bool ready;                 /* If true, we are expecting server output. */
 };
 
 /* Helper functions to set errors. */
@@ -59,18 +59,18 @@ void internal_token_error(struct remctl *, const char *error, int status,
 void internal_output_wipe(struct remctl_output *);
 
 /* General connection opening and negotiation function. */
-int internal_open(struct remctl *, const char *host, unsigned short port,
-                  const char *principal);
+bool internal_open(struct remctl *, const char *host, unsigned short port,
+                   const char *principal);
 
 /* Protocol one functions. */
-int internal_v1_commandv(struct remctl *, const struct iovec *command,
-                         size_t count);
+bool internal_v1_commandv(struct remctl *, const struct iovec *command,
+                          size_t count);
 struct remctl_output *internal_v1_output(struct remctl *r);
 
 /* Protocol two functions. */
-int internal_v2_commandv(struct remctl *, const struct iovec *command,
-                         size_t count);
-int internal_v2_quit(struct remctl *);
+bool internal_v2_commandv(struct remctl *, const struct iovec *command,
+                          size_t count);
+bool internal_v2_quit(struct remctl *);
 struct remctl_output *internal_v2_output(struct remctl *r);
 
 END_DECLS

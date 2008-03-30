@@ -8,7 +8,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -29,7 +29,7 @@
 **  a command, send a protocol v1 output token back to the client.  Returns
 **  true on success and false on failure (and logs a message on failure).
 */
-int
+bool
 server_v1_send_output(struct client *client, int exit_status)
 {
     gss_buffer_desc token;
@@ -57,10 +57,10 @@ server_v1_send_output(struct client *client, int exit_status)
     if (status != TOKEN_OK) {
         warn_token("sending output token", status, major, minor);
         free(token.value);
-        return 0;
+        return false;
     }
     free(token.value);
-    return 1;
+    return true;
 }
 
 

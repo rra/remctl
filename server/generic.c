@@ -7,7 +7,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -286,7 +286,7 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
 **  code, and the message to send and dispatches to the appropriate
 **  protocol-specific function.  Returns true on success, false on failure.
 */
-int
+bool
 server_send_error(struct client *client, enum error_codes error,
                   const char *message)
 {

@@ -7,7 +7,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -376,20 +376,20 @@ server_config_free(struct config *config)
 **  requesting access, see if the command is allowed.  Return true if so,
 **  false otherwise.
 */
-int
+bool
 server_config_acl_permit(struct confline *cline, const char *user)
 {
     char **acls = cline->acls;
     int status, i;
 
     if (strcmp(acls[0], "ANYUSER") == 0)
-        return 1;
+        return true;
     for (i = 0; acls[i] != NULL; i++) {
         status = acl_check_file((void *) user, acls[i]);
         if (status == 0)
-            return 1;
+            return true;
         else if (status < -1)
-            return 0;
+            return false;
     }
-    return 0;
+    return false;
 }
