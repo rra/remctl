@@ -195,6 +195,10 @@ unsigned short network_sockaddr_port(const struct sockaddr *);
    they're equal, false otherwise or on a parse error. */
 int network_addr_match(const char *, const char *, const char *mask);
 
+/* Set a file descriptor close-on-exec or nonblocking. */
+bool fdflag_close_exec(int fd, bool flag);
+bool fdflag_nonblocking(int fd, bool flag);
+
 /* The reporting functions.  The ones prefaced by "sys" add a colon, a space,
    and the results of strerror(errno) to the output and are intended for
    reporting failures of system calls. */
