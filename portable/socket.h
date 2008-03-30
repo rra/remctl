@@ -96,6 +96,7 @@ int socket_init(void);
 # define socket_shutdown()      WSACleanup()
 # define socket_close(fd)       closesocket(fd)
 # define socket_errno           WSAGetLastError()
+# define socket_set_errno(e)    WSASetLastError(e)
 # define socket_read(fd, b, s)  recv((fd), (b), (s), 0)
 # define socket_write(fd, b, s) send((fd), (b), (s), 0)
 #else
@@ -103,6 +104,8 @@ int socket_init(void);
 # define socket_shutdown()      /* empty */
 # define socket_close(fd)       close(fd)
 # define socket_errno           errno
+# define socket_set_errno(e)    errno = (e)
+# define socket_strerror(e)     strerror(e)
 # define socket_read(fd, b, s)  read((fd), (b), (s))
 # define socket_write(fd, b, s) write((fd), (b), (s))
 #endif

@@ -56,7 +56,7 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
     freeaddrinfo(ai);
     if (fd < 0) {
         internal_set_error(r, "cannot connect to %s (port %hu): %s", host,
-                           port, strerror(socket_errno));
+                           port, socket_strerror(socket_errno));
         return -1;
     }
     return fd;

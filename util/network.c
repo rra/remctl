@@ -129,7 +129,7 @@ network_bind_ipv6(const char *address, unsigned short port)
     /* Create the socket. */
     fd = socket(PF_INET6, SOCK_STREAM, IPPROTO_IP);
     if (fd < 0) {
-        if (errno != EAFNOSUPPORT && errno != EPROTONOSUPPORT)
+        if (socket_errno != EAFNOSUPPORT && socket_errno != EPROTONOSUPPORT)
             syswarn("cannot create IPv6 socket for %s,%hu", address, port);
         return -1;
     }
@@ -307,9 +307,9 @@ network_connect(struct addrinfo *ai, const char *source)
         return fd;
     else {
         if (fd >= 0) {
-            oerrno = errno;
+            oerrno = socket_errno;
             socket_close(fd);
-            errno = oerrno;
+            socket_set_errno(oerrno);
         }
         return -1;
     }
@@ -337,9 +337,9 @@ network_connect_host(const char *host, unsigned short port,
     if (getaddrinfo(host, portbuf, &hints, &ai) != 0)
         return -1;
     fd = network_connect(ai, source);
-    oerrno = errno;
+    oerrno = socket_errno;
     freeaddrinfo(ai);
-    errno = oerrno;
+    socket_set_errno(oerrno);
     return fd;
 }
 
@@ -360,9 +360,9 @@ network_client_create(int domain, int type, const char *source)
     if (fd < 0)
         return -1;
     if (!network_source(fd, domain, source)) {
-        oerrno = errno;
+        oerrno = socket_errno;
         socket_close(fd);
-        errno = oerrno;
+        socket_set_errno(oerrno);
         return -1;
     }
     return fd;
@@ -403,7 +403,7 @@ network_sockaddr_sprint(char *dst, size_t size, const struct sockaddr *addr)
         result = inet_ntop(AF_INET, &sin->sin_addr, dst, size);
         return (result != NULL);
     } else {
-        errno = EAFNOSUPPORT;
+        socket_set_errno(EAFNOSUPPORT);
         return 0;
     }
 }

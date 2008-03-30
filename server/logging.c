@@ -51,7 +51,7 @@ warn_token(const char *error, int status, OM_uint32 major, OM_uint32 minor)
         syswarn("error %s: %s", error, strerror(errno));
         break;
     case TOKEN_FAIL_SOCKET:
-        syswarn("error %s: %s", error, strerror(socket_errno));
+        syswarn("error %s: %s", error, socket_strerror(socket_errno));
         break;
     case TOKEN_FAIL_INVALID:
         warn("error %s: invalid token format", error);
