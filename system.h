@@ -11,6 +11,7 @@
 **
 **      #include <sys/types.h>
 **      #include <stdarg.h>
+**      #include <stdbool.h>
 **      #include <stdio.h>
 **      #include <stdlib.h>
 **      #include <stddef.h>
@@ -48,6 +49,31 @@
 /* SCO OpenServer gets int32_t from here. */
 #if HAVE_SYS_BITYPES_H
 # include <sys/bitypes.h>
+#endif
+
+/* Do the magic necessary to get a bool type. */
+#if HAVE_STDBOOL_H
+# include <stdbool.h>
+#else
+# if !HAVE__BOOL
+#  ifdef __cplusplus
+typedef bool _Bool;
+#  elif _WIN32
+#   include <windef.h>
+#   define bool BOOL
+#  else
+typedef unsigned char _Bool;
+#   define bool _Bool
+#  endif
+# endif
+# define false 0
+# define true  1
+# define __bool_true_false_are_defined 1
+#endif
+
+/* Tell Perl that we have a bool type. */
+#ifndef HAS_BOOL
+# define HAS_BOOL 1
 #endif
 
 /* __attribute__ is available in gcc 2.5 and later, but only with gcc 2.7
