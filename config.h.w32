@@ -1,24 +1,10 @@
-/* config.h.w32 */
-
-/* Define to 1 if you have the `asprintf' function. */
-#undef HAVE_ASPRINTF
-
-/* Define if your IN6_ARE_ADDR_EQUAL macro is broken. */
-#undef HAVE_BROKEN_IN6_ARE_ADDR_EQUAL
-
-/* Define if the compiler supports C99 variadic macros. */
-#define HAVE_C99_VAMACROS 1
-
-/* Define to 1 if you have the `daemon' function. */
-#undef HAVE_DAEMON
-
-/* Define to 1 if you have the declaration of `GSS_KRB5_MECHANISM', and to 0
-   if you don't. */
-#undef HAVE_DECL_GSS_KRB5_MECHANISM
-
-/* Define to 1 if you have the declaration of `inet_aton', and to 0 if you
-   don't. */
-#undef HAVE_DECL_INET_ATON
+/* $Id$
+ *
+ * This is a static, stripped-down version of config.h.in for Windows
+ * platforms.  It's hand-tweaked to define the right symbols so that
+ * remctl will build properly on Windows.  (This may include lying about
+ * certain features that don't matter on a Windows build.)
+ */
 
 /* Define to 1 if you have the declaration of `inet_ntoa', and to 0 if you
    don't. */
@@ -32,12 +18,6 @@
    don't. */
 #define HAVE_DECL_VSNPRINTF 1
 
-/* Define to 1 if you have the <dlfcn.h> header file. */
-#undef HAVE_DLFCN_H
-
-/* Define to 1 if you have the <et/com_err.h> header file. */
-#undef HAVE_ET_COM_ERR_H
-
 /* Define to 1 if you have the `getaddrinfo' function. */
 /* Defined to empty in krb5 include files */
 #ifndef HAVE_GETADDRINFO
@@ -50,32 +30,8 @@
 # define HAVE_GETNAMEINFO 1
 #endif
 
-/* Define if the compiler supports GNU-style variadic macros. */
-#undef HAVE_GNU_VAMACROS
-
-/* Define to 1 if you have the <gssapi.h> header file. */
-/*define HAVE_GSSAPI_H 1*/
-
-/* Define to 1 if the GSS-API library uses RFC-compliant OIDs. */
-#undef HAVE_GSS_RFC_OIDS
-
-/* Define to 1 if IPv6 library interfaces are available. */
-#undef HAVE_INET6
-
-/* Define to 1 if you have the `inet_aton' function. */
-#undef HAVE_INET_ATON
-
 /* Define if your system has a working inet_ntoa function. */
 #define HAVE_INET_NTOA 1
-
-/* Define to 1 if you have the `inet_ntop' function. */
-#undef HAVE_INET_NTOP
-
-/* Define to 1 if you have the <inttypes.h> header file. */
-#undef HAVE_INTTYPES_H
-
-/* Define to 1 if you have the <kerberosIV/krb.h> header file. */
-#undef HAVE_KERBEROSIV_KRB_H
 
 /* Define to 1 if you have the `krb5_free_keytab_entry_contents' function. */
 #define HAVE_KRB5_FREE_KEYTAB_ENTRY_CONTENTS 1
@@ -86,32 +42,11 @@
 /* Define to 1 if the system has the type `long long'. */
 #define HAVE_LONG_LONG
 
-/* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
-
-/* Define if <sys/socket.h> defines the SA_LEN macro */
-#undef HAVE_SA_LEN
-
 /* Define to 1 if you have the `setenv' function. */
 #define HAVE_SETENV 1
 
-/* Define to 1 if you have the `setrlimit' function. */
-#undef HAVE_SETRLIMIT
-
-/* Define to 1 if you have the `setsid' function. */
-#undef HAVE_SETSID
-
 /* Define if your system has a working snprintf function. */
 #define HAVE_SNPRINTF 1
-
-/* Define to 1 if you have the <stdint.h> header file. */
-#undef HAVE_STDINT_H
-
-/* Define to 1 if you have the <stdlib.h> header file. */
-#undef HAVE_STDLIB_H
-
-/* Define to 1 if you have the <strings.h> header file. */
-#undef HAVE_STRINGS_H
 
 /* Define to 1 if you have the <string.h> header file. */
 /* Defined in krb5 include files */
@@ -119,54 +54,8 @@
 # define HAVE_STRING_H 1
 #endif
 
-/* Define to 1 if you have the `strlcat' function. */
-#undef HAVE_STRLCAT
-
-/* Define to 1 if you have the `strlcpy' function. */
-#undef HAVE_STRLCPY
-
-/* Define to 1 if the system has the type `struct sockaddr_in6'. */
-#undef HAVE_STRUCT_SOCKADDR_IN6
-
-/* Define to 1 if `sa_len' is member of `struct sockaddr'. */
-#undef HAVE_STRUCT_SOCKADDR_SA_LEN
-
 /* Define to 1 if the system has the type `struct sockaddr_storage'. */
 #define HAVE_STRUCT_SOCKADDR_STORAGE 1
 
-/* Define to 1 if `ss_family' is member of `struct sockaddr_storage'. */
-#undef HAVE_STRUCT_SOCKADDR_STORAGE_SS_FAMILY
-
-/* Define to 1 if you have the <sys/bitypes.h> header file. */
-#undef HAVE_SYS_BITYPES_H
-
-/* Define to 1 if you have the <sys/select.h> header file. */
-#undef HAVE_SYS_SELECT_H
-
-/* Define to 1 if you have the <sys/stat.h> header file. */
-#undef HAVE_SYS_STAT_H
-
-/* Define to 1 if you have the <sys/types.h> header file. */
-#undef HAVE_SYS_TYPES_H
-
-/* Define to 1 if you have the <unistd.h> header file. */
-#undef HAVE_UNISTD_H
-
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-#undef NO_MINUS_C_MINUS_O
-
-/* Define as the return type of signal handlers (`int' or `void'). */
-#undef RETSIGTYPE
-
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
-
-/* Define to 1 on Linux to get full prototypes. */
-#undef _GNU_SOURCE
-
-/* Define to int if <signal.h> does not define. */
-#undef sig_atomic_t
-
-/* Define to int if <sys/socket.h> does not define. */
-#undef socklen_t
-
