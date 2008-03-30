@@ -690,6 +690,8 @@ test_batch(const char *testlist)
         fputs(buffer, stdout);
         for (i = length; i < longest; i++)
             putchar('.');
+        if (isatty(STDOUT_FILENO))
+            fflush(stdout);
         memset(&ts, 0, sizeof(ts));
         ts.file = xstrdup(buffer);
         if (!test_run(&ts)) {
