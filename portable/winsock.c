@@ -43,7 +43,7 @@ socket_strerror(err)
     if (err >= sys_nerr) {
         char *p;
         DWORD f = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM;
-        static char *buffer;
+        static char *buffer = NULL;
 
         if (buffer != NULL)
             LocalFree(buffer);
