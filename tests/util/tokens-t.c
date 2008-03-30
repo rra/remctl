@@ -204,7 +204,7 @@ main(void)
         result.length = 5;
         status = token_send(server, 3, &result);
         free(result.value);
-        ok_int(10, TOKEN_FAIL_SYSTEM, status);
+        ok_int(10, TOKEN_FAIL_SOCKET, status);
         close(server);
     }
 
