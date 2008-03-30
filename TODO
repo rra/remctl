@@ -64,3 +64,5 @@
    necessary libraries in separate variables, and modify the Perl library
    build rules to not link against the Kerberos libraries when
    --enable-reduced-depends is given.
+
+ * Set server file descriptors close-on-exec.
