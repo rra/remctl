@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl $Id$
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007
+dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 dnl     Board of Trustees, Leland Stanford Jr. University
 dnl
 dnl See README for licensing terms.
@@ -24,7 +24,7 @@ AC_SEARCH_LIBS([socket], [socket], ,
     [AC_CHECK_LIB([nsl], [socket],
         [LIBS="-lnsl -lsocket $LIBS"], , [-lsocket])])
 RRA_LIB_KRB5([gssapi], [false])
-AC_CHECK_HEADERS([inttypes.h stdint.h sys/bitypes.h sys/select.h])
+AC_CHECK_HEADERS([inttypes.h stdint.h sys/bitypes.h sys/select.h unistd.h])
 AC_CHECK_DECLS([snprintf, vsnprintf])
 AC_CHECK_DECLS([inet_aton, inet_ntoa], , ,
     [#include <sys/types.h>
@@ -62,7 +62,7 @@ RRA_MACRO_SA_LEN
 RRA_FUNC_INET_NTOA
 RRA_FUNC_SNPRINTF
 AC_CHECK_FUNCS([setrlimit setsid])
-AC_REPLACE_FUNCS([asprintf daemon getaddrinfo getnameinfo inet_aton \
+AC_REPLACE_FUNCS([asprintf daemon getaddrinfo getnameinfo getopt inet_aton \
                   inet_ntop setenv strlcat strlcpy])
 AC_TYPE_SIGNAL
 

@@ -8,7 +8,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -19,10 +19,44 @@
 #include <portable/gssapi.h>
 
 #include <errno.h>
+#ifdef _WIN32
+# include <winsock2.h>
+#endif
 
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <util/util.h>
+
+/* Windows requires explicit initialization and shutdown. */
+#ifndef _WIN32
+# define internal_socket_init()         /* empty */
+# define internal_socket_shutdown()     /* empty */
+#else
+# define internal_socket_shutdown()     WSACleanup()
+#endif
+
+
+#ifdef _WIN32
+/*
+**  Initializes the Windows socket library.  The returned parameter provides
+**  information about the socket library, none of which we care about.
+**
+**  WSACleanup closes all open socket operations for the whole process, but
+**  only if it's been called as many times as WSAStartup.  Each call to
+**  WSAStartup in essence increases a reference counter, WSAcleanup decrements
+**  the counter, and when it reaches zero, everything is shut down.  So we
+**  call the init function from remctl_new and the cleanup function from
+**  remctl_close and everything should work properly.
+*/
+void
+internal_socket_init(void)
+{
+    WSADATA *data;
+
+    if (WSAStartup(MAKEWORD(2,2), &data))
+        die("failed to initialize socket library");
+}
+#endif
 
 
 /*
@@ -211,6 +245,7 @@ remctl_new(void)
     r->context = NULL;
     r->error = NULL;
     r->output = NULL;
+    internal_socket_init();
     return r;
 }
 
@@ -224,7 +259,7 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
             const char *principal)
 {
     if (r->fd != -1)
-        close(r->fd);
+        socket_close(r->fd);
     if (r->error != NULL) {
         free(r->error);
         r->error = NULL;
@@ -251,13 +286,14 @@ remctl_close(struct remctl *r)
         if (r->protocol > 1 && r->fd != -1)
             internal_v2_quit(r);
         if (r->fd != -1)
-            close(r->fd);
+            socket_close(r->fd);
         if (r->error != NULL)
             free(r->error);
         if (r->output != NULL)
             free(r->output);
         free(r);
     }
+    internal_socket_shutdown();
 }
 
 

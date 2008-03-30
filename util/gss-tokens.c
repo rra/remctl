@@ -10,7 +10,7 @@
 **
 **  Originally written by Anton Ushakov
 **  Extensive modifications by Russ Allbery <rra@stanford.edu>
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -107,7 +107,7 @@ token_recv_priv(int fd, gss_ctx_id_t ctx, int *flags, gss_buffer_t tok,
     *major = gss_unwrap(minor, ctx, &in, tok, &state, NULL);
     if (*major != GSS_S_COMPLETE)
         return TOKEN_FAIL_GSSAPI;
-    gss_release_buffer(minor, &in);
+    free(in.value);
     if ((*flags & TOKEN_SEND_MIC) && !(*flags & TOKEN_PROTOCOL)) {
         *major = gss_get_mic(minor, ctx, GSS_C_QOP_DEFAULT, tok, &mic);
         if (*major != GSS_S_COMPLETE) {

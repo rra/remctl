@@ -11,7 +11,7 @@
 **  implementations for functions that aren't found on some pre-IPv6 systems.
 **  No other part of remctl should have to care about IPv4 vs. IPv6.
 **
-**  Copyright (c) 2004, 2005, 2006, 2007
+**  Copyright (c) 2004, 2005, 2006, 2007, 2008
 **      by Internet Systems Consortium, Inc. ("ISC")
 **  Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
 **      2002, 2003 by The Internet Software Consortium and Rich Salz
@@ -144,14 +144,14 @@ network_bind_ipv6(const char *address, unsigned short port)
     server.sin6_port = htons(port);
     if (inet_pton(AF_INET6, address, &addr) < 1) {
         warn("invalid IPv6 address %s", address);
-        close(fd);
+        socket_close(fd);
         return -1;
     }
     server.sin6_addr = addr;
     sin6_set_length(&server);
     if (bind(fd, (struct sockaddr *) &server, sizeof(server)) < 0) {
         syswarn("cannot bind socket for %s,%hu", address, port);
-        close(fd);
+        socket_close(fd);
         return -1;
     }
     return fd;
@@ -292,7 +292,7 @@ network_connect(struct addrinfo *ai, const char *source)
 
     for (success = 0; ai != NULL; ai = ai->ai_next) {
         if (fd >= 0)
-            close(fd);
+            socket_close(fd);
         fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
         if (fd < 0)
             continue;
@@ -308,7 +308,7 @@ network_connect(struct addrinfo *ai, const char *source)
     else {
         if (fd >= 0) {
             oerrno = errno;
-            close(fd);
+            socket_close(fd);
             errno = oerrno;
         }
         return -1;
@@ -361,7 +361,7 @@ network_client_create(int domain, int type, const char *source)
         return -1;
     if (!network_source(fd, domain, source)) {
         oerrno = errno;
-        close(fd);
+        socket_close(fd);
         errno = oerrno;
         return -1;
     }

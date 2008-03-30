@@ -4,7 +4,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on prior work by Anton Ushakov <antonu@stanford.edu>
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -16,7 +16,8 @@
 #include <config.h>
 #include <portable/gssapi.h>
 
-#include <sys/uio.h>
+/* Forward declaration to avoid unnecessary includes. */
+struct iovec;
 
 /* BEGIN_DECLS is used at the beginning of declarations so that C++
    compilers don't mangle their names.  END_DECLS is used at the end. */

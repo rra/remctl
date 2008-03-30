@@ -5,7 +5,18 @@
 #define REMCTL_H 1
 
 #include <sys/types.h>          /* size_t */
-#include <sys/uio.h>            /* struct iovec */
+
+/* Normally we treat this as an opaque struct and clients who want to use the
+   iovec interface need to include <sys/uio.h> themselves.  However, Windows
+   doesn't provide this struct, so we define it for Windows. */
+#ifdef _WIN32
+struct iovec {
+    void *iov_base;
+    size_t iov_len;
+};
+#else
+struct iovec;
+#endif
 
 /* BEGIN_DECLS is used at the beginning of declarations so that C++
    compilers don't mangle their names.  END_DECLS is used at the end. */

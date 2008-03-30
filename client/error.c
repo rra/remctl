@@ -8,7 +8,8 @@
 **  return the appropriate details.
 **
 **  Written by Russ Allbery <rra@stanford.edu>
-**  Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+**  Copyright 2006, 2007, 2008
+**      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
 */
@@ -74,6 +75,9 @@ internal_token_error(struct remctl *r, const char *error, int status,
         break;
     case TOKEN_FAIL_SYSTEM:
         internal_set_error(r, "error %s: %s", error, strerror(errno));
+        break;
+    case TOKEN_FAIL_SOCKET:
+        internal_set_error(r, "error %s: %s", error, strerror(socket_errno));
         break;
     case TOKEN_FAIL_INVALID:
         internal_set_error(r, "error %s: invalid token format", error);

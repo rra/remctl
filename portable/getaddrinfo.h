@@ -20,7 +20,7 @@
 #include <config.h>
 
 /* Skip this entire file if a system getaddrinfo was detected. */
-#if !HAVE_GETADDRINFO
+#ifndef HAVE_GETADDRINFO
 
 #include <sys/socket.h>
 

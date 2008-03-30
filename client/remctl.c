@@ -5,7 +5,7 @@
 **
 **  Originally written by Anton Ushakov <antonu@stanford.edu>
 **  Extensive modifications by Russ Allbery <rra@stanford.edu>
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -13,12 +13,21 @@
 
 #include <config.h>
 #include <system.h>
+#include <portable/getopt.h>
 #include <portable/socket.h>
 
 #include <ctype.h>
 
 #include <client/remctl.h>
 #include <util/util.h>
+
+/* Windows requires explicit initialization and shutdown. */
+#ifndef _WIN32
+# define socket_init()          /* empty */
+# define socket_shutdown()      /* empty */
+#else
+# define socket_shutdown()      WSACleanup()
+#endif
 
 /* Usage message. */
 static const char usage_message[] = "\
@@ -30,6 +39,22 @@ Options:\n\
     -p <port>     remctld port (default: 4373 falling back to 4444)\n\
     -s <service>  remctld service principal (default: host/<host>)\n\
     -v            Display the version of remctl\n";
+
+
+#ifdef _WIN32
+/*
+**  Initializes the Windows socket library.  The returned parameter provides
+**  information about the socket library, none of which we care about.
+*/
+void
+socket_init(void)
+{
+    WSADATA *data;
+
+    if (WSAStartup(MAKEWORD(2,2), &data))
+        die("failed to initialize socket library");
+}
+#endif
 
 
 /*
@@ -120,6 +145,7 @@ main(int argc, char *argv[])
 
     /* Set up logging and identity. */
     message_program_name = "remctl";
+    socket_init();
 
     /* Parse options.  The + tells GNU getopt to stop option parsing at the
        first non-argument rather than proceeding on to find options anywhere.
@@ -205,6 +231,7 @@ main(int argc, char *argv[])
 
     /* Shut down cleanly. */
     remctl_close(r);
+    socket_shutdown();
     return errorcode;
 }
 

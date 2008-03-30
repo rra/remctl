@@ -1,5 +1,10 @@
 /*  $Id$
 **
+**  Standard system includes and portability adjustments.
+**
+**  Written by Russ Allbery <rra@stanford.edu>
+**  This work is hereby placed in the public domain by its author.
+**
 **  Declarations of routines and variables in the C library.  Including this
 **  file is the equivalent of including all of the following headers,
 **  portably:
@@ -36,7 +41,9 @@
 #if HAVE_STDINT_H
 # include <stdint.h>
 #endif
-#include <unistd.h>
+#if HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 
 /* SCO OpenServer gets int32_t from here. */
 #if HAVE_SYS_BITYPES_H
@@ -70,7 +77,11 @@ BEGIN_DECLS
    HAVE_DECL macros for those functions that may be prototyped but
    implemented incorrectly or implemented without a prototype. */
 #if !HAVE_INET_NTOP
+# ifdef _WIN32
+extern const char *     inet_ntop(int, const void *, char *, int);
+# else
 extern const char *     inet_ntop(int, const void *, char *, socklen_t);
+# endif
 #endif
 #if !HAVE_ASPRINTF
 extern int              asprintf(char **, const char *, ...);
@@ -97,6 +108,11 @@ extern size_t           strlcpy(char *, const char *, size_t);
 #endif
 
 END_DECLS
+
+/* Windows provides snprintf under a different name. */
+#ifdef _WIN32
+# define snprintf _snprintf
+#endif
 
 /* POSIX requires that these be defined in <unistd.h>.  If one of them has
    been defined, all the rest almost certainly have. */

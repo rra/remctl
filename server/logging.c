@@ -7,7 +7,8 @@
 **  right place.
 **
 **  Written by Russ Allbery <rra@stanford.edu>
-**  Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+**  Copyright 2006, 2007, 2008
+**      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
 */
@@ -47,6 +48,9 @@ warn_token(const char *error, int status, OM_uint32 major, OM_uint32 minor)
         break;
     case TOKEN_FAIL_SYSTEM:
         syswarn("error %s: %s", error, strerror(errno));
+        break;
+    case TOKEN_FAIL_SOCKET:
+        syswarn("error %s: %s", error, strerror(socket_errno));
         break;
     case TOKEN_FAIL_INVALID:
         warn("error %s: invalid token format", error);

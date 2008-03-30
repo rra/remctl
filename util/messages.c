@@ -51,6 +51,7 @@
 **  generates given the format and arguments), a format, an argument list as a
 **  va_list, and the applicable errno value (if any).
 **
+**  Copyright 2008 Board of Trustees, Leland Stanford Jr. University
 **  Copyright (c) 2004, 2005, 2006
 **      by Internet Systems Consortium, Inc. ("ISC")
 **  Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
@@ -76,7 +77,19 @@
 #include <system.h>
 
 #include <errno.h>
-#include <syslog.h>
+#ifdef HAVE_SYSLOG_H
+# include <syslog.h>
+#endif
+
+#ifdef _WIN32
+# include <windows.h>
+# define LOG_DEBUG      EVENTLOG_SUCCESS
+# define LOG_INFO       EVENTLOG_INFORMATION_TYPE
+# define LOG_NOTICE     EVENTLOG_INFORMATION_TYPE
+# define LOG_WARNING    EVENTLOG_WARNING_TYPE
+# define LOG_ERR        EVENTLOG_ERROR_TYPE
+# define LOG_CRIT       EVENTLOG_ERROR_TYPE
+#endif
 
 #include <util/util.h>
 
@@ -177,6 +190,9 @@ message_log_stderr(int len UNUSED, const char *fmt, va_list args, int err)
 **  of the syslog message log handlers.  It takes the same arguments as a
 **  regular message handler function but with an additional priority
 **  argument.
+**
+**  This needs further attention on Windows.  For example, it currently
+**  doesn't log the errno information.
 */
 static void
 message_log_syslog(int pri, int len, const char *fmt, va_list args, int err)
@@ -190,10 +206,22 @@ message_log_syslog(int pri, int len, const char *fmt, va_list args, int err)
         exit(message_fatal_cleanup ? (*message_fatal_cleanup)() : 1);
     }
     vsnprintf(buffer, len + 1, fmt, args);
+#ifdef _WIN32
+    {
+        HANDLE eventlog;
+
+        eventlog = RegisterEventSource(NULL, message_program_name);
+        if (eventlog != NULL) {
+            ReportEvent(eventlog, pri, 0, 0, NULL, 1, 0, &buffer, NULL);
+            CloseEventLog(eventlog);
+        }
+    }
+#else /* !_WIN32 */
     if (err == 0)
         syslog(pri, "%s", buffer);
     else
         syslog(pri, "%s: %s", buffer, strerror(err));
+#endif /* !_WIN32 */
     free(buffer);
 }
 

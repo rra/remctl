@@ -9,7 +9,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -56,7 +56,7 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
     freeaddrinfo(ai);
     if (fd < 0) {
         internal_set_error(r, "cannot connect to %s (port %hu): %s", host,
-                           port, strerror(errno));
+                           port, strerror(socket_errno));
         return -1;
     }
     return fd;
@@ -152,8 +152,10 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
                     wanted_gss_flags, 0, NULL, token_ptr, NULL, &send_tok,
                     &gss_flags, NULL);
 
+        /* Allocated in token_recv, so use free instead of gss_release_buffer
+           for correctness on Windows. */
         if (token_ptr != GSS_C_NO_BUFFER)
-            gss_release_buffer(&minor, &recv_tok);
+            free(recv_tok.value);
 
         /* If we have anything more to say, send it. */
         if (send_tok.length != 0) {
@@ -207,7 +209,7 @@ fail:
     if (defprinc != NULL)
         free(defprinc);
     if (fd >= 0)
-        close(fd);
+        socket_close(fd);
     r->fd = -1;
     if (name != GSS_C_NO_NAME)
         gss_release_name(&minor, &name);

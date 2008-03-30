@@ -13,6 +13,7 @@
 **  ensures that inet_aton, inet_ntoa, and inet_ntop are available and
 **  properly prototyped.
 **
+**  Copyright 2008 Board of Trustees, Leland Stanford Jr. University
 **  Copyright (c) 2004, 2005, 2006, 2007
 **      by Internet Systems Consortium, Inc. ("ISC")
 **  Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
@@ -43,10 +44,15 @@
 #include <sys/types.h>
 
 /* BSDI needs <netinet/in.h> before <arpa/inet.h>. */
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/socket.h>
+#ifdef _WIN32
+# include <winsock2.h>
+# include <ws2tcpip.h>
+#else
+# include <netinet/in.h>
+# include <arpa/inet.h>
+# include <netdb.h>
+# include <sys/socket.h>
+#endif
 
 /* Pick up definitions of getaddrinfo and getnameinfo if not otherwise
    available. */
@@ -78,6 +84,21 @@ extern const char *     inet_ntoa(const struct in_addr);
 #endif
 #if !HAVE_INET_NTOP
 extern const char *     inet_ntop(int, const void *, char *, socklen_t);
+#endif
+
+/* Used for portability to Windows, which requires different functions be
+   called to close sockets, send data to or read from sockets, and get socket
+   errors than the regular functions and variables. */
+#ifdef _WIN32
+# define socket_close(fd)       closesocket(fd)
+# define socket_errno           WSAGetLastError()
+# define socket_read(fd, b, s)  recv((fd), (b), (s), 0)
+# define socket_write(fd, b, s) send((fd), (b), (s), 0)
+#else
+# define socket_close(fd)       close(fd)
+# define socket_errno           errno
+# define socket_read(fd, b, s)  read((fd), (b), (s))
+# define socket_write(fd, b, s) write((fd), (b), (s))
 #endif
 
 /* Some systems don't define INADDR_LOOPBACK. */
@@ -166,4 +187,4 @@ struct sockaddr_storage {
 
 END_DECLS
 
-#endif /* PORTABLE_SOCKET_H */
+#endif /* !PORTABLE_SOCKET_H */

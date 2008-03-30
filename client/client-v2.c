@@ -7,7 +7,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -16,9 +16,10 @@
 #include <config.h>
 #include <system.h>
 #include <portable/gssapi.h>
+#include <portable/socket.h>
+#include <portable/uio.h>
 
 #include <errno.h>
-#include <netinet/in.h>
 
 #include <client/internal.h>
 #include <client/remctl.h>
@@ -252,7 +253,7 @@ internal_v2_output(struct remctl *r)
     if (status != TOKEN_OK) {
         internal_token_error(r, "receiving token", status, major, minor);
         if (status == TOKEN_FAIL_EOF) {
-            close(r->fd);
+            socket_close(r->fd);
             r->fd = -1;
         }
         return NULL;

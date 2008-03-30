@@ -23,6 +23,7 @@
 **  functions will return -1 and the number of bytes actually written will
 **  be lost.
 **
+**  Copyright 2008 Board of Trustees, Leland Stanford Jr. University
 **  Copyright (c) 2004, 2005, 2006
 **      by Internet Systems Consortium, Inc. ("ISC")
 **  Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
@@ -94,6 +95,7 @@ xwrite(int fd, const void *buffer, size_t size)
     return (total < size) ? -1 : (ssize_t) total;
 }
 
+#ifndef _WIN32
 ssize_t
 xpwrite(int fd, const void *buffer, size_t size, off_t offset)
 {
@@ -120,6 +122,7 @@ xpwrite(int fd, const void *buffer, size_t size, off_t offset)
     }
     return (total < size) ? -1 : (ssize_t) total;
 }
+#endif
 
 ssize_t
 xwritev(int fd, const struct iovec iov[], int iovcnt)

@@ -2,6 +2,13 @@
 
 remctl 2.12 (unreleased)
 
+    Include the Windows port of the client done by Matthew Loar.  See
+    README for information on requirements and compilation.  Only the
+    client shared library and command-line utility are supported or built
+    currently.  I cannot easily test this code and probably broke it when
+    integrating the patch; please report any problems so that they can be
+    fixed in subsequent releases.
+
     When passing a variable set to undef into remctl_open in the Perl API,
     the hostname was converted to the empty string.  Adjust Net::Remctl to
     recognize the empty string as an unspecified hostname.

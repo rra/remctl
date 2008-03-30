@@ -16,8 +16,13 @@
 #include <system.h>
 
 #include <errno.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
+#ifdef _WIN32
+# include <winsock2.h>
+# include <ws2tcpip.h>
+#else
+# include <netinet/in.h>
+# include <sys/socket.h>
+#endif
 
 /* This may already be defined by the system headers. */
 #ifndef INET_ADDRSTRLEN

@@ -7,7 +7,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on prior work by Anton Ushakov <antonu@stanford.edu>
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **  Copyright (c) 2004, 2005, 2006, 2007
 **      by Internet Systems Consortium, Inc. ("ISC")
@@ -25,6 +25,11 @@
 
 #include <stdarg.h>
 #include <sys/types.h>
+
+/* Windows uses this for something else. */
+#ifdef _WIN32
+# undef ERROR_BAD_COMMAND
+#endif
 
 /* __attribute__ is available in gcc 2.5 and later, but only with gcc 2.7
    could you use the __format__ form of the attributes, which is what we use
@@ -65,10 +70,11 @@ struct sockaddr;
 enum token_status {
     TOKEN_OK = 0,
     TOKEN_FAIL_SYSTEM  = -1,    /* System call failed, error in errno */
-    TOKEN_FAIL_INVALID = -2,    /* Invalid token from remote site */
-    TOKEN_FAIL_LARGE   = -3,    /* Token data exceeds max length */
-    TOKEN_FAIL_EOF     = -4,    /* Unexpected end of file while reading */
-    TOKEN_FAIL_GSSAPI  = -5     /* GSS-API failure {en,de}crypting token */
+    TOKEN_FAIL_SOCKET  = -2,    /* Socket call failed, error in socket_errno */
+    TOKEN_FAIL_INVALID = -3,    /* Invalid token from remote site */
+    TOKEN_FAIL_LARGE   = -4,    /* Token data exceeds max length */
+    TOKEN_FAIL_EOF     = -5,    /* Unexpected end of file while reading */
+    TOKEN_FAIL_GSSAPI  = -6     /* GSS-API failure {en,de}crypting token */
 };
 
 /* Token types and flags. */

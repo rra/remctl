@@ -8,7 +8,7 @@
 **
 **  Originally written by Anton Ushakov
 **  Extensive modifications by Russ Allbery <rra@stanford.edu>
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -17,11 +17,19 @@
 #include <config.h>
 #include <system.h>
 #include <portable/gssapi.h>
+#include <portable/socket.h>
 
 #include <errno.h>
-#include <netinet/in.h>
 
 #include <util/util.h>
+
+/* Windows requires a different function when sending to sockets, but can't
+   return short writes on blocking sockets. */
+#ifdef _WIN32
+# define socket_xwrite(fd, b, s)        send((fd), (b), (s), 0)
+#else
+# define socket_xwrite(fd, b, s)        xwrite((fd), (b), (s))
+#endif
 
 
 /*
@@ -42,7 +50,7 @@ xread(int fd, void *buffer, size_t size)
     for (total = 0; total < size; total += status) {
         if (++count > 100)
             break;
-        status = read(fd, (char *) buffer + total, size - total);
+        status = socket_read(fd, (char *) buffer + total, size - total);
         if (status > 0)
             count = 0;
         if (status < 0) {
@@ -59,7 +67,8 @@ xread(int fd, void *buffer, size_t size)
 **  Send a token to a file descriptor.  Takes the file descriptor, the token,
 **  and the flags (a single byte, even though they're passed in as an integer)
 **  and writes them to the file descriptor.  Returns TOKEN_OK on success and
-**  TOKEN_FAIL_SYSTEM on an error (including partial writes).
+**  TOKEN_FAIL_SYSTEM or TOKEN_FAIL_SOCKET on an error (including partial
+**  writes).
 */
 enum token_status
 token_send(int fd, int flags, gss_buffer_t tok)
@@ -78,10 +87,10 @@ token_send(int fd, int flags, gss_buffer_t tok)
     memcpy(buffer, &char_flags, 1);
     memcpy(buffer + 1, &len, sizeof(OM_uint32));
     memcpy(buffer + 1 + sizeof(OM_uint32), tok->value, tok->length);
-    status = xwrite(fd, buffer, buflen);
+    status = socket_xwrite(fd, buffer, buflen);
     free(buffer);
     if (status < 0 || (size_t) status != buflen)
-        return TOKEN_FAIL_SYSTEM;
+        return TOKEN_FAIL_SOCKET;
     else
         return TOKEN_OK;
 }
@@ -94,9 +103,13 @@ token_send(int fd, int flags, gss_buffer_t tok)
 **  TOKEN_OK on success.  On failure, returns one of:
 **
 **      TOKEN_FAIL_SYSTEM       System call failed, errno set.
+**      TOKEN_FAIL_SOCKET       Socket call failed, socket_errno set.
 **      TOKEN_FAIL_INVALID      Invalid token format.
 **      TOKEN_FAIL_LARGE        Token data larger than provided limit.
 **      TOKEN_FAIL_EOF          Unexpected end of file
+**
+**  TOKEN_FAIL_SYSTEM and TOKEN_FAIL_SOCKET are the same on UNIX but different
+**  on Windows.
 **
 **  recv_token reads the token flags (a single byte, even though they're
 **  stored into an integer, then reads the token length (as a network long),
@@ -113,14 +126,14 @@ token_recv(int fd, int *flags, gss_buffer_t tok, size_t max)
 
     status = xread(fd, &char_flags, 1);
     if (status < 0)
-        return TOKEN_FAIL_SYSTEM;
+        return TOKEN_FAIL_SOCKET;
     else if (status == 0)
         return TOKEN_FAIL_EOF;
     *flags = char_flags;
 
     status = xread(fd, &len, sizeof(OM_uint32));
     if (status < 0)
-        return TOKEN_FAIL_SYSTEM;
+        return TOKEN_FAIL_SOCKET;
     else if (status == 0)
         return TOKEN_FAIL_EOF;
     else if (status != sizeof(OM_uint32))
@@ -135,7 +148,7 @@ token_recv(int fd, int *flags, gss_buffer_t tok, size_t max)
     status = xread(fd, tok->value, tok->length);
     if (status < 0) {
         free(tok->value);
-        return TOKEN_FAIL_SYSTEM;
+        return TOKEN_FAIL_SOCKET;
     } else if (status != (ssize_t) tok->length) {
         free(tok->value);
         return TOKEN_FAIL_INVALID;
