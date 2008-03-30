@@ -294,7 +294,7 @@ server_daemon(struct options *options, struct config *config,
                 syswarn("error accepting connection");
             continue;
         }
-        fdflag_close_exec(s);
+        fdflag_close_exec(s, true);
         child = fork();
         if (child < 0) {
             syswarn("forking a new child failed");

@@ -311,7 +311,7 @@ server_run_command(struct client *client, struct config *config,
            close our low-numbered file descriptors anyway for older versions.
            We're just trying to get the replay cache, so we don't have to go
            very high. */
-        for (fd = 3, fd < 16; fd++)
+        for (fd = 3; fd < 16; fd++)
             close(fd);
 
         /* Put the authenticated principal and other connection information in
