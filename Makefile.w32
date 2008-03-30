@@ -2,6 +2,8 @@
 
 cflags=$(cflags) /I $(KRB5SDK)\inc\krb5 /I $(KRB5SDK)\inc\krb5\gssapi /I . /D_CRT_SECURE_NO_DEPRECATE /DWIN32_LEAN_AND_MEAN
 
+rcflags=$(rcflags) /I .
+
 remctl.exe: remctl.obj my_getopt.obj messages.obj asprintf.obj xmalloc.obj remctl.lib remctl.res
 	link $(ldebug) $(lflags) /LIBPATH:$(KRB5SDK)\lib\$(CPU) /out:$@ $** ws2_32.lib advapi32.lib
 
