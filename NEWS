@@ -9,6 +9,12 @@ remctl 2.12 (unreleased)
     integrating the patch; please report any problems so that they can be
     fixed in subsequent releases.
 
+    When running the server in standalone mode, set the network file
+    descriptors close-on-exec so that they're not inherited by commands
+    run by remctl.  Also close the low-numbered file descriptors before
+    running a command to catch the replay cache file, which isn't marked
+    close-on-exec in older versions of MIT Kerberos.
+
     When passing a variable set to undef into remctl_open in the Perl API,
     the hostname was converted to the empty string.  Adjust Net::Remctl to
     recognize the empty string as an unspecified hostname.
