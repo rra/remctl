@@ -4,9 +4,10 @@
                    Originally written by Anton Ushakov
          Currently maintained by Russ Allbery <rra@stanford.edu>
 
-  Copyright 2002, 2003, 2004, 2005, 2006, 2007 Board of Trustees, Leland
-  Stanford Jr. University.  This software is distributed under a BSD-style
-  license.  Please see the section LICENSE below for more information.
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008 Board of Trustees,
+  Leland Stanford Jr. University.  This software is distributed under a
+  BSD-style license.  Please see the section LICENSE below for more
+  information.
 
 BLURB
 
@@ -48,12 +49,22 @@ REQUIREMENTS
   Heimdal (tested with Heimdal 0.6 and later).  remctl will also build
   against the Kerberos GSS-API implementation shipped with AIX 5.2.
 
+  To build the remctl client for Windows, the Microsoft Windows SDK for
+  Windows Vista and the MIT Kerberos for Windows SDK are required, along
+  with a Microsoft Windows build environment (probably Visual Studio).
+  remctl has only been tested with the 3.2.1 MIT Kerberos for Windows SDK.
+  To run the resulting binary, MIT Kerberos for Windows must be installed
+  and configured.  The client has been tested on Windows XP and Vista and
+  should work on Windows 2000 and up.  The server is not supported on
+  Windows.
+
   To build the Perl bindings for the C client library, you will need Perl
   5.6.0 or later.  To run the full test suite for the Perl bindings, the
   Perl modules Test::More and Test::Pod must be installed.  Test::More
   comes with Perl 5.8 and later.  Test::Pod currently must be installed
   separately, but the POD tests will be skipped without interfering with
-  the rest of the tests if it's not installed.
+  the rest of the tests if it's not installed.  The Perl bindings have not
+  been tested in Windows.
 
   A Java client and Java server are available in the java subdirectory,
   but they are not integrated into the normal build or built by default.
@@ -70,7 +81,7 @@ REQUIREMENTS
   the m4 files it includes and need to regenerate configure or
   config.h.in, you will need Autoconf 2.61 or later.
 
-INSTALLATION
+INSTALLATION (UNIX)
 
   You can build and install remctl with the standard commands:
 
@@ -133,6 +144,34 @@ INSTALLATION
   The Java client and server aren't integrated with the regular build
   system.  For information on building and installing them, see
   java/README.
+
+INSTALLATION (Windows)
+
+  First, install the Microsoft Windows SDK for Windows Vista if you have
+  not already.  This is a free download from Microsoft for users of
+  "Genuine Microsoft Windows."  The vcvars32.bat environment provided by
+  Visual Studio may work as an alternative, but has not been tested.
+
+  Next, install the MIT Kerberos for Windows SDK, available for download
+  from http://web.mit.edu/kerberos/www/dist/index.html.  remctl has been
+  tested with version 3.2.1 but should hopefully work with later versions.
+
+  Then, follow these steps:
+
+  1. Run the InitEnv.cmd script included with the Windows SDK with
+     parameters "/xp /release".
+
+  2. Run the configure.bat script, giving it as an argument the location
+     of the Kerberos for Windows SDK.  For example, if you installed the
+     KfW SDK in "c:\KfW SDK", you should run:
+
+         configure "c:\KfW SDK"
+
+  3. Run nmake to start compiling.  You can ignore the warnings.
+
+  If all goes well, you will have remctl.exe and remctl.dll.  The latter
+  is a shared library used by the client program.  It exports the same
+  interface as the UNIX libremctl library.
 
 TESTING
 
@@ -203,10 +242,12 @@ THANKS
   5.2 and providing an account so that I could investigate test suite
   issues.
 
+  To Matthew Loar for the Windows port of the remctl client.
+
 LICENSE
 
-  Copyright 2002, 2003, 2004, 2005, 2006, 2007 Board of Trustees, Leland
-  Stanford Jr. University.  All rights reserved.
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008 Board of Trustees,
+  Leland Stanford Jr. University.  All rights reserved.
     
   Permission to use, copy, modify, and distribute this software and its
   documentation for any purpose and without fee is hereby granted,

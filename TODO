@@ -1,20 +1,6 @@
                             remctl To-Do List
 
- * Allow a more expressive configuration syntax that can set more options
-   per command.  Among the things we want to configure (besides the
-   logmask configuration we already have) are changing users before
-   running the command, specifying an argument to pass on standard input
-   (see below), or supporting things like LDAP ACLs.
-
- * Implement file upload in the remctl client.  On the server side, since
-   we want to handle file data that contains nul characters, we'll also
-   need to support passing one of the arguments to the executed command on
-   standard input.  This may depend on the new configuration syntax.
-
-   The best way to implement this may be to pass only the service on the
-   command line and pass all other parameters on standard input, using
-   counted strings or some similar encoding protocol.  On the other hand,
-   that adds a lot of complexity for the commands.
+Protocol:
 
  * Add support for running commands as filters, passing standard input
    asynchronously from the client.  This requires significant
@@ -23,14 +9,24 @@
    also introduces out-of-order responses and possible deadlocks to the
    protocol, which is disturbing.
 
+Server:
+
+ * Allow a more expressive configuration syntax that can set more options
+   per command.  Among the things we want to configure (besides the
+   logmask configuration we already have) are changing users before
+   running the command, specifying an argument to pass on standard input
+   (see below), or supporting things like LDAP ACLs.
+
+ * Support arguments that are too long for the command line or that
+   contain nul characters.  The best approach is probably to support
+   passing one of the arguments to the executed command on standard input.
+   This may depend on the new configuration syntax.
+
  * Maximum argument count and maximum data size in MESSAGE_COMMAND should
    be configurable parameters of the server rather than hard-coded
    values.  This may need to wait for better configuration parsing.
 
  * Support LDAP-based ACLs in addition to file system ACLs.
-
- * Add readline support to the remctl client for multiple commands to the
-   same server in the same authenticated session.
 
  * Add support for external ACL checking programs.  This can be added to
    the existing ACL file syntax without too much trouble, perhaps with a
@@ -44,7 +40,22 @@
    arguments.  However, I also want to support passing other arguments
    into the program as specified in the ACL file.
 
+ * Possibly support binding to both the new and the old port in the
+   standalone server for backward compatibility (only if requested by
+   another flag).
+
+ * Set server file descriptors close-on-exec.
+
+Client:
+
+ * Implement file upload in the remctl client.
+
+ * Add readline support to the remctl client for multiple commands to the
+   same server in the same authenticated session.
+
  * Add Python bindings for the libremctl client library.
+
+Build system:
 
  * Add logic to detect Solaris vs. GNU ld on Solaris and pass the
    appropriate option to use the symbol versioning map file on Solaris as
@@ -54,10 +65,6 @@
    a keytab and use that for running the Kerberos tests instead of
    requiring the user to generate a keytab.
 
- * Possibly support binding to both the new and the old port in the
-   standalone server for backward compatibility (only if requested by
-   another flag).
-
  * Add pkgconfig support for libremctl.
 
  * Rewrite the Autoconf probes for Kerberos libraries to export the
@@ -65,4 +72,12 @@
    build rules to not link against the Kerberos libraries when
    --enable-reduced-depends is given.
 
- * Set server file descriptors close-on-exec.
+Windows port:
+
+ * With more modifications, it should be possible to build remctl against
+   SSPI, the GSS-API-like interface built into Windows, and remove the
+   dependency on MIT Kerberos for Windows.  However, limitations
+   surrounding realm trusts in the Kerberos implementation in versions of
+   Windows prior to Vista would make this a less general solution.
+
+ * Support the remctl server.
