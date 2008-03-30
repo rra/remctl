@@ -6,7 +6,7 @@
 **
 **  Written by Anton Ushakov
 **  Extensive modifications by Russ Allbery <rra@stanford.edu>
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -253,6 +253,7 @@ server_daemon(struct options *options, struct config *config,
     stmp = network_bind_ipv4("any", options->port);
     if (stmp < 0)
         sysdie("cannot create socket");
+    fdflag_close_exec(stmp, true);
     if (listen(stmp, 5) < 0)
         sysdie("error listening on socket");
 
@@ -293,6 +294,7 @@ server_daemon(struct options *options, struct config *config,
                 syswarn("error accepting connection");
             continue;
         }
+        fdflag_close_exec(s);
         child = fork();
         if (child < 0) {
             syswarn("forking a new child failed");

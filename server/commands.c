@@ -7,7 +7,7 @@
 **
 **  Written by Russ Allbery <rra@stanford.edu>
 **  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007
+**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
 **      Board of Trustees, Leland Stanford Jr. University
 **
 **  See README for licensing terms.
@@ -301,8 +301,18 @@ server_run_command(struct client *client, struct config *config,
            leave stdin closed. */
         close(0);
         fd = open("/dev/null", O_RDONLY);
-        if (fd > 0)
+        if (fd > 0) {
             dup2(fd, 0);
+            close(fd);
+        }
+
+        /* Older versions of MIT Kerberos left the replay cache file open
+           across exec.  Newer versions correctly set it close-on-exec, but
+           close our low-numbered file descriptors anyway for older versions.
+           We're just trying to get the replay cache, so we don't have to go
+           very high. */
+        for (fd = 3, fd < 16; fd++)
+            close(fd);
 
         /* Put the authenticated principal and other connection information in
            the environment.  REMUSER is for backwards compatibility with
@@ -340,11 +350,9 @@ server_run_command(struct client *client, struct config *config,
         close(stderr_pipe[1]);
 
         /* Unblock the read ends of the pipes, to enable us to read from both
-           iteratevely. */
-        fcntl(stdout_pipe[0], F_SETFL, 
-              fcntl(stdout_pipe[0], F_GETFL) | O_NONBLOCK);
-        fcntl(stderr_pipe[0], F_SETFL, 
-              fcntl(stderr_pipe[0], F_GETFL) | O_NONBLOCK);
+           iteratively. */
+        fdflag_nonblocking(stdout_pipe[0], true);
+        fdflag_nonblocking(stderr_pipe[0], true);
 
         /* This collects output from both pipes iteratively, while the child
            is executing, and processes it. */
