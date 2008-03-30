@@ -17,11 +17,10 @@
 #include <config.h>
 #include <system.h>
 #include <portable/gssapi.h>
+#include <portable/socket.h>
+#include <portable/uio.h>
 
 #include <errno.h>
-#ifdef _WIN32
-# include <winsock2.h>
-#endif
 
 #include <client/internal.h>
 #include <client/remctl.h>

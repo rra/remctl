@@ -17,6 +17,7 @@
 #include <config.h>
 #include <system.h>
 #include <portable/gssapi.h>
+#include <portable/socket.h>
 
 #include <errno.h>
 
