@@ -86,7 +86,7 @@ server_new_client(int fd, gss_cred_id_t creds)
         warn_token("receiving initial token", status, major, minor);
         goto fail;
     }
-    gss_release_buffer(&minor, &recv_tok);
+    free(recv_tok.value);
     if (flags == (TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL))
         client->protocol = 2;
     else if (flags == (TOKEN_NOOP | TOKEN_CONTEXT_NEXT))
@@ -107,7 +107,7 @@ server_new_client(int fd, gss_cred_id_t creds)
             client->protocol = 1;
         else if (flags != (TOKEN_CONTEXT | TOKEN_PROTOCOL)) {
             warn("bad token flags %d in context token", flags);
-            gss_release_buffer(&minor, &recv_tok);
+            free(recv_tok.value);
             goto fail;
         }
         debug("received context token (size=%lu)",
@@ -115,7 +115,7 @@ server_new_client(int fd, gss_cred_id_t creds)
         major = gss_accept_sec_context(&acc_minor, &client->context, creds,
                     &recv_tok, GSS_C_NO_CHANNEL_BINDINGS, &name, &doid,
                     &send_tok, &client->flags, NULL, NULL);
-        gss_release_buffer(&minor, &recv_tok);
+        free(recv_tok.value);
 
         /* Send back a token if we need to. */
         if (send_tok.length != 0) {
