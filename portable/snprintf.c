@@ -1,18 +1,20 @@
-/*  $Id$
-**
-**  Replacement for a missing snprintf or vsnprintf.
-**
-**  The following implementation of snprintf was taken mostly verbatim from
-**  <http://www.fiction.net/~blong/programs/>; it is the version of snprintf
-**  used in Mutt.
-**
-**  Please do not reformat or otherwise change this file more than
-**  necessary so that later merges with the original source are easy.
-**  Bug fixes and improvements should be sent back to the original author.
-*/
+/* $Id$
+ *
+ * Replacement for a missing snprintf or vsnprintf.
+ *
+ * The following implementation of snprintf was taken mostly verbatim from
+ * <http://www.fiction.net/~blong/programs/>; it is the version of snprintf
+ * used in Mutt.
+ *
+ * Please do not reformat or otherwise change this file more than necessary so
+ * that later merges with the original source are easy.  Bug fixes and
+ * improvements should be sent back to the original author.
+ */
 
-/* If we're running the test suite, rename snprintf and vsnprintf to avoid
-   conflicts with the system version. */
+/*
+ * If we're running the test suite, rename snprintf and vsnprintf to avoid
+ * conflicts with the system version.
+ */
 #if TESTING
 # define snprintf test_snprintf
 # define vsnprintf test_vsnprintf

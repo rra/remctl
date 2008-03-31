@@ -1,16 +1,16 @@
-/*  $Id$
-**
-**  Replacement for a missing daemon.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  This work is hereby placed in the public domain by its author.
-**
-**  Provides the same functionality as the library function daemon for those
-**  systems that don't have it.
-*/
+/* $Id$
+ *
+ * Replacement for a missing daemon.
+ *
+ * Provides the same functionality as the library function daemon for those
+ * systems that don't have it.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * This work is hereby placed in the public domain by its author.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -22,18 +22,22 @@ daemon(int nochdir, int noclose)
 {
     int status, fd;
 
-    /* Fork and exit in the parent to disassociate from the current process
-       group and become the leader of a new process group. */
+    /*
+     * Fork and exit in the parent to disassociate from the current process
+     * group and become the leader of a new process group.
+     */
     status = fork();
     if (status < 0)
         return -1;
     else if (status > 0)
         _exit(0);
 
-    /* setsid() should take care of disassociating from the controlling
-       terminal, and FreeBSD at least doesn't like TIOCNOTTY if you don't
-       already have a controlling terminal.  So only use the older TIOCNOTTY
-       method if setsid() isn't available. */
+    /*
+     * setsid() should take care of disassociating from the controlling
+     * terminal, and FreeBSD at least doesn't like TIOCNOTTY if you don't
+     * already have a controlling terminal.  So only use the older TIOCNOTTY
+     * method if setsid() isn't available.
+     */
 #if HAVE_SETSID
     if (setsid() < 0)
         return -1;

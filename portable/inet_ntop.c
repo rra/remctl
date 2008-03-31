@@ -1,28 +1,22 @@
-/*  $Id$
-**
-**  Replacement for a missing inet_ntop.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  This work is hereby placed in the public domain by its author.
-**
-**  Provides an implementation of inet_ntop that only supports IPv4 addresses
-**  for hosts that are missing it.  If you want IPv6 support, you need to have
-**  a real inet_ntop function; this function is only provided so that code can
-**  call inet_ntop unconditionally without needing to worry about whether the
-**  host supports IPv6.
-*/
+/* $Id$
+ *
+ * Replacement for a missing inet_ntop.
+ *
+ * Provides an implementation of inet_ntop that only supports IPv4 addresses
+ * for hosts that are missing it.  If you want IPv6 support, you need to have
+ * a real inet_ntop function; this function is only provided so that code can
+ * call inet_ntop unconditionally without needing to worry about whether the
+ * host supports IPv6.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * This work is hereby placed in the public domain by its author.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
+#include <portable/socket.h>
 
 #include <errno.h>
-#ifdef _WIN32
-# include <winsock2.h>
-# include <ws2tcpip.h>
-#else
-# include <netinet/in.h>
-# include <sys/socket.h>
-#endif
 
 /* This may already be defined by the system headers. */
 #ifndef INET_ADDRSTRLEN
@@ -34,8 +28,10 @@
 # define EAFNOSUPPORT EDOM
 #endif
 
-/* If we're running the test suite, rename inet_ntop to avoid conflicts with
-   the system version. */
+/*
+ * If we're running the test suite, rename inet_ntop to avoid conflicts with
+ * the system version.
+ */
 #if TESTING
 # define inet_ntop test_inet_ntop
 const char *test_inet_ntop(int, const void *, char *, socklen_t);
@@ -47,7 +43,7 @@ inet_ntop(int af, const void *src, char *dst, socklen_t cnt)
     const unsigned char *p;
 
     if (af != AF_INET) {
-        errno = EAFNOSUPPORT;
+        socket_set_errno(EAFNOSUPPORT);
         return NULL;
     }
     if (cnt < INET_ADDRSTRLEN) {

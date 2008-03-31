@@ -1,17 +1,19 @@
-/* $Id$ */
-/* tokens test suite. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * tokens test suite.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
+#include <portable/socket.h>
 
 #include <fcntl.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
@@ -19,15 +21,14 @@
 #include <tests/libtest.h>
 #include <util/util.h>
 
-#ifndef INADDR_LOOPBACK
-# define INADDR_LOOPBACK (0x7f000001UL) /* 127.0.0.1. */
-#endif
-
 /* A token for testing. */
 static const char token[] = { 3, 0, 0, 0, 5, 'h', 'e', 'l', 'l', 'o' };
 
-/* Create a server socket, wait for a connection, and return the connected
-   socket. */
+
+/*
+ * Create a server socket, wait for a connection, and return the connected
+ * socket.
+ */
 static int
 create_server(void)
 {
@@ -55,8 +56,11 @@ create_server(void)
     return conn;
 }
 
-/* Create a client socket, it for a connection, and return the connected
-   socket. */
+
+/*
+ * Create a client socket, it for a connection, and return the connected
+ * socket.
+ */
 static int
 create_client(void)
 {
@@ -82,14 +86,20 @@ create_client(void)
     return fd;
 }
 
-/* Send a hand-constructed token to a file descriptor. */
+
+/*
+ * Send a hand-constructed token to a file descriptor.
+ */
 static void
 send_hand_token(int fd)
 {
     xwrite(fd, token, sizeof(token));
 }
 
-/* Send a token via token_send to a file descriptor. */
+
+/*
+ * Send a token via token_send to a file descriptor.
+ */
 static void
 send_regular_token(int fd)
 {
@@ -100,6 +110,7 @@ send_regular_token(int fd)
     buffer.length = 5;
     token_send(fd, 3, &buffer);
 }
+
 
 int
 main(void)

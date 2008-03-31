@@ -1,31 +1,31 @@
-/*  $Id$
-**
-**  Perl bindings for the remctl client library.
-**
-**  This is an XS source file, suitable for processing by xsubpp, that
-**  generates Perl bindings for the libremctl client library.  It supports
-**  both the simplified interface (via a simple remctl call) and the more
-**  complex interface (returning a Net::Remctl object which is then used for
-**  subsequent calls).
-**
-**  The remctl opaque struct is mapped to a Net::Remctl object and supports
-**  methods equivalent to the library functions prefixed by remctl_ that take
-**  struct remctl * as their first argument.  remctl_new() is mapped to the
-**  new method of the class.  remctl_output structs are returned as
-**  Net::Remctl::Output objects with accessor functions that return the
-**  elements of the remctl_output struct.  The types (output, status, error,
-**  and done) are returned as lowercase strings rather than as numeric
-**  constants.
-**
-**  The simple interface is available via an exported remctl function which
-**  returns a Net::Remctl::Result object with accessor functions for the
-**  members of the struct.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  Copyright 2007 Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * Perl bindings for the remctl client library.
+ *
+ * This is an XS source file, suitable for processing by xsubpp, that
+ * generates Perl bindings for the libremctl client library.  It supports
+ * both the simplified interface (via a simple remctl call) and the more
+ * complex interface (returning a Net::Remctl object which is then used for
+ * subsequent calls).
+ *
+ * The remctl opaque struct is mapped to a Net::Remctl object and supports
+ * methods equivalent to the library functions prefixed by remctl_ that take
+ * struct remctl * as their first argument.  remctl_new() is mapped to the
+ * new method of the class.  remctl_output structs are returned as
+ * Net::Remctl::Output objects with accessor functions that return the
+ * elements of the remctl_output struct.  The types (output, status, error,
+ * and done) are returned as lowercase strings rather than as numeric
+ * constants.
+ *
+ * The simple interface is available via an exported remctl function which
+ * returns a Net::Remctl::Result object with accessor functions for the
+ * members of the struct.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2007, 2008 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <EXTERN.h>
 #include <perl.h>

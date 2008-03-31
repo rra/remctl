@@ -1,33 +1,32 @@
-/*  $Id$
-**
-**  Protocol v2, server implementation.
-**
-**  This is the server implementation of the new v2 protocol.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
-**      Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * Protocol v2, server implementation.
+ *
+ * This is the server implementation of the new v2 protocol.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Based on work by Anton Ushakov
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ *     Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
-
-#include <netinet/in.h>
+#include <portable/socket.h>
 
 #include <server/internal.h>
 #include <util/util.h>
 
 
 /*
-**  Given the client struct and the stream number the data is from, send a
-**  protocol v2 output token to the client containing the data stored in the
-**  buffer in the client struct.  Returns true on success, false on failure
-**  (and logs a message on failure).
-*/
+ * Given the client struct and the stream number the data is from, send a
+ * protocol v2 output token to the client containing the data stored in the
+ * buffer in the client struct.  Returns true on success, false on failure
+ * (and logs a message on failure).
+ */
 bool
 server_v2_send_output(struct client *client, int stream)
 {
@@ -40,8 +39,10 @@ server_v2_send_output(struct client *client, int stream)
     token.length = 1 + 1 + 1 + 4 + client->outlen;
     token.value = xmalloc(token.length);
 
-    /* Fill in the header (version, type, stream, length, and data) and then
-       the data. */
+    /*
+     * Fill in the header (version, type, stream, length, and data) and then
+     * the data.
+     */
     p = token.value;
     *p = 2;
     p++;
@@ -69,10 +70,10 @@ server_v2_send_output(struct client *client, int stream)
 
 
 /*
-**  Given the client struct and the exit status, send a protocol v2 status
-**  token to the client.  Returns true on success, false on failure (and logs
-**  a message on failure).
-*/
+ * Given the client struct and the exit status, send a protocol v2 status
+ * token to the client.  Returns true on success, false on failure (and logs a
+ * message on failure).
+ */
 bool
 server_v2_send_status(struct client *client, int exit_status)
 {
@@ -101,10 +102,10 @@ server_v2_send_status(struct client *client, int exit_status)
 
 
 /*
-**  Given the client struct, an error code, and an error message, send a
-**  protocol v2 error token to the client.  Returns true on success, false on
-**  failure (and logs a message on failure).
-*/
+ * Given the client struct, an error code, and an error message, send a
+ * protocol v2 error token to the client.  Returns true on success, false on
+ * failure (and logs a message on failure).
+ */
 bool
 server_v2_send_error(struct client *client, enum error_codes code,
                      const char *message)
@@ -145,11 +146,10 @@ server_v2_send_error(struct client *client, enum error_codes code,
 
 
 /*
-**  Given the client struct, send a protocol v2 version token to the client.
-**  This is the response to a higher version number than we understand.
-**  Returns true on success, false on failure (and logs a message on
-**  failure).
-*/
+ * Given the client struct, send a protocol v2 version token to the client.
+ * This is the response to a higher version number than we understand.
+ * Returns true on success, false on failure (and logs a message on failure).
+ */
 static bool
 server_v2_send_version(struct client *client)
 {
@@ -178,11 +178,11 @@ server_v2_send_version(struct client *client)
 
 
 /*
-**  Receive a new token from the client, handling reporting of errors.  Takes
-**  the client struct and a pointer to storage for the token.  Returns
-**  TOKEN_OK on success, TOKEN_FAIL_EOF if the other end has gone away, and a
-**  different error code on a recoverable error.
-*/
+ * Receive a new token from the client, handling reporting of errors.  Takes
+ * the client struct and a pointer to storage for the token.  Returns TOKEN_OK
+ * on success, TOKEN_FAIL_EOF if the other end has gone away, and a different
+ * error code on a recoverable error.
+ */
 static int
 server_v2_read_token(struct client *client, gss_buffer_t token)
 {
@@ -202,10 +202,10 @@ server_v2_read_token(struct client *client, gss_buffer_t token)
 
 
 /*
-**  Handles a single token from the client, responding or running a command as
-**  appropriate.  Returns true if we should continue, false if an error
-**  occurred or QUIT was received and we should stop processing tokens.
-*/
+ * Handles a single token from the client, responding or running a command as
+ * appropriate.  Returns true if we should continue, false if an error
+ * occurred or QUIT was received and we should stop processing tokens.
+ */
 static bool
 server_v2_handle_token(struct client *client, struct config *config,
                        gss_buffer_t token)
@@ -218,10 +218,12 @@ server_v2_handle_token(struct client *client, struct config *config,
     OM_uint32 minor;
     bool continued = false;
 
-    /* Loop on tokens until we have a complete command, allowing for continued
-       commands.  We're going to accumulate the full command in buffer until
-       we've seen all of it.  If the command isn't continued, we can use the
-       token as the buffer. */
+    /*
+     * Loop on tokens until we have a complete command, allowing for continued
+     * commands.  We're going to accumulate the full command in buffer until
+     * we've seen all of it.  If the command isn't continued, we can use the
+     * token as the buffer.
+     */
     total = 0;
     do {
         p = token->value;
@@ -254,9 +256,11 @@ server_v2_handle_token(struct client *client, struct config *config,
         }
         continued = (p[1] == 1 || p[1] == 2);
 
-        /* Read the token data.  If the command is continued *or* if buffer is
-           non-NULL (meaning the command was previously continued), we copy
-           the data into the buffer. */
+        /*
+         * Read the token data.  If the command is continued *or* if buffer is
+         * non-NULL (meaning the command was previously continued), we copy
+         * the data into the buffer.
+         */
         p += 2;
         length = token->length - (p - (char *) token->value);
         if (continued || buffer != NULL) {
@@ -268,9 +272,11 @@ server_v2_handle_token(struct client *client, struct config *config,
             total += length;
         }
 
-        /* If the command was continued, we have to read the next token.
-           Otherwise, if buffer is NULL (no continuation), we just use this
-           token as the complete buffer. */
+        /*
+         * If the command was continued, we have to read the next token.
+         * Otherwise, if buffer is NULL (no continuation), we just use this
+         * token as the complete buffer.
+         */
         if (continued) {
             gss_release_buffer(&minor, token);
             status = server_v2_read_token(client, token);
@@ -284,8 +290,10 @@ server_v2_handle_token(struct client *client, struct config *config,
         }
     } while (continued);
 
-    /* Okay, we now have a complete command that was possibly spread over
-       multiple tokens.  Now we can parse it.  */
+    /*
+     * Okay, we now have a complete command that was possibly spread over
+     * multiple tokens.  Now we can parse it.
+     */
     argv = server_parse_command(client, buffer, total);
     if (argv == NULL)
         return !client->fatal;
@@ -297,11 +305,11 @@ server_v2_handle_token(struct client *client, struct config *config,
 
 
 /*
-**  Takes the client struct and the server configuration and handles client
-**  requests.  Reads messages from the client, checking commands against the
-**  ACLs and executing them when appropriate, until the connection is
-**  terminated.
-*/
+ * Takes the client struct and the server configuration and handles client
+ * requests.  Reads messages from the client, checking commands against the
+ * ACLs and executing them when appropriate, until the connection is
+ * terminated.
+ */
 void
 server_v2_handle_commands(struct client *client, struct config *config)
 {

@@ -1,12 +1,15 @@
-/* $Id$ */
-/* Test suite for continued commands. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2006 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * Test suite for continued commands.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <signal.h>
 #include <sys/wait.h>
@@ -15,6 +18,7 @@
 #include <client/remctl.h>
 #include <tests/libtest.h>
 #include <util/util.h>
+
 
 int
 main(void)

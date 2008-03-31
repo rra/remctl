@@ -1,24 +1,26 @@
-/*  $Id$
-**
-**  Replacement for a missing strlcat.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  This work is hereby placed in the public domain by its author.
-**
-**  Provides the same functionality as the *BSD function strlcat, originally
-**  developed by Todd Miller and Theo de Raadt.  strlcat works similarly to
-**  strncat, except simpler.  The result is always nul-terminated even if the
-**  source string is longer than the space remaining in the destination
-**  string, and the total space required is returned.  The third argument is
-**  the total space available in the destination buffer, not just the amount
-**  of space remaining.
-*/
+/* $Id$
+ *
+ * Replacement for a missing strlcat.
+ *
+ * Provides the same functionality as the *BSD function strlcat, originally
+ * developed by Todd Miller and Theo de Raadt.  strlcat works similarly to
+ * strncat, except simpler.  The result is always nul-terminated even if the
+ * source string is longer than the space remaining in the destination string,
+ * and the total space required is returned.  The third argument is the total
+ * space available in the destination buffer, not just the amount of space
+ * remaining.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * This work is hereby placed in the public domain by its author.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
-/* If we're running the test suite, rename strlcat to avoid conflicts with
-   the system version. */
+/*
+ * If we're running the test suite, rename strlcat to avoid conflicts with
+ * the system version.
+ */
 #if TESTING
 # define strlcat test_strlcat
 size_t test_strlcat(char *, const char *, size_t);

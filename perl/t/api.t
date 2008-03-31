@@ -1,7 +1,13 @@
 #!/usr/bin/perl -w
 # $Id$
 #
-# t/api.t -- Tests for the Net::Remctl API.
+# Tests for the Net::Remctl API.  This relies on being run as part of the
+# larger remctl build tree and uses the built remctld for testing.
+#
+# Written by Russ Allbery
+# Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+#
+# See LICENSE for licensing terms.
 
 BEGIN { our $total = 30 }
 use Test::More tests => $total;

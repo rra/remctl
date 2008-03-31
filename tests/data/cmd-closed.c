@@ -1,11 +1,16 @@
-/*  $Id$
-**
-**  Small C program to verify that standard input is not closed but returns
-**  EOF on any read and that all file descriptors higher than 2 are closed.
-*/
+/* $Id$
+ *
+ * Small C program to verify that standard input is not closed but returns EOF
+ * on any read and that all file descriptors higher than 2 are closed.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2007, 2008 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <errno.h>
 
@@ -26,9 +31,11 @@ main(void)
         exit(2);
     }
 
-    /* Now, check that all higher file descriptors are closed.  (We only go up
-       to 31; it's very unlikely that there will be problems higher than
-       that.) */
+    /*
+     * Now, check that all higher file descriptors are closed.  (We only go up
+     * to 31; it's very unlikely that there will be problems higher than
+     * that.)
+     */
     for (i = 3; i < 32; i++)
         if (close(i) >= 0 || errno != EBADF) {
             printf("File descriptor %d was open\n", i);

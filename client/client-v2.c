@@ -1,20 +1,20 @@
-/*  $Id$
-**
-**  Protocol v2, client implementation.
-**
-**  This is the client implementation of the new v2 protocol.  It's fairly
-**  close to the regular remctl API.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
-**      Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * Protocol v2, client implementation.
+ *
+ * This is the client implementation of the new v2 protocol.  It's fairly
+ * close to the regular remctl API.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Based on work by Anton Ushakov
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ *     Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
 #include <portable/uio.h>
@@ -27,18 +27,18 @@
 
 
 /*
-**  Send a command to the server using protocol v2.  Returns true on success,
-**  false on failure.
-**
-**  All of the complexity in this function comes from implementing command
-**  continuation.  The protocol specifies that commands can be continued by
-**  tresting the command as one huge token, chopping it into as many pieces as
-**  desired, and putting the MESSAGE_COMMAND header on each piece with the
-**  appropriate continue status.  We don't take full advantage of that (we
-**  don't, for instance, ever split numbers across token boundaries), but we
-**  do use this to handle commands where all the data is longer than
-**  TOKEN_MAX_DATA.
-*/
+ * Send a command to the server using protocol v2.  Returns true on success,
+ * false on failure.
+ *
+ * All of the complexity in this function comes from implementing command
+ * continuation.  The protocol specifies that commands can be continued by
+ * tresting the command as one huge token, chopping it into as many pieces as
+ * desired, and putting the MESSAGE_COMMAND header on each piece with the
+ * appropriate continue status.  We don't take full advantage of that (we
+ * don't, for instance, ever split numbers across token boundaries), but we do
+ * use this to handle commands where all the data is longer than
+ * TOKEN_MAX_DATA.
+ */
 bool
 internal_v2_commandv(struct remctl *r, const struct iovec *command,
                      size_t count)
@@ -54,23 +54,25 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
     for (iov = 0; iov < count; iov++)
         length += 4 + command[iov].iov_len;
 
-    /* Now, loop until we've conveyed the entire message.  Each token we send
-       to the server must include the standard header and the continue
-       status.  The first token then has the argument count, and the remainder
-       of the command consists of pairs of argument length and argument data.
-
-       If the entire message length plus the overhead for the header is less
-       than TOKEN_MAX_DATA, we send it in one go.  Otherwise, each time
-       through this loop, we pull off as much data as we can.  We break the
-       tokens either in the middle of an argument or just before an argument
-       length; we never send part of the argument length number and we always
-       include at least one byte of the argument after the argument length.
-       The protocol is more lenient, but those constraints make bookkeeping
-       easier.
-
-       iov is the index of the argument we're currently sending.  offset is
-       the amount of that argument data we've already sent.  sent holds the
-       total length sent so far so that we can tell when we're done.  */
+    /*
+     * Now, loop until we've conveyed the entire message.  Each token we send
+     * to the server must include the standard header and the continue status.
+     * The first token then has the argument count, and the remainder of the
+     * command consists of pairs of argument length and argument data.
+     *
+     * If the entire message length plus the overhead for the header is less
+     * than TOKEN_MAX_DATA, we send it in one go.  Otherwise, each time
+     * through this loop, we pull off as much data as we can.  We break the
+     * tokens either in the middle of an argument or just before an argument
+     * length; we never send part of the argument length number and we always
+     * include at least one byte of the argument after the argument length.
+     * The protocol is more lenient, but those constraints make bookkeeping
+     * easier.
+     *
+     * iov is the index of the argument we're currently sending.  offset is
+     * the amount of that argument data we've already sent.  sent holds the
+     * total length sent so far so that we can tell when we're done.
+     */
     iov = 0;
     offset = 0;
     sent = 0;
@@ -113,13 +115,13 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
             left -= 4;
         }
 
-        /* Now, as many arguments as will fit.  If offset is 0, we're at the
-           beginning of an argument and need to send the length.  Make sure,
-           if we're at the beginning of an argument, that we can add at least
-           five octets to this token.  The length plus at least one octet must
-           fit (or just the length if that argument is zero-length).
-           Otherwise, we'll send the length but no data, leave offset at 0,
-           and the next time around we'll send the length again. */
+        /*
+         * Now, as many arguments as will fit.  If offset is 0, we're at the
+         * beginning of an argument and need to send the length.  Make sure,
+         * if we're at the beginning of an argument, that we can add at least
+         * five octets to this token.  The length plus at least one octet must
+         * fit (or just the length if that argument is zero-length).
+         */
         for (; iov < count; iov++) {
             if (offset == 0) {
                 if (left < 4 || (left < 5 && command[iov].iov_len > 0))
@@ -162,9 +164,9 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
 
 
 /*
-**  Send a quit command to the server using protocol v2.  Returns true on
-**  success, false on failure.
-*/
+ * Send a quit command to the server using protocol v2.  Returns true on
+ * success, false on failure.
+ */
 bool
 internal_v2_quit(struct remctl *r)
 {
@@ -186,10 +188,10 @@ internal_v2_quit(struct remctl *r)
 
 
 /*
-**  Read a string from a server token, with its length starting at the given
-**  offset, and store it in newly allocated memory in the remctl struct.
-**  Returns true on success and false on any failure (also setting the error).
-*/
+ * Read a string from a server token, with its length starting at the given
+ * offset, and store it in newly allocated memory in the remctl struct.
+ * Returns true on success and false on any failure (also setting the error).
+ */
 static bool
 internal_v2_read_string(struct remctl *r, gss_buffer_t token, size_t offset)
 {
@@ -217,12 +219,12 @@ internal_v2_read_string(struct remctl *r, gss_buffer_t token, size_t offset)
 
 
 /*
-**  Retrieve the output from the server using protocol v2 and return it.  This
-**  function may be called any number of times; if the last packet we got from
-**  the server was a REMCTL_OUT_STATUS or REMCTL_OUT_ERROR, we'll return
-**  REMCTL_OUT_DONE from that point forward.  Returns a remctl output struct
-**  on success and NULL on failure.
-*/
+ * Retrieve the output from the server using protocol v2 and return it.  This
+ * function may be called any number of times; if the last packet we got from
+ * the server was a REMCTL_OUT_STATUS or REMCTL_OUT_ERROR, we'll return
+ * REMCTL_OUT_DONE from that point forward.  Returns a remctl output struct on
+ * success and NULL on failure.
+ */
 struct remctl_output *
 internal_v2_output(struct remctl *r)
 {
@@ -232,8 +234,10 @@ internal_v2_output(struct remctl *r)
     char *p;
     int type;
 
-    /* Initialize our output.  If we're not ready to read more data from the
-       server, return REMCTL_OUT_DONE. */
+    /*
+     * Initialize our output.  If we're not ready to read more data from the
+     * server, return REMCTL_OUT_DONE.
+     */
     if (r->output == NULL) {
         r->output = malloc(sizeof(struct remctl_output));
         if (r->output == NULL) {

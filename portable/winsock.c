@@ -2,15 +2,15 @@
  *
  * Supporting functions for the Windows socket API.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * This work is hereby placed in the public domain by its author.
- *
  * Provides supporting functions and wrappers that help with portability to
  * the Windows socket API.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * This work is hereby placed in the public domain by its author.
  */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/socket.h>
 
 

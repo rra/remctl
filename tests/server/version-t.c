@@ -1,12 +1,15 @@
-/* $Id$ */
-/* Test suite for version negotiation in the server. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * Test suite for version negotiation in the server.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
 
 #include <signal.h>
@@ -24,6 +27,7 @@ static const char token[] = {
     0, 0, 0, 4, 't', 'e', 's', 't',
     0, 0, 0, 4, 't', 'e', 's', 't'
 };
+
 
 int
 main(void)

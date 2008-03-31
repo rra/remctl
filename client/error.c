@@ -1,21 +1,21 @@
-/*  $Id$
-**
-**  Error handling for the remctl client library.
-**
-**  A set of helper routines to do error handling inside the remctl client
-**  library.  These mostly involve setting the error parameter in the remctl
-**  struct to something appropriate so that the next call to remctl_error will
-**  return the appropriate details.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  Copyright 2006, 2007, 2008
-**      Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * Error handling for the remctl client library.
+ *
+ * A set of helper routines to do error handling inside the remctl client
+ * library.  These mostly involve setting the error parameter in the remctl
+ * struct to something appropriate so that the next call to remctl_error will
+ * return the appropriate details.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006, 2007, 2008
+ *     Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
 
@@ -25,8 +25,8 @@
 #include <util/util.h>
 
 /*
-**  Internal function to set the error message, freeing an old error message
-**  if one is present.
+ * Internal function to set the error message, freeing an old error message if
+ * one is present.
 */
 void
 internal_set_error(struct remctl *r, const char *format, ...)
@@ -40,17 +40,19 @@ internal_set_error(struct remctl *r, const char *format, ...)
     status = vasprintf(&r->error, format, args);
     va_end(args);
 
-    /* If vasprintf fails, there isn't much we can do, but make sure that at
-       least the error is in a consistent state. */
+    /*
+     * If vasprintf fails, there isn't much we can do, but make sure that at
+     * least the error is in a consistent state.
+     */
     if (status < 0)
         r->error = NULL;
 }
 
 
 /*
-**  Internal function to set the remctl error message from a GSS-API error
-**  message.
-*/
+ * Internal function to set the remctl error message from a GSS-API error
+ * message.
+ */
 void
 internal_gssapi_error(struct remctl *r, const char *error, OM_uint32 major,
                       OM_uint32 minor)
@@ -62,10 +64,10 @@ internal_gssapi_error(struct remctl *r, const char *error, OM_uint32 major,
 
 
 /*
-**  Internal function to set the remctl error message from a token error.
-**  Handles the various token failure codes from the token_send and token_recv
-**  functions and their *_priv counterparts.
-*/
+ * Internal function to set the remctl error message from a token error.
+ * Handles the various token failure codes from the token_send and token_recv
+ * functions and their *_priv counterparts.
+ */
 void
 internal_token_error(struct remctl *r, const char *error, int status,
                      OM_uint32 major, OM_uint32 minor)

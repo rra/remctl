@@ -1,23 +1,24 @@
-/*  $Id$
-**
-**  Replacement implementation of getaddrinfo.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  This work is hereby placed in the public domain by its author.
-**
-**  This is an implementation of the getaddrinfo family of functions for
-**  systems that lack it, so that code can use getaddrinfo always.  It
-**  provides IPv4 support only; for IPv6 support, a native getaddrinfo
-**  implemenation is required.
-**
-**  This file should generally be included by way of portable/socket.h rather
-**  than directly.
-*/
+/* $Id$
+ *
+ * Replacement implementation of getaddrinfo.
+ *
+ * This is an implementation of the getaddrinfo family of functions for
+ * systems that lack it, so that code can use getaddrinfo always.  It provides
+ * IPv4 support only; for IPv6 support, a native getaddrinfo implemenation is
+ * required.
+ *
+ * This file should generally be included by way of portable/socket.h rather
+ * than directly.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * This work is hereby placed in the public domain by its author.
+ */
 
 #ifndef PORTABLE_GETADDRINFO_H
 #define PORTABLE_GETADDRINFO_H 1
 
 #include <config.h>
+#include <portable/macros.h>
 
 /* Skip this entire file if a system getaddrinfo was detected. */
 #ifndef HAVE_GETADDRINFO
@@ -56,18 +57,6 @@ struct addrinfo {
 #define EAI_SOCKTYPE    8       /* Socket type not recognized */
 #define EAI_SYSTEM      9       /* System error occurred, see errno */
 #define EAI_OVERFLOW    10      /* An argument buffer overflowed */
-
-/* BEGIN_DECLS is used at the beginning of declarations so that C++
-   compilers don't mangle their names.  END_DECLS is used at the end. */
-#undef BEGIN_DECLS
-#undef END_DECLS
-#ifdef __cplusplus
-# define BEGIN_DECLS    extern "C" {
-# define END_DECLS      }
-#else
-# define BEGIN_DECLS    /* empty */
-# define END_DECLS      /* empty */
-#endif
 
 BEGIN_DECLS
 

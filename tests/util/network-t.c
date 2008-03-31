@@ -1,28 +1,30 @@
-/* $Id$ */
-/* network test suite. */
-
-/* Copyright (c) 2004, 2005, 2006, 2007
-       by Internet Systems Consortium, Inc. ("ISC")
-   Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-       2002, 2003 by The Internet Software Consortium and Rich Salz
-
-   This code is derived from software contributed to the Internet Software
-   Consortium by Rich Salz.
-
-   Permission to use, copy, modify, and distribute this software for any
-   purpose with or without fee is hereby granted, provided that the above
-   copyright notice and this permission notice appear in all copies.
-
-   THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
-   REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-   MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
-   SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+/* $Id$
+ *
+ * network test suite.
+ *
+ * Copyright (c) 2004, 2005, 2006, 2007
+ *     by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+ *     2002, 2003 by The Internet Software Consortium and Rich Salz
+ *
+ * This code is derived from software contributed to the Internet Software
+ * Consortium by Rich Salz.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/socket.h>
 
 #include <ctype.h>
@@ -35,9 +37,11 @@
 /* Set this globally to 0 if IPv6 is available but doesn't work. */
 static int ipv6 = 1;
 
-/* The server portion of the test.  Listens to a socket and accepts a
-   connection, making sure what is printed on that connection matches what the
-   client is supposed to print. */
+/*
+ * The server portion of the test.  Listens to a socket and accepts a
+ * connection, making sure what is printed on that connection matches what the
+ * client is supposed to print.
+ */
 static int
 listener(int fd, int n)
 {
@@ -64,9 +68,12 @@ listener(int fd, int n)
     return n;
 }
 
-/* Connect to the given host on port 11119 and send a constant string to a
-   socket, used to do the client side of the testing.  Takes the source
-   address as well to pass into network_connect_host. */
+
+/*
+ * Connect to the given host on port 11119 and send a constant string to a
+ * socket, used to do the client side of the testing.  Takes the source
+ * address as well to pass into network_connect_host.
+ */
 static void
 client(const char *host, const char *source)
 {
@@ -84,9 +91,12 @@ client(const char *host, const char *source)
     _exit(0);
 }
 
-/* Bring up a server on port 11119 on the loopback address and test connecting
-   to it via IPv4.  Takes an optional source address to use for client
-   connections. */
+
+/*
+ * Bring up a server on port 11119 on the loopback address and test connecting
+ * to it via IPv4.  Takes an optional source address to use for client
+ * connections.
+ */
 static int
 test_ipv4(int n, const char *source)
 {
@@ -116,9 +126,12 @@ test_ipv4(int n, const char *source)
     return n;
 }
 
-/* Bring up a server on port 11119 on the loopback address and test connecting
-   to it via IPv6.  Takes an optional source address to use for client
-   connections. */
+
+/*
+ * Bring up a server on port 11119 on the loopback address and test connecting
+ * to it via IPv6.  Takes an optional source address to use for client
+ * connections.
+ */
 #ifdef HAVE_INET6
 static int
 test_ipv6(int n, const char *source)
@@ -163,9 +176,12 @@ test_ipv6(int n, const char *source UNUSED)
 }
 #endif /* !HAVE_INET6 */
 
-/* Bring up a server on port 11119 on all addresses and try connecting to it
-   via all of the available protocols.  Takes an optional source address to
-   use for client connections. */
+
+/*
+ * Bring up a server on port 11119 on all addresses and try connecting to it
+ * via all of the available protocols.  Takes an optional source address to
+ * use for client connections.
+ */
 static int
 test_all(int n, const char *source_ipv4, const char *source_ipv6)
 {
@@ -218,9 +234,12 @@ test_all(int n, const char *source_ipv4, const char *source_ipv6)
     return n;
 }
 
-/* Bring up a server on port 11119 on the loopback address and test connecting
-   to it via IPv4 using network_connect_sockaddr.  Takes an optional source
-   address to use for client connections. */
+
+/*
+ * Bring up a server on port 11119 on the loopback address and test connecting
+ * to it via IPv4 using network_connect_sockaddr.  Takes an optional source
+ * address to use for client connections.
+ */
 static int
 test_create_ipv4(int n, const char *source)
 {
@@ -266,8 +285,11 @@ test_create_ipv4(int n, const char *source)
     return n;
 }
 
-/* Tests network_addr_compare.  Takes the test number, the expected result,
-   the two addresses, and the mask. */
+
+/*
+ * Tests network_addr_compare.  Takes the test number, the expected result,
+ * the two addresses, and the mask.
+ */
 static void
 ok_addr(int n, int expected, const char *a, const char *b, const char *mask)
 {
@@ -276,6 +298,7 @@ ok_addr(int n, int expected, const char *a, const char *b, const char *mask)
     else
         ok(n, !network_addr_match(a, b, mask));
 }
+
 
 int
 main(void)
@@ -292,12 +315,14 @@ main(void)
     static const char *ipv6_addr = "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210";
 #endif
 
-    test_init(117);
+    test_init(87);
 
-    /* If IPv6 support appears to be available but doesn't work, we have to
-       skip the test_all tests since they'll create a socket that we then
-       can't connect to.  This is the case on Solaris 8 without IPv6
-       configured. */
+    /*
+     * If IPv6 support appears to be available but doesn't work, we have to
+     * skip the test_all tests since they'll create a socket that we then
+     * can't connect to.  This is the case on Solaris 8 without IPv6
+     * configured.
+     */
     n = test_ipv4(1, NULL);                     /* Tests  1-3.  */
     n = test_ipv6(n, NULL);                     /* Tests  4-6.  */
     if (ipv6)
@@ -319,109 +344,107 @@ main(void)
     }
     n = test_create_ipv4(n, "127.0.0.1");       /* Tests 28-30. */
 
-    /* Skip a block of tests that are only applicable to INN. */
-    ok_block(n, 30, 1);
-    n += 30;
-
-    /* Now, test network_sockaddr_sprint, network_sockaddr_equal, and
-       network_sockaddr_port. */
+    /*
+     * Now, test network_sockaddr_sprint, network_sockaddr_equal, and
+     * network_sockaddr_port.
+     */
     memset(&hints, 0, sizeof(hints));
     hints.ai_flags = AI_NUMERICHOST;
     hints.ai_socktype = SOCK_STREAM;
     status = getaddrinfo("127.0.0.1", port, &hints, &ai4);
     if (status != 0)
         die("getaddrinfo on 127.0.0.1 failed: %s", gai_strerror(status));
-    ok(61, network_sockaddr_sprint(addr, sizeof(addr), ai4->ai_addr));
-    ok_string(62, "127.0.0.1", addr);
-    ok_int(63, 119, network_sockaddr_port(ai4->ai_addr));
-    ok(64, network_sockaddr_equal(ai4->ai_addr, ai4->ai_addr));
+    ok(31, network_sockaddr_sprint(addr, sizeof(addr), ai4->ai_addr));
+    ok_string(32, "127.0.0.1", addr);
+    ok_int(33, 119, network_sockaddr_port(ai4->ai_addr));
+    ok(34, network_sockaddr_equal(ai4->ai_addr, ai4->ai_addr));
     status = getaddrinfo("127.0.0.2", NULL, &hints, &ai);
     if (status != 0)
         die("getaddrinfo on 127.0.0.2 failed: %s", gai_strerror(status));
-    ok(65, !network_sockaddr_equal(ai->ai_addr, ai4->ai_addr));
-    ok(66, !network_sockaddr_equal(ai4->ai_addr, ai->ai_addr));
+    ok(35, !network_sockaddr_equal(ai->ai_addr, ai4->ai_addr));
+    ok(36, !network_sockaddr_equal(ai4->ai_addr, ai->ai_addr));
 
     /* The same for IPv6. */
 #ifdef HAVE_INET6
     status = getaddrinfo(ipv6_addr, port, &hints, &ai6);
     if (status != 0)
         sysdie("getaddr on %s failed", ipv6_addr);
-    ok(67, network_sockaddr_sprint(addr, sizeof(addr), ai6->ai_addr));
+    ok(37, network_sockaddr_sprint(addr, sizeof(addr), ai6->ai_addr));
     for (p = addr; *p != '\0'; p++)
         if (islower((unsigned char) *p))
             *p = toupper((unsigned char) *p);
-    ok_string(68, ipv6_addr, addr);
-    ok_int(69, 119, network_sockaddr_port(ai6->ai_addr));
-    ok(70, network_sockaddr_equal(ai6->ai_addr, ai6->ai_addr));
-    ok(71, !network_sockaddr_equal(ai4->ai_addr, ai6->ai_addr));
-    ok(72, !network_sockaddr_equal(ai6->ai_addr, ai4->ai_addr));
+    ok_string(38, ipv6_addr, addr);
+    ok_int(39, 119, network_sockaddr_port(ai6->ai_addr));
+    ok(40, network_sockaddr_equal(ai6->ai_addr, ai6->ai_addr));
+    ok(41, !network_sockaddr_equal(ai4->ai_addr, ai6->ai_addr));
+    ok(42, !network_sockaddr_equal(ai6->ai_addr, ai4->ai_addr));
 
     /* Test IPv4 mapped addresses. */
     status = getaddrinfo("::ffff:7f00:1", NULL, &hints, &ai6);
     if (status != 0)
         sysdie("getaddr on ::ffff:7f00:1 failed");
-    ok(73, network_sockaddr_sprint(addr, sizeof(addr), ai6->ai_addr));
-    ok_string(74, "127.0.0.1", addr);
-    ok(75, network_sockaddr_equal(ai4->ai_addr, ai6->ai_addr));
-    ok(76, network_sockaddr_equal(ai6->ai_addr, ai4->ai_addr));
-    ok(77, !network_sockaddr_equal(ai->ai_addr, ai6->ai_addr));
-    ok(78, !network_sockaddr_equal(ai6->ai_addr, ai->ai_addr));
+    ok(43, network_sockaddr_sprint(addr, sizeof(addr), ai6->ai_addr));
+    ok_string(44, "127.0.0.1", addr);
+    ok(45, network_sockaddr_equal(ai4->ai_addr, ai6->ai_addr));
+    ok(46, network_sockaddr_equal(ai6->ai_addr, ai4->ai_addr));
+    ok(47, !network_sockaddr_equal(ai->ai_addr, ai6->ai_addr));
+    ok(48, !network_sockaddr_equal(ai6->ai_addr, ai->ai_addr));
     freeaddrinfo(ai6);
 #else
-    skip_block(67, 12, "IPv6 not supported");
+    skip_block(37, 12, "IPv6 not supported");
 #endif
 
     /* Check the domains of functions and their error handling. */
     ai4->ai_addr->sa_family = AF_UNIX;
-    ok(79, !network_sockaddr_equal(ai4->ai_addr, ai4->ai_addr));
-    ok_int(80, 0, network_sockaddr_port(ai4->ai_addr));
+    ok(49, !network_sockaddr_equal(ai4->ai_addr, ai4->ai_addr));
+    ok_int(50, 0, network_sockaddr_port(ai4->ai_addr));
 
     /* Tests for network_addr_compare. */
-    ok_addr( 81, 1, "127.0.0.1", "127.0.0.1",   NULL);
-    ok_addr( 82, 0, "127.0.0.1", "127.0.0.2",   NULL);
-    ok_addr( 83, 1, "127.0.0.1", "127.0.0.0",   "31");
-    ok_addr( 84, 0, "127.0.0.1", "127.0.0.0",   "32");
-    ok_addr( 85, 0, "127.0.0.1", "127.0.0.0",   "255.255.255.255");
-    ok_addr( 86, 1, "127.0.0.1", "127.0.0.0",   "255.255.255.254");
-    ok_addr( 87, 1, "10.10.4.5", "10.10.4.255", "24");
-    ok_addr( 88, 0, "10.10.4.5", "10.10.4.255", "25");
-    ok_addr( 89, 1, "10.10.4.5", "10.10.4.255", "255.255.255.0");
-    ok_addr( 90, 0, "10.10.4.5", "10.10.4.255", "255.255.255.128");
-    ok_addr( 91, 0, "129.0.0.0", "1.0.0.0",     "1");
-    ok_addr( 92, 1, "129.0.0.0", "1.0.0.0",     "0");
-    ok_addr( 93, 1, "129.0.0.0", "1.0.0.0",     "0.0.0.0");
+    ok_addr(51, 1, "127.0.0.1", "127.0.0.1",   NULL);
+    ok_addr(52, 0, "127.0.0.1", "127.0.0.2",   NULL);
+    ok_addr(53, 1, "127.0.0.1", "127.0.0.0",   "31");
+    ok_addr(54, 0, "127.0.0.1", "127.0.0.0",   "32");
+    ok_addr(55, 0, "127.0.0.1", "127.0.0.0",   "255.255.255.255");
+    ok_addr(56, 1, "127.0.0.1", "127.0.0.0",   "255.255.255.254");
+    ok_addr(57, 1, "10.10.4.5", "10.10.4.255", "24");
+    ok_addr(58, 0, "10.10.4.5", "10.10.4.255", "25");
+    ok_addr(59, 1, "10.10.4.5", "10.10.4.255", "255.255.255.0");
+    ok_addr(60, 0, "10.10.4.5", "10.10.4.255", "255.255.255.128");
+    ok_addr(61, 0, "129.0.0.0", "1.0.0.0",     "1");
+    ok_addr(62, 1, "129.0.0.0", "1.0.0.0",     "0");
+    ok_addr(63, 1, "129.0.0.0", "1.0.0.0",     "0.0.0.0");
 
     /* Try some IPv6 addresses. */
 #ifdef HAVE_INET6
-    ok_addr( 94, 1, ipv6_addr,   ipv6_addr,     NULL);
-    ok_addr( 95, 1, ipv6_addr,   ipv6_addr,     "128");
-    ok_addr( 96, 1, ipv6_addr,   ipv6_addr,     "60");
-    ok_addr( 97, 1, "::127",     "0:0::127",    "128");
-    ok_addr( 98, 1, "::127",     "0:0::128",    "120");
-    ok_addr( 99, 0, "::127",     "0:0::128",    "128");
-    ok_addr(100, 0, "::7fff",    "0:0::8000",   "113");
-    ok_addr(101, 1, "::7fff",    "0:0::8000",   "112");
-    ok_addr(102, 0, "::3:ffff",  "::2:ffff",    "120");
-    ok_addr(103, 0, "::3:ffff",  "::2:ffff",    "119");
-    ok_addr(104, 0, "ffff::1",   "7fff::1",     "1");
-    ok_addr(105, 1, "ffff::1",   "7fff::1",     "0");
-    ok_addr(106, 0, "fffg::1",   "fffg::1",     NULL);
-    ok_addr(107, 0, "ffff::1",   "7fff::1",     "-1");
-    ok_addr(108, 0, "ffff::1",   "ffff::1",     "-1");
-    ok_addr(109, 0, "ffff::1",   "ffff::1",     "129");
+    ok_addr(64, 1, ipv6_addr,   ipv6_addr,     NULL);
+    ok_addr(65, 1, ipv6_addr,   ipv6_addr,     "128");
+    ok_addr(66, 1, ipv6_addr,   ipv6_addr,     "60");
+    ok_addr(67, 1, "::127",     "0:0::127",    "128");
+    ok_addr(68, 1, "::127",     "0:0::128",    "120");
+    ok_addr(69, 0, "::127",     "0:0::128",    "128");
+    ok_addr(70, 0, "::7fff",    "0:0::8000",   "113");
+    ok_addr(71, 1, "::7fff",    "0:0::8000",   "112");
+    ok_addr(72, 0, "::3:ffff",  "::2:ffff",    "120");
+    ok_addr(73, 0, "::3:ffff",  "::2:ffff",    "119");
+    ok_addr(74, 0, "ffff::1",   "7fff::1",     "1");
+    ok_addr(75, 1, "ffff::1",   "7fff::1",     "0");
+    ok_addr(76, 0, "fffg::1",   "fffg::1",     NULL);
+    ok_addr(77, 0, "ffff::1",   "7fff::1",     "-1");
+    ok_addr(78, 0, "ffff::1",   "ffff::1",     "-1");
+    ok_addr(79, 0, "ffff::1",   "ffff::1",     "129");
 #else
-    skip_block(94, 16, "IPv6 not supported");
+    skip_block(64, 16, "IPv6 not supported");
 #endif
 
     /* Test some invalid addresses. */
-    ok_addr(110, 0, "fred",      "fred",        NULL);
-    ok_addr(111, 0, "",          "",            NULL);
-    ok_addr(112, 0, "",          "",            "0");
-    ok_addr(113, 0, "127.0.0.1", "127.0.0.1",   "pete");
-    ok_addr(114, 0, "127.0.0.1", "127.0.0.1",   "1p");
-    ok_addr(115, 0, "127.0.0.1", "127.0.0.1",   "1p");
-    ok_addr(116, 0, "127.0.0.1", "127.0.0.1",   "-1");
-    ok_addr(117, 0, "127.0.0.1", "127.0.0.1",   "33");
+    ok_addr(80, 0, "fred",      "fred",        NULL);
+    ok_addr(81, 0, "",          "",            NULL);
+    ok_addr(82, 0, "",          "",            "0");
+    ok_addr(83, 0, "127.0.0.1", "127.0.0.1",   "pete");
+    ok_addr(84, 0, "127.0.0.1", "127.0.0.1",   "1p");
+    ok_addr(85, 0, "127.0.0.1", "127.0.0.1",   "1p");
+    ok_addr(86, 0, "127.0.0.1", "127.0.0.1",   "-1");
+    ok_addr(87, 0, "127.0.0.1", "127.0.0.1",   "33");
 
     return 0;
 }

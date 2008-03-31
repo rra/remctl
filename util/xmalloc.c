@@ -1,90 +1,93 @@
 /* $Id$
-**
-**  malloc routines with failure handling.
-**
-**  Usage:
-**
-**       extern xmalloc_handler_t memory_error;
-**       extern const char *string;
-**       char *buffer;
-**       va_list args;
-**
-**       xmalloc_error_handler = memory_error;
-**       buffer = xmalloc(1024);
-**       xrealloc(buffer, 2048);
-**       free(buffer);
-**       buffer = xcalloc(1024);
-**       free(buffer);
-**       buffer = xstrdup(string);
-**       free(buffer);
-**       buffer = xstrndup(string, 25);
-**       free(buffer);
-**       xasprintf(&buffer, "%s", "some string");
-**       free(buffer);
-**       xvasprintf(&buffer, "%s", args);
-**
-**  xmalloc, xcalloc, xrealloc, and xstrdup behave exactly like their C
-**  library counterparts without the leading x except that they will never
-**  return NULL.  Instead, on error, they call xmalloc_error_handler,
-**  passing it the name of the function whose memory allocation failed, the
-**  amount of the allocation, and the file and line number where the
-**  allocation function was invoked (from __FILE__ and __LINE__).  This
-**  function may do whatever it wishes, such as some action to free up
-**  memory or a call to sleep to hope that system resources return.  If the
-**  handler returns, the interrupted memory allocation function will try its
-**  allocation again (calling the handler again if it still fails).
-**
-**  xstrndup behaves like xstrdup but only copies the given number of
-**  characters.  It allocates an additional byte over its second argument and
-**  always nul-terminates the string.
-**
-**  xasprintf and xvasprintf behave just like their GNU glibc library
-**  implementations except that they do the same checking as described above.
-**  xasprintf will only be able to provide accurate file and line information
-**  on systems that support variadic macros.
-**
-**  The default error handler, if none is set by the caller, prints an error
-**  message to stderr and exits with exit status 1.  An error handler must
-**  take a const char * (function name), size_t (bytes allocated), const
-**  char * (file), and int (line).
-**
-**  xmalloc will return a pointer to a valid memory region on an xmalloc of 0
-**  bytes, ensuring this by allocating space for one character instead of 0
-**  bytes.
-**
-**  The functions defined here are actually x_malloc, x_realloc, etc.  The
-**  header file defines macros named xmalloc, etc. that pass the file name
-**  and line number to these functions.
-**
-**  Copyright (c) 2004, 2005, 2006
-**      by Internet Systems Consortium, Inc. ("ISC")
-**  Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-**      2002, 2003 by The Internet Software Consortium and Rich Salz
-**
-**  This code is derived from software contributed to the Internet Software
-**  Consortium by Rich Salz.
-**
-**  Permission to use, copy, modify, and distribute this software for any
-**  purpose with or without fee is hereby granted, provided that the above
-**  copyright notice and this permission notice appear in all copies.
-**
-**  THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
-**  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-**  MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
-**  SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-**  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-**  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-**  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-*/
+ *
+ * malloc routines with failure handling.
+ *
+ * Usage:
+ *
+ *      extern xmalloc_handler_t memory_error;
+ *      extern const char *string;
+ *      char *buffer;
+ *      va_list args;
+ *
+ *      xmalloc_error_handler = memory_error;
+ *      buffer = xmalloc(1024);
+ *      xrealloc(buffer, 2048);
+ *      free(buffer);
+ *      buffer = xcalloc(1024);
+ *      free(buffer);
+ *      buffer = xstrdup(string);
+ *      free(buffer);
+ *      buffer = xstrndup(string, 25);
+ *      free(buffer);
+ *      xasprintf(&buffer, "%s", "some string");
+ *      free(buffer);
+ *      xvasprintf(&buffer, "%s", args);
+ *
+ * xmalloc, xcalloc, xrealloc, and xstrdup behave exactly like their C library
+ * counterparts without the leading x except that they will never return NULL.
+ * Instead, on error, they call xmalloc_error_handler, passing it the name of
+ * the function whose memory allocation failed, the amount of the allocation,
+ * and the file and line number where the allocation function was invoked
+ * (from __FILE__ and __LINE__).  This function may do whatever it wishes,
+ * such as some action to free up memory or a call to sleep to hope that
+ * system resources return.  If the handler returns, the interrupted memory
+ * allocation function will try its allocation again (calling the handler
+ * again if it still fails).
+ *
+ * xstrndup behaves like xstrdup but only copies the given number of
+ * characters.  It allocates an additional byte over its second argument and
+ * always nul-terminates the string.
+ *
+ * xasprintf and xvasprintf behave just like their GNU glibc library
+ * implementations except that they do the same checking as described above.
+ * xasprintf will only be able to provide accurate file and line information
+ * on systems that support variadic macros.
+ *
+ * The default error handler, if none is set by the caller, prints an error
+ * message to stderr and exits with exit status 1.  An error handler must take
+ * a const char * (function name), size_t (bytes allocated), const char *
+ * (file), and int (line).
+ *
+ * xmalloc will return a pointer to a valid memory region on an xmalloc of 0
+ * bytes, ensuring this by allocating space for one character instead of 0
+ * bytes.
+ *
+ * The functions defined here are actually x_malloc, x_realloc, etc.  The
+ * header file defines macros named xmalloc, etc. that pass the file name and
+ * line number to these functions.
+ *
+ * Copyright (c) 2004, 2005, 2006
+ *     by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+ *     2002, 2003 by The Internet Software Consortium and Rich Salz
+ *
+ * This code is derived from software contributed to the Internet Software
+ * Consortium by Rich Salz.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <errno.h>
 
 #include <util/util.h>
 
-/* The default error handler. */
+
+/*
+ * The default error handler.
+ */
 void
 xmalloc_fail(const char *function, size_t size, const char *file, int line)
 {
@@ -94,6 +97,7 @@ xmalloc_fail(const char *function, size_t size, const char *file, int line)
 
 /* Assign to this variable to choose a handler other than the default. */
 xmalloc_handler_type xmalloc_error_handler = xmalloc_fail;
+
 
 void *
 x_malloc(size_t size, const char *file, int line)
@@ -110,6 +114,7 @@ x_malloc(size_t size, const char *file, int line)
     return p;
 }
 
+
 void *
 x_calloc(size_t n, size_t size, const char *file, int line)
 {
@@ -125,6 +130,7 @@ x_calloc(size_t n, size_t size, const char *file, int line)
     return p;
 }
 
+
 void *
 x_realloc(void *p, size_t size, const char *file, int line)
 {
@@ -137,6 +143,7 @@ x_realloc(void *p, size_t size, const char *file, int line)
     }
     return newp;
 }
+
 
 char *
 x_strdup(const char *s, const char *file, int line)
@@ -154,6 +161,7 @@ x_strdup(const char *s, const char *file, int line)
     return p;
 }
 
+
 char *
 x_strndup(const char *s, size_t size, const char *file, int line)
 {
@@ -168,6 +176,7 @@ x_strndup(const char *s, size_t size, const char *file, int line)
     p[size] = '\0';
     return p;
 }
+
 
 int
 x_vasprintf(char **strp, const char *fmt, va_list args, const char *file,
@@ -190,6 +199,7 @@ x_vasprintf(char **strp, const char *fmt, va_list args, const char *file,
     }
     return status;
 }
+
 
 #if HAVE_C99_VAMACROS || HAVE_GNU_VAMACROS
 int

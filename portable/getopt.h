@@ -2,13 +2,13 @@
  *
  * Replacement implementation of getopt.
  *
- * Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
- * Copyright 2008 Russ Allbery <rra@stanford.edu>
- *
  * This is a replacement implementation for getopt based on the my_getopt
  * distribution by Benjamin Sittler.  Only the getopt interface is included,
  * since remctl doesn't use GNU long options, and the code has been rearranged
  * somewhat to fit with the remctl coding style.
+ *
+ * Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
+ * Copyright 2008 Russ Allbery <rra@stanford.edu>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,23 +33,10 @@
 #define PORTABLE_GETOPT_H 1
 
 #include <config.h>
+#include <portable/macros.h>
 
 /* Skip this entire file if we already have a getopt. */
 #if !HAVE_GETOPT
-
-/*
- * BEGIN_DECLS is used at the beginning of declarations so that C++
- * compilers don't mangle their names.  END_DECLS is used at the end.
- */
-#undef BEGIN_DECLS
-#undef END_DECLS
-#ifdef __cplusplus
-# define BEGIN_DECLS    extern "C" {
-# define END_DECLS      }
-#else
-# define BEGIN_DECLS    /* empty */
-# define END_DECLS      /* empty */
-#endif
 
 BEGIN_DECLS
 

@@ -2,15 +2,16 @@
 # $Id$
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
-# See README for licensing terms.
+# Copyright 2006, 2007, 2008 Board of Trustees, Leland Stanford Jr. University
+#
+# See LICENSE for licensing terms.
 
 # These two lists of files are needed for Perl builds and for the test suite
 # and are not generated or touched by configure.  They're listed here to be
 # added to EXTRA_DIST and so that they can be copied over properly for
 # builddir != srcdir builds.
 PERL_FILES = perl/Remctl.pm perl/Remctl.xs perl/typemap perl/t/api.t \
-	perl/t/pod.t
+	perl/t/pod.t perl/t/stanford-netdb.t
 TEST_FILES = tests/TESTS tests/client/pod-t.in tests/client/remctl-t \
 	tests/data/README tests/data/acl-bad-include \
 	tests/data/acl-bad-syntax tests/data/acl-nonexistant \

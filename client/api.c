@@ -1,21 +1,25 @@
-/*  $Id$
-**
-**  Entry points for the remctl library API.
-**
-**  All of the high-level entry points for the remctl library API, defined in
-**  remctl.h, are found here.  The detailed implementation of these APIs are
-**  in other source files.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
-**      Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * Entry points for the remctl library API.
+ *
+ * All of the high-level entry points for the remctl library API, defined in
+ * remctl.h, are found here.  The detailed implementation of these APIs are
+ * in other source files.
+ *
+ * All public functions defined here should use int to return boolean values.
+ * We don't try to set up the portability glue to use bool in our public
+ * headers.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Based on work by Anton Ushakov
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ *     Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
 #include <portable/uio.h>
@@ -28,11 +32,11 @@
 
 
 /*
-**  Handle an internal failure for the simplified interface.  We try to grab
-**  the remctl error and put it into the error field in the remctl result, but
-**  if that fails, we free the remctl result and return NULL to indicate a
-**  fatal error.
-*/
+ * Handle an internal failure for the simplified interface.  We try to grab
+ * the remctl error and put it into the error field in the remctl result, but
+ * if that fails, we free the remctl result and return NULL to indicate a
+ * fatal error.
+ */
 static struct remctl_result *
 internal_fail(struct remctl *r, struct remctl_result *result)
 {
@@ -57,12 +61,12 @@ internal_fail(struct remctl *r, struct remctl_result *result)
 
 
 /*
-**  Given a struct remctl_result into which we're accumulating output and a
-**  struct remctl_output that contains a fragment of output, append the output
-**  to the appropriate slot in the result.  This is not particularly
-**  efficient.  Returns false if something fails and tries to set
-**  result->error; if we can't even do that, make sure it's set to NULL.
-*/
+ * Given a struct remctl_result into which we're accumulating output and a
+ * struct remctl_output that contains a fragment of output, append the output
+ * to the appropriate slot in the result.  This is not particularly efficient.
+ * Returns false if something fails and tries to set result->error; if we
+ * can't even do that, make sure it's set to NULL.
+ */
 static bool
 internal_output_append(struct remctl_result *result,
                        struct remctl_output *output)
@@ -125,11 +129,11 @@ internal_output_append(struct remctl_result *result,
 
 
 /*
-**  The simplified interface.  Given a host, a port, and a command (as a
-**  null-terminated argv-style vector), run the command on that host and port
-**  and return a struct remctl_result.  The result should be freed with
-**  remctl_result_free.
-*/
+ * The simplified interface.  Given a host, a port, and a command (as a
+ * null-terminated argv-style vector), run the command on that host and port
+ * and return a struct remctl_result.  The result should be freed with
+ * remctl_result_free.
+ */
 struct remctl_result *
 remctl(const char *host, unsigned short port, const char *principal,
        const char **command)
@@ -177,8 +181,8 @@ remctl(const char *host, unsigned short port, const char *principal,
 
 
 /*
-**  Free a struct remctl_result returned by remctl.
-*/
+ * Free a struct remctl_result returned by remctl.
+ */
 void
 remctl_result_free(struct remctl_result *result)
 {
@@ -195,11 +199,11 @@ remctl_result_free(struct remctl_result *result)
 
 
 /*
-**  Create a new remctl object.  Don't attempt to connect here; we do that
-**  separately so that we can still use the object to store error messages
-**  from connection failures.  Return NULL on memory allocation failures or
-**  socket initialization failures (Windows).
-*/
+ * Create a new remctl object.  Don't attempt to connect here; we do that
+ * separately so that we can still use the object to store error messages
+ * from connection failures.  Return NULL on memory allocation failures or
+ * socket initialization failures (Windows).
+ */
 struct remctl *
 remctl_new(void)
 {
@@ -221,9 +225,9 @@ remctl_new(void)
 
 
 /*
-**  Open a new persistant remctl connection to a server, given the host, port,
-**  and principal.  Returns true on success and false on failure.
-*/
+ * Open a new persistant remctl connection to a server, given the host, port,
+ * and principal.  Returns true on success and false on failure.
+ */
 int
 remctl_open(struct remctl *r, const char *host, unsigned short port,
             const char *principal)
@@ -247,8 +251,8 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
 
 
 /*
-**  Close a persistant remctl connection.
-*/
+ * Close a persistant remctl connection.
+ */
 void
 remctl_close(struct remctl *r)
 {
@@ -268,14 +272,14 @@ remctl_close(struct remctl *r)
 
 
 /*
-**  Send a complete remote command.  Returns true on success, false on
-**  failure.  On failure, use remctl_error to get the error.  command is a
-**  NULL-terminated array of nul-terminated strings.  finished is a boolean
-**  flag that should be false when the command is not yet complete and true
-**  when this is the final (or only) segment.
-**
-**  Implement in terms of remctl_commandv.
-*/
+ * Send a complete remote command.  Returns true on success, false on failure.
+ * On failure, use remctl_error to get the error.  command is a
+ * NULL-terminated array of nul-terminated strings.  finished is a boolean
+ * flag that should be false when the command is not yet complete and true
+ * when this is the final (or only) segment.
+ *
+ * Implement in terms of remctl_commandv.
+ */
 int
 remctl_command(struct remctl *r, const char **command)
 {
@@ -301,9 +305,9 @@ remctl_command(struct remctl *r, const char **command)
 
 
 /*
-**  Same as remctl_command, but take the command as an array of struct iovecs
-**  instead.  Use this form for binary data.
-*/
+ * Same as remctl_command, but take the command as an array of struct iovecs
+ * instead.  Use this form for binary data.
+ */
 int
 remctl_commandv(struct remctl *r, const struct iovec *command, size_t count)
 {
@@ -327,9 +331,9 @@ remctl_commandv(struct remctl *r, const struct iovec *command, size_t count)
 
 
 /*
-**  Helper function for remctl_output implementations.  Free and reset the
-**  elements of the output struct, but don't free the output struct itself.
-*/
+ * Helper function for remctl_output implementations.  Free and reset the
+ * elements of the output struct, but don't free the output struct itself.
+ */
 void
 internal_output_wipe(struct remctl_output *output)
 {
@@ -348,19 +352,19 @@ internal_output_wipe(struct remctl_output *output)
 
 
 /*
-**  Retrieve output from the remote server.  Each call to this function on the
-**  same connection invalidates the previous returned remctl_output struct.
-**
-**  This function will return zero or more REMCTL_OUT_OUTPUT types followed by
-**  a REMCTL_OUT_STATUS type, *or* a REMCTL_OUT_ERROR type.  In either case,
-**  any subsequent call before sending a new command will return
-**  REMCTL_OUT_DONE.  If the function returns NULL, an internal error
-**  occurred; call remctl_error to retrieve the error message.
-**
-**  The remctl_output struct should *not* be freed by the caller.  It will be
-**  invalidated after another call to remctl_output or to remctl_close on the
-**  same connection.
-*/
+ * Retrieve output from the remote server.  Each call to this function on the
+ * same connection invalidates the previous returned remctl_output struct.
+ *
+ * This function will return zero or more REMCTL_OUT_OUTPUT types followed by
+ * a REMCTL_OUT_STATUS type, *or* a REMCTL_OUT_ERROR type.  In either case,
+ * any subsequent call before sending a new command will return
+ * REMCTL_OUT_DONE.  If the function returns NULL, an internal error occurred;
+ * call remctl_error to retrieve the error message.
+ *
+ * The remctl_output struct should *not* be freed by the caller.  It will be
+ * invalidated after another call to remctl_output or to remctl_close on the
+ * same connection.
+ */
 struct remctl_output *
 remctl_output(struct remctl *r)
 {
@@ -380,10 +384,10 @@ remctl_output(struct remctl *r)
 
 
 /*
-**  Returns the internal error message after a failure or "No error" if the
-**  last command completed successfully.  This should generally only be called
-**  after a failure.
-*/
+ * Returns the internal error message after a failure or "No error" if the
+ * last command completed successfully.  This should generally only be called
+ * after a failure.
+ */
 const char *
 remctl_error(struct remctl *r)
 {

@@ -1,12 +1,15 @@
-/* $Id$ */
-/* Test suite for the high-level remctl library API. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * Test suite for the high-level remctl library API.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <signal.h>
 #ifdef HAVE_SYS_SELECT_H
@@ -21,10 +24,13 @@
 #include <tests/libtest.h>
 #include <util/util.h>
 
-/* Takes the current test number, the principal, and the protocol version and
-   runs a set of tests.  Due to the compatibility layer, we should be able to
-   run the same commands regardless of the protocol (we're not testing any of
-   the v2-specific features here).  Returns the next test number. */
+
+/*
+ * Takes the current test number, the principal, and the protocol version and
+ * runs a set of tests.  Due to the compatibility layer, we should be able to
+ * run the same commands regardless of the protocol (we're not testing any of
+ * the v2-specific features here).  Returns the next test number.
+ */
 static int
 do_tests(int n, const char *principal, int protocol)
 {
@@ -131,6 +137,7 @@ do_tests(int n, const char *principal, int protocol)
     return n;
 }
 
+
 int
 main(void)
 {
@@ -155,10 +162,12 @@ main(void)
         n = do_tests(1, principal, 1);
         n = do_tests(n, principal, 2);
 
-        /* We don't have a way of forcing this to use a particular protocol,
-           so we always do it via protocol v2.  But if the above worked with
-           protocol v1, and this wrapper works with v2, everything should have
-           gotten tested. */
+        /*
+         * We don't have a way of forcing this to use a particular protocol,
+         * so we always do it via protocol v2.  But if the above worked with
+         * protocol v1, and this wrapper works with v2, everything should have
+         * gotten tested.
+         */
         result = remctl("localhost", 14444, principal, test);
         ok(n++, result != NULL);
         ok_int(n++, 0, result->status);

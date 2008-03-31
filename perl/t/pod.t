@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # $Id$
 #
-# t/pod.t -- Test POD formatting for Net::Remctl.
+# Test suite for the Net::Remctl POD documentation.
 
 eval 'use Test::Pod 1.00';
 if ($@) {

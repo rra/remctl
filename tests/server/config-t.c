@@ -1,16 +1,20 @@
-/* $Id$ */
-/* Test suite for the server configuration parsing. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2007 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * Test suite for the server configuration parsing.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <server/internal.h>
 #include <tests/libtest.h>
 #include <util/util.h>
+
 
 int
 main(void)

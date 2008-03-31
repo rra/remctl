@@ -1,39 +1,39 @@
-/*  $Id$
-**
-**  Utility functions for network connections.
-**
-**  This is a collection of utility functions for network connections and
-**  socket creation, encapsulating some of the complexities of IPv4 and IPv6
-**  support and abstracting operations common to most network code.
-**
-**  All of the portability difficulties with supporting IPv4 and IPv6 should
-**  be encapsulated in the combination of this code and replacement
-**  implementations for functions that aren't found on some pre-IPv6 systems.
-**  No other part of remctl should have to care about IPv4 vs. IPv6.
-**
-**  Copyright (c) 2004, 2005, 2006, 2007, 2008
-**      by Internet Systems Consortium, Inc. ("ISC")
-**  Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-**      2002, 2003 by The Internet Software Consortium and Rich Salz
-**
-**  This code is derived from software contributed to the Internet Software
-**  Consortium by Rich Salz.
-**
-**  Permission to use, copy, modify, and distribute this software for any
-**  purpose with or without fee is hereby granted, provided that the above
-**  copyright notice and this permission notice appear in all copies.
-**
-**  THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
-**  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-**  MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
-**  SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-**  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-**  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-**  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+/* $Id$
+ *
+ * Utility functions for network connections.
+ *
+ * This is a collection of utility functions for network connections and
+ * socket creation, encapsulating some of the complexities of IPv4 and IPv6
+ * support and abstracting operations common to most network code.
+ *
+ * All of the portability difficulties with supporting IPv4 and IPv6 should be
+ * encapsulated in the combination of this code and replacement
+ * implementations for functions that aren't found on some pre-IPv6 systems.
+ * No other part of remctl should have to care about IPv4 vs. IPv6.
+ *
+ * Copyright (c) 2004, 2005, 2006, 2007, 2008
+ *     by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+ *     2002, 2003 by The Internet Software Consortium and Rich Salz
+ *
+ * This code is derived from software contributed to the Internet Software
+ * Consortium by Rich Salz.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
 */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/socket.h>
 
 #include <errno.h>
@@ -56,9 +56,9 @@
 
 
 /*
-**  Set SO_REUSEADDR on a socket if possible (so that something new can listen
-**  on the same port immediately if the daemon dies unexpectedly).
-*/
+ * Set SO_REUSEADDR on a socket if possible (so that something new can listen
+ * on the same port immediately if the daemon dies unexpectedly).
+ */
 #ifdef SO_REUSEADDR
 static void
 network_set_reuseaddr(int fd)
@@ -72,9 +72,9 @@ network_set_reuseaddr(int fd)
 
 
 /*
-**  Create an IPv4 socket and bind it, returning the resulting file descriptor
-**  (or -1 on a failure).
-*/
+ * Create an IPv4 socket and bind it, returning the resulting file descriptor
+ * (or -1 on a failure).
+ */
 int
 network_bind_ipv4(const char *address, unsigned short port)
 {
@@ -112,12 +112,12 @@ network_bind_ipv4(const char *address, unsigned short port)
 
 
 /*
-**  Create an IPv6 socket and bind it, returning the resulting file descriptor
-**  (or -1 on a failure).  Note that we don't warn (but still return failure)
-**  if the reason for the socket creation failure is that IPv6 isn't
-**  supported; this is to handle systems like many Linux hosts where IPv6 is
-**  available in userland but the kernel doesn't support it.
-*/
+ * Create an IPv6 socket and bind it, returning the resulting file descriptor
+ * (or -1 on a failure).  Note that we don't warn (but still return failure)
+ * if the reason for the socket creation failure is that IPv6 isn't supported;
+ * this is to handle systems like many Linux hosts where IPv6 is available in
+ * userland but the kernel doesn't support it.
+ */
 #if HAVE_INET6
 int
 network_bind_ipv6(const char *address, unsigned short port)
@@ -167,12 +167,12 @@ network_bind_ipv6(const char *address, unsigned short port)
 
 
 /*
-**  Create and bind sockets for every local address, as determined by
-**  getaddrinfo if IPv6 is available (otherwise, just use the IPv4 loopback
-**  address).  Takes the port number, and then a pointer to an array of
-**  integers and a pointer to a count of them.  Allocates a new array to hold
-**  the file descriptors and stores the count in the third argument.
-*/
+ * Create and bind sockets for every local address, as determined by
+ * getaddrinfo if IPv6 is available (otherwise, just use the IPv4 loopback
+ * address).  Takes the port number, and then a pointer to an array of
+ * integers and a pointer to a count of them.  Allocates a new array to hold
+ * the file descriptors and stores the count in the third argument.
+ */
 #if HAVE_INET6
 void
 network_bind_all(unsigned short port, int **fds, int *count)
@@ -195,8 +195,10 @@ network_bind_all(unsigned short port, int **fds, int *count)
         return;
     }
 
-    /* Now, try to bind each of them.  Start the fds array at two entries,
-       assuming an IPv6 and IPv4 socket, and grow it by two when necessary. */
+    /*
+     * Now, try to bind each of them.  Start the fds array at two entries,
+     * assuming an IPv6 and IPv4 socket, and grow it by two when necessary.
+     */
     size = 2;
     *fds = xmalloc(size * sizeof(int));
     for (addr = addrs; addr != NULL; addr = addr->ai_next) {
@@ -238,10 +240,10 @@ network_bind_all(unsigned short port, int **fds, int *count)
 
 
 /*
-**  Binds the given socket to an appropriate source address for its family,
-**  using innconf information or the provided source address.  Returns true on
-**  success and false on failure.
-*/
+ * Binds the given socket to an appropriate source address for its family,
+ * using innconf information or the provided source address.  Returns true on
+ * success and false on failure.
+ */
 static int
 network_source(int fd, int family, const char *source)
 {
@@ -277,12 +279,12 @@ network_source(int fd, int family, const char *source)
 
 
 /*
-**  Given a linked list of addrinfo structs representing the remote service,
-**  try to create a local socket and connect to that service.  Takes an
-**  optional source address.  Try each address in turn until one of them
-**  connects.  Returns the file descriptor of the open socket on success, or
-**  -1 on failure.  Tries to leave the reason for the failure in errno.
-*/
+ * Given a linked list of addrinfo structs representing the remote service,
+ * try to create a local socket and connect to that service.  Takes an
+ * optional source address.  Try each address in turn until one of them
+ * connects.  Returns the file descriptor of the open socket on success, or -1
+ * on failure.  Tries to leave the reason for the failure in errno.
+ */
 int
 network_connect(struct addrinfo *ai, const char *source)
 {
@@ -317,11 +319,11 @@ network_connect(struct addrinfo *ai, const char *source)
 
 
 /*
-**  Like network_connect, but takes a host and a port instead of an addrinfo
-**  struct list.  Returns the file descriptor of the open socket on success,
-**  or -1 on failure.  If getaddrinfo fails, errno may not be set to anything
-**  useful.
-*/
+ * Like network_connect, but takes a host and a port instead of an addrinfo
+ * struct list.  Returns the file descriptor of the open socket on success, or
+ * -1 on failure.  If getaddrinfo fails, errno may not be set to anything
+ * useful.
+ */
 int
 network_connect_host(const char *host, unsigned short port,
                      const char *source)
@@ -345,12 +347,12 @@ network_connect_host(const char *host, unsigned short port,
 
 
 /*
-**  Create a new socket of the specified domain and type and do the binding as
-**  if we were a regular client socket, but then return before connecting.
-**  Returns the file descriptor of the open socket on success, or -1 on
-**  failure.  Intended primarily for the use of clients that will then go on
-**  to do a non-blocking connect.
-*/
+ * Create a new socket of the specified domain and type and do the binding as
+ * if we were a regular client socket, but then return before connecting.
+ * Returns the file descriptor of the open socket on success, or -1 on
+ * failure.  Intended primarily for the use of clients that will then go on to
+ * do a non-blocking connect.
+ */
 int
 network_client_create(int domain, int type, const char *source)
 {
@@ -370,12 +372,11 @@ network_client_create(int domain, int type, const char *source)
 
 
 /*
-**  Print an ASCII representation of the address of the given sockaddr into
-**  the provided buffer.  This buffer must hold at least INET_ADDRSTRLEN
-**  characters for IPv4 addresses and INET6_ADDRSTRLEN characters for IPv6, so
-**  generally it should always be as large as the latter.  Returns success or
-**  failure.
-*/
+ * Print an ASCII representation of the address of the given sockaddr into the
+ * provided buffer.  This buffer must hold at least INET_ADDRSTRLEN characters
+ * for IPv4 addresses and INET6_ADDRSTRLEN characters for IPv6, so generally
+ * it should always be as large as the latter.  Returns success or failure.
+ */
 bool
 network_sockaddr_sprint(char *dst, size_t size, const struct sockaddr *addr)
 {
@@ -410,10 +411,10 @@ network_sockaddr_sprint(char *dst, size_t size, const struct sockaddr *addr)
 
 
 /*
-**  Compare the addresses from two sockaddrs and see whether they're equal.
-**  IPv4 addresses that have been mapped to IPv6 addresses compare equal to
-**  the corresponding IPv4 address.
-*/
+ * Compare the addresses from two sockaddrs and see whether they're equal.
+ * IPv4 addresses that have been mapped to IPv6 addresses compare equal to the
+ * corresponding IPv4 address.
+ */
 bool
 network_sockaddr_equal(const struct sockaddr *a, const struct sockaddr *b)
 {
@@ -455,8 +456,8 @@ network_sockaddr_equal(const struct sockaddr *a, const struct sockaddr *b)
 
 
 /*
-**  Returns the port of a sockaddr or 0 on error.
-*/
+ * Returns the port of a sockaddr or 0 on error.
+ */
 unsigned short
 network_sockaddr_port(const struct sockaddr *sa)
 {
@@ -480,11 +481,10 @@ network_sockaddr_port(const struct sockaddr *sa)
 
 
 /*
-**  Compare two addresses given as strings, applying an optional mask.
-**  Returns true if the addresses are equal modulo the mask and false
-**  otherwise, including on syntax errors in the addresses or mask
-**  specification.
-*/
+ * Compare two addresses given as strings, applying an optional mask.  Returns
+ * true if the addresses are equal modulo the mask and false otherwise,
+ * including on syntax errors in the addresses or mask specification.
+ */
 bool
 network_addr_match(const char *a, const char *b, const char *mask)
 {
@@ -497,10 +497,12 @@ network_addr_match(const char *a, const char *b, const char *mask)
     struct in6_addr a6, b6;
 #endif
 
-    /* If the addresses are IPv4, the mask may be in one of two forms.  It can
-       either be a traditional mask, like 255.255.0.0, or it can be a CIDR
-       subnet designation, like 16.  (The caller should have already removed
-       the slash separating it from the address.) */
+    /*
+     * If the addresses are IPv4, the mask may be in one of two forms.  It can
+     * either be a traditional mask, like 255.255.0.0, or it can be a CIDR
+     * subnet designation, like 16.  (The caller should have already removed
+     * the slash separating it from the address.)
+     */
     if (inet_aton(a, &a4) && inet_aton(b, &b4)) {
         if (mask == NULL)
             addr_mask = htonl(0xffffffffUL);
@@ -519,8 +521,10 @@ network_addr_match(const char *a, const char *b, const char *mask)
     }
             
 #ifdef HAVE_INET6
-    /* Otherwise, if the address is IPv6, the mask is required to be a CIDR
-       subnet designation. */
+    /*
+     * Otherwise, if the address is IPv6, the mask is required to be a CIDR
+     * subnet designation.
+     */
     if (!inet_pton(AF_INET6, a, &a6) || !inet_pton(AF_INET6, b, &b6))
         return false;
     if (mask == NULL)

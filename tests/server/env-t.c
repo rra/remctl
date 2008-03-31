@@ -1,12 +1,15 @@
-/* $Id$ */
-/* Test suite for environment variables set by the server. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2006 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * Test suite for environment variables set by the server.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <signal.h>
 #include <sys/wait.h>
@@ -16,8 +19,11 @@
 #include <tests/libtest.h>
 #include <util/util.h>
 
-/* Run the remote env command with the given variable and return the value
-   from the server or NULL if there was an error. */
+
+/*
+ * Run the remote env command with the given variable and return the value
+ * from the server or NULL if there was an error.
+ */
 static char *
 test_env(struct remctl *r, const char *variable)
 {

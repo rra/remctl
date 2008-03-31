@@ -1,18 +1,22 @@
-/* $Id$ */
-/* Test suite for the client connection negotiation code. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * Test suite for the client connection negotiation code.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
+#include <portable/socket.h>
 
 #include <fcntl.h>
-#include <netinet/in.h>
-#include <sys/select.h>
-#include <sys/socket.h>
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
 #include <sys/time.h>
 #include <sys/wait.h>
 
@@ -21,12 +25,15 @@
 #include <tests/libtest.h>
 #include <util/util.h>
 
-/* Create a socket, accept a single connection, try to establish a context,
-   and then close the connection and exit.  We run this in a subprocess to
-   provide the foil against which to test our connection negotiation.  Takes a
-   flag saying what protocol version to use.  1 indicates protocol version 1
-   the whole way, 2 indicates version 2 from the start, and 0 starts with
-   version 1 and then goes back to version 2. */
+
+/*
+ * Create a socket, accept a single connection, try to establish a context,
+ * and then close the connection and exit.  We run this in a subprocess to
+ * provide the foil against which to test our connection negotiation.  Takes a
+ * flag saying what protocol version to use.  1 indicates protocol version 1
+ * the whole way, 2 indicates version 2 from the start, and 0 starts with
+ * version 1 and then goes back to version 2.
+ */
 static void
 accept_connection(int protocol)
 {
@@ -94,6 +101,7 @@ accept_connection(int protocol)
     exit(0);
 }
 
+
 int
 main(void)
 {
@@ -106,10 +114,12 @@ main(void)
 
     test_init(5 * 3 + 3);
 
-    /* Now, check that the right thing happens when we try to connect to a
-       port where nothing is listening.  Modifying the returned error is not
-       actually allowed, but we know enough about the internals to know that
-       we can get away with it. */
+    /*
+     * Now, check that the right thing happens when we try to connect to a
+     * port where nothing is listening.  Modifying the returned error is not
+     * actually allowed, but we know enough about the internals to know that
+     * we can get away with it.
+     */
     n = 1;
     r = remctl_new();
     ok(n++, !remctl_open(r, "127.0.0.1", 14445, NULL));
@@ -131,10 +141,12 @@ main(void)
         return 0;
     }
 
-    /* We're going to try this three times, for each of the three possible
-       different protocol negotiation behaviors that accept_connection can
-       test.  Each time, we're going to check that we got a context and that
-       we negotiated the appropriate protocol. */
+    /*
+     * We're going to try this three times, for each of the three possible
+     * different protocol negotiation behaviors that accept_connection can
+     * test.  Each time, we're going to check that we got a context and that
+     * we negotiated the appropriate protocol.
+     */
     for (protocol = 0; protocol <= 2; protocol++) {
         r = remctl_new();
         child = fork();

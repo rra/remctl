@@ -6,9 +6,9 @@
 # file contains the bootstrap and export code and the documentation.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+# Copyright 2007, 2008 Board of Trustees, Leland Stanford Jr. University
 #
-# See README for licensing terms.
+# See LICENSE for licensing terms.
 
 package Net::Remctl;
 
@@ -272,7 +272,7 @@ Russ Allbery <rra@stanford.edu>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007 Board of Trustees, Leland Stanford Jr. University.  All
+Copyright 2007, 2008 Board of Trustees, Leland Stanford Jr. University.  All
 rights reserved.
 
 Permission to use, copy, modify, and distribute this software and its

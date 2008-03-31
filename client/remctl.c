@@ -1,18 +1,21 @@
-/*  $Id$
-**
-**  The client for a service for remote execution of predefined commands.
-**  Access is authenticated via GSS-API Kerberos 5, authorized via ACL files.
-**
-**  Originally written by Anton Ushakov <antonu@stanford.edu>
-**  Extensive modifications by Russ Allbery <rra@stanford.edu>
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
-**      Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
+/* $Id$
+ *
+ * remctl command-line client.
+ *
+ * This is a command-line driver for the libremctl library, which takes the
+ * command on the command line and prints out the results to standard output
+ * and standard error as appropriate.
+ *
+ * Originally written by Anton Ushakov
+ * Extensive modifications by Russ Allbery <rra@stanford.edu>
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ *     Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
 */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/getopt.h>
 #include <portable/socket.h>
 
@@ -34,8 +37,8 @@ Options:\n\
 
 
 /*
-**  Lowercase a string in place.
-*/
+ * Lowercase a string in place.
+ */
 static void 
 lowercase(char *string)
 {
@@ -47,8 +50,8 @@ lowercase(char *string)
 
 
 /*
-**  Display the usage message for remctl.
-*/
+ * Display the usage message for remctl.
+ */
 static void
 usage(int status)
 {
@@ -58,12 +61,12 @@ usage(int status)
 
 
 /*
-**  Get the responses back from the server, taking appropriate action on each
-**  one depending on its type.  Sets the errorcode parameter to the exit
-**  status of the remote command, or to 1 if the remote command failed with an
-**  error.  Returns true on success, false if some protocol-level error
-**  occurred when reading the responses.
-*/
+ * Get the responses back from the server, taking appropriate action on each
+ * one depending on its type.  Sets the errorcode parameter to the exit status
+ * of the remote command, or to 1 if the remote command failed with an error.
+ * Returns true on success, false if some protocol-level error occurred when
+ * reading the responses.
+ */
 static bool
 process_response(struct remctl *r, int *errorcode)
 {
@@ -105,9 +108,9 @@ process_response(struct remctl *r, int *errorcode)
 
 
 /*
-**  Main routine.  Parse the arguments, open the remctl connection, send the
-**  command, and then call process_response.
-*/
+ * Main routine.  Parse the arguments, open the remctl connection, send the
+ * command, and then call process_response.
+ */
 int
 main(int argc, char *argv[])
 {
@@ -124,11 +127,13 @@ main(int argc, char *argv[])
     if (!socket_init())
         die("failed to initialize socket library");
 
-    /* Parse options.  The + tells GNU getopt to stop option parsing at the
-       first non-argument rather than proceeding on to find options anywhere.
-       Without this, it's hard to call remote programs that take options.
-       Non-GNU getopt will treat the + as a supported option, which is handled
-       below. */
+    /*
+     * Parse options.  The + tells GNU getopt to stop option parsing at the
+     * first non-argument rather than proceeding on to find options anywhere.
+     * Without this, it's hard to call remote programs that take options.
+     * Non-GNU getopt will treat the + as a supported option, which is handled
+     * below.
+     */
     while ((option = getopt(argc, argv, "+dhp:s:v")) != EOF) {
         switch (option) {
         case 'd':
@@ -209,12 +214,3 @@ main(int argc, char *argv[])
     socket_shutdown();
     return errorcode;
 }
-
-
-/*
-**  Local variables:
-**  mode: c
-**  c-basic-offset: 4
-**  indent-tabs-mode: nil
-**  end:
-*/

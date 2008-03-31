@@ -1,12 +1,15 @@
-/* $Id$ */
-/* gss-tokens test suite. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * gss-tokens test suite.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
 
 #include <tests/libtest.h>
@@ -18,6 +21,7 @@ extern size_t send_length;
 extern size_t recv_length;
 extern int send_flags;
 extern int recv_flags;
+
 
 int
 main(void)
@@ -39,8 +43,10 @@ main(void)
         return 0;
     }
 
-    /* We have to set up a context first in order to do this test, which is
-       rather annoying. */
+    /*
+     * We have to set up a context first in order to do this test, which is
+     * rather annoying.
+     */
     name_buf.value = principal;
     name_buf.length = strlen(principal) + 1;
     s_stat = gss_import_name(&s_min_stat, &name_buf, GSS_C_NT_USER_NAME,
@@ -120,8 +126,10 @@ main(void)
                              &s_stat, &s_min_stat);
     ok_int(13, TOKEN_FAIL_GSSAPI, status);
 
-    /* Now, fake up a token to make sure that token_recv_priv is doing the
-       right thing. */
+    /*
+     * Now, fake up a token to make sure that token_recv_priv is doing the
+     * right thing.
+     */
     recv_flags = 5;
     client_tok.value = (char *) "hello";
     client_tok.length = 5;

@@ -1,13 +1,18 @@
-/*  $Id$
-**
-**  Small C program that outputs a string, forks off a process that sleeps for
-**  ten seconds and outputs another string, and meanwhile immediately exits.
-**  Used to test that remctld stops listening as soon as its child has exited
-**  and doesn't wait forever for output to be closed.
-*/
+/* $Id$
+ *
+ * Small C program that outputs a string, forks off a process that sleeps for
+ * ten seconds and outputs another string, and meanwhile immediately exits.
+ * Used to test that remctld stops listening as soon as its child has exited
+ * and doesn't wait forever for output to be closed.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 int
 main(void)

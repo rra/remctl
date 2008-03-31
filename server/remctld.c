@@ -1,19 +1,21 @@
-/*  $Id$
-**
-**  The deamon for a service for remote execution of predefined commands.
-**  Access is authenticated via GSS-API Kerberos 5, authorized via ACL files.
-**  Runs as a inetd/tcpserver deamon or a standalone program.
-**
-**  Written by Anton Ushakov
-**  Extensive modifications by Russ Allbery <rra@stanford.edu>
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
-**      Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * The remctl server.
+ *
+ * Handles option parsing, network setup, and the basic processing loop of the
+ * remctld server.  Supports either being run from inetd or tcpserver or
+ * running as a stand-alone daemon and managing its own network connections.
+ *
+ * Written by Anton Ushakov
+ * Extensive modifications by Russ Allbery <rra@stanford.edu>
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ *     Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
 
@@ -25,16 +27,22 @@
 #include <server/internal.h>
 #include <util/util.h>
 
-/* Flag indicating whether we've received a SIGCHLD and need to reap children
-   (only used in standalone mode). */
+/*
+ * Flag indicating whether we've received a SIGCHLD and need to reap children
+ * (only used in standalone mode).
+ */
 static volatile sig_atomic_t child_signaled = 0;
 
-/* Flag indicating whether we've received a signal asking us to re-read our
-   configuration file (only used in standalone mode). */
+/*
+ * Flag indicating whether we've received a signal asking us to re-read our
+ * configuration file (only used in standalone mode).
+ */
 static volatile sig_atomic_t config_signaled = 0;
 
-/* Flag indicating whether we've received a signal asking us to exit (only
-   used in standalone mode). */
+/*
+ * Flag indicating whether we've received a signal asking us to exit (only
+ * used in standalone mode).
+ */
 static volatile sig_atomic_t exit_signaled = 0;
 
 /* Usage message. */
@@ -66,8 +74,8 @@ struct options {
 
 
 /*
-**  Display the usage message for remctld.
-*/
+ * Display the usage message for remctld.
+ */
 static void
 usage(int status)
 {
@@ -80,10 +88,10 @@ usage(int status)
 
 
 /*
-**  Signal handler for child processes forked when running in standalone mode.
-**  Just set the child_signaled global so that we know to reap the processes
-**  later.
-*/
+ * Signal handler for child processes forked when running in standalone mode.
+ * Just set the child_signaled global so that we know to reap the processes
+ * later.
+ */
 static RETSIGTYPE
 child_handler(int sig UNUSED)
 {
@@ -92,10 +100,10 @@ child_handler(int sig UNUSED)
 
 
 /*
-**  Signal handler for signals asking us to re-read our configuration file
-**  when running in standalone mode.  Set the config_signaled global so that
-**  we do this the next time through the processing loop.
-*/
+ * Signal handler for signals asking us to re-read our configuration file when
+ * running in standalone mode.  Set the config_signaled global so that we do
+ * this the next time through the processing loop.
+ */
 static RETSIGTYPE
 config_handler(int sig UNUSED)
 {
@@ -104,10 +112,10 @@ config_handler(int sig UNUSED)
 
 
 /*
-**  Signal handler for signals asking for a clean shutdown when running in
-**  standalone mode.  Set the exit_signaled global so that we exit cleanly the
-**  next time through the processing loop.
-*/
+ * Signal handler for signals asking for a clean shutdown when running in
+ * standalone mode.  Set the exit_signaled global so that we exit cleanly the
+ * next time through the processing loop.
+ */
 static RETSIGTYPE
 exit_handler(int sig UNUSED)
 {
@@ -116,14 +124,14 @@ exit_handler(int sig UNUSED)
 
 
 /*
-**  Given a service name, imports it and acquires credentials for it, storing
-**  them in the second argument.  Returns true on success and false on
-**  failure, logging an error message.
-**
-**  Normally, you don't want to do this; instead, normally you want to allow
-**  the underlying GSS-API library choose the appropriate credentials from a
-**  keytab for each incoming connection.
-*/
+ * Given a service name, imports it and acquires credentials for it, storing
+ * them in the second argument.  Returns true on success and false on failure,
+ * logging an error message.
+ *
+ * Normally, you don't want to do this; instead, normally you want to allow
+ * the underlying GSS-API library choose the appropriate credentials from a
+ * keytab for each incoming connection.
+ */
 static bool
 acquire_creds(char *service, gss_cred_id_t *creds)
 {
@@ -150,13 +158,13 @@ acquire_creds(char *service, gss_cred_id_t *creds)
 
 
 /*
-**  Handle the interaction with the client.  Takes the client file descriptor,
-**  the server configuration, and the server credentials.  Establishes a
-**  security context, processes requests from the client, checks the ACL file
-**  as appropriate, and then spawns commands, sending the output back to the
-**  client.  This function only returns when the client connection has
-**  completed, either successfully or unsuccessfully.
-*/
+ * Handle the interaction with the client.  Takes the client file descriptor,
+ * the server configuration, and the server credentials.  Establishes a
+ * security context, processes requests from the client, checks the ACL file
+ * as appropriate, and then spawns commands, sending the output back to the
+ * client.  This function only returns when the client connection has
+ * completed, either successfully or unsuccessfully.
+ */
 static void
 server_handle_connection(int fd, struct config *config, gss_cred_id_t creds)
 {
@@ -171,9 +179,11 @@ server_handle_connection(int fd, struct config *config, gss_cred_id_t creds)
     debug("accepted connection from %s (protocol %d)", client->user,
           client->protocol);
 
-    /* Now, we process incoming commands.  This is handled differently
-       depending on the protocol version.  These functions won't exit until
-       the client is done sending commands and we're done replying. */
+    /*
+     * Now, we process incoming commands.  This is handled differently
+     * depending on the protocol version.  These functions won't exit until
+     * the client is done sending commands and we're done replying.
+     */
     if (client->protocol == 1)
         server_v1_handle_commands(client, config);
     else
@@ -185,10 +195,10 @@ server_handle_connection(int fd, struct config *config, gss_cred_id_t creds)
 
 
 /*
-**  Gather information about an exited child and log an appropriate message.
-**  We keep the log level to debug unless something interesting happened, like
-**  a non-zero exit status.
-*/
+ * Gather information about an exited child and log an appropriate message.
+ * We keep the log level to debug unless something interesting happened, like
+ * a non-zero exit status.
+ */
 static void
 server_log_child(pid_t pid, int status)
 {
@@ -208,12 +218,11 @@ server_log_child(pid_t pid, int status)
 
 
 /*
-**  Run as a daemon.  This is the main dispatch loop, which listens for
-**  network connections, forks a child to process each connection, and reaps
-**  the children when they're done.  This is only used in standalone mode;
-**  when run from inetd or tcpserver, remctld processes one connection and
-**  then exits.
-*/
+ * Run as a daemon.  This is the main dispatch loop, which listens for network
+ * connections, forks a child to process each connection, and reaps the
+ * children when they're done.  This is only used in standalone mode; when run
+ * from inetd or tcpserver, remctld processes one connection and then exits.
+ */
 static void
 server_daemon(struct options *options, struct config *config,
               gss_cred_id_t creds)
@@ -257,14 +266,16 @@ server_daemon(struct options *options, struct config *config,
     if (listen(stmp, 5) < 0)
         sysdie("error listening on socket");
 
-    /* The main processing loop.  Each time through the loop, check to see if
-       we need to reap children, check to see if we should re-read our
-       configuration, and check to see if we're exiting.  Then see if we have
-       a new connection, and if so, fork a child to handle it.
-
-       Note that there are no limits here on the number of simultaneous
-       processes, so you may want to set system resource limits to prevent an
-       attacker from consuming all available processes. */
+    /*
+     * The main processing loop.  Each time through the loop, check to see if
+     * we need to reap children, check to see if we should re-read our
+     * configuration, and check to see if we're exiting.  Then see if we have
+     * a new connection, and if so, fork a child to handle it.
+     *
+     * Note that there are no limits here on the number of simultaneous
+     * processes, so you may want to set system resource limits to prevent an
+     * attacker from consuming all available processes.
+     */
     do {
         if (child_signaled) {
             child_signaled = 0;
@@ -317,11 +328,11 @@ server_daemon(struct options *options, struct config *config,
 
 
 /*
-**  Main routine.  Parses command-line arguments, determines whether we're
-**  running in stand-alone or inetd mode, and does the connection handling if
-**  running in standalone mode.  User connections are handed off to
-**  process_connection.
-*/
+ * Main routine.  Parses command-line arguments, determines whether we're
+ * running in stand-alone or inetd mode, and does the connection handling if
+ * running in standalone mode.  User connections are handed off to
+ * process_connection.
+ */
 int
 main(int argc, char *argv[])
 {
@@ -332,8 +343,10 @@ main(int argc, char *argv[])
     OM_uint32 minor;
     struct config *config;
 
-    /* Since we are normally called from tcpserver or inetd, prevent clients
-       from holding on to us forever by dying after an hour. */
+    /*
+     * Since we are normally called from tcpserver or inetd, prevent clients
+     * from holding on to us forever by dying after an hour.
+     */
     alarm(60 * 60);
 
     /* Establish identity. */
@@ -394,8 +407,10 @@ main(int argc, char *argv[])
     if (options.standalone && !options.foreground)
         daemon(0, options.log_stdout);
 
-    /* Set up syslog unless stdout/stderr was requested.  Set up debug logging
-       if requestsed. */
+    /*
+     * Set up syslog unless stdout/stderr was requested.  Set up debug logging
+     * if requestsed.
+     */
     if (options.log_stdout) {
         if (options.debug)
             message_handlers_debug(1, message_log_stdout);
@@ -413,17 +428,21 @@ main(int argc, char *argv[])
     if (config == NULL)
         die("cannot read configuration file %s", options.config_path);
 
-    /* If a service was specified, we should load only those credentials since
-       those are the only ones we're allowed to use.  Otherwise, creds will
-       keep its default value of GSS_C_NO_CREDENTIAL, which means support
-       anything that's in the keytab. */
+    /*
+     * If a service was specified, we should load only those credentials since
+     * those are the only ones we're allowed to use.  Otherwise, creds will
+     * keep its default value of GSS_C_NO_CREDENTIAL, which means support
+     * anything that's in the keytab.
+     */
     if (options.service != NULL) {
         if (!acquire_creds(options.service, &creds))
             die("unable to acquire creds, aborting");
     }
 
-    /* Set up our PID file now after we've daemonized, since we may have
-       changed PIDs in the process. */
+    /*
+     * Set up our PID file now after we've daemonized, since we may have
+     * changed PIDs in the process.
+     */
     if (options.standalone && options.pid_path != NULL) {
         pid_file = fopen(options.pid_path, "w");
         if (pid_file == NULL)
@@ -432,9 +451,11 @@ main(int argc, char *argv[])
         fclose(pid_file);
     }
 
-    /* If we're not running as a daemon, just process the connection.
-       Otherwise, create a socket and listen on the socket, processing each
-       incoming connection. */
+    /*
+     * If we're not running as a daemon, just process the connection.
+     * Otherwise, create a socket and listen on the socket, processing each
+     * incoming connection.
+     */
     if (!options.standalone)
         server_handle_connection(0, config, creds);
     else
@@ -445,12 +466,3 @@ main(int argc, char *argv[])
         gss_release_cred(&minor, &creds);
     return 0;
 }
-
-
-/*
-**  Local variables:
-**  mode: c
-**  c-basic-offset: 4
-**  indent-tabs-mode: nil
-**  end:
-*/

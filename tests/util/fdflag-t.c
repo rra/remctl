@@ -1,12 +1,15 @@
-/* $Id$ */
-/* fdflag test suite. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2008 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * fdflag test suite.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2008 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/socket.h>
 
 #include <errno.h>
@@ -14,6 +17,7 @@
 
 #include <tests/libtest.h>
 #include <util/util.h>
+
 
 int
 main(void)
@@ -52,14 +56,16 @@ main(void)
     ok(2, fdflag_close_exec(out2, true));
     ok(3, fdflag_close_exec(out2, false));
 
-    /* Fork, child closes the open socket and then tries to connect, parent
-       calls listen() and accept() on it.  Parent will then set the socket
-       non-blocking and try to read from it to see what happens, then write
-       to the socket and close it, triggering the child close and exit.
-
-       Before the child exits, it will exec a shell that will print "no" to
-       the duplicate of stdout that the parent created and then the ok to
-       regular stdout. */
+    /*
+     * Fork, child closes the open socket and then tries to connect, parent
+     * calls listen() and accept() on it.  Parent will then set the socket
+     * non-blocking and try to read from it to see what happens, then write to
+     * the socket and close it, triggering the child close and exit.
+     *
+     * Before the child exits, it will exec a shell that will print "no" to
+     * the duplicate of stdout that the parent created and then the ok to
+     * regular stdout.
+     */
     child = fork();
     if (child < 0) {
         sysdie("fork failed");

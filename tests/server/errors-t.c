@@ -1,12 +1,15 @@
-/* $Id$ */
-/* Test suite for errors returned by the server. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * Test suite for errors returned by the server.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <signal.h>
 #include <sys/wait.h>
@@ -16,9 +19,12 @@
 #include <tests/libtest.h>
 #include <util/util.h>
 
-/* Run the given command and return the error code from the server, or
-   ERROR_INTERNAL if the command unexpectedly succeeded or we didn't get an
-   error code. */
+
+/*
+ * Run the given command and return the error code from the server, or
+ * ERROR_INTERNAL if the command unexpectedly succeeded or we didn't get an
+ * error code.
+ */
 static int
 test_error(struct remctl *r, const char *arg)
 {
@@ -51,8 +57,10 @@ test_error(struct remctl *r, const char *arg)
 }
 
 
-/* Try to send a command with 10K arguments to the server.  This should result
-   in ERROR_TOOMANY_ARGS given the current server limits. */
+/*
+ * Try to send a command with 10K arguments to the server.  This should result
+ * in ERROR_TOOMANY_ARGS given the current server limits.
+ */
 static int
 test_excess_args(struct remctl *r)
 {

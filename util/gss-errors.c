@@ -1,28 +1,29 @@
-/*  $Id$
-**
-**  Shared GSS-API error handling code.
-**
-**  Helper functions to interpret GSS-API errors that can be shared between
-**  the client and the server.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  Copyright 2007 Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * Shared GSS-API error handling code.
+ *
+ * Helper functions to interpret GSS-API errors that can be shared between the
+ * client and the server.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
 
 #include <util/util.h>
 
+
 /*
-**  Turn a GSS-API error code pair into a human-readable string, prefixed with
-**  "GSS-API error" and the provided string.  Uses gss_display_status to get
-**  the internal error message.  Returns a newly allocated string that the
-**  caller must free.
-*/
+ * Turn a GSS-API error code pair into a human-readable string, prefixed with
+ * "GSS-API error" and the provided string.  Uses gss_display_status to get
+ * the internal error message.  Returns a newly allocated string that the
+ * caller must free.
+ */
 char *
 gssapi_error_string(const char *prefix, OM_uint32 major, OM_uint32 minor)
 {

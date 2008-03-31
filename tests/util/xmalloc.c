@@ -1,50 +1,57 @@
-/* $Id$ */
-/* Test suite for xmalloc and family. */
-
-/* Copyright (c) 2004, 2005, 2006
-       by Internet Systems Consortium, Inc. ("ISC")
-   Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-       2002, 2003 by The Internet Software Consortium and Rich Salz
-
-   This code is derived from software contributed to the Internet Software
-   Consortium by Rich Salz.
-
-   Permission to use, copy, modify, and distribute this software for any
-   purpose with or without fee is hereby granted, provided that the above
-   copyright notice and this permission notice appear in all copies.
-
-   THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
-   REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-   MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
-   SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+/* $Id$
+ *
+ * Test suite for xmalloc and family.
+ *
+ * Copyright (c) 2004, 2005, 2006
+ *     by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+ *     2002, 2003 by The Internet Software Consortium and Rich Salz
+ *
+ * This code is derived from software contributed to the Internet Software
+ * Consortium by Rich Salz.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <ctype.h>
 #include <errno.h>
 #include <sys/time.h>
-#include <unistd.h>
 
 /* Linux requires sys/time.h be included before sys/resource.h. */
 #include <sys/resource.h>
 
 #include <util/util.h>
 
-/* A customized error handler for checking xmalloc's support of them.
-   Prints out the error message and exits with status 1. */
+
+/*
+ * A customized error handler for checking xmalloc's support of them.  Prints
+ * out the error message and exits with status 1.
+ */
 static void
 test_handler(const char *function, size_t size, const char *file, int line)
 {
     die("%s %lu %s %d", function, (unsigned long) size, file, line);
 }
 
-/* Allocate the amount of memory given and write to all of it to make sure
-   we can, returning true if that succeeded and false on any sort of
-   detectable error. */
+
+/*
+ * Allocate the amount of memory given and write to all of it to make sure we
+ * can, returning true if that succeeded and false on any sort of detectable
+ * error.
+ */
 static int
 test_malloc(size_t size)
 {
@@ -63,9 +70,12 @@ test_malloc(size_t size)
     return 1;
 }
 
-/* Allocate half the memory given, write to it, then reallocate to the
-   desired size, writing to the rest and then checking it all.  Returns true
-   on success, false on any failure. */
+
+/*
+ * Allocate half the memory given, write to it, then reallocate to the desired
+ * size, writing to the rest and then checking it all.  Returns true on
+ * success, false on any failure.
+ */
 static int
 test_realloc(size_t size)
 {
@@ -92,9 +102,11 @@ test_realloc(size_t size)
     return 1;
 }
 
-/* Generate a string of the size indicated, call xstrdup on it, and then
-   ensure the result matches.  Returns true on success, false on any
-   failure. */
+
+/*
+ * Generate a string of the size indicated, call xstrdup on it, and then
+ * ensure the result matches.  Returns true on success, false on any failure.
+ */
 static int
 test_strdup(size_t size)
 {
@@ -115,9 +127,12 @@ test_strdup(size_t size)
     return (match == 0);
 }
 
-/* Generate a string of the size indicated plus some, call xstrndup on it, and
-   then ensure the result matches.  Returns true on success, false on any
-   failure. */
+
+/*
+ * Generate a string of the size indicated plus some, call xstrndup on it, and
+ * then ensure the result matches.  Returns true on success, false on any
+ * failure.
+ */
 static int
 test_strndup(size_t size)
 {
@@ -140,9 +155,11 @@ test_strndup(size_t size)
     return (match == 0 && toomuch != 0);
 }
 
-/* Allocate the amount of memory given and check that it's all zeroed,
-   returning true if that succeeded and false on any sort of detectable
-   error. */
+
+/*
+ * Allocate the amount of memory given and check that it's all zeroed,
+ * returning true if that succeeded and false on any sort of detectable error.
+ */
 static int
 test_calloc(size_t size)
 {
@@ -162,8 +179,11 @@ test_calloc(size_t size)
     return 1;
 }
 
-/* Test asprintf with a large string (essentially using it as strdup).
-   Returns true if successful, false otherwise. */
+
+/*
+ * Test asprintf with a large string (essentially using it as strdup).
+ * Returns true if successful, false otherwise.
+ */
 static int
 test_asprintf(size_t size)
 {
@@ -185,6 +205,7 @@ test_asprintf(size_t size)
     return 1;
 }
 
+
 /* Wrapper around vasprintf to do the va_list stuff. */
 static int
 xvasprintf_wrapper(char **strp, const char *format, ...)
@@ -198,8 +219,11 @@ xvasprintf_wrapper(char **strp, const char *format, ...)
     return status;
 }
 
-/* Test vasprintf with a large string (essentially using it as strdup).
-   Returns true if successful, false otherwise. */
+
+/*
+ * Test vasprintf with a large string (essentially using it as strdup).
+ * Returns true if successful, false otherwise.
+ */
 static int
 test_vasprintf(size_t size)
 {
@@ -221,8 +245,11 @@ test_vasprintf(size_t size)
     return 1;
 }
 
-/* Take the amount of memory to allocate in bytes as a command-line argument
-   and call test_malloc with that amount of memory. */
+
+/*
+ * Take the amount of memory to allocate in bytes as a command-line argument
+ * and call test_malloc with that amount of memory.
+ */
 int
 main(int argc, char *argv[])
 {
@@ -243,11 +270,13 @@ main(int argc, char *argv[])
     if (limit == 0 && errno != 0)
         sysdie("Invalid limit");
 
-    /* If a memory limit was given and we can set memory limits, set it.
-       Otherwise, exit 2, signalling to the driver that the test should be
-       skipped.  We do this here rather than in the driver due to some
-       pathological problems with Linux (setting ulimit in the shell caused
-       the shell to die). */
+    /*
+     * If a memory limit was given and we can set memory limits, set it.
+     * Otherwise, exit 2, signalling to the driver that the test should be
+     * skipped.  We do this here rather than in the driver due to some
+     * pathological problems with Linux (setting ulimit in the shell caused
+     * the shell to die).
+     */
     if (limit > 0) {
 #if HAVE_SETRLIMIT && defined(RLIMIT_DATA)
         rl.rlim_cur = limit;
@@ -269,9 +298,11 @@ main(int argc, char *argv[])
         code = tolower(code);
     }
 
-    /* Decide if the allocation should fail.  If it should, set willfail to
-       2, so that if it unexpectedly succeeds, we exit with a status
-       indicating that the test should be skipped. */
+    /*
+     * Decide if the allocation should fail.  If it should, set willfail to 2,
+     * so that if it unexpectedly succeeds, we exit with a status indicating
+     * that the test should be skipped.
+     */
     max = size;
     if (code == 's' || code == 'n' || code == 'a' || code == 'v')
         max *= 2;

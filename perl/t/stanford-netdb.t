@@ -1,11 +1,17 @@
 #!/usr/bin/perl -w
 # $Id$
 #
-# t/stanford-netdb.t -- Test default parameters against NetDB.
+# Test default parameters against Stanford's NetDB service.
 #
 # This test can only be run by someone local to Stanford with appropriate
 # access to the NetDB role server and will be skipped in all other
-# environments.
+# environments.  We need to use a known service running on the standard ports
+# in order to test undefined values passed to Net::Remctl functions.
+#
+# Written by Russ Allbery
+# Copyright 2008 Board of Trustees, Leland Stanford Jr. University
+#
+# See LICENSE for licensing terms.
 
 BEGIN { our $total = 6 }
 use Test::More tests => $total;

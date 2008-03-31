@@ -1,39 +1,37 @@
-/*  $Id$
-**
-**  Some utility routines for writing tests.
-**
-**  Herein are a variety of utility routines for writing tests.  All
-**  routines of the form ok*() take a test number and some number of
-**  appropriate arguments, check to be sure the results match the expected
-**  output using the arguments, and print out something appropriate for that
-**  test number.  Other utility routines help in constructing more complex
-**  tests.
-**
-**  Copyright (c) 2006
-**      Board of Trustees, Leland Stanford Jr. University
-**  Copyright (c) 2004, 2005, 2006
-**      by Internet Systems Consortium, Inc. ("ISC")
-**  Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-**      2002, 2003 by The Internet Software Consortium and Rich Salz
-**
-**  This code is derived from software contributed to the Internet Software
-**  Consortium by Rich Salz.
-**
-**  Permission to use, copy, modify, and distribute this software for any
-**  purpose with or without fee is hereby granted, provided that the above
-**  copyright notice and this permission notice appear in all copies.
-**
-**  THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
-**  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-**  MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
-**  SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-**  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-**  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-**  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-*/
+/* $Id$
+ *
+ * Some utility routines for writing tests.
+ *
+ * Herein are a variety of utility routines for writing tests.  All routines
+ * of the form ok*() take a test number and some number of appropriate
+ * arguments, check to be sure the results match the expected output using the
+ * arguments, and print out something appropriate for that test number.  Other
+ * utility routines help in constructing more complex tests.
+ *
+ * Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+ * Copyright (c) 2004, 2005, 2006
+ *     by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+ *     2002, 2003 by The Internet Software Consortium and Rich Salz
+ *
+ * This code is derived from software contributed to the Internet Software
+ * Consortium by Rich Salz.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <sys/time.h>
 #include <sys/wait.h>
@@ -46,9 +44,9 @@ char *errors = NULL;
 
 
 /*
-**  Initialize things.  Turns on line buffering on stdout and then prints out
-**  the number of tests in the test suite.
-*/
+ * Initialize things.  Turns on line buffering on stdout and then prints out
+ * the number of tests in the test suite.
+ */
 void
 test_init(int count)
 {
@@ -59,9 +57,9 @@ test_init(int count)
 
 
 /*
-**  Takes a boolean success value and assumes the test passes if that value
-**  is true and fails if that value is false.
-*/
+ * Takes a boolean success value and assumes the test passes if that value
+ * is true and fails if that value is false.
+ */
 void
 ok(int n, int success)
 {
@@ -70,9 +68,9 @@ ok(int n, int success)
 
 
 /*
-**  Takes an expected integer and a seen integer and assumes the test passes
-**  if those two numbers match.
-*/
+ * Takes an expected integer and a seen integer and assumes the test passes
+ * if those two numbers match.
+ */
 void
 ok_int(int n, int wanted, int seen)
 {
@@ -84,9 +82,9 @@ ok_int(int n, int wanted, int seen)
 
 
 /*
-**  Takes a string and what the string should be, and assumes the test
-**  passes if those strings match (using strcmp).
-*/
+ * Takes a string and what the string should be, and assumes the test passes
+ * if those strings match (using strcmp).
+ */
 void
 ok_string(int n, const char *wanted, const char *seen)
 {
@@ -102,9 +100,9 @@ ok_string(int n, const char *wanted, const char *seen)
 
 
 /*
-**  Takes an expected integer and a seen integer and assumes the test passes
-**  if those two numbers match.
-*/
+ * Takes an expected integer and a seen integer and assumes the test passes if
+ * those two numbers match.
+ */
 void
 ok_double(int n, double wanted, double seen)
 {
@@ -116,8 +114,8 @@ ok_double(int n, double wanted, double seen)
 
 
 /*
-**  Skip a test.
-*/
+ * Skip a test.
+ */
 void
 skip(int n, const char *reason)
 {
@@ -129,8 +127,8 @@ skip(int n, const char *reason)
 
 
 /*
-**  Report the same status on the next count tests.
-*/
+ * Report the same status on the next count tests.
+ */
 void
 ok_block(int n, int count, int status)
 {
@@ -142,8 +140,8 @@ ok_block(int n, int count, int status)
 
 
 /*
-**  Skip the next count tests.
-*/
+ * Skip the next count tests.
+ */
 void
 skip_block(int n, int count, const char *reason)
 {
@@ -155,9 +153,9 @@ skip_block(int n, int count, const char *reason)
 
 
 /*
-**  An error handler that appends all errors to the errors global.  Used by
-**  error_capture.
-*/
+ * An error handler that appends all errors to the errors global.  Used by
+ * error_capture.
+ */
 static void
 message_log_buffer(int len, const char *fmt, va_list args, int error UNUSED)
 {
@@ -179,10 +177,10 @@ message_log_buffer(int len, const char *fmt, va_list args, int error UNUSED)
 
 
 /*
-**  Turn on the capturing of errors.  Errors will be stored in the global
-**  errors variable where they can be checked by the test suite.  Capturing is
-**  turned off with errors_uncapture.
-*/
+ * Turn on the capturing of errors.  Errors will be stored in the global
+ * errors variable where they can be checked by the test suite.  Capturing is
+ * turned off with errors_uncapture.
+ */
 void
 errors_capture(void)
 {
@@ -196,8 +194,8 @@ errors_capture(void)
 
 
 /*
-**  Turn off the capturing of errors again.
-*/
+ * Turn off the capturing of errors again.
+ */
 void
 errors_uncapture(void)
 {
@@ -207,13 +205,14 @@ errors_uncapture(void)
 
 
 /*
-**  Set up our Kerberos access and return the principal to use for the remote
-**  remctl connection, NULL if we couldn't initialize things.  We read the
-**  principal to use for authentication out of a file and fork kinit to obtain
-**  a Kerberos ticket cache.
-**
-**  We support either the standard kinit flags or the weird Stanford flags.
-*/
+ * Set up our Kerberos access and return the principal to use for the remote
+ * remctl connection, NULL if we couldn't initialize things.  We read the
+ * principal to use for authentication out of a file and fork kinit to obtain
+ * a Kerberos ticket cache.
+ *
+ * We support either the standard kinit flags (MIT or Heimdal) or the weird
+ * Stanford flags.
+ */
 char *
 kerberos_setup(void)
 {
@@ -271,9 +270,9 @@ kerberos_setup(void)
 
 
 /*
-**  Spawn a remctl server on port 14444 to use for testing and return the PID
-**  for later killing.
-*/
+ * Spawn a remctl server on port 14444 to use for testing and return the PID
+ * for later killing.
+ */
 pid_t
 spawn_remctld(const char *principal)
 {

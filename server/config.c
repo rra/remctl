@@ -1,20 +1,20 @@
-/*  $Id$
-**
-**  Configuration parsing.
-**
-**  These are the functions for parsing the remctld configuration file and
-**  checking access.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
-**      Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * Configuration parsing.
+ *
+ * These are the functions for parsing the remctld configuration file and
+ * checking access.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Based on work by Anton Ushakov
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ *     Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <ctype.h>
 #include <dirent.h>
@@ -25,17 +25,17 @@
 
 
 /*
-**  Handles an include request for either read_conf_file or acl_check_file.
-**  Takes the vector that represents the include directive, the current file,
-**  the line number, the function to call for each included file, and a piece
-**  of data to pass to that function.  Handles including either files or
-**  directories.
-**
-**  If the function returns a value less than -1, return its return code.
-**  Otherwise, return the greatest of all status codes returned by the
-**  functions.  Also returns -2 for any error in processing the include
-**  directive.
-*/
+ * Handles an include request for either read_conf_file or acl_check_file.
+ * Takes the vector that represents the include directive, the current file,
+ * the line number, the function to call for each included file, and a piece
+ * of data to pass to that function.  Handles including either files or
+ * directories.
+ *
+ * If the function returns a value less than -1, return its return code.
+ * Otherwise, return the greatest of all status codes returned by the
+ * functions.  Also returns -2 for any error in processing the include
+ * directive.
+ */
 static int
 handle_include(struct vector *line, const char *file, int lineno,
                int (*function)(void *, const char *), void *data)
@@ -57,8 +57,10 @@ handle_include(struct vector *line, const char *file, int lineno,
         return -2;
     }
 
-    /* If it's a directory, include everything in the directory that doesn't
-       contain a period.  Otherwise, just include the one file. */
+    /*
+     * If it's a directory, include everything in the directory that doesn't
+     * contain a period.  Otherwise, just include the one file.
+     */
     if (!S_ISDIR(st.st_mode)) {
         return (*function)(data, included);
     } else {
@@ -93,23 +95,23 @@ handle_include(struct vector *line, const char *file, int lineno,
 
 
 /*
-**  Reads the configuration file and parses every line, populating a data
-**  structure that will be traversed on each request to translate a command
-**  type into an executable path and ACL file.
-**
-**  config is populated with the parsed configuration file.  Empty lines and
-**  lines beginning with # are ignored.  Each line is divided into fields,
-**  separated by spaces.  The fields are defined by struct confline.  Lines
-**  ending in backslash are continued on the next line.  config is passed in
-**  as a void * so that read_conf_file and acl_check_file can use common
-**  include handling code.
-**
-**  As a special case, include <file> will call read_conf_file recursively to
-**  parse an included file (or, if <file> is a directory, every file in that
-**  directory that doesn't contain a period).
-**
-**  Returns 0 on success and -2 on error, reporting an error message.
-*/
+ * Reads the configuration file and parses every line, populating a data
+ * structure that will be traversed on each request to translate a command
+ * type into an executable path and ACL file.
+ *
+ * config is populated with the parsed configuration file.  Empty lines and
+ * lines beginning with # are ignored.  Each line is divided into fields,
+ * separated by spaces.  The fields are defined by struct confline.  Lines
+ * ending in backslash are continued on the next line.  config is passed in
+ * as a void * so that read_conf_file and acl_check_file can use common
+ * include handling code.
+ *
+ * As a special case, include <file> will call read_conf_file recursively to
+ * parse an included file (or, if <file> is a directory, every file in that
+ * directory that doesn't contain a period).
+ *
+ * Returns 0 on success and -2 on error, reporting an error message.
+ */
 static int
 read_conf_file(void *data, const char *name)
 {
@@ -140,11 +142,13 @@ read_conf_file(void *data, const char *name)
         if (length < 2)
             continue;
 
-        /* Allow for long lines and continuation lines.  As long as we've
-           either filled the buffer or have a line ending in a backslash, we
-           keep reading more data.  If we filled the buffer, increase it by
-           another 1KB; otherwise, back up and write over the backslash and
-           newline. */
+        /*
+         * Allow for long lines and continuation lines.  As long as we've
+         * either filled the buffer or have a line ending in a backslash, we
+         * keep reading more data.  If we filled the buffer, increase it by
+         * another 1KB; otherwise, back up and write over the backslash and
+         * newline.
+         */
         p = buffer + length - 2;
         while (length > 2 && (p[1] != '\n' || p[0] == '\\')) {
             if (p[1] != '\n') {
@@ -166,17 +170,21 @@ read_conf_file(void *data, const char *name)
             buffer[length - 1] = '\0';
         lineno++;
 
-        /* Skip blank lines or commented-out lines.  Note that because of the
-           above logic, comments can be continued on the next line, so be
-           careful. */
+        /*
+         * Skip blank lines or commented-out lines.  Note that because of the
+         * above logic, comments can be continued on the next line, so be
+         * careful.
+         */
         p = buffer;
         while (isspace((int) *p))
             p++;
         if (*p == '\0' || *p == '#')
             continue;
 
-        /* We have a valid configuration line.  Do a quick syntax check and
-           handle include. */
+        /*
+         * We have a valid configuration line.  Do a quick syntax check and
+         * handle include.
+         */
         line = vector_split_space(buffer, NULL);
         if (line->count < 4) {
             s = handle_include(line, name, lineno, read_conf_file, config);
@@ -187,9 +195,10 @@ read_conf_file(void *data, const char *name)
             continue;
         }
 
-        /* Okay, we have a regular configuration line.  Make sure there's
-           space for it in the config struct and stuff the vector into
-           place. */
+        /*
+         * Okay, we have a regular configuration line.  Make sure there's
+         * space for it in the config struct and stuff the vector into place.
+         */
         if (config->count == config->allocated) {
             if (config->allocated < 4)
                 config->allocated = 4;
@@ -204,8 +213,10 @@ read_conf_file(void *data, const char *name)
         confline->service = line->strings[1];
         confline->program = line->strings[2];
 
-        /* Change this to a while vline->string[n] has an "=" in it to support
-           multiple x=y options. */
+        /*
+         * Change this to a while vline->string[n] has an "=" in it to support
+         * multiple x=y options.
+         */
         if (strncmp(line->strings[3], "logmask=", 8) == 0) {
             confline->logmask = cvector_new();
             cvector_split(line->strings[3] + 8, ',', confline->logmask);
@@ -213,8 +224,10 @@ read_conf_file(void *data, const char *name)
         } else
             arg_i = 3;
 
-        /* One more syntax error possibility here: a line that only has a
-           logmask setting but no ACL files. */
+        /*
+         * One more syntax error possibility here: a line that only has a
+         * logmask setting but no ACL files.
+         */
         if (line->count <= arg_i) {
             warn("%s:%lu: config parse error", name, (unsigned long) lineno);
             goto fail;
@@ -257,15 +270,15 @@ fail:
 
 
 /*
-**  Check to see if a given principal is in a given file.  This function is
-**  recursive to handle included ACL files and only does a simple check to
-**  prevent infinite recursion, so be careful.  The first argument is the user
-**  to check, which is passed in as a void * so that acl_check_file and
-**  read_conf_file can share common include-handling code.
-**
-**  Returns 0 if the user is authorized, -1 if they aren't, and -2 on some
-**  sort of failure (such as failure to read a file or a syntax error).
-*/
+ * Check to see if a given principal is in a given file.  This function is
+ * recursive to handle included ACL files and only does a simple check to
+ * prevent infinite recursion, so be careful.  The first argument is the user
+ * to check, which is passed in as a void * so that acl_check_file and
+ * read_conf_file can share common include-handling code.
+ *
+ * Returns 0 if the user is authorized, -1 if they aren't, and -2 on some sort
+ * of failure (such as failure to read a file or a syntax error).
+ */
 static int
 acl_check_file(void *data, const char *aclfile)
 {
@@ -291,8 +304,10 @@ acl_check_file(void *data, const char *aclfile)
             goto fail;
         }
 
-        /* Skip blank lines or commented-out lines and remove trailing
-         * whitespace. */
+        /*
+         * Skip blank lines or commented-out lines and remove trailing
+         * whitespace.
+         */
         p = buffer + length - 1;
         while (isspace((int) *p))
             p--;
@@ -330,9 +345,9 @@ fail:
 
 
 /*
-**  Load a configuration file.  Returns a newly allocated config struct if
-**  successful or NULL on failure, logging an appropriate error message.
-*/
+ * Load a configuration file.  Returns a newly allocated config struct if
+ * successful or NULL on failure, logging an appropriate error message.
+ */
 struct config *
 server_config_load(const char *file)
 {
@@ -349,8 +364,8 @@ server_config_load(const char *file)
 
 
 /*
-**  Free the config structure created by calling server_config_load.
-*/
+ * Free the config structure created by calling server_config_load.
+ */
 void
 server_config_free(struct config *config)
 {
@@ -372,10 +387,10 @@ server_config_free(struct config *config)
 
 
 /*
-**  Given the confline corresponding to the command and the principal
-**  requesting access, see if the command is allowed.  Return true if so,
-**  false otherwise.
-*/
+ * Given the confline corresponding to the command and the principal
+ * requesting access, see if the command is allowed.  Return true if so, false
+ * otherwise.
+ */
 bool
 server_config_acl_permit(struct confline *cline, const char *user)
 {

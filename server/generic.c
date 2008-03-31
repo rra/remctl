@@ -1,20 +1,20 @@
-/*  $Id$
-**
-**  Server implementation of generic protocol functions.
-**
-**  These are the server protocol functions that can be shared between the v1
-**  and v2 protocol.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
-**      Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * Server implementation of generic protocol functions.
+ *
+ * These are the server protocol functions that can be shared between the v1
+ * and v2 protocol.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Based on work by Anton Ushakov
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ *     Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
 
@@ -23,11 +23,11 @@
 
 
 /*
-**  Create a new client struct from a file descriptor and establish a GSS-API
-**  context as a specified service with an incoming client and fills out the
-**  client struct.  Returns a new client struct on success and NULL on
-**  failure, logging an appropriate error message.
-*/
+ * Create a new client struct from a file descriptor and establish a GSS-API
+ * context as a specified service with an incoming client and fills out the
+ * client struct.  Returns a new client struct on success and NULL on failure,
+ * logging an appropriate error message.
+ */
 struct client *
 server_new_client(int fd, gss_cred_id_t creds)
 {
@@ -176,8 +176,8 @@ fail:
 
 
 /*
-**  Free a client struct, including any resources that it holds.
-*/
+ * Free a client struct, including any resources that it holds.
+ */
 void
 server_free_client(struct client *client)
 {
@@ -199,13 +199,13 @@ server_free_client(struct client *client)
 
 
 /*
-**  Receives a command token payload and builds an argv structure for it,
-**  returning that as a vector.  Takes the client struct, a pointer to the
-**  beginning of the payload (starting with the argument count), and the
-**  length of the payload.  If there are any problems with the request, sends
-**  an error token, logs the error, and then returns NULL.  Otherwise, returns
-**  the command vector.
-*/
+ * Receives a command token payload and builds an argv structure for it,
+ * returning that as a vector.  Takes the client struct, a pointer to the
+ * beginning of the payload (starting with the argument count), and the length
+ * of the payload.  If there are any problems with the request, sends an error
+ * token, logs the error, and then returns NULL.  Otherwise, returns the
+ * command vector.
+ */
 struct vector *
 server_parse_command(struct client *client, const char *buffer, size_t length)
 {
@@ -237,9 +237,11 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
     argv = vector_new();
     vector_resize(argv, argc);
 
-    /* Parse out the arguments and store them into a vector.  Arguments are
-       packed: (<arglength><argument>)+.  Make sure each time through the loop
-       that they didn't send more arguments than they claimed to have. */
+    /*
+     * Parse out the arguments and store them into a vector.  Arguments are
+     * packed: (<arglength><argument>)+.  Make sure each time through the loop
+     * that they didn't send more arguments than they claimed to have.
+     */
     while (p <= buffer + length - 4) {
         if (argv->count >= argc) {
             warn("sent more arguments than argc %lu", (unsigned long) argc);
@@ -259,9 +261,11 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
             return NULL;
         }
 
-        /* We want vector_add that takes a counted string, but that's a weird
-           interface; cheat and write it ourselves here.  This will need to
-           change later when we want to support nul characters. */
+        /*
+         * We want vector_add that takes a counted string, but that's a weird
+         * interface; cheat and write it ourselves here.  This will need to
+         * change later when we want to support nul characters.
+         */
         argv->strings[argv->count] = xmalloc(arglen + 1);
         if (length > 0)
             memcpy(argv->strings[argv->count], p, arglen);
@@ -282,10 +286,10 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
 
 
 /*
-**  Send an error back to the client.  Takes the client struct, the error
-**  code, and the message to send and dispatches to the appropriate
-**  protocol-specific function.  Returns true on success, false on failure.
-*/
+ * Send an error back to the client.  Takes the client struct, the error code,
+ * and the message to send and dispatches to the appropriate protocol-specific
+ * function.  Returns true on success, false on failure.
+ */
 bool
 server_send_error(struct client *client, enum error_codes error,
                   const char *message)

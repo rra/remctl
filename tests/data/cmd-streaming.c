@@ -1,13 +1,20 @@
-/*  $Id$
-**
-**  Small C program to output three lines, one to stdout, one to stderr, and
-**  then one to stdout again.  Used to test remctl streaming support.
-*/
+/* $Id$
+ *
+ * Small C program to output three lines, one to stdout, one to stderr, and
+ * then one to stdout again.  Used to test remctl streaming support.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
-#include <sys/select.h>
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
 #include <sys/time.h>
 
 int

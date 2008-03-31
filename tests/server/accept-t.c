@@ -1,26 +1,31 @@
-/* $Id$ */
-/* Test suite for the server connection negotiation code. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * Test suite for the server connection negotiation code.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
+#include <portable/socket.h>
 
-#include <netinet/in.h>
-#include <sys/socket.h>
 #include <sys/wait.h>
 
 #include <server/internal.h>
 #include <tests/libtest.h>
 #include <util/util.h>
 
-/* Open a new connection to a server, taking the protocol version and
-   principal to use.  1 indicates protocol version 1 the whole way, 2
-   indicates version 2 from the start, and 0 starts with version 2, goes back
-   to version 1, and then goes to version 2. */
+
+/*
+ * Open a new connection to a server, taking the protocol version and
+ * principal to use.  1 indicates protocol version 1 the whole way, 2
+ * indicates version 2 from the start, and 0 starts with version 2, goes back
+ * to version 1, and then goes to version 2.
+ */
 static void
 make_connection(int protocol, const char *principal)
 {
@@ -92,6 +97,7 @@ make_connection(int protocol, const char *principal)
     exit(0);
 }
 
+
 int
 main(void)
 {
@@ -124,10 +130,12 @@ main(void)
     if (listen(s, 1) < 0)
         sysdie("error listening to socket");
 
-    /* We're going to try this three times, for each of the three possible
-       different protocol negotiation behaviors that accept_connection can
-       test.  Each time, we're going to check that we got a context and that
-       we negotiated the appropriate protocol. */
+    /*
+     * We're going to try this three times, for each of the three possible
+     * different protocol negotiation behaviors that accept_connection can
+     * test.  Each time, we're going to check that we got a context and that
+     * we negotiated the appropriate protocol.
+     */
     n = 1;
     for (protocol = 0; protocol <= 2; protocol++) {
         child = fork();

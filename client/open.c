@@ -1,22 +1,22 @@
-/*  $Id$
-**
-**  Open a connection to a remote server.
-**
-**  This is the client implementation of opening a connection to a remote
-**  server and doing the initial GSS-API negotiation.  This function is shared
-**  between the v1 and v2 implementations.  One of the things it establishes
-**  is what protocol is being used.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  Based on work by Anton Ushakov
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
-**      Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * Open a connection to a remote server.
+ *
+ * This is the client implementation of opening a connection to a remote
+ * server and doing the initial GSS-API negotiation.  This function is shared
+ * between the v1 and v2 implementations.  One of the things it establishes is
+ * what protocol is being used.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Based on work by Anton Ushakov
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ *     Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
 
@@ -28,10 +28,10 @@
 
 
 /*
-**  Given the remctl object (for error reporting), host, and port, attempt a
-**  network connection.  Returns the file descriptor if successful or -1 on
-**  failure.
-*/
+ * Given the remctl object (for error reporting), host, and port, attempt a
+ * network connection.  Returns the file descriptor if successful or -1 on
+ * failure.
+ */
 static int
 internal_connect(struct remctl *r, const char *host, unsigned short port)
 {
@@ -39,9 +39,11 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
     char portbuf[16];
     int status, fd;
 
-    /* Look up the remote host and open a TCP connection.  Call getaddrinfo
-       and network_connect instead of network_connect_host so that we can
-       report the complete error on host resolution. */
+    /*
+     * Look up the remote host and open a TCP connection.  Call getaddrinfo
+     * and network_connect instead of network_connect_host so that we can
+     * report the complete error on host resolution.
+     */
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
@@ -64,9 +66,9 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
 
 
 /*
-**  Open a new connection to a server.  Returns true on success, false on
-**  failure.  On failure, sets the error message appropriately.
-*/
+ * Open a new connection to a server.  Returns true on success, false on
+ * failure.  On failure, sets the error message appropriately.
+ */
 bool
 internal_open(struct remctl *r, const char *host, unsigned short port,
               const char *principal)
@@ -86,9 +88,11 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     static const OM_uint32 req_gss_flags
         = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
 
-    /* If port is 0, default to trying the standard port and then falling back
-       on the old port.  If principal is NULL, use host/<host> in the default
-       realm. */
+    /*
+     * If port is 0, default to trying the standard port and then falling back
+     * on the old port.  If principal is NULL, use host/<host> in the default
+     * realm.
+     */
     if (port == 0) {
         port = REMCTL_PORT;
         port_fallback = true;
@@ -115,9 +119,11 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
         goto fail;
     }
 
-    /* Default to protocol version two, but if some other protocol is already
-       set in the remctl struct, don't override.  This facility is used only
-       for testing currently. */
+    /*
+     * Default to protocol version two, but if some other protocol is already
+     * set in the remctl struct, don't override.  This facility is used only
+     * for testing currently.
+     */
     if (r->protocol == 0)
         r->protocol = 2;
 
@@ -130,30 +136,28 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     }
 
     /* Perform the context-establishment loop.
-
-       On each pass through the loop, token_ptr points to the token to send to
-       the server (or GSS_C_NO_BUFFER on the first pass).  Every generated
-       token is stored in send_tok which is then transmitted to the server;
-       every received token is stored in recv_tok, which token_ptr is then set
-       to, to be processed by the next call to gss_init_sec_context.
-
-       GSS-API guarantees that send_tok's length will be non-zero if and only
-       if the server is expecting another token from us, and that
-       gss_init_sec_context returns GSS_S_CONTINUE_NEEDED if and only if the
-       server has another token to send us.
-
-       We start with the assumption that we're going to do protocol v2, but if
-       the server ever drops TOKEN_PROTOCOL from the response, we fall back to
-       v1. */
+     *
+     * On each pass through the loop, token_ptr points to the token to send to
+     * the server (or GSS_C_NO_BUFFER on the first pass).  Every generated
+     * token is stored in send_tok which is then transmitted to the server;
+     * every received token is stored in recv_tok, which token_ptr is then set
+     * to, to be processed by the next call to gss_init_sec_context.
+     *
+     * GSS-API guarantees that send_tok's length will be non-zero if and only
+     * if the server is expecting another token from us, and that
+     * gss_init_sec_context returns GSS_S_CONTINUE_NEEDED if and only if the
+     * server has another token to send us.
+     *
+     * We start with the assumption that we're going to do protocol v2, but if
+     * the server ever drops TOKEN_PROTOCOL from the response, we fall back to
+     * v1.
+     */
     token_ptr = GSS_C_NO_BUFFER;
     do {
         major = gss_init_sec_context(&init_minor, GSS_C_NO_CREDENTIAL, 
                     &gss_context, name, (const gss_OID) GSS_KRB5_MECHANISM,
                     wanted_gss_flags, 0, NULL, token_ptr, NULL, &send_tok,
                     &gss_flags, NULL);
-
-        /* Allocated in token_recv, so use free instead of gss_release_buffer
-           for correctness on Windows. */
         if (token_ptr != GSS_C_NO_BUFFER)
             free(recv_tok.value);
 
@@ -178,8 +182,10 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
             goto fail;
         }
 
-        /* If the flags we get back from the server are bad and we're doing
-           protocol v2, report an error and abort. */
+        /*
+         * If the flags we get back from the server are bad and we're doing
+         * protocol v2, report an error and abort.
+         */
         if (r->protocol > 1 && (gss_flags & req_gss_flags) != req_gss_flags) {
             internal_set_error(r, "server did not negotiate acceptable"
                                " GSS-API flags");

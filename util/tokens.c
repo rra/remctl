@@ -1,21 +1,21 @@
-/*  $Id$
-**
-**  Token handling routines.
-**
-**  Low-level routines to send and receive remctl tokens.  token_send and
-**  token_recv do not do anything to their provided input or output except
-**  wrapping flags and a length around them.
-**
-**  Originally written by Anton Ushakov
-**  Extensive modifications by Russ Allbery <rra@stanford.edu>
-**  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
-**      Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * Token handling routines.
+ *
+ * Low-level routines to send and receive remctl tokens.  token_send and
+ * token_recv do not do anything to their provided input or output except
+ * wrapping flags and a length around them.
+ *
+ * Originally written by Anton Ushakov
+ * Extensive modifications by Russ Allbery <rra@stanford.edu>
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ *     Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
 
@@ -23,8 +23,10 @@
 
 #include <util/util.h>
 
-/* Windows requires a different function when sending to sockets, but can't
-   return short writes on blocking sockets. */
+/*
+ * Windows requires a different function when sending to sockets, but can't
+ * return short writes on blocking sockets.
+ */
 #ifdef _WIN32
 # define socket_xwrite(fd, b, s)        send((fd), (b), (s), 0)
 #else
@@ -33,9 +35,9 @@
 
 
 /*
-**  Equivalent to read, but reads all the available data up to the buffer
-**  length, using multiple reads if needed and handling EINTR and EAGAIN.
-*/
+ * Equivalent to read, but reads all the available data up to the buffer
+ * length, using multiple reads if needed and handling EINTR and EAGAIN.
+ */
 static ssize_t
 xread(int fd, void *buffer, size_t size)
 {
@@ -64,12 +66,12 @@ xread(int fd, void *buffer, size_t size)
 
 
 /*
-**  Send a token to a file descriptor.  Takes the file descriptor, the token,
-**  and the flags (a single byte, even though they're passed in as an integer)
-**  and writes them to the file descriptor.  Returns TOKEN_OK on success and
-**  TOKEN_FAIL_SYSTEM or TOKEN_FAIL_SOCKET on an error (including partial
-**  writes).
-*/
+ * Send a token to a file descriptor.  Takes the file descriptor, the token,
+ * and the flags (a single byte, even though they're passed in as an integer)
+ * and writes them to the file descriptor.  Returns TOKEN_OK on success and
+ * TOKEN_FAIL_SYSTEM or TOKEN_FAIL_SOCKET on an error (including partial
+ * writes).
+ */
 enum token_status
 token_send(int fd, int flags, gss_buffer_t tok)
 {
@@ -97,27 +99,27 @@ token_send(int fd, int flags, gss_buffer_t tok)
 
 
 /*
-**  Receive a token from a file descriptor.  Takes the file descriptor, a
-**  buffer into which to store the token, a pointer into which to store the
-**  flags, and the maximum token length we're willing to accept.  Returns
-**  TOKEN_OK on success.  On failure, returns one of:
-**
-**      TOKEN_FAIL_SYSTEM       System call failed, errno set.
-**      TOKEN_FAIL_SOCKET       Socket call failed, socket_errno set.
-**      TOKEN_FAIL_INVALID      Invalid token format.
-**      TOKEN_FAIL_LARGE        Token data larger than provided limit.
-**      TOKEN_FAIL_EOF          Unexpected end of file
-**
-**  TOKEN_FAIL_SYSTEM and TOKEN_FAIL_SOCKET are the same on UNIX but different
-**  on Windows.
-**
-**  recv_token reads the token flags (a single byte, even though they're
-**  stored into an integer, then reads the token length (as a network long),
-**  allocates memory to hold the data, and then reads the token data from the
-**  file descriptor.  It blocks to read the length and data, if necessary.  On
-**  a successful return, the value member of the token should be freed with
-**  free().
-*/
+ * Receive a token from a file descriptor.  Takes the file descriptor, a
+ * buffer into which to store the token, a pointer into which to store the
+ * flags, and the maximum token length we're willing to accept.  Returns
+ * TOKEN_OK on success.  On failure, returns one of:
+ *
+ *     TOKEN_FAIL_SYSTEM       System call failed, errno set.
+ *     TOKEN_FAIL_SOCKET       Socket call failed, socket_errno set.
+ *     TOKEN_FAIL_INVALID      Invalid token format.
+ *     TOKEN_FAIL_LARGE        Token data larger than provided limit.
+ *     TOKEN_FAIL_EOF          Unexpected end of file
+ *
+ * TOKEN_FAIL_SYSTEM and TOKEN_FAIL_SOCKET are the same on UNIX but different
+ * on Windows.
+ *
+ * recv_token reads the token flags (a single byte, even though they're stored
+ * into an integer, then reads the token length (as a network long), allocates
+ * memory to hold the data, and then reads the token data from the file
+ * descriptor.  It blocks to read the length and data, if necessary.  On a
+ * successful return, the value member of the token should be freed with
+ * free().
+ */
 enum token_status
 token_recv(int fd, int *flags, gss_buffer_t tok, size_t max)
 {

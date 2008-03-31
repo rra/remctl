@@ -1,19 +1,21 @@
-/*  $Id: asprintf.c 7519 2006-04-17 23:13:40Z eagle $
-**
-**  Replacement for a missing asprintf and vasprintf.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  This work is hereby placed in the public domain by its author.
-**
-**  Provides the same functionality as the standard GNU library routines
-**  asprintf and vasprintf for those platforms that don't have them.
-*/
+/* $Id: asprintf.c 7519 2006-04-17 23:13:40Z eagle $
+ *
+ * Replacement for a missing asprintf and vasprintf.
+ *
+ * Provides the same functionality as the standard GNU library routines
+ * asprintf and vasprintf for those platforms that don't have them.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * This work is hereby placed in the public domain by its author.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
-/* If we're running the test suite, rename the functions to avoid conflicts
-   with the system versions. */
+/*
+ * If we're running the test suite, rename the functions to avoid conflicts
+ * with the system versions.
+ */
 #if TESTING
 # define asprintf test_asprintf
 # define vasprintf test_vasprintf

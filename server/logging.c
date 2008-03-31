@@ -1,20 +1,20 @@
-/*  $Id$
-**
-**  Logging and error handling for the remctld server.
-**
-**  A set of helper routines to do error handling and other logging for
-**  remctld, mostly wrappers around warn and die which will send errors to the
-**  right place.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  Copyright 2006, 2007, 2008
-**      Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * Logging and error handling for the remctld server.
+ *
+ * A set of helper routines to do error handling and other logging for
+ * remctld, mostly wrappers around warn and die which will send errors to the
+ * right place.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006, 2007, 2008
+ *     Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
 
@@ -24,8 +24,8 @@
 #include <util/util.h>
 
 /*
-**  Report a GSS-API failure using warn.
-*/
+ * Report a GSS-API failure using warn.
+ */
 void
 warn_gssapi(const char *error, OM_uint32 major, OM_uint32 minor)
 {
@@ -38,8 +38,8 @@ warn_gssapi(const char *error, OM_uint32 major, OM_uint32 minor)
 
 
 /*
-**  Report a token error using warn.
-*/
+ * Report a token error using warn.
+ */
 void
 warn_token(const char *error, int status, OM_uint32 major, OM_uint32 minor)
 {
@@ -73,9 +73,9 @@ warn_token(const char *error, int status, OM_uint32 major, OM_uint32 minor)
 
 
 /*
-**  Log a command.  Takes the argument vector, the configuration line that
-**  matched the command, and the principal running the command.
-*/
+ * Log a command.  Takes the argument vector, the configuration line that
+ * matched the command, and the principal running the command.
+ */
 void
 server_log_command(struct vector *argv, struct confline *cline,
                    const char *user)

@@ -1,12 +1,15 @@
-/* $Id$ */
-/* Test suite for malformed commands. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2007 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * Test suite for malformed commands.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <signal.h>
 #include <sys/wait.h>
@@ -16,8 +19,11 @@
 #include <tests/libtest.h>
 #include <util/util.h>
 
-/* Send an invalid token to the given remctl connection and verify that it
-   returns the specified error code and string. */
+
+/*
+ * Send an invalid token to the given remctl connection and verify that it
+ * returns the specified error code and string.
+ */
 static int
 test_bad_token(int n, const char *principal, const char *data, size_t length,
                enum error_codes code, const char *message)
@@ -28,8 +34,10 @@ test_bad_token(int n, const char *principal, const char *data, size_t length,
     OM_uint32 major, minor;
     int status;
 
-    /* We have to open a new connection for every test since some errors close
-       the connection. */
+    /*
+     * We have to open a new connection for every test since some errors close
+     * the connection.
+     */
     r = remctl_new();
     ok(n++, r != NULL);
     ok(n++, remctl_open(r, "localhost", 14444, principal));
@@ -62,8 +70,11 @@ test_bad_token(int n, const char *principal, const char *data, size_t length,
     return n;
 }
 
-/* Send a chunk of data to the given remctl connection and verify that it
-   returns a bad command error token.  Returns the next test number. */
+
+/*
+ * Send a chunk of data to the given remctl connection and verify that it
+ * returns a bad command error token.  Returns the next test number.
+ */
 static int
 test_bad_command(int n, const char *principal, const char *data, size_t length)
 {
@@ -77,6 +88,7 @@ test_bad_command(int n, const char *principal, const char *data, size_t length)
     return test_bad_token(n, principal, buffer, buflen, ERROR_BAD_COMMAND,
                           "Invalid command token");
 }
+
 
 int
 main(void)

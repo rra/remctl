@@ -1,52 +1,51 @@
-/*  $Id$
-**
-**  Run a set of tests, reporting results.
-**
-**  Usage:
-**
-**       runtests <test-list>
-**
-**  Expects a list of executables located in the given file, one line per
-**  executable.  For each one, runs it as part of a test suite, reporting
-**  results.  Test output should start with a line containing the number of
-**  tests (numbered from 1 to this number), and then each line should be in
-**  the following format:
-**
-**       ok <number>
-**       not ok <number>
-**       ok <number> # skip
-**
-**  where <number> is the number of the test.  ok indicates success, not ok
-**  indicates failure, and "# skip" indicates the test was skipped for some
-**  reason (maybe because it doesn't apply to this platform).
-**
-**  Any bug reports, bug fixes, and improvements are very much welcome and
-**  should be sent to the e-mail address below.
-**
-**  Copyright 2000, 2001, 2004 Russ Allbery <rra@stanford.edu>
-**
-**  Permission is hereby granted, free of charge, to any person obtaining a
-**  copy of this software and associated documentation files (the
-**  "Software"), to deal in the Software without restriction, including
-**  without limitation the rights to use, copy, modify, merge, publish,
-**  distribute, sublicense, and/or sell copies of the Software, and to
-**  permit persons to whom the Software is furnished to do so, subject to
-**  the following conditions:
-**
-**  The above copyright notice and this permission notice shall be included
-**  in all copies or substantial portions of the Software.
-**
-**  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-**  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-**  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-**  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-**  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-**  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-**  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+/* $Id$
+ *
+ * Run a set of tests, reporting results.
+ *
+ * Usage:
+ *
+ *      runtests <test-list>
+ *
+ * Expects a list of executables located in the given file, one line per
+ * executable.  For each one, runs it as part of a test suite, reporting
+ * results.  Test output should start with a line containing the number of
+ * tests (numbered from 1 to this number), and then each line should be in the
+ * following format:
+ *
+ *      ok <number>
+ *      not ok <number>
+ *      ok <number> # skip
+ *
+ * where <number> is the number of the test.  ok indicates success, not ok
+ * indicates failure, and "# skip" indicates the test was skipped for some
+ * reason (maybe because it doesn't apply to this platform).
+ *
+ * Any bug reports, bug fixes, and improvements are very much welcome and
+ * should be sent to the e-mail address below.
+ *
+ * Copyright 2000, 2001, 2004 Russ Allbery <rra@stanford.edu>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
 */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -98,8 +97,10 @@ struct testlist {
     struct testlist *next;
 };
 
-/* Header used for test output.  %s is replaced by the file name of the list
-   of tests. */
+/*
+ * Header used for test output.  %s is replaced by the file name of the list
+ * of tests.
+ */
 static const char banner[] = "\n\
 Running all tests listed in %s.  If any tests fail, run the failing\n\
 test program by hand to see more details.  The test program will have the\n\
@@ -131,7 +132,9 @@ static double tv_seconds(const struct timeval *);
 static double tv_sum(const struct timeval *, const struct timeval *);
 
 
-/* Report a fatal error, including the results of strerror, and exit. */
+/*
+ * Report a fatal error, including the results of strerror, and exit.
+ */
 static void
 sysdie(const char *format, ...)
 {
@@ -149,7 +152,9 @@ sysdie(const char *format, ...)
 }
 
 
-/* Allocate memory, reporting a fatal error and exiting on failure. */
+/*
+ * Allocate memory, reporting a fatal error and exiting on failure.
+ */
 static void *
 x_malloc(size_t size, const char *file, int line)
 {
@@ -163,7 +168,9 @@ x_malloc(size_t size, const char *file, int line)
 }
 
 
-/* Copy a string, reporting a fatal error and exiting on failure. */
+/*
+ * Copy a string, reporting a fatal error and exiting on failure.
+ */
 static char *
 x_strdup(const char *s, const char *file, int line)
 {
@@ -180,22 +187,30 @@ x_strdup(const char *s, const char *file, int line)
 }
 
 
-/* Given a struct timeval, return the number of seconds it represents as a
-   double.  Use difftime() to convert a time_t to a double. */
+/*
+ * Given a struct timeval, return the number of seconds it represents as a
+ * double.  Use difftime() to convert a time_t to a double.
+ */
 static double
 tv_seconds(const struct timeval *tv)
 {
     return difftime(tv->tv_sec, 0) + tv->tv_usec * 1e-6;
 }
 
-/* Given two struct timevals, return the difference in seconds. */
+
+/*
+ * Given two struct timevals, return the difference in seconds.
+ */
 static double
 tv_diff(const struct timeval *tv1, const struct timeval *tv0)
 {
     return tv_seconds(tv1) - tv_seconds(tv0);
 }
 
-/* Given two struct timevals, return the sum in seconds as a double. */
+
+/*
+ * Given two struct timevals, return the sum in seconds as a double.
+ */
 static double
 tv_sum(const struct timeval *tv1, const struct timeval *tv2)
 {
@@ -203,18 +218,22 @@ tv_sum(const struct timeval *tv1, const struct timeval *tv2)
 }
 
 
-/* Read the first line of test output, which should contain the range of
-   test numbers, and initialize the testset structure.  Assume it was zeroed
-   before being passed in.  Return true if initialization succeeds, false
-   otherwise. */
+/*
+ * Read the first line of test output, which should contain the range of
+ * test numbers, and initialize the testset structure.  Assume it was zeroed
+ * before being passed in.  Return true if initialization succeeds, false
+ * otherwise.
+ */
 static int
 test_init(const char *line, struct testset *ts)
 {
     int i;
 
-    /* Prefer a simple number of tests, but if the count is given as a range
-       such as 1..10, accept that too for compatibility with Perl's
-       Test::Harness. */
+    /*
+     * Prefer a simple number of tests, but if the count is given as a range
+     * such as 1..10, accept that too for compatibility with Perl's
+     * Test::Harness.
+     */
     while (isspace((unsigned char)(*line)))
         line++;
     if (strncmp(line, "1..", 3) == 0)
@@ -236,9 +255,11 @@ test_init(const char *line, struct testset *ts)
 }
 
 
-/* Start a program, connecting its stdout to a pipe on our end and its
-   stderr to /dev/null, and storing the file descriptor to read from in the
-   two argument.  Returns the PID of the new process.  Errors are fatal. */
+/*
+ * Start a program, connecting its stdout to a pipe on our end and its stderr
+ * to /dev/null, and storing the file descriptor to read from in the two
+ * argument.  Returns the PID of the new process.  Errors are fatal.
+ */
 static pid_t
 test_start(const char *path, int *fd)
 {
@@ -278,7 +299,9 @@ test_start(const char *path, int *fd)
 }
 
 
-/* Back up over the output saying what test we were executing. */
+/*
+ * Back up over the output saying what test we were executing.
+ */
 static void
 test_backspace(struct testset *ts)
 {
@@ -296,18 +319,22 @@ test_backspace(struct testset *ts)
 }
 
 
-/* Given a single line of output from a test, parse it and return the
-   success status of that test.  Anything printed to stdout not matching the
-   form /^(not )?ok \d+/ is ignored.  Sets ts->current to the test number
-   that just reported status. */
+/*
+ * Given a single line of output from a test, parse it and return the success
+ * status of that test.  Anything printed to stdout not matching the form
+ * /^(not )?ok \d+/ is ignored.  Sets ts->current to the test number that just
+ * reported status.
+ */
 static void
 test_checkline(const char *line, struct testset *ts)
 {
     enum test_status status = TEST_PASS;
     int current;
 
-    /* If the given line isn't newline-terminated, it was too big for an
-       fgets(), which means ignore it. */
+    /*
+     * If the given line isn't newline-terminated, it was too big for an
+     * fgets(), which means ignore it.
+     */
     if (line[strlen(line) - 1] != '\n')
         return;
 
@@ -369,11 +396,13 @@ test_checkline(const char *line, struct testset *ts)
 }
 
 
-/* Print out a range of test numbers, returning the number of characters it
-   took up.  Add a comma and a space before the range if chars indicates
-   that something has already been printed on the line, and print
-   ... instead if chars plus the space needed would go over the limit (use a
-   limit of 0 to disable this. */
+/*
+ * Print out a range of test numbers, returning the number of characters it
+ * took up.  Add a comma and a space before the range if chars indicates that
+ * something has already been printed on the line, and print ... instead if
+ * chars plus the space needed would go over the limit (use a limit of 0 to
+ * disable this.
+ */
 static int
 test_print_range(int first, int last, int chars, int limit)
 {
@@ -404,10 +433,12 @@ test_print_range(int first, int last, int chars, int limit)
 }
 
 
-/* Summarize a single test set.  The second argument is 0 if the set exited
-   cleanly, a positive integer representing the exit status if it exited
-   with a non-zero status, and a negative integer representing the signal
-   that terminated it if it was killed by a signal. */
+/*
+ * Summarize a single test set.  The second argument is 0 if the set exited
+ * cleanly, a positive integer representing the exit status if it exited
+ * with a non-zero status, and a negative integer representing the signal
+ * that terminated it if it was killed by a signal.
+ */
 static void
 test_summarize(struct testset *ts, int status)
 {
@@ -479,9 +510,11 @@ test_summarize(struct testset *ts, int status)
 }
 
 
-/* Given a test set, analyze the results, classify the exit status, handle a
-   few special error messages, and then pass it along to test_summarize()
-   for the regular output. */
+/*
+ * Given a test set, analyze the results, classify the exit status, handle a
+ * few special error messages, and then pass it along to test_summarize()
+ * for the regular output.
+ */
 static int
 test_analyze(struct testset *ts)
 {
@@ -516,9 +549,11 @@ test_analyze(struct testset *ts)
 }
 
 
-/* Runs a single test set, accumulating and then reporting the results.
-   Returns true if the test set was successfully run and all tests passed,
-   false otherwise. */
+/*
+ * Runs a single test set, accumulating and then reporting the results.
+ * Returns true if the test set was successfully run and all tests passed,
+ * false otherwise.
+ */
 static int
 test_run(struct testset *ts)
 {
@@ -528,8 +563,10 @@ test_run(struct testset *ts)
     char buffer[BUFSIZ];
     char *file;
 
-    /* Initialize the test and our data structures, flagging this set in
-       error if the initialization fails. */
+    /*
+     * Initialize the test and our data structures, flagging this set in error
+     * if the initialization fails.
+     */
     file = xmalloc(strlen(ts->file) + 3);
     strcpy(file, ts->file);
     strcat(file, "-t");
@@ -556,8 +593,10 @@ test_run(struct testset *ts)
         ts->aborted = 1;
     test_backspace(ts);
 
-    /* Close the output descriptor, retrieve the exit status, and pass that
-       information to test_analyze() for eventual output. */
+    /*
+     * Close the output descriptor, retrieve the exit status, and pass that
+     * information to test_analyze() for eventual output.
+     */
     fclose(output);
     child = waitpid(testpid, &ts->status, 0);
     if (child == (pid_t) -1) {
@@ -626,9 +665,11 @@ test_fail_summary(const struct testlist *fails)
 }
 
 
-/* Run a batch of tests from a given file listing each test on a line by
-   itself.  The file must be rewindable.  Returns true iff all tests
-   passed. */
+/*
+ * Run a batch of tests from a given file listing each test on a line by
+ * itself.  The file must be rewindable.  Returns true iff all tests
+ * passed.
+ */
 static int
 test_batch(const char *testlist)
 {
@@ -648,8 +689,10 @@ test_batch(const char *testlist)
     int failed = 0;
     int aborted = 0;
 
-    /* Open our file of tests to run and scan it, checking for lines that
-       are too long and searching for the longest line. */
+    /*
+     * Open our file of tests to run and scan it, checking for lines that
+     * are too long and searching for the longest line.
+     */
     tests = fopen(testlist, "r");
     if (!tests)
         sysdie("can't open %s", testlist);
@@ -667,8 +710,10 @@ test_batch(const char *testlist)
     if (fseek(tests, 0, SEEK_SET) == -1)
         sysdie("can't rewind %s", testlist);
 
-    /* Add two to longest and round up to the nearest tab stop.  This is how
-       wide the column for printing the current test name will be. */
+    /*
+     * Add two to longest and round up to the nearest tab stop.  This is how
+     * wide the column for printing the current test name will be.
+     */
     longest += 2;
     if (longest % 8)
         longest += 8 - (longest % 8);
@@ -676,8 +721,10 @@ test_batch(const char *testlist)
     /* Start the wall clock timer. */
     gettimeofday(&start, NULL);
 
-    /* Now, plow through our tests again, running each one.  Check line
-       length again out of paranoia. */
+    /*
+     * Now, plow through our tests again, running each one.  Check line
+     * length again out of paranoia.
+     */
     line = 0;
     while (fgets(buffer, sizeof(buffer), tests)) {
         line++;
@@ -752,7 +799,9 @@ test_batch(const char *testlist)
 }
 
 
-/* Main routine.  Given a file listing tests, run each test listed. */
+/*
+ * Main routine.  Given a file listing tests, run each test listed.
+ */
 int
 main(int argc, char *argv[])
 {

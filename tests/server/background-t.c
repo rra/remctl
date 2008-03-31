@@ -1,12 +1,15 @@
-/* $Id$ */
-/* Test suite for behavior with backgrounded processes. */
-
-/* Written by Russ Allbery <rra@stanford.edu>
-   Copyright 2007 Board of Trustees, Leland Stanford Jr. University
-   See README for licensing terms. */
+/* $Id$
+ *
+ * Test suite for behavior with backgrounded processes.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 
 #include <signal.h>
 #include <sys/wait.h>
@@ -15,6 +18,7 @@
 #include <client/remctl.h>
 #include <tests/libtest.h>
 #include <util/util.h>
+
 
 int
 main(void)
@@ -54,8 +58,10 @@ main(void)
     }
     remctl_result_free(result);
 
-    /* Now that we're finished testing, stop the backgrounded process since
-       otherwise it blocks runtests from finishing. */
+    /*
+     * Now that we're finished testing, stop the backgrounded process since
+     * otherwise it blocks runtests from finishing.
+     */
     pidfile = fopen("data/cmd-background.pid", "r");
     if (pidfile != NULL) {
         child = 0;

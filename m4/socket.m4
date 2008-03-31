@@ -10,6 +10,7 @@ dnl
 dnl Most of them use a separate internal source macro to make the code easier
 dnl to read.
 dnl
+dnl Copyright 2008 Board of Trustees, Leland Stanford Jr. University
 dnl Copyright (c) 2004, 2005, 2006, 2007
 dnl     by Internet Systems Consortium, Inc. ("ISC")
 dnl Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
@@ -41,12 +42,12 @@ AC_DEFUN([_RRA_MACRO_IN6_ARE_ADDR_EQUAL_SOURCE],
 int
 main (void)
 {
-  struct in6_addr a;
-  struct in6_addr b;
+    struct in6_addr a;
+    struct in6_addr b;
 
-  inet_pton (AF_INET6, "fe80::1234:5678:abcd", &a);
-  inet_pton (AF_INET6, "fe80::1234:5678:abcd", &b);
-  return IN6_ARE_ADDR_EQUAL (&a,&b) ? 0 : 1;
+    inet_pton(AF_INET6, "fe80::1234:5678:abcd", &a);
+    inet_pton(AF_INET6, "fe80::1234:5678:abcd", &b);
+    return IN6_ARE_ADDR_EQUAL(&a, &b) ? 0 : 1;
 }])
 
 dnl Check whether the IN6_ARE_ADDR_EQUAL macro is broken (like glibc 2.1.3) or
@@ -58,10 +59,9 @@ AC_DEFUN([RRA_MACRO_IN6_ARE_ADDR_EQUAL],
         rra_cv_in6_are_addr_equal_broken=no,
         rra_cv_in6_are_addr_equal_broken=yes,
         rra_cv_in6_are_addr_equal_broken=yes)])
-if test x"$rra_cv_in6_are_addr_equal_broken" = xyes ; then
-    AC_DEFINE([HAVE_BROKEN_IN6_ARE_ADDR_EQUAL], 1,
-        [Define if your IN6_ARE_ADDR_EQUAL macro is broken.])
-fi])
+AS_IF([test x"$rra_cv_in6_are_addr_equal_broken" = xyes],
+    [AC_DEFINE([HAVE_BROKEN_IN6_ARE_ADDR_EQUAL], 1,
+        [Define if your IN6_ARE_ADDR_EQUAL macro is broken.])])
 
 dnl Check whether the SA_LEN macro is available.  This should give the length
 dnl of a struct sockaddr regardless of type.
@@ -73,7 +73,6 @@ AC_DEFUN([RRA_MACRO_SA_LEN],
     [struct sockaddr sa; int x = SA_LEN(&sa);],
     [rra_cv_sa_len_macro=yes],
     [rra_cv_sa_len_macro=no])])
-if test "$rra_cv_sa_len_macro" = yes ; then
-    AC_DEFINE([HAVE_SA_LEN], 1,
-        [Define if <sys/socket.h> defines the SA_LEN macro])
-fi])
+AS_IF([test "$rra_cv_sa_len_macro" = yes],
+    [AC_DEFINE([HAVE_SA_LEN], 1,
+        [Define if <sys/socket.h> defines the SA_LEN macro])])])

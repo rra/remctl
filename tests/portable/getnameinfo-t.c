@@ -1,28 +1,30 @@
-/* $Id$ */
-/* getnameinfo test suite. */
-
-/* Copyright (c) 2004, 2005, 2006, 2007
-       by Internet Systems Consortium, Inc. ("ISC")
-   Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-       2002, 2003 by The Internet Software Consortium and Rich Salz
-
-   This code is derived from software contributed to the Internet Software
-   Consortium by Rich Salz.
-
-   Permission to use, copy, modify, and distribute this software for any
-   purpose with or without fee is hereby granted, provided that the above
-   copyright notice and this permission notice appear in all copies.
-
-   THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
-   REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-   MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
-   SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+/* $Id$
+ *
+ * getnameinfo test suite.
+ *
+ * Copyright (c) 2004, 2005, 2006, 2007
+ *     by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+ *     2002, 2003 by The Internet Software Consortium and Rich Salz
+ *
+ * This code is derived from software contributed to the Internet Software
+ * Consortium by Rich Salz.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
 
 #include <config.h>
-#include <system.h>
+#include <portable/system.h>
 #include <portable/socket.h>
 
 #include <tests/libtest.h>
@@ -49,8 +51,12 @@ main(void)
 
     test_init(26);
 
-    /* Test the easy stuff that requires no assumptions.  Hopefully everyone
-       has nntp, exec, and biff as services. */
+    /*
+     * Test the easy stuff that requires no assumptions.  Hopefully everyone
+     * has nntp, exec, and biff as services.  exec and biff are special since
+     * they're one of the rare universal pairs of services that are both on
+     * the same port, but with different protocols.
+     */
     memset(&sin, 0, sizeof(sin));
     sin.sin_family = AF_INET;
     sin.sin_port = htons(119);
@@ -113,9 +119,11 @@ main(void)
     ok_int(19, 0, status);
     ok_string(20, "10.20.30.40", node);
 
-    /* Okay, now it gets annoying.  Do a forward and then reverse lookup of
-       some well-known host and make sure that getnameinfo returns the same
-       results.  This may need to be skipped. */
+    /*
+     * Okay, now it gets annoying.  Do a forward and then reverse lookup of
+     * some well-known host and make sure that getnameinfo returns the same
+     * results.  This may need to be skipped.
+     */
     hp = gethostbyname("www.isc.org");
     if (hp == NULL)
         skip_block(21, 2, "cannot look up www.isc.org");
