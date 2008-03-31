@@ -281,6 +281,10 @@ servers since the version two protocol doesn't use MICs.  If you are using
 Heimdal and run into MIC verification problems, see the COMPATIBILITY
 section of gssapi(3).
 
+When running in daemon mode, B<remctld> does not itself impose any limits
+on the number of child processes or other system resources.  You may want
+to set resource limits with B<ulimit>.
+
 =head1 NOTES
 
 The remctl port number, 4373, was derived by tracing the diagonals of a
@@ -300,8 +304,8 @@ current maintenance are done by Russ Allbery <rra@stanford.edu>.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2002, 2003, 2004, 2005, 2006, 2007 Board of Trustees, Leland
-Stanford Jr. University.  All rights reserved.
+Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008 Board of Trustees,
+Leland Stanford Jr. University.  All rights reserved.
   
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose and without fee is hereby granted, provided
