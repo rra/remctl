@@ -61,7 +61,7 @@ AC_DEFUN([RRA_MACRO_IN6_ARE_ADDR_EQUAL],
         rra_cv_in6_are_addr_equal_broken=yes)])
 AS_IF([test x"$rra_cv_in6_are_addr_equal_broken" = xyes],
     [AC_DEFINE([HAVE_BROKEN_IN6_ARE_ADDR_EQUAL], 1,
-        [Define if your IN6_ARE_ADDR_EQUAL macro is broken.])])
+        [Define if your IN6_ARE_ADDR_EQUAL macro is broken.])])])
 
 dnl Check whether the SA_LEN macro is available.  This should give the length
 dnl of a struct sockaddr regardless of type.
