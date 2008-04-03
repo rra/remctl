@@ -89,18 +89,20 @@ output and exit status, you can use the exported remctl() function:
 
 =item remctl(HOSTNAME, PORT, PRINCIPAL, COMMAND, [ARGS, ...])
 
-Runs a command on the remote system and returns a Net::Remctl::Result object
-(see below).  HOSTNAME is the remote host to contact.  PORT is the port of
-the remote B<remctld> server and may be 0 to tell the library to use the
-default (first try 4373, the registered remctl port, and fall back to the
-legacy 4444 port if that fails).  PRINCIPAL is the principal of the server
-to use for authentication; pass in the empty string to use the default of
-host/I<hostname> in the default local realm.  The remaining arguments are
-the remctl command and arguments passed to the remote server.
+Runs a command on the remote system and returns a Net::Remctl::Result
+object (see below).  HOSTNAME is the remote host to contact.  PORT is the
+port of the remote B<remctld> server and may be 0 to tell the library to
+use the default (first try 4373, the registered remctl port, and fall back
+to the legacy 4444 port if that fails).  PRINCIPAL is the principal of the
+server to use for authentication; pass in the empty string to use the
+default of host/I<hostname>, with the realm determined by domain-realm
+mapping.  The remaining arguments are the remctl command and arguments
+passed to the remote server.
 
-As far as the module is concerned, undef may be passed as PORT and PRINCIPAL
-and is the same as 0 and the empty string respectively.  However, Perl will
-warn about passing undef explicitly as a function argument.
+As far as the module is concerned, undef may be passed as PORT and
+PRINCIPAL and is the same as 0 and the empty string respectively.
+However, Perl will warn about passing undef explicitly as a function
+argument.
 
 The return value is a Net::Remctl::Result object which supports the
 following methods:
@@ -169,9 +171,9 @@ Connect to HOSTNAME on port PORT using PRINCIPAL as the remote server's
 principal for authentication.  If PORT is omitted or 0, use the default
 (first try 4373, the registered remctl port, and fall back to the legacy
 4444 port if that fails).  If PRINCIPAL is omitted or the empty string,
-use the default of host/I<hostname> in the local realm.  Returns true on
-success, false on failure.  On failure, call error() to get the failure
-message.
+use the default of host/I<hostname>, with the realm determined by
+domain-realm mapping.  Returns true on success, false on failure.  On
+failure, call error() to get the failure message.
 
 As far as the module is concerned, undef may be passed as PORT and
 PRINCIPAL and is the same as 0 and the empty string respectively.
@@ -248,11 +250,29 @@ calls on the same object.
 
 =head1 CAVEATS
 
+If the I<principal> argument to remctl() or remctl_open() is NULL, most
+GSS-API libraries will canonicalize the I<host> using DNS before deriving
+the principal name from it.  This means that when connecting to a remctl
+server via a CNAME, remctl() and remctl_open() will normally authenticate
+using a principal based on the canonical name of the host instead of the
+specified I<host> parameter.  This behavior may cause problems if two
+consecutive DNS lookups of I<host> may return two different results, such
+as with some DNS-based load-balancing systems.
+
+The canonicalization behavior is controlled by the GSS-API library; with
+the MIT Kerberos GSS-API library, canonicalization can be disabled by
+setting C<rdns> to false in the [libdefaults] section of F<krb5.conf>.  It
+can also be disabled by passing an explicit Kerberos principal name via
+the I<principal> argument, which will then be used without changes.  If
+canonicalization is desired, the caller may wish to canonicalizae I<host>
+before calling remctl() or remctl_open() to avoid problems with multiple
+DNS calls returning different results.
+
 The default behavior, when the port is not specified, of trying 4373 and
 falling back to 4444 will be removed in a future version of this module in
 favor of using the C<remctl> service in F</etc/services> if set and then
-falling back on only 4373.  4444 was the poorly-chosen original remctl port
-and should be phased out.
+falling back on only 4373.  4444 was the poorly-chosen original remctl
+port and should be phased out.
 
 =head1 NOTES
 

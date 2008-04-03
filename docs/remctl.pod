@@ -72,18 +72,24 @@ Release an afs volume called ls.tripwire:
 
 =head1 CAVEATS
 
-When using Heimdal with triple-DES keys and talking to old servers that
-only speak version one of the remctl protocol, B<remctl> may have problems
-with MIC verification.  This doesn't affect new clients and servers since
-the version two protocol doesn't use MICs.  If you are using Heimdal and
-run into MIC verification problems, see the COMPATIBILITY section of
-gssapi(3).
+If no principal is specified with B<-s>, B<remctl> canonicalizes the
+server host name using DNS before connecting.  This ensures that the
+network connection and the GSS-API authentication use the same server name
+even if some common DNS-based load-balancing schemes are in use.  To
+disable this canonicalization, specify the server principal using B<-s>.
 
 The default behavior, when the port is not specified, of trying 4373 and
 falling back to 4444 will be removed in a future version of B<remctl> in
 favor of using the C<remctl> service in F</etc/services> if set and then
 falling back on only 4373.  4444 was the poorly-chosen original remctl
 port and should be phased out.
+
+When using Heimdal with triple-DES keys and talking to old servers that
+only speak version one of the remctl protocol, B<remctl> may have problems
+with MIC verification.  This doesn't affect new clients and servers since
+the version two protocol doesn't use MICs.  If you are using Heimdal and
+run into MIC verification problems, see the COMPATIBILITY section of
+gssapi(3).
 
 =head1 NOTES
 

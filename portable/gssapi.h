@@ -21,6 +21,7 @@
 /* Handle compatibility to older versions of MIT Kerberos. */
 #ifndef HAVE_GSS_RFC_OIDS
 # define GSS_C_NT_USER_NAME gss_nt_user_name
+# define GSS_C_NT_HOSTBASED_SERVICE gss_nt_service_name
 #endif
 
 /* Heimdal provides a nice #define for this. */

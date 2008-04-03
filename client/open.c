@@ -66,6 +66,62 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
 
 
 /*
+ * Given the remctl struct, the host to connect to, the principal name (which
+ * may be NULL to use the default), and a pointer to a gss_name_t, import that
+ * principal into a GSS-API name.  We want to use a host-based name if
+ * possible since that will trigger domain to realm mapping and name
+ * canonicalization if desired, but given an arbitrary Kerberos principal, we
+ * don't know whether it's host-based or not.  Therefore, if the principal was
+ * specified explicitly, always just use it.
+ *
+ * Returns true on success and false on failure.
+ */
+static bool
+internal_import_name(struct remctl *r, const char *host,
+                     const char *principal, gss_name_t *name)
+{
+    gss_buffer_desc name_buffer;
+    char *defprinc = NULL;
+    size_t length;
+    OM_uint32 major, minor;
+    gss_OID oid;
+
+    /*
+     * If principal is NULL, use host@<host>.  Don't use concat here since it
+     * dies on failure and that's rude for a library.
+     */
+    if (principal == NULL) {
+        length = strlen("host@") + strlen(host) + 1;
+        defprinc = malloc(length);
+        if (defprinc == NULL)
+            return false;
+        strlcpy(defprinc, "host@", length);
+        strlcat(defprinc, host, length);
+        principal = defprinc;
+    }
+
+    /*
+     * Import the name.  If principal was null, we use a host-based OID;
+     * otherwise, specify that the name is a Kerberos principal.
+     */
+    name_buffer.value = (char *) principal;
+    name_buffer.length = strlen(principal) + 1;
+    if (defprinc == NULL)
+        oid = GSS_C_NT_USER_NAME;
+    else
+        oid = GSS_C_NT_HOSTBASED_SERVICE;
+    major = gss_import_name(&minor, &name_buffer, oid, name);
+    if (defprinc != NULL)
+        free(defprinc);
+    if (major != GSS_S_COMPLETE) {
+        internal_gssapi_error(r, "parsing name", major, minor);
+        return false;
+    }
+    return true;
+}
+
+
+/*
  * Open a new connection to a server.  Returns true on success, false on
  * failure.  On failure, sets the error message appropriately.
  */
@@ -73,11 +129,10 @@ bool
 internal_open(struct remctl *r, const char *host, unsigned short port,
               const char *principal)
 {
-    char *defprinc = NULL;
     int status, flags;
     bool port_fallback = false;
     int fd = -1;
-    gss_buffer_desc send_tok, recv_tok, name_buffer, *token_ptr;
+    gss_buffer_desc send_tok, recv_tok, *token_ptr;
     gss_buffer_desc empty_token = { 0, (void *) "" };
     gss_name_t name = GSS_C_NO_NAME;
     gss_ctx_id_t gss_context = GSS_C_NO_CONTEXT;
@@ -90,16 +145,11 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
 
     /*
      * If port is 0, default to trying the standard port and then falling back
-     * on the old port.  If principal is NULL, use host/<host> in the default
-     * realm.
+     * on the old port.
      */
     if (port == 0) {
         port = REMCTL_PORT;
         port_fallback = true;
-    }
-    if (principal == NULL) {
-        defprinc = concat("host/", host, (char *) 0);
-        principal = defprinc;
     }
 
     /* Make the network connection. */
@@ -110,14 +160,9 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
         goto fail;
     r->fd = fd;
 
-    /* Import the name into target_name. */
-    name_buffer.value = (char *) principal;
-    name_buffer.length = strlen(principal) + 1;
-    major = gss_import_name(&minor, &name_buffer, GSS_C_NT_USER_NAME, &name);
-    if (major != GSS_S_COMPLETE) {
-        internal_gssapi_error(r, "parsing name", major, minor);
+    /* Import the name. */
+    if (!internal_import_name(r, host, principal, &name))
         goto fail;
-    }
 
     /*
      * Default to protocol version two, but if some other protocol is already
@@ -131,7 +176,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     status = token_send(fd, TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL,
                         &empty_token);
     if (status != TOKEN_OK) {
-        internal_token_error(r, "sending initial token", status, major, minor);
+        internal_token_error(r, "sending initial token", status, 0, 0);
         goto fail;
     }
 
@@ -212,8 +257,6 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     return true;
 
 fail:
-    if (defprinc != NULL)
-        free(defprinc);
     if (fd >= 0)
         socket_close(fd);
     r->fd = -1;

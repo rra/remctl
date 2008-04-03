@@ -37,19 +37,6 @@ Options:\n\
 
 
 /*
- * Lowercase a string in place.
- */
-static void 
-lowercase(char *string)
-{
-    char *p;
-
-    for (p = string; *p != '\0'; p++)
-        *p = tolower((unsigned char) *p);
-}
-
-
-/*
  * Display the usage message for remctl.
  */
 static void
@@ -167,21 +154,32 @@ main(int argc, char *argv[])
     argc--;
 
     /*
-     * If service_name isn't set, we use host/<server>.  However, if the
-     * server to which we're connecting is a DNS-load-balanced name, we have
-     * to be careful what principal name we use.  Canonicalize the name with
-     * DNS (usually meaning a forward and reverse lookup).
+     * If service_name isn't set, the remctl library uses host/<server>
+     * (host@<server> in GSS-API parlance).  However, if the server to which
+     * we're connecting is a DNS-load-balanced name, we have to be careful
+     * what principal name we use.
      *
-     * We then have to make sure that we connect to the same host that we're
-     * using for the principal name.  If we get a different answer each time
-     * we ask DNS (possible with DNS load balancing), we need to connect to
-     * the canonical name rather than the original name given on the command
-     * line.
+     * Ideally, we would let the GSS-API library handle this and choose
+     * whether to canonicalize the <server> in the principal name based on the
+     * krb5.conf rdns setting and similar configuration.  However, with DNS
+     * load balancing, this still may fail.  At the time of network
+     * connection, we will connect to whatever the name resolves to then.
+     * After we connect, we authenticate, and the GSS-API library will then
+     * separately canonicalize the hostname.  It could get a different answer
+     * than we got for our network connection, leading to an authentication
+     * failure.
+     *
+     * Therefore, if the principal isn't specified, we canonicalize the
+     * hostname to which we're connecting before we connect.  Then, the
+     * additional canonicalization possibly done by the GSS-API library should
+     * return the same results and be consistent.
      *
      * Note that this opens the possibility of a subtle attack through DNS
      * spoofing, since both the principal used and the host to which we're
-     * connecting can be changed by varying the DNS response.  Providing a
-     * service on the command-line will deactivate this behavior.
+     * connecting can be changed by varying the DNS response.
+     *
+     * If the principal is specified explicitly, assume the user knows what
+     * they're doing and don't do any of this.
      */
     if (service_name == NULL) {
         memset(&hints, 0, sizeof(hints));
@@ -191,9 +189,7 @@ main(int argc, char *argv[])
             die("cannot resolve host %s: %s", server_host,
                 gai_strerror(status));
         server_host = xstrdup(ai->ai_canonname);
-        service_name = concat("host/", ai->ai_canonname, (char *) 0);
         freeaddrinfo(ai);
-        lowercase(service_name);
     }
 
     /* Open connection. */

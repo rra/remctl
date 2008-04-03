@@ -2,6 +2,27 @@
 
 remctl 2.12 (unreleased)
 
+    If no server principal is specified on the remctl command line or in
+    the remctl() or remctl_open() C or Perl library interfaces, remctl now
+    uses a host-based service name for the server instead of a Kerberos
+    principal of host/server.  The practical effect of this is that
+    domain-realm mapping rules will be applied rather than assuming the
+    server's principal is in the local domain and, for the C and Perl
+    library interfaces, server name canonicalization will be done if
+    configured in the GSS-API library.  Users of the C or Perl library
+    interfaces will find that remctl now authenticates to a principal for
+    the host after a forward and reverse DNS lookup instead of the host
+    specified in the API call with most GSS-API libraries.  To disable
+    this canonicalization behavior, see your GSS-API library
+    documentation; setting rdns in [libdefaults] to false works for MIT
+    Kerberos.  The remctl command-line client continues to canonicalize
+    its host argument always prior to any network connection or GSS-API
+    calls.
+
+    Add documentation of hostname canonicalization and the choice of
+    authentication principals to the remctl client, remctl() and
+    remctl_open() C API, and Net::Remctl Perl API documentation.
+
     Include the Windows port of the client done by Matthew Loar.  See
     README for information on requirements and compilation.  Only the
     client shared library and command-line utility are supported or built
