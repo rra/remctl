@@ -93,8 +93,11 @@ internal_import_name(struct remctl *r, const char *host,
     if (principal == NULL) {
         length = strlen("host@") + strlen(host) + 1;
         defprinc = malloc(length);
-        if (defprinc == NULL)
+        if (defprinc == NULL) {
+            internal_set_error(r, "cannot allocate memory: %s",
+                               strerror(errno));
             return false;
+        }
         strlcpy(defprinc, "host@", length);
         strlcat(defprinc, host, length);
         principal = defprinc;

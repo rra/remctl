@@ -291,7 +291,7 @@ remctl_command(struct remctl *r, const char **command)
         ;
     vector = malloc(sizeof(struct iovec) * count);
     if (vector == NULL) {
-        internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
+        internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
         return 0;
     }
     for (i = 0; i < count; i++) {
@@ -313,7 +313,7 @@ remctl_commandv(struct remctl *r, const struct iovec *command, size_t count)
 {
     if (r->fd < 0) {
         if (r->host == NULL) {
-            internal_set_error(r, "No connection open");
+            internal_set_error(r, "no connection open");
             return 0;
         }
         if (!remctl_open(r, r->host, r->port, r->principal))
@@ -369,7 +369,7 @@ struct remctl_output *
 remctl_output(struct remctl *r)
 {
     if (r->fd < 0 && (r->protocol != 1 || r->host == NULL)) {
-        internal_set_error(r, "No connection open");
+        internal_set_error(r, "no connection open");
         return NULL;
     }
     if (r->error != NULL) {
@@ -391,5 +391,5 @@ remctl_output(struct remctl *r)
 const char *
 remctl_error(struct remctl *r)
 {
-    return (r->error != NULL) ? r->error : "No error";
+    return (r->error != NULL) ? r->error : "no error";
 }

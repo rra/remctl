@@ -23,6 +23,11 @@ remctl 2.12 (unreleased)
     authentication principals to the remctl client, remctl() and
     remctl_open() C API, and Net::Remctl Perl API documentation.
 
+    Fix a place in libremctl where the library would call exit rather than
+    returning an error on memory allocation failure.
+
+    Standardize on lowercase first characters in library error strings.
+
     Include the Windows port of the client done by Matthew Loar.  See
     README for information on requirements and compilation.  Only the
     client shared library and command-line utility are supported or built

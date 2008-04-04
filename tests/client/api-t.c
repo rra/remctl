@@ -44,14 +44,14 @@ do_tests(int n, const char *principal, int protocol)
     /* Open the connection. */
     r = remctl_new();
     ok(n++, r != NULL);
-    ok_string(n++, "No error", remctl_error(r));
+    ok_string(n++, "no error", remctl_error(r));
     r->protocol = protocol;
     ok(n++, remctl_open(r, "localhost", 14444, principal));
-    ok_string(n++, "No error", remctl_error(r));
+    ok_string(n++, "no error", remctl_error(r));
 
     /* Send a successful command. */
     ok(n++, remctl_command(r, test));
-    ok_string(n++, "No error", remctl_error(r));
+    ok_string(n++, "no error", remctl_error(r));
     output = remctl_output(r);
     ok(n++, output != NULL);
     ok_int(n++, REMCTL_OUT_OUTPUT, output->type);
@@ -71,7 +71,7 @@ do_tests(int n, const char *principal, int protocol)
     command[1].iov_base = (char *) "test";
     command[1].iov_len = 4;
     ok(n++, remctl_commandv(r, command, 2));
-    ok_string(n++, "No error", remctl_error(r));
+    ok_string(n++, "no error", remctl_error(r));
     output = remctl_output(r);
     ok(n++, output != NULL);
     ok_int(n++, REMCTL_OUT_OUTPUT, output->type);
@@ -88,7 +88,7 @@ do_tests(int n, const char *principal, int protocol)
 
     /* Send a failing command. */
     ok(n++, remctl_command(r, error));
-    ok_string(n++, "No error", remctl_error(r));
+    ok_string(n++, "no error", remctl_error(r));
     output = remctl_output(r);
     ok(n++, output != NULL);
     if (protocol == 1) {
@@ -115,7 +115,7 @@ do_tests(int n, const char *principal, int protocol)
 
     /* Send a command with no service. */
     ok(n++, remctl_command(r, no_service));
-    ok_string(n++, "No error", remctl_error(r));
+    ok_string(n++, "no error", remctl_error(r));
     output = remctl_output(r);
     ok(n++, output != NULL);
     ok_int(n++, REMCTL_OUT_OUTPUT, output->type);

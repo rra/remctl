@@ -120,11 +120,11 @@ SKIP: {
     # Complex interface, success.
     my $remctl = Net::Remctl->new;
     isa_ok ($remctl, 'Net::Remctl', 'Object');
-    is ($remctl->error, 'No error', '... no error set');
+    is ($remctl->error, 'no error', '... no error set');
     ok ($remctl->open ('localhost', 14444, $principal), 'Connect to server');
-    is ($remctl->error, 'No error', '... no error set');
+    is ($remctl->error, 'no error', '... no error set');
     ok ($remctl->command ('test', 'test'), 'Send successful command');
-    is ($remctl->error, 'No error', '... no error set');
+    is ($remctl->error, 'no error', '... no error set');
     my $output = $remctl->output;
     isa_ok ($output, 'Net::Remctl::Output', 'Output token');
     is ($output->type, 'output', '... of type output');
@@ -138,7 +138,7 @@ SKIP: {
 
     # Complex interface, failure.
     ok ($remctl->command ('test', 'bad-command'), 'Send failing command');
-    is ($remctl->error, 'No error', '... no error set');
+    is ($remctl->error, 'no error', '... no error set');
     $output = $remctl->output;
     isa_ok ($output, 'Net::Remctl::Output', 'Output token');
     is ($output->type, 'error', '... of type error');

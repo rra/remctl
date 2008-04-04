@@ -49,7 +49,7 @@ internal_v1_commandv(struct remctl *r, const struct iovec *command,
         token.length += 4 + command[i].iov_len;
     token.value = malloc(token.length);
     if (token.value == NULL) {
-        internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
+        internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
         return false;
     }
 
@@ -123,14 +123,14 @@ internal_v1_output(struct remctl *r)
         return NULL;
     }
     if (flags != TOKEN_DATA) {
-        internal_set_error(r, "Unexpected token from server");
+        internal_set_error(r, "unexpected token from server");
         gss_release_buffer(&minor, &token);
         return NULL;
     }
 
     /* Extract the return code, message length, and data. */
     if (token.length < 8) {
-        internal_set_error(r, "Malformed result token from server");
+        internal_set_error(r, "malformed result token from server");
         gss_release_buffer(&minor, &token);
         return NULL;
     }
@@ -142,7 +142,7 @@ internal_v1_output(struct remctl *r)
     length = ntohl(data);
     p += 4;
     if (length != token.length - 8) {
-        internal_set_error(r, "Malformed result token from server");
+        internal_set_error(r, "malformed result token from server");
         gss_release_buffer(&minor, &token);
         return NULL;
     }
@@ -154,14 +154,14 @@ internal_v1_output(struct remctl *r)
      */
     r->output = malloc(sizeof(struct remctl_output));
     if (r->output == NULL) {
-        internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
+        internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
         gss_release_buffer(&minor, &token);
         return NULL;
     }
     r->output->type = REMCTL_OUT_OUTPUT;
     r->output->data = malloc(length);
     if (r->output->data == NULL) {
-        internal_set_error(r, "Cannot allocate memory: %s", strerror(errno));
+        internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
         gss_release_buffer(&minor, &token);
         return NULL;
     }
