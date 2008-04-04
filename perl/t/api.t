@@ -5,7 +5,7 @@
 # larger remctl build tree and uses the built remctld for testing.
 #
 # Written by Russ Allbery
-# Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+# Copyright 2007, 2008 Board of Trustees, Leland Stanford Jr. University
 #
 # See LICENSE for licensing terms.
 
