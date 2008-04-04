@@ -1,11 +1,11 @@
-/*  $Id$
-**
-**  Portability wrapper around <gssapi.h>.
-**
-**  This header tries to encapsulate the differences between the MIT and
-**  Heimdal GSS-API implementations and the differences between various
-**  versions.
-*/
+/* $Id$
+ *
+ * Portability wrapper around <gssapi.h>.
+ *
+ * This header tries to encapsulate the differences between the MIT and
+ * Heimdal GSS-API implementations and the differences between various
+ * versions.
+ */
 
 #ifndef PORTABLE_GSSAPI_H
 #define PORTABLE_GSSAPI_H 1
