@@ -15,7 +15,7 @@
  **
  **  Written by Anton Ushakov <antonu@stanford.edu>
  **  Copyright 2002 Board of Trustees, Leland Stanford Jr. University
- **  See README for licensing terms.
+ **  See LICENSE for licensing terms.
  **
  **  This version considerably modified by Marcus Watts <mdw@umich.edu>
  **  Updated to use V2 protocol & to support the server side as well.
