@@ -5,7 +5,7 @@
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 2.11
+Version: 2.12
 Release: 1.EL%{rel}
 Copyright: MIT
 URL: http://www.eyrie.org/~eagle/software/remctl/
@@ -158,6 +158,9 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Fri Apr 4 2008 Russ Allbery <rra@stanford.edu> 2.12-1
+- Update for 2.12.
+
 * Fri Nov 9 2007 Russ Allbery <rra@stanford.edu> 2.11-1
 - Update for 2.11.
 - Change port configuration to 4373.
