@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE rfc SYSTEM "rfc2629.dtd">
-<?rfc private="remctl Protocol"?>
-<?rfc toc="yes"?>
+<?rfc private="remctl Protocol" toc="yes" symrefs="yes"?>
 <rfc>
   <front>
     <title abbrev="remctl">remctl: Remote Authenticated Command Service</title>
@@ -82,55 +81,56 @@
       <section anchor='packet' title='Session Sequence'>
         <t>A remctl connection is always initiated by a client opening a
         TCP connection to a server.  The protocol then proceeds as
-        follows:</t>
+        follows:
+          <list style='numbers'>
+            <t>Client sends message with an empty payload and flags
+            TOKEN_NOOP, TOKEN_CONTEXT_NEXT, and TOKEN_PROTOCOL (0x51).  If
+            the client doesn't include TOKEN_PROTOCOL, it is speaking the
+            version 1 protocol, and the server MUST either drop the
+            connection or fall back to the version 1 protocol.  This
+            initial message is useless in a pure version 2 protocol world
+            and is done only for backward compatibility with the version 1
+            protocol.</t>
 
-        <list style='numbers'>
-          <t>Client sends message with an empty payload and flags
-          TOKEN_NOOP, TOKEN_CONTEXT_NEXT, and TOKEN_PROTOCOL (0x51).  If
-          the client doesn't include TOKEN_PROTOCOL, it is speaking the
-          version 1 protocol, and the server MUST either drop the
-          connection or fall back to the version 1 protocol.  This initial
-          message is useless in a pure version 2 protocol world and is
-          done only for backward compatibility with the version 1
-          protocol.</t>
+            <t>Client calls gss_init_sec_context and replies with the
+            results and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The
+            client MUST pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and
+            GSS_C_INTEG_FLAG as requested flags and SHOULD pass
+            GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG.</t>
 
-          <t>Client calls gss_init_sec_context and replies with the
-          results and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The client
-          MUST pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and
-          GSS_C_INTEG_FLAG as requested flags and SHOULD pass
-          GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG.</t>
+            <t>Server replies with the results of gss_accept_sec_context
+            and flags TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  If the
+            server doesn't include TOKEN_PROTOCOL in the flags, it is
+            speaking the version 1 protocol, and the client MUST either
+            drop the connection or fall back to the version 1
+            protocol.</t>
 
-          <t>Server replies with the results of gss_accept_sec_context and
-          flags TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  If the server
-          doesn't include TOKEN_PROTOCOL in the flags, it is speaking the
-          version 1 protocol, and the client MUST either drop the
-          connection or fall back to the version 1 protocol.</t>
+            <t>Client passes data to gss_init_sec_context and replies with
+            the results and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The
+            client must pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and
+            GSS_C_INTEG_FLAG as requested flags and SHOULD pass
+            GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG.</t>
 
-          <t>Client passes data to gss_init_sec_context and replies with
-          the results and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The
-          client must pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and
-          GSS_C_INTEG_FLAG as requested flags and SHOULD pass
-          GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG.</t>
+            <t>Server and client repeat, passing in the payload from the
+            last packet from the other side, for as long as GSS-API
+            indicates that continuation is required.  If either side drops
+            TOKEN_PROTOCOL from the flags, it is an considered an error
+            and the connect MUST be dropped.  (This could be a
+            down-negotiation attack.)  After the establishment of the
+            security context, both client and server MUST confirm that
+            GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG are
+            set in the resulting security context and MUST immediately
+            close the connection if this is not the case.</t>
 
-          <t>Server and client repeat, passing in the payload from the
-          last packet from the other side, for as long as GSS-API
-          indicates that continuation is required.  If either side drops
-          TOKEN_PROTOCOL from the flags, it is an considered an error and
-          the connect MUST be dropped.  (This could be a down-negotiation
-          attack.)  After the establishment of the security context, both
-          client and server MUST confirm that GSS_C_MUTUAL_FLAG,
-          GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG are set in the resulting
-          security context and MUST immediately close the connection if
-          this is not the case.</t>
-
-          <t>After the security context has been established, the client
-          and server exchange commands and responses as described below.
-          All commands are sent with flags TOKEN_DATA and TOKEN_PROTOCOL
-          (0x44) and the data payload of all packets is protected with
-          gss_wrap.  The conf_req_flag parameter of gss_wrap MUST be set
-          to non-zero, requesting both confidentiality and integrity
-          services.</t>
-        </list>
+            <t>After the security context has been established, the client
+            and server exchange commands and responses as described below.
+            All commands are sent with flags TOKEN_DATA and TOKEN_PROTOCOL
+            (0x44) and the data payload of all packets is protected with
+            gss_wrap.  The conf_req_flag parameter of gss_wrap MUST be set
+            to non-zero, requesting both confidentiality and integrity
+            services.</t>
+          </list>
+        </t>
       </section>
 
       <section anchor='messages' title='Message Format'>
@@ -351,57 +351,57 @@
       recognized by the server and client by the lack of TOKEN_PROTOCOL in
       the flags of the initial security context negotiation.</t>
 
-      <t>The old protocol always uses the following steps:</t>
+      <t>The old protocol always uses the following steps:
+        <list style='numbers'>
+          <t>Client opens TCP connection to server.</t>
 
-      <list style='numbers'>
-        <t>Client opens TCP connection to server.</t>
+          <t>Client sends message with flags TOKEN_NOOP and
+          TOKEN_CONTEXT_NEXT and an empty payload.</t>
 
-        <t>Client sends message with flags TOKEN_NOOP and
-        TOKEN_CONTEXT_NEXT and an empty payload.</t>
+          <t>Client calls gss_init_sec_context and sends message with the
+          results and flags TOKEN_CONTEXT.  The client MUST pass
+          GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG as
+          requested flags and SHOULD pass GSS_C_REPLAY_FLAG and
+          GSS_C_SEQUENCE_FLAG, although the version one protocol does not
+          check the results of this negotiation.</t>
 
-        <t>Client calls gss_init_sec_context and sends message with the
-        results and flags TOKEN_CONTEXT.  The client MUST pass
-        GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG as
-        requested flags and SHOULD pass GSS_C_REPLAY_FLAG and
-        GSS_C_SEQUENCE_FLAG, although the version one protocol does not
-        check the results of this negotiation.</t>
+          <t>Server replies with the results of gss_accept_sec_context and
+          flags TOKEN_CONTEXT.</t>
 
-        <t>Server replies with the results of gss_accept_sec_context and
-        flags TOKEN_CONTEXT.</t>
+          <t>Client calls gss_init_sec_context again with the data from
+          the server and replies with the results and flags TOKEN_CONTEXT,
+          using the same requested flags as described above.</t>
 
-        <t>Client calls gss_init_sec_context again with the data from the
-        server and replies with the results and flags TOKEN_CONTEXT, using
-        the same requested flags as described above.</t>
+          <t>Server and client repeat, passing in the payload from the
+          last packet from the other side, for as long as GSS-API
+          indicates that continuation is required.  Each of these packets
+          have only TOKEN_CONTEXT set in the flags.</t>
 
-        <t>Server and client repeat, passing in the payload from the last
-        packet from the other side, for as long as GSS-API indicates that
-        continuation is required.  Each of these packets have only
-        TOKEN_CONTEXT set in the flags.</t>
+          <t>Client sends command with flags TOKEN_DATA and TOKEN_SEND_MIC
+          and the following payload format:  four-octet number of
+          arguments, and then for each argument, a four-octet length and
+          then the argument value.  All numbers are in network type order.
+          The payload MUST be protected with gss_wrap and the
+          conf_req_flag parameter of gss_wrap MUST be set to non-zero,
+          requesting both confidentiality and integrity services.</t>
 
-        <t>Client sends command with flags TOKEN_DATA and TOKEN_SEND_MIC
-        and the following payload format:  four-octet number of arguments,
-        and then for each argument, a four-octet length and then the
-        argument value.  All numbers are in network type order.  The
-        payload MUST be protected with gss_wrap and the conf_req_flag
-        parameter of gss_wrap MUST be set to non-zero, requesting both
-        confidentiality and integrity services.</t>
+          <t>Server accepts and decrypts data, generates a MIC with
+          gss_get_mic, and sends the MIC back to the client with flags
+          TOKEN_MIC.  This is the only packet that isn't encrypted with
+          gss_wrap.  Client receives and then SHOULD verify this MIC.</t>
 
-        <t>Server accepts and decrypts data, generates a MIC with
-        gss_get_mic, and sends the MIC back to the client with flags
-        TOKEN_MIC.  This is the only packet that isn't encrypted with
-        gss_wrap.  Client receives and then SHOULD verify this MIC.</t>
+          <t>Server runs the command, collects the output, and sends the
+          output back with flags TOKEN_DATA and the following payload
+          format:  four-octet exit status, four-octet data length, data.
+          All numbers are in network byte order.  The exit status is 0 if
+          there were no errors and non-zero otherwise, where the meaning
+          of non-zero values are defined by the application.  The payload
+          MUST be protected with gss_wrap with a conf_req_flag set to
+          non-zero.</t>
 
-        <t>Server runs the command, collects the output, and sends the
-        output back with flags TOKEN_DATA and the following payload
-        format:  four-octet exit status, four-octet data length, data.
-        All numbers are in network byte order.  The exit status is 0 if
-        there were no errors and non-zero otherwise, where the meaning of
-        non-zero values are defined by the application.  The payload MUST
-        be protected with gss_wrap with a conf_req_flag set to
-        non-zero.</t>
-
-        <t>Server and client close connection.</t>
-      </list>
+          <t>Server and client close connection.</t>
+        </list>
+      </t>
     </section>
 
     <section anchor='security' title='Security Considerations'>
