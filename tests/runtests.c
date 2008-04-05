@@ -23,7 +23,8 @@
  * Any bug reports, bug fixes, and improvements are very much welcome and
  * should be sent to the e-mail address below.
  *
- * Copyright 2000, 2001, 2004 Russ Allbery <rra@stanford.edu>
+ * Copyright 2000, 2001, 2004, 2006, 2007, 2008
+ *     Russ Allbery <rra@stanford.edu>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
