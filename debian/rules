@@ -25,12 +25,13 @@ else
     CFLAGS += -O2
 endif
 
+configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	CFLAGS="$(CFLAGS)" ./configure --prefix=/usr \
 	    --mandir=\$${prefix}/share/man --sysconfdir=/etc/remctl \
 	    --enable-reduced-depends --enable-perl $(SYSTEM)
-	touch configure-stamp
+	touch $@
 
 # We rebuild the remctl client because Automake and Libtool combine to force
 # remctl to be linked against all the dependencies of libremctl, which creates
@@ -51,16 +52,17 @@ build-stamp: configure-stamp
 	gcc -g -O2 -o client/.libs/remctl client/remctl.o \
 	    client/.libs/libremctl.so util/.libs/libutil.a
 	$(MAKE) check
-	touch build-stamp
+	touch $@
 
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f configure-stamp build-stamp
+	rm -f configure-stamp build-stamp install-stamp
 	[ ! -f Makefile ] || $(MAKE) distclean
 	dh_clean
 
-install: build-stamp
+install: install-stamp
+install-stamp: build-stamp
 	dh_testdir
 	dh_testroot
 	dh_clean -k
@@ -69,11 +71,12 @@ install: build-stamp
 	dh_install --fail-missing
 	install -m 644 $(CURDIR)/examples/remctl.conf \
 	    $(CURDIR)/debian/remctl-server/etc/remctl/remctl.conf
+	touch $@
 
 binary: binary-arch binary-indep
 binary-indep:
 binary-arch: DH_OPTIONS=-a
-binary-arch: build-stamp install
+binary-arch: install-stamp
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs NEWS

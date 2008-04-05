@@ -10,6 +10,7 @@ remctl (2.12-1) unstable; urgency=low
     - Fix Perl API interface for requesting the default principal.
     - Fix test suite failure when DNS lookups fail.  Thanks, Lucas
       Nussbaum.  (Closes: #467590)
+  * Use touch $@ to create stamp files.
 
  -- Russ Allbery <rra@debian.org>  Fri, 04 Apr 2008 22:14:28 -0700
 
