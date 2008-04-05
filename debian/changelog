@@ -11,6 +11,7 @@ remctl (2.12-1) unstable; urgency=low
     - Fix test suite failure when DNS lookups fail.  Thanks, Lucas
       Nussbaum.  (Closes: #467590)
   * Use touch $@ to create stamp files.
+  * Rewrite debian/copyright based on the upstream LICENSE file.
 
  -- Russ Allbery <rra@debian.org>  Fri, 04 Apr 2008 22:14:28 -0700
 
