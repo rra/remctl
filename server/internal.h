@@ -1,41 +1,34 @@
-/*  $Id$
-**
-**  Internal support functions for the remctld daemon.
-**
-**  Written by Russ Allbery <rra@stanford.edu>
-**  Copyright 2006, 2007, 2008
-**      Board of Trustees, Leland Stanford Jr. University
-**
-**  See README for licensing terms.
-*/
+/* $Id$
+ *
+ * Internal support functions for the remctld daemon.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2006, 2007, 2008
+ *     Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #ifndef SERVER_INTERNAL_H
 #define SERVER_INTERNAL_H 1
 
 #include <config.h>
 #include <portable/gssapi.h>
+#include <portable/macros.h>
 #include <portable/stdbool.h>
 
 #include <util/util.h>
 
-/* BEGIN_DECLS is used at the beginning of declarations so that C++
-   compilers don't mangle their names.  END_DECLS is used at the end. */
-#undef BEGIN_DECLS
-#undef END_DECLS
-#ifdef __cplusplus
-# define BEGIN_DECLS    extern "C" {
-# define END_DECLS      }
-#else
-# define BEGIN_DECLS    /* empty */
-# define END_DECLS      /* empty */
-#endif
-
-/* Used as the default max buffer for the argv passed into the server, and for 
-   the return message from the server. */
+/*
+ * Used as the default max buffer for the argv passed into the server, and for 
+ * the return message from the server.
+ */
 #define MAXBUFFER       64000  
 
-/* The maximum size of argc passed to the server.  This is an arbitrary limit
-   to protect against memory-based denial of service attacks on the server. */
+/*
+ * The maximum size of argc passed to the server.  This is an arbitrary limit
+ * to protect against memory-based denial of service attacks on the server.
+ */
 #define MAXCMDARGS      (4 * 1024)
 
 BEGIN_DECLS
