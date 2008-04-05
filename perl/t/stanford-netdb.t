@@ -23,7 +23,7 @@ my $host  = 'windlord.stanford.edu';
 my $user  = 'rra';
 
 # Determine the local principal.
-my $klist = `klist 2>&1`;
+my $klist = `klist 2>&1` || '';
 SKIP: {
     skip "tests useful only with Stanford Kerberos tickets", $total
         unless $klist =~ /^Default principal: \S+\@stanford\.edu$/m;
