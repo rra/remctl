@@ -4,5 +4,5 @@
 # I don't use this personally since I'm also the upstream maintainer, but
 # it's included for the benefit of automated package analysis systems.
 
-version=2
+version=3
 http://archives.eyrie.org/software/kerberos/remctl-(.*)\.tar\.gz

@@ -12,8 +12,9 @@ remctl (2.12-1) unstable; urgency=low
       Nussbaum.  (Closes: #467590)
   * Use touch $@ to create stamp files.
   * Rewrite debian/copyright based on the upstream LICENSE file.
+  * Bump the watch version to 3.
 
- -- Russ Allbery <rra@debian.org>  Fri, 04 Apr 2008 22:14:28 -0700
+ -- Russ Allbery <rra@debian.org>  Fri, 04 Apr 2008 22:24:07 -0700
 
 remctl (2.11-3) unstable; urgency=low
 
