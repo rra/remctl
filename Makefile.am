@@ -23,23 +23,23 @@ TEST_FILES = tests/TESTS tests/client/pod-t.in tests/client/remctl-t \
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = autogen client/mapfile docs/api/remctl.3 docs/api/remctl.pod \
-	docs/api/remctl_close.3 docs/api/remctl_close.pod \
-	docs/api/remctl_command.3 docs/api/remctl_command.pod \
-	docs/api/remctl_error.3 docs/api/remctl_error.pod \
-	docs/api/remctl_new.3 docs/api/remctl_new.pod docs/api/remctl_open.3 \
-	docs/api/remctl_open.pod docs/api/remctl_output.3 \
-	docs/api/remctl_output.pod docs/design.html docs/protocol.txt \
-	docs/protocol.html docs/protocol.xml docs/remctl.1 docs/remctl.pod \
-	docs/remctld.8.in docs/remctld.pod examples/remctl.conf \
-	examples/rsh-wrapper examples/xinetd java/.classpath java/.project \
-	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf \
-	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java \
+EXTRA_DIST = LICENSE Makefile.w32 autogen client/libremctl.rc client/mapfile \
+	client/remctl.rc config.h.w32 configure.bat docs/api/remctl.pod \
+	docs/api/remctl_close.pod docs/api/remctl_command.pod \
+	docs/api/remctl_error.pod docs/api/remctl_new.pod \
+	docs/api/remctl_open.pod docs/api/remctl_output.pod docs/design.html \
+	docs/protocol.txt docs/protocol.html docs/protocol.xml \
+	docs/remctl.pod docs/remctld.8.in docs/remctld.pod \
+	examples/remctl.conf examples/rsh-wrapper examples/xinetd \
+	java/.classpath java/.project java/Makefile java/README \
+	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf \
+	java/org/eyrie/eagle/remctl/Remctl.java \
 	java/org/eyrie/eagle/remctl/RemctlClient.java \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java \
 	java/t7.java portable/getaddrinfo.h portable/getnameinfo.h \
-	portable/gssapi.h portable/socket.h remctl.spec system.h \
-	$(PERL_FILES) $(TEST_FILES)
+	portable/getopt.h portable/gssapi.h portable/macros.h \
+	portable/socket.h portable/stdbool.h portable/system.h \
+	portable/uio.h remctl.spec $(PERL_FILES) $(TEST_FILES)
 
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
@@ -70,10 +70,11 @@ server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"
 server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS)
 server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS)
 
-man_MANS = docs/api/remctl.3 docs/api/remctl_close.3 \
+dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3 \
 	docs/api/remctl_command.3 docs/api/remctl_error.3 \
 	docs/api/remctl_new.3 docs/api/remctl_open.3 \
-	docs/api/remctl_output.3 docs/remctl.1 docs/remctld.8
+	docs/api/remctl_output.3 docs/remctl.1
+man_MANS = docs/remctld.8
 
 $(srcdir)/docs/remctl.1: $(srcdir)/docs/remctl.pod
 	pod2man --release=$(VERSION) --center="User Commands" \
