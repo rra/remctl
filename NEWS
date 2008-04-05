@@ -42,8 +42,8 @@ remctl 2.12 (2008-04-04)
     close-on-exec in older versions of MIT Kerberos.
 
     When passing a variable set to undef into remctl_open in the Perl API,
-    the hostname was converted to the empty string.  Adjust Net::Remctl to
-    recognize the empty string as an unspecified hostname.
+    the principal was converted to the empty string.  Adjust Net::Remctl
+    to recognize the empty string as an unspecified principal.
 
     The configure option to specify the path to the GSS-API libraries is
     now --with-gssapi instead of --with-kerberos and the GSS-API probes
