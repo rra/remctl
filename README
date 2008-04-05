@@ -103,15 +103,15 @@ INSTALLATION (UNIX)
   rebuild the module after running make and before running make install.
 
   Normally, configure will use krb5-config to determine the flags to use
-  to compile with your Kerberos libraries.  If krb5-config isn't found, it
-  will look for the standard Kerberos libraries in locations already
-  searched by your compiler.  If the the krb5-config script first in your
-  path is not the one corresponding to the Kerberos libraries you want to
-  use or if your Kerberos libraries and includes aren't in a location
-  searched by default by your compiler, you need to specify
-  --with-kerberos=PATH:
+  to compile with your Kerberos GSS-API libraries.  If krb5-config isn't
+  found, it will look for the standard Kerberos libraries in locations
+  already searched by your compiler.  If the the krb5-config script first
+  in your path is not the one corresponding to the Kerberos libraries you
+  want to use or if your Kerberos libraries and includes aren't in a
+  location searched by default by your compiler, you need to specify
+  --with-gssapi=PATH:
 
-      ./configure --with-kerberos=/usr/pubsw
+      ./configure --with-gssapi=/usr/pubsw
 
   To specify a particular krb5-config script to use, either set the
   KRB5_CONFIG environment variable or pass it to configure like:
@@ -195,7 +195,7 @@ PORTING
   remctl should port reasonably well.  It has been tested on:
 
       Solaris 8, 9, 10
-      Linux (glibc 2.2, 2.3, 2.5, 2.6, 2.6.1)
+      Linux (glibc 2.2, 2.3, 2.5, 2.6, 2.6.1, 2.7)
       Mac OS X 10.4
       NetBSD
       AIX 5.2

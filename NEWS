@@ -45,6 +45,10 @@ remctl 2.12 (unreleased)
     the hostname was converted to the empty string.  Adjust Net::Remctl to
     recognize the empty string as an unspecified hostname.
 
+    The configure option to specify the path to the GSS-API libraries is
+    now --with-gssapi instead of --with-kerberos and the GSS-API probes
+    should be more robust.
+
     Delete the man page symlinks before recreating them so that reinstalls
     work.  Thanks, Nicholas Riley.
 

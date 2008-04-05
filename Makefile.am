@@ -44,8 +44,9 @@ EXTRA_DIST = autogen client/mapfile docs/api/remctl.3 docs/api/remctl.pod \
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
 	client/client-v2.c client/error.c client/internal.h client/open.c
-client_libremctl_la_LDFLAGS = -version-info 1:2:0 @VERSION_LDFLAGS@
-client_libremctl_la_LIBADD = util/libutil.la
+client_libremctl_la_LDFLAGS = -version-info 1:2:0 $(VERSION_LDFLAGS) \
+	$(GSSAPI_LDFLAGS)
+client_libremctl_la_LIBADD = util/libutil.la $(GSSAPI_LIBS)
 include_HEADERS = client/remctl.h
 
 noinst_LTLIBRARIES = portable/libportable.la util/libutil.la
@@ -54,7 +55,8 @@ portable_libportable_la_LIBADD = $(LTLIBOBJS)
 util_libutil_la_SOURCES = util/concat.c util/fdflag.c util/gss-errors.c \
 	util/gss-tokens.c util/messages.c util/network.c util/tokens.c \
 	util/util.h util/vector.c util/xmalloc.c util/xwrite.c
-util_libutil_la_LIBADD = portable/libportable.la
+util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
+util_libutil_la_LIBADD = portable/libportable.la $(GSSAPI_LIBS)
 
 bin_PROGRAMS = client/remctl
 client_remctl_SOURCES = client/remctl.c
@@ -64,8 +66,9 @@ sbin_PROGRAMS = server/remctld
 server_remctld_SOURCES = server/commands.c server/config.c server/generic.c \
 	server/logging.c server/internal.h server/remctld.c \
 	server/server-v1.c server/server-v2.c
-server_remctld_LDADD = util/libutil.la
 server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"
+server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS)
+server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS)
 
 man_MANS = docs/api/remctl.3 docs/api/remctl_close.3 \
 	docs/api/remctl_command.3 docs/api/remctl_error.3 \
@@ -193,7 +196,9 @@ SERVER_FILES = server/commands.c server/config.c server/generic.c \
 
 # All of the test programs.
 tests_client_api_t_LDADD = client/libremctl.la tests/libtest.a util/libutil.la
-tests_client_open_t_LDADD = client/libremctl.la tests/libtest.a util/libutil.la
+tests_client_open_t_LDFLAGS = $(GSSAPI_LDFLAGS)
+tests_client_open_t_LDADD = client/libremctl.la tests/libtest.a \
+	util/libutil.la $(GSSAPI_LIBS)
 tests_client_large_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_portable_asprintf_t_SOURCES = tests/portable/asprintf-t.c \
@@ -230,7 +235,8 @@ tests_portable_strlcpy_t_SOURCES = tests/portable/strlcpy-t.c \
 	tests/portable/strlcpy.c
 tests_portable_strlcpy_t_LDADD = tests/libtest.a util/libutil.la
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
-tests_server_accept_t_LDADD = tests/libtest.a util/libutil.la
+tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS)
+tests_server_accept_t_LDADD = tests/libtest.a util/libutil.la $(GSSAPI_LIBS)
 tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
 tests_server_acl_t_LDADD = tests/libtest.a util/libutil.la
 tests_server_background_t_LDADD = client/libremctl.la tests/libtest.a \
@@ -246,16 +252,19 @@ tests_server_invalid_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_streaming_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
+tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS)
 tests_server_version_t_LDADD = client/libremctl.la tests/libtest.a \
-	util/libutil.la
+	util/libutil.la $(GSSAPI_LIBS)
 tests_util_concat_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_fdflag_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_gss_tokens_t_SOURCES = tests/util/faketoken.c \
 	tests/util/gss-tokens.c tests/util/gss-tokens-t.c
-tests_util_gss_tokens_t_LDADD = tests/libtest.a util/libutil.la
+tests_util_gss_tokens_t_LDFLAGS = $(GSSAPI_LDFLAGS)
+tests_util_gss_tokens_t_LDADD = tests/libtest.a util/libutil.la $(GSSAPI_LIBS)
 tests_util_messages_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_network_t_LDADD = tests/libtest.a util/libutil.la
-tests_util_tokens_t_LDADD = tests/libtest.a util/libutil.la
+tests_util_tokens_t_LDFLAGS = $(GSSAPI_LDFLAGS)
+tests_util_tokens_t_LDADD = tests/libtest.a util/libutil.la $(GSSAPI_LIBS)
 tests_util_vector_t_LDADD = tests/libtest.a util/libutil.la
 tests_util_xmalloc_LDADD = util/libutil.la
 tests_util_xwrite_t_SOURCES = tests/util/fakewrite.c tests/util/xwrite.c \

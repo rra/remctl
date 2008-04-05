@@ -21,12 +21,11 @@ AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 AC_SEARCH_LIBS([gethostbyname], [nsl])
 AC_SEARCH_LIBS([socket], [socket], ,
-    [AC_CHECK_LIB([nsl], [socket],
-        [LIBS="-lnsl -lsocket $LIBS"], , [-lsocket])])
-RRA_LIB_KRB5([gssapi], [false])
+    [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], ,
+        [-lsocket])])
+RRA_LIB_GSSAPI
 AC_HEADER_STDBOOL
-AC_CHECK_HEADERS([inttypes.h stdint.h sys/bitypes.h sys/filio.h sys/select.h \
-                  sys/uio.h syslog.h])
+AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/uio.h syslog.h])
 AC_CHECK_DECLS([snprintf, vsnprintf])
 AC_CHECK_DECLS([inet_aton, inet_ntoa], , ,
     [#include <sys/types.h>
@@ -85,21 +84,21 @@ case "$host" in
 esac
 AC_SUBST([VERSION_LDFLAGS])
 
+dnl Set this globally, since we have too many header files that include the
+dnl GSS-API headers even if the code itself doesn't call GSS-API functions.
+CPPFLAGS="$CPPFLAGS $GSSAPI_CPPFLAGS"
+
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.
 build_perl=
 AC_ARG_ENABLE([perl],
-    AC_HELP_STRING([--enable-perl], [Build Perl libremctl bindings]),
-    [if test x"$enableval" = xyes ; then
-        build_perl=yes
-     fi])
+    [AC_HELP_STRING([--enable-perl], [Build Perl libremctl bindings])],
+    [AS_IF([test x"$enableval" = xyes], [build_perl=yes])])
 AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([tests/client/pod-t], [chmod +x tests/client/pod-t])
-if test x"$build_perl" = xyes ; then
-    AC_CONFIG_FILES([perl/Makefile.PL])
-fi
+AS_IF([test x"$build_perl" = xyes], [AC_CONFIG_FILES([perl/Makefile.PL])])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_COMMANDS([docs], [test -d docs || mkdir docs])
 AC_OUTPUT
