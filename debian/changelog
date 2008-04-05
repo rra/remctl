@@ -1,3 +1,18 @@
+remctl (2.12-1) unstable; urgency=low
+
+  * New upstream release.
+    - Allow the GSS-API library to do hostname canonicalization if no
+      server principal was specified in the client.
+    - Document the client's choice of default server principal.
+    - Fix an exit rather than error in the client library after an out of
+      memory error.
+    - Close file descriptors in the server when spawning children.
+    - Fix Perl API interface for requesting the default principal.
+    - Fix test suite failure when DNS lookups fail.  Thanks, Lucas
+      Nussbaum.  (Closes: #467590)
+
+ -- Russ Allbery <rra@debian.org>  Fri, 04 Apr 2008 22:14:28 -0700
+
 remctl (2.11-3) unstable; urgency=low
 
   * Add the correct Perl dependencies for libnet-remctl-perl.
