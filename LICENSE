@@ -57,7 +57,7 @@ tests/portable/setenv-t.c, tests/portable/snprintf-t.c,
 tests/portable/strlcat-t.c, tests/portable/strlcpy-t.c,
 tests/util/concat-t.c, tests/util/fakewrite.c, tests/util/messages-t.c,
 tests/util/network-t.c, tests/util/vector-t.c, tests/util/xmalloc.c,
-tests/util/xmalloc.t, tests/util/xwrite-t.c, util/fdflag.c,
+tests/util/xmalloc-t, tests/util/xwrite-t.c, util/fdflag.c,
 util/messages.c, util/network.c, util/xmalloc.c, and util/xwrite.c are
 released under the following copyright and license:
 
