@@ -65,11 +65,6 @@ Build system:
 
  * Add pkgconfig support for libremctl.
 
- * Rewrite the Autoconf probes for Kerberos libraries to export the
-   necessary libraries in separate variables, and modify the Perl library
-   build rules to not link against the Kerberos libraries when
-   --enable-reduced-depends is given.
-
 Windows port:
 
  * With more modifications, it should be possible to build remctl against
