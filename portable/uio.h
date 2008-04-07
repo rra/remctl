@@ -15,9 +15,10 @@
 
 #include <sys/types.h>
 
-#ifdef HAVE_SYS_UIO_H
+/* remctl.h provides its own definition of this struct on Windows. */
+#if defined(HAVE_SYS_UIO_H)
 # include <sys/uio.h>
-#else
+#elif !defined(REMCTL_H)
 struct iovec {
     void *iov_base;
     size_t iov_len;

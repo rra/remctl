@@ -22,7 +22,7 @@
 int
 socket_init(void)
 {
-    WSADATA *data;
+    WSADATA data;
 
     if (WSAStartup(MAKEWORD(2,2), &data))
         return 0;
@@ -42,7 +42,8 @@ socket_strerror(err)
 
     if (err >= sys_nerr) {
         char *p;
-        DWORD f = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM;
+        DWORD f = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM
+            | FORMAT_MESSAGE_IGNORE_INSERTS;
         static char *buffer = NULL;
 
         if (buffer != NULL)

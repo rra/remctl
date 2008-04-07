@@ -9,7 +9,7 @@ remctl.exe: remctl.obj getopt.obj messages.obj asprintf.obj winsock.obj xmalloc.
 
 remctl.lib: remctl.dll
 
-remctl.dll: api.obj client-v1.obj client-v2.obj error.obj open.obj network.obj asprintf.obj concat.obj gss-tokens.obj gss-errors.obj inet_aton.obj inet_ntop.obj tokens.obj messages.obj winsock.obj xmalloc.obj libremctl.res
+remctl.dll: api.obj client-v1.obj client-v2.obj error.obj open.obj network.obj asprintf.obj concat.obj gss-tokens.obj gss-errors.obj inet_aton.obj inet_ntop.obj strlcpy.obj strlcat.obj tokens.obj messages.obj winsock.obj xmalloc.obj libremctl.res
 	link $(ldebug) $(lflags) /LIBPATH:$(KRB5SDK)\lib\$(CPU) /dll /out:$@ /export:remctl /export:remctl_new /export:remctl_open /export:remctl_close /export:remctl_command /export:remctl_commandv /export:remctl_error /export:remctl_output $** gssapi32.lib ws2_32.lib advapi32.lib
 
 {client\}.c{}.obj::
@@ -21,7 +21,7 @@ remctl.dll: api.obj client-v1.obj client-v2.obj error.obj open.obj network.obj a
 {portable\}.c{}.obj::
 	$(cc) $(cdebug) $(cflags) $(cvars) /c $<
 
-{client\}.rc{}.res::
+{client\}.rc{}.res:
 	$(rc) $(rcflags) $(rcvars) $<
 
 clean:

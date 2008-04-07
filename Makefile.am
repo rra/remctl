@@ -39,7 +39,8 @@ EXTRA_DIST = LICENSE Makefile.w32 autogen client/libremctl.rc client/mapfile \
 	java/t7.java portable/getaddrinfo.h portable/getnameinfo.h \
 	portable/getopt.h portable/gssapi.h portable/macros.h \
 	portable/socket.h portable/stdbool.h portable/system.h \
-	portable/uio.h remctl.spec $(PERL_FILES) $(TEST_FILES)
+	portable/uio.h portable/winsock.c remctl.spec $(PERL_FILES) \
+	$(TEST_FILES)
 
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \

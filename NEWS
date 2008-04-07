@@ -1,5 +1,11 @@
                        User-Visible remctl Changes
 
+remctl 2.13 (unreleased)
+
+    Several Windows fixes from Matthew Loar, plus really include
+    portable/winsock.c in the distribution.  This version should now build
+    and run on Windows.
+
 remctl 2.12 (2008-04-04)
 
     If no server principal is specified on the remctl command line or in
