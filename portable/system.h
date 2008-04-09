@@ -23,8 +23,8 @@
  * This work is hereby placed in the public domain by its author.
  */
 
-#ifndef SYSTEM_H
-#define SYSTEM_H 1
+#ifndef PORTABLE_SYSTEM_H
+#define PORTABLE_SYSTEM_H 1
 
 /* Make sure we have our configuration information. */
 #include <config.h>
@@ -124,4 +124,4 @@ END_DECLS
 # endif
 #endif
 
-#endif /* !SYSTEM_H */
+#endif /* !PORTABLE_SYSTEM_H */
