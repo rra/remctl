@@ -53,6 +53,11 @@ Client:
 
  * Add Python bindings for the libremctl client library.
 
+ * Add PHP bindings for the libremctl client library.
+
+ * Support setting a timeout and failing the remctl call if the server
+   takes too long to connect or send back data.
+
 Build system:
 
  * Add logic to detect Solaris vs. GNU ld on Solaris and pass the
