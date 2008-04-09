@@ -2,12 +2,12 @@
  *
  * Portability wrapper around <stdbool.h>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * This work is hereby placed in the public domain by its author.
- *
  * Provides the bool and _Bool types and the true and false constants,
  * following the C99 specification, on hosts that don't have stdbool.h.  This
  * logic is based heavily on the example in the Autoconf manual.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * This work is hereby placed in the public domain by its author.
  */
 
 #ifndef PORTABLE_STDBOOL_H
