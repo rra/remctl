@@ -117,23 +117,23 @@ enum token_status token_recv_priv(int fd, gss_ctx_id_t, int *flags,
 char *gssapi_error_string(const char *prefix, OM_uint32, OM_uint32);
 
 /* Concatenate NULL-terminated strings into a newly allocated string. */
-extern char *concat(const char *first, ...);
+char *concat(const char *first, ...);
 
 /*
  * Given a base path and a file name, create a newly allocated path string.
  * The name will be appended to base with a / between them.  Exceptionally, if
  * name begins with a slash, it will be strdup'd and returned as-is.
  */
-extern char *concatpath(const char *base, const char *name);
+char *concatpath(const char *base, const char *name);
 
 /*
  * Like the non-x versions of the same function, but keep writing until either
  * the write is not making progress or there's a real error.  Handle partial
  * writes and EINTR/EAGAIN errors.
  */
-extern ssize_t xpwrite(int fd, const void *buffer, size_t size, off_t offset);
-extern ssize_t xwrite(int fd, const void *buffer, size_t size);
-extern ssize_t xwritev(int fd, const struct iovec *iov, int iovcnt);
+ssize_t xpwrite(int fd, const void *buffer, size_t size, off_t offset);
+ssize_t xwrite(int fd, const void *buffer, size_t size);
+ssize_t xwritev(int fd, const struct iovec *iov, int iovcnt);
 
 /*
  * Create a socket and bind it to the specified address and port (either IPv4
@@ -211,19 +211,19 @@ bool fdflag_nonblocking(int fd, bool flag);
  * and the results of strerror(errno) to the output and are intended for
  * reporting failures of system calls.
  */
-extern void debug(const char *, ...)
+void debug(const char *, ...)
     __attribute__((__format__(printf, 1, 2)));
-extern void notice(const char *, ...)
+void notice(const char *, ...)
     __attribute__((__format__(printf, 1, 2)));
-extern void sysnotice(const char *, ...)
+void sysnotice(const char *, ...)
     __attribute__((__format__(printf, 1, 2)));
-extern void warn(const char *, ...)
+void warn(const char *, ...)
     __attribute__((__format__(printf, 1, 2)));
-extern void syswarn(const char *, ...)
+void syswarn(const char *, ...)
     __attribute__((__format__(printf, 1, 2)));
-extern void die(const char *, ...)
+void die(const char *, ...)
     __attribute__((__noreturn__, __format__(printf, 1, 2)));
-extern void sysdie(const char *, ...)
+void sysdie(const char *, ...)
     __attribute__((__noreturn__, __format__(printf, 1, 2)));
 
 /*
@@ -232,30 +232,30 @@ extern void sysdie(const char *, ...)
  * of those handlers.  These functions are not thread-safe; they set global
  * variables.
  */
-extern void message_handlers_debug(int count, ...);
-extern void message_handlers_notice(int count, ...);
-extern void message_handlers_warn(int count, ...);
-extern void message_handlers_die(int count, ...);
+void message_handlers_debug(int count, ...);
+void message_handlers_notice(int count, ...);
+void message_handlers_warn(int count, ...);
+void message_handlers_die(int count, ...);
 
 /*
  * Some useful handlers, intended to be passed to message_handlers_*.  All
  * handlers take the length of the formatted message, the format, a variadic
  * argument list, and the errno setting if any.
  */
-extern void message_log_stdout(int, const char *, va_list, int);
-extern void message_log_stderr(int, const char *, va_list, int);
-extern void message_log_syslog_debug(int, const char *, va_list, int);
-extern void message_log_syslog_info(int, const char *, va_list, int);
-extern void message_log_syslog_notice(int, const char *, va_list, int);
-extern void message_log_syslog_warning(int, const char *, va_list, int);
-extern void message_log_syslog_err(int, const char *, va_list, int);
-extern void message_log_syslog_crit(int, const char *, va_list, int);
+void message_log_stdout(int, const char *, va_list, int);
+void message_log_stderr(int, const char *, va_list, int);
+void message_log_syslog_debug(int, const char *, va_list, int);
+void message_log_syslog_info(int, const char *, va_list, int);
+void message_log_syslog_notice(int, const char *, va_list, int);
+void message_log_syslog_warning(int, const char *, va_list, int);
+void message_log_syslog_err(int, const char *, va_list, int);
+void message_log_syslog_crit(int, const char *, va_list, int);
 
 /* The type of a message handler. */
 typedef void (*message_handler_func)(int, const char *, va_list, int);
 
 /* If non-NULL, called before exit and its return value passed to exit. */
-extern int (*message_fatal_cleanup)(void);
+int (*message_fatal_cleanup)(void);
 
 /*
  * If non-NULL, prepended (followed by ": ") to all messages printed by either
@@ -371,18 +371,18 @@ int cvector_exec(const char *path, struct cvector *);
  * Last two arguments are always file and line number.  These are internal
  * implementations that should not be called directly.
  */
-extern void *x_calloc(size_t, size_t, const char *, int);
-extern void *x_malloc(size_t, const char *, int);
-extern void *x_realloc(void *, size_t, const char *, int);
-extern char *x_strdup(const char *, const char *, int);
-extern char *x_strndup(const char *, size_t, const char *, int);
-extern int x_vasprintf(char **, const char *, va_list, const char *, int);
+void *x_calloc(size_t, size_t, const char *, int);
+void *x_malloc(size_t, const char *, int);
+void *x_realloc(void *, size_t, const char *, int);
+char *x_strdup(const char *, const char *, int);
+char *x_strndup(const char *, size_t, const char *, int);
+int x_vasprintf(char **, const char *, va_list, const char *, int);
 
 /* asprintf special case. */
 #if HAVE_C99_VAMACROS || HAVE_GNU_VAMACROS
-extern int x_asprintf(char **, const char *, int, const char *, ...);
+int x_asprintf(char **, const char *, int, const char *, ...);
 #else
-extern int x_asprintf(char **, const char *, ...);
+int x_asprintf(char **, const char *, ...);
 #endif
 
 /* Failure handler takes the function, the size, the file, and the line. */
