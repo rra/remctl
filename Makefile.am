@@ -136,11 +136,8 @@ install-data-hook:
 	rm -f $(DESTDIR)$(man3dir)/remctl_commandv.3
 	$(LN_S) remctl_command.3 $(DESTDIR)$(man3dir)/remctl_commandv.3
 
-# We shouldn't have to explicitly list $(LIBOBJS) and $(LTLIBOBJS) here.
-# This is a bug in the non-recursive support.
-MOSTLYCLEANFILES = $(LIBOBJS) $(LTLIBOBJS)
 CLEANFILES = docs/remctld.8
-DISTCLEANFILES = tests/client/pod-t
+DISTCLEANFILES = perl/Makefile tests/client/pod-t
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 config.h.in config.h.in~ \
 	configure docs/api/*.3 docs/protocol.html docs/protocol.txt \
 	docs/remctl.1 docs/remctld.8.in
@@ -155,12 +152,6 @@ clean-local:
 	    cd perl && $(MAKE) clean ; \
 	    cd perl && [ ! -f Makefile.old ] || mv Makefile.old Makefile ; \
 	fi
-
-# More bugs in the non-recursive support, plus running make distclean in the
-# perl directory.
-distclean-local:
-	-rm -f perl/Makefile
-	-rm -rf .deps
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
 # without optimization turned on, and add -DDEBUG=1 so we'll also compile all
@@ -189,7 +180,7 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t \
 	tests/util/gss-tokens-t tests/util/messages-t tests/util/network-t \
 	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc \
 	tests/util/xwrite-t
-check_LIBRARIES= tests/libtest.a
+check_LIBRARIES = tests/libtest.a
 tests_libtest_a_SOURCES = tests/libtest.c tests/libtest.h
 
 # Used for server tests.
