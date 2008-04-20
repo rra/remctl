@@ -83,7 +83,7 @@ AC_DEFUN([_RRA_LIB_GSSAPI_MANUAL],
                 [rra_gssapi_pthread="-lpthread"])])
          AC_CHECK_LIB([krb5support], [krb5int_setspecific],
             [rra_gssapi_extra="-lkrb5support $rra_gssapi_extra"
-             rra_gssapi_extra="$rra_gssapi_extra $rra_gssapi_pthread"],
+             rra_gssapi_extra="$rra_gssapi_extra $rra_gssapi_pthread"], ,
             [$rra_gssapi_pthread])])
      AC_CHECK_LIB([com_err], [error_message],
         [rra_gssapi_extra="-lcom_err $rra_gssapi_extra"])
