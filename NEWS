@@ -6,6 +6,9 @@ remctl 2.13 (unreleased)
     portable/winsock.c in the distribution.  This version should now build
     and run on Windows.
 
+    Restore GSS-API portability checks for old versions of MIT Kerberos
+    accidentally dropped in the previous release.
+
     Fix Autoconf syntax error when probing for libkrb5support.  Thanks,
     Mike Garrison.
 

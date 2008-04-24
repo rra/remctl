@@ -18,7 +18,10 @@ AM_MAINTAINER_MODE
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_INSTALL
+AC_AIX
+AC_GNU_SOURCE
 AC_PROG_LIBTOOL
+
 AC_SEARCH_LIBS([gethostbyname], [nsl])
 AC_SEARCH_LIBS([socket], [socket], ,
     [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], ,
@@ -67,8 +70,25 @@ AC_REPLACE_FUNCS([asprintf daemon getaddrinfo getnameinfo getopt inet_aton \
                   inet_ntop setenv strlcat strlcpy])
 AC_TYPE_SIGNAL
 
-dnl Needed to get prototypes for functions like asprintf on Linux.
-AC_DEFINE([_GNU_SOURCE], [1], [Define to 1 on Linux to get full prototypes.])
+dnl Additional GSS-API portability checks.
+RRA_LIB_GSSAPI_SWITCH
+AC_CHECK_HEADERS([gssapi.h])
+AC_CHECK_DECL([GSS_C_NT_USER_NAME],
+    [AC_DEFINE([HAVE_GSS_RFC_OIDS], 1,
+       [Define to 1 if the GSS-API library uses RFC-compliant OIDs.])], ,
+[#ifdef HAVE_GSSAPI_H
+# include <gssapi.h>
+#else
+# include <gssapi/gssapi.h>
+#endif
+])
+AC_CHECK_DECLS([GSS_KRB5_MECHANISM], , ,
+[#ifdef HAVE_GSSAPI_H
+# include <gssapi.h>
+#else
+# include <gssapi/gssapi.h>
+#endif])
+RRA_LIB_GSSAPI_RESTORE
 
 dnl If and only if we're on a GNU system, use mapfile to do symbol versioning
 dnl of the libremctl library.  libtool doesn't know how to do this itself.
