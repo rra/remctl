@@ -12,6 +12,9 @@ remctl 2.13 (unreleased)
     Fix Autoconf syntax error when probing for libkrb5support.  Thanks,
     Mike Garrison.
 
+    Create the docs directory in the build tree if it's missing, fixing a
+    build failure when builddir != srcdir.  Thanks, Jeff Hutzelman.
+
 remctl 2.12 (2008-04-04)
 
     If no server principal is specified on the remctl command line or in

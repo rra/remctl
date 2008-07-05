@@ -86,6 +86,7 @@ $(srcdir)/docs/remctld.8.in: $(srcdir)/docs/remctld.pod
 	    --section=8 $(srcdir)/docs/remctld.pod > $@
 
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
+	[ -d docs ] || mkdir docs
 	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \
 	    < $(srcdir)/docs/remctld.8.in > $@
 
