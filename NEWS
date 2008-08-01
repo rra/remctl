@@ -9,11 +9,14 @@ remctl 2.13 (unreleased)
     Restore GSS-API portability checks for old versions of MIT Kerberos
     accidentally dropped in the previous release.
 
+    Provide a proper bool type when built with Sun Studio 12 on Solaris
+    10.  Thanks, Jeffrey Hutzelman.
+
     Fix Autoconf syntax error when probing for libkrb5support.  Thanks,
     Mike Garrison.
 
     Create the docs directory in the build tree if it's missing, fixing a
-    build failure when builddir != srcdir.  Thanks, Jeff Hutzelman.
+    build failure when builddir != srcdir.  Thanks, Jeffrey Hutzelman.
 
 remctl 2.12 (2008-04-04)
 
