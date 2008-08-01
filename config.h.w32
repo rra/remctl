@@ -1,4 +1,4 @@
-/* $Id$
+/* -*- c -*-
  *
  * This is a static, stripped-down version of config.h.in for Windows
  * platforms.  It's hand-tweaked to define the right symbols so that

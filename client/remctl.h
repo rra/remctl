@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Public interface to remctl client library.
  *
  * Written by Russ Allbery <rra@stanford.edu>

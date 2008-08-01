@@ -1,5 +1,4 @@
 # Makefile for Java remctl implementation.
-# $Id$
 #
 # This Makefile is not (yet) integrated with the rest of the remctl build
 # system.  You will need to either edit the JDK setting below or override it

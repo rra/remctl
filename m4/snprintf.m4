@@ -1,5 +1,4 @@
 dnl snprintf.m4 -- Test for a working C99 snprintf.
-dnl $Id$
 dnl
 dnl Check for a working snprintf.  Some systems have an snprintf that doesn't
 dnl nul-terminate if the buffer isn't large enough.  Others return -1 if the
@@ -12,6 +11,7 @@ dnl fully working snprintf is found.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
 dnl Copyright 2006, 2008 Board of Trustees, Leland Stanford Jr. University
+dnl
 dnl See LICENSE for licensing terms.
 
 dnl Source used by RRA_FUNC_SNPRINTF.

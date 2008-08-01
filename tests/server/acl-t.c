@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Test suite for the server ACL checking.
  *
  * Written by Russ Allbery <rra@stanford.edu>

@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Protocol v2, client implementation.
  *
  * This is the client implementation of the new v2 protocol.  It's fairly

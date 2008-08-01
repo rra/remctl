@@ -1,5 +1,4 @@
-/*  $Id$
-**
+/*
 **  Replacement implementation of getnameinfo.
 **
 **  Written by Russ Allbery <rra@stanford.edu>

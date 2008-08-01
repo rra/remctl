@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Internal support functions for the remctl client library.
  *
  * Written by Russ Allbery <rra@stanford.edu>

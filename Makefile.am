@@ -1,5 +1,4 @@
 # Makefile.am -- Automake makefile for remctl.
-# $Id$
 #
 # Written by Russ Allbery <rra@stanford.edu>
 # Copyright 2006, 2007, 2008 Board of Trustees, Leland Stanford Jr. University

@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * remctl command-line client.
  *
  * This is a command-line driver for the libremctl library, which takes the

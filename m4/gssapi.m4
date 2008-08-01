@@ -1,5 +1,4 @@
 dnl gssapi.m4 -- Find the compiler and linker flags for GSS-API.
-dnl $Id$
 dnl
 dnl Finds the compiler and linker flags for linking with GSS-API libraries
 dnl and sets the substitution variables GSSAPI_CPPFLAGS, GSSAPI_LDFLAGS, and

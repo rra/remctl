@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Entry points for the remctl library API.
  *
  * All of the high-level entry points for the remctl library API, defined in

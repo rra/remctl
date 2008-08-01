@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Fake write and writev functions for testing xwrite and xwritev.
  *
  * Copyright (c) 2004, 2005, 2006

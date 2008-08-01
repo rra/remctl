@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Configuration parsing.
  *
  * These are the functions for parsing the remctld configuration file and

@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Dummy symbol to prevent an empty library.
  *
  * On platforms that already have all of the functions that libportable would

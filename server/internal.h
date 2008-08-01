@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Internal support functions for the remctld daemon.
  *
  * Written by Russ Allbery <rra@stanford.edu>

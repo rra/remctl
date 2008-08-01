@@ -1,5 +1,4 @@
 # Net::Remctl -- Perl bindings for the remctl client library.
-# $Id$
 #
 # This is the Perl boostrap file for the Net::Remctl module, nearly all of
 # which is implemented in XS.  For the actual source, see Remctl.xs.  This

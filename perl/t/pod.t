@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-# $Id$
 #
 # Test suite for the Net::Remctl POD documentation.
 

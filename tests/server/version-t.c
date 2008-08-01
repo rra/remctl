@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Test suite for version negotiation in the server.
  *
  * Written by Russ Allbery <rra@stanford.edu>

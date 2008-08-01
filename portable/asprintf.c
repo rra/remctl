@@ -1,5 +1,4 @@
-/* $Id: asprintf.c 7519 2006-04-17 23:13:40Z eagle $
- *
+/*
  * Replacement for a missing asprintf and vasprintf.
  *
  * Provides the same functionality as the standard GNU library routines

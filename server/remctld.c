@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * The remctl server.
  *
  * Handles option parsing, network setup, and the basic processing loop of the

@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Small C program to verify that standard input is not closed but returns EOF
  * on any read and that all file descriptors higher than 2 are closed.
  *

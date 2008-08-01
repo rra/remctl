@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Open a connection to a remote server.
  *
  * This is the client implementation of opening a connection to a remote

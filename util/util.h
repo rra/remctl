@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Utility functions.
  *
  * This is a variety of utility functions that are used internally by pieces

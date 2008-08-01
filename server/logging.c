@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Logging and error handling for the remctld server.
  *
  * A set of helper routines to do error handling and other logging for

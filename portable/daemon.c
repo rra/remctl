@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Replacement for a missing daemon.
  *
  * Provides the same functionality as the library function daemon for those

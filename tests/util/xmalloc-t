@@ -1,5 +1,4 @@
 #! /bin/sh
-# $Id: xmalloc.t 7519 2006-04-17 23:13:40Z eagle $
 #
 # Test suite for xmalloc and friends.
 #

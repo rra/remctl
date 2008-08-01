@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * GSS token handling routines.
  *
  * Higher-level wrappers around the low-level token handling routines that

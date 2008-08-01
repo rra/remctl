@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Test suite for behavior with backgrounded processes.
  *
  * Written by Russ Allbery <rra@stanford.edu>
