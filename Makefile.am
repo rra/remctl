@@ -160,6 +160,9 @@ WARNINGS = -g -O -DDEBUG=1 -Wall -W -Wendif-labels -Wpointer-arith \
 	-Wbad-function-cast -Wwrite-strings -Wstrict-prototypes \
 	-Wmissing-prototypes -Wnested-externs -Werror
 
+# Suppress some warnings for Perl code because Perl itself doesn't pass them.
+PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs -Wno-strict-prototypes
+
 warnings:
 	$(MAKE) CFLAGS='$(WARNINGS)'
 	$(MAKE) CFLAGS='$(WARNINGS)' $(check_PROGRAMS)
@@ -292,7 +295,7 @@ perl/Remctl.o: $(srcdir)/perl/Remctl.pm $(srcdir)/perl/Remctl.xs \
 	    done \
 	fi
 	cd perl && perl Makefile.PL
-	cd perl && $(MAKE) OPTIMIZE="$(CFLAGS) -Wno-write-strings"
+	cd perl && $(MAKE) OPTIMIZE="$(CFLAGS) $(PERL_WARNINGS)"
 
 # Build and install the Perl bindings if desired.
 if BUILD_PERL
