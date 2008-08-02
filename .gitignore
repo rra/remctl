@@ -28,6 +28,7 @@ tests/client/open-t
 tests/data/cmd-background
 tests/data/cmd-closed
 tests/data/cmd-streaming
+tests/data/test.cache
 tests/data/test.keytab
 tests/data/test.principal
 tests/portable/asprintf-t
