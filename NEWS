@@ -12,6 +12,9 @@ remctl 2.13 (unreleased)
     Provide a proper bool type when built with Sun Studio 12 on Solaris
     10.  Thanks, Jeffrey Hutzelman.
 
+    Sanity-check the results of krb5-config before proceeding and error
+    out in configure if they don't work.
+
     Fix Autoconf syntax error when probing for libkrb5support.  Thanks,
     Mike Garrison.
 

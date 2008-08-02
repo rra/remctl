@@ -96,6 +96,14 @@ AC_DEFUN([_RRA_LIB_GSSAPI_MANUAL],
     [-lkrb5 -lasn1 -lroken -lcrypto -lcom_err $rra_gssapi_extra])
  RRA_LIB_GSSAPI_RESTORE])
 
+dnl Sanity-check the results of krb5-config and be sure we can really link a
+dnl GSS-API program.
+AC_DEFUN([_RRA_LIB_GSSAPI_CHECK],
+[RRA_LIB_GSSAPI_SWITCH
+ AC_CHECK_FUNC([gss_import_name], ,
+    [AC_MSG_FAILURE([krb5-config results fail for GSS-API])])
+ RRA_LIB_GSSAPI_RESTORE])
+
 dnl The main macro.
 AC_DEFUN([RRA_LIB_GSSAPI],
 [AC_REQUIRE([RRA_ENABLE_REDUCED_DEPENDS])
@@ -131,6 +139,7 @@ AC_DEFUN([RRA_LIB_GSSAPI],
               [GSSAPI_CPPFLAGS=`"$KRB5_CONFIG" --cflags`
                GSSAPI_LIBS=`"$KRB5_CONFIG" --libs`])
           GSSAPI_CPPFLAGS=`echo "$GSSAPI_CPPFLAGS" \
-              | sed 's%-I/usr/include ?%%'`],
+              | sed 's%-I/usr/include ?%%'`
+          _RRA_LIB_GSSAPI_CHECK],
          [_RRA_LIB_GSSAPI_PATHS
           _RRA_LIB_GSSAPI_MANUAL])])])
