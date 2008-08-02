@@ -76,7 +76,8 @@ extern int              inet_aton(const char *, struct in_addr *);
 extern const char *     inet_ntoa(const struct in_addr);
 #endif
 #if !HAVE_INET_NTOP
-extern const char *     inet_ntop(int, const void *, char *, socklen_t);
+extern const char *     inet_ntop(int, const void *, char *, socklen_t)
+    __attribute__((__visibility__("hidden")));
 #endif
 
 /*

@@ -36,6 +36,9 @@ struct remctl {
     bool ready;                 /* If true, we are expecting server output. */
 };
 
+/* Internal functions should all default to hidden visibility. */
+#pragma GCC visibility push(hidden)
+
 /* Helper functions to set errors. */
 void internal_set_error(struct remctl *, const char *, ...);
 void internal_gssapi_error(struct remctl *, const char *error,
@@ -66,6 +69,9 @@ bool internal_v2_quit(struct remctl *);
 
 /* Read a protocol v2 response. */
 struct remctl_output *internal_v2_output(struct remctl *);
+
+/* Undo default visibility change. */
+#pragma GCC visibility pop
 
 END_DECLS
 

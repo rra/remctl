@@ -90,6 +90,9 @@ enum error_codes {
     ERROR_TOOMUCH_DATA    = 8   /* Argument size exceeds server limit. */
 };
 
+/* Default to a hidden visibility for all util functions. */
+#pragma GCC visibility push(hidden)
+
 /*
  * Sending and receiving tokens.  Do not use gss_release_buffer to free the
  * token returned by token_recv; this will cause crashes on Windows.  Call
@@ -395,6 +398,9 @@ void xmalloc_fail(const char *, size_t, const char *, int);
  * just calls sysdie.
  */
 extern xmalloc_handler_type xmalloc_error_handler;
+
+/* Undo default visibility change. */
+#pragma GCC visibility pop
 
 END_DECLS
 

@@ -47,7 +47,8 @@ BEGIN_DECLS
 /* Function prototypes. */
 int getnameinfo(const struct sockaddr *sa, socklen_t salen,
                 char *node, socklen_t nodelen,
-                char *service, socklen_t servicelen, int flags);
+                char *service, socklen_t servicelen, int flags)
+    __attribute__((__visibility__("hidden")));
 
 END_DECLS
 
