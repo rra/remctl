@@ -138,9 +138,11 @@ install-data-hook:
 
 CLEANFILES = docs/remctld.8
 DISTCLEANFILES = perl/Makefile tests/client/pod-t
-MAINTAINERCLEANFILES = Makefile.in aclocal.m4 config.h.in config.h.in~ \
-	configure docs/api/*.3 docs/protocol.html docs/protocol.txt \
-	docs/remctl.1 docs/remctld.8.in
+MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
+	build-aux/config.guess build-aux/config.sub build-aux/depcomp \
+	build-aux/install-sh build-aux/ltmain.sh build-aux/missing \
+	config.h.in config.h.in~ configure docs/api/*.3 docs/protocol.html \
+	docs/protocol.txt docs/remctl.1 docs/remctld.8.in
 
 # Automake should deal with the first part of this automatically, but it
 # doesn't.  Probably a bug in the non-recursive support.  Also run make clean
