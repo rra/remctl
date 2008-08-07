@@ -154,6 +154,13 @@ clean-local:
 	    cd perl && $(MAKE) clean ; \
 	    cd perl && [ ! -f Makefile.old ] || mv Makefile.old Makefile ; \
 	fi
+	set -e; if [ -f "php/Makefile" ] ; then \
+	    cd php && $(MAKE) clean ; \
+	fi
+
+# Also clean the PHP directory on make maintainer-clean.
+maintainer-clean-local:
+	cd php && phpize --clean
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
 # without optimization turned on, and add -DDEBUG=1 so we'll also compile all
@@ -164,6 +171,9 @@ WARNINGS = -g -O -DDEBUG=1 -Wall -W -Wendif-labels -Wpointer-arith \
 
 # Suppress some warnings for Perl code because Perl itself doesn't pass them.
 PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs -Wno-strict-prototypes
+
+# Likewise for PHP.
+PHP_WARNINGS = -Wno-strict-prototypes
 
 warnings:
 	$(MAKE) CFLAGS='$(WARNINGS)'
@@ -287,6 +297,10 @@ check-local: $(noinst_PROGRAMS)
 	        $(MAKE) test ; \
 	fi
 
+# Used for hooking in the build of optional language bindings.
+BINDINGS =
+BINDINGS_INSTALL =
+
 # The following section sets up the Perl module build properly.  Most of the
 # complexity is here to handle building outside of the source directory, in
 # which case we need to copy various files from the source directory and make
@@ -311,6 +325,22 @@ if BUILD_PERL
 BINDINGS += perl/Remctl.o
 BINDINGS_INSTALL += install-data-local-perl
 endif
+
+# The following section sets up the PHP PECL module build properly.  Since it
+# uses its own Autoconf script, it handles builddir != srcdir builds itself.
+
+php/modules/remctl.so: $(srcdir)/php/php_remctl.c $(srcdir)/php/php_remctl.h
+	cd php && $(MAKE) CFLAGS="$(CFLAGS) $(PHP_WARNINGS)"
+
+install-data-local-php: php/modules/remctl.so
+	cd php && $(MAKE) install DESTDIR=$(DESTDIR)
+
+# Build and install the PHP bindings if desired.
+if BUILD_PHP
+BINDINGS += php/modules/remctl.so
+BINDINGS_INSTALL += install-data-local-php
+endif
+
 
 all-local: $(BINDINGS)
 install-data-local: $(BINDINGS_INSTALL)

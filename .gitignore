@@ -1,4 +1,4 @@
-.deps/
+.deps
 .dirstamp
 .libs/
 Makefile
@@ -20,6 +20,19 @@ perl/Remctl.bs
 perl/Remctl.c
 perl/blib/
 perl/pm_to_blib
+php/Makefile.*
+php/acinclude.m4
+php/build/
+php/config.guess
+php/config.nice
+php/config.sub
+php/configure.in
+php/install-sh
+php/ltmain.sh
+php/missing
+php/mkinstalldirs
+php/modules/
+php/run-tests.php
 server/remctld
 stamp-h1
 tests/client/api-t

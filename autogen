@@ -2,5 +2,9 @@
 #
 # Run this shell script to bootstrap as necessary after a fresh checkout.
 
+set -e
+
 autoreconf -i --force
 rm -rf autom4te.cache
+(cd php && phpize --clean && phpize)
+rm -rf php/autom4te.cache

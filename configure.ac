@@ -114,6 +114,15 @@ AC_ARG_ENABLE([perl],
     [AS_IF([test x"$enableval" = xyes], [build_perl=yes])])
 AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
 
+dnl Whether to build the PHP bindings.
+build_php=
+AC_ARG_ENABLE([php],
+    [AC_HELP_STRING([--enable-php], [Build PHP remctl PECL module])],
+    [AS_IF([test x"$enableval" = xyes],
+        [build_php=yes
+         AC_CONFIG_SUBDIRS([php])])])
+AM_CONDITIONAL([BUILD_PHP], [test x"$build_php" = xyes])
+
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([tests/client/pod-t], [chmod +x tests/client/pod-t])
 AS_IF([test x"$build_perl" = xyes], [AC_CONFIG_FILES([perl/Makefile.PL])])
