@@ -303,10 +303,14 @@ perl/Remctl.o: $(srcdir)/perl/Remctl.pm $(srcdir)/perl/Remctl.xs \
 	cd perl && perl Makefile.PL
 	cd perl && $(MAKE) OPTIMIZE="$(CFLAGS) $(PERL_WARNINGS)"
 
+install-data-local-perl: perl/Remctl.o
+	cd perl && $(MAKE) install DESTDIR=$(DESTDIR)
+
 # Build and install the Perl bindings if desired.
 if BUILD_PERL
-all-local: perl/Remctl.o
-
-install-data-local: perl/Remctl.o
-	cd perl && $(MAKE) install DESTDIR=$(DESTDIR)
+BINDINGS += perl/Remctl.o
+BINDINGS_INSTALL += install-data-local-perl
 endif
+
+all-local: $(BINDINGS)
+install-data-local: $(BINDINGS_INSTALL)
