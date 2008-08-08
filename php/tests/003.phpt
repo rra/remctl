@@ -1,5 +1,5 @@
 --TEST--
-Check advanced remctl API
+Check full remctl API
 --SKIPIF--
 <?php
     if (!extension_load("remctl")) print "skip";

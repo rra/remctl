@@ -1,5 +1,5 @@
 /*
- * PHP remctl PECL module.
+ * remctl PECL extension for PHP
  *
  * Provides bindings for PHP very similar to the libremctl library for C or
  * the Net::Remctl bindings for Perl.
@@ -197,7 +197,7 @@ cleanup:
 
 
 /*
- * Now the complex interface.  First, the constructor.
+ * Now the full interface.  First, the constructor.
  */
 ZEND_FUNCTION(remctl_new)
 {

@@ -331,8 +331,8 @@ BINDINGS += perl/Remctl.o
 BINDINGS_INSTALL += install-data-local-perl
 endif
 
-# The following section sets up the PHP PECL module build properly.  Since it
-# uses its own Autoconf script, it handles builddir != srcdir builds itself.
+# The following section sets up the PECL extension for PHP.  Since it uses its
+# own Autoconf script, it handles builddir != srcdir builds itself.
 
 php/modules/remctl.so: $(srcdir)/php/php_remctl.c $(srcdir)/php/php_remctl.h
 	cd php && $(MAKE) CFLAGS="$(CFLAGS) $(PHP_WARNINGS)"

@@ -1,4 +1,4 @@
-dnl config.m4 -- PHP remctl PECL module configuration.
+dnl remctl PECL extension for PHP configuration
 dnl
 dnl Provides additional configuration hooks for the PHP module build system.
 dnl This file is used by the phpize frameowrk.

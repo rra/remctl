@@ -117,7 +117,7 @@ AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
 dnl Whether to build the PHP bindings.
 build_php=
 AC_ARG_ENABLE([php],
-    [AC_HELP_STRING([--enable-php], [Build PHP remctl PECL module])],
+    [AC_HELP_STRING([--enable-php], [Build remctl PECL extension for PHP])],
     [AS_IF([test x"$enableval" = xyes],
         [build_php=yes
          AC_CONFIG_SUBDIRS([php])])])
