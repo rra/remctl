@@ -284,7 +284,7 @@ tests_util_xwrite_t_SOURCES = tests/util/fakewrite.c tests/util/xwrite.c \
 	tests/util/xwrite-t.c
 tests_util_xwrite_t_LDADD = tests/libtest.a util/libutil.la
 
-check-local: $(noinst_PROGRAMS)
+check-local: $(check_PROGRAMS)
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
 	    mkdir tests/data/acls 2>/dev/null || true ; \
 	    for f in $(TEST_FILES) ; do \
