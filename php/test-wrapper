@@ -56,7 +56,7 @@ if [ -f "$top/tests/data/test.keytab" ] ; then
 
     # Try a few different syntaxes for kinit to allow for Heimdal, MIT, or the
     # Stanford-local hack.
-    KRB5CCNAME=remctl-test.cache
+    KRB5CCNAME="`pwd`"/remctl-test.cache
     export KRB5CCNAME
     kinit -k -t "$keytab" "$principal" >/dev/null </dev/null
     status=$?
@@ -81,9 +81,14 @@ if [ -f "$top/tests/data/test.keytab" ] ; then
     else
         if [ ! -f remctl-test.pid ] ; then
             echo 'remctld did not start' >&2
+        else
+            echo "$principal" > remctl-test.princ
         fi
     fi
 fi
+
+# Create a link for the test data directory, needed by the remctl config.
+ln -s "$top"/tests/data data
 
 # Now we can finally run the tests, which will use remctl-test.pid as a flag
 # for whether to try the Kerberos tests.
@@ -91,7 +96,7 @@ make test
 status=$?
 
 # Kill the remctl server.
-rm remctl-test.cache
+rm remctl-test.cache remctl-test.princ
 if [ "$status" = 0 ] ; then
     rm -f remctl-test.out
 fi
@@ -101,6 +106,7 @@ if [ -f remctl-test.pid ] ; then
 fi
 
 # Clean up our symlinks.
+rm data
 for file in modules/* ; do
     if [ `basename "$file"` != remctl.so ] ; then
         rm "$file"
