@@ -297,6 +297,10 @@ check-local: $(noinst_PROGRAMS)
 	    cd perl && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
 	        $(MAKE) test ; \
 	fi
+	@set -e; if [ -f php/Makefile ] ; then \
+	    echo '' ; \
+	    cd php && ./test-wrapper "$(abs_top_builddir)" ; \
+	fi
 
 # Used for hooking in the build of optional language bindings.
 BINDINGS =
