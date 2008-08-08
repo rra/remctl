@@ -39,19 +39,18 @@ if ( !remctl_command( $rem, $args )) {
     exit( 2 );
 }
 $output = remctl_output( $rem );
-while ( $output != null && !$output->done ) {
+while ($output != null && $output->type != "done") {
     switch ( $output->type ) {
     case "output":
-	if ( $output->stdout_len ) {
-	    echo "stdout: $output->stdout";
-	}
-	if ( $output->stderr_len ) {
-	    echo "stderr: $output->stderr";
+	if ($output->stream == 1) {
+	    echo "stdout: $output->data";
+	} elseif ($output->stream == 2) {
+	    echo "stderr: $output->data";
 	}
 	break;
 
     case "error":
-	echo "error: $output->error\n";
+	echo "error: $output->error ($output->data)\n";
 	break;
 
     case "status":
