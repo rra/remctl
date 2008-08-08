@@ -173,7 +173,8 @@ WARNINGS = -g -O -DDEBUG=1 -Wall -W -Wendif-labels -Wpointer-arith \
 PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs -Wno-strict-prototypes
 
 # Likewise for PHP.
-PHP_WARNINGS = -Wno-strict-prototypes
+PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
+	-Wno-missing-prototypes -Wno-unused-parameter
 
 warnings:
 	$(MAKE) CFLAGS='$(WARNINGS)'
