@@ -92,7 +92,7 @@ ln -s "$top"/tests/data data
 
 # Now we can finally run the tests, which will use remctl-test.pid as a flag
 # for whether to try the Kerberos tests.
-make test
+env LD_LIBRARY_PATH="$top"/client/.libs make test
 status=$?
 
 # Kill the remctl server.
