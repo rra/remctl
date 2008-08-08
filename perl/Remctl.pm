@@ -94,7 +94,7 @@ port of the remote B<remctld> server and may be 0 to tell the library to
 use the default (first try 4373, the registered remctl port, and fall back
 to the legacy 4444 port if that fails).  PRINCIPAL is the principal of the
 server to use for authentication; pass in the empty string to use the
-default of host/I<hostname>, with the realm determined by domain-realm
+default of host/HOSTNAME, with the realm determined by domain-realm
 mapping.  The remaining arguments are the remctl command and arguments
 passed to the remote server.
 
@@ -170,7 +170,7 @@ Connect to HOSTNAME on port PORT using PRINCIPAL as the remote server's
 principal for authentication.  If PORT is omitted or 0, use the default
 (first try 4373, the registered remctl port, and fall back to the legacy
 4444 port if that fails).  If PRINCIPAL is omitted or the empty string,
-use the default of host/I<hostname>, with the realm determined by
+use the default of host/HOSTNAME, with the realm determined by
 domain-realm mapping.  Returns true on success, false on failure.  On
 failure, call error() to get the failure message.
 
