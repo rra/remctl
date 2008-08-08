@@ -1,8 +1,8 @@
 --TEST--
-Check basic remctl API
+Check advanced remctl API
 --SKIPIF--
 <?php
-    if (!extension_load("remctl)) print "skip";
+    if (!extension_load("remctl")) print "skip";
     if (!file_exists("remctl-test.pid")) print "skip";
 ?>
 --FILE--
@@ -55,6 +55,7 @@ Check basic remctl API
     echo "1: $output->type\n";
     echo "1: $output->data\n";
     echo "1: $output->error\n";
+    remctl_close($r);
 ?>
 --EXPECT--
 Created object
