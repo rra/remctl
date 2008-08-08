@@ -93,7 +93,7 @@ ZEND_FUNCTION(remctl)
     HashPosition pos;
     char *host, *principal = NULL;
     const char **command = NULL;
-    unsigned short port;
+    long port;
     int hlen, plen, count, i, status;
     int success = 0;
     struct remctl_result *result = NULL;
@@ -223,7 +223,7 @@ ZEND_FUNCTION(remctl_open)
     zval *zrem;
     char *host;
     char *principal = NULL;
-    unsigned short port = 0;
+    long port = 0;
     int hlen, plen, status;
 
     /* Parse and verify arguments. */
