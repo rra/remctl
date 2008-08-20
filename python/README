@@ -1,0 +1,148 @@
+Pyremctl: A python interface to remctl.
+Thomas L. Kula <kula@tproa.net>
+
+Copyright 2008, Thomas L. Kula
+This software is distributed under a BSD-style license,
+please see the section LICENSE below for more information.
+
+
+DESCRIPTION
+
+ Remctl is a client/server protocol for running commands on
+ a remote host, authenticated and encrypted with Kerberos
+ v5, and getting the result back. More information on remctl
+ can be found at the remctl home page, 
+ <http://www.eyrie.org/~eagle/software/remctl/>
+
+ Pyremctl is an interface to remctl, allowing you to call
+ the remctl library from python. Currently it implements
+ only the "simple" interface to remctl.
+ <http://kula.tproa.net/code/pyremctl/>
+
+
+REQUIREMENTS
+
+ The remctl library must already be installed. It has been
+ tested with remctl version 2.11.
+
+INSTALLATION
+
+ python setup.py build
+ python setup.py install (as root)
+
+INTERFACE
+
+ The "simple" remctl interface:
+
+ remctl( host, port, principal, command ):
+
+  - host: a string, the host to connect to. Required.
+  - port: the port to connect to. Optional, defaults to 4373.
+  - principal: the principal to use to connect to the remote
+	       host. Optional, defaults to
+	       "host/<host>"
+  - command: a sequence of arguments to pass to the remote
+	     machine. Must have at least two items. 
+	     Required.
+
+  Returns: an object of type RemctlSimpleResult, with the
+   following attributes:
+   - stdout: the stdout from the command
+   - stderr: the stderr from the command
+   - status: the exit status of the command
+
+  Exceptions:
+   - RemctlArgError: an invalid argument was supplied
+   - RemctlProtocolError: some error occured in the remctl
+      communication. The 'value' attribute of the returned
+      exception contains the string returned by the remctl
+      library and may provide a clue as to what error 
+      occured.
+
+ The "complex" remctl interface:
+
+ conn = remctl.Remctl()
+
+  - or -
+
+ conn = remctl.Remctl( 'hostname', port, 'prin/cipal' )
+
+ If you did not pass connection parameters when you created the conn
+ object, you can do:
+
+  conn.open( 'hostname', port, 'prin/cipal' )
+
+ After you have an open connection:
+
+  conn.command( ['list', 'of', 'commands'] )
+
+   - You must supply something list like, and each member of the list
+     must be able to be converted into a string.
+
+  type, output, stream, status, error = conn.output()
+
+   - Type: matches one of REMCTL_OUT_OUTPUT, REMCTL_OUT_STATUS, 
+     REMCTL_OUT_ERROR, REMCTL_OUT_DONE. See remctl documentation for
+     meaning.
+   - Output: the returned output
+   - Stream: currently either 1 for stdout or 2 for stderr
+   - Status: returned status of ran command, only valid when type is
+     REMCTL_OUT_STATUS.
+   - Error: A remctl protocol error, valid when type is REMCTL_OUT_ERROR.
+     See remctl documentation for more information.
+
+ To close a connection:
+
+  conn.close()
+
+  Using a conn object after closing it is not supported by this library.
+
+ To get various error strings from the remctl library when the RemctlError
+ exception is thrown, run:
+
+  errorstring = conn.error()
+
+ Returned exceptions:
+
+   - RemctlArgError: an invalid argument was supplied
+   - RemctlProtocolError: some error occured in the remctl
+     communication. The 'value' attribute of the returned
+     exception contains the string returned by the remctl
+     library and may provide a clue as to what error
+     occured.
+   - RemctlError: the underlying remctl library returned an error.
+   - RemctlNotOpened: an attempt was made to run a command before a
+     connection had been opened.
+
+
+ADDITIONAL NOTES
+
+ The low-level _remctl library is also installed. It depends on
+ the remctl library to do all sanity checking, use at your own
+ risk.
+
+THANKS
+
+ - Andrew Mortensen for general code formatting comments and 
+   a reminder to free malloc'd memory.
+
+LICENSE
+
+ Copyright 2008, Thomas L. Kula. All rights reserved. 
+    
+ Permission to use, copy, modify, and distribute this software and its
+ documentation for any purpose and without fee is hereby granted,
+ provided that the above copyright notice appear in all copies and that
+ both that copyright notice and this permission notice appear in
+ supporting documentation, and that the name of Thomas L. Kula not
+ be used in advertising or publicity pertaining to distribution of the
+ software without specific, written prior permission. Thomas L. Kula
+ makes no representations about the suitability of this software for 
+ any purpose.  It is provided "as is" without express or implied 
+ warranty.
+
+ THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+ WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.4 2008/03/02 13:15:38 kula Exp $
