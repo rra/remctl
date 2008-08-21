@@ -261,7 +261,6 @@ server_daemon(struct options *options, struct config *config,
     stmp = network_bind_ipv4("any", options->port);
     if (stmp < 0)
         sysdie("cannot create socket");
-    fdflag_close_exec(stmp, true);
     if (listen(stmp, 5) < 0)
         sysdie("error listening on socket");
 
@@ -311,6 +310,7 @@ server_daemon(struct options *options, struct config *config,
             warn("sleeping ten seconds in the hope we recover...");
             sleep(10);
         } else if (child == 0) {
+            close(stmp);
             if (sigaction(SIGCHLD, &oldsa, NULL) < 0)
                 syswarn("cannot reset SIGCHLD handler");
             server_handle_connection(s, config, creds);

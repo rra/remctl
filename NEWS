@@ -25,6 +25,11 @@ remctl 2.13 (unreleased)
     Create the docs directory in the build tree if it's missing, fixing a
     build failure when builddir != srcdir.  Thanks, Jeffrey Hutzelman.
 
+    In standalone mode, close the main server socket immediately in the
+    child handler processes.  Since the socket was already marked close on
+    exec, this probably only matters for consistent test suite results,
+    ensuring that the port is released immediately, but it's more correct.
+
 remctl 2.12 (2008-04-04)
 
     If no server principal is specified on the remctl command line or in
