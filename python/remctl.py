@@ -60,7 +60,7 @@ class RemctlSimpleResult:
         self.stderr = None
         self.status = None
 
-def remctl(host = None, port = 4373, principal = None, command = []):
+def remctl(host, port, principal, command):
     """Simple interface to remctl.
 
     Connect to HOST on PORT, using PRINCIPAL as the server principal for
@@ -69,18 +69,14 @@ def remctl(host = None, port = 4373, principal = None, command = []):
     complete standard output, stderr holds the complete standard error, and
     status holds the exit status.
     """
-    if host == None:
-        raise RemctlArgError, 'no host specified'
     try:
         myport = int(port)
     except:
         raise RemctlArgError, 'port must be a number'
     if (myport < 0) or (myport > 65535):
         raise RemctlArgError, 'invalid port number'
-    if principal == None:
-        principal = 'host/' + host
-    if len(command) < 2:
-        raise RemctlArgError, 'must have two or more arguments to command'
+    if len(command) < 1:
+        raise RemctlArgError, 'command must not be empty'
 
     # Convert the command to a list of strings.
     mycommand = []
@@ -110,12 +106,10 @@ class Remctl:
         if host != None:
             self.open(host, port, principal)
 
-    def open(self, host = None, port = None, principal = None):
-        if host == None:
-            raise RemctlArgError, 'no host specified'
+    def open(self, host, port = None, principal = None):
         self.host = host
         if port == None:
-            self.port = 4373
+            self.port = 0
         else:
             try:
                 self.port = int(port)
@@ -124,8 +118,6 @@ class Remctl:
         if (self.port < 0) or (self.port > 65535):
             raise RemctlArgError, 'invalid port number'
         self.principal = principal
-        if self.principal == None:
-            self.principal = 'host/' + self.host
 
         # At ths point, things should be sane.  Call the low-level interface.
         if not _remctl.remctl_open(self.r, self.host, self.port,
@@ -139,8 +131,8 @@ class Remctl:
             raise RemctlNotOpened, 'no currently open connection'
         if isinstance(comm, list) == False:
             raise RemctlArgError, 'you must supply a list of commands'
-        if len(comm) < 2:
-            raise RemctlArgError, 'must have two or more arguments to command'
+        if len(comm) < 1:
+            raise RemctlArgError, 'command must not be empty'
 
         # Convert the command to a list of strings.
         for item in comm:

@@ -37,7 +37,7 @@ py_remctl(PyObject *self, PyObject *args)
     int length, i;
     PyObject *result = NULL;
 
-    if (!PyArg_ParseTuple(args, "sHsO", &host, &port, &principal, &list))
+    if (!PyArg_ParseTuple(args, "sHzO", &host, &port, &principal, &list))
         return NULL;
 
     /*
@@ -108,7 +108,7 @@ py_remctl_open(PyObject *self, PyObject *args)
     struct remctl *r;
     int status;
 
-    if (!PyArg_ParseTuple(args, "OsHs", &object, &host, &port, &principal))
+    if (!PyArg_ParseTuple(args, "Os|Hz", &object, &host, &port, &principal))
         return NULL;
     r = PyCObject_AsVoidPtr(object);
     status = remctl_open(r, host, port, principal);

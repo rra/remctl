@@ -5,18 +5,9 @@
 
 - Return a memory exception when remctl_new fails.
 
-- Optional arguments to py_remctl_open.
-
 - RemctlArgError should be TypeError or ValueError.
 
 - RemctlNotOpened should be RemctlNotOpenedError.
-
-- Fix default arguments for the remctl() function.
-
-- Can have just one command argument.
-
-- Fix default arguments to open().  host should be required.  Make the
-  corresponding changes to the underlying _remctl module.
 
 - Don't store host, port, and principal in the object; there's no need
   and it means adding self.* in front of everything.  Likewise for the

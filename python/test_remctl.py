@@ -99,21 +99,20 @@ class TestRemctlSimple(TestRemctl):
     def test_simple_errors(self):
         try:
             remctl.remctl()
-        except remctl.RemctlArgError, error:
-            self.assertEqual(str(error), 'no host specified')
+        except TypeError:
+            pass
         try:
-            remctl.remctl('localhost', "foo")
+            remctl.remctl('localhost', "foo", self.principal, [])
         except remctl.RemctlArgError, error:
             self.assertEqual(str(error), 'port must be a number')
         try:
-            remctl.remctl('localhost', -1)
+            remctl.remctl('localhost', -1, self.principal, [])
         except remctl.RemctlArgError, error:
             self.assertEqual(str(error), 'invalid port number')
         try:
             remctl.remctl('localhost', 14373, self.principal, [])
         except remctl.RemctlArgError, error:
-            self.assertEqual(str(error),
-                             'must have two or more arguments to command')
+            self.assertEqual(str(error), 'command must not be empty')
 
 class TestRemctlFull(TestRemctl):
     def test_full_success(self):
@@ -143,8 +142,8 @@ class TestRemctlFull(TestRemctl):
         r = remctl.Remctl()
         try:
             r.open()
-        except remctl.RemctlArgError, error:
-            self.assertEqual(str(error), 'no host specified')
+        except TypeError:
+            pass
         try:
             r.open('localhost', 'foo')
         except remctl.RemctlArgError, error:
@@ -171,8 +170,7 @@ class TestRemctlFull(TestRemctl):
         try:
             r.command([])
         except remctl.RemctlArgError, error:
-            self.assertEqual(str(error),
-                             'must have two or more arguments to command')
+            self.assertEqual(str(error), 'command must not be empty')
         r.close()
         try:
             r.output()
