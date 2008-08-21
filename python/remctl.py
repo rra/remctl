@@ -113,7 +113,10 @@ class Remctl:
 	if port == None:
 	    self.port = 4373
 	else:
-	    self.port = int( port )
+            try:
+                self.port = int( port )
+            except ValueError:
+                raise RemctlArgError, "port must be a number"
 
 	if (( self.port < 0 ) or ( self.port > 65535 )):
 	    raise RemctlArgError, "invalid port number"
