@@ -1,4 +1,4 @@
-/* $Id: _remctlmodule.c,v 1.8 2008/03/08 01:07:35 kula Exp $
+/*
  * _remctlmodule.c: a low level interface for Python to remctl
  * 
  * Written by Thomas L. Kula <kula@tproa.net>
@@ -295,9 +295,6 @@ init_remctl()
     PyDict_SetItemString( dict, "REMCTL_OUT_DONE", tmp );
     Py_DECREF( tmp );
 
-    tmp = PyString_FromString( "$Id: _remctlmodule.c,v 1.8 2008/03/08 01:07:35 kula Exp $" );
-    PyDict_SetItemString( dict, "RCS", tmp );
-    Py_DECREF( tmp );
     tmp = PyString_FromString( VERSION );
     PyDict_SetItemString( dict, "VERSION", tmp );
     Py_DECREF( tmp );

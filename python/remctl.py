@@ -8,7 +8,6 @@
 # Author: Thomas L. Kula <kula@tproa.net>
 
 VERSION=0.4
-RCS='$Id: remctl.py,v 1.4 2008/03/08 01:09:39 kula Exp $'
 
 import _remctl
 

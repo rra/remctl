@@ -12,6 +12,3 @@ setup ( name='pyremctl',
 	description = 'An interface to remctl',
 	ext_modules = [_remctl],
 	py_modules = ['remctl'])
-
-
-# $Id: setup.py,v 1.3 2008/03/08 01:12:52 kula Exp $
