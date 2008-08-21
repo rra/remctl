@@ -33,6 +33,7 @@ php/missing
 php/mkinstalldirs
 php/modules/
 php/run-tests.php
+python/build
 server/remctld
 stamp-h1
 tests/client/api-t
@@ -84,3 +85,4 @@ tests/util/xwrite-t
 *.la
 *.lo
 *.o
+*.pyc
