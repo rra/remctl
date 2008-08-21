@@ -6,7 +6,7 @@
 # See LICENSE for licensing terms.
 
 import remctl
-import errno, os, signal, unittest
+import errno, os, re, signal, unittest
 
 class TestRemctl(unittest.TestCase):
     def change_directory(self):
@@ -44,7 +44,11 @@ class TestRemctl(unittest.TestCase):
             pid = file.read().rstrip()
             file.close()
             os.kill(int(pid), signal.SIGTERM)
-            os.remove('data/pid')
+            try:
+                os.remove('data/pid')
+            except OSError, (error, strerror):
+                if error != errno.ENOENT:
+                    raise
             os.waitpid(int(pid), 0)
         except IOError, (error, strerror):
             if error != errno.ENOENT:
@@ -71,6 +75,11 @@ class TestRemctl(unittest.TestCase):
 
     def tearDown(self):
         self.stop_remctld()
+        try:
+            os.remove('data/test.cache')
+        except OSError, (error, strerror):
+            if error != errno.ENOENT:
+                raise
 
 class TestRemctlSimple(TestRemctl):
     def test_simple_success(self):
@@ -86,6 +95,25 @@ class TestRemctlSimple(TestRemctl):
             result = remctl.remctl('localhost', 14373, self.principal, command)
         except remctl.RemctlProtocolError, error:
             self.assertEqual(str(error), 'Unknown command')
+
+    def test_simple_errors(self):
+        try:
+            remctl.remctl()
+        except remctl.RemctlArgError, error:
+            self.assertEqual(str(error), 'No host supplied')
+        try:
+            remctl.remctl('localhost', "foo")
+        except remctl.RemctlArgError, error:
+            self.assertEqual(str(error), 'port must be a number')
+        try:
+            remctl.remctl('localhost', -1)
+        except remctl.RemctlArgError, error:
+            self.assertEqual(str(error), 'invalid port number')
+        try:
+            remctl.remctl('localhost', 14373, self.principal, [])
+        except remctl.RemctlArgError, error:
+            self.assertEqual(str(error),
+                             'must have two or more arguments to command')
 
 class TestRemctlFull(TestRemctl):
     def test_full_success(self):
@@ -109,6 +137,47 @@ class TestRemctlFull(TestRemctl):
         self.assertEqual(type, remctl.REMCTL_OUT_ERROR)
         self.assertEqual(data, 'Unknown command')
         self.assertEqual(error, 5)
+
+    def test_full_errors(self):
+        r = remctl.Remctl()
+        try:
+            r.open()
+        except remctl.RemctlArgError, error:
+            self.assertEqual(str(error), 'no host supplied')
+        try:
+            r.open('localhost', 'foo')
+        except remctl.RemctlArgError, error:
+            self.assertEqual(str(error), 'port must be a number')
+        try:
+            r.open('localhost', -1)
+        except remctl.RemctlArgError, error:
+            self.assertEqual(str(error), 'invalid port number')
+        try:
+            r.open('localhost', 14444)
+        except remctl.RemctlError, error:
+            self.assertEqual(str(error), 'error opening connection')
+        error = 'cannot connect to localhost \(port 14444\): .*'
+        self.assert_(re.compile(error).match(r.error()))
+        try:
+            r.command(['test', 'test'])
+        except remctl.RemctlNotOpened, error:
+            self.assertEqual(str(error), 'no currently open connection')
+        r.open('localhost', 14373, self.principal)
+        try:
+            r.command('test')
+        except remctl.RemctlArgError, error:
+            self.assertEqual(str(error), 'you must supply a list of commands')
+        try:
+            r.command([])
+        except remctl.RemctlArgError, error:
+            self.assertEqual(str(error),
+                'you must supply at least two strings in your command')
+        r.close()
+        try:
+            r.output()
+        except remctl.RemctlNotOpened, error:
+            self.assertEqual(str(error), 'no currently open connection')
+        self.assertEqual(r.error(), 'pyremctl: no currently opened connection')
 
 if __name__ == '__main__':
     unittest.main()
