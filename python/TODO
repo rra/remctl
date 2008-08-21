@@ -1,10 +1,6 @@
 - Testing. The high-level interface may need some
   tweaking to make it make more sense. 
 
-- Make sure exceptions are set in all error cases in _remctl.
-
-- Return a memory exception when remctl_new fails.
-
 - RemctlArgError should be TypeError or ValueError.
 
 - RemctlNotOpened should be RemctlNotOpenedError.

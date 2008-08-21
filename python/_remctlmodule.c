@@ -46,8 +46,10 @@ py_remctl(PyObject *self, PyObject *args)
      */
     length = PyList_Size(list);
     command = malloc((length + 1) * sizeof(char *));
-    if (command == NULL)
+    if (command == NULL) {
+        PyErr_NoMemory();
         return NULL;
+    }
     for (i = 0; i < length; i++) {
         tmp = PyList_GetItem(list, i);
         if (tmp == NULL)
@@ -59,6 +61,10 @@ py_remctl(PyObject *self, PyObject *args)
     command[i] = NULL;
 
     rr = remctl(host, port, principal, command);
+    if (rr == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
     result = Py_BuildValue("(ss#s#i)", rr->error,
                            rr->stdout_buf, (int) rr->stdout_len,
                            rr->stderr_buf, (int) rr->stderr_buf,
@@ -90,8 +96,7 @@ py_remctl_new(PyObject *self, PyObject *args)
 
     r = remctl_new();
     if (r == NULL) {
-        Py_INCREF(PyExc_Exception);
-        PyErr_SetFromErrno(PyExc_Exception);
+        PyErr_NoMemory();
         return NULL;
     }
     return PyCObject_FromVoidPtr(r, remctl_destruct);
