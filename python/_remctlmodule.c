@@ -1,9 +1,16 @@
 /*
- * _remctlmodule.c: a low level interface for Python to remctl
- * 
+ * Low-level Python interface to remctl
+ *
+ * A direct Python equivalent to the libremctl API.  Normally, Python scripts
+ * should not use this interface directly; instead, they should use the remctl
+ * Python wrapper around this class.
+ *
  * Written by Thomas L. Kula <kula@tproa.net>
+ * Copyright 2008 Thomas L. Kula <kula@tproa.net>
+ * Copyright 2008 Board of Trustees, Leland Stanford Jr. University
+ *
+ * See LICENSE for licensing terms.
  */
-
 
 #include <Python.h>
 
@@ -17,286 +24,235 @@
 
 #define VERSION "0.4"
 
-    PyObject *
-remctlsimple( PyObject *self, PyObject *args )
+static PyObject *
+py_remctl(PyObject *self, PyObject *args)
 {
-    struct remctl_result    *rr;
-    char		    *host;
-    short		    port;
-    char		    *principal;
-    const char		    **command = NULL;
-    PyObject		    *listobj = NULL;
-    PyObject		    *tmpobj = NULL;
-    int			    ll;		    /* List length */
-    int			    lc;		    /* List counter */
-    PyObject		    *result = NULL;
+    struct remctl_result *rr;
+    char *host = NULL;
+    unsigned short port;
+    char *principal = NULL;
+    const char **command = NULL;
+    PyObject *list = NULL;
+    PyObject *tmp = NULL;
+    int length, i;
+    PyObject *result = NULL;
 
-    if ( PyArg_ParseTuple( args, "sHsO", &host, &port, &principal, &listobj )) {
-	/* Now we have to turn listobj into an array of string pointers */
+    if (!PyArg_ParseTuple(args, "sHsO", &host, &port, &principal, &list))
+        return NULL;
 
-	ll = PyList_Size( listobj );
-	/* malloc enough memory to hold ll + 1 char* */
-
-	if (( command = malloc( (ll + 1) * sizeof(char * ))) == NULL ) {
-	    return result;
-	}
-	
-
-	for ( lc = 0; lc < ll; lc++ ) {
-	    if (( tmpobj = PyList_GetItem( listobj, lc)) == NULL ) {
-		/* tmpobj is a borrowed reference */
-
-		goto end;
-	    }
-
-	    if (( command[ lc ] = PyString_AsString( tmpobj )) == NULL ) {
-		goto end;
-	    }
-	}
-
-	command[ ll ] = NULL;
-
-	rr = remctl( host, port, principal, command );
-
-	result = Py_BuildValue( "(ss#s#i)", rr->error,
-					    rr->stdout_buf,
-					    (int)rr->stdout_len,
-					    rr->stderr_buf,
-					    (int)rr->stderr_len,
-					    rr->status );
-	remctl_result_free( rr );
-
+    /*
+     * The command is passed as a list object.  For the remctl API, we need to
+     * turn it into a NULL-terminated array of pointers.
+     */
+    length = PyList_Size(list);
+    command = malloc((length + 1) * sizeof(char *));
+    if (command == NULL)
+        return NULL;
+    for (i = 0; i < length; i++) {
+        tmp = PyList_GetItem(list, i);
+        if (tmp == NULL)
+            goto end;
+        command[i] = PyString_AsString(tmp);
+        if (command[i] == NULL)
+            goto end;
     }
+    command[i] = NULL;
 
+    rr = remctl(host, port, principal, command);
+    result = Py_BuildValue("(ss#s#i)", rr->error,
+                           rr->stdout_buf, (int) rr->stdout_len,
+                           rr->stderr_buf, (int) rr->stderr_buf,
+                           rr->status);
+    remctl_result_free(rr);
 
 end:
-    free( command );
-    return( result );
+    if (command != NULL)
+        free(command);
+    return result;
 }
 
-    static void
-remclose( void *ptr ) 
+
+/*
+ * Called when the Python object is destroyed.  Clean up the underlying
+ * libremctl object.
+ */
+static void
+remctl_destruct(void *r)
 {
-    remctl_close( (struct remctl *) ptr );
+    remctl_close(r);
 }
 
-    PyObject *
-remctlnew( PyObject *self, PyObject *args )
-{
-    PyObject	    *result = NULL;
-    struct remctl   *remst = NULL;
 
-    if (( remst = remctl_new()) == NULL ) {
-	Py_INCREF( PyExc_Exception );
-	return( PyErr_SetFromErrno( PyExc_Exception ));
+static PyObject *
+py_remctl_new(PyObject *self, PyObject *args)
+{
+    struct remctl *r;
+
+    r = remctl_new();
+    if (r == NULL) {
+        Py_INCREF(PyExc_Exception);
+        PyErr_SetFromErrno(PyExc_Exception);
+        return NULL;
+    }
+    return PyCObject_FromVoidPtr(r, remctl_destruct);
+}
+
+
+static PyObject *
+py_remctl_open(PyObject *self, PyObject *args)
+{
+    PyObject *object = NULL;
+    char *host = NULL;
+    unsigned short port = 0;
+    char *principal = NULL;
+    struct remctl *r;
+    int status;
+
+    if (!PyArg_ParseTuple(args, "OsHs", &object, &host, &port, &principal))
+        return NULL;
+    r = PyCObject_AsVoidPtr(object);
+    status = remctl_open(r, host, port, principal);
+    return Py_BuildValue("i", status);
+}
+
+
+static PyObject *
+py_remctl_close(PyObject *self, PyObject *args)
+{
+    PyObject *object = NULL;
+    struct remctl *r;
+
+    if (!PyArg_ParseTuple(args, "O", &object))
+        return NULL;
+    r = PyCObject_AsVoidPtr(object);
+    remctl_close(r);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+static PyObject *
+py_remctl_error(PyObject *self, PyObject *args)
+{
+    PyObject *object = NULL;
+    struct remctl *r;
+
+    if (!PyArg_ParseTuple(args, "O", &object))
+        return NULL;
+    r = PyCObject_AsVoidPtr(object);
+    return Py_BuildValue("s", remctl_error(r));
+}
+
+
+static PyObject *
+py_remctl_commandv(PyObject *self, PyObject *args)
+{
+    PyObject *object = NULL;
+    PyObject *list = NULL;
+    struct remctl *r;
+    struct iovec *iov;
+    size_t count, i;
+    char *string;
+    Py_ssize_t length;
+    PyObject *element;
+    PyObject *result = NULL;
+
+    if (!PyArg_ParseTuple(args, "OO", &object, &list))
+        return NULL;
+    r = PyCObject_AsVoidPtr(object);
+
+    /*
+     * Convert the Python list into an array of struct iovecs, each of which
+     * pointing to the elements of the list.
+     */
+    count = PyList_Size(list);
+    iov = malloc(count * sizeof(struct iovec));
+    if (iov == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+    for (i = 0; i < count; i++) {
+        element = PyList_GetItem(list, i);
+        if (element == NULL)
+            goto end;
+        if (PyString_AsStringAndSize(element, &string, &length) == -1)
+            goto end;
+        iov[i].iov_base = string;
+        iov[i].iov_len = length;
     }
 
-    result = PyCObject_FromVoidPtr( (void *) remst, remclose );
-
-    return( result );
-}
-
-    PyObject *
-remctlopen( PyObject *self, PyObject *args )
-{
-    PyObject		*remobj = NULL;	/* The remctl_new python object */
-    char		*host = NULL;
-    unsigned short	port = 0;
-    char		*principal = NULL;
-
-    struct remctl	*remst = NULL;
-    int			retvar = 0;
-    PyObject		*result = NULL;
-
-    if ( PyArg_ParseTuple( args, "OsHs", &remobj, &host, &port, &principal )) {
-	/*
-	 * pull the pointer out of remobj
-	 */
-
-	remst = (struct remctl *) PyCObject_AsVoidPtr( remobj );
-
-	retvar = remctl_open( remst, host, port, principal );
-
-	/*
-	 * Now turn retvar into a python object
-	 */
-
-	result = Py_BuildValue( "i", retvar );
-    }
-
-    return( result );
-}
-
-
-    PyObject *
-remctlclose( PyObject *self, PyObject *args )
-{
-    PyObject		*remobj = NULL; /* The remctl_new python object */
-
-    struct remctl	*remst = NULL;
-    PyObject		*result = NULL;
-
-    if( PyArg_ParseTuple( args, "O", &remobj)) {
-	remst = (struct remctl *) PyCObject_AsVoidPtr( remobj );
-	remclose( remst );
-
-	/*
-	 * This always succeeds
-	 */
-
-	Py_INCREF(Py_None);
-	result = Py_None;
-    }
-
-    return( result );
-}
-
-
-    PyObject *
-remctlerror( PyObject *self, PyObject *args )
-{
-    PyObject		*remobj = NULL; /* The remctl_new python object */
-
-    struct remctl	*remst = NULL;
-    const char		*tmpstr = NULL;
-    PyObject		*result = NULL;
-
-    if ( PyArg_ParseTuple( args, "O", &remobj)) {
-	remst = (struct remctl *) PyCObject_AsVoidPtr( remobj );
-	tmpstr = remctl_error( remst );
-
-	result = Py_BuildValue( "s", tmpstr );
-    }
-
-    return( result );
-}
-
-    PyObject *
-remctlcommandv( PyObject *self, PyObject *args )
-{
-    PyObject		*remobj = NULL; /* The remctl_new python object */
-    PyObject		*iovobj = NULL; /* A list of strings */
-
-    struct remctl	*remst = NULL;
-    struct iovec	*iov = NULL;
-    size_t		count = 0;
-    size_t		c;		/* counter */
-    int			rr;		/* result from remctl_commandv */
-    char		*pickles;
-    PyObject		*liststring = NULL;
-    PyObject		*result = NULL;
-
-    if ( PyArg_ParseTuple( args, "OO", &remobj, &iovobj )) {
-	remst = (struct remctl *) PyCObject_AsVoidPtr( remobj );
-
-	count = PyList_Size( iovobj );
-	/*
-	 * We have the count of how long the list is. So 
-	 * malloc enough space t hold count * sizeof(struct iovec)
-	 */
-
-	if ((iov = (struct iovec *) malloc( count * sizeof( struct iovec ))) == NULL ) {
-	    /* Malloc failed, all bets off, aiee */
-	    return( PyErr_NoMemory());
-	}
-
-	for ( c = 0; c < count; c = c + 1 ) {
-	    if (( liststring = PyList_GetItem( iovobj, c )) == NULL ) {
-		goto cleanup;
-	    }
-	    
-	    if ( PyString_AsStringAndSize( liststring, &pickles, &iov[ c ].iov_len ) == -1 ) {
-		goto cleanup;
-	    }
-
-	    iov[ c ].iov_base = pickles;
-	}
-    }
-
-    rr = remctl_commandv( remst, iov, count );
-    if ( rr ) {
-	Py_INCREF( Py_True );
-	result = Py_True;
+    if (remctl_commandv(r, iov, count)) {
+        Py_INCREF(Py_True);
+        result = Py_True;
     } else {
-	Py_INCREF( Py_False );
-	result = Py_False;
+        Py_INCREF(Py_False);
+        result = Py_False;
     }
 
-
-cleanup: 
-    if ( iov != NULL ) {
-	free( iov );
-    }
-
-    return( result );
-} 
-	
-    PyObject *
-remctloutput( PyObject *self, PyObject *args )
-{
-    PyObject		    *remobj = NULL; /* The remctl_new python object */
-
-    struct remctl	    *remst = NULL;
-    struct remctl_output    *remout = NULL;
-    PyObject		    *result = NULL;
-
-    if ( PyArg_ParseTuple( args, "O", &remobj )) {
-	remst = (struct remctl *) PyCObject_AsVoidPtr( remobj );
-
-	if (( remout = remctl_output( remst )) == NULL ) {
-	    Py_INCREF( Py_False );
-	    return( Py_False );
-	}
-
-	result = Py_BuildValue( "is#iii", remout->type,
-					  remout->data,
-					  remout->length,
-					  remout->stream,
-					  remout->status,
-					  remout->error );
-    }
-
-    return( result );
+end:
+    if (iov != NULL)
+        free(iov);
+    return result;
 }
 
 
+static PyObject *
+py_remctl_output(PyObject *self, PyObject *args)
+{
+    PyObject *object = NULL;
+    struct remctl *r;
+    struct remctl_output *output;
+    PyObject *result;
 
-PyMethodDef methods[] = {
-    { "remctl", remctlsimple, METH_VARARGS},
-    { "remctlnew", remctlnew, METH_VARARGS},
-    { "remctlopen", remctlopen, METH_VARARGS}, 
-    { "remctlclose", remctlclose, METH_VARARGS},
-    { "remctlerror", remctlerror, METH_VARARGS},
-    { "remctlcommandv", remctlcommandv, METH_VARARGS},
-    { "remctloutput", remctloutput, METH_VARARGS},
-    {NULL, NULL},
+    if (!PyArg_ParseTuple(args, "O", &object))
+        return NULL;
+    r = PyCObject_AsVoidPtr(object);
+    output = remctl_output(r);
+    if (output == NULL) {
+        Py_INCREF(Py_False);
+        return Py_False;
+    }
+    result = Py_BuildValue("is#iii", output->type, output->data,
+                           output->length, output->stream, output->status,
+                           output->error);
+    return result;
+}
+
+
+static PyMethodDef methods[] = {
+    { "remctl",          py_remctl,          METH_VARARGS },
+    { "remctl_new",      py_remctl_new,      METH_VARARGS },
+    { "remctl_open",     py_remctl_open,     METH_VARARGS },
+    { "remctl_close",    py_remctl_close,    METH_VARARGS },
+    { "remctl_error",    py_remctl_error,    METH_VARARGS },
+    { "remctl_commandv", py_remctl_commandv, METH_VARARGS },
+    { "remctl_output",   py_remctl_output,   METH_VARARGS },
+    { NULL,              NULL,               0            },
 };
 
-    void
-init_remctl()
+
+PyMODINIT_FUNC
+init_remctl(void)
 {
-    PyObject	    *module = NULL;
-    PyObject	    *dict = NULL;
-    PyObject	    *tmp = NULL;
+    PyObject *module, *dict, *tmp;
 
-    module = Py_InitModule( "_remctl", methods );
-    dict = PyModule_GetDict( module );
+    module = Py_InitModule("_remctl", methods);
+    dict = PyModule_GetDict(module);
 
-    tmp = PyInt_FromLong( REMCTL_OUT_OUTPUT );
-    PyDict_SetItemString( dict, "REMCTL_OUT_OUTPUT", tmp );
-    Py_DECREF( tmp );
-    tmp = PyInt_FromLong( REMCTL_OUT_STATUS );
-    PyDict_SetItemString( dict, "REMCTL_OUT_STATUS", tmp );
-    Py_DECREF( tmp );
-    tmp = PyInt_FromLong( REMCTL_OUT_ERROR );
-    PyDict_SetItemString( dict, "REMCTL_OUT_ERROR", tmp );
-    Py_DECREF( tmp );
-    tmp = PyInt_FromLong( REMCTL_OUT_DONE  );
-    PyDict_SetItemString( dict, "REMCTL_OUT_DONE", tmp );
-    Py_DECREF( tmp );
+    tmp = PyInt_FromLong(REMCTL_OUT_OUTPUT);
+    PyDict_SetItemString(dict, "REMCTL_OUT_OUTPUT", tmp);
+    Py_DECREF(tmp);
+    tmp = PyInt_FromLong(REMCTL_OUT_STATUS);
+    PyDict_SetItemString(dict, "REMCTL_OUT_STATUS", tmp);
+    Py_DECREF(tmp);
+    tmp = PyInt_FromLong(REMCTL_OUT_ERROR);
+    PyDict_SetItemString(dict, "REMCTL_OUT_ERROR", tmp);
+    Py_DECREF(tmp);
+    tmp = PyInt_FromLong(REMCTL_OUT_DONE);
+    PyDict_SetItemString(dict, "REMCTL_OUT_DONE", tmp);
+    Py_DECREF(tmp);
 
-    tmp = PyString_FromString( VERSION );
-    PyDict_SetItemString( dict, "VERSION", tmp );
-    Py_DECREF( tmp );
-
+    tmp = PyString_FromString(VERSION);
+    PyDict_SetItemString(dict, "VERSION", tmp);
+    Py_DECREF(tmp);
 }

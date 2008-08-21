@@ -95,7 +95,7 @@ def remctl( host = None, port = 4373, principal = None, command = [] ):
 
 class Remctl:
     def __init__( self, host=None, port=None, principal=None ):
-	self.remobj = _remctl.remctlnew()
+	self.remobj = _remctl.remctl_new()
 	self.host = host
 	self.port = port
 	self.principal = principal
@@ -127,7 +127,7 @@ class Remctl:
 	# At ths point, things should be sane, call the low-level
 	# interface
 
-	if _remctl.remctlopen( self.remobj, self.host, self.port, self.principal ) != 1:
+	if _remctl.remctl_open( self.remobj, self.host, self.port, self.principal ) != 1:
 	    raise RemctlError, "error opening connection"
 
 	self.opened = True
@@ -147,14 +147,14 @@ class Remctl:
 	for item in comm:
 	    self.commlist.append( str( item ))
 
-	if _remctl.remctlcommandv( self.remobj, self.commlist ) == False:
+	if _remctl.remctl_commandv( self.remobj, self.commlist ) == False:
 	    raise RemctlError, "error sending command"
 
     def output( self ):
 	if self.opened == False:
 	    raise RemctlNotOpened, "no currently open connection"
 
-	return _remctl.remctloutput( self.remobj )
+	return _remctl.remctl_output( self.remobj )
 
     def close( self ):
 	del( self.remobj )
@@ -168,6 +168,6 @@ class Remctl:
 	    # find out why an exception occured
 	    return 'pyremctl: no currently opened connection'
 
-	return _remctl.remctlerror( self.remobj )
+	return _remctl.remctl_error( self.remobj )
 
 
