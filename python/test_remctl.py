@@ -152,12 +152,12 @@ class TestRemctlFull(TestRemctl):
             r.open('localhost', -1)
         except remctl.RemctlArgError, error:
             self.assertEqual(str(error), 'invalid port number')
+        pattern = 'cannot connect to localhost \(port 14444\): .*'
         try:
             r.open('localhost', 14444)
         except remctl.RemctlError, error:
-            self.assertEqual(str(error), 'error opening connection')
-        error = 'cannot connect to localhost \(port 14444\): .*'
-        self.assert_(re.compile(error).match(r.error()))
+            self.assert_(re.compile(pattern).match(str(error)))
+        self.assert_(re.compile(pattern).match(r.error()))
         try:
             r.command(['test', 'test'])
         except remctl.RemctlNotOpened, error:

@@ -122,7 +122,7 @@ class Remctl:
         # At ths point, things should be sane.  Call the low-level interface.
         if not _remctl.remctl_open(self.r, self.host, self.port,
                                    self.principal):
-            raise RemctlError, 'error opening connection'
+            raise RemctlError, self.error()
         self.opened = True
 
     def command(self, comm):
@@ -138,7 +138,7 @@ class Remctl:
         for item in comm:
             self.commlist.append(str(item))
         if not _remctl.remctl_commandv(self.r, self.commlist):
-            raise RemctlError, 'error sending command'
+            raise RemctlError, self.error()
 
     def output(self):
         if self.opened == False:
