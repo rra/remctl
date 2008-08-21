@@ -1,173 +1,167 @@
+# Python interface to remctl.
+#
+# This is the high-level interface that most Python programs that use remctl
+# should be using.  It's a Python wrapper around the _remctl C module, which
+# exposes exactly the libremctl API.
+#
+# Written by Thomas L. Kula <kula@tproa.net>
+# Copyright 2008 Thomas L. Kula <kula@tproa.net>
+# Copyright 2008 Board of Trustees, Leland Stanford Jr. University
+#
+# See LICENSE for licensing terms.
+
 """Interface to remctl.
 
-    This module is an interface to remctl, a client/server
-    protocol for running single commands on a remote host
-    using Kerberos v5 authentication.
+   This module is an interface to remctl, a client/server
+   protocol for running single commands on a remote host
+   using Kerberos v5 authentication.
 """
 
-# Author: Thomas L. Kula <kula@tproa.net>
-
-VERSION=0.4
+VERSION = 0.4
 
 import _remctl
 
-REMCTL_OUT_OUTPUT   = _remctl.REMCTL_OUT_OUTPUT
-REMCTL_OUT_STATUS   = _remctl.REMCTL_OUT_STATUS
-REMCTL_OUT_ERROR    = _remctl.REMCTL_OUT_ERROR
-REMCTL_OUT_DONE     = _remctl.REMCTL_OUT_DONE
+REMCTL_OUT_OUTPUT = _remctl.REMCTL_OUT_OUTPUT
+REMCTL_OUT_STATUS = _remctl.REMCTL_OUT_STATUS
+REMCTL_OUT_ERROR  = _remctl.REMCTL_OUT_ERROR
+REMCTL_OUT_DONE   = _remctl.REMCTL_OUT_DONE
 
-# Error classes
+# Exception classes.
 
-class Error(Exception):
-    """Base error class for this module."""
+class RemctlGenericError(Exception):
+    """Base error class remctl exceptions."""
     def __init__(self, value):
-	self.value = value
+        self.value = value
     def __str__(self):
-	return str(self.value)
+        return str(self.value)
 
-class RemctlArgError(Error):
+class RemctlArgError(RemctlGenericError):
     """Invalid arguments supplied."""
     pass
 
-class RemctlProtocolError(Error):
-    """An error in the remctl protocol happened."""
+class RemctlProtocolError(RemctlGenericError):
+    """A remctl protocol error occurred."""
     pass
 
-class RemctlError(Error):
+class RemctlError(RemctlGenericError):
     """The underlying remctl library has returned an error."""
     pass
 
-class RemctlNotOpened(Error):
-    """No open connection."""
+class RemctlNotOpened(RemctlGenericError):
+    """No open connection to a server."""
     pass
 
-# Simple interface
+# Simple interface.
 
 class RemctlSimpleResult:
-    """An object holding the results from the simple interface"""
+    """An object holding the results from the simple interface."""
     def __init__(self):
-	self.stdout = None
-	self.stderr = None
-	self.status = None
+        self.stdout = None
+        self.stderr = None
+        self.status = None
 
-def remctl( host = None, port = 4373, principal = None, command = [] ):
-    """Simple interface to remctl"""
+def remctl(host = None, port = 4373, principal = None, command = []):
+    """Simple interface to remctl.
 
+    Connect to HOST on PORT, using PRINCIPAL as the server principal for
+    authentication, and issue COMMAND.  Returns the result as a
+    RemctlSimpleResult object, which has three attributes.  stdout holds the
+    complete standard output, stderr holds the complete standard error, and
+    status holds the exit status.
+    """
     if host == None:
-	raise RemctlArgError, 'No host supplied'
-
+        raise RemctlArgError, 'no host specified'
     try:
-	myport = int( port )
+        myport = int(port)
     except:
-	raise RemctlArgError, "port must be a number"
-
-    if (( myport < 0 ) or ( myport > 65535 )):
-	raise RemctlArgError, "invalid port number"
-
+        raise RemctlArgError, 'port must be a number'
+    if (myport < 0) or (myport > 65535):
+        raise RemctlArgError, 'invalid port number'
     if principal == None:
-	principal = 'host/' + host
+        principal = 'host/' + host
+    if len(command) < 2:
+        raise RemctlArgError, 'must have two or more arguments to command'
 
-    if len( command ) < 2: 
-	raise RemctlArgError, "must have two or more arguments to command"
-
+    # Convert the command to a list of strings.
     mycommand = []
     for item in command:
-	mycommand.append( str( item ))
+        mycommand.append(str(item))
 
-    # At this point, everything should be sane. Call the low-level
-    # interface
-
-    myresult = _remctl.remctl( host, port, principal, mycommand )
-
-    if myresult[ 0 ] != None:
-	raise RemctlProtocolError, myresult[ 0 ]
-
+    # At this point, things should be sane.  Call the low-level interface.
+    output = _remctl.remctl(host, port, principal, mycommand)
+    if output[0] != None:
+        raise RemctlProtocolError, output[0]
     result = RemctlSimpleResult()
-
-    setattr( result, 'stdout', myresult[ 1 ])
-    setattr( result, 'stderr', myresult[ 2 ])
-    setattr( result, 'status', myresult[ 3 ])
-
-
+    setattr(result, 'stdout', output[1])
+    setattr(result, 'stderr', output[2])
+    setattr(result, 'status', output[3])
     return result
 
-# Complex interface
+# Complex interface.
 
 class Remctl:
-    def __init__( self, host=None, port=None, principal=None ):
-	self.remobj = _remctl.remctl_new()
-	self.host = host
-	self.port = port
-	self.principal = principal
-	self.opened = False
+    def __init__(self, host = None, port = None, principal = None):
+        self.r = _remctl.remctl_new()
+        self.host = host
+        self.port = port
+        self.principal = principal
+        self.opened = False
 
-	if host != None:
-	    self.open( host=host, port=port, principal=principal)
-	
-    def open( self, host=None, port=None, principal=None ):
-	if host == None:
-	    raise RemctlArgError, "no host supplied"
-	self.host = host
+        if host != None:
+            self.open(host, port, principal)
 
-	if port == None:
-	    self.port = 4373
-	else:
+    def open(self, host = None, port = None, principal = None):
+        if host == None:
+            raise RemctlArgError, 'no host specified'
+        self.host = host
+        if port == None:
+            self.port = 4373
+        else:
             try:
-                self.port = int( port )
+                self.port = int(port)
             except ValueError:
-                raise RemctlArgError, "port must be a number"
+                raise RemctlArgError, 'port must be a number'
+        if (self.port < 0) or (self.port > 65535):
+            raise RemctlArgError, 'invalid port number'
+        self.principal = principal
+        if self.principal == None:
+            self.principal = 'host/' + self.host
 
-	if (( self.port < 0 ) or ( self.port > 65535 )):
-	    raise RemctlArgError, "invalid port number"
+        # At ths point, things should be sane.  Call the low-level interface.
+        if not _remctl.remctl_open(self.r, self.host, self.port,
+                                   self.principal):
+            raise RemctlError, 'error opening connection'
+        self.opened = True
 
-	self.principal = principal
-	if self.principal == None:
-	    self.principal = 'host/' + self.host
+    def command(self, comm):
+        self.commlist = []
+        if self.opened == False:
+            raise RemctlNotOpened, 'no currently open connection'
+        if isinstance(comm, list) == False:
+            raise RemctlArgError, 'you must supply a list of commands'
+        if len(comm) < 2:
+            raise RemctlArgError, 'must have two or more arguments to command'
 
-	# At ths point, things should be sane, call the low-level
-	# interface
+        # Convert the command to a list of strings.
+        for item in comm:
+            self.commlist.append(str(item))
+        if not _remctl.remctl_commandv(self.r, self.commlist):
+            raise RemctlError, 'error sending command'
 
-	if _remctl.remctl_open( self.remobj, self.host, self.port, self.principal ) != 1:
-	    raise RemctlError, "error opening connection"
+    def output(self):
+        if self.opened == False:
+            raise RemctlNotOpened, 'no currently open connection'
+        return _remctl.remctl_output(self.r)
 
-	self.opened = True
+    def close(self):
+        del(self.r)
+        self.r = None
+        self.opened = False
 
-    def command( self, comm ):
-	self.commlist = []
-
-	if self.opened == False:
-	    raise RemctlNotOpened, "no currently open connection"
-
-	if isinstance( comm, list ) == False:
-	    raise RemctlArgError, "you must supply a list of commands"
-
-	if len( comm ) < 2:
-	    raise RemctlArgError, "you must supply at least two strings in your command"
-
-	for item in comm:
-	    self.commlist.append( str( item ))
-
-	if _remctl.remctl_commandv( self.remobj, self.commlist ) == False:
-	    raise RemctlError, "error sending command"
-
-    def output( self ):
-	if self.opened == False:
-	    raise RemctlNotOpened, "no currently open connection"
-
-	return _remctl.remctl_output( self.remobj )
-
-    def close( self ):
-	del( self.remobj )
-	self.remobj = None
-	self.opened = False
-
-    def error( self ):
-	if self.remobj == None:
-	    # We do this instead of throwing an exception so that callers
-	    # don't have to handle an exception when they are trying to
-	    # find out why an exception occured
-	    return 'pyremctl: no currently opened connection'
-
-	return _remctl.remctl_error( self.remobj )
-
-
+    def error(self):
+        if self.r == None:
+            # We do this instead of throwing an exception so that callers
+            # don't have to handle an exception when they are trying to find
+            # out why an exception occured.
+            return 'no currently open connection'
+        return _remctl.remctl_error(self.r)

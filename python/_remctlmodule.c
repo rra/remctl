@@ -1,5 +1,5 @@
 /*
- * Low-level Python interface to remctl
+ * Low-level Python interface to remctl.
  *
  * A direct Python equivalent to the libremctl API.  Normally, Python scripts
  * should not use this interface directly; instead, they should use the remctl

@@ -6,7 +6,7 @@
 # See LICENSE for licensing terms.
 
 import remctl
-import errno, os, re, signal, unittest
+import errno, os, re, signal, time, unittest
 
 class TestRemctl(unittest.TestCase):
     def change_directory(self):
@@ -33,10 +33,14 @@ class TestRemctl(unittest.TestCase):
         principal = self.get_principal()
         child = os.fork()
         if child == 0:
+            output = open('data/test.output', 'w')
+            os.dup2(output.fileno(), 1)
             os.execl('../server/remctld', 'remctld', '-m', '-p', '14373',
                      '-s', principal, '-P', 'data/pid', '-f',
                      'data/conf-simple', '-d', '-S', '-F', '-k',
                      'data/test.keytab')
+        if not os.path.isfile('data/pid'):
+            time.sleep(1)
 
     def stop_remctld(self):
         try:
@@ -44,12 +48,7 @@ class TestRemctl(unittest.TestCase):
             pid = file.read().rstrip()
             file.close()
             os.kill(int(pid), signal.SIGTERM)
-            try:
-                os.remove('data/pid')
-            except OSError, (error, strerror):
-                if error != errno.ENOENT:
-                    raise
-            os.waitpid(int(pid), 0)
+            child, status = os.waitpid(int(pid), 0)
         except IOError, (error, strerror):
             if error != errno.ENOENT:
                 raise
@@ -75,6 +74,7 @@ class TestRemctl(unittest.TestCase):
 
     def tearDown(self):
         self.stop_remctld()
+        os.remove('data/test.output')
         try:
             os.remove('data/test.cache')
         except OSError, (error, strerror):
@@ -100,7 +100,7 @@ class TestRemctlSimple(TestRemctl):
         try:
             remctl.remctl()
         except remctl.RemctlArgError, error:
-            self.assertEqual(str(error), 'No host supplied')
+            self.assertEqual(str(error), 'no host specified')
         try:
             remctl.remctl('localhost', "foo")
         except remctl.RemctlArgError, error:
@@ -129,6 +129,7 @@ class TestRemctlFull(TestRemctl):
         self.assertEqual(status, 0)
         type, data, stream, status, error = r.output()
         self.assertEqual(type, remctl.REMCTL_OUT_DONE)
+        r.close()
 
     def test_full_failure(self):
         r = remctl.Remctl('localhost', 14373, self.principal)
@@ -143,7 +144,7 @@ class TestRemctlFull(TestRemctl):
         try:
             r.open()
         except remctl.RemctlArgError, error:
-            self.assertEqual(str(error), 'no host supplied')
+            self.assertEqual(str(error), 'no host specified')
         try:
             r.open('localhost', 'foo')
         except remctl.RemctlArgError, error:
@@ -171,13 +172,13 @@ class TestRemctlFull(TestRemctl):
             r.command([])
         except remctl.RemctlArgError, error:
             self.assertEqual(str(error),
-                'you must supply at least two strings in your command')
+                             'must have two or more arguments to command')
         r.close()
         try:
             r.output()
         except remctl.RemctlNotOpened, error:
             self.assertEqual(str(error), 'no currently open connection')
-        self.assertEqual(r.error(), 'pyremctl: no currently opened connection')
+        self.assertEqual(r.error(), 'no currently open connection')
 
 if __name__ == '__main__':
     unittest.main()
