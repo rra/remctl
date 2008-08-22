@@ -51,7 +51,7 @@ class RemctlSimpleResult:
         self.stderr = None
         self.status = None
 
-def remctl(host, port, principal, command):
+def remctl(host, port = None, principal = None, command = []):
     """Simple interface to remctl.
 
     Connect to HOST on PORT, using PRINCIPAL as the server principal for
@@ -60,11 +60,14 @@ def remctl(host, port, principal, command):
     complete standard output, stderr holds the complete standard error, and
     status holds the exit status.
     """
-    try:
-        myport = int(port)
-    except:
-        raise TypeError, 'port must be a number: ' + `port`
-    if (myport < 0) or (myport > 65535):
+    if port == None:
+        port = 0
+    else:
+        try:
+            port = int(port)
+        except ValueError:
+            raise TypeError, 'port must be a number: ' + `port`
+    if (port < 0) or (port > 65535):
         raise ValueError, 'invalid port number: ' + `port`
     if isinstance(command, (basestring, bool, int, float)):
         raise TypeError, 'command must be a sequence or iterator'

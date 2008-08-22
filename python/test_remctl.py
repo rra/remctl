@@ -89,6 +89,14 @@ class TestRemctlSimple(TestRemctl):
         self.assertEqual(result.stderr, None)
         self.assertEqual(result.status, 0)
 
+    def test_simple_status(self):
+        command = [ 'test', 'status', '2' ]
+        result = remctl.remctl(host = 'localhost', command = command,
+                               port = '14373', principal = self.principal)
+        self.assertEqual(result.stdout, None)
+        self.assertEqual(result.stderr, None)
+        self.assertEqual(result.status, 2)
+
     def test_simple_failure(self):
         command = ('test', 'bad-command')
         try:
@@ -101,6 +109,15 @@ class TestRemctlSimple(TestRemctl):
             remctl.remctl()
         except TypeError:
             pass
+        try:
+            remctl.remctl('localhost')
+        except ValueError, error:
+            self.assertEqual(str(error), 'command must not be empty')
+        try:
+            remctl.remctl(host = 'localhost', command = 'foo')
+        except TypeError, error:
+            self.assertEqual(str(error),
+                             'command must be a sequence or iterator')
         try:
             remctl.remctl('localhost', "foo", self.principal, [])
         except TypeError, error:
