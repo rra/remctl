@@ -23,26 +23,22 @@ import _remctl
 
 # Exception classes.
 
-class RemctlGenericError(Exception):
-    """Base error class remctl exceptions."""
+class RemctlError(Exception):
+    """The underlying remctl library has returned an error."""
     def __init__(self, value):
         self.value = value
     def __str__(self):
         return str(self.value)
 
-class RemctlArgError(RemctlGenericError):
-    """Invalid arguments supplied."""
+class RemctlProtocolError(RemctlError):
+    """A remctl protocol error occurred.
+
+    This exception is only used with the remctl.remctl() simple interface;
+    for the full interface, errors are returned as a regular output token.
+    """
     pass
 
-class RemctlProtocolError(RemctlGenericError):
-    """A remctl protocol error occurred."""
-    pass
-
-class RemctlError(RemctlGenericError):
-    """The underlying remctl library has returned an error."""
-    pass
-
-class RemctlNotOpened(RemctlGenericError):
+class RemctlNotOpenedError(RemctlError):
     """No open connection to a server."""
     pass
 
@@ -67,16 +63,18 @@ def remctl(host, port, principal, command):
     try:
         myport = int(port)
     except:
-        raise RemctlArgError, 'port must be a number'
+        raise TypeError, 'port must be a number: ' + `port`
     if (myport < 0) or (myport > 65535):
-        raise RemctlArgError, 'invalid port number'
-    if len(command) < 1:
-        raise RemctlArgError, 'command must not be empty'
+        raise ValueError, 'invalid port number: ' + `port`
+    if isinstance(command, (basestring, bool, int, float)):
+        raise TypeError, 'command must be a sequence or iterator'
 
     # Convert the command to a list of strings.
     mycommand = []
     for item in command:
         mycommand.append(str(item))
+    if len(mycommand) < 1:
+        raise ValueError, 'command must not be empty'
 
     # At this point, things should be sane.  Call the low-level interface.
     output = _remctl.remctl(host, port, principal, mycommand)
@@ -105,33 +103,35 @@ class Remctl:
             try:
                 port = int(port)
             except ValueError:
-                raise RemctlArgError, 'port must be a number'
+                raise TypeError, 'port must be a number: ' + `port`
         if (port < 0) or (port > 65535):
-            raise RemctlArgError, 'invalid port number'
+            raise ValueError, 'invalid port number: ' + `port`
 
-        # At ths point, things should be sane.  Call the low-level interface.
+        # At this point, things should be sane.  Call the low-level interface.
         if not _remctl.remctl_open(self.r, host, port, principal):
             raise RemctlError, self.error()
         self.opened = True
 
     def command(self, comm):
         commlist = []
-        if self.opened == False:
-            raise RemctlNotOpened, 'no currently open connection'
-        if isinstance(comm, list) == False:
-            raise RemctlArgError, 'you must supply a list of commands'
-        if len(comm) < 1:
-            raise RemctlArgError, 'command must not be empty'
+        if not self.opened:
+            raise RemctlNotOpenedError, 'no currently open connection'
+        if isinstance(comm, (basestring, bool, int, float)):
+            raise TypeError, 'command must be a sequence or iterator'
 
         # Convert the command to a list of strings.
         for item in comm:
             commlist.append(str(item))
+        if len(commlist) < 1:
+            raise ValueError, 'command must not be empty'
+
+        # At this point, things should be sane.  Call the low-level interface.
         if not _remctl.remctl_commandv(self.r, commlist):
             raise RemctlError, self.error()
 
     def output(self):
-        if self.opened == False:
-            raise RemctlNotOpened, 'no currently open connection'
+        if not self.opened:
+            raise RemctlNotOpenedError, 'no currently open connection'
         return _remctl.remctl_output(self.r)
 
     def close(self):

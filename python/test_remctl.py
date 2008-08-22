@@ -103,16 +103,21 @@ class TestRemctlSimple(TestRemctl):
             pass
         try:
             remctl.remctl('localhost', "foo", self.principal, [])
-        except remctl.RemctlArgError, error:
-            self.assertEqual(str(error), 'port must be a number')
+        except TypeError, error:
+            self.assertEqual(str(error), "port must be a number: 'foo'")
         try:
             remctl.remctl('localhost', -1, self.principal, [])
-        except remctl.RemctlArgError, error:
-            self.assertEqual(str(error), 'invalid port number')
+        except ValueError, error:
+            self.assertEqual(str(error), 'invalid port number: -1')
         try:
             remctl.remctl('localhost', 14373, self.principal, [])
-        except remctl.RemctlArgError, error:
+        except ValueError, error:
             self.assertEqual(str(error), 'command must not be empty')
+        try:
+            remctl.remctl('localhost', 14373, self.principal, 'test')
+        except TypeError, error:
+            self.assertEqual(str(error),
+                             'command must be a sequence or iterator')
 
 class TestRemctlFull(TestRemctl):
     def test_full_success(self):
@@ -146,12 +151,12 @@ class TestRemctlFull(TestRemctl):
             pass
         try:
             r.open('localhost', 'foo')
-        except remctl.RemctlArgError, error:
-            self.assertEqual(str(error), 'port must be a number')
+        except TypeError, error:
+            self.assertEqual(str(error), "port must be a number: 'foo'")
         try:
             r.open('localhost', -1)
-        except remctl.RemctlArgError, error:
-            self.assertEqual(str(error), 'invalid port number')
+        except ValueError, error:
+            self.assertEqual(str(error), 'invalid port number: -1')
         pattern = 'cannot connect to localhost \(port 14444\): .*'
         try:
             r.open('localhost', 14444)
@@ -160,21 +165,22 @@ class TestRemctlFull(TestRemctl):
         self.assert_(re.compile(pattern).match(r.error()))
         try:
             r.command(['test', 'test'])
-        except remctl.RemctlNotOpened, error:
+        except remctl.RemctlNotOpenedError, error:
             self.assertEqual(str(error), 'no currently open connection')
         r.open('localhost', 14373, self.principal)
         try:
             r.command('test')
-        except remctl.RemctlArgError, error:
-            self.assertEqual(str(error), 'you must supply a list of commands')
+        except TypeError, error:
+            self.assertEqual(str(error),
+                             'command must be a sequence or iterator')
         try:
             r.command([])
-        except remctl.RemctlArgError, error:
+        except ValueError, error:
             self.assertEqual(str(error), 'command must not be empty')
         r.close()
         try:
             r.output()
-        except remctl.RemctlNotOpened, error:
+        except remctl.RemctlNotOpenedError, error:
             self.assertEqual(str(error), 'no currently open connection')
         self.assertEqual(r.error(), 'no currently open connection')
 

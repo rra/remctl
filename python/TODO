@@ -1,6 +1,2 @@
 - Testing. The high-level interface may need some
   tweaking to make it make more sense. 
-
-- RemctlArgError should be TypeError or ValueError.
-
-- RemctlNotOpened should be RemctlNotOpenedError.
