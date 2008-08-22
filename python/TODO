@@ -4,7 +4,3 @@
 - RemctlArgError should be TypeError or ValueError.
 
 - RemctlNotOpened should be RemctlNotOpenedError.
-
-- Don't store host, port, and principal in the object; there's no need
-  and it means adding self.* in front of everything.  Likewise for the
-  commlist.

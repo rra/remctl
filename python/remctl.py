@@ -98,35 +98,29 @@ def remctl(host, port, principal, command):
 class Remctl:
     def __init__(self, host = None, port = None, principal = None):
         self.r = _remctl.remctl_new()
-        self.host = host
-        self.port = port
-        self.principal = principal
         self.opened = False
 
         if host != None:
             self.open(host, port, principal)
 
     def open(self, host, port = None, principal = None):
-        self.host = host
         if port == None:
-            self.port = 0
+            port = 0
         else:
             try:
-                self.port = int(port)
+                port = int(port)
             except ValueError:
                 raise RemctlArgError, 'port must be a number'
-        if (self.port < 0) or (self.port > 65535):
+        if (port < 0) or (port > 65535):
             raise RemctlArgError, 'invalid port number'
-        self.principal = principal
 
         # At ths point, things should be sane.  Call the low-level interface.
-        if not _remctl.remctl_open(self.r, self.host, self.port,
-                                   self.principal):
+        if not _remctl.remctl_open(self.r, host, port, principal):
             raise RemctlError, self.error()
         self.opened = True
 
     def command(self, comm):
-        self.commlist = []
+        commlist = []
         if self.opened == False:
             raise RemctlNotOpened, 'no currently open connection'
         if isinstance(comm, list) == False:
@@ -136,8 +130,8 @@ class Remctl:
 
         # Convert the command to a list of strings.
         for item in comm:
-            self.commlist.append(str(item))
-        if not _remctl.remctl_commandv(self.r, self.commlist):
+            commlist.append(str(item))
+        if not _remctl.remctl_commandv(self.r, commlist):
             raise RemctlError, self.error()
 
     def output(self):
