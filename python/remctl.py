@@ -29,7 +29,7 @@
    using Kerberos v5 authentication.
 """
 
-VERSION = 0.4
+VERSION = '0.4'
 
 import _remctl
 
