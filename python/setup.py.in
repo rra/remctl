@@ -48,10 +48,32 @@ Programming Language :: Python
 Topic :: Security
 Topic :: Software Development :: Libraries :: Python Modules
 """
+
+# Helper function to parse a string of compiler flags for ones of interest and
+# strip the flag off, returning the string that the distutils Extension
+# interface expects.
+def parse_flags(prefix, flags):
+    result = []
+    filtered = [ opt for opt in flags.split() if opt.startswith(prefix) ]
+    for opt in filtered:
+        result.append(opt[len(prefix):])
+    return result
+
+# Build the list of include directories, libraries to link with, and
+# directories to add to the search paths based on the Autoconf results.
+ldflags = '@GSSAPI_LDFLAGS@' + ' ' + '@GSSAPI_LIBS@' + ' ' + '@LDFLAGS@'
+include = parse_flags('-I', '@GSSAPI_CPPFLAGS@' + ' ' + '@CPPFLAGS@')
+libs    = parse_flags('-l', '@GSSAPI_LIBS@' + ' ' + '@LIBS@')
+dirs    = parse_flags('-L', ldflags)
+libs = ['remctl'] + libs
+dirs.append('@abs_top_builddir@/client/.libs')
+
 extension = Extension('_remctl',
                       sources       = [ '_remctlmodule.c' ],
-                      libraries     = [ 'remctl' ],
-                      define_macros = [ ('VERSION', '"' + VERSION + '"') ])
+                      define_macros = [ ('VERSION', '"' + VERSION + '"') ],
+                      include_dirs  = include,
+                      libraries     = libs,
+                      library_dirs  = dirs)
 
 setup(name             = 'pyremctl',
       version          = VERSION,

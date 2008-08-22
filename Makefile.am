@@ -5,12 +5,14 @@
 #
 # See LICENSE for licensing terms.
 
-# These two lists of files are needed for Perl builds and for the test suite
-# and are not generated or touched by configure.  They're listed here to be
-# added to EXTRA_DIST and so that they can be copied over properly for
-# builddir != srcdir builds.
+# These three lists of files are needed for Perl builds, Python builds, and
+# for the test suite and are not generated or touched by configure.  They're
+# listed here to be added to EXTRA_DIST and so that they can be copied over
+# properly for builddir != srcdir builds.
 PERL_FILES = perl/Remctl.pm perl/Remctl.xs perl/typemap perl/t/api.t \
 	perl/t/pod.t perl/t/stanford-netdb.t
+PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c \
+	python/remctl.py python/setup.py python/test_remctl.py
 TEST_FILES = tests/TESTS tests/client/pod-t.in tests/client/remctl-t \
 	tests/data/README tests/data/acl-bad-include \
 	tests/data/acl-bad-syntax tests/data/acl-nonexistant \
@@ -45,7 +47,7 @@ EXTRA_DIST = LICENSE Makefile.w32 autogen client/libremctl.rc client/mapfile \
 	portable/getnameinfo.h portable/getopt.h portable/gssapi.h \
 	portable/macros.h portable/socket.h portable/stdbool.h \
 	portable/system.h portable/uio.h portable/winsock.c remctl.spec \
-	$(PERL_FILES) $(TEST_FILES)
+	$(PERL_FILES) $(PYTHON_FILES) $(TEST_FILES)
 
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
@@ -143,7 +145,7 @@ install-data-hook:
 	$(LN_S) remctl_command.3 $(DESTDIR)$(man3dir)/remctl_commandv.3
 
 CLEANFILES = docs/remctld.8
-DISTCLEANFILES = perl/Makefile tests/client/pod-t
+DISTCLEANFILES = perl/Makefile python/MANIFEST tests/client/pod-t
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
 	build-aux/config.guess build-aux/config.sub build-aux/depcomp \
 	build-aux/install-sh build-aux/ltmain.sh build-aux/missing \
@@ -152,7 +154,7 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
 
 # Automake should deal with the first part of this automatically, but it
 # doesn't.  Probably a bug in the non-recursive support.  Also run make clean
-# in the perl directory if needed.
+# in the perl and php directories if needed and clean up after Python.
 clean-local:
 	-rm -rf server/.libs tests/.libs tests/client/.libs tests/data/.libs \
 	    tests/portable/.libs tests/server/.libs tests/util/.libs
@@ -163,8 +165,9 @@ clean-local:
 	set -e; if [ -f "php/Makefile" ] ; then \
 	    cd php && $(MAKE) clean ; \
 	fi
+	rm -rf python/build python/dist python/*.pyc
 
-# Also clean the PHP directory on make maintainer-clean.
+# Also clean the PHP and Python directories on make maintainer-clean.
 maintainer-clean-local:
 	cd php && phpize --clean
 
@@ -175,12 +178,12 @@ WARNINGS = -g -O -DDEBUG=1 -Wall -W -Wendif-labels -Wpointer-arith \
 	-Wbad-function-cast -Wwrite-strings -Wstrict-prototypes \
 	-Wmissing-prototypes -Wnested-externs -Werror
 
-# Suppress some warnings for Perl code because Perl itself doesn't pass them.
+# Suppress some warnings for Perl, PHP, and Python code because the
+# auto-generated code doesn't pass them.
 PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs -Wno-strict-prototypes
-
-# Likewise for PHP.
 PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
 	-Wno-missing-prototypes -Wno-unused-parameter
+PYTHON_WARNINGS = -Wno-unused-parameter
 
 warnings:
 	$(MAKE) CFLAGS='$(WARNINGS)'
@@ -307,6 +310,12 @@ check-local: $(check_PROGRAMS)
 	    echo '' ; \
 	    cd php && ./test-wrapper "$(abs_top_builddir)" ; \
 	fi
+	@set -e; if [ -f python/setup.py ] ; then \
+	    echo '' ; \
+	    echo 'Testing Python extension' ; \
+	    cd python && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
+		PYTHONPATH="`ls -d build/lib.*`" python test_remctl.py ; \
+	fi
 
 # Used for hooking in the build of optional language bindings.
 BINDINGS =
@@ -350,6 +359,33 @@ install-data-local-php: php/modules/remctl.so
 if BUILD_PHP
 BINDINGS += php/modules/remctl.so
 BINDINGS_INSTALL += install-data-local-php
+endif
+
+# The following section sets up the Python extension build properly.  Most of
+# the complexity is here to handle building outside of the source directory,
+# in which case we need to copy various files from the source directory and
+# make sure they're up to date.
+
+build-local-python: $(srcdir)/python/_remctlmodule.c $(srcdir)/python/remctl.py
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
+	    for f in $(PYTHON_FILES) ; do \
+		cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
+	    done \
+	fi
+	cd python && CFLAGS="$(CFLAGS) $(PYTHON_WARNINGS)" \
+	    python setup.py build
+
+install-data-local-python:
+	if [ -n "$(DESTDIR)" ] ; then \
+	    cd python && python setup.py install --root $(DESTDIR) ; \
+	else \
+	    cd python && python setup.py install ; \
+	fi
+
+# Build and install the Python bindings if desired.
+if BUILD_PYTHON
+BINDINGS += build-local-python
+BINDINGS_INSTALL += install-data-local-python
 endif
 
 

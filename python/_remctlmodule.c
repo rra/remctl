@@ -34,6 +34,9 @@
 
 #include <remctl.h>
 
+/* Silence GCC warnings. */
+PyMODINIT_FUNC init_remctl(void);
+
 /* Map the remctl_output type constants to strings. */
 const struct {
     enum remctl_output_type type;
@@ -253,14 +256,14 @@ py_remctl_output(PyObject *self, PyObject *args)
 
 
 static PyMethodDef methods[] = {
-    { "remctl",          py_remctl,          METH_VARARGS },
-    { "remctl_new",      py_remctl_new,      METH_VARARGS },
-    { "remctl_open",     py_remctl_open,     METH_VARARGS },
-    { "remctl_close",    py_remctl_close,    METH_VARARGS },
-    { "remctl_error",    py_remctl_error,    METH_VARARGS },
-    { "remctl_commandv", py_remctl_commandv, METH_VARARGS },
-    { "remctl_output",   py_remctl_output,   METH_VARARGS },
-    { NULL,              NULL,               0            },
+    { "remctl",          py_remctl,          METH_VARARGS, NULL },
+    { "remctl_new",      py_remctl_new,      METH_VARARGS, NULL },
+    { "remctl_open",     py_remctl_open,     METH_VARARGS, NULL },
+    { "remctl_close",    py_remctl_close,    METH_VARARGS, NULL },
+    { "remctl_error",    py_remctl_error,    METH_VARARGS, NULL },
+    { "remctl_commandv", py_remctl_commandv, METH_VARARGS, NULL },
+    { "remctl_output",   py_remctl_output,   METH_VARARGS, NULL },
+    { NULL,              NULL,               0,            NULL },
 };
 
 

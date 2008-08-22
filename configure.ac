@@ -123,9 +123,17 @@ AC_ARG_ENABLE([php],
          AC_CONFIG_SUBDIRS([php])])])
 AM_CONDITIONAL([BUILD_PHP], [test x"$build_php" = xyes])
 
+dnl Whether to build the Python bindings.
+build_python=
+AC_ARG_ENABLE([python],
+    [AC_HELP_STRING([--enable-python], [Build Python libremctl bindings])],
+    [AS_IF([test x"$enableval" = xyes], [build_python=yes])])
+AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
+
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([tests/client/pod-t], [chmod +x tests/client/pod-t])
 AS_IF([test x"$build_perl" = xyes], [AC_CONFIG_FILES([perl/Makefile.PL])])
+AS_IF([test x"$build_python" = xyes], [AC_CONFIG_FILES([python/setup.py])])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_COMMANDS([docs], [test -d docs || mkdir docs])
 AC_OUTPUT
