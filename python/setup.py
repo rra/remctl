@@ -35,6 +35,8 @@ library."""
 
 from distutils.core import setup, Extension
 
+VERSION = '0.4'
+
 doclines = __doc__.split("\n")
 classifiers = """\
 Development Status :: 4 - Beta
@@ -47,11 +49,12 @@ Topic :: Security
 Topic :: Software Development :: Libraries :: Python Modules
 """
 extension = Extension('_remctl',
-                      sources   = [ '_remctlmodule.c' ],
-                      libraries = [ 'remctl' ])
+                      sources       = [ '_remctlmodule.c' ],
+                      libraries     = [ 'remctl' ],
+                      define_macros = [ ('VERSION', '"' + VERSION + '"') ])
 
 setup(name             = 'pyremctl',
-      version          = '0.4',
+      version          = VERSION,
       author           = 'Thomas L. Kula',
       author_email     = 'kula@tproa.net',
       url              = 'http://www.eyrie.org/~eagle/software/remctl/',

@@ -34,8 +34,6 @@
 
 #include <remctl.h>
 
-#define VERSION "0.4"
-
 /* Map the remctl_output type constants to strings. */
 const struct {
     enum remctl_output_type type;
