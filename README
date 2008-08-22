@@ -207,6 +207,24 @@ TESTING
   particularly slow or loaded systems, you may see intermittant failures
   from the server/streaming test because it's timing-sensitive.
 
+HOMEPAGE AND SOURCE REPOSITORY
+
+  The remctl web page at:
+
+      http://www.eyrie.org/~eagle/software/remctl/
+
+  will always have the current version of this package, the current
+  documentation, and pointers to any additional resources.
+
+  remctl is maintained using Git.  You can access the current source by
+  cloning the repository at:
+
+      git://git.eyrie.org/kerberos/remctl.git
+
+  or view the repository via the web at:
+
+      http://git.eyrie.org/?p=kerberos/remctl.git
+
 THANKS
 
   To Anton Ushakov for the original design document, much of the version
