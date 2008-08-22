@@ -21,11 +21,6 @@ VERSION = 0.4
 
 import _remctl
 
-REMCTL_OUT_OUTPUT = _remctl.REMCTL_OUT_OUTPUT
-REMCTL_OUT_STATUS = _remctl.REMCTL_OUT_STATUS
-REMCTL_OUT_ERROR  = _remctl.REMCTL_OUT_ERROR
-REMCTL_OUT_DONE   = _remctl.REMCTL_OUT_DONE
-
 # Exception classes.
 
 class RemctlGenericError(Exception):

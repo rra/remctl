@@ -24,6 +24,18 @@
 
 #define VERSION "0.4"
 
+/* Map the remctl_output type constants to strings. */
+const struct {
+    enum remctl_output_type type;
+    const char *name;
+} OUTPUT_TYPE[] = {
+    { REMCTL_OUT_OUTPUT, "output" },
+    { REMCTL_OUT_STATUS, "status" },
+    { REMCTL_OUT_ERROR,  "error"  },
+    { REMCTL_OUT_DONE,   "done"   },
+    { 0,                 NULL     }
+};
+
 static PyObject *
 py_remctl(PyObject *self, PyObject *args)
 {
@@ -207,6 +219,8 @@ py_remctl_output(PyObject *self, PyObject *args)
     PyObject *object = NULL;
     struct remctl *r;
     struct remctl_output *output;
+    const char *type = "unknown";
+    size_t i;
     PyObject *result;
 
     if (!PyArg_ParseTuple(args, "O", &object))
@@ -217,9 +231,13 @@ py_remctl_output(PyObject *self, PyObject *args)
         Py_INCREF(Py_False);
         return Py_False;
     }
-    result = Py_BuildValue("is#iii", output->type, output->data,
-                           output->length, output->stream, output->status,
-                           output->error);
+    for (i = 0; OUTPUT_TYPE[i].name != NULL; i++)
+        if (OUTPUT_TYPE[i].type == output->type) {
+            type = OUTPUT_TYPE[output->type].name;
+            break;
+        }
+    result = Py_BuildValue("ss#iii", type, output->data, output->length,
+                           output->stream, output->status, output->error);
     return result;
 }
 
@@ -243,19 +261,6 @@ init_remctl(void)
 
     module = Py_InitModule("_remctl", methods);
     dict = PyModule_GetDict(module);
-
-    tmp = PyInt_FromLong(REMCTL_OUT_OUTPUT);
-    PyDict_SetItemString(dict, "REMCTL_OUT_OUTPUT", tmp);
-    Py_DECREF(tmp);
-    tmp = PyInt_FromLong(REMCTL_OUT_STATUS);
-    PyDict_SetItemString(dict, "REMCTL_OUT_STATUS", tmp);
-    Py_DECREF(tmp);
-    tmp = PyInt_FromLong(REMCTL_OUT_ERROR);
-    PyDict_SetItemString(dict, "REMCTL_OUT_ERROR", tmp);
-    Py_DECREF(tmp);
-    tmp = PyInt_FromLong(REMCTL_OUT_DONE);
-    PyDict_SetItemString(dict, "REMCTL_OUT_DONE", tmp);
-    Py_DECREF(tmp);
 
     tmp = PyString_FromString(VERSION);
     PyDict_SetItemString(dict, "VERSION", tmp);
