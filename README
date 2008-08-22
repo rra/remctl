@@ -207,19 +207,6 @@ TESTING
   particularly slow or loaded systems, you may see intermittant failures
   from the server/streaming test because it's timing-sensitive.
 
-PORTING
-
-  remctl should port reasonably well.  It has been tested on:
-
-      Solaris 8, 9, 10
-      Linux (glibc 2.2, 2.3, 2.5, 2.6, 2.6.1, 2.7)
-      Mac OS X 10.4
-      NetBSD
-      AIX 5.2
-
-  but should work on any Unix varient that meets the requirements noted
-  above.
-
 THANKS
 
   To Anton Ushakov for the original design document, much of the version
