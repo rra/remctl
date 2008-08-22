@@ -37,6 +37,7 @@ Collected copyright notices for the entire package:
       Board of Trustees, Leland Stanford Jr. University
   Copyright 2007 Marcus Watts
   Copyright 2008 Andrew Mortensen <admorten@umich.edu>
+  Copyright 2008 Thomas L. Kula <kula@tproa.net>
   Copyright 2004, 2005, 2006, 2007
       by Internet Systems Consortium, Inc. ("ISC")
   Copyright 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
@@ -322,3 +323,23 @@ license:
 
 For a complete copy of the GNU General Public License version 2, see
 php/GPL-2.
+
+The files python/_remctlmodule.c, python/remctl.py, and python/setup.py
+are covered by the following license, which is almost identical to the
+general remctl package license:
+
+  Copyright 2008, Thomas L. Kula. All rights reserved. 
+     
+  Permission to use, copy, modify, and distribute this software and its
+  documentation for any purpose and without fee is hereby granted,
+  provided that the above copyright notice appear in all copies and that
+  both that copyright notice and this permission notice appear in
+  supporting documentation, and that the name of Thomas L. Kula not be
+  used in advertising or publicity pertaining to distribution of the
+  software without specific, written prior permission. Thomas L. Kula
+  makes no representations about the suitability of this software for any
+  purpose.  It is provided "as is" without express or implied warranty.
+
+  THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.

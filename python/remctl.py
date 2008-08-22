@@ -8,7 +8,19 @@
 # Copyright 2008 Thomas L. Kula <kula@tproa.net>
 # Copyright 2008 Board of Trustees, Leland Stanford Jr. University
 #
-# See LICENSE for licensing terms.
+# Permission to use, copy, modify, and distribute this software and its
+# documentation for any purpose and without fee is hereby granted, provided
+# that the above copyright notice appear in all copies and that both that
+# copyright notice and this permission notice appear in supporting
+# documentation, and that the name of Thomas L. Kula not be used in
+# advertising or publicity pertaining to distribution of the software without
+# specific, written prior permission. Thomas L. Kula makes no representations
+# about the suitability of this software for any purpose.  It is provided "as
+# is" without express or implied warranty.
+#
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 """Interface to remctl.
 
