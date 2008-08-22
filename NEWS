@@ -2,9 +2,13 @@
 
 remctl 2.13 (unreleased)
 
-    Added a PHP remctl PECL module from Andrew Mortensen, enabled with
+    Add a PHP remctl PECL module from Andrew Mortensen, enabled with
     --enable-php at configure time.  These bindings are only tested with
     PHP 5.
+
+    Add Python bindings from Thomas L. Kula, enabled with --enable-python
+    at configure time.  These bindings are tested with Python 2.5 but
+    should work with versions back to 2.3.
 
     Several Windows fixes from Matthew Loar, plus really include
     portable/winsock.c in the distribution.  This version should now build

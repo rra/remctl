@@ -102,14 +102,22 @@ INSTALLATION (UNIX)
   the perl subdirectory of the build tree with appropriate options and
   rebuild the module after running make and before running make install.
 
-  To also build the PHP remctl PECL module, pass the --enable-php option
-  to configure.  The PHP PECL module build is handled by the normal PHP
-  extension build system and therefore will be installed into your local
-  PHP module directory.  I believe the build machinery that comes with the
-  package should work for a variety of different PHP versions, but you may
-  need to run phpize in the php/ directory before running configure.
-  Please let me know, including your version of PHP and your architecture,
-  if this is the case.
+  To also build the remctl PECL extension for PHP, pass the --enable-php
+  option to configure.  The PHP PECL module build is handled by the normal
+  PHP extension build system and therefore will be installed into your
+  local PHP module directory.  I believe the build machinery that comes
+  with the package should work for a variety of different PHP versions,
+  but you may need to run phpize in the php/ directory before running
+  configure.  Please let me know, including your version of PHP and your
+  architecture, if this is the case.
+
+  To also build the Python bindings for the libremctl client library, pass
+  the --enable-python option to configure.  The Python module build is
+  handled by the normal Python extension build system, and therefore will
+  be installed into your local Python module directory regardless of the
+  --prefix argument to configure.  To change this, you will need to run
+  python setup.py install by hand in the python directory with whatever
+  options you want to use.
 
   Normally, configure will use krb5-config to determine the flags to use
   to compile with your Kerberos GSS-API libraries.  If krb5-config isn't
@@ -223,7 +231,7 @@ THANKS
   To Romain LENGLET for the idea and code for examples/rsh-wrapper.
 
   To Thomas Kula for testing of remctl 2.0 and later versions on NetBSD
-  and Heimdal.
+  and Heimdal and for the Python bindings.
 
   To Ralf Wildenhues for help in getting make check to work with builddir
   != srcdir builds.
@@ -252,3 +260,7 @@ THANKS
   issues.
 
   To Matthew Loar for the Windows port of the remctl client.
+
+  To Andrew Mortensen for the initial remctl PECL extension for PHP and
+  for general code formatting comments and a reminder to free malloc'd
+  memory in the Python bindings.

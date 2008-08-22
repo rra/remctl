@@ -51,10 +51,6 @@ Client:
  * Add readline support to the remctl client for multiple commands to the
    same server in the same authenticated session.
 
- * Add Python bindings for the libremctl client library.
-
- * Add PHP bindings for the libremctl client library.
-
  * Support setting a timeout and failing the remctl call if the server
    takes too long to connect or send back data.
 
