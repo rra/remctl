@@ -33,7 +33,9 @@ php/missing
 php/mkinstalldirs
 php/modules/
 php/run-tests.php
+python/MANIFEST
 python/build
+python/dist
 server/remctld
 stamp-h1
 tests/client/api-t
