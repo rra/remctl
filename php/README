@@ -100,8 +100,8 @@ FULL INTERFACE
   opening a connection for each command).
 
   To use the full interface, first create a connection object with
-  remctl_new(), connect to a server with remctl_connect(), and then issue
-  a command with remctl_command() and read output tokens with
+  remctl_new(), connect to a server with remctl_open(), and then
+  issue a command with remctl_command() and read output tokens with
   remctl_output().  Once a status token has been received, the command is
   complete and another command can be issued.
 
