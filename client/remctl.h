@@ -29,9 +29,10 @@
 /*
  * Normally we treat this as an opaque struct and clients who want to use the
  * iovec interface need to include <sys/uio.h> themselves.  However, Windows
- * doesn't provide this struct, so we define it for Windows.
+ * doesn't provide this struct, so we define it for Windows.  It will already
+ * be defined by remctl's internal build system, so deal with that.
  */
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PORTABLE_UIO_H)
 struct iovec {
     void *iov_base;
     size_t iov_len;
