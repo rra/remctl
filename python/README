@@ -1,5 +1,4 @@
                         Python interface to remctl
-                     Thomas L. Kula <kula@tproa.net>
 
 OVERVIEW
 
@@ -202,6 +201,13 @@ LOW-LEVEL INTERFACE
 
   The _remctl interface is not currently documented or intended for direct
   use.  Use at your own risk.
+
+HISTORY
+
+  The original implementation was written by Thomas L. Kula
+  <kula@tproa.net> and was known as pyremctl.  As of remctl 2.13 it is
+  part of the stock remctl distribution and ongoing maintenance is done by
+  Russ Allbery and Thomas L. Kula.
 
 THANKS
 

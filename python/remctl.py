@@ -4,7 +4,7 @@
 # should be using.  It's a Python wrapper around the _remctl C module, which
 # exposes exactly the libremctl API.
 #
-# Written by Thomas L. Kula <kula@tproa.net>
+# Original implementation by Thomas L. Kula <kula@tproa.net>
 # Copyright 2008 Thomas L. Kula <kula@tproa.net>
 # Copyright 2008 Board of Trustees, Leland Stanford Jr. University
 #

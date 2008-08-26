@@ -5,7 +5,7 @@
  * should not use this interface directly; instead, they should use the remctl
  * Python wrapper around this class.
  *
- * Written by Thomas L. Kula <kula@tproa.net>
+ * Original implementation by Thomas L. Kula <kula@tproa.net>
  * Copyright 2008 Thomas L. Kula <kula@tproa.net>
  * Copyright 2008 Board of Trustees, Leland Stanford Jr. University
  *
