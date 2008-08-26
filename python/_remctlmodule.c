@@ -34,6 +34,11 @@
 
 #include <remctl.h>
 
+/* The type of the argument to PyString_AsStringAndSize changed in 2.5. */
+#if (PY_MAJOR_VERSION < 2) || ((PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 5))
+# define Py_ssize_t int
+#endif
+
 /* Silence GCC warnings. */
 PyMODINIT_FUNC init_remctl(void);
 
