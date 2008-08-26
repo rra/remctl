@@ -12,9 +12,6 @@ OVERVIEW
   provides more control over the connection, returns individual output
   tokens, and allows multiple commands to be sent via the same connection.
 
-  This binding was originally written by Andrew Mortensen, with futher
-  modifications by Russ Allbery.
-
 REQUIREMENTS
 
   The module has only been tested with PHP 5.2 and may or may not work
@@ -218,3 +215,9 @@ FULL INTERFACE
       remctl_close($r)
 
   As mentioned above, the final remctl_close() is normally not needed.
+
+HISTORY
+
+  This binding was originally written by Andrew Mortensen. part of the
+  stock remctl distribution and ongoing maintenance is done by Russ
+  Allbery.

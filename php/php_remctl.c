@@ -4,7 +4,7 @@
  * Provides bindings for PHP very similar to the libremctl library for C or
  * the Net::Remctl bindings for Perl.
  *
- * Written by Andrew Mortensen <admorten@umich.edu>, 2008
+ * Originally written by Andrew Mortensen <admorten@umich.edu>, 2008
  * Copyright 2008 Andrew Mortensen <admorten@umich.edu>
  * Copyright 2008 Board of Trustees, Leland Stanford Jr. University
  *

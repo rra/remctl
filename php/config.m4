@@ -3,7 +3,7 @@ dnl
 dnl Provides additional configuration hooks for the PHP module build system.
 dnl This file is used by the phpize frameowrk.
 dnl
-dnl Written by Andrew Mortensen <admorten@umich.edu>, 2008
+dnl Originally written by Andrew Mortensen <admorten@umich.edu>, 2008
 dnl Copyright 2008 Andrew Mortensen <admorten@umich.edu>
 dnl Copyright 2008 Board of Trustees, Leland Stanford Jr. University
 dnl
