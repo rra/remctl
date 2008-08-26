@@ -36,6 +36,7 @@ php/run-tests.php
 python/MANIFEST
 python/build
 python/dist
+python/remctl.py
 python/setup.py
 server/remctld
 stamp-h1

@@ -133,7 +133,8 @@ AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([tests/client/pod-t], [chmod +x tests/client/pod-t])
 AS_IF([test x"$build_perl" = xyes], [AC_CONFIG_FILES([perl/Makefile.PL])])
-AS_IF([test x"$build_python" = xyes], [AC_CONFIG_FILES([python/setup.py])])
+AS_IF([test x"$build_python" = xyes],
+    [AC_CONFIG_FILES([python/remctl.py python/setup.py])])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_COMMANDS([docs], [test -d docs || mkdir docs])
 AC_OUTPUT

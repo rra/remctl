@@ -12,7 +12,7 @@
 PERL_FILES = perl/Remctl.pm perl/Remctl.xs perl/typemap perl/t/api.t \
 	perl/t/pod.t perl/t/stanford-netdb.t
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c \
-	python/remctl.py python/setup.py python/test_remctl.py
+	python/test_remctl.py
 TEST_FILES = tests/TESTS tests/client/pod-t.in tests/client/remctl-t \
 	tests/data/README tests/data/acl-bad-include \
 	tests/data/acl-bad-syntax tests/data/acl-nonexistant \
