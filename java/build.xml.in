@@ -64,9 +64,6 @@
       <tarfileset dir="." prefix="${release.path}">
          <include name="**/build.xml" />
       </tarfileset>
-      <tarfileset dir="." prefix="${release.path}/bin">
-        <include name="**/t?.java" />
-      </tarfileset>
       <tarfileset dir="." prefix="${release.path}/doc">
         <include name="**/README" />
         <include name="**/bcsKeytab.conf" />

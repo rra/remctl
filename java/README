@@ -110,7 +110,6 @@ CREATING A DISTRIBUTION
   then be found in dist).  This generated distribution will be structured
   like an Apache Jakarta project:
 
-      bin/*.java        The t5.java and t7.java test scripts.
       dist/lib          The built JAR file with the version in its name
       doc               This documentation and the sample configuration
       src               The JAR file source
