@@ -8,7 +8,7 @@
 #
 # Currently, only the Sun Java JDK is supported (1.4.2, 5, or 6).
 
-JDK	= /usr/lib/jvm/java-6-sun-1.6.0.00
+JDK	= /usr/lib/jvm/java-6-sun
 JAVAC	= $(JDK)/bin/javac
 JAR	= $(JDK)/bin/jar
 
@@ -26,7 +26,7 @@ t7.class: t7.java $(CLASS)
 	$(JAVAC) -g t7.java
 
 remctl.jar: $(CLASS)
-	$(JAR) cfe remctl.jar $(ORIGIN)/RemctlClient $(CLASS)
+	$(JAR) cfe remctl.jar $(ORIGIN)/RemctlClient $(ORIGIN)/*.class
 
 $(ORIGIN)/RemctlClient.class: $(ORIGIN)/RemctlClient.java $(ORIGIN)/Remctl.class
 	$(JAVAC) -g $(ORIGIN)/RemctlClient.java

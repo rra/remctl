@@ -10,6 +10,9 @@ remctl 2.13 (unreleased)
     at configure time.  These bindings are tested with Python 2.5 but
     should work with versions back to 2.3.
 
+    Include all *.class files in the JAR file built by java/Makefile,
+    making the resulting JAR actually useful.  Thanks, Marcus Watts.
+
     Several Windows fixes from Matthew Loar, plus really include
     portable/winsock.c in the distribution.  This version should now build
     and run on Windows.
