@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project [
+]>
+<project name="jremctl" default="all" basedir=".">
+    <property file="local.properties" />
+    <property name="src" value="src" />
+    <property name="bin" value="." />
+    <property name="jar" value="remctl.jar" />
+    <property name="tar" value="remctl.tgz" />
+    <property name="release.number" value="@PACKAGE_VERSION@" />
+    <property name="release.path" value="remctl-${release.number}" />
+    <target name="prepare" depends="clean">
+	<mkdir dir="${bin}" />
+    </target>
+    <target name="clean">
+	<delete includeEmptyDirs="true" quiet="true">
+	    <fileset dir="${bin}">
+		<include name="**/*.class"/>
+	    </fileset>
+	    <fileset file="${jar}" />
+	    <fileset file="${tar}" />
+	</delete>
+    </target>
+    <target name="compile" depends="prepare">
+	<javac destdir="${bin}"
+	    debug="true"
+	    includes="**/*.java" excludes="t?.java" >
+
+	    <src path="${src}" />
+	    <compilerarg value="-Xlint:unchecked" />
+	</javac>
+    </target>
+    <target name="jar" depends="compile">
+	<jar jarfile="${jar}" compress="true" filesonly="true">
+	    <fileset dir="${bin}">
+		<include name="**/*.class" />
+		<exclude name="**/test/*.class" />
+	    </fileset>
+	</jar>
+    </target>
+    <target name="all" depends="jar">
+	<echo message="done..." />
+    </target>
+    <target name="tar">
+	<tar destfile="${tar}" compression="gzip">
+	    <tarfileset dir="${src}" prefix="${release.path}/src">
+		<include name="**/*.java" />
+	    </tarfileset>
+	    <tarfileset dir="." prefix="${release.path}">
+		<include name="**/build.xml" />
+	    </tarfileset>
+	    <tarfileset file="${jar}" prefix="${release.path}/dist" />
+	</tar>
+    </target>
+</project>

@@ -13,6 +13,11 @@ remctl 2.13 (unreleased)
     Include all *.class files in the JAR file built by java/Makefile,
     making the resulting JAR actually useful.  Thanks, Marcus Watts.
 
+    Add an ant build configuration for the Java remctl implementation.
+    It also has the capability to generate a distribution of just the Java
+    implementation using a file layout more similar to an Apache Jakarta
+    project than the layout of the java subdirectory.
+
     Several Windows fixes from Matthew Loar, plus really include
     portable/winsock.c in the distribution.  This version should now build
     and run on Windows.

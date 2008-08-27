@@ -13,6 +13,8 @@ config.log
 config.status
 configure
 docs/remctld.8.in
+java/build.xml
+java/local.properties
 libtool
 perl/Makefile.PL
 perl/Makefile.old
@@ -92,3 +94,4 @@ tests/util/xwrite-t
 *.lo
 *.o
 *.pyc
+*.tgz

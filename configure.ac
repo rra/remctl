@@ -130,7 +130,7 @@ AC_ARG_ENABLE([python],
     [AS_IF([test x"$enableval" = xyes], [build_python=yes])])
 AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
 AC_CONFIG_FILES([tests/client/pod-t], [chmod +x tests/client/pod-t])
 AS_IF([test x"$build_perl" = xyes],
     [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])])
