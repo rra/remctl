@@ -86,6 +86,8 @@ tests/util/xwrite-t
 *.3
 *.8
 *.a
+*.class
+*.jar
 *.la
 *.lo
 *.o
