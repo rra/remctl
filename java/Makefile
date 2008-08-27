@@ -8,14 +8,14 @@
 #
 # Currently, only the Sun Java JDK is supported (1.4.2, 5, or 6).
 
-JAVA_HOME = /usr/lib/jvm/java-6-sun
-JAVAC     = $(JDK)/bin/javac
-JAR       = $(JDK)/bin/jar
+JAVA_HOME ?= /usr/lib/jvm/java-6-sun
+JAVAC      = $(JDK)/bin/javac
+JAR        = $(JDK)/bin/jar
 
-ORIGIN    = org/eyrie/eagle/remctl
-SOURCE    = $(ORIGIN)/RemctlClient.java $(ORIGIN)/RemctlServer.java \
-	    $(ORIGIN)/Remctl.java
-CLASS	  = $(SOURCE:.java=.class)
+ORIGIN     = org/eyrie/eagle/remctl
+SOURCE     = $(ORIGIN)/RemctlClient.java $(ORIGIN)/RemctlServer.java \
+	     $(ORIGIN)/Remctl.java
+CLASS	   = $(SOURCE:.java=.class)
 
 all: remctl.jar t5.class t7.class
 
