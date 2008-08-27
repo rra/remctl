@@ -1,55 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE project [
 ]>
-<project name="jremctl" default="all" basedir=".">
-    <property file="local.properties" />
-    <property name="src" value="src" />
-    <property name="bin" value="." />
-    <property name="jar" value="remctl.jar" />
-    <property name="tar" value="remctl.tgz" />
-    <property name="release.number" value="@PACKAGE_VERSION@" />
-    <property name="release.path" value="remctl-${release.number}" />
-    <target name="prepare" depends="clean">
-	<mkdir dir="${bin}" />
-    </target>
-    <target name="clean">
-	<delete includeEmptyDirs="true" quiet="true">
-	    <fileset dir="${bin}">
-		<include name="**/*.class"/>
-	    </fileset>
-	    <fileset file="${jar}" />
-	    <fileset file="${tar}" />
-	</delete>
-    </target>
-    <target name="compile" depends="prepare">
-	<javac destdir="${bin}"
-	    debug="true"
-	    includes="**/*.java" excludes="t?.java" >
-
-	    <src path="${src}" />
-	    <compilerarg value="-Xlint:unchecked" />
-	</javac>
-    </target>
-    <target name="jar" depends="compile">
-	<jar jarfile="${jar}" compress="true" filesonly="true">
-	    <fileset dir="${bin}">
-		<include name="**/*.class" />
-		<exclude name="**/test/*.class" />
-	    </fileset>
-	</jar>
-    </target>
-    <target name="all" depends="jar">
-	<echo message="done..." />
-    </target>
-    <target name="tar">
-	<tar destfile="${tar}" compression="gzip">
-	    <tarfileset dir="${src}" prefix="${release.path}/src">
-		<include name="**/*.java" />
-	    </tarfileset>
-	    <tarfileset dir="." prefix="${release.path}">
-		<include name="**/build.xml" />
-	    </tarfileset>
-	    <tarfileset file="${jar}" prefix="${release.path}/dist" />
-	</tar>
-    </target>
+<project name="jremctl" default="dist" basedir=".">
+  <description>Build file for Java remctl</description>
+  <property file="local.properties" />
+  <property name="release.number" value="@PACKAGE_VERSION@" />
+  <property name="release.path" value="remctl-${release.number}" />
+  <property name="src" value="src" />
+  <property name="build" value="build" />
+  <property name="dist" value="dist" />
+  <property name="jar" value="${dist}/lib/remctl-${release.number}.jar" />
+  <property name="tar" value="dist/jremctl-${release.number}.tgz" />
+  <target name="init" depends="clean"
+          description="create the build directories">
+    <mkdir dir="${build}" />
+  </target>
+  <target name="build" depends="init" description="compile the source">
+    <javac destdir="${build}" debug="true" includes="**/*.java"
+           excludes="t?.java" >
+      <src path="${src}" />
+      <compilerarg value="-Xlint:unchecked" />
+    </javac>
+  </target>
+  <target name="dist" depends="build"
+          description="generate the distribution">
+    <mkdir dir="${dist}/lib" />
+    <jar jarfile="${jar}" basedir="${build}">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}" />
+        <attribute name="Main-Class"
+                   value="org.eyrie.eagle.remctl.RemctlClient" />
+        <section name="common">
+          <attribute name="Specification-Title" value="Java Remctl" />
+          <attribute name="Specification-Version" value="${release.number}" />
+          <attribute name="Specification-Vendor" value="Russ Allbery" />
+          <attribute name="Package-Title" value="org.eyrie.eagle.remctl" />
+          <attribute name="Package-Version" value="${release.number}" />
+          <attribute name="Package-Vendor" value="Russ Allbery" />
+        </section>
+      </manifest>
+    </jar>
+  </target>
+  <target name="clean" description="clean up">
+    <delete dir="${build}" />
+    <delete dir="${dist}" />
+  </target>
+  <target name="tar" description="generate a customary distribution">
+    <tar destfile="${tar}" compression="gzip">
+      <tarfileset dir="${src}" prefix="${release.path}/src">
+        <include name="**/*.java" />
+      </tarfileset>
+      <tarfileset dir="." prefix="${release.path}">
+         <include name="**/build.xml" />
+      </tarfileset>
+      <tarfileset dir="." prefix="${release.path}/bin">
+        <include name="**/t?.java" />
+      </tarfileset>
+      <tarfileset dir="." prefix="${release.path}/doc">
+        <include name="**/README" />
+        <include name="**/bcsKeytab.conf" />
+        <include name="**/gss_jaas.conf" />
+        <include name="**/j3.conf" />
+        <include name="**/k5.conf" />
+      </tarfileset>
+      <tarfileset file="${jar}" prefix="${release.path}/dist/lib" />
+    </tar>
+  </target>
 </project>
