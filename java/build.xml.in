@@ -6,12 +6,14 @@
 
   <property file="local.properties" />
   <property name="release.number" value="@PACKAGE_VERSION@" />
-  <property name="release.path" value="remctl-${release.number}" />
+  <property name="release.path" value="jremctl-${release.number}" />
   <property name="src" value="src" />
   <property name="build" value="build" />
   <property name="dist" value="dist" />
   <property name="jar" value="${dist}/lib/remctl-${release.number}.jar" />
   <property name="tar" value="dist/jremctl-${release.number}.tgz" />
+
+  <mkdir dir="${build}" />
 
   <uptodate property="build.done">
     <srcfiles dir="${src}" includes="**/*.java" excludes="t?.java" />
@@ -21,11 +23,7 @@
     <srcfiles dir="${build}" includes="**/*.class" />
   </uptodate>
 
-  <target name="init" description="create the build directories">
-    <mkdir dir="${build}" />
-  </target>
-  <target name="build" depends="init" unless="build.done"
-          description="compile the source">
+  <target name="build" unless="build.done" description="compile the source">
     <javac destdir="${build}" debug="true" includes="**/*.java"
            excludes="t?.java" >
       <src path="${src}" />
