@@ -3,6 +3,7 @@
 ]>
 <project name="jremctl" default="dist" basedir=".">
   <description>Build file for Java remctl</description>
+
   <property file="local.properties" />
   <property name="release.number" value="@PACKAGE_VERSION@" />
   <property name="release.path" value="remctl-${release.number}" />
@@ -11,18 +12,27 @@
   <property name="dist" value="dist" />
   <property name="jar" value="${dist}/lib/remctl-${release.number}.jar" />
   <property name="tar" value="dist/jremctl-${release.number}.tgz" />
-  <target name="init" depends="clean"
-          description="create the build directories">
+
+  <uptodate property="build.done">
+    <srcfiles dir="${src}" includes="**/*.java" excludes="t?.java" />
+    <mapper type="glob" from="*.java" to="*.class" />
+  </uptodate>
+  <uptodate property="dist.done" targetfile="${jar}">
+    <srcfiles dir="${build}" includes="**/*.class" />
+  </uptodate>
+
+  <target name="init" description="create the build directories">
     <mkdir dir="${build}" />
   </target>
-  <target name="build" depends="init" description="compile the source">
+  <target name="build" depends="init" unless="build.done"
+          description="compile the source">
     <javac destdir="${build}" debug="true" includes="**/*.java"
            excludes="t?.java" >
       <src path="${src}" />
       <compilerarg value="-Xlint:unchecked" />
     </javac>
   </target>
-  <target name="dist" depends="build"
+  <target name="dist" depends="build" unless="dist.done"
           description="generate the distribution">
     <mkdir dir="${dist}/lib" />
     <jar jarfile="${jar}" basedir="${build}">
@@ -45,7 +55,8 @@
     <delete dir="${build}" />
     <delete dir="${dist}" />
   </target>
-  <target name="tar" description="generate a customary distribution">
+  <target name="tar" depends="dist"
+          description="generate a customary distribution">
     <tar destfile="${tar}" compression="gzip">
       <tarfileset dir="${src}" prefix="${release.path}/src">
         <include name="**/*.java" />
