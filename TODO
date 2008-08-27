@@ -75,3 +75,27 @@ Windows port:
    Windows prior to Vista would make this a less general solution.
 
  * Support the remctl server.
+
+Java implementation:
+
+ * Fix the coding style of the Java implementation to match the coding
+   style of the rest of remctl.
+
+ * Consider reorganizing the java directory so that it already matches the
+   layout of an Apache Jakarta project rather than having ant tar shuffle
+   everything around.
+
+ * Add a JUnit test suite for the Java implementation.
+
+ * Integrate the Java build into the rest of the build system so that it
+   is enabled using an --enable-java flag similar to the bindings, finds
+   ant and a JAVA_HOME in configure, and does the JAR build in the main
+   Makefile using ant.
+
+ * Consider eliminating the simple Makefile in the java directory and
+   requiring ant.
+
+ * Java cannot obtain tickets from a ticket cache created using the
+   k5.conf file included in the java directory using the current MIT
+   Kerberos on Debian.  It has to prompt for a password and get tickets
+   itself.  Figure out why and fix it.
