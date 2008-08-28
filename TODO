@@ -44,6 +44,10 @@ Server:
    standalone server for backward compatibility (only if requested by
    another flag).
 
+ * Sort the files in a directory before processing them so that the order
+   is deterministic.  Affects both configuration (earlier entries
+   override later ones) and ACL rules in the presence of deny ACLs.
+
 Client:
 
  * Implement file upload in the remctl client.

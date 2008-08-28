@@ -115,7 +115,9 @@ tab-separated strings, where each line is:
 
 Each command consists of a type, a service, and zero or more arguments.
 Each configuration line defines an acceptable commands (or, if C<ALL> is
-used as mentioned below under I<service>, a set of commands).
+used as mentioned below under I<service>, a set of commands).  The first
+configuration line matching the received command is used, so list more
+specific entries before more general entries.
 
 Blank lines and lines beginning with C<#> are ignored.  Lines can be
 continued on the next line by ending them with a backslash (C<\>).  Be
@@ -145,17 +147,17 @@ under one type.
 
 The service within the type being requested, such as C<release> for the
 release function of the AFS volume backend.  I<service> can also be
-thought of as the sub-command.  If the keyword C<ALL> is used instead of
-a specific service, this line matches all commands with the given type and
+thought of as the sub-command.  If the keyword C<ALL> is used instead of a
+specific service, this line matches all commands with the given type and
 can be used to dispatch all services under that type to the same
-executable with the same ACLs.  The first matching entry is used; one may
-list specific services first and then an C<ALL> catch-all.
+executable with the same ACLs.  Since the first matching entry is used,
+list entries for specific services first (if any) and then the C<ALL>
+catch-all.
 
-B<remctld> accepts commands with no service argument, only a type, such
-commands will only match a line in the configuration file if an C<ALL>
-line is present for that type.  (The B<remctl> client will not send such
-commands, but they can be sent using the client library or via another
-implementation.)
+B<remctld> accepts commands with no service argument, only a type.  Such
+commands will only match lines in the configuration file with C<ALL> for
+the service.  (The B<remctl> client will not send such commands, but they
+can be sent using the client library or via another implementation.)
 
 The service is always passed as the first argument to the executable
 program that is listed for that service unless no service was given.
@@ -228,7 +230,10 @@ without examining any further entries.  Otherwise, processing continues.
 
 Remember that access is granted as soon as an entry matches.  For C<deny>
 rules to be effective, they therefore must come before any ACLs they are
-intended to override.
+intended to override.  Be careful when using C<deny> when including a
+directory of ACL files, since the files in that directory are read in an
+undefined order (not in alphabetical order by filename).  It's best to
+explicitly include the file containing C<deny> ACL rules first.
 
 Note that C<deny> only denies access; it never grants it.  Thus, deny
 alone does not grant access to anyone, and using deny on itself as in
