@@ -22,7 +22,7 @@ main(void)
     struct confline confline = { NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL };
     const char *acls[5];
 
-    test_init(50);
+    test_init(56);
 
     if (access("../data/acl-simple", F_OK) == 0)
         chdir("..");
@@ -173,6 +173,16 @@ main(void)
     errors_uncapture();
     skip_block(47, 4, "GPUT support not configured");
 #endif
+
+    /* Test for valid characters in ACL files. */
+    acls[0] = "file:data/acls";
+    acls[1] = NULL;
+    ok(51, server_config_acl_permit(&confline, "upcase@EXAMPLE.ORG"));
+    ok(52, server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
+    ok(53, server_config_acl_permit(&confline, "test2@EXAMPLE.COM"));
+    ok(54, !server_config_acl_permit(&confline, "hash@EXAMPLE.ORG"));
+    ok(55, !server_config_acl_permit(&confline, "period@EXAMPLE.ORG"));
+    ok(56, !server_config_acl_permit(&confline, "tilde@EXAMPLE.ORG"));
 
     return 0;
 }

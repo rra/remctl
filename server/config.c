@@ -54,6 +54,29 @@ static enum config_status acl_check(const char *user, const char *entry,
                                     int def_index, const char *file,
                                     int lineno);
 
+/*
+ * Check a filename for acceptable characters.  Returns true if the file
+ * consists solely of [a-zA-Z0-9_-] and false otherwise.
+ */
+static bool
+valid_filename(const char *filename)
+{
+    const char *p;
+
+    for (p = filename; *p != '\0'; p++) {
+        if (*p >= 'A' && *p <= 'Z')
+            continue;
+        if (*p >= 'a' && *p <= 'z')
+            continue;
+        if (*p >= '0' && *p <= '9')
+            continue;
+        if (*p == '_' || *p == '-')
+            continue;
+        return false;
+    }
+    return true;
+}
+
 
 /*
  * Process a request for including a file, either for configuration or for
@@ -71,7 +94,7 @@ static enum config_status acl_check(const char *user, const char *entry,
  * the greatest of all status codes returned by function, or CONFIG_NOMATCH if
  * the file was empty.
  */
-static int
+static enum config_status
 handle_include(const char *included, const char *file, int lineno,
                int (*function)(void *, const char *), void *data)
 {
@@ -88,8 +111,9 @@ handle_include(const char *included, const char *file, int lineno,
     }
 
     /*
-     * If it's a directory, include everything in the directory that doesn't
-     * contain a period.  Otherwise, just include the one file.
+     * If it's a directory, include everything in the directory whose
+     * filenames contain only the allowed characters.  Otherwise, just include
+     * the one file.
      */
     if (!S_ISDIR(st.st_mode)) {
         return (*function)(data, included);
@@ -104,7 +128,7 @@ handle_include(const char *included, const char *file, int lineno,
             char *path;
             size_t length;
 
-            if (strchr(entry->d_name, '.') != NULL)
+            if (!valid_filename(entry->d_name))
                 continue;
             length = strlen(included) + 1 + strlen(entry->d_name) + 1;
             path = xmalloc(length);

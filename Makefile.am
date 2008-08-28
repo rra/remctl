@@ -17,11 +17,13 @@ TEST_FILES = tests/TESTS tests/client/pod-t.in tests/client/remctl-t \
 	tests/data/README tests/data/acl-bad-include \
 	tests/data/acl-bad-syntax tests/data/acl-nonexistant \
 	tests/data/acl-recursive tests/data/acl-simple \
-	tests/data/acl-too-long tests/data/acl-valid-3 tests/data/acls/valid \
-	tests/data/acls/valid-2 tests/data/acls2/valid-4 \
-	tests/data/cmd-argv tests/data/cmd-env \
-	tests/data/cmd-hello tests/data/cmd-status tests/data/conf-simple \
-	tests/data/conf-test tests/data/gput tests/util/xmalloc-t
+	tests/data/acl-too-long tests/data/acl-valid-3 \
+	tests/data/acls/VALID_09 tests/data/acls/val\#id \
+	tests/data/acls/val.id tests/data/acls/valid tests/data/acls/valid-2 \
+	tests/data/acls/val~id tests/data/acls2/valid-4 tests/data/cmd-argv \
+	tests/data/cmd-env tests/data/cmd-hello tests/data/cmd-status \
+	tests/data/conf-simple tests/data/conf-test tests/data/gput \
+	tests/util/xmalloc-t
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4

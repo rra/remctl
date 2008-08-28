@@ -10,6 +10,12 @@ remctl 2.13 (unreleased)
     new ACL methods in the future.  This work was contributed by Jeffrey
     Hutzelman.
 
+    When processing the include of a directory for configuration files or
+    ACL files, limit the files read to those whose names contain only
+    characters in [a-zA-Z0-9_-].  This replaces the previous exclusion of
+    files containing periods and also excludes Emacs backup and temporary
+    files.  Thanks, Timothy G. Abbott.
+
     Add a PHP remctl PECL module from Andrew Mortensen, enabled with
     --enable-php at configure time.  These bindings are only tested with
     PHP 5.
