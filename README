@@ -269,3 +269,6 @@ THANKS
   To Andrew Mortensen for the initial remctl PECL extension for PHP and
   for general code formatting comments and a reminder to free malloc'd
   memory in the Python bindings.
+
+  To Jeffrey Hutzelman for adding the framework for ACL method support and
+  implementing the file, princ, deny, and gput schemes.

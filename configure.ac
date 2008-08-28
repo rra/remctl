@@ -106,6 +106,9 @@ dnl Set this globally, since we have too many header files that include the
 dnl GSS-API headers even if the code itself doesn't call GSS-API functions.
 CPPFLAGS="$CPPFLAGS $GSSAPI_CPPFLAGS"
 
+dnl Check for the CMU GPUT library.
+CMU_GPUT
+
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.
 build_perl=

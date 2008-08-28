@@ -5,5 +5,15 @@ peter
   cindy@EXAMPLE.COM
 	include data/acls
 
+  include file:data/acl-valid-3
+file:data/acls2
 
 include
+
+princ:explicit@EXAMPLE.COM
+include princ:direct@EXAMPLE.COM
+include deny:princ:evil@EXAMPLE.ORG
+deny:princ:evil@EXAMPLE.NET
+
+good@EXAMPLE.ORG
+evil@EXAMPLE.ORG

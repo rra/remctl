@@ -49,6 +49,8 @@ struct client {
 
 /* Holds the configuration for a single command. */
 struct confline {
+    char *file;                 /* Config file name. */
+    int lineno;                 /* Config file line number. */
     struct vector *line;        /* The split configuration line. */
     char *type;                 /* Service type. */
     char *service;              /* Service name. */
@@ -64,6 +66,13 @@ struct config {
     size_t allocated;
 };
 
+/* Holds information about ACL schemes */
+struct acl_scheme {
+    const char *name;
+    int (*check)(const char *user, const char *data, const char *file,
+                 int lineno);
+};
+
 /* Logging functions. */
 void warn_gssapi(const char *, OM_uint32 major, OM_uint32 minor);
 void warn_token(const char *, int status, OM_uint32 major, OM_uint32 minor);
@@ -73,6 +82,7 @@ void server_log_command(struct vector *, struct confline *, const char *user);
 struct config *server_config_load(const char *file);
 void server_config_free(struct config *);
 bool server_config_acl_permit(struct confline *, const char *user);
+void server_config_set_gput_file(char *file);
 
 /* Running commands. */
 void server_run_command(struct client *, struct config *, struct vector *);

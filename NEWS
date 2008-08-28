@@ -2,6 +2,14 @@
 
 remctl 2.13 (unreleased)
 
+    Add support for ACL methods in the remctld server.  The supported
+    schemes in this release are file and princ, which together provide the
+    same functionality as earlier releases, plus deny to explicitly reject
+    a user who matches another ACL and support for the CMU GPUT
+    authorization system.  There is now a framework in place for adding
+    new ACL methods in the future.  This work was contributed by Jeffrey
+    Hutzelman.
+
     Add a PHP remctl PECL module from Andrew Mortensen, enabled with
     --enable-php at configure time.  These bindings are only tested with
     PHP 5.

@@ -17,10 +17,11 @@ TEST_FILES = tests/TESTS tests/client/pod-t.in tests/client/remctl-t \
 	tests/data/README tests/data/acl-bad-include \
 	tests/data/acl-bad-syntax tests/data/acl-nonexistant \
 	tests/data/acl-recursive tests/data/acl-simple \
-	tests/data/acl-too-long tests/data/acls/valid \
-	tests/data/acls/valid-2 tests/data/cmd-argv tests/data/cmd-env \
+	tests/data/acl-too-long tests/data/acl-valid-3 tests/data/acls/valid \
+	tests/data/acls/valid-2 tests/data/acls2/valid-4 \
+	tests/data/cmd-argv tests/data/cmd-env \
 	tests/data/cmd-hello tests/data/cmd-status tests/data/conf-simple \
-	tests/data/conf-test tests/util/xmalloc-t
+	tests/data/conf-test tests/data/gput tests/util/xmalloc-t
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
@@ -74,9 +75,10 @@ sbin_PROGRAMS = server/remctld
 server_remctld_SOURCES = server/commands.c server/config.c server/generic.c \
 	server/logging.c server/internal.h server/remctld.c \
 	server/server-v1.c server/server-v2.c
-server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"
+server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\" \
+	$(GPUT_INC_FLAGS)
 server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS)
-server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS)
+server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS) $(GPUT_LIB_FLAGS)
 
 dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3 \
 	docs/api/remctl_command.3 docs/api/remctl_error.3 \
@@ -258,16 +260,18 @@ tests_portable_strlcpy_t_SOURCES = tests/portable/strlcpy-t.c \
 tests_portable_strlcpy_t_LDADD = tests/libtest.a util/libutil.la
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
 tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS)
-tests_server_accept_t_LDADD = tests/libtest.a util/libutil.la $(GSSAPI_LIBS)
+tests_server_accept_t_LDADD = tests/libtest.a util/libutil.la $(GSSAPI_LIBS) \
+	$(GPUT_LIB_FLAGS)
 tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
-tests_server_acl_t_LDADD = tests/libtest.a util/libutil.la
+tests_server_acl_t_LDADD = tests/libtest.a util/libutil.la $(GPUT_LIB_FLAGS)
 tests_server_background_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_config_t_SOURCES = tests/server/config-t.c $(SERVER_FILES)
-tests_server_config_t_LDADD = tests/libtest.a util/libutil.la
+tests_server_config_t_LDADD = tests/libtest.a util/libutil.la $(GPUT_LIB_FLAGS)
 tests_server_continue_t_LDADD = client/libremctl.la tests/libtest.a \
+	util/libutil.la $(GPUT_LIB_FLAGS)
+tests_server_env_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
-tests_server_env_t_LDADD = client/libremctl.la tests/libtest.a util/libutil.la
 tests_server_errors_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_invalid_t_LDADD = client/libremctl.la tests/libtest.a \
@@ -296,6 +300,7 @@ tests_util_xwrite_t_LDADD = tests/libtest.a util/libutil.la
 check-local: $(check_PROGRAMS)
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
 	    mkdir tests/data/acls 2>/dev/null || true ; \
+	    mkdir tests/data/acls2 2>/dev/null || true ; \
 	    for f in $(TEST_FILES) ; do \
 	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
 	    done \
