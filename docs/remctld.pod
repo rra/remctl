@@ -372,7 +372,7 @@ section of gssapi(3).
 B<remctld> does not itself impose any limits on the number of child
 processes or other system resources.  You may want to set resource limits
 in your inetd server or with B<ulimit> when running it as a standalone
-daemon.
+daemon or under B<tcpserver>.
 
 =head1 NOTES
 
