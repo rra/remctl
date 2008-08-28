@@ -20,6 +20,7 @@ perl/Makefile.PL
 perl/Makefile.old
 perl/Remctl.bs
 perl/Remctl.c
+perl/Remctl.pm
 perl/blib/
 perl/pm_to_blib
 php/Makefile.*
