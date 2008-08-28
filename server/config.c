@@ -8,6 +8,7 @@
  * Based on work by Anton Ushakov
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
  *     Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2008 Jeffrey Hutzelman
  *
  * See LICENSE for licensing terms.
  */

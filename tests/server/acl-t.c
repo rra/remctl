@@ -2,7 +2,8 @@
  * Test suite for the server ACL checking.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2007, 2008 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2008 Jeffrey Hutzelman
  *
  * See LICENSE for licensing terms.
  */
