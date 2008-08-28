@@ -33,6 +33,14 @@
 static char *acl_gput_file = NULL;
 #endif
 
+/* Return codes for configuration and ACL parsing. */
+enum config_status {
+    CONFIG_SUCCESS = 0,
+    CONFIG_NOMATCH = -1,
+    CONFIG_ERROR   = -2,
+    CONFIG_DENY    = -3
+};
+
 /*
  * The following must match the indexes of these schemes in schemes[].
  * They're used to implement default ACL schemes in particular contexts.
@@ -41,8 +49,9 @@ static char *acl_gput_file = NULL;
 #define ACL_SCHEME_PRINC 1
 
 /* Forward declarations. */
-static int acl_check(const char *user, const char *entry, int def_index,
-                     const char *file, int lineno);
+static enum config_status acl_check(const char *user, const char *entry,
+                                    int def_index, const char *file,
+                                    int lineno);
 
 
 /*
@@ -57,8 +66,9 @@ static int acl_check(const char *user, const char *entry, int def_index,
  *
  * If the function returns a value less than -1, return its return code.  If
  * the file is recursively included or if there is an error in reading a file
- * or processing an include directory, return -2.  Otherwise, return the
- * greatest of all status codes returned by function.
+ * or processing an include directory, return CONFIG_ERROR.  Otherwise, return
+ * the greatest of all status codes returned by function, or CONFIG_NOMATCH if
+ * the file was empty.
  */
 static int
 handle_include(const char *included, const char *file, int lineno,
@@ -69,11 +79,11 @@ handle_include(const char *included, const char *file, int lineno,
     /* Sanity checking. */
     if (strcmp(included, file) == 0) {
         warn("%s:%d: %s recursively included", file, lineno, file);
-        return -2;
+        return CONFIG_ERROR;
     }
     if (stat(included, &st) < 0) {
         warn("%s:%d: included file %s not found", file, lineno, included);
-        return -2;
+        return CONFIG_ERROR;
     }
 
     /*
@@ -85,7 +95,7 @@ handle_include(const char *included, const char *file, int lineno,
     } else {
         DIR *dir;
         struct dirent *entry;
-        int status = -1;
+        int status = CONFIG_NOMATCH;
         int last;
 
         dir = opendir(included);
@@ -121,15 +131,16 @@ handle_include(const char *included, const char *file, int lineno,
  * config is populated with the parsed configuration file.  Empty lines and
  * lines beginning with # are ignored.  Each line is divided into fields,
  * separated by spaces.  The fields are defined by struct confline.  Lines
- * ending in backslash are continued on the next line.  config is passed in
- * as a void * so that read_conf_file and acl_check_file can use common
- * include handling code.
+ * ending in backslash are continued on the next line.  config is passed in as
+ * a void * so that read_conf_file and acl_check_file can use common include
+ * handling code.
  *
  * As a special case, include <file> will call read_conf_file recursively to
  * parse an included file (or, if <file> is a directory, every file in that
  * directory that doesn't contain a period).
  *
- * Returns 0 on success and -2 on error, reporting an error message.
+ * Returns CONFIG_SUCCESS on success and CONFIG_ERROR on error, reporting an
+ * error message.
  */
 static int
 read_conf_file(void *data, const char *name)
@@ -138,7 +149,7 @@ read_conf_file(void *data, const char *name)
     FILE *file;
     char *buffer, *p;
     size_t bufsize, length, size, count, i, arg_i;
-    int s;
+    enum config_status s;
     struct vector *line = NULL;
     struct confline *confline = NULL;
     size_t lineno = 0;
@@ -150,7 +161,7 @@ read_conf_file(void *data, const char *name)
     if (file == NULL) {
         free(buffer);
         syswarn("cannot open config file %s", name);
-        return -2;
+        return CONFIG_ERROR;
     }
     while (fgets(buffer, bufsize, file) != NULL) {
         length = strlen(buffer);
@@ -290,7 +301,7 @@ fail:
     }
     free(buffer);
     fclose(file);
-    return -2;
+    return CONFIG_ERROR;
 }
 
 
@@ -303,8 +314,9 @@ fail:
  * and read_conf_file can share common include-handling code.
  *
  * Returns the result of the first check that returns a result other than
- * -1, or -1 if no check returns some other value.  Also returns -2 on
- * some sort of failure (such as failure to read a file or a syntax error).
+ * CONFIG_NOMATCH, or CONFIG_NOMATCH if no check returns some other value.
+ * Also returns CONFIG_ERROR on some sort of failure (such as failure to read
+ * a file or a syntax error).
  */
 static int
 acl_check_file_internal(void *data, const char *aclfile)
@@ -313,14 +325,15 @@ acl_check_file_internal(void *data, const char *aclfile)
     FILE *file = NULL;
     char buffer[BUFSIZ];
     char *p;
-    int lineno, s;
+    int lineno;
+    enum config_status s;
     size_t length;
     struct vector *line = NULL;
 
     file = fopen(aclfile, "r");
     if (file == NULL) {
         syswarn("cannot open ACL file %s", aclfile);
-        return -2;
+        return CONFIG_ERROR;
     }
     lineno = 0;
     while (fgets(buffer, sizeof(buffer), file) != NULL) {
@@ -360,19 +373,19 @@ acl_check_file_internal(void *data, const char *aclfile)
                 goto fail;
             }
         }
-        if (s != -1) {
+        if (s != CONFIG_NOMATCH) {
             fclose(file);
             return s;
         }
     }
-    return -1;
+    return CONFIG_NOMATCH;
 
 fail:
     if (line != NULL)
         vector_free(line);
     if (file != NULL)
         fclose(file);
-    return -2;
+    return CONFIG_ERROR;
 }
 
 
@@ -380,19 +393,19 @@ fail:
  * The ACL check operation for the file method.  Takes the user to check, the
  * ACL file or directory name, and the referencing file name and line number.
  *
- * Conceptually, this returns 0 if the user is authorized, -1 if they aren't,
- * -2 on some sort of failure, and -3 for an explicit deny.  What actually
- * happens is the result of the interplay between handle_include and
- * acl_check_file_internal:
+ * Conceptually, this returns CONFIG_SUCCESS if the user is authorized,
+ * CONFIG_NOMATCH if they aren't, CONFIG_ERROR on some sort of failure, and
+ * CONFIG_DENY for an explicit deny.  What actually happens is the result of
+ * the interplay between handle_include and acl_check_file_internal:
  *
- * - For each file, return the first result other than -1 (indicating no
- *   match), or -1 if there is no other result.
+ * - For each file, return the first result other than CONFIG_NOMATCH
+ *   (indicating no match), or CONFIG_NOMATCH if there is no other result.
  *
- * - Return the first result from any file less than -1, indicating a failure
- *   or an explicit deny.
+ * - Return the first result from any file less than CONFIG_NOMATCH,
+ *   indicating a failure or an explicit deny.
  *
- * - If there is no result less than -1, return the largest remaining result,
- *   which should be 0 (match) or -1 (no match).
+ * - If there is no result less than CONFIG_NOMATCH, return the largest
+ *   remaining result, which should be CONFIG_SUCCESS or CONFIG_NOMATCH.
  */
 static int
 acl_check_file(const char *user, const char *aclfile, const char *file,
@@ -408,13 +421,14 @@ acl_check_file(const char *user, const char *aclfile, const char *file,
  * principal name we are checking against, and the referencing file name and
  * line number.
  *
- * Returns 0 if the user is authorized, or -1 if they aren't.
+ * Returns CONFIG_SUCCESS if the user is authorized, or CONFIG_NOMATCH if they
+ * aren't.
  */
 static int
 acl_check_princ(const char *user, const char *data, const char *file UNUSED,
                 int lineno UNUSED)
 {
-    return (strcmp(user, data) == 0) ? 0 : -1;
+    return (strcmp(user, data) == 0) ? CONFIG_SUCCESS : CONFIG_NOMATCH;
 }
 
 
@@ -425,18 +439,19 @@ acl_check_princ(const char *user, const char *data, const char *file UNUSED,
  *
  * This one is a little unusual:
  *
- * - If the recursive check matches (status 0), it returns -3.  This is
- *   treated by handle_include and acl_check_file_internal as an error
- *   condition, and causes processing to be stopped immediately, without doing
- *   further checks as would be done for a normal -1 "no match" return.
+ * - If the recursive check matches (status CONFIG_SUCCESS), it returns
+ *   CONFIG_DENY.  This is treated by handle_include and
+ *   acl_check_file_internal as an error condition, and causes processing to
+ *   be stopped immediately, without doing further checks as would be done for
+ *   a normal CONFIG_NOMATCH "no match" return.
  *
- * - If the recursive check does not match (status -1), it returns -1, which
- *   indicates "no match".  This allows processing to continue without either
- *   granting or denying access.
+ * - If the recursive check does not match (status CONFIG_NOMATCH), it returns
+ *   CONFIG_NOMATCH, which indicates "no match".  This allows processing to
+ *   continue without either granting or denying access.
  *
- * - If the recursive check returns -3, that is treated as a forced deny from
- *   a recursive call to acl_check_deny, and is returned as -1, indicating "no
- *   match".
+ * - If the recursive check returns CONFIG_DENY, that is treated as a forced
+ *   deny from a recursive call to acl_check_deny, and is returned as
+ *   CONFIG_NOMATCH, indicating "no match".
  *
  * Any other result indicates a processing error and is returned as-is.
  */
@@ -444,14 +459,14 @@ static int
 acl_check_deny(const char *user, const char *data, const char *file,
                int lineno)
 {
-    int s;
+    enum config_status s;
 
     s = acl_check(user, data, ACL_SCHEME_PRINC, file, lineno);
     switch (s) {
-    case 0:  return -3;         /* match       => deny */
-    case -1: return -1;         /* no match    => keep going */
-    case -3: return -1;         /* forced deny => keep going */
-    default: return s;          /* Anything else is returned as is. */
+    case CONFIG_SUCCESS: return CONFIG_DENY;
+    case CONFIG_NOMATCH: return CONFIG_NOMATCH;
+    case CONFIG_DENY:    return CONFIG_NOMATCH;
+    default:             return s;
     }
 }
 
@@ -482,17 +497,18 @@ server_config_set_gput_file(char *file UNUSED)
  *
  * The syntax of the data is "group" or "group[xform]".
  *
- * Returns 0 if the user is authorized, -1 if they aren't, and -2 on some sort
- * of failure (such as failure to read a file or a syntax error).
+ * Returns CONFIG_SUCCESS if the user is authorized, CONFIG_NOMATCH if they
+ * aren't, and CONFIG_ERROR on some sort of failure (such as failure to read a
+ * file or a syntax error).
  */
 #ifdef HAVE_GPUT
-static int
+static enum config_status
 acl_check_gput(const char *user, const char *data, const char *file,
                int lineno)
 {
     GPUT *G;
     char *role, *xform, *xform_start, *xform_end;
-    int s;
+    enum config_status s;
 
     xform_start = strchr(data, '[');
     if (xform_start != NULL) {
@@ -500,12 +516,12 @@ acl_check_gput(const char *user, const char *data, const char *file,
         if (xform_end == NULL) {
             warn("%s:%d: missing ] in GPUT specification '%s'", file, lineno,
                  data);
-            return -2;
+            return CONFIG_ERROR;
         }
         if (xform_end[1] != '\0') {
             warn("%s:%d: invalid GPUT specification '%s'", file, lineno,
                  data);
-            return -2;
+            return CONFIG_ERROR;
         }
         role = xstrndup(data, xform_start - data);
         xform = xstrndup(xform_start + 1, xform_end - (xform_start + 1));
@@ -522,12 +538,12 @@ acl_check_gput(const char *user, const char *data, const char *file,
      */
     G = gput_open(acl_gput_file, NULL);
     if (G == NULL)
-        s = -2;
+        s = CONFIG_ERROR;
     else {
         if (gput_check(G, role, (char *) user, xform, NULL))
-            s = 0;
+            s = CONFIG_SUCCESS;
         else
-            s = -1;
+            s = CONFIG_NOMATCH;
         gput_close(G);
     }
     if (xform_start) {
@@ -561,11 +577,11 @@ static const struct acl_scheme const schemes[] = {
  * The access control check switch.  Takes the user to check, the ACL entry,
  * default scheme index, and referencing file name and line number.
  *
- * Returns 0 if the user is authorized, -1 if they aren't, -2 on some sort of
- * failure (such as failure to read a file or a syntax error), and -3 for an
- * explicit deny.
+ * Returns CONFIG_SUCCESS if the user is authorized, CONFIG_NOMATCH if they
+ * aren't, CONFIG_ERROR on some sort of failure (such as failure to read a
+ * file or a syntax error), and CONFIG_DENY for an explicit deny.
  */
-static int
+static enum config_status
 acl_check(const char *user, const char *entry, int def_index,
           const char *file, int lineno)
 {
@@ -583,7 +599,7 @@ acl_check(const char *user, const char *entry, int def_index,
         if (scheme->name == NULL) {
             warn("%s:%d: invalid ACL scheme '%s'", file, lineno, prefix);
             free(prefix);
-            return -2;
+            return CONFIG_ERROR;
         }
         free(prefix);
     } else {
@@ -594,7 +610,7 @@ acl_check(const char *user, const char *entry, int def_index,
     if (scheme->check == NULL) {
         warn("%s:%d: ACL scheme '%s' is not supported", file, lineno,
              scheme->name);
-        return -2;
+        return CONFIG_ERROR;
     }
     return scheme->check(user, data, file, lineno);
 }
@@ -653,7 +669,8 @@ bool
 server_config_acl_permit(struct confline *cline, const char *user)
 {
     char **acls = cline->acls;
-    int status, i;
+    size_t i;
+    enum config_status status;
 
     if (strcmp(acls[0], "ANYUSER") == 0)
         return true;
