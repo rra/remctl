@@ -12,6 +12,8 @@ config.h.in~
 config.log
 config.status
 configure
+docs/protocol.html
+docs/protocol.txt
 docs/remctld.8.in
 java/build.xml
 java/local.properties
@@ -41,6 +43,7 @@ python/build
 python/dist
 python/remctl.py
 python/setup.py
+remctl-*.tar.gz
 server/remctld
 stamp-h1
 tests/client/api-t
