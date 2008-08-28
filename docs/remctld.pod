@@ -93,9 +93,11 @@ mostly useful for testing and debugging.
 
 =item B<-s> I<service>
 
-This option is used to specify the Kerberos service principal for
-B<remctld> to run as, the default is the server host principal:
-"host/<machinename>.stanford.edu"
+Specifies which principal is used as the server identity for client
+authentication.  The client must also use the same identity as the server
+identity for authentication to succeed.  By default, B<remctld> accepts
+any principal with a key in the default keytab file (which can be changed
+with the B<-k> option).  This is normally the most desirable behavior.
 
 =item B<-v>
 
@@ -362,9 +364,10 @@ servers since the version two protocol doesn't use MICs.  If you are using
 Heimdal and run into MIC verification problems, see the COMPATIBILITY
 section of gssapi(3).
 
-When running in daemon mode, B<remctld> does not itself impose any limits
-on the number of child processes or other system resources.  You may want
-to set resource limits with B<ulimit>.
+B<remctld> does not itself impose any limits on the number of child
+processes or other system resources.  You may want to set resource limits
+in your inetd server or with B<ulimit> when running it as a standalone
+daemon.
 
 =head1 NOTES
 
