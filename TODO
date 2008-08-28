@@ -70,6 +70,10 @@ Build system:
 
  * Add pkgconfig support for libremctl.
 
+Portability layer:
+
+ * Refactor getopt to be easier to understand and less deeply nested.
+
 Windows port:
 
  * With more modifications, it should be possible to build remctl against
