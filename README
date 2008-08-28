@@ -271,7 +271,8 @@ THANKS
   memory in the Python bindings.
 
   To Jeffrey Hutzelman for adding the framework for ACL method support and
-  implementing the file, princ, deny, and gput schemes.
+  implementing the file, princ, deny, and gput schemes, as well as lots of
+  testing and portability bug reports.
 
   To Timothy G. Abbott for suggesting additional restrictions on the names
   of files read when processing an include of a directory.
