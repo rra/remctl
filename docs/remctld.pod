@@ -167,7 +167,7 @@ program that is listed for that service unless no service was given.
 The full path to the commmand executable to run for this type-service 
 combination.  (See examples below.)
 
-=item I<logmask=n[,...]>
+=item I<logmask>=I<n>[,...]
 
 Limit logging of command arguments.  Any argument listed in the logmask
 list will have its value logged as "**MASKED**".  This is to avoid logging
