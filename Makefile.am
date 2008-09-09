@@ -271,7 +271,7 @@ tests_server_background_t_LDADD = client/libremctl.la tests/libtest.a \
 tests_server_config_t_SOURCES = tests/server/config-t.c $(SERVER_FILES)
 tests_server_config_t_LDADD = tests/libtest.a util/libutil.la $(GPUT_LIB_FLAGS)
 tests_server_continue_t_LDADD = client/libremctl.la tests/libtest.a \
-	util/libutil.la $(GPUT_LIB_FLAGS)
+	util/libutil.la
 tests_server_env_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_errors_t_LDADD = client/libremctl.la tests/libtest.a \
