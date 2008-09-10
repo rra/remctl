@@ -31,12 +31,6 @@ AC_DEFUN([RRA_LIB_GPUT],
         [AS_IF([test x"$withval" = xno], [rra_with_gput=no])],
         [GPUT_CPPFLAGS="-I$withval/include"
          RRA_SET_LDFLAGS([GPUT_LDFLAGS], [$withval])])])
- AC_ARG_WITH([gput-lib],
-    [AC_HELP_STRING([--with-gput-lib=DIR], [Location of CMU GPUT libraries])],
-    [AS_IF([test x"$withval" = xyes || test x"$withval" = xno],
-        [AC_MSG_ERROR([no argument given for --with-gput-lib])])
-     rra_with_gput=yes
-     GPUT_LDFLAGS="-L$withval"])
  AC_ARG_WITH([gput-include],
     [AC_HELP_STRING([--with-gput-include=DIR],
         [Location of CMU GPUT headers])],
@@ -44,6 +38,12 @@ AC_DEFUN([RRA_LIB_GPUT],
         [AC_MSG_ERROR([no argument given for --with-gput-include])])
      rra_with_gput=yes
      GPUT_CPPFLAGS="-I$withval"])
+ AC_ARG_WITH([gput-lib],
+    [AC_HELP_STRING([--with-gput-lib=DIR], [Location of CMU GPUT libraries])],
+    [AS_IF([test x"$withval" = xyes || test x"$withval" = xno],
+        [AC_MSG_ERROR([no argument given for --with-gput-lib])])
+     rra_with_gput=yes
+     GPUT_LDFLAGS="-L$withval"])
 
  rra_save_CPPFLAGS="$CPPFLAGS"
  rra_save_LDFLAGS="$LDFLAGS"
