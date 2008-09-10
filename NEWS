@@ -36,6 +36,13 @@ remctl 2.13 (unreleased)
     portable/winsock.c in the distribution.  This version should now build
     and run on Windows.
 
+    With --with-gssapi, attempt to determine if the library directory is
+    lib32 or lib64 instead of lib and set LDFLAGS accordingly.  Based on
+    an idea from the CMU Autoconf macros.
+
+    Add --with-gssapi-include and --with-gssapi-lib options to set the
+    include and library paths separately if needed.
+
     Restore GSS-API portability checks for old versions of MIT Kerberos
     accidentally dropped in the previous release.
 

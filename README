@@ -130,10 +130,26 @@ INSTALLATION (UNIX)
 
       ./configure --with-gssapi=/usr/pubsw
 
+  You can also individually set the paths to the include directory and the
+  library directory with --with-gssapi-include and --with-gssapi-lib.  You
+  may need to do this if Autoconf can't figure out whether to use lib,
+  lib32, or lib64 on your platform.  Note that these settings aren't used
+  if a krb5-config script is found.
+
   To specify a particular krb5-config script to use, either set the
   KRB5_CONFIG environment variable or pass it to configure like:
 
       ./configure KRB5_CONFIG=/path/to/krb5-config
+
+  To not use krb5-config and force library probing even if there is a
+  krb5-config script on your path, set KRB5_CONFIG to a nonexistent path:
+
+      ./configure KRB5_CONFIG=/nonexistent
+
+  remctl will automatically build with GPUT support if the GPUT header and
+  library are found.  You can pass --with-gput to configure to specify the
+  root directory where GPUT is installed, or set the include and library
+  directories separately with --with-gput-include and --with-gput-lib.
 
   You can build remctl in a different directory from the source if you
   wish.  To do this, create a new empty directory, cd to that directory,
