@@ -107,7 +107,7 @@ dnl GSS-API headers even if the code itself doesn't call GSS-API functions.
 CPPFLAGS="$CPPFLAGS $GSSAPI_CPPFLAGS"
 
 dnl Check for the CMU GPUT library.
-CMU_GPUT
+RRA_LIB_GPUT
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.
