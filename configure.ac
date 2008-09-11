@@ -123,6 +123,9 @@ AC_ARG_ENABLE([php],
     [AC_HELP_STRING([--enable-php], [Build remctl PECL extension for PHP])],
     [AS_IF([test x"$enableval" = xyes],
         [build_php=yes
+         AC_MSG_NOTICE([running phpize in php directory])
+         AS_IF([(set -e; cd php; phpize --clean; phpize)], ,
+             [AC_MSG_FAILURE([phpize failed])])
          AC_CONFIG_SUBDIRS([php])])])
 AM_CONDITIONAL([BUILD_PHP], [test x"$build_php" = xyes])
 

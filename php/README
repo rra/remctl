@@ -19,13 +19,10 @@ REQUIREMENTS
   itself obtain Kerberos tickets and requires that a Kerberos ticket cache
   already be set up before making remctl calls.
 
-  The PECL module build infrastructure provided is the one created by PHP
-  5.2's phpize.  Shipping the build infrastructure with the package is an
-  experiment that may not work.  If you have build problems, try running
-  the phpize that comes with your version of PHP before running the main
-  remctl configure script.  If that fixes the problem, please let me know.
-  A future version of remctl may run phpize during configure instead if
-  that causes fewer problems.
+  The PECL module build infrastructure is created on the fly by the
+  configure script for the main remctl package using phpize.  This means
+  that you must have phpize and all of its dependencies installed to build
+  the PECL module.
 
 SIMPLIFIED INTERFACE
 

@@ -38,9 +38,15 @@ DESCRIPTION
   programs on the host system.  remctl is a Kerberos v5 equivalent that
   does only the portions we actually needed.
 
-  Both C and Java clients are provided, as well as Perl bindings for the C
-  client library.  For more information about the Java client, see
-  java/README.  The design documentation is available in docs/design.html.
+  Both C and Java clients and servers are provided, as well as Perl, PHP,
+  and Python bindings for the C client library.  For more information
+  about the Java client, see java/README.  For more information about the
+  PHP bindings, see php/README.  For more information about the Python
+  bindings, see python/README.
+
+  Complete protocol documentation is available in docs/protocol.html.
+  Also present, as docs/design.html, is the original design document (now
+  somewhat out of date).
 
 REQUIREMENTS
 
@@ -66,15 +72,25 @@ REQUIREMENTS
   the rest of the tests if it's not installed.  The Perl bindings have not
   been tested in Windows.
 
+  To build the PHP bindings for the C client library, you will need PHP
+  5.x (only tested with 5.2) and phpize, plus any other programs that
+  phpize requires.
+
+  To build the Python bindings for the C client library, you will need
+  Python 2.3 or later (primarily tested with Python 2.5).  The Python
+  bindings have not been tested on Windows.
+
   A Java client and Java server are available in the java subdirectory,
   but they are not integrated into the normal build or built by default.
   There is a basic Makefile in that directory that may require some
   tweaking.  It currently requires the Sun Java JDK (1.4.2, 5, or 6).
 
-  To run the test suite, it will need to be able to build to 127.0.0.1 on
-  port 11119 and 14444 to run test network server programs.  In order to
-  fully test remctl, you will also need to create a keytab for a valid
-  Kerberos principal in your local realm.
+  To run the test suite, you will need Test::Pod as described above.  The
+  test suite will also need to be able to build to 127.0.0.1 on port 11119
+  and 14444 to run test network server programs.  In order to fully test
+  remctl, you will also need to create a keytab for a valid Kerberos
+  principal in your local realm; see tests/data/README for more
+  information.
 
   If you change the Automake files and need to regenerate Makefile.in, you
   will need Automake 1.10 or later.  If you change configure.ac or any of
@@ -105,11 +121,7 @@ INSTALLATION (UNIX)
   To also build the remctl PECL extension for PHP, pass the --enable-php
   option to configure.  The PHP PECL module build is handled by the normal
   PHP extension build system and therefore will be installed into your
-  local PHP module directory.  I believe the build machinery that comes
-  with the package should work for a variety of different PHP versions,
-  but you may need to run phpize in the php/ directory before running
-  configure.  Please let me know, including your version of PHP and your
-  architecture, if this is the case.
+  local PHP module directory.
 
   To also build the Python bindings for the libremctl client library, pass
   the --enable-python option to configure.  The Python module build is
