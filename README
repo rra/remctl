@@ -121,7 +121,10 @@ INSTALLATION (UNIX)
   To also build the remctl PECL extension for PHP, pass the --enable-php
   option to configure.  The PHP PECL module build is handled by the normal
   PHP extension build system and therefore will be installed into your
-  local PHP module directory.
+  local PHP module directory.  The configure script will look for phpize
+  on your PATH by default; if it's in some other directory, set the PHPIZE
+  environment variable to the full path or set it on the configure command
+  line.
 
   To also build the Python bindings for the libremctl client library, pass
   the --enable-python option to configure.  The Python module build is
