@@ -171,8 +171,8 @@ clean-local:
 	fi
 	rm -rf python/build python/dist python/*.pyc
 
-# Also clean the PHP and Python directories on make maintainer-clean.
-maintainer-clean-local:
+# Also clean the PHP directory on make distclean.
+distclean-local:
 	cd php && phpize --clean
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
