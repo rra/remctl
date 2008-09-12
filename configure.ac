@@ -126,9 +126,9 @@ AC_ARG_ENABLE([php],
         [build_php=yes
          AC_ARG_VAR([PHPIZE], [Path to phpize])
          AC_PATH_PROG([PHPIZE], [phpize])
-         AS_IF([test x"$ac_srcdir" != x. && test x"$ac_srcdir" != x],
+         AS_IF([test x"$srcdir" != x. && test x"$srcdir" != x],
              [mkdir php 2>/dev/null
-              cp "$ac_srcdir/php/config.m4" php/config.m4])
+              cp "$srcdir/php/config.m4" php/config.m4])
          AC_MSG_NOTICE([running phpize in php directory])
          AS_IF([(set -e; cd php; "$PHPIZE" --clean; "$PHPIZE")], ,
              [AC_MSG_FAILURE([phpize failed])])
