@@ -167,8 +167,16 @@ clean-local:
 	fi
 	rm -rf python/build python/dist python/*.pyc
 
-# Also clean the PHP directory on make distclean if PHP is enabled.
+# Remove the test files we copied over if srcdir != builddir.  Also clean the
+# PHP directory on make distclean if PHP is enabled.
 distclean-local:
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
+	    for f in $(TEST_FILES) ; do \
+	        rm -f "$(builddir)/$$f" ; \
+	    done ; \
+	    rmdir tests/data/acls 2>/dev/null || true ; \
+	    rmdir tests/data/acls2 2>/dev/null || true ; \
+	fi
 	set -e; if [ -n "$(PHPIZE)" ] ; then \
 	    cd php && $(PHPIZE) --clean ; \
 	fi
