@@ -171,6 +171,7 @@ clean-local:
 # Also clean the PHP directory on make distclean.
 distclean-local:
 	cd php && $(PHPIZE) --clean
+	rm -f php/config.h.in~
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
 # without optimization turned on, and add -DDEBUG=1 so we'll also compile all
