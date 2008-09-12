@@ -58,6 +58,11 @@ Client:
  * Support setting a timeout and failing the remctl call if the server
    takes too long to connect or send back data.
 
+ * Add an option that prompts the user, with echo disabled, for a piece of
+   secure data, prompting twice to ensure both times match, and then sends
+   that as the last argument to the command.  This would be useful for
+   remctl interfaces to change passwords.
+
 Build system:
 
  * Add logic to detect Solaris vs. GNU ld on Solaris and pass the
