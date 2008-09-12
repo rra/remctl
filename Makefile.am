@@ -354,8 +354,7 @@ BINDINGS_INSTALL =
 # which case we need to copy various files from the source directory and make
 # sure they're up to date since Perl can't handle VPATH builds.
 
-perl/Remctl.o: $(srcdir)/perl/Remctl.pm $(srcdir)/perl/Remctl.xs \
-		$(srcdir)/perl/typemap
+perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs $(srcdir)/perl/typemap
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
 	    mkdir perl/t 2>/dev/null || true ; \
 	    for f in $(PERL_FILES) ; do \
@@ -403,7 +402,7 @@ endif
 # in which case we need to copy various files from the source directory and
 # make sure they're up to date.
 
-build-local-python: $(srcdir)/python/_remctlmodule.c $(srcdir)/python/remctl.py
+build-local-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
 	    for f in $(PYTHON_FILES) ; do \
 		cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
