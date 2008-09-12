@@ -169,6 +169,9 @@ clean-local:
 
 # Remove the test files we copied over if srcdir != builddir.  Also clean the
 # Perl, PHP, and Python directories on make distclean if needed.
+#
+# phpize --clean is stupid and requires that config.m4 exist, but it was
+# already deleted by the regular distclean target.  Hack around that.
 distclean-local:
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
 	    for f in $(TEST_FILES) ; do \
@@ -188,9 +191,9 @@ distclean-local:
 	    done \
 	else \
 	    if [ -n "$(PHPIZE)" ] ; then \
-		cd php && $(PHPIZE) --clean ; \
+		cd php && touch config.m4 && $(PHPIZE) --clean ; \
 	    fi ; \
-	    rm -f php/config.h.in~ ; \
+	    rm -f php/config.h.in~ php/config.m4 ; \
 	fi
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
