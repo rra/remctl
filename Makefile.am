@@ -40,13 +40,12 @@ EXTRA_DIST = LICENSE Makefile.w32 autogen client/libremctl.rc client/mapfile \
 	java/org/eyrie/eagle/remctl/Remctl.java \
 	java/org/eyrie/eagle/remctl/RemctlClient.java \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java \
-	java/t7.java php/Makefile.global php/README php/config.m4 \
-	php/php_remctl.c php/php_remctl.h php/test-wrapper \
-	php/tests/001.phpt php/tests/002.phpt php/tests/003.phpt \
-	portable/getaddrinfo.h portable/getnameinfo.h portable/getopt.h \
-	portable/gssapi.h portable/macros.h portable/socket.h \
-	portable/stdbool.h portable/system.h portable/uio.h \
-	portable/winsock.c remctl.spec \
+	java/t7.java php/README php/config.m4 php/php_remctl.c \
+	php/php_remctl.h php/test-wrapper php/tests/001.phpt \
+	php/tests/002.phpt php/tests/003.phpt portable/getaddrinfo.h \
+	portable/getnameinfo.h portable/getopt.h portable/gssapi.h \
+	portable/macros.h portable/socket.h portable/stdbool.h \
+	portable/system.h portable/uio.h portable/winsock.c remctl.spec \
 	$(PERL_FILES) $(PYTHON_FILES) $(TEST_FILES)
 
 lib_LTLIBRARIES = client/libremctl.la
