@@ -117,7 +117,8 @@ AC_ARG_ENABLE([perl],
     [AS_IF([test x"$enableval" = xyes], [build_perl=yes])])
 AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
 
-dnl Whether to build the PHP bindings.
+dnl Whether to build the PHP bindings.  The dance required to be able to run
+dnl phpize before AC_OUTPUT sucks like a sucking thing.
 build_php=
 AC_ARG_ENABLE([php],
     [AC_HELP_STRING([--enable-php], [Build remctl PECL extension for PHP])],
@@ -125,6 +126,8 @@ AC_ARG_ENABLE([php],
         [build_php=yes
          AC_ARG_VAR([PHPIZE], [Path to phpize])
          AC_PATH_PROG([PHPIZE], [phpize])
+         AS_IF([test x"$ac_srcdir" != x. && test x"$ac_srcdir" != x],
+             [cp "$ac_srcdir/php/config.m4" php/config.m4])
          AC_MSG_NOTICE([running phpize in php directory])
          AS_IF([(set -e; cd php; "$PHPIZE" --clean; "$PHPIZE")], ,
              [AC_MSG_FAILURE([phpize failed])])

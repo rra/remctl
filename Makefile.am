@@ -11,6 +11,9 @@
 # properly for builddir != srcdir builds.
 PERL_FILES = perl/Remctl.xs perl/typemap perl/t/api.t perl/t/pod.t \
 	perl/t/stanford-netdb.t
+PHP_FILES = php/README php/php_remctl.c php/php_remctl.h \
+	php/test-wrapper php/tests/001.phpt php/tests/002.phpt \
+	php/tests/003.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c \
 	python/test_remctl.py
 TEST_FILES = tests/TESTS tests/client/pod-t.in tests/client/remctl-t \
@@ -40,13 +43,11 @@ EXTRA_DIST = LICENSE Makefile.w32 autogen client/libremctl.rc client/mapfile \
 	java/org/eyrie/eagle/remctl/Remctl.java \
 	java/org/eyrie/eagle/remctl/RemctlClient.java \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java \
-	java/t7.java php/README php/config.m4 php/php_remctl.c \
-	php/php_remctl.h php/test-wrapper php/tests/001.phpt \
-	php/tests/002.phpt php/tests/003.phpt portable/getaddrinfo.h \
-	portable/getnameinfo.h portable/getopt.h portable/gssapi.h \
-	portable/macros.h portable/socket.h portable/stdbool.h \
-	portable/system.h portable/uio.h portable/winsock.c remctl.spec \
-	$(PERL_FILES) $(PYTHON_FILES) $(TEST_FILES)
+	java/t7.java portable/getaddrinfo.h portable/getnameinfo.h \
+	portable/getopt.h portable/gssapi.h portable/macros.h \
+	portable/socket.h portable/stdbool.h portable/system.h \
+	portable/uio.h portable/winsock.c remctl.spec \
+	$(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES) $(TEST_FILES)
 
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
@@ -168,7 +169,7 @@ clean-local:
 	rm -rf python/build python/dist python/*.pyc
 
 # Remove the test files we copied over if srcdir != builddir.  Also clean the
-# PHP directory on make distclean if PHP is enabled.
+# Perl, PHP, and Python directories on make distclean if needed.
 distclean-local:
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
 	    for f in $(TEST_FILES) ; do \
@@ -177,10 +178,21 @@ distclean-local:
 	    rmdir tests/data/acls 2>/dev/null || true ; \
 	    rmdir tests/data/acls2 2>/dev/null || true ; \
 	fi
-	set -e; if [ -n "$(PHPIZE)" ] ; then \
-	    cd php && $(PHPIZE) --clean ; \
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
+	    rm -rf php ; \
+	    for f in $(PERL_FILES) ; do \
+	        rm -f "$(builddir)/$$f" ; \
+	    done ; \
+	    rmdir perl/t 2>/dev/null || true ; \
+	    for f in $(PYTHON_FILES) ; do \
+		rm -f "$(builddir)/$$f" ; \
+	    done \
+	else \
+	    if [ -n "$(PHPIZE)" ] ; then \
+		cd php && $(PHPIZE) --clean ; \
+	    fi ; \
+	    rm -f php/config.h.in~ ; \
 	fi
-	rm -f php/config.h.in~
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
 # without optimization turned on, and add -DDEBUG=1 so we'll also compile all
@@ -360,10 +372,16 @@ BINDINGS += perl/Remctl.o
 BINDINGS_INSTALL += install-data-local-perl
 endif
 
-# The following section sets up the PECL extension for PHP.  Since it uses its
-# own Autoconf script, it handles builddir != srcdir builds itself.
+# The following section sets up the PECL extension for PHP.
 
 php/modules/remctl.so: $(srcdir)/php/php_remctl.c $(srcdir)/php/php_remctl.h
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
+	    mkdir php 2>/dev/null || true ; \
+	    mkdir php/tests 2>/dev/null || true ; \
+	    for f in $(PHP_FILES) ; do \
+	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
+	    done \
+	fi
 	cd php && $(MAKE) CFLAGS="$(CFLAGS) $(PHP_WARNINGS)"
 
 install-data-local-php: php/modules/remctl.so
