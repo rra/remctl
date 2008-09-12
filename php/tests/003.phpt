@@ -2,8 +2,8 @@
 Check full remctl API
 --SKIPIF--
 <?php
-    if (!extension_load("remctl")) print "skip";
-    if (!file_exists("remctl-test.pid")) print "skip";
+    if (!file_exists("remctl-test.pid"))
+        echo "skip remctld not running";
 ?>
 --FILE--
 <?php
