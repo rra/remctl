@@ -124,7 +124,9 @@ INSTALLATION (UNIX)
   local PHP module directory.  The configure script will look for phpize
   on your PATH by default; if it's in some other directory, set the PHPIZE
   environment variable to the full path or set it on the configure command
-  line.
+  line.  The configure script for the PECL extension will be run during
+  the build instead of during configure.  This is unfortunately apparently
+  unavoidable given how the PECL build system works.
 
   To also build the Python bindings for the libremctl client library, pass
   the --enable-python option to configure.  The Python module build is

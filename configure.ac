@@ -125,14 +125,7 @@ AC_ARG_ENABLE([php],
     [AS_IF([test x"$enableval" = xyes],
         [build_php=yes
          AC_ARG_VAR([PHPIZE], [Path to phpize])
-         AC_PATH_PROG([PHPIZE], [phpize])
-         AS_IF([test x"$srcdir" != x. && test x"$srcdir" != x],
-             [mkdir php 2>/dev/null
-              cp "$srcdir/php/config.m4" php/config.m4])
-         AC_MSG_NOTICE([running phpize in php directory])
-         AS_IF([(set -e; cd php; "$PHPIZE" --clean; "$PHPIZE")], ,
-             [AC_MSG_FAILURE([phpize failed])])
-         AC_CONFIG_SUBDIRS([php])])])
+         AC_PATH_PROG([PHPIZE], [phpize])])])
 AM_CONDITIONAL([BUILD_PHP], [test x"$build_php" = xyes])
 
 dnl Whether to build the Python bindings.
@@ -147,7 +140,7 @@ AC_CONFIG_FILES([tests/client/pod-t], [chmod +x tests/client/pod-t])
 AS_IF([test x"$build_perl" = xyes],
     [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])])
 AS_IF([test x"$build_php" = xyes],
-    [AC_CONFIG_FILES([php/php_remctl.h])])
+    [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])
 AS_IF([test x"$build_python" = xyes],
     [AC_CONFIG_FILES([python/remctl.py python/setup.py])])
 AC_CONFIG_HEADER([config.h])

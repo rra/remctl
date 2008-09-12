@@ -30,6 +30,7 @@ php/acinclude.m4
 php/autom4te.cache/
 php/build/
 php/config.guess
+php/config.m4
 php/config.nice
 php/config.sub
 php/configure.in
@@ -38,6 +39,7 @@ php/ltmain.sh
 php/missing
 php/mkinstalldirs
 php/modules/
+php/php_remctl.h
 php/run-tests.php
 python/MANIFEST
 python/build
@@ -97,6 +99,7 @@ tests/util/xwrite-t
 *.jar
 *.la
 *.lo
+*.loT
 *.o
 *.pyc
 *.tgz

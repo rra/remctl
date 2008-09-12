@@ -42,10 +42,10 @@ EXTRA_DIST = LICENSE Makefile.w32 autogen client/libremctl.rc client/mapfile \
 	java/org/eyrie/eagle/remctl/Remctl.java \
 	java/org/eyrie/eagle/remctl/RemctlClient.java \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java \
-	java/t7.java php/config.m4 portable/getaddrinfo.h \
-	portable/getnameinfo.h portable/getopt.h portable/gssapi.h \
-	portable/macros.h portable/socket.h portable/stdbool.h \
-	portable/system.h portable/uio.h portable/winsock.c remctl.spec \
+	java/t7.java portable/getaddrinfo.h portable/getnameinfo.h \
+	portable/getopt.h portable/gssapi.h portable/macros.h \
+	portable/socket.h portable/stdbool.h portable/system.h \
+	portable/uio.h portable/winsock.c remctl.spec \
 	$(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES) $(TEST_FILES)
 
 lib_LTLIBRARIES = client/libremctl.la
@@ -373,14 +373,17 @@ endif
 
 # The following section sets up the PECL extension for PHP.
 
-php/modules/remctl.so: $(srcdir)/php/php_remctl.c $(srcdir)/php/php_remctl.h
+php/modules/remctl.so: php/config.m4 php/php_remctl.h \
+		$(srcdir)/php/php_remctl.c
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
-	    mkdir php 2>/dev/null || true ; \
 	    mkdir php/tests 2>/dev/null || true ; \
 	    for f in $(PHP_FILES) ; do \
 	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
 	    done \
 	fi
+	cd php && $(PHPIZE) --clean && $(PHPIZE)
+	cd php && ./configure CPPFLAGS="$(CPPFLAGS)" \
+	    CFLAGS="$(CFLAGS) $(PHP_WARNINGS)" LDFLAGS="$(LDFLAGS)"
 	cd php && $(MAKE) CFLAGS="$(CFLAGS) $(PHP_WARNINGS)"
 
 install-data-local-php: php/modules/remctl.so
