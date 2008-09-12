@@ -167,9 +167,11 @@ clean-local:
 	fi
 	rm -rf python/build python/dist python/*.pyc
 
-# Also clean the PHP directory on make distclean.
+# Also clean the PHP directory on make distclean if PHP is enabled.
 distclean-local:
-	cd php && $(PHPIZE) --clean
+	set -e; if [ -n "$(PHPIZE)" ] ; then \
+	    cd php && $(PHPIZE) --clean ; \
+	fi
 	rm -f php/config.h.in~
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
