@@ -96,7 +96,7 @@ env LD_LIBRARY_PATH="$top"/client/.libs make test
 status=$?
 
 # Kill the remctl server.
-rm remctl-test.cache remctl-test.princ
+rm -f remctl-test.cache remctl-test.princ
 if [ "$status" = 0 ] ; then
     rm -f remctl-test.out
 fi
