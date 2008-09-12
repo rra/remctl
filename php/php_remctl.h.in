@@ -12,7 +12,7 @@
 #define PHP_REMCTL_H 1
 
 /* This should be the same version as the overall remctl package. */
-#define PHP_REMCTL_VERSION  "2.13"
+#define PHP_REMCTL_VERSION  "@PACKAGE_VERSION@"
 #define PHP_REMCTL_EXTNAME  "remctl"
 #define PHP_REMCTL_RES_NAME "remctl_resource"
 

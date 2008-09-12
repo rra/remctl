@@ -11,9 +11,8 @@
 # properly for builddir != srcdir builds.
 PERL_FILES = perl/Remctl.xs perl/typemap perl/t/api.t perl/t/pod.t \
 	perl/t/stanford-netdb.t
-PHP_FILES = php/README php/php_remctl.c php/php_remctl.h \
-	php/test-wrapper php/tests/001.phpt php/tests/002.phpt \
-	php/tests/003.phpt
+PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
+	php/tests/002.phpt php/tests/003.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c \
 	python/test_remctl.py
 TEST_FILES = tests/TESTS tests/client/pod-t.in tests/client/remctl-t \

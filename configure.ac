@@ -127,7 +127,8 @@ AC_ARG_ENABLE([php],
          AC_ARG_VAR([PHPIZE], [Path to phpize])
          AC_PATH_PROG([PHPIZE], [phpize])
          AS_IF([test x"$ac_srcdir" != x. && test x"$ac_srcdir" != x],
-             [cp "$ac_srcdir/php/config.m4" php/config.m4])
+             [mkdir php 2>/dev/null
+              cp "$ac_srcdir/php/config.m4" php/config.m4])
          AC_MSG_NOTICE([running phpize in php directory])
          AS_IF([(set -e; cd php; "$PHPIZE" --clean; "$PHPIZE")], ,
              [AC_MSG_FAILURE([phpize failed])])
@@ -145,6 +146,8 @@ AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
 AC_CONFIG_FILES([tests/client/pod-t], [chmod +x tests/client/pod-t])
 AS_IF([test x"$build_perl" = xyes],
     [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])])
+AS_IF([test x"$build_php" = xyes],
+    [AC_CONFIG_FILES([php/php_remctl.h])])
 AS_IF([test x"$build_python" = xyes],
     [AC_CONFIG_FILES([python/remctl.py python/setup.py])])
 AC_CONFIG_HEADER([config.h])
