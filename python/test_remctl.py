@@ -8,6 +8,21 @@
 import remctl
 import errno, os, re, signal, time, unittest
 
+def needs_kerberos(func):
+    """unittest test method decorator to skip tests requiring Kerberos
+
+    Used to annotate test methods that require a Kerberos configuration.
+    Ignores failures in the annotated test method.
+    """
+    def wrapper(*args, **kw):
+        if not os.path.isfile('data/test.principal'):
+            return True
+        else:
+            func(*args, **kw)
+    wrapper.__name__ = func.__name__
+    wrapper.__doc__ = func.__doc__
+    return wrapper
+
 class TestRemctl(unittest.TestCase):
     def change_directory(self):
         if os.path.isfile('tests/data/conf-simple'):
@@ -24,6 +39,7 @@ class TestRemctl(unittest.TestCase):
         file.close()
         return principal
 
+    @needs_kerberos
     def start_remctld(self):
         try:
             os.remove('data/pid')
@@ -53,6 +69,7 @@ class TestRemctl(unittest.TestCase):
             if error != errno.ENOENT:
                 raise
 
+    @needs_kerberos
     def run_kinit(self):
         os.environ['KRB5CCNAME'] = 'data/test.cache'
         self.principal = self.get_principal()
@@ -72,6 +89,7 @@ class TestRemctl(unittest.TestCase):
         self.start_remctld()
         assert(self.run_kinit())
 
+    @needs_kerberos
     def tearDown(self):
         self.stop_remctld()
         os.remove('data/test.output')
@@ -82,6 +100,7 @@ class TestRemctl(unittest.TestCase):
                 raise
 
 class TestRemctlSimple(TestRemctl):
+    @needs_kerberos
     def test_simple_success(self):
         command = ('test', 'test')
         result = remctl.remctl('localhost', 14373, self.principal, command)
@@ -89,6 +108,7 @@ class TestRemctlSimple(TestRemctl):
         self.assertEqual(result.stderr, None)
         self.assertEqual(result.status, 0)
 
+    @needs_kerberos
     def test_simple_status(self):
         command = [ 'test', 'status', '2' ]
         result = remctl.remctl(host = 'localhost', command = command,
@@ -97,6 +117,7 @@ class TestRemctlSimple(TestRemctl):
         self.assertEqual(result.stderr, None)
         self.assertEqual(result.status, 2)
 
+    @needs_kerberos
     def test_simple_failure(self):
         command = ('test', 'bad-command')
         try:
@@ -104,6 +125,7 @@ class TestRemctlSimple(TestRemctl):
         except remctl.RemctlProtocolError, error:
             self.assertEqual(str(error), 'Unknown command')
 
+    @needs_kerberos
     def test_simple_errors(self):
         try:
             remctl.remctl()
@@ -137,6 +159,7 @@ class TestRemctlSimple(TestRemctl):
                              'command must be a sequence or iterator')
 
 class TestRemctlFull(TestRemctl):
+    @needs_kerberos
     def test_full_success(self):
         r = remctl.Remctl()
         r.open('localhost', 14373, self.principal)
@@ -152,6 +175,7 @@ class TestRemctlFull(TestRemctl):
         self.assertEqual(type, "done")
         r.close()
 
+    @needs_kerberos
     def test_full_failure(self):
         r = remctl.Remctl('localhost', 14373, self.principal)
         r.command(['test', 'bad-command'])
@@ -160,6 +184,7 @@ class TestRemctlFull(TestRemctl):
         self.assertEqual(data, 'Unknown command')
         self.assertEqual(error, 5)
 
+    @needs_kerberos
     def test_full_errors(self):
         r = remctl.Remctl()
         try:
