@@ -18,7 +18,7 @@ def needs_kerberos(func):
         if not os.path.isfile('data/test.principal'):
             return True
         else:
-            func(*args, **kw)
+            return func(*args, **kw)
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__
     return wrapper
