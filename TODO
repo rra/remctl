@@ -28,17 +28,15 @@ Server:
 
  * Support LDAP-based ACLs in addition to file system ACLs.
 
- * Add support for external ACL checking programs.  This can be added to
-   the existing ACL file syntax without too much trouble, perhaps with a
-   program keyword that works similarly to the include keyword.  If the
-   program exits with a zero status, access is granted.  If it exits 1,
-   access is not granted but checking continues.  If it exits with any
-   other exit status, access is not granted and checking aborts.
+ * Add support for external ACL checking programs.  If the program exits
+   with a zero status, access is granted.  If it exits 1, access is not
+   granted but checking continues.  If it exits with any other exit
+   status, access is not granted and checking aborts.
 
    Ideally, for writing generic ACL checking programs, the program should
    get the type and service of the remctl command as well as any
-   arguments.  However, I also want to support passing other arguments
-   into the program as specified in the ACL file.
+   arguments.  However, it would also be good to support passing other
+   arguments into the program as specified in the ACL file.
 
  * Possibly support binding to both the new and the old port in the
    standalone server for backward compatibility (only if requested by
