@@ -416,7 +416,7 @@ ZEND_FUNCTION(remctl_error)
  * Close the connection.  This isn't strictly necessary since the destructor
  * will close the connection for us, but it's part of the interface.
  */
-ZEND_FUNCTION( remctl_close )
+ZEND_FUNCTION(remctl_close)
 {
     struct remctl *r;
     zval *zrem;
