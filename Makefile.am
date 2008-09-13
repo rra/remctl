@@ -144,7 +144,7 @@ install-data-hook:
 	rm -f $(DESTDIR)$(man3dir)/remctl_commandv.3
 	$(LN_S) remctl_command.3 $(DESTDIR)$(man3dir)/remctl_commandv.3
 
-CLEANFILES = docs/remctld.8
+CLEANFILES = docs/remctld.8 stamp-python
 DISTCLEANFILES = perl/Makefile python/MANIFEST tests/client/pod-t
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
 	build-aux/config.guess build-aux/config.sub build-aux/depcomp \
@@ -402,7 +402,7 @@ endif
 # in which case we need to copy various files from the source directory and
 # make sure they're up to date.
 
-build-local-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
+stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
 	    for f in $(PYTHON_FILES) ; do \
 		cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
@@ -410,8 +410,9 @@ build-local-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
 	fi
 	cd python && CFLAGS="$(CFLAGS) $(PYTHON_WARNINGS)" \
 	    python setup.py build
+	touch stamp-python
 
-install-data-local-python:
+install-data-local-python: stamp-python
 	if [ -n "$(DESTDIR)" ] ; then \
 	    cd python && python setup.py install --root $(DESTDIR) ; \
 	else \
@@ -420,7 +421,7 @@ install-data-local-python:
 
 # Build and install the Python bindings if desired.
 if BUILD_PYTHON
-BINDINGS += build-local-python
+BINDINGS += stamp-python
 BINDINGS_INSTALL += install-data-local-python
 endif
 
