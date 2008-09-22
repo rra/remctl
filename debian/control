@@ -85,7 +85,7 @@ Description: Perl client for Kerberos-authenticated command execution
 
 Package: php5-remctl
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${php:Depends}
 Description: PECL module for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
