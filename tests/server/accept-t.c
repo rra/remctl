@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Test suite for the server connection negotiation code.
  *
  * Written by Russ Allbery <rra@stanford.edu>

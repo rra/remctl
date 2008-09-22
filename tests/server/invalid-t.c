@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Test suite for malformed commands.
  *
  * Written by Russ Allbery <rra@stanford.edu>

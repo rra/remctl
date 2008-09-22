@@ -1,5 +1,4 @@
 dnl gssapi.m4 -- Find the compiler and linker flags for GSS-API.
-dnl $Id$
 dnl
 dnl Finds the compiler and linker flags for linking with GSS-API libraries
 dnl and sets the substitution variables GSSAPI_CPPFLAGS, GSSAPI_LDFLAGS, and
@@ -13,6 +12,8 @@ dnl RRA_LIB_GSSAPI_SET to set CPPFLAGS, LDFLAGS, and LIBS to include the
 dnl GSS-API libraries; RRA_LIB_GSSAPI_SWITCH to do the same but save the
 dnl current values first; and RRA_LIB_GSSAPI_RESTORE to restore those settings
 dnl to before the last RRA_LIB_GSSAPI_SWITCH.
+dnl
+dnl Depends on RRA_ENABLE_REDUCED_DEPENDS and RRA_SET_LDFLAGS.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
 dnl Copyright 2005, 2006, 2007, 2008
@@ -42,12 +43,18 @@ AC_DEFUN([RRA_LIB_GSSAPI_RESTORE],
  LDFLAGS="$rra_gssapi_save_LDFLAGS"
  LIBS="$rra_gssapi_save_LIBS"])
 
-dnl Set GSSAPI_CPPFLAGS and GSSAPI_LDFLAGS based on rra_gssapi_root.
+dnl Set GSSAPI_CPPFLAGS and GSSAPI_LDFLAGS based on rra_gssapi_root,
+dnl rra_gssapi_libdir, and rra_gssapi_includedir.
 AC_DEFUN([_RRA_LIB_GSSAPI_PATHS],
-[AS_IF([test x"$rra_gssapi_root" != x],
-    [AS_IF([test x"$rra_gssapi_root" != x/usr],
-        [GSSAPI_CPPFLAGS="-I${rra_gssapi_root}/include"])
-     GSSAPI_LDFLAGS="-L${rra_gssapi_root}/lib"])])
+[AS_IF([test x"$rra_gssapi_libdir" != x],
+    [GSSAPI_LDFLAGS="-I$rra_gssapi_libdir"],
+    [AS_IF([test x"$rra_gssapi_root" != x],
+        [RRA_SET_LDFLAGS([GSSAPI_LDFLAGS], [$rra_gssapi_root])])])
+ AS_IF([test x"$rra_gssapi_includedir" != x],
+    [GSSAPI_CPPFLAGS="-I$rra_gssapi_includedir"],
+    [AS_IF([test x"$rra_gssapi_root" != x],
+        [AS_IF([test x"$rra_gssapi_root" != x/usr],
+            [GSSAPI_CPPFLAGS="-I${rra_gssapi_root}/include"])])])])
 
 dnl Does the appropriate library checks for reduced-dependency GSS-API
 dnl linkage.
@@ -97,21 +104,43 @@ AC_DEFUN([_RRA_LIB_GSSAPI_MANUAL],
     [-lkrb5 -lasn1 -lroken -lcrypto -lcom_err $rra_gssapi_extra])
  RRA_LIB_GSSAPI_RESTORE])
 
+dnl Sanity-check the results of krb5-config and be sure we can really link a
+dnl GSS-API program.
+AC_DEFUN([_RRA_LIB_GSSAPI_CHECK],
+[RRA_LIB_GSSAPI_SWITCH
+ AC_CHECK_FUNC([gss_import_name], ,
+    [AC_MSG_FAILURE([krb5-config results fail for GSS-API])])
+ RRA_LIB_GSSAPI_RESTORE])
+
 dnl The main macro.
 AC_DEFUN([RRA_LIB_GSSAPI],
 [AC_REQUIRE([RRA_ENABLE_REDUCED_DEPENDS])
  rra_gssapi_root=
+ rra_gssapi_libdir=
+ rra_gssapi_includedir=
  GSSAPI_CPPFLAGS=
  GSSAPI_LDFLAGS=
  GSSAPI_LIBS=
  AC_SUBST([GSSAPI_CPPFLAGS])
  AC_SUBST([GSSAPI_LDFLAGS])
  AC_SUBST([GSSAPI_LIBS])
+
  AC_ARG_WITH([gssapi],
     [AC_HELP_STRING([--with-gssapi=DIR],
         [Location of GSS-API headers and libraries])],
     [AS_IF([test x"$withval" != xyes && test x"$withval" != xno],
         [rra_gssapi_root="$withval"])])
+ AC_ARG_WITH([gssapi-include],
+    [AC_HELP_STRING([--with-gssapi-include=DIR],
+        [Location of GSS-API headers])],
+    [AS_IF([test x"$withval" != xyes && test x"$withval" != xno],
+        [rra_gssapi_includedir="$withval"])])
+ AC_ARG_WITH([gssapi-lib],
+    [AC_HELP_STRING([--with-gssapi-lib=DIR],
+        [Location of GSS-API libraries])],
+    [AS_IF([test x"$withval" != xyes && test x"$withval" != xno],
+        [rra_gssapi_libdir="$withval"])])
+
  AS_IF([test x"$rra_reduced_depends" = xtrue],
     [_RRA_LIB_GSSAPI_PATHS
      _RRA_LIB_GSSAPI_REDUCED],
@@ -132,6 +161,7 @@ AC_DEFUN([RRA_LIB_GSSAPI],
               [GSSAPI_CPPFLAGS=`"$KRB5_CONFIG" --cflags`
                GSSAPI_LIBS=`"$KRB5_CONFIG" --libs`])
           GSSAPI_CPPFLAGS=`echo "$GSSAPI_CPPFLAGS" \
-              | sed 's%-I/usr/include ?%%'`],
+              | sed 's%-I/usr/include ?%%'`
+          _RRA_LIB_GSSAPI_CHECK],
          [_RRA_LIB_GSSAPI_PATHS
           _RRA_LIB_GSSAPI_MANUAL])])])

@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Logging and error handling for the remctld server.
  *
  * A set of helper routines to do error handling and other logging for
@@ -48,10 +47,10 @@ warn_token(const char *error, int status, OM_uint32 major, OM_uint32 minor)
         warn("error %s", error);
         break;
     case TOKEN_FAIL_SYSTEM:
-        syswarn("error %s: %s", error, strerror(errno));
+        syswarn("error %s", error);
         break;
     case TOKEN_FAIL_SOCKET:
-        syswarn("error %s: %s", error, socket_strerror(socket_errno));
+        warn("error %s: %s", error, socket_strerror(socket_errno));
         break;
     case TOKEN_FAIL_INVALID:
         warn("error %s: invalid token format", error);

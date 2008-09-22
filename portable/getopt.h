@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Replacement implementation of getopt.
  *
  * This is a replacement implementation for getopt based on the my_getopt

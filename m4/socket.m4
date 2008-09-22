@@ -1,5 +1,4 @@
 dnl socket.m4 -- Various checks for socket support and macros.
-dnl $Id$
 dnl
 dnl This is a collection of various Autoconf macros for checking networking
 dnl and socket properties.  The macros provided are:

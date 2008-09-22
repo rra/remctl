@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Test suite for over-large commands.
  *
  * Written by Russ Allbery <rra@stanford.edu>

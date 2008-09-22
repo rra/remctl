@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Perl bindings for the remctl client library.
  *
  * This is an XS source file, suitable for processing by xsubpp, that

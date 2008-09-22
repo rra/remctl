@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Some utility routines for writing tests.
  * 
  * Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University

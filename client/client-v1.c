@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Protocol v1, client implementation.
  *
  * This is the client implementation of the old v1 protocol, which doesn't

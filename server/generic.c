@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Server implementation of generic protocol functions.
  *
  * These are the server protocol functions that can be shared between the v1

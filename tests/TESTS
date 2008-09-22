@@ -4,6 +4,7 @@ client/open
 client/pod
 client/remctl
 portable/asprintf
+portable/daemon
 portable/getaddrinfo
 portable/getnameinfo
 portable/getopt

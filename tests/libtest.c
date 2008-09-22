@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Some utility routines for writing tests.
  *
  * Herein are a variety of utility routines for writing tests.  All routines

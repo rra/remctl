@@ -1,5 +1,4 @@
-/* $Id: setenv-t.c 7168 2005-04-10 08:52:48Z rra $
- *
+/*
  * setenv test suite.
  *
  * Copyright (c) 2004, 2005, 2006

@@ -1,5 +1,4 @@
 dnl vamacros.m4 -- Check for support for variadic macros.
-dnl $Id: vamacros.m4 6544 2003-12-26 03:23:31Z rra $
 dnl
 dnl This file defines two macros for probing for compiler support for variadic
 dnl macros.  Provided are RRA_C_C99_VAMACROS, which checks for support for the
@@ -16,6 +15,7 @@ dnl They set HAVE_C99_VAMACROS or HAVE_GNU_VAMACROS as appropriate.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
 dnl Copyright 2006, 2008 Board of Trustees, Leland Stanford Jr. University
+dnl
 dnl See LICENSE for licensing terms.
 
 AC_DEFUN([RRA_C_C99_VAMACROS],

@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Portability macros used in include files.
  *
  * Written by Russ Allbery <rra@stanford.edu>

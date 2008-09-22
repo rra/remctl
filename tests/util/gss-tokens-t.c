@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * gss-tokens test suite.
  *
  * Written by Russ Allbery <rra@stanford.edu>

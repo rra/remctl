@@ -1,4 +1,4 @@
-                           remctl release 2.12
+                           remctl release 2.13
             (remote authenticated command execution with ACLs)
 
                    Originally written by Anton Ushakov
@@ -38,9 +38,15 @@ DESCRIPTION
   programs on the host system.  remctl is a Kerberos v5 equivalent that
   does only the portions we actually needed.
 
-  Both C and Java clients are provided, as well as Perl bindings for the C
-  client library.  For more information about the Java client, see
-  java/README.  The design documentation is available in docs/design.html.
+  Both C and Java clients and servers are provided, as well as Perl, PHP,
+  and Python bindings for the C client library.  For more information
+  about the Java client, see java/README.  For more information about the
+  PHP bindings, see php/README.  For more information about the Python
+  bindings, see python/README.
+
+  Complete protocol documentation is available in docs/protocol.html.
+  Also present, as docs/design.html, is the original design document (now
+  somewhat out of date).
 
 REQUIREMENTS
 
@@ -66,15 +72,25 @@ REQUIREMENTS
   the rest of the tests if it's not installed.  The Perl bindings have not
   been tested in Windows.
 
+  To build the PHP bindings for the C client library, you will need PHP
+  5.x (only tested with 5.2) and phpize, plus any other programs that
+  phpize requires.
+
+  To build the Python bindings for the C client library, you will need
+  Python 2.3 or later (primarily tested with Python 2.5).  The Python
+  bindings have not been tested on Windows.
+
   A Java client and Java server are available in the java subdirectory,
   but they are not integrated into the normal build or built by default.
   There is a basic Makefile in that directory that may require some
   tweaking.  It currently requires the Sun Java JDK (1.4.2, 5, or 6).
 
-  To run the test suite, it will need to be able to build to 127.0.0.1 on
-  port 11119 and 14444 to run test network server programs.  In order to
-  fully test remctl, you will also need to create a keytab for a valid
-  Kerberos principal in your local realm.
+  To run the test suite, you will need Test::Pod as described above.  The
+  test suite will also need to be able to build to 127.0.0.1 on port 11119
+  and 14444 to run test network server programs.  In order to fully test
+  remctl, you will also need to create a keytab for a valid Kerberos
+  principal in your local realm; see tests/data/README for more
+  information.
 
   If you change the Automake files and need to regenerate Makefile.in, you
   will need Automake 1.10 or later.  If you change configure.ac or any of
@@ -102,6 +118,24 @@ INSTALLATION (UNIX)
   the perl subdirectory of the build tree with appropriate options and
   rebuild the module after running make and before running make install.
 
+  To also build the remctl PECL extension for PHP, pass the --enable-php
+  option to configure.  The PHP PECL module build is handled by the normal
+  PHP extension build system and therefore will be installed into your
+  local PHP module directory.  The configure script will look for phpize
+  on your PATH by default; if it's in some other directory, set the PHPIZE
+  environment variable to the full path or set it on the configure command
+  line.  The configure script for the PECL extension will be run during
+  the build instead of during configure.  This is unfortunately apparently
+  unavoidable given how the PECL build system works.
+
+  To also build the Python bindings for the libremctl client library, pass
+  the --enable-python option to configure.  The Python module build is
+  handled by the normal Python extension build system, and therefore will
+  be installed into your local Python module directory regardless of the
+  --prefix argument to configure.  To change this, you will need to run
+  python setup.py install by hand in the python directory with whatever
+  options you want to use.
+
   Normally, configure will use krb5-config to determine the flags to use
   to compile with your Kerberos GSS-API libraries.  If krb5-config isn't
   found, it will look for the standard Kerberos libraries in locations
@@ -113,10 +147,26 @@ INSTALLATION (UNIX)
 
       ./configure --with-gssapi=/usr/pubsw
 
+  You can also individually set the paths to the include directory and the
+  library directory with --with-gssapi-include and --with-gssapi-lib.  You
+  may need to do this if Autoconf can't figure out whether to use lib,
+  lib32, or lib64 on your platform.  Note that these settings aren't used
+  if a krb5-config script is found.
+
   To specify a particular krb5-config script to use, either set the
   KRB5_CONFIG environment variable or pass it to configure like:
 
       ./configure KRB5_CONFIG=/path/to/krb5-config
+
+  To not use krb5-config and force library probing even if there is a
+  krb5-config script on your path, set KRB5_CONFIG to a nonexistent path:
+
+      ./configure KRB5_CONFIG=/nonexistent
+
+  remctl will automatically build with GPUT support if the GPUT header and
+  library are found.  You can pass --with-gput to configure to specify the
+  root directory where GPUT is installed, or set the include and library
+  directories separately with --with-gput-include and --with-gput-lib.
 
   You can build remctl in a different directory from the source if you
   wish.  To do this, create a new empty directory, cd to that directory,
@@ -190,18 +240,23 @@ TESTING
   particularly slow or loaded systems, you may see intermittant failures
   from the server/streaming test because it's timing-sensitive.
 
-PORTING
+HOMEPAGE AND SOURCE REPOSITORY
 
-  remctl should port reasonably well.  It has been tested on:
+  The remctl web page at:
 
-      Solaris 8, 9, 10
-      Linux (glibc 2.2, 2.3, 2.5, 2.6, 2.6.1, 2.7)
-      Mac OS X 10.4
-      NetBSD
-      AIX 5.2
+      http://www.eyrie.org/~eagle/software/remctl/
 
-  but should work on any Unix varient that meets the requirements noted
-  above.
+  will always have the current version of this package, the current
+  documentation, and pointers to any additional resources.
+
+  remctl is maintained using Git.  You can access the current source by
+  cloning the repository at:
+
+      git://git.eyrie.org/kerberos/remctl.git
+
+  or view the repository via the web at:
+
+      http://git.eyrie.org/?p=kerberos/remctl.git
 
 THANKS
 
@@ -214,7 +269,7 @@ THANKS
   To Romain LENGLET for the idea and code for examples/rsh-wrapper.
 
   To Thomas Kula for testing of remctl 2.0 and later versions on NetBSD
-  and Heimdal.
+  and Heimdal and for the Python bindings.
 
   To Ralf Wildenhues for help in getting make check to work with builddir
   != srcdir builds.
@@ -243,3 +298,14 @@ THANKS
   issues.
 
   To Matthew Loar for the Windows port of the remctl client.
+
+  To Andrew Mortensen for the initial remctl PECL extension for PHP and
+  for general code formatting comments and a reminder to free malloc'd
+  memory in the Python bindings.
+
+  To Jeffrey Hutzelman for adding the framework for ACL method support and
+  implementing the file, princ, deny, and gput schemes, as well as lots of
+  testing and portability bug reports.
+
+  To Timothy G. Abbott for suggesting additional restrictions on the names
+  of files read when processing an include of a directory.

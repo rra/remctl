@@ -1,5 +1,4 @@
-/* $Id: setenv.c 6693 2004-03-08 20:41:13Z rra $
- *
+/*
  * Replacement for a missing setenv.
  *
  * Provides the same functionality as the standard library routine setenv for

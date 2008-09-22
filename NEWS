@@ -1,19 +1,67 @@
                        User-Visible remctl Changes
 
-remctl 2.13 (unreleased)
+remctl 2.13 (2008-09-12)
+
+    Add support for ACL methods in the remctld server.  The supported
+    schemes in this release are file and princ, which together provide the
+    same functionality as earlier releases, plus deny to explicitly reject
+    a user who matches another ACL and support for the CMU GPUT
+    authorization system.  There is now a framework in place for adding
+    new ACL methods in the future.  This work was contributed by Jeffrey
+    Hutzelman.
+
+    When processing the include of a directory for configuration files or
+    ACL files, limit the files read to those whose names contain only
+    characters in [a-zA-Z0-9_-].  This replaces the previous exclusion of
+    files containing periods and also excludes Emacs backup and temporary
+    files.  Thanks, Timothy G. Abbott.
+
+    Add a PHP remctl PECL module from Andrew Mortensen, enabled with
+    --enable-php at configure time.  These bindings are only tested with
+    PHP 5.
+
+    Add Python bindings from Thomas L. Kula, enabled with --enable-python
+    at configure time.  These bindings are tested with Python 2.5 but
+    should work with versions back to 2.3.
+
+    Include all *.class files in the JAR file built by java/Makefile,
+    making the resulting JAR actually useful.  Thanks, Marcus Watts.
+
+    Add an ant build configuration for the Java remctl implementation.
+    It also has the capability to generate a distribution of just the Java
+    implementation using a file layout more similar to an Apache Jakarta
+    project than the layout of the java subdirectory.
 
     Several Windows fixes from Matthew Loar, plus really include
     portable/winsock.c in the distribution.  This version should now build
     and run on Windows.
 
+    With --with-gssapi, attempt to determine if the library directory is
+    lib32 or lib64 instead of lib and set LDFLAGS accordingly.  Based on
+    an idea from the CMU Autoconf macros.
+
+    Add --with-gssapi-include and --with-gssapi-lib options to set the
+    include and library paths separately if needed.
+
     Restore GSS-API portability checks for old versions of MIT Kerberos
     accidentally dropped in the previous release.
+
+    Provide a proper bool type when built with Sun Studio 12 on Solaris
+    10.  Thanks, Jeffrey Hutzelman.
+
+    Sanity-check the results of krb5-config before proceeding and error
+    out in configure if they don't work.
 
     Fix Autoconf syntax error when probing for libkrb5support.  Thanks,
     Mike Garrison.
 
     Create the docs directory in the build tree if it's missing, fixing a
-    build failure when builddir != srcdir.  Thanks, Jeff Hutzelman.
+    build failure when builddir != srcdir.  Thanks, Jeffrey Hutzelman.
+
+    In standalone mode, close the main server socket immediately in the
+    child handler processes.  Since the socket was already marked close on
+    exec, this probably only matters for consistent test suite results,
+    ensuring that the port is released immediately, but it's more correct.
 
 remctl 2.12 (2008-04-04)
 

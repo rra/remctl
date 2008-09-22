@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Shared GSS-API error handling code.
  *
  * Helper functions to interpret GSS-API errors that can be shared between the

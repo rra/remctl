@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Token handling routines.
  *
  * Low-level routines to send and receive remctl tokens.  token_send and

@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Test suite for xwrite and xwritev.
  *
  * Copyright (c) 2004, 2005, 2006

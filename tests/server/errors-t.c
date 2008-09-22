@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Test suite for errors returned by the server.
  *
  * Written by Russ Allbery <rra@stanford.edu>
