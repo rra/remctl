@@ -2337,8 +2337,9 @@ php/modules/remctl.so: php/config.m4 php/php_remctl.h \
 	    CFLAGS="$(CFLAGS) $(PHP_WARNINGS)" LDFLAGS="$(LDFLAGS)"
 	cd php && $(MAKE) CFLAGS="$(CFLAGS) $(PHP_WARNINGS)"
 
+# PHP's build system uses INSTALL_ROOT where everyone else uses DESTDIR.
 install-data-local-php: php/modules/remctl.so
-	cd php && $(MAKE) install DESTDIR=$(DESTDIR)
+	cd php && $(MAKE) install INSTALL_ROOT=$(DESTDIR)
 
 # The following section sets up the Python extension build properly.  Most of
 # the complexity is here to handle building outside of the source directory,

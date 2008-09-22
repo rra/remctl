@@ -388,8 +388,9 @@ php/modules/remctl.so: php/config.m4 php/php_remctl.h \
 	    CFLAGS="$(CFLAGS) $(PHP_WARNINGS)" LDFLAGS="$(LDFLAGS)"
 	cd php && $(MAKE) CFLAGS="$(CFLAGS) $(PHP_WARNINGS)"
 
+# PHP's build system uses INSTALL_ROOT where everyone else uses DESTDIR.
 install-data-local-php: php/modules/remctl.so
-	cd php && $(MAKE) install DESTDIR=$(DESTDIR)
+	cd php && $(MAKE) install INSTALL_ROOT=$(DESTDIR)
 
 # Build and install the PHP bindings if desired.
 if BUILD_PHP
