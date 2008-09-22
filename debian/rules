@@ -30,7 +30,7 @@ configure-stamp:
 	dh_testdir
 	CFLAGS="$(CFLAGS)" ./configure --prefix=/usr \
 	    --mandir=\$${prefix}/share/man --sysconfdir=/etc/remctl \
-	    --enable-reduced-depends --enable-perl $(SYSTEM)
+	    --enable-reduced-depends --enable-perl --enable-php $(SYSTEM)
 	touch $@
 
 # We rebuild the remctl client because Automake and Libtool combine to force
