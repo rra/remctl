@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Test suite for the client connection negotiation code.
  *
  * Written by Russ Allbery <rra@stanford.edu>

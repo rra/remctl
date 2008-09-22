@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Test suite for the server configuration parsing.
  *
  * Written by Russ Allbery <rra@stanford.edu>

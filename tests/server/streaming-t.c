@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Test suite for streaming data from the server.
  *
  * Written by Russ Allbery <rra@stanford.edu>

@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * strlcat test suite.
  *
  * Copyright (c) 2004, 2005, 2006

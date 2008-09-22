@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Running commands.
  *
  * These are the functions for running external commands under remctld and

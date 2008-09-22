@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Test suite for the high-level remctl library API.
  *
  * Written by Russ Allbery <rra@stanford.edu>

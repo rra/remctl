@@ -1,5 +1,4 @@
 # Makefile.PL for libremctl Perl bindings.  -*- perl -*-
-# $Id$
 #
 # Written by Russ Allbery
 # Copyright 2007 Board of Trustees, Leland Stanford Jr. University

@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-# $Id$
 #
 # Test default parameters against Stanford's NetDB service.
 #

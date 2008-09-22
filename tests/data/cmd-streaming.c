@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Small C program to output three lines, one to stdout, one to stderr, and
  * then one to stdout again.  Used to test remctl streaming support.
  *

@@ -93,9 +93,11 @@ mostly useful for testing and debugging.
 
 =item B<-s> I<service>
 
-This option is used to specify the Kerberos service principal for
-B<remctld> to run as, the default is the server host principal:
-"host/<machinename>.stanford.edu"
+Specifies which principal is used as the server identity for client
+authentication.  The client must also use the same identity as the server
+identity for authentication to succeed.  By default, B<remctld> accepts
+any principal with a key in the default keytab file (which can be changed
+with the B<-k> option).  This is normally the most desirable behavior.
 
 =item B<-v>
 
@@ -109,11 +111,13 @@ The configuration file defines the allowed commands and specifies access
 control information.  The configuration file format is lines of space- or
 tab-separated strings, where each line is:
 
-    type service executable [logmask=n[,...]] {aclfile}+
+    type service executable [logmask=n[,...]] {acl}+
 
 Each command consists of a type, a service, and zero or more arguments.
 Each configuration line defines an acceptable commands (or, if C<ALL> is
-used as mentioned below under I<service>, a set of commands).
+used as mentioned below under I<service>, a set of commands).  The first
+configuration line matching the received command is used, so list more
+specific entries before more general entries.
 
 Blank lines and lines beginning with C<#> are ignored.  Lines can be
 continued on the next line by ending them with a backslash (C<\>).  Be
@@ -143,17 +147,17 @@ under one type.
 
 The service within the type being requested, such as C<release> for the
 release function of the AFS volume backend.  I<service> can also be
-thought of as the sub-command.  If the keyword C<ALL> is used instead of
-a specific service, this line matches all commands with the given type and
+thought of as the sub-command.  If the keyword C<ALL> is used instead of a
+specific service, this line matches all commands with the given type and
 can be used to dispatch all services under that type to the same
-executable with the same ACLs.  The first matching entry is used; one may
-list specific services first and then an C<ALL> catch-all.
+executable with the same ACLs.  Since the first matching entry is used,
+list entries for specific services first (if any) and then the C<ALL>
+catch-all.
 
-B<remctld> accepts commands with no service argument, only a type, such
-commands will only match a line in the configuration file if an C<ALL>
-line is present for that type.  (The B<remctl> client will not send such
-commands, but they can be sent using the client library or via another
-implementation.)
+B<remctld> accepts commands with no service argument, only a type.  Such
+commands will only match lines in the configuration file with C<ALL> for
+the service.  (The B<remctl> client will not send such commands, but they
+can be sent using the client library or via another implementation.)
 
 The service is always passed as the first argument to the executable
 program that is listed for that service unless no service was given.
@@ -163,7 +167,7 @@ program that is listed for that service unless no service was given.
 The full path to the commmand executable to run for this type-service 
 combination.  (See examples below.)
 
-=item I<logmask=n[,...]>
+=item I<logmask>=I<n>[,...]
 
 Limit logging of command arguments.  Any argument listed in the logmask
 list will have its value logged as "**MASKED**".  This is to avoid logging
@@ -173,25 +177,94 @@ For example, if the command is C<admin passwd {username} {passwd}>, then
 you'd want to set logmask to C<3>, so the password argument gets logged as
 C<**MASKED**>.
 
-=item I<aclfile>
+=item I<acl>
 
-The full paths of one or more access control files, each containing one 
-Kerberos v5 principal per line, such as C<username@stanford.edu>.  Blank
-lines and lines beginning with C<#> are ignored in the ACL files.  As a
-special case, a line like:
+One or more entries of the form [I<method>:]I<data>, where I<method>
+specifies an access control method to be used, and I<data> contains
+parameters whose meaning depends on the method.  If the method is omitted,
+the data is processed as described for the C<file> method.
 
-    include file
+Each entry is checked in order, and access is granted as soon as an
+entry matches.  If no entry matches, access is denied.  The following
+methods are supported:
 
-in an ACL file includes other ACL files and is handled identically to the
-include directive in configuration files.
+=over 4
 
-The keyword ANYUSER may be used instead of the aclfiles to allow access to
-all users.  The user still needs to authenticate to B<remctld>; this only
+=item file
+
+The data is the full path of an ACL file or to a directory containing ACL
+files.  Directories are handled as described for the include directive in
+configuration files.  An ACL file contains one entry per line, in the
+[I<method>:]I<data> form described above.  Entries are handled exactly as
+if they had appeared in the configuration file except that the default
+method is C<princ> instead of C<file>.  Blank lines and lines beginning
+with C<#> are ignored in the ACL files.
+
+For backward compatibility, a line like:
+
+    include [<method>:]<data>
+
+in an ACL file behaves exactly as if the C<include> directive had been
+omitted, except that the default method is C<file>.  Thus, writing:
+
+    include <path>
+
+in an ACL file is the same as writing:
+
+    file:<path>
+
+and is handled identically to the include directive in configuration
+files.
+
+=item princ
+
+The data is the name of a Kerberos v5 principal which is to be granted
+access, such as C<username@EXAMPLE.ORG>.
+
+=item deny
+
+This method is used to selectively deny access.  The data is parsed as a
+[I<method>:]I<data> and evaluated as described above, with the default
+scheme being C<princ>.  If it matches, access is denied immediately
+without examining any further entries.  Otherwise, processing continues.
+
+Remember that access is granted as soon as an entry matches.  For C<deny>
+rules to be effective, they therefore must come before any ACLs they are
+intended to override.  Be careful when using C<deny> when including a
+directory of ACL files, since the files in that directory are read in an
+undefined order (not in alphabetical order by filename).  It's best to
+explicitly include the file containing C<deny> ACL rules first.
+
+Note that C<deny> only denies access; it never grants it.  Thus, deny
+alone does not grant access to anyone, and using deny on itself as in
+C<deny:deny:foo> neither deniess nor grants access to anyone.
+
+=item gput
+
+This method is used to grant access based on the CMU GPUT (Global
+Privileged User Table -- see gput(5)).  The data is either a GPUT role
+name or a string of the form I<group>[I<xform>], where I<group> is a GPUT
+role name and I<xform> is a GPUT transform string.  Access is granted if
+the user is a member of the specified GPUT group, after applying either
+the optional I<xform> or the default transform.
+
+This method is supported only if B<remctld> was compiled with GPUT support
+by using the C<--with-gput> configure option.
+
+=back
+
+The keyword ANYUSER may be used instead of the ACLs to allow access to all
+users.  The user still needs to authenticate to B<remctld>; this only
 affects authorization.  This can be used for backend programs that want to
 check ACLs themselves and will retrieve the authenticated principal from
 the REMOTE_USER environment variable.  Note that ANYUSER accepts B<any>
 authenticated user, including cross-realm users from foreign Kerberos
 realms.
+
+Support for ACL schemes is new in remctl 2.13.  Prior versions of
+B<remctld> expected only files in the main B<remctld> configuration file,
+and only principals or lines starting with C<include> in those files,
+without any I<method>: prefixes.
 
 =back
 
@@ -272,6 +345,21 @@ C<accounts passwd> (presumably the password) will not be logged to syslog.
 All commands starting with C<printing> will be passed to
 /usr/local/bin/printthing.
 
+Example ACL file using the scheme support new in remctl 2.13:
+
+    # This is a comment.
+    deny:baduser@EXAMPLE.ORG
+    file:/etc/remctl/acl/admins
+    principal:service/admin@EXAMPLE.ORG
+    service/other@EXAMPLE.ORG
+
+This ACL file will reject C<baduser@EXAMPLE.ORG> even if that user would
+have been allowed by one of the other ACL rules.  It will then grant
+access according to the ACL entries in F</etc/remctl/acl/admins> and the
+specific principals C<service/admin@EXAMPLE.ORG> and
+C<service/other@EXAMPLE.ORG>.  The last line takes advantage of the
+default ACL method of C<principal> when processing an ACL file.
+
 =head1 CAVEATS
 
 When using Heimdal with triple-DES keys and talking to old clients that
@@ -281,9 +369,10 @@ servers since the version two protocol doesn't use MICs.  If you are using
 Heimdal and run into MIC verification problems, see the COMPATIBILITY
 section of gssapi(3).
 
-When running in daemon mode, B<remctld> does not itself impose any limits
-on the number of child processes or other system resources.  You may want
-to set resource limits with B<ulimit>.
+B<remctld> does not itself impose any limits on the number of child
+processes or other system resources.  You may want to set resource limits
+in your inetd server or with B<ulimit> when running it as a standalone
+daemon or under B<tcpserver>.
 
 =head1 NOTES
 

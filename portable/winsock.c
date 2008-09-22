@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Supporting functions for the Windows socket API.
  *
  * Provides supporting functions and wrappers that help with portability to

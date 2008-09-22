@@ -1,5 +1,4 @@
-/* $Id: asprintf-t.c 7519 2006-04-17 23:13:40Z eagle $
- *
+/*
  * asprintf and vasprintf test suite.
  *
  * Written by Russ Allbery <rra@stanford.edu>

@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Protocol v2, server implementation.
  *
  * This is the server implementation of the new v2 protocol.

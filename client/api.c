@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Entry points for the remctl library API.
  *
  * All of the high-level entry points for the remctl library API, defined in
@@ -384,7 +383,7 @@ remctl_output(struct remctl *r)
 
 
 /*
- * Returns the internal error message after a failure or "No error" if the
+ * Returns the internal error message after a failure or "no error" if the
  * last command completed successfully.  This should generally only be called
  * after a failure.
  */

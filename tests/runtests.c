@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Run a set of tests, reporting results.
  *
  * Usage:

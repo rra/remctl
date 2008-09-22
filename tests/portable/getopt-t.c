@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * getopt test suite.
  *
  * Written by Russ Allbery <rra@stanford.edu>

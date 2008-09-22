@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Portability wrapper around <gssapi.h>.
  *
  * This header tries to encapsulate the differences between the MIT and

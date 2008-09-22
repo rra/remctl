@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Error handling for the remctl client library.
  *
  * A set of helper routines to do error handling inside the remctl client

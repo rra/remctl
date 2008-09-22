@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Small C program that outputs a string, forks off a process that sleeps for
  * ten seconds and outputs another string, and meanwhile immediately exits.
  * Used to test that remctld stops listening as soon as its child has exited

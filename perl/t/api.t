@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-# $Id$
 #
 # Tests for the Net::Remctl API.  This relies on being run as part of the
 # larger remctl build tree and uses the built remctld for testing.

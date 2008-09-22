@@ -28,21 +28,23 @@ Server:
 
  * Support LDAP-based ACLs in addition to file system ACLs.
 
- * Add support for external ACL checking programs.  This can be added to
-   the existing ACL file syntax without too much trouble, perhaps with a
-   program keyword that works similarly to the include keyword.  If the
-   program exits with a zero status, access is granted.  If it exits 1,
-   access is not granted but checking continues.  If it exits with any
-   other exit status, access is not granted and checking aborts.
+ * Add support for external ACL checking programs.  If the program exits
+   with a zero status, access is granted.  If it exits 1, access is not
+   granted but checking continues.  If it exits with any other exit
+   status, access is not granted and checking aborts.
 
    Ideally, for writing generic ACL checking programs, the program should
    get the type and service of the remctl command as well as any
-   arguments.  However, I also want to support passing other arguments
-   into the program as specified in the ACL file.
+   arguments.  However, it would also be good to support passing other
+   arguments into the program as specified in the ACL file.
 
  * Possibly support binding to both the new and the old port in the
    standalone server for backward compatibility (only if requested by
    another flag).
+
+ * Sort the files in a directory before processing them so that the order
+   is deterministic.  Affects both configuration (earlier entries
+   override later ones) and ACL rules in the presence of deny ACLs.
 
 Client:
 
@@ -51,12 +53,13 @@ Client:
  * Add readline support to the remctl client for multiple commands to the
    same server in the same authenticated session.
 
- * Add Python bindings for the libremctl client library.
-
- * Add PHP bindings for the libremctl client library.
-
  * Support setting a timeout and failing the remctl call if the server
    takes too long to connect or send back data.
+
+ * Add an option that prompts the user, with echo disabled, for a piece of
+   secure data, prompting twice to ensure both times match, and then sends
+   that as the last argument to the command.  This would be useful for
+   remctl interfaces to change passwords.
 
 Build system:
 
@@ -70,6 +73,10 @@ Build system:
 
  * Add pkgconfig support for libremctl.
 
+Portability layer:
+
+ * Refactor getopt to be easier to understand and less deeply nested.
+
 Windows port:
 
  * With more modifications, it should be possible to build remctl against
@@ -79,3 +86,34 @@ Windows port:
    Windows prior to Vista would make this a less general solution.
 
  * Support the remctl server.
+
+Java implementation:
+
+ * Fix the coding style of the Java implementation to match the coding
+   style of the rest of remctl.
+
+ * Consider reorganizing the java directory so that it already matches the
+   layout of an Apache Jakarta project rather than having ant tar shuffle
+   everything around.
+
+ * Add a JUnit test suite for the Java implementation.
+
+ * Integrate the Java build into the rest of the build system so that it
+   is enabled using an --enable-java flag similar to the bindings, finds
+   ant and a JAVA_HOME in configure, and does the JAR build in the main
+   Makefile using ant.
+
+ * Consider eliminating the simple Makefile in the java directory and
+   requiring ant.
+
+ * Java cannot obtain tickets from a ticket cache created using the
+   k5.conf file included in the java directory using the current MIT
+   Kerberos on Debian.  It has to prompt for a password and get tickets
+   itself.  Figure out why and fix it.
+
+Test suite:
+
+ * Combine the documentation tests together rather than testing POD
+   separately for server and client.
+
+ * Add spelling check tests for the POD documentation.

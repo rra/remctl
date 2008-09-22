@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Replacement for a missing daemon.
  *
  * Provides the same functionality as the library function daemon for those
@@ -16,6 +15,17 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+
+/*
+ * If we're running the test suite, rename daemon to avoid conflicts with the
+ * system version.  #undef it first because some systems may define it to
+ * another name.
+ */
+#if TESTING
+# undef daemon
+# define daemon test_daemon
+int test_daemon(int, int);
+#endif
 
 int
 daemon(int nochdir, int noclose)

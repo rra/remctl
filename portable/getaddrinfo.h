@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Replacement implementation of getaddrinfo.
  *
  * This is an implementation of the getaddrinfo family of functions for
@@ -62,9 +61,12 @@ BEGIN_DECLS
 
 /* Function prototypes. */
 int getaddrinfo(const char *nodename, const char *servname,
-                const struct addrinfo *hints, struct addrinfo **res);
-void freeaddrinfo(struct addrinfo *ai);
-const char *gai_strerror(int ecode);
+                const struct addrinfo *hints, struct addrinfo **res)
+    __attribute__((__visibility__("hidden")));
+void freeaddrinfo(struct addrinfo *ai)
+    __attribute__((__visibility__("hidden")));
+const char *gai_strerror(int ecode)
+    __attribute__((__visibility__("hidden")));
 
 END_DECLS
 

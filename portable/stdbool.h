@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Portability wrapper around <stdbool.h>.
  *
  * Provides the bool and _Bool types and the true and false constants,
@@ -16,7 +15,9 @@
 #if HAVE_STDBOOL_H
 # include <stdbool.h>
 #else
-# if !HAVE__BOOL
+# if HAVE__BOOL
+#  define bool _Bool
+# else
 #  ifdef __cplusplus
 typedef bool _Bool;
 #  elif _WIN32

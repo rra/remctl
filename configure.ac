@@ -1,5 +1,4 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id$
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
 dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
@@ -7,9 +6,8 @@ dnl     Board of Trustees, Leland Stanford Jr. University
 dnl
 dnl See LICENSE for licensing terms.
 
-AC_REVISION([$Revision$])
 AC_PREREQ([2.61])
-AC_INIT([remctl], [2.12], [rra@stanford.edu])
+AC_INIT([remctl], [2.13], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AM_INIT_AUTOMAKE([1.10])
@@ -108,6 +106,9 @@ dnl Set this globally, since we have too many header files that include the
 dnl GSS-API headers even if the code itself doesn't call GSS-API functions.
 CPPFLAGS="$CPPFLAGS $GSSAPI_CPPFLAGS"
 
+dnl Check for the CMU GPUT library.
+RRA_LIB_GPUT
+
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.
 build_perl=
@@ -116,9 +117,32 @@ AC_ARG_ENABLE([perl],
     [AS_IF([test x"$enableval" = xyes], [build_perl=yes])])
 AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
 
-AC_CONFIG_FILES([Makefile])
+dnl Whether to build the PHP bindings.  The dance required to be able to run
+dnl phpize before AC_OUTPUT sucks like a sucking thing.
+build_php=
+AC_ARG_ENABLE([php],
+    [AC_HELP_STRING([--enable-php], [Build remctl PECL extension for PHP])],
+    [AS_IF([test x"$enableval" = xyes],
+        [build_php=yes
+         AC_ARG_VAR([PHPIZE], [Path to phpize])
+         AC_PATH_PROG([PHPIZE], [phpize])])])
+AM_CONDITIONAL([BUILD_PHP], [test x"$build_php" = xyes])
+
+dnl Whether to build the Python bindings.
+build_python=
+AC_ARG_ENABLE([python],
+    [AC_HELP_STRING([--enable-python], [Build Python libremctl bindings])],
+    [AS_IF([test x"$enableval" = xyes], [build_python=yes])])
+AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
+
+AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
 AC_CONFIG_FILES([tests/client/pod-t], [chmod +x tests/client/pod-t])
-AS_IF([test x"$build_perl" = xyes], [AC_CONFIG_FILES([perl/Makefile.PL])])
+AS_IF([test x"$build_perl" = xyes],
+    [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])])
+AS_IF([test x"$build_php" = xyes],
+    [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])
+AS_IF([test x"$build_python" = xyes],
+    [AC_CONFIG_FILES([python/remctl.py python/setup.py])])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_COMMANDS([docs], [test -d docs || mkdir docs])
 AC_OUTPUT

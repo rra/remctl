@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Standard system includes and portability adjustments.
  *
  * Declarations of routines and variables in the C library.  Including this
@@ -68,12 +67,15 @@ BEGIN_DECLS
 # ifdef _WIN32
 extern const char *     inet_ntop(int, const void *, char *, int);
 # else
-extern const char *     inet_ntop(int, const void *, char *, socklen_t);
+extern const char *     inet_ntop(int, const void *, char *, socklen_t)
+    __attribute__((__visibility__("hidden")));
 # endif
 #endif
 #if !HAVE_ASPRINTF
-extern int              asprintf(char **, const char *, ...);
-extern int              vasprintf(char **, const char *, va_list);
+extern int              asprintf(char **, const char *, ...)
+    __attribute__((__visibility__("hidden")));
+extern int              vasprintf(char **, const char *, va_list)
+    __attribute__((__visibility__("hidden")));
 #endif
 #if !HAVE_DECL_SNPRINTF
 extern int              snprintf(char *, size_t, const char *, ...)
@@ -83,16 +85,20 @@ extern int              snprintf(char *, size_t, const char *, ...)
 extern int              vsnprintf(char *, size_t, const char *, va_list);
 #endif
 #if !HAVE_DAEMON
-extern int              daemon(int, int);
+extern int              daemon(int, int)
+    __attribute__((__visibility__("hidden")));
 #endif
 #if !HAVE_SETENV
-extern int              setenv(const char *, const char *, int);
+extern int              setenv(const char *, const char *, int)
+    __attribute__((__visibility__("hidden")));
 #endif
 #if !HAVE_STRLCAT
-extern size_t           strlcat(char *, const char *, size_t);
+extern size_t           strlcat(char *, const char *, size_t)
+    __attribute__((__visibility__("hidden")));
 #endif
 #if !HAVE_STRLCPY
-extern size_t           strlcpy(char *, const char *, size_t);
+extern size_t           strlcpy(char *, const char *, size_t)
+    __attribute__((__visibility__("hidden")));
 #endif
 
 END_DECLS
