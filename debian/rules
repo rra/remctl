@@ -37,6 +37,9 @@ configure-stamp:
 # remctl to be linked against all the dependencies of libremctl, which creates
 # unnecessary dependencies.  Ones that probably won't matter, mind, but let's
 # do this right anyway.
+#
+# We also rebuild the Perl module to encode the right installation paths,
+# since otherwise it defaults to using the local site module path.
 build: build-arch build-indep
 build-arch: build-stamp
 build-indep:
