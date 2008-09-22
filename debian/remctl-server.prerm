@@ -6,6 +6,7 @@ set -e
 if [ "$1" = "remove" ] || [ "$1" = "deconfigure" ] ; then
     update-inetd --remove '4444.*/usr/sbin/remctld'
     update-inetd --remove '4373.*/usr/sbin/remctld'
+    update-inetd --remove 'remctl.*/usr/sbin/remctld'
 fi
 
 #DEBHELPER#

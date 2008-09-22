@@ -8,6 +8,9 @@ remctl (2.13-1) unstable; urgency=low
     - When processing the include of a directory for configuration or ACL
       files, limit the files included to characters in [a-zA-Z0-9_-] to
       avoid editor temporary files.  (Closes: #479481)
+  * On new installations of remctl-server, add the inetd.conf line with
+    the symbolic protocol name rather than the port number.  Depend on a
+    new enough version of netbase.  Remove that line in prerm.
 
  -- Russ Allbery <rra@debian.org>  Mon, 22 Sep 2008 01:33:55 -0700
 
