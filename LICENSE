@@ -24,12 +24,7 @@ All individual files with no other license statement are released under
 this license.  Some files have additional copyright dates from earlier
 releases or may be owned by other copyright holders as noted in those
 files.  Some files are individually released under difference licenses,
-all of which are compatible with the above general package license with
-the exception of the PHP PECL build system in the php directory.  The PHP
-build files are separate works that do not affect the license of remctl as
-a whole or of the PHP remctl PECL extension, but which impose the
-requirements of the GNU General Public License or the PHP 3.01 License on
-distributions and modifications of those files.
+all of which are compatible with the above general package license.
 
 Collected copyright notices for the entire package:
 
@@ -78,11 +73,11 @@ util/xwrite.c are released under the following copyright and license:
 
   This code is derived from software contributed to the Internet Software
   Consortium by Rich Salz.
-  
+
   Permission to use, copy, modify, and distribute this software for any
   purpose with or without fee is hereby granted, provided that the above
   copyright notice and this permission notice appear in all copies.
-  
+
   THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
   REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
   MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
@@ -104,7 +99,7 @@ following copyright and license:
 
   Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
   Copyright 2008 Russ Allbery <rra@stanford.edu>
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the
   "Software"), to deal in the Software without restriction, including
@@ -112,10 +107,10 @@ following copyright and license:
   distribute, sublicense, and/or sell copies of the Software, and to
   permit persons to whom the Software is furnished to do so, subject to
   the following conditions:
-   
+
   The above copyright notice and this permission notice shall be included
   in all copies or substantial portions of the Software.
-   
+
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -240,8 +235,8 @@ The files python/_remctlmodule.c, python/remctl.py, and python/setup.py
 are covered by the following license, which is almost identical to the
 general remctl package license:
 
-  Copyright 2008, Thomas L. Kula. All rights reserved. 
-     
+  Copyright 2008, Thomas L. Kula. All rights reserved.
+
   Permission to use, copy, modify, and distribute this software and its
   documentation for any purpose and without fee is hereby granted,
   provided that the above copyright notice appear in all copies and that
