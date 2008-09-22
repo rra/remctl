@@ -1,3 +1,16 @@
+remctl (2.13-1) unstable; urgency=low
+
+  * New upstream release.
+    - Add support for ACL methods to the remctld server.
+    - Add the deny ACL method to reject authentication by certain users.
+    - Add the princ ACL method, allowing direct specification of
+      particular principals in the main configuration file.
+    - When processing the include of a directory for configuration or ACL
+      files, limit the files included to characters in [a-zA-Z0-9_-] to
+      avoid editor temporary files.  (Closes: #479481)
+
+ -- Russ Allbery <rra@debian.org>  Mon, 22 Sep 2008 01:33:55 -0700
+
 remctl (2.12-1) unstable; urgency=low
 
   * New upstream release.
