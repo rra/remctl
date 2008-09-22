@@ -110,3 +110,10 @@ Java implementation:
    k5.conf file included in the java directory using the current MIT
    Kerberos on Debian.  It has to prompt for a password and get tickets
    itself.  Figure out why and fix it.
+
+Test suite:
+
+ * Combine the documentation tests together rather than testing POD
+   separately for server and client.
+
+ * Add spelling check tests for the POD documentation.
