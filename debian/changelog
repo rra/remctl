@@ -2,6 +2,7 @@ remctl (2.13-1) unstable; urgency=low
 
   * New upstream release.
     - New PHP PECL bindings for libremctl (php5-remctl).
+    - New Python remctl extension (python-remctl).
     - Add support for ACL methods to the remctld server.
     - Add the deny ACL method to reject authentication by certain users.
     - Add the princ ACL method, allowing direct specification of

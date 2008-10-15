@@ -30,7 +30,8 @@ configure-stamp:
 	dh_testdir
 	CFLAGS="$(CFLAGS)" ./configure --prefix=/usr \
 	    --mandir=\$${prefix}/share/man --sysconfdir=/etc/remctl \
-	    --enable-reduced-depends --enable-perl --enable-php $(SYSTEM)
+	    --enable-reduced-depends --enable-perl --enable-php \
+	    --enable-python $(SYSTEM)
 	touch $@
 
 # We rebuild the remctl client because Automake and Libtool combine to force
@@ -52,6 +53,9 @@ build-stamp: configure-stamp
 	gcc -g -O2 -o client/.libs/remctl client/remctl.o \
 	    client/.libs/libremctl.so util/.libs/libutil.a
 	$(MAKE) check
+	set -e; for v in `pyversions -vs` ; do \
+	    cd python && CFLAGS="$(CFLAGS)" python$$v setup.py build ; \
+	done
 	touch $@
 
 clean:
@@ -68,6 +72,10 @@ install-stamp: build-stamp
 	dh_clean -k
 	dh_installdirs
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
+	set -e; for v in `pyversions -vs` ; do \
+	    cd python && python$$v setup.py install \
+		--root $(CURDIR)/debian/tmp ; \
+	done
 	dh_install --fail-missing
 	install -m 644 $(CURDIR)/examples/remctl.conf \
 	    $(CURDIR)/debian/remctl-server/etc/remctl/remctl.conf
@@ -88,6 +96,7 @@ binary-arch: install-stamp
 	dh_compress
 	dh_perl
 	dh_makeshlibs -V 'libremctl1 (>= 2.10)'
+	dh_pysupport
 	dh_installdeb
 	dh_shlibdeps -l $(CURDIR)/debian/libremctl1/usr/lib -L libremctl1
 	echo "php:Depends=phpapi-`php-config5 --phpapi`" \

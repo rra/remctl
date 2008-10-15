@@ -3,7 +3,7 @@ Section: net
 Priority: optional
 Maintainer: Russ Allbery <rra@debian.org>
 Build-Depends: debhelper (>= 5.0.61), dpkg-dev (>= 1.14.9), libkrb5-dev,
- libtest-pod-perl, php5-dev
+ libtest-pod-perl, php5-dev, python-all-dev, python-support (>= 0.6)
 Standards-Version: 3.7.3
 Homepage: http://www.eyrie.org/~eagle/software/remctl/
 
@@ -96,3 +96,18 @@ Description: PECL module for Kerberos-authenticated command execution
  .
  This package contains the PECL remctl module for PHP 5, which provides
  native PHP bindings for the libremctl client library.
+
+Package: python-remctl
+Architecture: any
+Depends: ${shlibs:Depends}, ${python:Depends}
+Provides: ${python:Provides}
+Description: Python extension for Kerberos-authenticated command execution
+ remctl is a client/server protocol for executing specific commands on a
+ remote system with Kerberos authentication.  The allowable commands must
+ be listed in a server configuration file, and the executable run on the
+ server may be mapped to any command name.  Each command is also
+ associated with an ACL containing a list of Kerberos principals
+ authorized to run that command.
+ .
+ This package contains the Python remctl extension, which provides native
+ Python bindings for the libremctl client library.
