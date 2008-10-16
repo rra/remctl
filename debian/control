@@ -98,6 +98,7 @@ Description: PECL module for Kerberos-authenticated command execution
  native PHP bindings for the libremctl client library.
 
 Package: python-remctl
+Section: python
 Architecture: any
 Depends: ${shlibs:Depends}, ${python:Depends}
 Provides: ${python:Provides}
