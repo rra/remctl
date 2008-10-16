@@ -53,8 +53,8 @@ build-stamp: configure-stamp
 	gcc -g -O2 -o client/.libs/remctl client/remctl.o \
 	    client/.libs/libremctl.so util/.libs/libutil.a
 	$(MAKE) check
-	set -e; for v in `pyversions -vs` ; do \
-	    cd python && CFLAGS="$(CFLAGS)" python$$v setup.py build ; \
+	set -e; cd python && for v in `pyversions -vs` ; do \
+	    CFLAGS="$(CFLAGS)" python$$v setup.py build ; \
 	done
 	touch $@
 
@@ -72,9 +72,8 @@ install-stamp: build-stamp
 	dh_clean -k
 	dh_installdirs
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
-	set -e; for v in `pyversions -vs` ; do \
-	    cd python && python$$v setup.py install \
-		--root $(CURDIR)/debian/tmp ; \
+	set -e; cd python && for v in `pyversions -vs` ; do \
+	    python$$v setup.py install --root $(CURDIR)/debian/tmp ; \
 	done
 	dh_install --fail-missing
 	install -m 644 $(CURDIR)/examples/remctl.conf \
