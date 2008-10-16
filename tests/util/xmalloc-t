@@ -79,61 +79,61 @@ echo 36
 
 # First run the tests expected to succeed.
 runsuccess "m" "21"      "0"
-runsuccess "m" "3000000" "0"
+runsuccess "m" "3500000" "0"
 runsuccess "m" "0"       "0"
 runsuccess "r" "21"      "0"
-runsuccess "r" "3000000" "0"
+runsuccess "r" "3500000" "0"
 runsuccess "s" "21"      "0"
-runsuccess "s" "3000000" "0"
+runsuccess "s" "3500000" "0"
 runsuccess "n" "21"      "0"
-runsuccess "n" "3000000" "0"
+runsuccess "n" "3500000" "0"
 runsuccess "c" "24"      "0"
-runsuccess "c" "3000000" "0"
+runsuccess "c" "3500000" "0"
 runsuccess "a" "24"      "0"
-runsuccess "a" "3000000" "0"
+runsuccess "a" "3500000" "0"
 runsuccess "v" "24"      "0"
-runsuccess "v" "3000000" "0"
+runsuccess "v" "3500000" "0"
 
-# Now limit our memory to 2MB and then try the large ones again, all of
+# Now limit our memory to 3.5MB and then try the large ones again, all of
 # which should fail.
 #
 # The exact memory limits used here are essentially black magic.  They need to
 # be large enough to allow the program to be loaded and do small allocations,
 # but not so large that we can't reasonably expect to allocate that much
-# memory normally.  2MB seems to work reasonably well on both Solaris and
+# memory normally.  3.5MB seems to work reasonably well on both Solaris and
 # Linux.
 #
 # We assume that there are enough miscellaneous allocations that an allocation
 # exactly as large as the limit will always fail.
-runfailure "m" "3000000" "3000000" \
-    "failed to malloc 3000000 bytes at xmalloc.c line 61"
-runfailure "r" "3000000" "3000000" \
-    "failed to realloc 3000000 bytes at xmalloc.c line 89"
-runfailure "s" "3000000" "3000000" \
-    "failed to strdup 3000000 bytes at xmalloc.c line 120"
-runfailure "n" "3000000" "3000000" \
-    "failed to strndup 3000000 bytes at xmalloc.c line 147"
-runfailure "c" "3000000" "3000000" \
-    "failed to calloc 3000000 bytes at xmalloc.c line 171"
-runfailure "a" "3000000" "3000000" \
-    "failed to asprintf 3000000 bytes at xmalloc.c line 196"
-runfailure "v" "3000000" "3000000" \
-    "failed to vasprintf 3000000 bytes at xmalloc.c line 216"
+runfailure "m" "3500000" "3500000" \
+    "failed to malloc 3500000 bytes at xmalloc.c line 61"
+runfailure "r" "3500000" "3500000" \
+    "failed to realloc 3500000 bytes at xmalloc.c line 89"
+runfailure "s" "3500000" "3500000" \
+    "failed to strdup 3500000 bytes at xmalloc.c line 120"
+runfailure "n" "3500000" "3500000" \
+    "failed to strndup 3500000 bytes at xmalloc.c line 147"
+runfailure "c" "3500000" "3500000" \
+    "failed to calloc 3500000 bytes at xmalloc.c line 171"
+runfailure "a" "3500000" "3500000" \
+    "failed to asprintf 3500000 bytes at xmalloc.c line 196"
+runfailure "v" "3500000" "3500000" \
+    "failed to vasprintf 3500000 bytes at xmalloc.c line 216"
 
 # Check our custom error handler.
-runfailure "M" "3000000" "3000000" "malloc 3000000 xmalloc.c 61"
-runfailure "R" "3000000" "3000000" "realloc 3000000 xmalloc.c 89"
-runfailure "S" "3000000" "3000000" "strdup 3000000 xmalloc.c 120"
-runfailure "N" "3000000" "3000000" "strndup 3000000 xmalloc.c 147"
-runfailure "C" "3000000" "3000000" "calloc 3000000 xmalloc.c 171"
-runfailure "A" "3000000" "3000000" "asprintf 3000000 xmalloc.c 196"
-runfailure "V" "3000000" "3000000" "vasprintf 3000000 xmalloc.c 216"
+runfailure "M" "3500000" "3500000" "malloc 3500000 xmalloc.c 61"
+runfailure "R" "3500000" "3500000" "realloc 3500000 xmalloc.c 89"
+runfailure "S" "3500000" "3500000" "strdup 3500000 xmalloc.c 120"
+runfailure "N" "3500000" "3500000" "strndup 3500000 xmalloc.c 147"
+runfailure "C" "3500000" "3500000" "calloc 3500000 xmalloc.c 171"
+runfailure "A" "3500000" "3500000" "asprintf 3500000 xmalloc.c 196"
+runfailure "V" "3500000" "3500000" "vasprintf 3500000 xmalloc.c 216"
 
 # Check the smaller ones again just for grins.
-runsuccess "m" "21" "3000000"
-runsuccess "r" "32" "3000000"
-runsuccess "s" "64" "3000000"
-runsuccess "n" "20" "3000000"
-runsuccess "c" "24" "3000000"
-runsuccess "a" "30" "3000000"
-runsuccess "v" "35" "3000000"
+runsuccess "m" "21" "3500000"
+runsuccess "r" "32" "3500000"
+runsuccess "s" "64" "3500000"
+runsuccess "n" "20" "3500000"
+runsuccess "c" "24" "3500000"
+runsuccess "a" "30" "3500000"
+runsuccess "v" "35" "3500000"
