@@ -312,6 +312,7 @@ main(int argc, char *argv[])
                     (unsigned long) limit);
             exit(2);
         }
+        free(tmp);
 #else
         warn("Data limits aren't supported.");
         exit(2);
