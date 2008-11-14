@@ -63,14 +63,6 @@ BEGIN_DECLS
  * HAVE_DECL macros for those functions that may be prototyped but implemented
  * incorrectly or implemented without a prototype.
  */
-#if !HAVE_INET_NTOP
-# ifdef _WIN32
-extern const char *     inet_ntop(int, const void *, char *, int);
-# else
-extern const char *     inet_ntop(int, const void *, char *, socklen_t)
-    __attribute__((__visibility__("hidden")));
-# endif
-#endif
 #if !HAVE_ASPRINTF
 extern int              asprintf(char **, const char *, ...)
     __attribute__((__visibility__("hidden")));
