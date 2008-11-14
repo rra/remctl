@@ -212,8 +212,10 @@ test_all(int n, const char *source_ipv4, const char *source_ipv6)
                     sysdie("cannot getsockname");
                 if (saddr.ss_family == AF_INET)
                     client("127.0.0.1", source_ipv4);
+#ifdef HAVE_INET6
                 else if (saddr.ss_family == AF_INET6)
                     client("::1", source_ipv6);
+#endif
                 else {
                     warn("unknown socket family %d", saddr.ss_family);
                     skip_block(n, 2, "unknown socket family");
