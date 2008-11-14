@@ -27,10 +27,11 @@ AC_DEFUN([RRA_LIB_GPUT],
     [AC_HELP_STRING([--with-gput=DIR],
         [Location of CMU GPUT headers and libraries])],
     [rra_with_gput=yes
-     AS_IF([test x"$withval" != xyes],
-        [AS_IF([test x"$withval" = xno], [rra_with_gput=no])],
-        [GPUT_CPPFLAGS="-I$withval/include"
-         RRA_SET_LDFLAGS([GPUT_LDFLAGS], [$withval])])])
+     AS_IF([test x"$withval" = xno],
+        [rra_with_gput=no],
+        [AS_IF([test x"$withval" != xyes],
+            [GPUT_CPPFLAGS="-I$withval/include"
+             RRA_SET_LDFLAGS([GPUT_LDFLAGS], [$withval])])])])
  AC_ARG_WITH([gput-include],
     [AC_HELP_STRING([--with-gput-include=DIR],
         [Location of CMU GPUT headers])],
