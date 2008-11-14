@@ -103,7 +103,8 @@ valid_filename(const char *filename)
  */
 static enum config_status
 handle_include(const char *included, const char *file, int lineno,
-               int (*function)(void *, const char *), void *data)
+               enum config_status (*function)(void *, const char *),
+               void *data)
 {
     struct stat st;
 
