@@ -250,7 +250,7 @@ read_conf_file(void *data, const char *name)
             line = NULL;
             continue;
         } else if (line->count < 4) {
-            warn("%s:%d: parse error", name, lineno);
+            warn("%s:%lu: parse error", name, (unsigned long) lineno);
             goto fail;
         }
 
