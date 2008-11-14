@@ -306,13 +306,15 @@ main(int argc, char *argv[])
             syswarn("Can't set data limit to %lu", (unsigned long) limit);
             exit(2);
         }
-        tmp = malloc(limit / 2);
-        if (tmp == NULL) {
-            syswarn("Can't allocate half the memory limit of %lu",
-                    (unsigned long) limit);
-            exit(2);
+        if (size < limit || code == 'r') {
+            tmp = malloc(code == 'r' ? 10 : size);
+            if (tmp == NULL) {
+                syswarn("Can't allocate initial memory of %lu",
+                        (unsigned long) size);
+                exit(2);
+            }
+            free(tmp);
         }
-        free(tmp);
 #else
         warn("Data limits aren't supported.");
         exit(2);
