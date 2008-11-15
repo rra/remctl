@@ -66,13 +66,6 @@ struct config {
     size_t allocated;
 };
 
-/* Holds information about ACL schemes */
-struct acl_scheme {
-    const char *name;
-    int (*check)(const char *user, const char *data, const char *file,
-                 int lineno);
-};
-
 /* Logging functions. */
 void warn_gssapi(const char *, OM_uint32 major, OM_uint32 minor);
 void warn_token(const char *, int status, OM_uint32 major, OM_uint32 minor);

@@ -67,6 +67,7 @@ libs    = parse_flags('-l', '@GSSAPI_LIBS@' + ' ' + '@LIBS@')
 dirs    = parse_flags('-L', ldflags)
 libs = ['remctl'] + libs
 dirs.append('@abs_top_builddir@/client/.libs')
+include.append('@abs_top_srcdir@/client')
 
 extension = Extension('_remctl',
                       sources       = [ '_remctlmodule.c' ],

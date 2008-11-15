@@ -158,7 +158,7 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
-* Fri Sep 12 2008 Russ Allbery <rra@stanford.edu> 2.13-1
+* Fri Nov 14 2008 Russ Allbery <rra@stanford.edu> 2.13-1
 - Update for 2.13.
 - PHP and Python bindings not yet supported.
 

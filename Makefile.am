@@ -74,9 +74,9 @@ server_remctld_SOURCES = server/commands.c server/config.c server/generic.c \
 	server/logging.c server/internal.h server/remctld.c \
 	server/server-v1.c server/server-v2.c
 server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\" \
-	$(GPUT_INC_FLAGS)
-server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS)
-server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS) $(GPUT_LIB_FLAGS)
+	$(GPUT_CPPFLAGS)
+server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS)
+server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS) $(GPUT_LIBS)
 
 dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3 \
 	docs/api/remctl_command.3 docs/api/remctl_error.3 \
@@ -282,15 +282,17 @@ tests_portable_strlcpy_t_SOURCES = tests/portable/strlcpy-t.c \
 	tests/portable/strlcpy.c
 tests_portable_strlcpy_t_LDADD = tests/libtest.a util/libutil.la
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
-tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS)
+tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS)
 tests_server_accept_t_LDADD = tests/libtest.a util/libutil.la $(GSSAPI_LIBS) \
-	$(GPUT_LIB_FLAGS)
+	$(GPUT_LIBS)
 tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
-tests_server_acl_t_LDADD = tests/libtest.a util/libutil.la $(GPUT_LIB_FLAGS)
+tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS)
+tests_server_acl_t_LDADD = tests/libtest.a util/libutil.la $(GPUT_LIBS)
 tests_server_background_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_config_t_SOURCES = tests/server/config-t.c $(SERVER_FILES)
-tests_server_config_t_LDADD = tests/libtest.a util/libutil.la $(GPUT_LIB_FLAGS)
+tests_server_config_t_LDFLAGS = $(GPUT_LDFLAGS)
+tests_server_config_t_LDADD = tests/libtest.a util/libutil.la $(GPUT_LIBS)
 tests_server_continue_t_LDADD = client/libremctl.la tests/libtest.a \
 	util/libutil.la
 tests_server_env_t_LDADD = client/libremctl.la tests/libtest.a \

@@ -257,6 +257,7 @@ main(int argc, char *argv[])
     int willfail = 0;
     unsigned char code;
     struct rlimit rl;
+    void *tmp;
 
     if (argc < 3)
         die("Usage error.  Type, size, and limit must be given.");
@@ -304,6 +305,15 @@ main(int argc, char *argv[])
         if (setrlimit(RLIMIT_AS, &rl) < 0) {
             syswarn("Can't set data limit to %lu", (unsigned long) limit);
             exit(2);
+        }
+        if (size < limit || code == 'r') {
+            tmp = malloc(code == 'r' ? 10 : size);
+            if (tmp == NULL) {
+                syswarn("Can't allocate initial memory of %lu",
+                        (unsigned long) size);
+                exit(2);
+            }
+            free(tmp);
         }
 #else
         warn("Data limits aren't supported.");
