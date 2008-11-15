@@ -13,6 +13,7 @@ remctl (2.13-1) unstable; urgency=low
   * On new installations of remctl-server, add the inetd.conf line with
     the symbolic protocol name rather than the port number.  Depend on a
     new enough version of netbase.  Remove that line in prerm.
+  * Update standards version to 3.8.0 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Mon, 22 Sep 2008 01:33:55 -0700
 
