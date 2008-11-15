@@ -42,6 +42,13 @@ enum config_status {
     CONFIG_DENY    = -3
 };
 
+/* Holds information about ACL schemes */
+struct acl_scheme {
+    const char *name;
+    enum config_status (*check)(const char *user, const char *data,
+                                const char *file, int lineno);
+};
+
 /*
  * The following must match the indexes of these schemes in schemes[].
  * They're used to implement default ACL schemes in particular contexts.
@@ -96,7 +103,8 @@ valid_filename(const char *filename)
  */
 static enum config_status
 handle_include(const char *included, const char *file, int lineno,
-               int (*function)(void *, const char *), void *data)
+               enum config_status (*function)(void *, const char *),
+               void *data)
 {
     struct stat st;
 
@@ -167,7 +175,7 @@ handle_include(const char *included, const char *file, int lineno,
  * Returns CONFIG_SUCCESS on success and CONFIG_ERROR on error, reporting an
  * error message.
  */
-static int
+static enum config_status
 read_conf_file(void *data, const char *name)
 {
     struct config *config = data;
@@ -250,7 +258,7 @@ read_conf_file(void *data, const char *name)
             line = NULL;
             continue;
         } else if (line->count < 4) {
-            warn("%s:%d: parse error", name, lineno);
+            warn("%s:%lu: parse error", name, (unsigned long) lineno);
             goto fail;
         }
 
@@ -343,7 +351,7 @@ fail:
  * Also returns CONFIG_ERROR on some sort of failure (such as failure to read
  * a file or a syntax error).
  */
-static int
+static enum config_status
 acl_check_file_internal(void *data, const char *aclfile)
 {
     const char *user = data;
@@ -432,7 +440,7 @@ fail:
  * - If there is no result less than CONFIG_NOMATCH, return the largest
  *   remaining result, which should be CONFIG_SUCCESS or CONFIG_NOMATCH.
  */
-static int
+static enum config_status
 acl_check_file(const char *user, const char *aclfile, const char *file,
                int lineno)
 {
@@ -449,7 +457,7 @@ acl_check_file(const char *user, const char *aclfile, const char *file,
  * Returns CONFIG_SUCCESS if the user is authorized, or CONFIG_NOMATCH if they
  * aren't.
  */
-static int
+static enum config_status
 acl_check_princ(const char *user, const char *data, const char *file UNUSED,
                 int lineno UNUSED)
 {
@@ -480,7 +488,7 @@ acl_check_princ(const char *user, const char *data, const char *file UNUSED,
  *
  * Any other result indicates a processing error and is returned as-is.
  */
-static int
+static enum config_status
 acl_check_deny(const char *user, const char *data, const char *file,
                int lineno)
 {
@@ -585,7 +593,7 @@ acl_check_gput(const char *user, const char *data, const char *file,
  * must remain in their current slots or the index constants set at the top of
  * the file need to change.
  */
-static const struct acl_scheme const schemes[] = {
+static const struct acl_scheme schemes[] = {
     { "file",  acl_check_file  },
     { "princ", acl_check_princ },
     { "deny",  acl_check_deny  },
