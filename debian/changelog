@@ -1,4 +1,4 @@
-remctl (2.13-1) unstable; urgency=low
+remctl (2.13-1) experimental; urgency=low
 
   * New upstream release.
     - New PHP PECL bindings for libremctl (php5-remctl).
@@ -16,7 +16,7 @@ remctl (2.13-1) unstable; urgency=low
   * Add Vcs-Git and Vcs-Browser control fields.
   * Update standards version to 3.8.0 (no changes required).
 
- -- Russ Allbery <rra@debian.org>  Mon, 22 Sep 2008 01:33:55 -0700
+ -- Russ Allbery <rra@debian.org>  Fri, 14 Nov 2008 18:27:14 -0800
 
 remctl (2.12-1) unstable; urgency=low
 
