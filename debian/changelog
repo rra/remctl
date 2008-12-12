@@ -1,3 +1,10 @@
+remctl (2.13-2) experimental; urgency=low
+
+  * Call open() with the correct arguments when creating a sentinel file
+    in the test suite.  (LP: #307326)
+
+ -- Russ Allbery <rra@debian.org>  Thu, 11 Dec 2008 19:30:14 -0800
+
 remctl (2.13-1) experimental; urgency=low
 
   * New upstream release.

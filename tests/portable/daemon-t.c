@@ -33,7 +33,7 @@ create_sentinel(void)
 {
     int fd;
 
-    fd = open("daemon-sentinel", O_RDWR | O_CREAT);
+    fd = open("daemon-sentinel", O_RDWR | O_CREAT, 0666);
     close(fd);
 }
 
