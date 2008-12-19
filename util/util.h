@@ -257,7 +257,7 @@ void message_log_syslog_crit(int, const char *, va_list, int);
 typedef void (*message_handler_func)(int, const char *, va_list, int);
 
 /* If non-NULL, called before exit and its return value passed to exit. */
-int (*message_fatal_cleanup)(void);
+extern int (*message_fatal_cleanup)(void);
 
 /*
  * If non-NULL, prepended (followed by ": ") to all messages printed by either
