@@ -61,6 +61,10 @@ Client:
    that as the last argument to the command.  This would be useful for
    remctl interfaces to change passwords.
 
+Client library:
+
+ * Add a varient of open that takes a timeout.
+
 Build system:
 
  * Add logic to detect Solaris vs. GNU ld on Solaris and pass the
