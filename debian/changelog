@@ -1,3 +1,9 @@
+remctl (2.13-3) unstable; urgency=low
+
+  * Upload to unstable.
+
+ -- Russ Allbery <rra@debian.org>  Mon, 16 Feb 2009 20:13:34 -0800
+
 remctl (2.13-2) experimental; urgency=low
 
   * Call open() with the correct arguments when creating a sentinel file
