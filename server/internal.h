@@ -2,7 +2,7 @@
  * Internal support functions for the remctld daemon.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2008
+ * Copyright 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -52,8 +52,8 @@ struct confline {
     char *file;                 /* Config file name. */
     int lineno;                 /* Config file line number. */
     struct vector *line;        /* The split configuration line. */
-    char *type;                 /* Service type. */
-    char *service;              /* Service name. */
+    char *command;              /* Command (first argument). */
+    char *subcommand;           /* Subcommand (second argument). */
     char *program;              /* Full file name of executable. */
     struct cvector *logmask;    /* What args to mask in the log, if any. */
     char **acls;                /* Full file names of ACL files. */

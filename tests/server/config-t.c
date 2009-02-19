@@ -2,7 +2,7 @@
  * Test suite for the server configuration parsing.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2007, 2009 Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
  */
@@ -33,15 +33,15 @@ main(void)
     ok(1, config != NULL);
     ok_int(2, 4, config->count);
 
-    ok_string(3, "test", config->rules[0]->type);
-    ok_string(4, "foo", config->rules[0]->service);
+    ok_string(3, "test", config->rules[0]->command);
+    ok_string(4, "foo", config->rules[0]->subcommand);
     ok_string(5, "data/cmd-hello", config->rules[0]->program);
     ok(6, config->rules[0]->logmask == NULL);
     ok_string(7, "data/acl-nonexistent", config->rules[0]->acls[0]);
     ok(8, config->rules[0]->acls[1] == NULL);
 
-    ok_string(9, "test", config->rules[1]->type);
-    ok_string(10, "bar", config->rules[1]->service);
+    ok_string(9, "test", config->rules[1]->command);
+    ok_string(10, "bar", config->rules[1]->subcommand);
     ok_string(11, "data/cmd-hello", config->rules[1]->program);
     ok_int(12, 1, config->rules[1]->logmask->count);
     ok_string(13, "4", config->rules[1]->logmask->strings[0]);
@@ -49,8 +49,8 @@ main(void)
     ok_string(15, "data/acl-no-such-file", config->rules[1]->acls[1]);
     ok(16, config->rules[1]->acls[2] == NULL);
 
-    ok_string(17, "test", config->rules[2]->type);
-    ok_string(18, "baz", config->rules[2]->service);
+    ok_string(17, "test", config->rules[2]->command);
+    ok_string(18, "baz", config->rules[2]->subcommand);
     ok_string(19, "data/cmd-hello", config->rules[2]->program);
     ok_int(20, 3, config->rules[2]->logmask->count);
     ok_string(21, "4", config->rules[2]->logmask->strings[0]);
@@ -59,8 +59,8 @@ main(void)
     ok_string(24, "ANYUSER", config->rules[2]->acls[0]);
     ok(25, config->rules[2]->acls[1] == NULL);
 
-    ok_string(26, "foo", config->rules[3]->type);
-    ok_string(27, "ALL", config->rules[3]->service);
+    ok_string(26, "foo", config->rules[3]->command);
+    ok_string(27, "ALL", config->rules[3]->subcommand);
     ok_string(28, "data/cmd-bar", config->rules[3]->program);
     ok(29, config->rules[3]->logmask == NULL);
     ok_string(30, "data/acl-simple", config->rules[3]->acls[0]);

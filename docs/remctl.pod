@@ -4,8 +4,8 @@ remctl - Remote execution tool
 
 =head1 SYNOPSIS
 
-remctl [B<-dhv>] [B<-p> I<port>] [B<-s> I<service>] I<host> I<type>
-    I<service> [I<parameters> ...]
+remctl [B<-dhv>] [B<-p> I<port>] [B<-s> I<service>] I<host> I<command>
+    I<subcommand> [I<parameters> ...]
 
 =head1 DESCRIPTION
 
@@ -21,10 +21,10 @@ user must have a ticket granting ticket to use B<remctl>.  All
 transmissions to and from the remctld server are encrypted using GSS-API's
 security layer.
 
-I<host> is the hostname of the target server.  I<type> and I<service>
-together specify the command to run and correspond to the command names in
-the configuration file on the server.  I<parameters> are any additional
-command-line parameters to pass to the remote command.
+I<host> is the hostname of the target server.  I<command> and
+I<subcommand> together specify the command to run and correspond to the
+command names in the configuration file on the server.  I<parameters> are
+any additional command-line parameters to pass to the remote command.
 
 =head1 OPTIONS
 
@@ -110,8 +110,8 @@ current maintenance are done by Russ Allbery <rra@stanford.edu>.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008 Board of Trustees,
-Leland Stanford Jr. University.  All rights reserved.
+Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Board of
+Trustees, Leland Stanford Jr. University.  All rights reserved.
   
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose and without fee is hereby granted, provided

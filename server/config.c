@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  * Copyright 2008 Carnegie Mellon University
  *
@@ -159,7 +159,7 @@ handle_include(const char *included, const char *file, int lineno,
 /*
  * Reads the configuration file and parses every line, populating a data
  * structure that will be traversed on each request to translate a command
- * type into an executable path and ACL file.
+ * into an executable path and ACL file.
  *
  * config is populated with the parsed configuration file.  Empty lines and
  * lines beginning with # are ignored.  Each line is divided into fields,
@@ -275,10 +275,10 @@ read_conf_file(void *data, const char *name)
             config->rules = xrealloc(config->rules, size);
         }
         confline = xcalloc(1, sizeof(struct confline));
-        confline->line    = line;
-        confline->type    = line->strings[0];
-        confline->service = line->strings[1];
-        confline->program = line->strings[2];
+        confline->line       = line;
+        confline->command    = line->strings[0];
+        confline->subcommand = line->strings[1];
+        confline->program    = line->strings[2];
 
         /*
          * Change this to a while vline->string[n] has an "=" in it to support

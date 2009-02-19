@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -187,12 +187,12 @@ fail:
  * executable or any error message.  Returns 0 on success and a negative
  * integer on failure.
  *
- * Using the type and the service, the following argument, a lookup in the
- * conf data structure is done to find the command executable and acl file.
- * If the conf file, and subsequently the conf data structure contains an
- * entry for this type with service equal to "ALL", that is a wildcard match
- * for any given service.  The first argument is then replaced with the actual
- * program name to be executed.
+ * Using the command and the subcommand, the following argument, a lookup in
+ * the conf data structure is done to find the command executable and acl
+ * file.  If the conf file, and subsequently the conf data structure contains
+ * an entry for this command with subcommand equal to "ALL", that is a
+ * wildcard match for any given subcommand.  The first argument is then
+ * replaced with the actual program name to be executed.
  *
  * After checking the acl permissions, the process forks and the child execv's
  * the command with pipes arranged to gather output. The parent waits for the
@@ -204,7 +204,7 @@ server_run_command(struct client *client, struct config *config,
 {
     char *program;
     char *path = NULL;
-    const char *type, *service;
+    const char *command, *subcommand;
     struct confline *cline = NULL;
     int stdout_pipe[2], stderr_pipe[2];
     char **req_argv = NULL;
@@ -225,28 +225,29 @@ server_run_command(struct client *client, struct config *config,
     }
 
     /* We refer to these a lot, so give them good aliases. */
-    type = argv->strings[0];
-    service = (argv->count > 1) ? argv->strings[1] : NULL;
+    command = argv->strings[0];
+    subcommand = (argv->count > 1) ? argv->strings[1] : NULL;
 
     /*
      * Look up the command and the ACL file from the conf file structure in
-     * memory.  Commands with no service argument will only match lines with
-     * the ALL wildcard.
+     * memory.  Commands with no subcommand argument will only match lines
+     * with the ALL wildcard.
      */
     for (i = 0; i < config->count; i++) {
         cline = config->rules[i];
-        if (strcmp(cline->type, type) == 0) {
-            if (strcmp(cline->service, "ALL") == 0
-                || (service != NULL && strcmp(cline->service, service) == 0)) {
+        if (strcmp(cline->command, command) == 0) {
+            if (strcmp(cline->subcommand, "ALL") == 0
+                || (subcommand != NULL
+                    && strcmp(cline->subcommand, subcommand) == 0)) {
                 path = cline->program;
                 break;
             }
         }
     }
 
-    /* From this point on, service is used only for logging. */
-    if (service == NULL)
-        service = "(null)";
+    /* From this point on, subcommand is used only for logging. */
+    if (subcommand == NULL)
+        subcommand = "(null)";
 
     /* Log after we look for command so we can get potentially get logmask. */
     server_log_command(argv, path == NULL ? NULL : cline, user);
@@ -256,12 +257,14 @@ server_run_command(struct client *client, struct config *config,
      * run this command.
      */
     if (path == NULL) {
-        notice("unknown command %s %s from user %s", type, service, user);
+        notice("unknown command %s %s from user %s", command, subcommand,
+               user);
         server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
         goto done;
     }
     if (!server_config_acl_permit(cline, user)) {
-        notice("access denied: user %s, command %s %s", user, type, service);
+        notice("access denied: user %s, command %s %s", user, command,
+               subcommand);
         server_send_error(client, ERROR_ACCESS, "Access denied");
         goto done;
     }

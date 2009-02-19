@@ -1,5 +1,13 @@
                        User-Visible remctl Changes
 
+remctl 2.14 (unreleased)
+
+    Use command and subcommand as the names for the first two parameters
+    to the remctl client and the first two strings in a remctl command
+    instead of the unintuitive "type" and "service" terminology borrowed
+    from sysctl.  This only changes documentation and some internal
+    variable names; no external APIs should be affected.
+
 remctl 2.13 (2008-11-14)
 
     Add support for ACL methods in the remctld server.  The supported
