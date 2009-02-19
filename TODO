@@ -2,6 +2,9 @@
 
 Protocol:
 
+ * Reserve a command of "help" in the protocol for special handling by the
+   server.
+
  * Add support for running commands as filters, passing standard input
    asynchronously from the client.  This requires significant
    re-engineering of the client loop and should wait for better
@@ -10,6 +13,27 @@ Protocol:
    protocol, which is disturbing.
 
 Server:
+
+ * Add support for built-in command summaries.  A command of help with no
+   subcommand would provide a list of all commands that the authenticated
+   user is permitted to run.  To do this, add a configuration option of
+   summary=<arg> to the config syntax for commands that will display a
+   summary of their supported subcommands if given <arg>.  Then, for any
+   "<command> ANY" lines the user is authorized to run, run the binary
+   with "<arg>" as the arguments, and for any "<command> <subcommand>"
+   lines, run the binary with "<arg> <subcommand>" as the arguments,
+   returning the output.
+
+ * Add support for in-depth help for a particular command.  A command of
+   "help <command>" would provide help for that command if the user was
+   authorized to run that command with its help subcommand, and a command
+   of "help <command> <subcommand>" would provide help for that command
+   and subcommand if the user is authorized to run both the help
+   subcommand and the specified one.  To implement, add a configuration
+   option of help=<arg> to the config syntax for commands that support
+   help, and then run the command with "<arg>" as the arguments for the
+   first case and "<arg> subcommand" as the arguments for the second
+   case.
 
  * Allow a more expressive configuration syntax that can set more options
    per command.  Among the things we want to configure (besides the
@@ -46,7 +70,13 @@ Server:
    is deterministic.  Affects both configuration (earlier entries
    override later ones) and ACL rules in the presence of deny ACLs.
 
+ * Provide a way to specify handling of the empty command and then permit
+   it rather than returning a syntax error.  May also require a protocol
+   update if the protocol doesn't permit this case.
+
 Client:
+
+ * Allow sending commands with no subcommands in the command-line client.
 
  * Implement file upload in the remctl client.
 
@@ -60,6 +90,9 @@ Client:
    secure data, prompting twice to ensure both times match, and then sends
    that as the last argument to the command.  This would be useful for
    remctl interfaces to change passwords.
+
+ * Allow sending the empty command in the command-line client once the
+   server supports it.
 
 Client library:
 
