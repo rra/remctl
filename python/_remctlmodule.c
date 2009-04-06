@@ -35,8 +35,10 @@
 #include <remctl.h>
 
 /* The type of the argument to PyString_AsStringAndSize changed in 2.5. */
-#if (PY_MAJOR_VERSION < 2) || ((PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 5))
-# define Py_ssize_t int
+#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
+typedef int Py_ssize_t;
+# define PY_SSIZE_T_MAX INT_MAX
+# define PY_SSIZE_T_MIN INT_MIN
 #endif
 
 /* Silence GCC warnings. */
