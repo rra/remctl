@@ -74,6 +74,8 @@ Server:
    it rather than returning a syntax error.  May also require a protocol
    update if the protocol doesn't permit this case.
 
+ * Add a timeout for commands after which the server kills the command.
+
 Client:
 
  * Allow sending commands with no subcommands in the command-line client.
