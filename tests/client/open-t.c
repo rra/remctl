@@ -2,7 +2,8 @@
  * Test suite for the client connection negotiation code.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2006, 2007, 2009
+ *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
  */
@@ -21,7 +22,9 @@
 
 #include <client/internal.h>
 #include <client/remctl.h>
-#include <tests/libtest.h>
+#include <tests/tap/basic.h>
+#include <tests/tap/kerberos.h>
+#include <tests/tap/remctl.h>
 #include <util/util.h>
 
 
@@ -48,7 +51,7 @@ accept_connection(int protocol)
 
     /* Create the socket and accept the connection. */
     saddr.sin_family = AF_INET;
-    saddr.sin_port = htons(14444);
+    saddr.sin_port = htons(14373);
     saddr.sin_addr.s_addr = INADDR_ANY;
     s = socket(AF_INET, SOCK_STREAM, 0);
     if (s < 0)
@@ -107,11 +110,13 @@ main(void)
     char *principal, *p;
     const char *error;
     struct remctl *r;
-    int protocol, n;
+    int protocol;
     pid_t child;
     struct timeval tv;
 
-    test_init(5 * 3 + 3);
+    plan(5 * 3 + 3);
+    if (chdir(getenv("BUILD")) < 0)
+        sysbail("can't chdir to BUILD");
 
     /*
      * Now, check that the right thing happens when we try to connect to a
@@ -119,24 +124,25 @@ main(void)
      * actually allowed, but we know enough about the internals to know that
      * we can get away with it.
      */
-    n = 1;
     r = remctl_new();
-    ok(n++, !remctl_open(r, "127.0.0.1", 14445, NULL));
+    ok(!remctl_open(r, "127.0.0.1", 14445, NULL),
+       "correct connection failure");
     error = remctl_error(r);
-    ok(n++, error != NULL);
+    ok(error != NULL, "...with error");
     if (error != NULL && strchr(error, ':') != NULL) {
         p = strchr(error, ':');
         *p = '\0';
-        ok_string(n++, "cannot connect to 127.0.0.1 (port 14445)", error);
+        is_string("cannot connect to 127.0.0.1 (port 14445)", error,
+                  "...and the correct error");
     } else {
-        ok(n++, 0);
+        ok(0, "...and the correct error");
     }
     remctl_close(r);
 
     /* Unless we have Kerberos available, we can't really do anything else. */
     principal = kerberos_setup();
     if (principal == NULL) {
-        skip_block(n, 5 * 3, "Kerberos tests not configured");
+        skip_block(5 * 3, "Kerberos tests not configured");
         return 0;
     }
 
@@ -150,7 +156,7 @@ main(void)
         r = remctl_new();
         child = fork();
         if (child < 0)
-            sysdie("cannot fork");
+            sysbail("cannot fork");
         else if (child == 0)
             accept_connection(protocol);
         alarm(1);
@@ -160,16 +166,16 @@ main(void)
             select(0, NULL, NULL, NULL, &tv);
         }
         alarm(0);
-        if (!remctl_open(r, "127.0.0.1", 14444, principal)) {
-            warn("open error: %s", remctl_error(r));
-            ok_block(n, 5, 0);
-            n += 5;
+        if (!remctl_open(r, "127.0.0.1", 14373, principal)) {
+            notice("# open error: %s", remctl_error(r));
+            ok_block(5, 0, "protocol %d", protocol);
         } else {
-            ok(n++, 1);
-            ok_int(n++, (protocol < 2) ? 1 : 2, r->protocol);
-            ok_string(n++, r->host, "127.0.0.1");
-            ok_int(n++, r->port, 14444);
-            ok_string(n++, r->principal, principal);
+            ok(1, "remctl_open with protocol %d", protocol);
+            is_int((protocol < 2) ? 1 : 2, r->protocol,
+                   "negotiated correct protocol");
+            is_string(r->host, "127.0.0.1", "host is correct");
+            is_int(r->port, 14373, "port is correct");
+            is_string(r->principal, principal, "principal is correct");
         }
         remctl_close(r);
         waitpid(child, NULL, 0);

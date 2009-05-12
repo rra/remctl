@@ -1,4 +1,4 @@
-dnl snprintf.m4 -- Test for a working C99 snprintf.
+dnl Test for a working C99 snprintf.
 dnl
 dnl Check for a working snprintf.  Some systems have an snprintf that doesn't
 dnl nul-terminate if the buffer isn't large enough.  Others return -1 if the
@@ -10,13 +10,14 @@ dnl Provides RRA_FUNC_SNPRINTF, which adds snprintf.o to LIBOBJS unless a
 dnl fully working snprintf is found.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2006, 2008 Board of Trustees, Leland Stanford Jr. University
+dnl Copyright 2006, 2008, 2009
+dnl     Board of Trustees, Leland Stanford Jr. University
 dnl
 dnl See LICENSE for licensing terms.
 
 dnl Source used by RRA_FUNC_SNPRINTF.
-define([_RRA_FUNC_SNPRINTF_SOURCE],
-[[#include <stdio.h>
+AC_DEFUN([_RRA_FUNC_SNPRINTF_SOURCE], [[
+#include <stdio.h>
 #include <stdarg.h>
 
 char buf[2];
@@ -38,16 +39,17 @@ main()
 {
     return ((test("%s", "abcd") == 4 && buf[0] == 'a' && buf[1] == '\0'
              && snprintf(NULL, 0, "%s", "abcd") == 4) ? 0 : 1);
-}]])
+}
+]])
 
 dnl The user-callable test.
 AC_DEFUN([RRA_FUNC_SNPRINTF],
 [AC_CACHE_CHECK([for working snprintf], [rra_cv_func_snprintf_works],
-    [AC_TRY_RUN(_RRA_FUNC_SNPRINTF_SOURCE(),
+    [AC_RUN_IFELSE([AC_LANG_SOURCE([_RRA_FUNC_SNPRINTF_SOURCE])],
         [rra_cv_func_snprintf_works=yes],
         [rra_cv_func_snprintf_works=no],
         [rra_cv_func_snprintf_works=no])])
-AS_IF([test "$rra_cv_func_snprintf_works" = yes],
+ AS_IF([test "$rra_cv_func_snprintf_works" = yes],
     [AC_DEFINE([HAVE_SNPRINTF], 1,
         [Define if your system has a working snprintf function.])],
     [AC_LIBOBJ([snprintf])])])

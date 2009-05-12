@@ -2,7 +2,7 @@
  * Test suite for malformed commands.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2007, 2009 Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
  */
@@ -15,7 +15,9 @@
 
 #include <client/internal.h>
 #include <client/remctl.h>
-#include <tests/libtest.h>
+#include <tests/tap/basic.h>
+#include <tests/tap/kerberos.h>
+#include <tests/tap/remctl.h>
 #include <util/util.h>
 
 
@@ -23,9 +25,10 @@
  * Send an invalid token to the given remctl connection and verify that it
  * returns the specified error code and string.
  */
-static int
-test_bad_token(int n, const char *principal, const char *data, size_t length,
-               enum error_codes code, const char *message)
+static void
+test_bad_token(const char *principal, const char *data, size_t length,
+               enum error_codes code, const char *message,
+               const char *description)
 {
     struct remctl *r;
     struct remctl_output *output;
@@ -38,35 +41,34 @@ test_bad_token(int n, const char *principal, const char *data, size_t length,
      * the connection.
      */
     r = remctl_new();
-    ok(n++, r != NULL);
-    ok(n++, remctl_open(r, "localhost", 14444, principal));
+    ok(r != NULL, "remctl_new");
+    ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
     token.value = (void *) data;
     token.length = length;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
                              &token, &major, &minor);
-    ok_int(n++, TOKEN_OK, status);
+    is_int(TOKEN_OK, status, "sent token for %s", description);
     if (status != TOKEN_OK) {
         remctl_close(r);
-        ok_block(n, 5, 0);
-        return n + 5;
+        ok_block(5, 0, "testing for %s", description);
     }
     r->ready = 1;
     output = remctl_output(r);
-    ok(n++, output != NULL);
+    ok(output != NULL, "output is not null");
     if (output == NULL) {
         remctl_close(r);
-        ok_block(n, 4, 0);
-        return n + 4;
+        ok_block(4, 0, "testing for %s", description);
     }
-    ok_int(n++, REMCTL_OUT_ERROR, output->type);
-    ok_int(n++, code, output->error);
-    ok_int(n++, strlen(message), output->length);
+    is_int(REMCTL_OUT_ERROR, output->type, "error type");
+    is_int(code, output->error, "right error code for %s", description);
+    is_int(strlen(message), output->length, "right length for %s",
+           description);
     if (output->length <= strlen(message))
-        ok(n++, memcmp(output->data, message, output->length) == 0);
+        ok(memcmp(output->data, message, output->length) == 0,
+           "right data for %s", description);
     else
-        ok(n++, 0);
+        ok(0, "right data for %s", description);
     remctl_close(r);
-    return n;
 }
 
 
@@ -74,8 +76,9 @@ test_bad_token(int n, const char *principal, const char *data, size_t length,
  * Send a chunk of data to the given remctl connection and verify that it
  * returns a bad command error token.  Returns the next test number.
  */
-static int
-test_bad_command(int n, const char *principal, const char *data, size_t length)
+static void
+test_bad_command(const char *principal, const char *data, size_t length,
+                 const char *description)
 {
     char buffer[BUFSIZ];
     size_t buflen;
@@ -84,17 +87,16 @@ test_bad_command(int n, const char *principal, const char *data, size_t length)
     memcpy(buffer, prefix, sizeof(prefix));
     memcpy(buffer + sizeof(prefix), data, length);
     buflen = sizeof(prefix) + length;
-    return test_bad_token(n, principal, buffer, buflen, ERROR_BAD_COMMAND,
-                          "Invalid command token");
+    return test_bad_token(principal, buffer, buflen, ERROR_BAD_COMMAND,
+                          "Invalid command token", description);
 }
 
 
 int
 main(void)
 {
-    char *principal;
+    char *principal, *config, *path;
     pid_t remctld;
-    int n;
     static const char token_message[] = {
         2, 47
     };
@@ -133,38 +135,40 @@ main(void)
         0, 0, 0, 5, 's', 't', 'a', 't', 'u', 's'
     };
 
-    test_init(8 * 8);
-
     /* Unless we have Kerberos available, we can't really do anything. */
+    if (chdir(getenv("SOURCE")) < 0)
+        bail("can't chdir to SOURCE");
     principal = kerberos_setup();
-    if (principal == NULL) {
-        skip_block(1, 8 * 8, "Kerberos tests not configured");
-        return 0;
-    }
-
-    /* Spawn the remctld server. */
-    remctld = spawn_remctld(principal);
-    if (remctld <= 0)
-        die("cannot spawn remctld");
+    if (principal == NULL)
+        skip_all("Kerberos tests not configured");
+    plan(8 * 8);
+    config = concatpath(getenv("SOURCE"), "data/conf-simple");
+    path = concatpath(getenv("BUILD"), "../server/remctld");
+    remctld = remctld_start(path, principal, config);
 
     /* Test basic token errors. */
-    n = 1;
-    n = test_bad_token(n, principal, token_message, sizeof(token_message),
-                       ERROR_UNKNOWN_MESSAGE, "Unknown message");
-    n = test_bad_token(n, principal, token_continue, sizeof(token_continue),
-                       ERROR_BAD_COMMAND, "Invalid command token");
+    test_bad_token(principal, token_message, sizeof(token_message),
+                   ERROR_UNKNOWN_MESSAGE, "Unknown message",
+                   "unknown message");
+    test_bad_token(principal, token_continue, sizeof(token_continue),
+                   ERROR_BAD_COMMAND, "Invalid command token",
+                   "bad command token");
 
     /* Test a bunch of malformatted commands. */
-    n = test_bad_command(n, principal, data_argv0, sizeof(data_argv0));
-    n = test_bad_command(n, principal, data_trunc, sizeof(data_trunc));
-    n = test_bad_command(n, principal, data_trunc_arg, sizeof(data_trunc_arg));
-    n = test_bad_command(n, principal, data_short, sizeof(data_short));
-    n = test_bad_command(n, principal, data_long, sizeof(data_long));
-    n = test_bad_command(n, principal, data_extra, sizeof(data_extra));
+    test_bad_command(principal, data_argv0, sizeof(data_argv0),
+                     "empty command");
+    test_bad_command(principal, data_trunc, sizeof(data_trunc),
+                     "truncated command");
+    test_bad_command(principal, data_trunc_arg, sizeof(data_trunc_arg),
+                     "truncated argument");
+    test_bad_command(principal, data_short, sizeof(data_short),
+                     "missing argument");
+    test_bad_command(principal, data_long, sizeof(data_long),
+                     "extra argument");
+    test_bad_command(principal, data_extra, sizeof(data_extra),
+                     "extra trailing garbage");
 
-    kill(remctld, SIGTERM);
-    waitpid(remctld, NULL, 0);
-    unlink("data/pid");
-
+    remctld_stop(remctld);
+    kerberos_cleanup();
     return 0;
 }

@@ -2,7 +2,7 @@
  * Test suite for environment variables set by the server.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2006, 2009 Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
  */
@@ -15,7 +15,9 @@
 
 #include <client/internal.h>
 #include <client/remctl.h>
-#include <tests/libtest.h>
+#include <tests/tap/basic.h>
+#include <tests/tap/kerberos.h>
+#include <tests/tap/remctl.h>
 #include <util/util.h>
 
 
@@ -32,7 +34,7 @@ test_env(struct remctl *r, const char *variable)
 
     command[2] = variable;
     if (!remctl_command(r, command)) {
-        warn("remctl error %s", remctl_error(r));
+        notice("# remctl error %s", remctl_error(r));
         return NULL;
     }
     do {
@@ -45,7 +47,7 @@ test_env(struct remctl *r, const char *variable)
             if (output->status != 0) {
                 if (value != NULL)
                     free(value);
-                warn("test env returned status %d", output->status);
+                notice("# test env returned status %d", output->status);
                 return NULL;
             }
             if (value == NULL)
@@ -54,13 +56,13 @@ test_env(struct remctl *r, const char *variable)
         case REMCTL_OUT_ERROR:
             if (value != NULL)
                 free(value);
-            warn("test env returned error: %.*s", (int) output->length,
-                 output->data);
+            notice("# test env returned error: %.*s", (int) output->length,
+                   output->data);
             return NULL;
         case REMCTL_OUT_DONE:
             if (value != NULL)
                 free(value);
-            warn("unexpected done token");
+            notice("# unexpected done token");
             return NULL;
         }
     } while (output->type == REMCTL_OUT_OUTPUT);
@@ -71,46 +73,42 @@ test_env(struct remctl *r, const char *variable)
 int
 main(void)
 {
-    char *principal, *expected, *value;
+    char *principal, *config, *path, *expected, *value;
     struct remctl *r;
     pid_t remctld;
 
-    test_init(4);
-
     /* Unless we have Kerberos available, we can't really do anything. */
+    if (chdir(getenv("SOURCE")) < 0)
+        bail("can't chdir to SOURCE");
     principal = kerberos_setup();
-    if (principal == NULL) {
-        skip_block(1, 4, "Kerberos tests not configured");
-        return 0;
-    }
-
-    /* Spawn the remctld server. */
-    remctld = spawn_remctld(principal);
-    if (remctld <= 0)
-        die("cannot spawn remctld");
+    if (principal == NULL)
+        skip_all("Kerberos tests not configured");
+    plan(4);
+    config = concatpath(getenv("SOURCE"), "data/conf-simple");
+    path = concatpath(getenv("BUILD"), "../server/remctld");
+    remctld = remctld_start(path, principal, config);
 
     /* Run the tests. */
     r = remctl_new();
-    if (!remctl_open(r, "localhost", 14444, principal))
-        die("cannot contact remctld");
+    if (!remctl_open(r, "localhost", 14373, principal))
+        bail("cannot contact remctld");
     expected = concat(principal, "\n", NULL);
     value = test_env(r, "REMUSER");
-    ok_string(1, expected, value);
+    is_string(expected, value, "value for REMUSER");
     free(value);
     value = test_env(r, "REMOTE_USER");
-    ok_string(2, expected, value);
+    is_string(expected, value, "value for REMOTE_USER");
     free(value);
     value = test_env(r, "REMOTE_ADDR");
-    ok_string(3, "127.0.0.1\n", value);
+    is_string("127.0.0.1\n", value, "value for REMOTE_ADDR");
     free(value);
     value = test_env(r, "REMOTE_HOST");
-    ok(4, strcmp(value, "\n") == 0 || strstr(value, "localhost") != NULL);
+    ok(strcmp(value, "\n") == 0 || strstr(value, "localhost") != NULL,
+       "value for REMOTE_HOST");
     free(value);
     remctl_close(r);
 
-    kill(remctld, SIGTERM);
-    waitpid(remctld, NULL, 0);
-    unlink("data/pid");
-
+    remctld_stop(remctld);
+    kerberos_cleanup();
     return 0;
 }

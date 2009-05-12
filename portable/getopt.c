@@ -4,7 +4,7 @@
  * This is a replacement implementation for getopt based on the my_getopt
  * distribution by Benjamin Sittler.  Only the getopt interface is included,
  * since remctl doesn't use GNU long options, and the code has been rearranged
- * and reworked somewhat to fit with the remctl coding style.
+ * and reworked somewhat to fit with my coding style.
  *
  * Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
  * Copyright 2008 Russ Allbery <rra@stanford.edu>

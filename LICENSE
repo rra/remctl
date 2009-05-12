@@ -1,7 +1,7 @@
 The remctl package as a whole is:
 
-  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008 Board of Trustees,
-  Leland Stanford Jr. University.  All rights reserved.
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Board of
+  Trustees, Leland Stanford Jr. University.  All rights reserved.
 
 and released under the following license:
 
@@ -28,7 +28,7 @@ all of which are compatible with the above general package license.
 
 Collected copyright notices for the entire package:
 
-  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
       Board of Trustees, Leland Stanford Jr. University
   Copyright 2008 Carnegie Mellon University
   Copyright 2007 Marcus Watts
@@ -61,10 +61,12 @@ tests/portable/strlcat-t.c, tests/portable/strlcpy-t.c,
 tests/util/concat-t.c, tests/util/fakewrite.c, tests/util/messages-t.c,
 tests/util/network-t.c, tests/util/vector-t.c, tests/util/xmalloc.c,
 tests/util/xmalloc-t, tests/util/xwrite-t.c, util/fdflag.c,
-util/messages.c, util/network.c, util/util.h, util/xmalloc.c, and
-util/xwrite.c are released under the following copyright and license:
+util/messages-die.c, util/messages.c, util/network.c, util/util.h,
+util/xmalloc.c, and util/xwrite.c are released under the following
+copyright and license:
 
-  Copyright 2006, 2007, 2008
+  Copyright 2009 Russ Allbery <rra@stanford.edu>
+  Copyright 2006, 2007, 2008, 2009
       Board of Trustees, Leland Stanford Jr. University
   Copyright (c) 2004, 2005, 2006, 2007
       by Internet Systems Consortium, Inc. ("ISC")

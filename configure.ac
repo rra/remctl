@@ -10,12 +10,12 @@ AC_PREREQ([2.61])
 AC_INIT([remctl], [2.13], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
+AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.10])
 AM_MAINTAINER_MODE
 
 AC_PROG_CC
-AC_AIX
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
@@ -63,9 +63,12 @@ RRA_MACRO_IN6_ARE_ADDR_EQUAL
 RRA_MACRO_SA_LEN
 RRA_FUNC_INET_NTOA
 RRA_FUNC_SNPRINTF
+AC_CHECK_FUNCS([getaddrinfo],
+    [RRA_FUNC_GETADDRINFO_ADDRCONFIG],
+    [AC_LIBOBJ([getaddrinfo])])
 AC_CHECK_FUNCS([setrlimit setsid])
-AC_REPLACE_FUNCS([asprintf daemon getaddrinfo getnameinfo getopt inet_aton \
-                  inet_ntop setenv strlcat strlcpy])
+AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
+                  setenv strlcat strlcpy])
 AC_TYPE_SIGNAL
 
 dnl Additional GSS-API portability checks.
@@ -102,10 +105,6 @@ case "$host" in
 esac
 AC_SUBST([VERSION_LDFLAGS])
 
-dnl Set this globally, since we have too many header files that include the
-dnl GSS-API headers even if the code itself doesn't call GSS-API functions.
-CPPFLAGS="$CPPFLAGS $GSSAPI_CPPFLAGS"
-
 dnl Check for the CMU GPUT library.
 RRA_LIB_GPUT
 
@@ -136,7 +135,6 @@ AC_ARG_ENABLE([python],
 AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
 
 AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
-AC_CONFIG_FILES([tests/client/pod-t], [chmod +x tests/client/pod-t])
 AS_IF([test x"$build_perl" = xyes],
     [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])])
 AS_IF([test x"$build_php" = xyes],

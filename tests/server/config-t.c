@@ -11,7 +11,7 @@
 #include <portable/system.h>
 
 #include <server/internal.h>
-#include <tests/libtest.h>
+#include <tests/tap/basic.h>
 #include <util/util.h>
 
 
@@ -20,53 +20,48 @@ main(void)
 {
     struct config *config;
 
-    test_init(33);
-
-    if (access("../data/conf-test", F_OK) == 0)
-        chdir("..");
-    else if (access("tests/data/conf-test", F_OK) == 0)
-        chdir("tests");
-    if (access("data/conf-test", F_OK) != 0)
-        sysdie("cannot find data/conf-test");
+    plan(33);
+    if (chdir(getenv("SOURCE")) < 0)
+        sysbail("can't chdir to SOURCE");
 
     config = server_config_load("data/conf-test");
-    ok(1, config != NULL);
-    ok_int(2, 4, config->count);
+    ok(config != NULL, "config loaded");
+    is_int(4, config->count, "with right count");
 
-    ok_string(3, "test", config->rules[0]->command);
-    ok_string(4, "foo", config->rules[0]->subcommand);
-    ok_string(5, "data/cmd-hello", config->rules[0]->program);
-    ok(6, config->rules[0]->logmask == NULL);
-    ok_string(7, "data/acl-nonexistent", config->rules[0]->acls[0]);
-    ok(8, config->rules[0]->acls[1] == NULL);
+    is_string("test", config->rules[0]->command, "command 1");
+    is_string("foo", config->rules[0]->subcommand, "subcommand 1");
+    is_string("data/cmd-hello", config->rules[0]->program, "program 1");
+    ok(config->rules[0]->logmask == NULL, "logmask 1");
+    is_string("data/acl-nonexistent", config->rules[0]->acls[0], "acl 1");
+    ok(config->rules[0]->acls[1] == NULL, "...and only one acl");
 
-    ok_string(9, "test", config->rules[1]->command);
-    ok_string(10, "bar", config->rules[1]->subcommand);
-    ok_string(11, "data/cmd-hello", config->rules[1]->program);
-    ok_int(12, 1, config->rules[1]->logmask->count);
-    ok_string(13, "4", config->rules[1]->logmask->strings[0]);
-    ok_string(14, "data/acl-nonexistent", config->rules[1]->acls[0]);
-    ok_string(15, "data/acl-no-such-file", config->rules[1]->acls[1]);
-    ok(16, config->rules[1]->acls[2] == NULL);
+    is_string("test", config->rules[1]->command, "command 2");
+    is_string("bar", config->rules[1]->subcommand, "subcommand 2");
+    is_string("data/cmd-hello", config->rules[1]->program, "program 2");
+    is_int(1, config->rules[1]->logmask->count, "logmask 2");
+    is_string("4", config->rules[1]->logmask->strings[0], "...and value");
+    is_string("data/acl-nonexistent", config->rules[1]->acls[0], "acl 2 1");
+    is_string("data/acl-no-such-file", config->rules[1]->acls[1], "acl 2 2");
+    ok(config->rules[1]->acls[2] == NULL, "...and only two acls");
 
-    ok_string(17, "test", config->rules[2]->command);
-    ok_string(18, "baz", config->rules[2]->subcommand);
-    ok_string(19, "data/cmd-hello", config->rules[2]->program);
-    ok_int(20, 3, config->rules[2]->logmask->count);
-    ok_string(21, "4", config->rules[2]->logmask->strings[0]);
-    ok_string(22, "5", config->rules[2]->logmask->strings[1]);
-    ok_string(23, "7", config->rules[2]->logmask->strings[2]);
-    ok_string(24, "ANYUSER", config->rules[2]->acls[0]);
-    ok(25, config->rules[2]->acls[1] == NULL);
+    is_string("test", config->rules[2]->command, "command 3");
+    is_string("baz", config->rules[2]->subcommand, "subcommand 3");
+    is_string("data/cmd-hello", config->rules[2]->program, "program 3");
+    is_int(3, config->rules[2]->logmask->count, "logmask 3");
+    is_string("4", config->rules[2]->logmask->strings[0], "logmask 3 1");
+    is_string("5", config->rules[2]->logmask->strings[1], "logmask 3 2");
+    is_string("7", config->rules[2]->logmask->strings[2], "logmask 3 3");
+    is_string("ANYUSER", config->rules[2]->acls[0], "acl 3");
+    ok(config->rules[2]->acls[1] == NULL, "...and only one acl");
 
-    ok_string(26, "foo", config->rules[3]->command);
-    ok_string(27, "ALL", config->rules[3]->subcommand);
-    ok_string(28, "data/cmd-bar", config->rules[3]->program);
-    ok(29, config->rules[3]->logmask == NULL);
-    ok_string(30, "data/acl-simple", config->rules[3]->acls[0]);
-    ok_string(31, "data/acl-simple", config->rules[3]->acls[1]);
-    ok_string(32, "data/acl-simple", config->rules[3]->acls[187]);
-    ok(33, config->rules[3]->acls[188] == NULL);
+    is_string("foo", config->rules[3]->command, "command 4");
+    is_string("ALL", config->rules[3]->subcommand, "subcommand 4");
+    is_string("data/cmd-bar", config->rules[3]->program, "program 4");
+    ok(config->rules[3]->logmask == NULL, "logmask 4");
+    is_string("data/acl-simple", config->rules[3]->acls[0], "acl 4 1");
+    is_string("data/acl-simple", config->rules[3]->acls[1], "acl 4 2");
+    is_string("data/acl-simple", config->rules[3]->acls[187], "acl 4 188");
+    ok(config->rules[3]->acls[188] == NULL, "...and 188 total ACLs");
 
     return 0;
 }

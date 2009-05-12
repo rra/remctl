@@ -235,8 +235,12 @@ TESTING
   principal in your local domain.  See tests/data/README for instructions
   on what to create and where to place the files.
 
-  If a test case fails, please run that individual test case directly and
-  send me the output when reporting the problem.  Note that on
+  If a test case fails, please run the that individual test case with
+  verbose output using:
+
+      tests/runtests -o <name-of-test>
+
+  and send me the output when reporting the problem.  Note that on
   particularly slow or loaded systems, you may see intermittant failures
   from the server/streaming test because it's timing-sensitive.
 

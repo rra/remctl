@@ -2,7 +2,8 @@
  * Test suite for the server ACL checking.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2008 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2007, 2008, 2009
+ *     Board of Trustees, Leland Stanford Jr. University
  * Copyright 2008 Carnegie Mellon University
  *
  * See LICENSE for licensing terms.
@@ -12,7 +13,8 @@
 #include <portable/system.h>
 
 #include <server/internal.h>
-#include <tests/libtest.h>
+#include <tests/tap/basic.h>
+#include <tests/tap/messages.h>
 #include <util/util.h>
 
 
@@ -22,14 +24,9 @@ main(void)
     struct confline confline = { NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL };
     const char *acls[5];
 
-    test_init(56);
-
-    if (access("../data/acl-simple", F_OK) == 0)
-        chdir("..");
-    else if (access("tests/data/acl-simple", F_OK) == 0)
-        chdir("tests");
-    if (access("data/acl-simple", F_OK) != 0)
-        sysdie("cannot find data/acl-simple");
+    plan(56);
+    if (chdir(getenv("SOURCE")) < 0)
+        sysbail("can't chdir to SOURCE");
 
     confline.file = (char *) "TEST";
     confline.acls = (char **) acls;
@@ -39,87 +36,110 @@ main(void)
     acls[3] = NULL;
     acls[4] = NULL;
 
-    ok(1, server_config_acl_permit(&confline, "rra@example.org"));
-    ok(2, server_config_acl_permit(&confline, "rra@EXAMPLE.COM"));
-    ok(3, server_config_acl_permit(&confline, "cindy@EXAMPLE.COM"));
-    ok(4, server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok(5, server_config_acl_permit(&confline, "test2@EXAMPLE.COM"));
+    ok(server_config_acl_permit(&confline, "rra@example.org"), "simple 1");
+    ok(server_config_acl_permit(&confline, "rra@EXAMPLE.COM"), "simple 2");
+    ok(server_config_acl_permit(&confline, "cindy@EXAMPLE.COM"), "simple 3");
+    ok(server_config_acl_permit(&confline, "test@EXAMPLE.COM"), "simple 4");
+    ok(server_config_acl_permit(&confline, "test2@EXAMPLE.COM"), "simple 5");
 
-    ok(6, !server_config_acl_permit(&confline, "rra@EXAMPLE.ORG"));
-    ok(7, !server_config_acl_permit(&confline, "rra@example.com"));
-    ok(8, !server_config_acl_permit(&confline, "paul@EXAMPLE.COM"));
-    ok(9, !server_config_acl_permit(&confline, "peter@EXAMPLE.COM"));
+    ok(!server_config_acl_permit(&confline, "rra@EXAMPLE.ORG"), "no 1");
+    ok(!server_config_acl_permit(&confline, "rra@example.com"), "no 2");
+    ok(!server_config_acl_permit(&confline, "paul@EXAMPLE.COM"), "no 3");
+    ok(!server_config_acl_permit(&confline, "peter@EXAMPLE.COM"), "no 4");
 
     /* Okay, now capture and check the errors. */
     acls[0] = "data/acl-bad-include";
     acls[1] = "data/acls/valid";
     errors_capture();
-    ok(10, !server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok_string(11, "data/acl-bad-include:1: included file"
-              " data/acl-nosuchfile not found\n", errors);
+    ok(!server_config_acl_permit(&confline, "test@EXAMPLE.COM"),
+       "included file not found");
+    is_string("data/acl-bad-include:1: included file data/acl-nosuchfile"
+              " not found\n", errors, "...and correct error message");
     acls[0] = "data/acl-recursive";
     errors_capture();
-    ok(12, !server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok_string(13, "data/acl-recursive:3: data/acl-recursive recursively"
-              " included\n", errors);
+    ok(!server_config_acl_permit(&confline, "test@EXAMPLE.COM"),
+       "recursive ACL inclusion");
+    is_string("data/acl-recursive:3: data/acl-recursive recursively"
+              " included\n", errors, "...and correct error message");
     acls[0] = "data/acls/valid-2";
     acls[1] = "data/acl-too-long";
     errors_capture();
-    ok(14, server_config_acl_permit(&confline, "test2@EXAMPLE.COM"));
-    ok(15, errors == NULL);
-    ok(16, !server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok_string(17, "data/acl-too-long:1: ACL file line too long\n", errors);
+    ok(server_config_acl_permit(&confline, "test2@EXAMPLE.COM"),
+       "granted access based on first ACL file");
+    ok(errors == NULL, "...with no errors");
+    ok(!server_config_acl_permit(&confline, "test@EXAMPLE.COM"),
+       "...but failed when we hit second file with long line");
+    is_string("data/acl-too-long:1: ACL file line too long\n", errors,
+              "...with correct error message");
     acls[0] = "data/acl-no-such-file";
     acls[1] = "data/acls/valid";
     errors_capture();
-    ok(18, !server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok_string(19, "TEST:0: included file data/acl-no-such-file not found\n",
-              errors);
+    ok(!server_config_acl_permit(&confline, "test@EXAMPLE.COM"),
+       "no such ACL file");
+    is_string("TEST:0: included file data/acl-no-such-file not found\n",
+              errors, "...with correct error message");
     errors_capture();
-    ok(20, !server_config_acl_permit(&confline, "test2@EXAMPLE.COM"));
-    ok_string(21, "TEST:0: included file data/acl-no-such-file not found\n",
-              errors);
+    ok(!server_config_acl_permit(&confline, "test2@EXAMPLE.COM"),
+       "...even with a principal in an ACL file");
+    is_string("TEST:0: included file data/acl-no-such-file not found\n",
+              errors, "...still with right error message");
     acls[0] = "data/acl-bad-syntax";
     errors_capture();
-    ok(22, !server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok_string(23, "data/acl-bad-syntax:2: parse error\n", errors);
+    ok(!server_config_acl_permit(&confline, "test@EXAMPLE.COM"),
+       "incorrect syntax");
+    is_string("data/acl-bad-syntax:2: parse error\n", errors,
+              "...with correct error message");
     errors_uncapture();
 
     /* Check that file: works at the top level. */
     acls[0] = "file:data/acl-simple";
     acls[1] = NULL;
-    ok(24, server_config_acl_permit(&confline, "rra@example.org"));
-    ok(25, !server_config_acl_permit(&confline, "rra@EXAMPLE.ORG"));
+    ok(server_config_acl_permit(&confline, "rra@example.org"),
+       "file: success");
+    ok(!server_config_acl_permit(&confline, "rra@EXAMPLE.ORG"),
+       "file: failure");
 
     /* Check that include syntax works. */
-    ok(26, server_config_acl_permit(&confline, "incfile@EXAMPLE.ORG"));
-    ok(27, server_config_acl_permit(&confline, "incfdir@EXAMPLE.ORG"));
-    ok(28, server_config_acl_permit(&confline, "explicit@EXAMPLE.COM"));
-    ok(29, server_config_acl_permit(&confline, "direct@EXAMPLE.COM"));
-    ok(30, server_config_acl_permit(&confline, "good@EXAMPLE.ORG"));
-    ok(31, !server_config_acl_permit(&confline, "evil@EXAMPLE.ORG"));
+    ok(server_config_acl_permit(&confline, "incfile@EXAMPLE.ORG"),
+       "include 1");
+    ok(server_config_acl_permit(&confline, "incfdir@EXAMPLE.ORG"),
+       "include 2");
+    ok(server_config_acl_permit(&confline, "explicit@EXAMPLE.COM"),
+       "include 3");
+    ok(server_config_acl_permit(&confline, "direct@EXAMPLE.COM"),
+       "include 4");
+    ok(server_config_acl_permit(&confline, "good@EXAMPLE.ORG"),
+       "include 5");
+    ok(!server_config_acl_permit(&confline, "evil@EXAMPLE.ORG"),
+       "include failure");
 
     /* Check that princ: works at the top level. */
     acls[0] = "princ:direct@EXAMPLE.NET";
-    ok(32, server_config_acl_permit(&confline, "direct@EXAMPLE.NET"));
-    ok(33, !server_config_acl_permit(&confline, "wrong@EXAMPLE.NET"));
+    ok(server_config_acl_permit(&confline, "direct@EXAMPLE.NET"),
+       "princ: success");
+    ok(!server_config_acl_permit(&confline, "wrong@EXAMPLE.NET"),
+       "princ: failure");
 
     /* Check that deny: works at the top level. */
     acls[0] = "deny:princ:evil@EXAMPLE.NET";
     acls[1] = "princ:good@EXAMPLE.NET";
     acls[2] = "princ:evil@EXAMPLE.NET";
     acls[3] = NULL;
-    ok(34, server_config_acl_permit(&confline, "good@EXAMPLE.NET"));
-    ok(35, !server_config_acl_permit(&confline, "evil@EXAMPLE.NET"));
+    ok(server_config_acl_permit(&confline, "good@EXAMPLE.NET"),
+       "deny: success");
+    ok(!server_config_acl_permit(&confline, "evil@EXAMPLE.NET"),
+       "deny: failure");
 
     /* And make sure deny interacts correctly with files. */
     acls[0] = "data/acl-simple";
     acls[1] = "princ:evil@EXAMPLE.NET";
     acls[2] = NULL;
-    ok(36, !server_config_acl_permit(&confline, "evil@EXAMPLE.NET"));
+    ok(!server_config_acl_permit(&confline, "evil@EXAMPLE.NET"),
+       "deny in file beats later princ");
     acls[0] = "deny:princ:rra@example.org";
     acls[1] = "data/acl-simple";
-    ok(37, !server_config_acl_permit(&confline, "rra@example.org"));
+    ok(!server_config_acl_permit(&confline, "rra@example.org"),
+       "deny overrides later file");
 
     /*
      * Ensure deny never affirmatively grants access, so deny:deny: matches
@@ -127,8 +147,10 @@ main(void)
      */
     acls[0] = "deny:deny:princ:rra@example.org";
     acls[1] = "data/acl-simple";
-    ok(38, server_config_acl_permit(&confline, "rra@example.org"));
-    ok(39, server_config_acl_permit(&confline, "rra@EXAMPLE.COM"));
+    ok(server_config_acl_permit(&confline, "rra@example.org"),
+       "deny:deny does nothing");
+    ok(server_config_acl_permit(&confline, "rra@EXAMPLE.COM"),
+       "deny:deny doesn't break anything");
 
     /*
      * Denying a file denies anything that would match the file, and nothing
@@ -139,16 +161,21 @@ main(void)
     acls[2] = "princ:evil@EXAMPLE.ORG";
     acls[3] = "princ:evil@EXAMPLE.NET";
     acls[4] = NULL;
-    ok(40, !server_config_acl_permit(&confline, "explicit@EXAMPLE.COM"));
-    ok(41, server_config_acl_permit(&confline, "evil@EXAMPLE.ORG"));
-    ok(42, server_config_acl_permit(&confline, "evil@EXAMPLE.NET"));
+    ok(!server_config_acl_permit(&confline, "explicit@EXAMPLE.COM"),
+       "deny of a file works");
+    ok(server_config_acl_permit(&confline, "evil@EXAMPLE.ORG"),
+       "...and doesn't break anything");
+    ok(server_config_acl_permit(&confline, "evil@EXAMPLE.NET"),
+       "...and deny inside a denied file is ignored");
 
     /* Check for an invalid ACL scheme. */
     acls[0] = "ihateyou:verymuch";
     acls[1] = "data/acls/valid";
     errors_capture();
-    ok(43, !server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok_string(44, "TEST:0: invalid ACL scheme 'ihateyou'\n", errors);
+    ok(!server_config_acl_permit(&confline, "test@EXAMPLE.COM"),
+       "invalid ACL scheme");
+    is_string("TEST:0: invalid ACL scheme 'ihateyou'\n", errors,
+              "...with correct error");
     errors_uncapture();
 
     /*
@@ -159,30 +186,40 @@ main(void)
     acls[0] = "gput:test";
     acls[1] = NULL;
 #ifdef HAVE_GPUT
-    ok(45, server_config_acl_permit(&confline, "priv@EXAMPLE.ORG"));
-    ok(46, !server_config_acl_permit(&confline, "nonpriv@EXAMPLE.ORG"));
-    ok(47, !server_config_acl_permit(&confline, "priv@EXAMPLE.NET"));
+    ok(server_config_acl_permit(&confline, "priv@EXAMPLE.ORG"), "GPUT 1");
+    ok(!server_config_acl_permit(&confline, "nonpriv@EXAMPLE.ORG"), "GPUT 2");
+    ok(!server_config_acl_permit(&confline, "priv@EXAMPLE.NET"), "GPUT 3");
     acls[0] = "gput:test[%@EXAMPLE.NET]";
-    ok(48, server_config_acl_permit(&confline, "priv@EXAMPLE.NET"));
-    ok(49, !server_config_acl_permit(&confline, "nonpriv@EXAMPLE.NET"));
-    ok(50, !server_config_acl_permit(&confline, "priv@EXAMPLE.ORG"));
+    ok(server_config_acl_permit(&confline, "priv@EXAMPLE.NET"),
+       "GPUT with transform 1");
+    ok(!server_config_acl_permit(&confline, "nonpriv@EXAMPLE.NET"),
+       "GPUT with transform 2");
+    ok(!server_config_acl_permit(&confline, "priv@EXAMPLE.ORG"),
+       "GPUT with transform 3");
 #else
     errors_capture();
-    ok(45, !server_config_acl_permit(&confline, "priv@EXAMPLE.ORG"));
-    ok_string(46, "TEST:0: ACL scheme 'gput' is not supported\n", errors);
+    ok(!server_config_acl_permit(&confline, "priv@EXAMPLE.ORG"), "GPUT");
+    is_string("TEST:0: ACL scheme 'gput' is not supported\n", errors,
+              "...with not supported error");
     errors_uncapture();
-    skip_block(47, 4, "GPUT support not configured");
+    skip_block(4, "GPUT support not configured");
 #endif
 
     /* Test for valid characters in ACL files. */
     acls[0] = "file:data/acls";
     acls[1] = NULL;
-    ok(51, server_config_acl_permit(&confline, "upcase@EXAMPLE.ORG"));
-    ok(52, server_config_acl_permit(&confline, "test@EXAMPLE.COM"));
-    ok(53, server_config_acl_permit(&confline, "test2@EXAMPLE.COM"));
-    ok(54, !server_config_acl_permit(&confline, "hash@EXAMPLE.ORG"));
-    ok(55, !server_config_acl_permit(&confline, "period@EXAMPLE.ORG"));
-    ok(56, !server_config_acl_permit(&confline, "tilde@EXAMPLE.ORG"));
+    ok(server_config_acl_permit(&confline, "upcase@EXAMPLE.ORG"),
+       "valid chars 1");
+    ok(server_config_acl_permit(&confline, "test@EXAMPLE.COM"),
+       "valid chars 2");
+    ok(server_config_acl_permit(&confline, "test2@EXAMPLE.COM"),
+       "valid chars 3");
+    ok(!server_config_acl_permit(&confline, "hash@EXAMPLE.ORG"),
+       "invalid chars 1");
+    ok(!server_config_acl_permit(&confline, "period@EXAMPLE.ORG"),
+       "invalid chars 2");
+    ok(!server_config_acl_permit(&confline, "tilde@EXAMPLE.ORG"),
+       "invalid chars 3");
 
     return 0;
 }

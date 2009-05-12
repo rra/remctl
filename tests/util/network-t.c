@@ -1,25 +1,14 @@
 /*
  * network test suite.
  *
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2009 Board of Trustees, Leland Stanford Jr. University
  * Copyright (c) 2004, 2005, 2006, 2007
  *     by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
  *     2002, 2003 by The Internet Software Consortium and Rich Salz
  *
- * This code is derived from software contributed to the Internet Software
- * Consortium by Rich Salz.
- *
- * Permission to use, copy, modify, and distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
- * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
- * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
- * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
+ * See LICENSE for licensing terms.
  */
 
 #include <config.h>
@@ -30,7 +19,7 @@
 #include <errno.h>
 #include <sys/wait.h>
 
-#include <tests/libtest.h>
+#include <tests/tap/basic.h>
 #include <util/util.h>
 
 /* Set this globally to 0 if IPv6 is available but doesn't work. */
@@ -41,8 +30,8 @@ static int ipv6 = 1;
  * connection, making sure what is printed on that connection matches what the
  * client is supposed to print.
  */
-static int
-listener(int fd, int n)
+static void
+listener(int fd)
 {
     int client;
     FILE *out;
@@ -51,20 +40,17 @@ listener(int fd, int n)
     client = accept(fd, NULL, NULL);
     close(fd);
     if (client < 0) {
-        syswarn("cannot accept connection from socket");
-        ok_block(n, 2, 0);
-        return n + 2;
+        sysnotice("# cannot accept connection from socket");
+        ok_block(2, 0, "...socket read test");
     }
-    ok(n++, 1);
+    ok(1, "...socket accept");
     out = fdopen(client, "r");
     if (fgets(buffer, sizeof(buffer), out) == NULL) {
-        syswarn("cannot read from socket");
-        ok(n++, 0);
-        return n;
+        sysnotice("# cannot read from socket");
+        ok(0, "...socket read");
     }
-    ok_string(n++, "socket test\r\n", buffer);
+    is_string("socket test\r\n", buffer, "...socket read");
     fclose(out);
-    return n;
 }
 
 
@@ -96,33 +82,30 @@ client(const char *host, const char *source)
  * to it via IPv4.  Takes an optional source address to use for client
  * connections.
  */
-static int
-test_ipv4(int n, const char *source)
+static void
+test_ipv4(const char *source)
 {
     int fd;
     pid_t child;
 
     fd = network_bind_ipv4("127.0.0.1", 11119);
     if (fd < 0)
-        sysdie("cannot create or bind socket");
+        sysbail("cannot create or bind socket");
     if (listen(fd, 1) < 0) {
-        syswarn("cannot listen to socket");
-        ok(n++, 0);
-        ok(n++, 0);
-        ok(n++, 0);
+        sysnotice("# cannot listen to socket");
+        ok_block(3, 0, "IPv4 server test");
     } else {
-        ok(n++, 1);
+        ok(1, "IPv4 server test");
         child = fork();
         if (child < 0)
-            sysdie("cannot fork");
+            sysbail("cannot fork");
         else if (child == 0)
             client("127.0.0.1", source);
         else {
-            n = listener(fd, n);
+            listener(fd);
             waitpid(child, NULL, 0);
         }
     }
-    return n;
 }
 
 
@@ -132,8 +115,8 @@ test_ipv4(int n, const char *source)
  * connections.
  */
 #ifdef HAVE_INET6
-static int
-test_ipv6(int n, const char *source)
+static void
+test_ipv6(const char *source)
 {
     int fd;
     pid_t child;
@@ -143,35 +126,31 @@ test_ipv6(int n, const char *source)
         if (errno == EAFNOSUPPORT || errno == EPROTONOSUPPORT
             || errno == EADDRNOTAVAIL) {
             ipv6 = 0;
-            skip_block(n, 3, "IPv6 not supported");
-            return n + 3;
+            skip_block(3, "IPv6 not supported");
         } else
-            sysdie("cannot create socket");
+            sysbail("cannot create socket");
     }
     if (listen(fd, 1) < 0) {
-        syswarn("cannot listen to socket");
-        ok_block(n, 3, 0);
-        n += 3;
+        sysnotice("# cannot listen to socket");
+        ok_block(3, 0, "IPv6 server test");
     } else {
-        ok(n++, 1);
+        ok(1, "IPv6 server test");
         child = fork();
         if (child < 0)
-            sysdie("cannot fork");
+            sysbail("cannot fork");
         else if (child == 0)
             client("::1", source);
         else {
-            n = listener(fd, n);
+            listener(fd);
             waitpid(child, NULL, 0);
         }
     }
-    return n;
 }
 #else /* !HAVE_INET6 */
-static int
-test_ipv6(int n, const char *source UNUSED)
+static void
+test_ipv6(const char *source UNUSED)
 {
-    skip_block(n, 3, "IPv6 not supported");
-    return n + 3;
+    skip_block(3, "IPv6 not supported");
 }
 #endif /* !HAVE_INET6 */
 
@@ -181,8 +160,8 @@ test_ipv6(int n, const char *source UNUSED)
  * via all of the available protocols.  Takes an optional source address to
  * use for client connections.
  */
-static int
-test_all(int n, const char *source_ipv4, const char *source_ipv6)
+static void
+test_all(const char *source_ipv4, const char *source_ipv6)
 {
     int *fds, count, fd, i;
     pid_t child;
@@ -191,75 +170,66 @@ test_all(int n, const char *source_ipv4, const char *source_ipv6)
 
     network_bind_all(11119, &fds, &count);
     if (count == 0)
-        sysdie("cannot create or bind socket");
+        sysbail("cannot create or bind socket");
     if (count > 2) {
-        warn("got more than two sockets, using just the first two");
+        notice("# got more than two sockets, using just the first two");
         count = 2;
     }
     for (i = 0; i < count; i++) {
         fd = fds[i];
         if (listen(fd, 1) < 0) {
-            syswarn("cannot listen to socket %d", fd);
-            ok_block(n, 3, 0);
-            n += 3;
+            sysnotice("# cannot listen to socket %d", fd);
+            ok_block(3, 0, "all address server test");
         } else {
-            ok(n++, 1);
+            ok(1, "all address server test (part %d)", i);
             child = fork();
             if (child < 0)
-                sysdie("cannot fork");
+                sysbail("cannot fork");
             else if (child == 0) {
                 if (getsockname(fd, (struct sockaddr *) &saddr, &size) < 0)
-                    sysdie("cannot getsockname");
+                    sysbail("cannot getsockname");
                 if (saddr.ss_family == AF_INET)
                     client("127.0.0.1", source_ipv4);
 #ifdef HAVE_INET6
                 else if (saddr.ss_family == AF_INET6)
                     client("::1", source_ipv6);
 #endif
-                else {
-                    warn("unknown socket family %d", saddr.ss_family);
-                    skip_block(n, 2, "unknown socket family");
-                    n += 2;
-                }
+                else
+                    skip_block(2, "unknown socket family %d", saddr.ss_family);
                 size = sizeof(saddr);
             } else {
-                n = listener(fd, n);
+                listener(fd);
                 waitpid(child, NULL, 0);
             }
         }
     }
-    if (count == 1) {
-        skip_block(n, 3, "only one listening socket");
-        n += 3;
-    }
-    return n;
+    if (count == 1)
+        skip_block(3, "only one listening socket");
 }
 
 
 /*
  * Bring up a server on port 11119 on the loopback address and test connecting
- * to it via IPv4 using network_connect_sockaddr.  Takes an optional source
+ * to it via IPv4 using network_client_create.  Takes an optional source
  * address to use for client connections.
  */
-static int
-test_create_ipv4(int n, const char *source)
+static void
+test_create_ipv4(const char *source)
 {
     int fd;
     pid_t child;
 
     fd = network_bind_ipv4("127.0.0.1", 11119);
     if (fd < 0)
-        sysdie("cannot create or bind socket");
+        sysbail("cannot create or bind socket");
     if (listen(fd, 1) < 0) {
-        syswarn("cannot listen to socket");
-        ok(n++, 0);
-        ok(n++, 0);
-        ok(n++, 0);
+        sysnotice("# cannot listen to socket");
+        ok_block(3, 0, "IPv4 network client");
     } else {
-        ok(n++, 1);
+        ok(1, "IPv4 network client");
         child = fork();
         if (child < 0)
-            sysdie("cannot fork");
+            sysbail("cannot fork");
         else if (child == 0) {
             struct sockaddr_in sin;
             FILE *out;
@@ -279,32 +249,31 @@ test_create_ipv4(int n, const char *source)
             fclose(out);
             _exit(0);
         } else {
-            n = listener(fd, n);
+            listener(fd);
             waitpid(child, NULL, 0);
         }
     }
-    return n;
 }
 
 
 /*
- * Tests network_addr_compare.  Takes the test number, the expected result,
- * the two addresses, and the mask.
+ * Tests network_addr_compare.  Takes the expected result, the two addresses,
+ * and the mask.
  */
 static void
-ok_addr(int n, int expected, const char *a, const char *b, const char *mask)
+ok_addr(int expected, const char *a, const char *b, const char *mask)
 {
     if (expected)
-        ok(n, network_addr_match(a, b, mask));
+        ok(network_addr_match(a, b, mask), "compare %s %s %s", a, b, mask);
     else
-        ok(n, !network_addr_match(a, b, mask));
+        ok(!network_addr_match(a, b, mask), "compare %s %s %s", a, b, mask);
 }
 
 
 int
 main(void)
 {
-    int n, status;
+    int status;
     struct addrinfo *ai, *ai4;
     struct addrinfo hints;
     char addr[INET6_ADDRSTRLEN];
@@ -316,7 +285,7 @@ main(void)
     static const char *ipv6_addr = "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210";
 #endif
 
-    test_init(87);
+    plan(87);
 
     /*
      * If IPv6 support appears to be available but doesn't work, we have to
@@ -324,26 +293,22 @@ main(void)
      * can't connect to.  This is the case on Solaris 8 without IPv6
      * configured.
      */
-    n = test_ipv4(1, NULL);                     /* Tests  1-3.  */
-    n = test_ipv6(n, NULL);                     /* Tests  4-6.  */
+    test_ipv4(NULL);
+    test_ipv6(NULL);
     if (ipv6)
-        n = test_all(n, NULL, NULL);            /* Tests  7-12. */
-    else {
-        skip_block(n, 6, "IPv6 not configured");
-        n += 6;
-    }
-    n = test_create_ipv4(n, NULL);              /* Tests 13-15. */
+        test_all(NULL, NULL);
+    else
+        skip_block(6, "IPv6 not configured");
+    test_create_ipv4(NULL);
 
     /* This won't make a difference for loopback connections. */
-    n = test_ipv4(n, "127.0.0.1");              /* Tests 16-18. */
-    n = test_ipv6(n, "::1");                    /* Tests 19-21. */
+    test_ipv4("127.0.0.1");
+    test_ipv6("::1");
     if (ipv6)
-        n = test_all(n, "127.0.0.1", "::1");    /* Tests 22-27. */
-    else {
-        skip_block(n, 6, "IPv6 not configured");
-        n += 6;
-    }
-    n = test_create_ipv4(n, "127.0.0.1");       /* Tests 28-30. */
+        test_all("127.0.0.1", "::1");
+    else
+        skip_block(6, "IPv6 not configured");
+    test_create_ipv4("127.0.0.1");
 
     /*
      * Now, test network_sockaddr_sprint, network_sockaddr_equal, and
@@ -354,98 +319,113 @@ main(void)
     hints.ai_socktype = SOCK_STREAM;
     status = getaddrinfo("127.0.0.1", port, &hints, &ai4);
     if (status != 0)
-        die("getaddrinfo on 127.0.0.1 failed: %s", gai_strerror(status));
-    ok(31, network_sockaddr_sprint(addr, sizeof(addr), ai4->ai_addr));
-    ok_string(32, "127.0.0.1", addr);
-    ok_int(33, 119, network_sockaddr_port(ai4->ai_addr));
-    ok(34, network_sockaddr_equal(ai4->ai_addr, ai4->ai_addr));
+        bail("getaddrinfo on 127.0.0.1 failed: %s", gai_strerror(status));
+    ok(network_sockaddr_sprint(addr, sizeof(addr), ai4->ai_addr),
+       "sprint of 127.0.0.1");
+    is_string("127.0.0.1", addr, "...with right results");
+    is_int(119, network_sockaddr_port(ai4->ai_addr),
+           "sockaddr_port");
+    ok(network_sockaddr_equal(ai4->ai_addr, ai4->ai_addr), "sockaddr_equal");
     status = getaddrinfo("127.0.0.2", NULL, &hints, &ai);
     if (status != 0)
-        die("getaddrinfo on 127.0.0.2 failed: %s", gai_strerror(status));
-    ok(35, !network_sockaddr_equal(ai->ai_addr, ai4->ai_addr));
-    ok(36, !network_sockaddr_equal(ai4->ai_addr, ai->ai_addr));
+        bail("getaddrinfo on 127.0.0.2 failed: %s", gai_strerror(status));
+    ok(!network_sockaddr_equal(ai->ai_addr, ai4->ai_addr),
+       "sockaddr_equal of unequal addresses");
+    ok(!network_sockaddr_equal(ai4->ai_addr, ai->ai_addr),
+       "...and the other way around");
 
     /* The same for IPv6. */
 #ifdef HAVE_INET6
     status = getaddrinfo(ipv6_addr, port, &hints, &ai6);
     if (status != 0)
-        sysdie("getaddr on %s failed", ipv6_addr);
-    ok(37, network_sockaddr_sprint(addr, sizeof(addr), ai6->ai_addr));
+        bail("getaddr on %s failed: %s", ipv6_addr, gai_strerror(status));
+    ok(network_sockaddr_sprint(addr, sizeof(addr), ai6->ai_addr),
+       "sprint of IPv6 address");
     for (p = addr; *p != '\0'; p++)
         if (islower((unsigned char) *p))
             *p = toupper((unsigned char) *p);
-    ok_string(38, ipv6_addr, addr);
-    ok_int(39, 119, network_sockaddr_port(ai6->ai_addr));
-    ok(40, network_sockaddr_equal(ai6->ai_addr, ai6->ai_addr));
-    ok(41, !network_sockaddr_equal(ai4->ai_addr, ai6->ai_addr));
-    ok(42, !network_sockaddr_equal(ai6->ai_addr, ai4->ai_addr));
+    is_string(ipv6_addr, addr, "...with right results");
+    is_int(119, network_sockaddr_port(ai6->ai_addr), "sockaddr_port IPv6");
+    ok(network_sockaddr_equal(ai6->ai_addr, ai6->ai_addr),
+       "sockaddr_equal IPv6");
+    ok(!network_sockaddr_equal(ai4->ai_addr, ai6->ai_addr),
+       "...and not equal to IPv4");
+    ok(!network_sockaddr_equal(ai6->ai_addr, ai4->ai_addr),
+       "...other way around");
 
     /* Test IPv4 mapped addresses. */
     status = getaddrinfo("::ffff:7f00:1", NULL, &hints, &ai6);
     if (status != 0)
-        sysdie("getaddr on ::ffff:7f00:1 failed");
-    ok(43, network_sockaddr_sprint(addr, sizeof(addr), ai6->ai_addr));
-    ok_string(44, "127.0.0.1", addr);
-    ok(45, network_sockaddr_equal(ai4->ai_addr, ai6->ai_addr));
-    ok(46, network_sockaddr_equal(ai6->ai_addr, ai4->ai_addr));
-    ok(47, !network_sockaddr_equal(ai->ai_addr, ai6->ai_addr));
-    ok(48, !network_sockaddr_equal(ai6->ai_addr, ai->ai_addr));
+        bail("getaddr on ::ffff:7f00:1 failed: %s", gai_strerror(status));
+    ok(network_sockaddr_sprint(addr, sizeof(addr), ai6->ai_addr),
+       "sprint of IPv4-mapped address");
+    is_string("127.0.0.1", addr, "...with right IPv4 result");
+    ok(network_sockaddr_equal(ai4->ai_addr, ai6->ai_addr),
+       "sockaddr_equal of IPv4-mapped address");
+    ok(network_sockaddr_equal(ai6->ai_addr, ai4->ai_addr),
+       "...and other way around");
+    ok(!network_sockaddr_equal(ai->ai_addr, ai6->ai_addr),
+       "...but not some other address");
+    ok(!network_sockaddr_equal(ai6->ai_addr, ai->ai_addr),
+       "...and the other way around");
     freeaddrinfo(ai6);
 #else
-    skip_block(37, 12, "IPv6 not supported");
+    skip_block(12, "IPv6 not supported");
 #endif
 
     /* Check the domains of functions and their error handling. */
     ai4->ai_addr->sa_family = AF_UNIX;
-    ok(49, !network_sockaddr_equal(ai4->ai_addr, ai4->ai_addr));
-    ok_int(50, 0, network_sockaddr_port(ai4->ai_addr));
+    ok(!network_sockaddr_equal(ai4->ai_addr, ai4->ai_addr),
+       "equal not equal with address mismatches");
+    is_int(0, network_sockaddr_port(ai4->ai_addr),
+           "port meaningless for AF_UNIX");
 
     /* Tests for network_addr_compare. */
-    ok_addr(51, 1, "127.0.0.1", "127.0.0.1",   NULL);
-    ok_addr(52, 0, "127.0.0.1", "127.0.0.2",   NULL);
-    ok_addr(53, 1, "127.0.0.1", "127.0.0.0",   "31");
-    ok_addr(54, 0, "127.0.0.1", "127.0.0.0",   "32");
-    ok_addr(55, 0, "127.0.0.1", "127.0.0.0",   "255.255.255.255");
-    ok_addr(56, 1, "127.0.0.1", "127.0.0.0",   "255.255.255.254");
-    ok_addr(57, 1, "10.10.4.5", "10.10.4.255", "24");
-    ok_addr(58, 0, "10.10.4.5", "10.10.4.255", "25");
-    ok_addr(59, 1, "10.10.4.5", "10.10.4.255", "255.255.255.0");
-    ok_addr(60, 0, "10.10.4.5", "10.10.4.255", "255.255.255.128");
-    ok_addr(61, 0, "129.0.0.0", "1.0.0.0",     "1");
-    ok_addr(62, 1, "129.0.0.0", "1.0.0.0",     "0");
-    ok_addr(63, 1, "129.0.0.0", "1.0.0.0",     "0.0.0.0");
+    ok_addr(1, "127.0.0.1", "127.0.0.1",   NULL);
+    ok_addr(0, "127.0.0.1", "127.0.0.2",   NULL);
+    ok_addr(1, "127.0.0.1", "127.0.0.0",   "31");
+    ok_addr(0, "127.0.0.1", "127.0.0.0",   "32");
+    ok_addr(0, "127.0.0.1", "127.0.0.0",   "255.255.255.255");
+    ok_addr(1, "127.0.0.1", "127.0.0.0",   "255.255.255.254");
+    ok_addr(1, "10.10.4.5", "10.10.4.255", "24");
+    ok_addr(0, "10.10.4.5", "10.10.4.255", "25");
+    ok_addr(1, "10.10.4.5", "10.10.4.255", "255.255.255.0");
+    ok_addr(0, "10.10.4.5", "10.10.4.255", "255.255.255.128");
+    ok_addr(0, "129.0.0.0", "1.0.0.0",     "1");
+    ok_addr(1, "129.0.0.0", "1.0.0.0",     "0");
+    ok_addr(1, "129.0.0.0", "1.0.0.0",     "0.0.0.0");
 
     /* Try some IPv6 addresses. */
 #ifdef HAVE_INET6
-    ok_addr(64, 1, ipv6_addr,   ipv6_addr,     NULL);
-    ok_addr(65, 1, ipv6_addr,   ipv6_addr,     "128");
-    ok_addr(66, 1, ipv6_addr,   ipv6_addr,     "60");
-    ok_addr(67, 1, "::127",     "0:0::127",    "128");
-    ok_addr(68, 1, "::127",     "0:0::128",    "120");
-    ok_addr(69, 0, "::127",     "0:0::128",    "128");
-    ok_addr(70, 0, "::7fff",    "0:0::8000",   "113");
-    ok_addr(71, 1, "::7fff",    "0:0::8000",   "112");
-    ok_addr(72, 0, "::3:ffff",  "::2:ffff",    "120");
-    ok_addr(73, 0, "::3:ffff",  "::2:ffff",    "119");
-    ok_addr(74, 0, "ffff::1",   "7fff::1",     "1");
-    ok_addr(75, 1, "ffff::1",   "7fff::1",     "0");
-    ok_addr(76, 0, "fffg::1",   "fffg::1",     NULL);
-    ok_addr(77, 0, "ffff::1",   "7fff::1",     "-1");
-    ok_addr(78, 0, "ffff::1",   "ffff::1",     "-1");
-    ok_addr(79, 0, "ffff::1",   "ffff::1",     "129");
+    ok_addr(1, ipv6_addr,   ipv6_addr,     NULL);
+    ok_addr(1, ipv6_addr,   ipv6_addr,     "128");
+    ok_addr(1, ipv6_addr,   ipv6_addr,     "60");
+    ok_addr(1, "::127",     "0:0::127",    "128");
+    ok_addr(1, "::127",     "0:0::128",    "120");
+    ok_addr(0, "::127",     "0:0::128",    "128");
+    ok_addr(0, "::7fff",    "0:0::8000",   "113");
+    ok_addr(1, "::7fff",    "0:0::8000",   "112");
+    ok_addr(0, "::3:ffff",  "::2:ffff",    "120");
+    ok_addr(0, "::3:ffff",  "::2:ffff",    "119");
+    ok_addr(0, "ffff::1",   "7fff::1",     "1");
+    ok_addr(1, "ffff::1",   "7fff::1",     "0");
+    ok_addr(0, "fffg::1",   "fffg::1",     NULL);
+    ok_addr(0, "ffff::1",   "7fff::1",     "-1");
+    ok_addr(0, "ffff::1",   "ffff::1",     "-1");
+    ok_addr(0, "ffff::1",   "ffff::1",     "129");
 #else
-    skip_block(64, 16, "IPv6 not supported");
+    skip_block(16, "IPv6 not supported");
 #endif
 
     /* Test some invalid addresses. */
-    ok_addr(80, 0, "fred",      "fred",        NULL);
-    ok_addr(81, 0, "",          "",            NULL);
-    ok_addr(82, 0, "",          "",            "0");
-    ok_addr(83, 0, "127.0.0.1", "127.0.0.1",   "pete");
-    ok_addr(84, 0, "127.0.0.1", "127.0.0.1",   "1p");
-    ok_addr(85, 0, "127.0.0.1", "127.0.0.1",   "1p");
-    ok_addr(86, 0, "127.0.0.1", "127.0.0.1",   "-1");
-    ok_addr(87, 0, "127.0.0.1", "127.0.0.1",   "33");
+    ok_addr(0, "fred",      "fred",        NULL);
+    ok_addr(0, "",          "",            NULL);
+    ok_addr(0, "",          "",            "0");
+    ok_addr(0, "127.0.0.1", "127.0.0.1",   "pete");
+    ok_addr(0, "127.0.0.1", "127.0.0.1",   "1p");
+    ok_addr(0, "127.0.0.1", "127.0.0.1",   "1p");
+    ok_addr(0, "127.0.0.1", "127.0.0.1",   "-1");
+    ok_addr(0, "127.0.0.1", "127.0.0.1",   "33");
 
     return 0;
 }

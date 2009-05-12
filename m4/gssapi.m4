@@ -1,31 +1,23 @@
 dnl gssapi.m4 -- Find the compiler and linker flags for GSS-API.
 dnl
-dnl Finds the compiler and linker flags for linking with GSS-API libraries
-dnl and sets the substitution variables GSSAPI_CPPFLAGS, GSSAPI_LDFLAGS, and
-dnl GSSAPI_LIBS.  Provides the --with-gssapi configure option to specify a
-dnl non-standard path to the GSS-API libraries.  Uses krb5-config where
-dnl available unless reduced dependencies is requested.
+dnl Finds the compiler and linker flags for linking with GSS-API libraries.
+dnl Provides the --with-gssapi, --with-gssapi-include, and --with-gssapi-lib
+dnl configure option to specify a non-standard path to the GSS-API libraries.
+dnl Uses krb5-config where available unless reduced dependencies is requested.
 dnl
 dnl Provides the macro RRA_LIB_GSSAPI and sets the substitution variables
 dnl GSSAPI_CPPFLAGS, GSSAPI_LDFLAGS, and GSSAPI_LIBS.  Also provides
-dnl RRA_LIB_GSSAPI_SET to set CPPFLAGS, LDFLAGS, and LIBS to include the
-dnl GSS-API libraries; RRA_LIB_GSSAPI_SWITCH to do the same but save the
-dnl current values first; and RRA_LIB_GSSAPI_RESTORE to restore those settings
-dnl to before the last RRA_LIB_GSSAPI_SWITCH.
+dnl RRA_LIB_GSSAPI_SWITCH to set CPPFLAGS, LDFLAGS, and LIBS to include the
+dnl GSS-API libraries, saving the ecurrent values, and RRA_LIB_GSSAPI_RESTORE
+dnl to restore those settings to before the last RRA_LIB_GSSAPI_SWITCH.
 dnl
 dnl Depends on RRA_ENABLE_REDUCED_DEPENDS and RRA_SET_LDFLAGS.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2005, 2006, 2007, 2008
+dnl Copyright 2005, 2006, 2007, 2008, 2009
 dnl     Board of Trustees, Leland Stanford Jr. University
 dnl
 dnl See LICENSE for licensing terms.
-
-dnl Set CPPFLAGS, LDFLAGS, and LIBS to values including the GSS-API settings.
-AC_DEFUN([RRA_LIB_GSSAPI_SET],
-[CPPFLAGS="$GSSAPI_CPPFLAGS $CPPFLAGS"
- LDFLAGS="$GSSAPI_LDFLAGS $LDFLAGS"
- LIBS="$GSSAPI_LIBS $LIBS"])
 
 dnl Save the current CPPFLAGS, LDFLAGS, and LIBS settings and switch to
 dnl versions that include the GSS-API flags.  Used as a wrapper, with
@@ -34,7 +26,9 @@ AC_DEFUN([RRA_LIB_GSSAPI_SWITCH],
 [rra_gssapi_save_CPPFLAGS="$CPPFLAGS"
  rra_gssapi_save_LDFLAGS="$LDFLAGS"
  rra_gssapi_save_LIBS="$LIBS"
- RRA_LIB_GSSAPI_SET])
+ CPPFLAGS="$GSSAPI_CPPFLAGS $CPPFLAGS"
+ LDFLAGS="$GSSAPI_LDFLAGS $LDFLAGS"
+ LIBS="$GSSAPI_LIBS $LIBS"])
 
 dnl Restore CPPFLAGS, LDFLAGS, and LIBS to their previous values (before
 dnl RRA_LIB_GSSAPI_SWITCH was called).
@@ -47,7 +41,7 @@ dnl Set GSSAPI_CPPFLAGS and GSSAPI_LDFLAGS based on rra_gssapi_root,
 dnl rra_gssapi_libdir, and rra_gssapi_includedir.
 AC_DEFUN([_RRA_LIB_GSSAPI_PATHS],
 [AS_IF([test x"$rra_gssapi_libdir" != x],
-    [GSSAPI_LDFLAGS="-I$rra_gssapi_libdir"],
+    [GSSAPI_LDFLAGS="-L$rra_gssapi_libdir"],
     [AS_IF([test x"$rra_gssapi_root" != x],
         [RRA_SET_LDFLAGS([GSSAPI_LDFLAGS], [$rra_gssapi_root])])])
  AS_IF([test x"$rra_gssapi_includedir" != x],
