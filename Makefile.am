@@ -150,7 +150,7 @@ install-data-hook:
 	$(LN_S) remctl_command.3 $(DESTDIR)$(man3dir)/remctl_commandv.3
 
 CLEANFILES = docs/remctld.8 stamp-python
-DISTCLEANFILES = perl/Makefile python/MANIFEST tests/client/pod-t
+DISTCLEANFILES = perl/Makefile python/MANIFEST
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
 	build-aux/config.guess build-aux/config.sub build-aux/depcomp \
 	build-aux/install-sh build-aux/ltmain.sh build-aux/missing \
