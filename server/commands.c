@@ -243,8 +243,6 @@ server_run_command(struct client *client, struct config *config,
     command = xstrndup(argv[0]->iov_base, argv[0]->iov_len);
     if (argv[1] != NULL)
         subcommand = xstrndup(argv[1]->iov_base, argv[1]->iov_len);
-    else
-        subcommand = NULL;
 
     /*
      * Look up the command and the ACL file from the conf file structure in
@@ -263,10 +261,6 @@ server_run_command(struct client *client, struct config *config,
         }
     }
 
-    /* From this point on, subcommand is used only for logging. */
-    if (subcommand == NULL)
-        subcommand = xstrdup("(null)");
-
     /* Log after we look for command so we can get potentially get logmask. */
     server_log_command(argv, path == NULL ? NULL : cline, user);
 
@@ -275,14 +269,16 @@ server_run_command(struct client *client, struct config *config,
      * run this command.
      */
     if (path == NULL) {
-        notice("unknown command %s %s from user %s", command, subcommand,
-               user);
+        notice("unknown command %s%s%s from user %s", command,
+               (subcommand == NULL) ? "" : " ",
+               (subcommand == NULL) ? "" : subcommand, user);
         server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
         goto done;
     }
     if (!server_config_acl_permit(cline, user)) {
-        notice("access denied: user %s, command %s %s", user, command,
-               subcommand);
+        notice("access denied: user %s, command %s%s%s", user, command,
+               (subcommand == NULL) ? "" : " ",
+               (subcommand == NULL) ? "" : subcommand);
         server_send_error(client, ERROR_ACCESS, "Access denied");
         goto done;
     }
@@ -435,10 +431,10 @@ server_run_command(struct client *client, struct config *config,
     }
 
  done:
-    if (subcommand != NULL)
-        free(subcommand);
     if (command != NULL)
         free(command);
+    if (subcommand != NULL)
+        free(subcommand);
     if (req_argv != NULL) {
         i = 1;
         while (req_argv[i] != NULL) {
