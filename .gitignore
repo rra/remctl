@@ -73,6 +73,7 @@
 /tests/server/env-t
 /tests/server/errors-t
 /tests/server/invalid-t
+/tests/server/logging-t
 /tests/server/streaming-t
 /tests/server/version-t
 /tests/util/concat-t

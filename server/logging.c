@@ -89,7 +89,7 @@ server_log_command(struct vector *argv, struct confline *cline,
         command = vector_join(argv, " ");
     else {
         masked = cvector_new();
-        for (i = 1; i < argv->count; i++) {
+        for (i = 0; i < argv->count; i++) {
             arg = argv->strings[i];
             for (j = cline->logmask; *j != 0; j++) {
                 if (*j == i) {
