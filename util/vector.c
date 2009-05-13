@@ -124,6 +124,24 @@ cvector_add(struct cvector *vector, const char *string)
 
 
 /*
+ * Add a new counted string to the vector, resizing the vector as necessary
+ * the same as with vector_add.  This function is only available for vectors,
+ * not cvectors, since it requires the duplication of the input string to be
+ * sure it's nul-terminated.
+ */
+void
+vector_addn(struct vector *vector, const char *string, size_t length)
+{
+    size_t next = vector->count;
+
+    if (vector->count == vector->allocated)
+        vector_resize(vector, vector->allocated + 1);
+    vector->strings[next] = xstrndup(string, length);
+    vector->count++;
+}
+
+
+/*
  * Empty a vector but keep the allocated memory for the pointer table.
  */
 void

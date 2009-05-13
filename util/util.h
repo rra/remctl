@@ -285,6 +285,9 @@ struct cvector *cvector_new(void);
 void vector_add(struct vector *, const char *string);
 void cvector_add(struct cvector *, const char *string);
 
+/* Add a counted string to a vector.  Only available for vectors. */
+void vector_addn(struct vector *, const char *string, size_t length);
+
 /*
  * Resize the array of strings to hold size entries.  Saves reallocation work
  * in vector_add if it's known in advance how many entries there will be.

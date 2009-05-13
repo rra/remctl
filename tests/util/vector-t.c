@@ -35,7 +35,7 @@ main(void)
     char *p;
     pid_t child;
 
-    plan(89);
+    plan(95);
 
     vector = vector_new();
     ok(vector != NULL, "vector_new returns non-NULL");
@@ -49,6 +49,10 @@ main(void)
     vector_add(vector, cstring);
     is_int(4, vector->allocated, "...and no reallocation when adding strings");
     is_int(4, vector->count, "...and the count matches");
+    is_string(cstring, vector->strings[0], "added the right string");
+    is_string(cstring, vector->strings[1], "added the right string");
+    is_string(cstring, vector->strings[2], "added the right string");
+    is_string(cstring, vector->strings[3], "added the right string");
     ok(vector->strings[1] != vector->strings[2], "each pointer is different");
     ok(vector->strings[2] != vector->strings[3], "each pointer is different");
     ok(vector->strings[3] != vector->strings[0], "each pointer is different");
@@ -64,6 +68,9 @@ main(void)
     vector_resize(vector, 1);
     is_int(1, vector->count, "vector_resize shrinks the vector");
     ok(vector->strings[0] != cstring, "...and the pointer is different");
+    vector_addn(vector, cstring, 4);
+    is_int(2, vector->count, "vector_addn increments count");
+    is_string("This", vector->strings[1], "...and adds the right data");
     vector_free(vector);
     free(string);
 
