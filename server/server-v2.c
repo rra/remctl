@@ -5,7 +5,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -15,6 +15,7 @@
 #include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/uio.h>
 
 #include <server/internal.h>
 #include <util/util.h>
@@ -211,7 +212,7 @@ server_v2_handle_token(struct client *client, struct config *config,
 {
     char *p;
     size_t length, total;
-    struct vector *argv = NULL;
+    struct iovec **argv = NULL;
     char *buffer = NULL;
     int status;
     OM_uint32 minor;
@@ -299,6 +300,7 @@ server_v2_handle_token(struct client *client, struct config *config,
 
     /* We have a command.  Now do the heavy lifting. */
     server_run_command(client, config, argv);
+    server_free_command(argv);
     return !client->fatal;
 }
 

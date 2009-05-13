@@ -11,6 +11,14 @@ remctl 2.14 (unreleased)
     Declare message_fatal_cleanup extern in util.h.  Fixes compilation
     problems on Mac OS X and probably elsewhere.
 
+    Diagnose and explicitly reject on the server nul characters in command
+    arguments that don't support them rather than truncating the argument
+    silently.
+
+    Plug several memory leaks in the remctld server.  (These would have
+    little practical effect unless a client stayed connected and issued
+    multiple commands.)
+
     Add initial protocol version three draft in docs/protocol-v3.
 
     Better check logmask options when parsing the server configuration

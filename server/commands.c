@@ -14,6 +14,7 @@
 
 #include <config.h>
 #include <portable/system.h>
+#include <portable/uio.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -200,15 +201,16 @@ fail:
  */
 void
 server_run_command(struct client *client, struct config *config,
-                   struct vector *argv)
+                   struct iovec **argv)
 {
     char *program;
     char *path = NULL;
-    const char *command, *subcommand;
+    char *command = NULL;
+    char *subcommand = NULL;
     struct confline *cline = NULL;
     int stdout_pipe[2], stderr_pipe[2];
     char **req_argv = NULL;
-    size_t i;
+    size_t count, i;
     bool ok;
     int fd;
     struct process process = { 0, { 0, 0 }, -1, 0 };
@@ -218,15 +220,31 @@ server_run_command(struct client *client, struct config *config,
      * We need at least one argument.  This is also rejected earlier when
      * parsing the command and checking argc, but may as well be sure.
      */
-    if (argv->count == 0) {
+    if (argv[0] == NULL) {
         notice("empty command from user %s", user);
         server_send_error(client, ERROR_BAD_COMMAND, "Invalid command token");
         goto done;
     }
 
+    /*
+     * Neither the command nor the subcommand may ever contain nuls.
+     * Currently, none of the arguments may either.
+     */
+    for (i = 0; argv[i] != NULL; i++) {
+        if (memchr(argv[i]->iov_base, '\0', argv[i]->iov_len)) {
+            notice("argument %d from user %s contains nul octet", i, user);
+            server_send_error(client, ERROR_BAD_COMMAND,
+                              "Invalid command token");
+            goto done;
+        }
+    }
+
     /* We refer to these a lot, so give them good aliases. */
-    command = argv->strings[0];
-    subcommand = (argv->count > 1) ? argv->strings[1] : NULL;
+    command = xstrndup(argv[0]->iov_base, argv[0]->iov_len);
+    if (argv[1] != NULL)
+        subcommand = xstrndup(argv[1]->iov_base, argv[1]->iov_len);
+    else
+        subcommand = NULL;
 
     /*
      * Look up the command and the ACL file from the conf file structure in
@@ -247,7 +265,7 @@ server_run_command(struct client *client, struct config *config,
 
     /* From this point on, subcommand is used only for logging. */
     if (subcommand == NULL)
-        subcommand = "(null)";
+        subcommand = xstrdup("(null)");
 
     /* Log after we look for command so we can get potentially get logmask. */
     server_log_command(argv, path == NULL ? NULL : cline, user);
@@ -269,8 +287,10 @@ server_run_command(struct client *client, struct config *config,
         goto done;
     }
 
-    /* Assemble the argv, envp, and fork off the child to run the command. */
-    req_argv = xmalloc((argv->count + 1) * sizeof(char *));
+    /* Get ready to assemble the argv of the command. */
+    for (count = 0; argv[count] != NULL; count++)
+        ;
+    req_argv = xmalloc((count + 1) * sizeof(char *));
 
     /*
      * Get the real program name, and use it as the first argument in argv
@@ -281,9 +301,12 @@ server_run_command(struct client *client, struct config *config,
         program = path;
     else
         program++;
-    req_argv[0] = strdup(program);
-    for (i = 1; i < argv->count; i++) {
-        req_argv[i] = strdup(argv->strings[i]);
+    req_argv[0] = program;
+    for (i = 1; i < count; i++) {
+        if (argv[i]->iov_len == 0)
+            req_argv[i] = xstrdup("");
+        else
+            req_argv[i] = xstrndup(argv[i]->iov_base, argv[i]->iov_len);
     }
     req_argv[i] = NULL;
 
@@ -412,12 +435,34 @@ server_run_command(struct client *client, struct config *config,
     }
 
  done:
+    if (subcommand != NULL)
+        free(subcommand);
+    if (command != NULL)
+        free(command);
     if (req_argv != NULL) {
-        i = 0;
-        while (req_argv[i] != '\0') {
+        i = 1;
+        while (req_argv[i] != NULL) {
             free(req_argv[i]);
             i++;
         }
         free(req_argv);
     }
+}
+
+
+/*
+ * Free a command, represented as a NULL-terminated array of pointers to iovec
+ * structs.
+ */
+void
+server_free_command(struct iovec **command)
+{
+    struct iovec **arg;
+
+    for (arg = command; *arg != NULL; arg++) {
+        if ((*arg)->iov_base != NULL)
+            free((*arg)->iov_base);
+        free(*arg);
+    }
+    free(command);
 }

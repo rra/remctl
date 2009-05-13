@@ -18,6 +18,9 @@
 
 #include <util/util.h>
 
+/* Forward declarations to avoid extra includes. */
+struct iovec;
+
 /*
  * Used as the default max buffer for the argv passed into the server, and for 
  * the return message from the server.
@@ -69,7 +72,7 @@ struct config {
 /* Logging functions. */
 void warn_gssapi(const char *, OM_uint32 major, OM_uint32 minor);
 void warn_token(const char *, int status, OM_uint32 major, OM_uint32 minor);
-void server_log_command(struct vector *, struct confline *, const char *user);
+void server_log_command(struct iovec **, struct confline *, const char *user);
 
 /* Configuration file functions. */
 struct config *server_config_load(const char *file);
@@ -78,12 +81,15 @@ bool server_config_acl_permit(struct confline *, const char *user);
 void server_config_set_gput_file(char *file);
 
 /* Running commands. */
-void server_run_command(struct client *, struct config *, struct vector *);
+void server_run_command(struct client *, struct config *, struct iovec **);
+
+/* Freeing the command structure. */
+void server_free_command(struct iovec **);
 
 /* Generic protocol functions. */
 struct client *server_new_client(int fd, gss_cred_id_t creds);
 void server_free_client(struct client *);
-struct vector *server_parse_command(struct client *, const char *, size_t);
+struct iovec **server_parse_command(struct client *, const char *, size_t);
 bool server_send_error(struct client *, enum error_codes, const char *);
 
 /* Protocol v1 functions. */

@@ -7,7 +7,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -17,6 +17,7 @@
 #include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/uio.h>
 
 #include <server/internal.h>
 #include <util/util.h>
@@ -72,7 +73,7 @@ server_v1_handle_commands(struct client *client, struct config *config)
 {
     gss_buffer_desc token;
     OM_uint32 major, minor;
-    struct vector *argv = NULL;
+    struct iovec **argv = NULL;
     int status, flags;
 
     /* Receive the message. */
@@ -110,4 +111,5 @@ server_v1_handle_commands(struct client *client, struct config *config)
      * possible, and accumulate the output in the client struct.
      */
     server_run_command(client, config, argv);
+    server_free_command(argv);
 }

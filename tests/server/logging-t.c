@@ -9,6 +9,7 @@
 
 #include <config.h>
 #include <portable/system.h>
+#include <portable/uio.h>
 
 #include <server/internal.h>
 #include <tests/tap/basic.h>
@@ -20,16 +21,24 @@ int
 main(void)
 {
     struct confline confline = { NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL };
-    struct vector *command;
+    struct iovec **command;
+    int i;
 
     plan(4);
 
     /* Simple command. */
-    command = vector_new();
-    vector_add(command, "foo");
-    vector_add(command, "bar");
-    vector_add(command, "arg1");
-    vector_add(command, "arg2");
+    command = xcalloc(5, sizeof(struct iovec *));
+    for (i = 0; i < 5; i++)
+        command[i] = xmalloc(sizeof(struct iovec));
+    command[0]->iov_base = xstrdup("foo");
+    command[0]->iov_len = strlen("foo");
+    command[1]->iov_base = xstrdup("bar");
+    command[1]->iov_len = strlen("bar");
+    command[2]->iov_base = xstrdup("arg1");
+    command[2]->iov_len = strlen("arg1");
+    command[3]->iov_base = xstrdup("arg2");
+    command[3]->iov_len = strlen("arg2");
+    command[4] = NULL;
     errors_capture();
     server_log_command(command, &confline, "test@EXAMPLE.ORG");
     is_string("COMMAND from test@EXAMPLE.ORG: foo bar arg1 arg2\n", errors,

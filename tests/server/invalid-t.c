@@ -134,6 +134,22 @@ main(void)
         0, 0, 0, 4, 't', 'e', 's', 't',
         0, 0, 0, 5, 's', 't', 'a', 't', 'u', 's'
     };
+    static const char data_nul_command[] = {
+        0, 0, 0, 2,
+        0, 0, 0, 4, 't', '\0','s', 't',
+        0, 0, 0, 6, 's', 't', 'a', 't', 'u', 's'
+    };
+    static const char data_nul_sub[] = {
+        0, 0, 0, 2,
+        0, 0, 0, 4, 't', 'e', 's', 't',
+        0, 0, 0, 6, 's', 't', 'a', 't', 'u', '\0'
+    };
+    static const char data_nul_argument[] = {
+        0, 0, 0, 3,
+        0, 0, 0, 4, 't', 'e', 's', 't',
+        0, 0, 0, 6, 's', 't', 'a', 't', 'u', 's',
+        0, 0, 0, 1, '\0'
+    };
 
     /* Unless we have Kerberos available, we can't really do anything. */
     if (chdir(getenv("SOURCE")) < 0)
@@ -141,7 +157,7 @@ main(void)
     principal = kerberos_setup();
     if (principal == NULL)
         skip_all("Kerberos tests not configured");
-    plan(8 * 8);
+    plan(11 * 8);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
     remctld = remctld_start(path, principal, config);
@@ -167,6 +183,12 @@ main(void)
                      "extra argument");
     test_bad_command(principal, data_extra, sizeof(data_extra),
                      "extra trailing garbage");
+    test_bad_command(principal, data_nul_command, sizeof(data_nul_command),
+                     "nul in command");
+    test_bad_command(principal, data_nul_sub, sizeof(data_nul_sub),
+                     "nul in subcommand");
+    test_bad_command(principal, data_nul_argument, sizeof(data_nul_argument),
+                     "nul in argument");
 
     remctld_stop(remctld);
     kerberos_cleanup();

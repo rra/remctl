@@ -16,6 +16,7 @@
 #include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/uio.h>
 
 #include <errno.h>
 
@@ -76,32 +77,32 @@ warn_token(const char *error, int status, OM_uint32 major, OM_uint32 minor)
  * matched the command, and the principal running the command.
  */
 void
-server_log_command(struct vector *argv, struct confline *cline,
+server_log_command(struct iovec **argv, struct confline *cline,
                    const char *user)
 {
     char *command;
     unsigned int i;
     unsigned int *j;
-    struct cvector *masked;
+    struct vector *masked;
     const char *arg;
 
-    if (cline == NULL || cline->logmask == NULL)
-        command = vector_join(argv, " ");
-    else {
-        masked = cvector_new();
-        for (i = 0; i < argv->count; i++) {
-            arg = argv->strings[i];
+    masked = vector_new();
+    for (i = 0; argv[i] != NULL; i++) {
+        arg = NULL;
+        if (cline != NULL && cline->logmask != NULL)
             for (j = cline->logmask; *j != 0; j++) {
                 if (*j == i) {
                     arg = "**MASKED**";
                     break;
                 }
             }
-            cvector_add(masked, arg);
-        }
-        command = cvector_join(masked, " ");
-        cvector_free(masked);
+        if (arg != NULL)
+            vector_add(masked, arg);
+        else
+            vector_addn(masked, argv[i]->iov_base, argv[i]->iov_len);
     }
+    command = vector_join(masked, " ");
+    vector_free(masked);
     notice("COMMAND from %s: %s", user, command);
     free(command);
 }
