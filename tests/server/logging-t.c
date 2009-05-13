@@ -24,14 +24,22 @@ main(void)
     struct iovec **command;
     int i;
 
-    plan(4);
+    plan(5);
 
-    /* Simple command. */
+    /* Command without subcommand. */
     command = xcalloc(5, sizeof(struct iovec *));
-    for (i = 0; i < 5; i++)
-        command[i] = xmalloc(sizeof(struct iovec));
+    command[0] = xmalloc(sizeof(struct iovec));
     command[0]->iov_base = xstrdup("foo");
     command[0]->iov_len = strlen("foo");
+    command[1] = NULL;
+    errors_capture();
+    server_log_command(command, &confline, "test@EXAMPLE.ORG");
+    is_string("COMMAND from test@EXAMPLE.ORG: foo\n", errors,
+              "command without subcommand logging");
+
+    /* Simple command. */
+    for (i = 1; i < 5; i++)
+        command[i] = xmalloc(sizeof(struct iovec));
     command[1]->iov_base = xstrdup("bar");
     command[1]->iov_len = strlen("bar");
     command[2]->iov_base = xstrdup("arg1");
