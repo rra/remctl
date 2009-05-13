@@ -12,7 +12,24 @@
 
 #include <server/internal.h>
 #include <tests/tap/basic.h>
+#include <tests/tap/messages.h>
 #include <util/util.h>
+
+
+/*
+ * Test for correct handling of a configuration error.  Takes the name of the
+ * error configuration file to load and the expected error output.
+ */
+static void
+test_error(const char *file, const char *expected)
+{
+    struct config *config;
+
+    errors_capture();
+    config = server_config_load(file);
+    ok(config == NULL, "%s failed", file);
+    is_string(expected, errors, "...with the right error");
+}
 
 
 int
@@ -20,7 +37,7 @@ main(void)
 {
     struct config *config;
 
-    plan(33);
+    plan(43);
     if (chdir(getenv("SOURCE")) < 0)
         sysbail("can't chdir to SOURCE");
 
@@ -62,6 +79,20 @@ main(void)
     is_string("data/acl-simple", config->rules[3]->acls[1], "acl 4 2");
     is_string("data/acl-simple", config->rules[3]->acls[187], "acl 4 188");
     ok(config->rules[3]->acls[188] == NULL, "...and 188 total ACLs");
+
+    /* Now test for errors. */
+    test_error("data/configs/bad-option-1",
+               "data/configs/bad-option-1:1: unknown option unknown=yes\n");
+    test_error("data/configs/bad-logmask-1",
+               "data/configs/bad-logmask-1:1: invalid logmask parameter"
+               " 1foo\n");
+    test_error("data/configs/bad-logmask-2",
+               "data/configs/bad-logmask-2:1: invalid logmask parameter 0\n");
+    test_error("data/configs/bad-logmask-3",
+               "data/configs/bad-logmask-3:1: invalid logmask parameter"
+               " biteme\n");
+    test_error("data/configs/bad-logmask-4",
+               "data/configs/bad-logmask-4:1: invalid logmask parameter -1\n");
 
     return 0;
 }
