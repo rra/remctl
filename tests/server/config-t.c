@@ -38,8 +38,8 @@ main(void)
     is_string("test", config->rules[1]->command, "command 2");
     is_string("bar", config->rules[1]->subcommand, "subcommand 2");
     is_string("data/cmd-hello", config->rules[1]->program, "program 2");
-    is_int(1, config->rules[1]->logmask->count, "logmask 2");
-    is_string("4", config->rules[1]->logmask->strings[0], "...and value");
+    is_int(4, config->rules[1]->logmask[0], "logmask 2");
+    is_int(0, config->rules[1]->logmask[1], "...and only one logmask");
     is_string("data/acl-nonexistent", config->rules[1]->acls[0], "acl 2 1");
     is_string("data/acl-no-such-file", config->rules[1]->acls[1], "acl 2 2");
     ok(config->rules[1]->acls[2] == NULL, "...and only two acls");
@@ -47,10 +47,10 @@ main(void)
     is_string("test", config->rules[2]->command, "command 3");
     is_string("baz", config->rules[2]->subcommand, "subcommand 3");
     is_string("data/cmd-hello", config->rules[2]->program, "program 3");
-    is_int(3, config->rules[2]->logmask->count, "logmask 3");
-    is_string("4", config->rules[2]->logmask->strings[0], "logmask 3 1");
-    is_string("5", config->rules[2]->logmask->strings[1], "logmask 3 2");
-    is_string("7", config->rules[2]->logmask->strings[2], "logmask 3 3");
+    is_int(4, config->rules[2]->logmask[0], "logmask 3 1");
+    is_int(5, config->rules[2]->logmask[1], "logmask 3 2");
+    is_int(7, config->rules[2]->logmask[2], "logmask 3 3");
+    is_int(0, config->rules[2]->logmask[3], "...and three logmask values");
     is_string("ANYUSER", config->rules[2]->acls[0], "acl 3");
     ok(config->rules[2]->acls[1] == NULL, "...and only one acl");
 

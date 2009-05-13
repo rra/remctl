@@ -80,7 +80,8 @@ server_log_command(struct vector *argv, struct confline *cline,
                    const char *user)
 {
     char *command;
-    unsigned int i, j;
+    unsigned int i;
+    unsigned int *j;
     struct cvector *masked;
     const char *arg;
 
@@ -88,10 +89,10 @@ server_log_command(struct vector *argv, struct confline *cline,
         command = vector_join(argv, " ");
     else {
         masked = cvector_new();
-        for (i = 0; i < argv->count; i++) {
+        for (i = 1; i < argv->count; i++) {
             arg = argv->strings[i];
-            for (j = 0; j < cline->logmask->count; j++) {
-                if (atoi(cline->logmask->strings[j]) == (int) i) {
+            for (j = cline->logmask; *j != 0; j++) {
+                if (*j == i) {
                     arg = "**MASKED**";
                     break;
                 }

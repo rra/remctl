@@ -13,6 +13,11 @@ remctl 2.14 (unreleased)
 
     Add initial protocol version three draft in docs/protocol-v3.
 
+    Better check logmask options when parsing the server configuration
+    file and report errors instead of silently ignoring them.  Masking the
+    command is also no longer supported (it previously worked by
+    accident).
+
     Update to rra-c-util 1.0:
 
     * Fix open call parameters in daemon portability test.

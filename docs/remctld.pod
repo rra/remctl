@@ -171,11 +171,15 @@ combination.  (See examples below.)
 
 Limit logging of command arguments.  Any argument listed in the logmask
 list will have its value logged as "**MASKED**".  This is to avoid logging
-the arguments of commands that take privileged information.
+the arguments of commands that take private information such as passwords.
+The logmask list should contain argument numbers separated by commas, with
+the I<subcommand> considered argument 1.  The I<command> argument cannot
+be masked.
 
-For example, if the command is C<admin passwd {username} {passwd}>, then
-you'd want to set logmask to C<3>, so the password argument gets logged as
-C<**MASKED**>.
+For example, if the command is C<admin passwd I<username> I<password>>,
+then you'd want to set logmask to C<3>, so the password argument gets
+logged as C<**MASKED**>.  If the command is C<user passwd I<username>
+I<old-password> I<new-password>>, you'd want to set logmask to C<3,4>.
 
 =item I<acl>
 

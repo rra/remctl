@@ -55,7 +55,7 @@ struct confline {
     char *command;              /* Command (first argument). */
     char *subcommand;           /* Subcommand (second argument). */
     char *program;              /* Full file name of executable. */
-    struct cvector *logmask;    /* What args to mask in the log, if any. */
+    unsigned int *logmask;      /* Zero-terminated list of args to mask. */
     char **acls;                /* Full file names of ACL files. */
 };
 

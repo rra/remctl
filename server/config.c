@@ -18,6 +18,7 @@
 
 #include <ctype.h>
 #include <dirent.h>
+#include <errno.h>
 #include <sys/stat.h>
 
 #include <server/internal.h>
@@ -40,6 +41,13 @@ enum config_status {
     CONFIG_NOMATCH = -1,
     CONFIG_ERROR   = -2,
     CONFIG_DENY    = -3
+};
+
+/* Holds information about parsing configuration options. */
+struct config_option {
+    const char *name;
+    enum config_status (*parse)(struct confline *, char *option,
+                                const char *file, size_t lineno);
 };
 
 /* Holds information about ACL schemes */
@@ -157,6 +165,107 @@ handle_include(const char *included, const char *file, int lineno,
 
 
 /*
+ * Check whether a given string is an option setting.  An option setting must
+ * start with a letter and consists of one or more alphanumerics or hyphen (-)
+ * followed by an equal sign (=) and at least one additional character.
+ */
+static bool
+is_option(const char *option)
+{
+    const char *p;
+
+    if (!isalpha((unsigned int) *option))
+        return false;
+    for (p = option; *p != '\0'; p++) {
+        if (*p == '=' && p > option && p[1] != '\0')
+            return true;
+        if (!isalnum((unsigned int) *p) && *p != '-')
+            return false;
+    }
+    return false;
+}
+
+
+/*
+ * Parse the logmask configuration option.  Verifies the listed argument
+ * numbers, stores them in the configuration line struct, and returns
+ * CONFIG_SUCCESS on success and CONFIG_ERROR on error.
+ */
+static enum config_status
+option_logmask(struct confline *confline, char *value, const char *name,
+               size_t lineno)
+{
+    struct cvector *logmask;
+    size_t i;
+    long arg;
+    char *end;
+
+    logmask = cvector_split(value, ',', NULL);
+    if (confline->logmask != NULL)
+        free(confline->logmask);
+    confline->logmask = xcalloc(logmask->count + 1, sizeof(unsigned int));
+    for (i = 0; i < logmask->count; i++) {
+        errno = 0;
+        arg = strtol(logmask->strings[i], &end, 10);
+        if (errno != 0 || *end != '\0' || arg <= 0) {
+            warn("%s:%lu: invalid logmask parameter %s", name,
+                 (unsigned long) lineno, logmask->strings[i]);
+            free(confline->logmask);
+            confline->logmask = NULL;
+            return CONFIG_ERROR;
+        }
+        confline->logmask[i] = arg;
+    }
+    confline->logmask[i] = 0;
+    cvector_free(logmask);
+    return CONFIG_SUCCESS;
+}
+
+
+/*
+ * The table relating configuration option names to functions.
+ */
+static const struct config_option options[] = {
+    { "logmask", option_logmask },
+    { NULL,      NULL           }
+};
+
+
+/*
+ * Parse a configuration option.  This is something after the command but
+ * before the ACLs that contains an equal sign.  The configuration option is
+ * the part before the equals and the value is the part afterwards.  Takes the
+ * configuration line, the option string, the file name, and the line number,
+ * and stores data in the configuration line struct as needed.
+ *
+ * Returns CONFIG_SUCCESS on success and CONFIG_ERROR on error, reporting an
+ * error message.
+ */
+static enum config_status
+parse_conf_option(struct confline *confline, char *option, const char *name,
+                  size_t lineno)
+{
+    char *end;
+    size_t length;
+    const struct config_option *handler;
+
+    end = strchr(option, '=');
+    if (end == NULL) {
+        warn("%s:%lu: invalid option %s", name, (unsigned long) lineno,
+             option);
+        return CONFIG_ERROR;
+    }
+    length = end - option;
+    for (handler = options; handler->name != NULL; handler++)
+        if (strlen(handler->name) == length)
+            if (strncmp(handler->name, option, length) == 0)
+                return (handler->parse)(confline, end + 1, name, lineno);
+    warn("%s:%lu: unknown option %s", name, (unsigned long) lineno, option);
+    return CONFIG_ERROR;
+}
+
+
+/*
  * Reads the configuration file and parses every line, populating a data
  * structure that will be traversed on each request to translate a command
  * into an executable path and ACL file.
@@ -180,7 +289,7 @@ read_conf_file(void *data, const char *name)
 {
     struct config *config = data;
     FILE *file;
-    char *buffer, *p;
+    char *buffer, *p, *option;
     size_t bufsize, length, size, count, i, arg_i;
     enum config_status s;
     struct vector *line = NULL;
@@ -281,15 +390,16 @@ read_conf_file(void *data, const char *name)
         confline->program    = line->strings[2];
 
         /*
-         * Change this to a while vline->string[n] has an "=" in it to support
-         * multiple x=y options.
+         * Parse config options.
          */
-        if (strncmp(line->strings[3], "logmask=", 8) == 0) {
-            confline->logmask = cvector_new();
-            cvector_split(line->strings[3] + 8, ',', confline->logmask);
-            arg_i = 4;
-        } else
-            arg_i = 3;
+        for (arg_i = 3; arg_i < line->count; arg_i++) {
+            option = line->strings[arg_i];
+            if (!is_option(option))
+                break;
+            s = parse_conf_option(confline, option, name, lineno);
+            if (s != CONFIG_SUCCESS)
+                goto fail;
+        }
 
         /*
          * One more syntax error possibility here: a line that only has a
@@ -329,7 +439,7 @@ fail:
         vector_free(line);
     if (confline != NULL) {
         if (confline->logmask != NULL)
-            cvector_free(confline->logmask);
+            free(confline->logmask);
         free(confline);
     }
     free(buffer);
@@ -589,9 +699,9 @@ acl_check_gput(const char *user, const char *data, const char *file,
 
 
 /*
- * The table relating ACL scheme names to files.  The first two ACL schemes
- * must remain in their current slots or the index constants set at the top of
- * the file need to change.
+ * The table relating ACL scheme names to functions.  The first two ACL
+ * schemes must remain in their current slots or the index constants set at
+ * the top of the file need to change.
  */
 static const struct acl_scheme schemes[] = {
     { "file",  acl_check_file  },
@@ -680,7 +790,7 @@ server_config_free(struct config *config)
     for (i = 0; i < config->count; i++) {
         rule = config->rules[i];
         if (rule->logmask != NULL)
-            cvector_free(rule->logmask);
+            free(rule->logmask);
         if (rule->acls != NULL)
             free(rule->acls);
         if (rule->line != NULL)
