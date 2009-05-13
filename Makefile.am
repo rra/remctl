@@ -179,13 +179,6 @@ clean-local:
 # already deleted by the regular distclean target.  Hack around that.
 distclean-local:
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
-	    for f in $(TEST_FILES) ; do \
-	        rm -f "$(builddir)/$$f" ; \
-	    done ; \
-	    rmdir tests/data/acls 2>/dev/null || true ; \
-	    rmdir tests/data/acls2 2>/dev/null || true ; \
-	fi
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
 	    rm -rf php ; \
 	    for f in $(PERL_FILES) ; do \
 	        rm -f "$(builddir)/$$f" ; \
