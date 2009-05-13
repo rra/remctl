@@ -56,14 +56,18 @@ do_tests(const char *principal, int protocol)
     is_string("no error", remctl_error(r), "...still no error");
     output = remctl_output(r);
     ok(output != NULL, "first output token is not null");
-    is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
-    is_int(12, output->length, "...and is right length");
-    if (output->data == NULL)
-        ok(0, "...and is right data");
-    else
-        ok(memcmp("hello world\n", output->data, 11) == 0,
-           "...and is right data");
-    is_int(1, output->stream, "...and is right stream");
+    if (output == NULL)
+        ok(0, "...and has correct content");
+    else {
+        is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
+        is_int(12, output->length, "...and is right length");
+        if (output->data == NULL)
+            ok(0, "...and is right data");
+        else
+            ok(memcmp("hello world\n", output->data, 11) == 0,
+               "...and is right data");
+        is_int(1, output->stream, "...and is right stream");
+    }
     output = remctl_output(r);
     ok(output != NULL, "second output token is not null");
     is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
