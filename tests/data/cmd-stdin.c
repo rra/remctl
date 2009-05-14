@@ -9,6 +9,7 @@
  * close        Close stdin, then write "Okay" and exit.
  * nuls         Expects "Test" with a nul after each character.
  * large        Ensure that we read 1MB of As from stdin, then write "Okay".
+ * delay        Same as large but with delays in reading.
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Copyright 2009 Board of Trustees, Leland Stanford Jr. University
@@ -20,6 +21,10 @@
 #include <portable/system.h>
 
 #include <errno.h>
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
+#include <sys/time.h>
 
 #include <util/util.h>
 
@@ -29,6 +34,7 @@ main(int argc, char *argv[])
     char *buffer, *p;
     ssize_t status;
     size_t left, i;
+    struct timeval tv;
 
     if (argc != 3)
         die("expected two arguments, got %d (%s)", argc, argv[2]);
@@ -71,6 +77,25 @@ main(int argc, char *argv[])
         status = 1;
         for (p = buffer; status > 0; p += status, left -= status) {
             do {
+                status = read(0, p, left);
+            } while (status == -1 && errno == EINTR);
+            if (status < 0)
+                break;
+        }
+        if (left != 0 || status != 0)
+            die("did not read correct amount");
+        for (i = 0; i < 1024 * 1024; i++)
+            if (buffer[i] != 'A')
+                die("invalid character in input");
+        write(1, "Okay", strlen("Okay"));
+    } else if (strcmp(argv[2], "delay") == 0) {
+        left = 1024 * 1024;
+        status = 1;
+        for (p = buffer; status > 0; p += status, left -= status) {
+            do {
+                tv.tv_sec = 0;
+                tv.tv_usec = 50000;
+                select(0, NULL, NULL, NULL, &tv);
                 status = read(0, p, left);
             } while (status == -1 && errno == EINTR);
             if (status < 0)
