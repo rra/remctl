@@ -5,7 +5,8 @@ remctl 2.14 (unreleased)
     The remctld configuration file may now specify that one argument to a
     command is passed on standard input instead of on the command line
     using the stdin= option.  This option allows passing data to commands
-    that's too long to fit into a command-line argument.
+    that's too long to fit into a command-line argument or that contains
+    nul characters.
 
     Use command and subcommand as the names for the first two parameters
     to the remctl client and the first two strings in a remctl command

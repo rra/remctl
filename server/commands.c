@@ -276,11 +276,13 @@ server_run_command(struct client *client, struct config *config,
 
     /*
      * Neither the command nor the subcommand may ever contain nuls.
-     * Currently, none of the arguments may either.
+     * Arguments may only contain nuls if they're the argument being passed on
+     * standard input.
      */
-    for (i = 0; argv[i] != NULL; i++) {
+    for (i = 0; argv[i] != NULL && i < 2; i++) {
         if (memchr(argv[i]->iov_base, '\0', argv[i]->iov_len)) {
-            notice("argument %d from user %s contains nul octet", i, user);
+            notice("%s from user %s contains nul octet",
+                   (i == 0) ? "command" : "subcommand", user);
             server_send_error(client, ERROR_BAD_COMMAND,
                               "Invalid command token");
             goto done;
@@ -306,6 +308,23 @@ server_run_command(struct client *client, struct config *config,
                 path = cline->program;
                 break;
             }
+        }
+    }
+
+    /*
+     * Arguments may only contain nuls if they're the argument being passed on
+     * standard input.
+     */
+    for (i = 1; argv[i] != NULL; i++) {
+        if ((long) i == cline->stdin)
+            continue;
+        if (argv[i + 1] == NULL && cline->stdin == -1)
+            continue;
+        if (memchr(argv[i]->iov_base, '\0', argv[i]->iov_len)) {
+            notice("argument %d from user %s contains nul octet", i, user);
+            server_send_error(client, ERROR_BAD_COMMAND,
+                              "Invalid command token");
+            goto done;
         }
     }
 

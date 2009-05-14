@@ -7,6 +7,7 @@
  * write        Write "Okay" first and then read the data, then exit.
  * exit         Write "Okay" and exit without reading any data.
  * close        Close stdin, then write "Okay" and exit.
+ * nuls         Expects "Test" with a nul after each character.
  * large        Ensure that we read 1MB of As from stdin, then write "Okay".
  *
  * Written by Russ Allbery <rra@stanford.edu>
@@ -53,6 +54,17 @@ main(int argc, char *argv[])
         write(1, "Okay", strlen("Okay"));
     } else if (strcmp(argv[2], "close") == 0) {
         close(0);
+        write(1, "Okay", strlen("Okay"));
+    } else if (strcmp(argv[2], "nuls") == 0) {
+        status = read(0, buffer, 1024 * 1024);
+        if (status <= 0)
+            sysdie("read failed");
+        left = status;
+        status = read(0, buffer + status, 1024 * 1024 - status);
+        if (status != 0)
+            die("didn't get EOF");
+        if (left != 8 || memcmp(buffer, "T\0e\0s\0t\0", 8) != 0)
+            die("got incorrect data");
         write(1, "Okay", strlen("Okay"));
     } else if (strcmp(argv[2], "large") == 0) {
         left = 1024 * 1024;

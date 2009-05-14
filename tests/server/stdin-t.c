@@ -77,7 +77,7 @@ main(void)
     principal = kerberos_setup();
     if (principal == NULL)
         skip_all("Kerberos tests not configured");
-    plan(7 * 9);
+    plan(8 * 9);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
     remctld = remctld_start(path, principal, config);
@@ -91,6 +91,7 @@ main(void)
     test_stdin(principal, "exit", buffer, 1024 * 1024);
     test_stdin(principal, "close", "Okay", 4);
     test_stdin(principal, "close", buffer, 1024 * 1024);
+    test_stdin(principal, "nuls", "T\0e\0s\0t\0", 8);
     test_stdin(principal, "large", buffer, 1024 * 1024);
 
     remctld_stop(remctld);
