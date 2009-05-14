@@ -101,7 +101,6 @@ server_log_command(struct iovec **argv, struct confline *cline,
                 && (cline->stdin == (long) i
                     || (cline->stdin == -1 && argv[i + 1] == NULL))) {
                 arg = "**DATA**";
-                break;
             }
         }
         if (arg != NULL)

@@ -26,7 +26,7 @@ main(void)
     struct iovec **command;
     int i;
 
-    plan(5);
+    plan(7);
 
     /* Command without subcommand. */
     command = xcalloc(5, sizeof(struct iovec *));
@@ -54,7 +54,22 @@ main(void)
     is_string("COMMAND from test@EXAMPLE.ORG: foo bar arg1 arg2\n", errors,
               "simple command logging");
 
+    /* Command with stdin numeric argument. */
+    confline.stdin = 2;
+    errors_capture();
+    server_log_command(command, &confline, "test");
+    is_string("COMMAND from test: foo bar **DATA** arg2\n", errors,
+              "stdin argument");
+
+    /* Command with stdin set to "last". */
+    confline.stdin = -1;
+    errors_capture();
+    server_log_command(command, &confline, "test");
+    is_string("COMMAND from test: foo bar arg1 **DATA**\n", errors,
+              "stdin last argument");
+
     /* Logmask of a single argument. */
+    confline.stdin = 0;
     confline.logmask = xmalloc(2 * sizeof(unsigned int));
     confline.logmask[0] = 2;
     confline.logmask[1] = 0;
