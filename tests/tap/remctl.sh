@@ -22,8 +22,15 @@ remctld_start () {
             principal=`cat "$BUILD/data/test.principal"`
         fi
     done
-    ( "$1" -m -p 14373 -s "$principal" -P "$BUILD/data/remctld.pid" \
-      -f "$2" -d -S -F -k "$keytab" &)
+    if [ -n "$VALGRIND" ] ; then
+        ( "$VALGRIND" --log-file=valgrind.%p --leak-check=full "$1" -m \
+          -p 14373 -s "$principal" -P "$BUILD/data/remctld.pid" -f "$2" -d \
+          -S -F -k "$keytab" &)
+        [ -f "$BUILD/data/remctld.pid" ] || sleep 5
+    else
+        ( "$1" -m -p 14373 -s "$principal" -P "$BUILD/data/remctld.pid" \
+          -f "$2" -d -S -F -k "$keytab" &)
+    fi
     [ -f "$BUILD/data/remctld.pid" ] || sleep 1
     if [ ! -f "$BUILD/data/remctld.pid" ] ; then
         bail 'remctld did not start'
