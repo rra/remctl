@@ -215,15 +215,16 @@ warnings:
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t \
 	tests/client/open-t tests/data/cmd-background tests/data/cmd-closed \
-	tests/data/cmd-streaming tests/portable/asprintf-t \
-	tests/portable/daemon-t	tests/portable/getaddrinfo-t \
-	tests/portable/getnameinfo-t tests/portable/getopt-t \
-	tests/portable/inet_aton-t tests/portable/inet_ntoa-t \
-	tests/portable/inet_ntop-t tests/portable/setenv-t \
-	tests/portable/snprintf-t tests/portable/strlcat-t \
-	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t \
-	tests/server/config-t tests/server/continue-t tests/server/env-t \
-	tests/server/errors-t tests/server/invalid-t tests/server/logging-t \
+	tests/data/cmd-stdin tests/data/cmd-streaming \
+	tests/portable/asprintf-t tests/portable/daemon-t \
+	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t \
+	tests/portable/getopt-t tests/portable/inet_aton-t \
+	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t \
+	tests/portable/setenv-t tests/portable/snprintf-t \
+	tests/portable/strlcat-t tests/portable/strlcpy-t \
+	tests/server/accept-t tests/server/acl-t tests/server/config-t \
+	tests/server/continue-t tests/server/env-t tests/server/errors-t \
+	tests/server/invalid-t tests/server/logging-t tests/server/stdin-t \
 	tests/server/streaming-t tests/server/version-t tests/util/concat-t \
 	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t \
 	tests/util/network-t tests/util/tokens-t tests/util/vector-t \
@@ -248,6 +249,7 @@ tests_client_open_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la $(GSSAPI_LIBS)
 tests_client_large_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la
+tests_data_cmd_stdin_LDADD = util/libutil.la
 tests_portable_asprintf_t_SOURCES = tests/portable/asprintf-t.c \
 	tests/portable/asprintf.c
 tests_portable_asprintf_t_LDADD = tests/tap/libtap.a util/libutil.la
@@ -306,6 +308,8 @@ tests_server_logging_t_SOURCES = tests/server/logging-t.c $(SERVER_FILES)
 tests_server_logging_t_LDFLAGS = $(GPUT_LDFLAGS)
 tests_server_logging_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	$(GSSAPI_LIBS) $(GPUT_LIBS)
+tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la
 tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS)

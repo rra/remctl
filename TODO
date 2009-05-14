@@ -41,10 +41,7 @@ Server:
    running the command, specifying an argument to pass on standard input
    (see below), or supporting things like LDAP ACLs.
 
- * Support arguments that are too long for the command line or that
-   contain nul characters.  The best approach is probably to support
-   passing one of the arguments to the executed command on standard input.
-   This may depend on the new configuration syntax.
+ * Support arguments contain nul characters.
 
  * Maximum argument count and maximum data size in MESSAGE_COMMAND should
    be configurable parameters of the server rather than hard-coded

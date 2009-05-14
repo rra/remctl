@@ -48,6 +48,7 @@
 /tests/client/open-t
 /tests/data/cmd-background
 /tests/data/cmd-closed
+/tests/data/cmd-stdin
 /tests/data/cmd-streaming
 /tests/data/test.cache
 /tests/data/test.keytab
@@ -74,6 +75,7 @@
 /tests/server/errors-t
 /tests/server/invalid-t
 /tests/server/logging-t
+/tests/server/stdin-t
 /tests/server/streaming-t
 /tests/server/version-t
 /tests/util/concat-t

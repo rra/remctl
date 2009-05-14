@@ -21,7 +21,9 @@
 int
 main(void)
 {
-    struct confline confline = { NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL };
+    struct confline confline = {
+        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL
+    };
     const char *acls[5];
 
     plan(56);

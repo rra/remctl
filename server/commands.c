@@ -31,16 +31,18 @@
 struct process {
     bool reaped;                /* Whether we've reaped the process. */
     int fds[2];                 /* Array of file descriptors for output. */
+    int stdin;                  /* File descriptor for standard input. */
+    struct iovec *input;        /* Data to pass on standard input. */
     pid_t pid;                  /* Process ID of child. */
     int status;                 /* Exit status. */
 };
 
 
 /*
- * Processes the output from an external program.  Takes the client struct, an
- * array of file descriptors representing the output streams from the client,
- * and a count of streams.  Reads from all the streams as output is available,
- * stopping when they all reach EOF.
+ * Processes the input to and output from an external program.  Takes the
+ * client struct and a struct representing the running process.  Feeds input
+ * data to the process on standard input and reads from all the streams as
+ * output is available, stopping when they all reach EOF.
  *
  * For protocol v2 and higher, we can send the output immediately as we get
  * it.  For protocol v1, we instead accumulate the output in the buffer stored
@@ -54,10 +56,11 @@ server_process_output(struct client *client, struct process *process)
 {
     char junk[BUFSIZ];
     char *p;
+    size_t offset = 0;
     size_t left = MAXBUFFER;
-    ssize_t status[2];
+    ssize_t status[2], instatus;
     int i, maxfd, fd, result;
-    fd_set fdset;
+    fd_set readfds, writefds;
     struct timeval timeout;
 
     /* If we haven't allocated an output buffer, do so now. */
@@ -65,9 +68,14 @@ server_process_output(struct client *client, struct process *process)
         client->output = xmalloc(MAXBUFFER);
     p = client->output;
 
-    /* Initialize read status for standard output and standard error. */
+    /*
+     * Initialize read status for standard output and standard error and write
+     * status for standard input to the process.  Non-zero says that we keep
+     * trying to read or write.
+     */
     status[0] = -1;
     status[1] = -1;
+    instatus = (process->input != NULL ? -1 : 0);
 
     /*
      * Now, loop while we have input.  We no longer have input if the return
@@ -82,16 +90,28 @@ server_process_output(struct client *client, struct process *process)
      * child process aren't closed yet.  To catch this case, call waitpid with
      * the WNOHANG flag each time through the select loop and decide we're
      * done as soon as our child has exited.
+     *
+     * Meanwhile, if we have input data, then as long as we've not gotten an
+     * EPIPE error from sending input data to the process we keep writing
+     * input data as select indicates the process can receive it.  However, we
+     * don't care if we've sent all input data before the process says it's
+     * done and exits.
      */
     while (!process->reaped) {
-        FD_ZERO(&fdset);
+        FD_ZERO(&readfds);
         maxfd = -1;
         for (i = 0; i < 2; i++) {
             if (status[i] != 0) {
-                FD_SET(process->fds[i], &fdset);
                 if (process->fds[i] > maxfd)
                     maxfd = process->fds[i];
+                FD_SET(process->fds[i], &readfds);
             }
+        }
+        if (instatus != 0) {
+            FD_ZERO(&writefds);
+            if (process->stdin > maxfd)
+                maxfd = process->stdin;
+            FD_SET(process->stdin, &writefds);
         }
         if (maxfd == -1)
             break;
@@ -126,11 +146,39 @@ server_process_output(struct client *client, struct process *process)
             process->reaped = true;
             timeout.tv_sec = 0;
         }
-        result = select(maxfd + 1, &fdset, NULL, NULL, &timeout);
+        if (instatus != 0)
+            result = select(maxfd + 1, &readfds, &writefds, NULL, &timeout);
+        else
+            result = select(maxfd + 1, &readfds, NULL, NULL, &timeout);
         if (result < 0 && errno != EINTR) {
             syswarn("select failed");
             server_send_error(client, ERROR_INTERNAL, "Internal failure");
             goto fail;
+        }
+
+        /*
+         * If we can still write and our child selected for writing, send as
+         * much data as we can.
+         */
+        if (instatus != 0 && FD_ISSET(process->stdin, &writefds)) {
+            instatus = write(process->stdin,
+                             (char *) process->input->iov_base + offset,
+                             process->input->iov_len - offset);
+            if (instatus < 0) {
+                if (errno == EPIPE)
+                    instatus = 0;
+                else if (errno != EINTR && errno != EAGAIN) {
+                    syswarn("write failed");
+                    server_send_error(client, ERROR_INTERNAL,
+                                      "Internal failure");
+                    goto fail;
+                }
+            }
+            offset += instatus;
+            if (offset >= process->input->iov_len) {
+                close(process->stdin);
+                instatus = 0;
+            }
         }
 
         /*
@@ -141,7 +189,7 @@ server_process_output(struct client *client, struct process *process)
          */
         for (i = 0; i < 2; i++) {
             fd = process->fds[i];
-            if (!FD_ISSET(fd, &fdset))
+            if (!FD_ISSET(fd, &readfds))
                 continue;
             if (client->protocol == 1) {
                 if (left > 0) {
@@ -208,12 +256,12 @@ server_run_command(struct client *client, struct config *config,
     char *command = NULL;
     char *subcommand = NULL;
     struct confline *cline = NULL;
-    int stdout_pipe[2], stderr_pipe[2];
+    int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
     char **req_argv = NULL;
-    size_t count, i;
+    size_t count, i, j, stdin;
     bool ok;
     int fd;
-    struct process process = { 0, { 0, 0 }, -1, 0 };
+    struct process process = { 0, { 0, 0 }, 0, NULL, -1, 0 };
     const char *user = client->user;
 
     /*
@@ -239,7 +287,7 @@ server_run_command(struct client *client, struct config *config,
         }
     }
 
-    /* We refer to these a lot, so give them good aliases. */
+    /* We need the command and subcommand as nul-terminated strings. */
     command = xstrndup(argv[0]->iov_base, argv[0]->iov_len);
     if (argv[1] != NULL)
         subcommand = xstrndup(argv[1]->iov_base, argv[1]->iov_len);
@@ -290,7 +338,8 @@ server_run_command(struct client *client, struct config *config,
 
     /*
      * Get the real program name, and use it as the first argument in argv
-     * passed to the command.
+     * passed to the command.  Then build the rest of the argv for the
+     * command, splicing out the argument we're passing on stdin (if any).
      */
     program = strrchr(path, '/');
     if (program == NULL)
@@ -298,13 +347,19 @@ server_run_command(struct client *client, struct config *config,
     else
         program++;
     req_argv[0] = program;
-    for (i = 1; i < count; i++) {
+    stdin = (cline->stdin == -1) ? count - 1 : (size_t) cline->stdin;
+    for (i = 1, j = 1; i < count; i++) {
+        if (i == stdin) {
+            process.input = argv[i];
+            continue;
+        }
         if (argv[i]->iov_len == 0)
-            req_argv[i] = xstrdup("");
+            req_argv[j] = xstrdup("");
         else
-            req_argv[i] = xstrndup(argv[i]->iov_base, argv[i]->iov_len);
+            req_argv[j] = xstrndup(argv[i]->iov_base, argv[i]->iov_len);
+        j++;
     }
-    req_argv[i] = NULL;
+    req_argv[j] = NULL;
 
     /*
      * These pipes are used for communication with the child process that 
@@ -312,6 +367,11 @@ server_run_command(struct client *client, struct config *config,
      */
     if (pipe(stdout_pipe) != 0 || pipe(stderr_pipe) != 0) {
         syswarn("cannot create pipes");
+        server_send_error(client, ERROR_INTERNAL, "Internal failure");
+        goto done;
+    }
+    if (process.input != NULL && pipe(stdin_pipe) != 0) {
+        syswarn("cannot create stdin pipe");
         server_send_error(client, ERROR_INTERNAL, "Internal failure");
         goto done;
     }
@@ -339,16 +399,24 @@ server_run_command(struct client *client, struct config *config,
         close(stderr_pipe[1]);
 
         /*
-         * Child doesn't need stdin at all, but just closing it causes
-         * problems for puppet.  Reopen on /dev/null instead.  Ignore failure
-         * here, since it probably won't matter and worst case is that we
-         * leave stdin closed.
+         * Set up stdin pipe if we have input data.
+         *
+         * If we don't have input data, child doesn't need stdin at all, but
+         * just closing it causes problems for puppet.  Reopen on /dev/null
+         * instead.  Ignore failure here, since it probably won't matter and
+         * worst case is that we leave stdin closed.
          */
-        close(0);
-        fd = open("/dev/null", O_RDONLY);
-        if (fd > 0) {
-            dup2(fd, 0);
-            close(fd);
+        if (process.input != NULL) {
+            dup2(stdin_pipe[0], 0);
+            close(stdin_pipe[0]);
+            close(stdin_pipe[1]);
+        } else {
+            close(0);
+            fd = open("/dev/null", O_RDONLY);
+            if (fd > 0) {
+                dup2(fd, 0);
+                close(fd);
+            }
         }
 
         /*
@@ -399,21 +467,34 @@ server_run_command(struct client *client, struct config *config,
     default:
         close(stdout_pipe[1]);
         close(stderr_pipe[1]);
+        if (process.input != NULL)
+            close(stdin_pipe[0]);
 
         /*
-         * Unblock the read ends of the pipes, to enable us to read from both
-         * iteratively.
+         * Unblock the read ends of the output pipes, to enable us to read
+         * from both iteratively, and unblock the write end of the input pipe
+         * if we have one so that we don't block when feeding data to our
+         * child.
          */
         fdflag_nonblocking(stdout_pipe[0], true);
         fdflag_nonblocking(stderr_pipe[0], true);
+        if (process.input != NULL)
+            fdflag_nonblocking(stdin_pipe[1], true);
 
         /*
          * This collects output from both pipes iteratively, while the child
-         * is executing, and processes it.
+         * is executing, and processes it.  It also sends input data if we
+         * have any.
          */
         process.fds[0] = stdout_pipe[0];
         process.fds[1] = stderr_pipe[0];
+        if (process.input != NULL)
+            process.stdin = stdin_pipe[1];
         ok = server_process_output(client, &process);
+        close(process.fds[0]);
+        close(process.fds[1]);
+        if (process.input != NULL)
+            close(process.stdin);
         if (!process.reaped)
             waitpid(process.pid, &process.status, 0);
         if (WIFEXITED(process.status))
@@ -426,8 +507,6 @@ server_run_command(struct client *client, struct config *config,
             else
                 server_v2_send_status(client, process.status);
         }
-        close(process.fds[0]);
-        close(process.fds[1]);
     }
 
  done:

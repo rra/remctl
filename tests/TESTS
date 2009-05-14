@@ -24,6 +24,7 @@ server/errors
 server/invalid
 server/logging
 server/misc
+server/stdin
 server/streaming
 server/version
 util/concat

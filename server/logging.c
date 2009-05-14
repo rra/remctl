@@ -89,13 +89,21 @@ server_log_command(struct iovec **argv, struct confline *cline,
     masked = vector_new();
     for (i = 0; argv[i] != NULL; i++) {
         arg = NULL;
-        if (cline != NULL && cline->logmask != NULL)
-            for (j = cline->logmask; *j != 0; j++) {
-                if (*j == i) {
-                    arg = "**MASKED**";
-                    break;
+        if (cline != NULL) {
+            if (cline->logmask != NULL)
+                for (j = cline->logmask; *j != 0; j++) {
+                    if (*j == i) {
+                        arg = "**MASKED**";
+                        break;
+                    }
                 }
+            if (i > 0
+                && (cline->stdin == (long) i
+                    || (cline->stdin == -1 && argv[i + 1] == NULL))) {
+                arg = "**DATA**";
+                break;
             }
+        }
         if (arg != NULL)
             vector_add(masked, arg);
         else

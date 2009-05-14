@@ -223,10 +223,39 @@ option_logmask(struct confline *confline, char *value, const char *name,
 
 
 /*
+ * Parse the stdin configuration option.  Verifies the argument number or
+ * "last" keyword, stores it in the configuration line struct, and returns
+ * CONFIG_SUCCESS on success and CONFIG_ERROR on error.
+ */
+static enum config_status
+option_stdin(struct confline *confline, char *value, const char *name,
+             size_t lineno)
+{
+    long arg;
+    char *end;
+
+    if (strcmp(value, "last") == 0)
+        confline->stdin = -1;
+    else {
+        errno = 0;
+        arg = strtol(value, &end, 10);
+        if (errno != 0 || *end != '\0' || arg < 2) {
+            warn("%s:%lu: invalid stdin value %s", name,
+                 (unsigned long) lineno, value);
+            return CONFIG_ERROR;
+        }
+        confline->stdin = arg;
+    }
+    return CONFIG_SUCCESS;
+}
+
+
+/*
  * The table relating configuration option names to functions.
  */
 static const struct config_option options[] = {
     { "logmask", option_logmask },
+    { "stdin",   option_stdin   },
     { NULL,      NULL           }
 };
 

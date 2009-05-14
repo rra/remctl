@@ -111,7 +111,7 @@ The configuration file defines the allowed commands and specifies access
 control information.  The configuration file format is lines of space- or
 tab-separated strings, where each line is:
 
-    command subcommand executable [logmask=n[,...]] {acl}+
+    command subcommand executable [option=value ...] acl [acl ...]
 
 Each command consists of a command, a subcommand, and zero or more
 arguments.  Each configuration line defines an acceptable command and
@@ -164,8 +164,15 @@ program that is listed for that service unless no subcommand was given.
 
 =item I<executable>
 
-The full path to the commmand executable to run for this type-service 
-combination.  (See examples below.)
+The full path to the commmand executable to run for this command and
+subcommand combination.  (See examples below.)
+
+=item I<option>=I<value>
+
+An option setting that applies to this command.  Supported option settings
+are:
+
+=over 4
 
 =item I<logmask>=I<n>[,...]
 
@@ -180,6 +187,27 @@ For example, if the command is C<admin passwd I<username> I<password>>,
 then you'd want to set logmask to C<3>, so the password argument gets
 logged as C<**MASKED**>.  If the command is C<user passwd I<username>
 I<old-password> I<new-password>>, you'd want to set logmask to C<3,4>.
+
+=item I<stdin>=(I<n> | C<last>)
+
+Specifies that the I<n>th or last argument to the command be passed on
+standard input instead of on the command line.  The value of this option
+must either be the number of argument to pass on standard input (with the
+I<subcommand> considered argument 1) or the special value C<last>, which
+indicates that the final argument (no matter how many there are) be passed
+on standard input.
+
+The I<subcommand> cannot be passed on standard input, so I<n> must be at
+least C<2>.  If this option is set to C<last> and no arguments are given
+except the I<command> and possibly the I<subcommand>, nothing will be
+passed on standard input.
+
+This option is used primarily for passing large amounts of data that may
+not fit on the command line.  It can also be used for arguments like
+passwords that shouldn't be exposed on the command line.  Only at most one
+argument may be passed on standard input to the command.
+
+=back
 
 =item I<acl>
 

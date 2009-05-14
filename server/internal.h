@@ -59,6 +59,7 @@ struct confline {
     char *subcommand;           /* Subcommand (second argument). */
     char *program;              /* Full file name of executable. */
     unsigned int *logmask;      /* Zero-terminated list of args to mask. */
+    long stdin;                 /* Arg to pass on stdin, -1 for last. */
     char **acls;                /* Full file names of ACL files. */
 };
 
