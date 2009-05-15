@@ -71,6 +71,9 @@ Server:
 
  * Add a timeout for commands after which the server kills the command.
 
+ * Support binding to an IPv6 address.  Currently, the server only
+   supports IPv4.
+
 Client:
 
  * Allow sending commands with no subcommands in the command-line client.
