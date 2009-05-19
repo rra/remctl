@@ -80,7 +80,7 @@ void
 server_log_command(struct iovec **argv, struct confline *cline,
                    const char *user)
 {
-    char *command;
+    char *command, *p;
     unsigned int i;
     unsigned int *j;
     struct vector *masked;
@@ -110,6 +110,11 @@ server_log_command(struct iovec **argv, struct confline *cline,
     }
     command = vector_join(masked, " ");
     vector_free(masked);
+
+    /* Replace non-printable characters with . when logging. */
+    for (p = command; *p != '\0'; p++)
+        if (*p < 9 || (*p > 9 && *p < 32) || *p == 127)
+            *p = '.';
     notice("COMMAND from %s: %s", user, command);
     free(command);
 }

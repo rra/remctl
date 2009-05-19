@@ -8,6 +8,10 @@ remctl 2.14 (unreleased)
     that's too long to fit into a command-line argument or that contains
     nul characters.
 
+    remctld logging of commands or arguments now replaces unprintable
+    characters (characters between ASCII 0 and 31 and ASCII 127) with
+    periods rather than assuming syslog will cope with them correctly.
+
     Use command and subcommand as the names for the first two parameters
     to the remctl client and the first two strings in a remctl command
     instead of the unintuitive "type" and "service" terminology borrowed

@@ -26,7 +26,7 @@ main(void)
     struct iovec **command;
     int i;
 
-    plan(7);
+    plan(8);
 
     /* Command without subcommand. */
     command = xcalloc(5, sizeof(struct iovec *));
@@ -39,9 +39,20 @@ main(void)
     is_string("COMMAND from test@EXAMPLE.ORG: foo\n", errors,
               "command without subcommand logging");
 
+    /* Filtering of non-printable characters. */
+    command[1] = xmalloc(sizeof(struct iovec));
+    command[1]->iov_base = xstrdup("f\1o\33o\37o\177");
+    command[1]->iov_len = strlen("f\1o\33o\37o\177");
+    command[2] = NULL;
+    errors_capture();
+    server_log_command(command, &confline, "test");
+    is_string("COMMAND from test: foo f.o.o.o.\n", errors,
+              "logging of unprintable characters");
+
     /* Simple command. */
-    for (i = 1; i < 5; i++)
+    for (i = 2; i < 5; i++)
         command[i] = xmalloc(sizeof(struct iovec));
+    free(command[1]->iov_base);
     command[1]->iov_base = xstrdup("bar");
     command[1]->iov_len = strlen("bar");
     command[2]->iov_base = xstrdup("arg1");
