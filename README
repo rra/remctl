@@ -92,10 +92,13 @@ REQUIREMENTS
   principal in your local realm; see tests/data/README for more
   information.
 
-  If you change the Automake files and need to regenerate Makefile.in, you
-  will need Automake 1.10 or later.  If you change configure.ac or any of
-  the m4 files it includes and need to regenerate configure or
-  config.h.in, you will need Autoconf 2.61 or later.
+  To bootstrap from a Git checkout, or if you change the Automake files
+  and need to regenerate Makefile.in, you will need Automake 1.10 or
+  later.  For bootstrap or if you change configure.ac or any of the m4
+  files it includes and need to regenerate configure or config.h.in, you
+  will need Autoconf 2.63 or later.  Perl and xml2rfc are also required to
+  generate the manual pages and protocol documentation from a fresh Git
+  checkout.
 
 INSTALLATION (UNIX)
 
