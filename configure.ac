@@ -77,18 +77,24 @@ AC_CHECK_HEADERS([gssapi.h])
 AC_CHECK_DECL([GSS_C_NT_USER_NAME],
     [AC_DEFINE([HAVE_GSS_RFC_OIDS], 1,
        [Define to 1 if the GSS-API library uses RFC-compliant OIDs.])], ,
-[#ifdef HAVE_GSSAPI_H
+[[
+#if defined(HAVE_GSSAPI_H)
 # include <gssapi.h>
 #else
 # include <gssapi/gssapi.h>
 #endif
-])
-AC_CHECK_DECLS([GSS_KRB5_MECHANISM], , ,
-[#ifdef HAVE_GSSAPI_H
+]])
+AC_CHECK_DECLS([GSS_KRB5_MECHANISM], ,
+    [AC_CHECK_DECLS([gss_mech_krb5], ,
+        [AC_LIBOBJ([gssapi-mech])],
+        [#include <gssapi/gssapi_krb5.h>])],
+[[
+#if defined(HAVE_GSSAPI_H)
 # include <gssapi.h>
 #else
 # include <gssapi/gssapi.h>
-#endif])
+#endif
+]])
 RRA_LIB_GSSAPI_RESTORE
 
 dnl If and only if we're on a GNU system, use mapfile to do symbol versioning

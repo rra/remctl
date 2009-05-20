@@ -74,6 +74,10 @@ Server:
  * Support binding to an IPv6 address.  Currently, the server only
    supports IPv4.
 
+ * The server should call gss_inquire_context to retrieve the mechanism
+   OID and then pass that in to calls to gssapi_error_string rather than
+   hard-coding the Kerberos v5 OID.
+
 Client:
 
  * Allow sending commands with no subcommands in the command-line client.
@@ -97,6 +101,12 @@ Client:
 Client library:
 
  * Add a varient of open that takes a timeout.
+
+ * The client should ideally not specify an OID for the authentication
+   mechanism and instead permit GSS-API to negotiate an appropriate
+   mechanism.  It should then call gss_inquire_context to retrieve the
+   mechanism OID and then pass that in to calls to gssapi_error_string
+   rather than hard-coding the Kerberos v5 OID.
 
 Build system:
 

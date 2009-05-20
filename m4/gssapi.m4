@@ -56,10 +56,13 @@ AC_DEFUN([_RRA_LIB_GSSAPI_REDUCED],
 [RRA_LIB_GSSAPI_SWITCH
  AC_CHECK_LIB([gssapi_krb5], [gss_import_name], [GSSAPI_LIBS="-lgssapi_krb5"],
      [AC_CHECK_LIB([gssapi], [gss_import_name], [GSSAPI_LIBS="-lgssapi"],
-         [AC_MSG_ERROR([cannot find usable GSS-API library])])])])
+         [AC_CHECK_LIB([gss], [gss_import_name], [GSSAPI_LIBS="-lgss"],
+             [AC_MSG_ERROR([cannot find usable GSS-API library])])])])])
 
 dnl Does the appropriate library checks for GSS-API linkage when we don't
-dnl have krb5-config or reduced dependencies.
+dnl have krb5-config or reduced dependencies.  libgss is used as a last
+dnl resort, since it may be a non-functional mech-independent wrapper, but
+dnl it's the right choice on Solaris 10.
 AC_DEFUN([_RRA_LIB_GSSAPI_MANUAL],
 [RRA_LIB_GSSAPI_SWITCH
  rra_gssapi_extra=
@@ -93,7 +96,9 @@ AC_DEFUN([_RRA_LIB_GSSAPI_MANUAL],
      rra_gssapi_extra="-lkrb5 $rra_gssapi_extra"
      AC_CHECK_LIB([gssapi_krb5], [gss_import_name],
         [GSSAPI_LIBS="-lgssapi_krb5 $rra_gssapi_extra"],
-        [AC_MSG_ERROR([cannot find usable GSS-API library])],
+        [AC_CHECK_LIB([gss], [gss_import_name],
+            [GSSAPI_LIBS="-lgss"],
+            [AC_MSG_ERROR([cannot find usable GSS-API library])])],
         [$rra_gssapi_extra])],
     [-lkrb5 -lasn1 -lroken -lcrypto -lcom_err $rra_gssapi_extra])
  RRA_LIB_GSSAPI_RESTORE])

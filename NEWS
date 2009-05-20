@@ -36,6 +36,9 @@ remctl 2.14 (unreleased)
     command is also no longer supported (it previously worked by
     accident).
 
+    Support building against Solaris 10's native generic GSS-API
+    libraries.  Thanks, Peter Eriksson.
+
     Update to rra-c-util 1.0:
 
     * Fix open call parameters in daemon portability test.
