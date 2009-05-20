@@ -73,41 +73,41 @@ ok_xmalloc "vasprintf large" 0 "" "v" "3500000" "0"
 # We assume that there are enough miscellaneous allocations that an allocation
 # exactly as large as the limit will always fail.
 ok_xmalloc "malloc fail" 1 \
-    "failed to malloc 3500000 bytes at tests/util/xmalloc.c line 48" \
+    "failed to malloc 3500000 bytes at xmalloc.c line 37" \
     "m" "3500000" "3500000"
 ok_xmalloc "realloc fail" 1 \
-    "failed to realloc 3500000 bytes at tests/util/xmalloc.c line 76" \
+    "failed to realloc 3500000 bytes at xmalloc.c line 65" \
     "r" "3500000" "3500000"
 ok_xmalloc "strdup fail" 1 \
-    "failed to strdup 3500000 bytes at tests/util/xmalloc.c line 107" \
+    "failed to strdup 3500000 bytes at xmalloc.c line 96" \
     "s" "3500000" "3500000"
 ok_xmalloc "strndup fail" 1 \
-    "failed to strndup 3500000 bytes at tests/util/xmalloc.c line 134" \
+    "failed to strndup 3500000 bytes at xmalloc.c line 123" \
     "n" "3500000" "3500000"
 ok_xmalloc "calloc fail" 1 \
-    "failed to calloc 3500000 bytes at tests/util/xmalloc.c line 158" \
+    "failed to calloc 3500000 bytes at xmalloc.c line 147" \
     "c" "3500000" "3500000"
 ok_xmalloc "asprintf fail" 1 \
-    "failed to asprintf 3500000 bytes at tests/util/xmalloc.c line 183" \
+    "failed to asprintf 3500000 bytes at xmalloc.c line 172" \
     "a" "3500000" "3500000"
 ok_xmalloc "vasprintf fail" 1 \
-    "failed to vasprintf 3500000 bytes at tests/util/xmalloc.c line 203" \
+    "failed to vasprintf 3500000 bytes at xmalloc.c line 192" \
     "v" "3500000" "3500000"
 
 # Check our custom error handler.
-ok_xmalloc "malloc custom"    1 "malloc 3500000 tests/util/xmalloc.c 48" \
+ok_xmalloc "malloc custom"    1 "malloc 3500000 xmalloc.c 37" \
     "M" "3500000" "3500000"
-ok_xmalloc "realloc custom"   1 "realloc 3500000 tests/util/xmalloc.c 76" \
+ok_xmalloc "realloc custom"   1 "realloc 3500000 xmalloc.c 65" \
     "R" "3500000" "3500000"
-ok_xmalloc "strdup custom"    1 "strdup 3500000 tests/util/xmalloc.c 107" \
+ok_xmalloc "strdup custom"    1 "strdup 3500000 xmalloc.c 96" \
     "S" "3500000" "3500000"
-ok_xmalloc "strndup custom"   1 "strndup 3500000 tests/util/xmalloc.c 134" \
+ok_xmalloc "strndup custom"   1 "strndup 3500000 xmalloc.c 123" \
     "N" "3500000" "3500000"
-ok_xmalloc "calloc custom"    1 "calloc 3500000 tests/util/xmalloc.c 158" \
+ok_xmalloc "calloc custom"    1 "calloc 3500000 xmalloc.c 147" \
     "C" "3500000" "3500000"
-ok_xmalloc "asprintf custom"  1 "asprintf 3500000 tests/util/xmalloc.c 183" \
+ok_xmalloc "asprintf custom"  1 "asprintf 3500000 xmalloc.c 172" \
     "A" "3500000" "3500000"
-ok_xmalloc "vasprintf custom" 1 "vasprintf 3500000 tests/util/xmalloc.c 203" \
+ok_xmalloc "vasprintf custom" 1 "vasprintf 3500000 xmalloc.c 192" \
     "V" "3500000" "3500000"
 
 # Check the smaller ones again just for grins.

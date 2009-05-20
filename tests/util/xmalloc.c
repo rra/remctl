@@ -10,6 +10,8 @@
  * See LICENSE for licensing terms.
  */
 
+#line 1 "xmalloc.c"
+
 #include <config.h>
 #include <portable/system.h>
 
