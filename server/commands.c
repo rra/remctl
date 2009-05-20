@@ -31,7 +31,7 @@
 struct process {
     bool reaped;                /* Whether we've reaped the process. */
     int fds[2];                 /* Array of file descriptors for output. */
-    int stdin;                  /* File descriptor for standard input. */
+    int stdin_fd;               /* File descriptor for standard input. */
     struct iovec *input;        /* Data to pass on standard input. */
     pid_t pid;                  /* Process ID of child. */
     int status;                 /* Exit status. */
@@ -109,9 +109,9 @@ server_process_output(struct client *client, struct process *process)
         }
         if (instatus != 0) {
             FD_ZERO(&writefds);
-            if (process->stdin > maxfd)
-                maxfd = process->stdin;
-            FD_SET(process->stdin, &writefds);
+            if (process->stdin_fd > maxfd)
+                maxfd = process->stdin_fd;
+            FD_SET(process->stdin_fd, &writefds);
         }
         if (maxfd == -1)
             break;
@@ -160,8 +160,8 @@ server_process_output(struct client *client, struct process *process)
          * If we can still write and our child selected for writing, send as
          * much data as we can.
          */
-        if (instatus != 0 && FD_ISSET(process->stdin, &writefds)) {
-            instatus = write(process->stdin,
+        if (instatus != 0 && FD_ISSET(process->stdin_fd, &writefds)) {
+            instatus = write(process->stdin_fd,
                              (char *) process->input->iov_base + offset,
                              process->input->iov_len - offset);
             if (instatus < 0) {
@@ -176,7 +176,7 @@ server_process_output(struct client *client, struct process *process)
             }
             offset += instatus;
             if (offset >= process->input->iov_len) {
-                close(process->stdin);
+                close(process->stdin_fd);
                 instatus = 0;
             }
         }
@@ -258,7 +258,7 @@ server_run_command(struct client *client, struct config *config,
     struct confline *cline = NULL;
     int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
     char **req_argv = NULL;
-    size_t count, i, j, stdin;
+    size_t count, i, j, stdin_arg;
     bool ok;
     int fd;
     struct process process = { 0, { 0, 0 }, 0, NULL, -1, 0 };
@@ -316,9 +316,9 @@ server_run_command(struct client *client, struct config *config,
      * standard input.
      */
     for (i = 1; argv[i] != NULL; i++) {
-        if ((long) i == cline->stdin)
+        if ((long) i == cline->stdin_arg)
             continue;
-        if (argv[i + 1] == NULL && cline->stdin == -1)
+        if (argv[i + 1] == NULL && cline->stdin_arg == -1)
             continue;
         if (memchr(argv[i]->iov_base, '\0', argv[i]->iov_len)) {
             notice("argument %d from user %s contains nul octet", i, user);
@@ -366,9 +366,12 @@ server_run_command(struct client *client, struct config *config,
     else
         program++;
     req_argv[0] = program;
-    stdin = (cline->stdin == -1) ? count - 1 : (size_t) cline->stdin;
+    if (cline->stdin_arg == -1)
+        stdin_arg = count - 1;
+    else
+        stdin_arg = (size_t) cline->stdin_arg;
     for (i = 1, j = 1; i < count; i++) {
-        if (i == stdin) {
+        if (i == stdin_arg) {
             process.input = argv[i];
             continue;
         }
@@ -508,12 +511,12 @@ server_run_command(struct client *client, struct config *config,
         process.fds[0] = stdout_pipe[0];
         process.fds[1] = stderr_pipe[0];
         if (process.input != NULL)
-            process.stdin = stdin_pipe[1];
+            process.stdin_fd = stdin_pipe[1];
         ok = server_process_output(client, &process);
         close(process.fds[0]);
         close(process.fds[1]);
         if (process.input != NULL)
-            close(process.stdin);
+            close(process.stdin_fd);
         if (!process.reaped)
             waitpid(process.pid, &process.status, 0);
         if (WIFEXITED(process.status))

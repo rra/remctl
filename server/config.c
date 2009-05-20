@@ -235,7 +235,7 @@ option_stdin(struct confline *confline, char *value, const char *name,
     char *end;
 
     if (strcmp(value, "last") == 0)
-        confline->stdin = -1;
+        confline->stdin_arg = -1;
     else {
         errno = 0;
         arg = strtol(value, &end, 10);
@@ -244,7 +244,7 @@ option_stdin(struct confline *confline, char *value, const char *name,
                  (unsigned long) lineno, value);
             return CONFIG_ERROR;
         }
-        confline->stdin = arg;
+        confline->stdin_arg = arg;
     }
     return CONFIG_SUCCESS;
 }
