@@ -10,6 +10,8 @@
  * configuration files and is just as portable in practice.
  */
 
+#include <portable/gssapi.h>
+
 #if !HAVE_DECL_GSS_MECH_KRB5
 static const gss_OID_desc gss_mech_krb5_desc
     = { 9, "\052\206\110\206\367\022\001\002\002" };
