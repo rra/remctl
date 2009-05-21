@@ -57,3 +57,10 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
+
+/* Define to 1 if the GSS-API library uses RFC-compliant OIDs. */
+#define HAVE_GSS_RFC_OIDS 1
+
+/* Define to 1 if you have the declaration of `gss_mech_krb5', and to 0 if you
+   don't. */
+#define HAVE_DECL_GSS_MECH_KRB5 1
