@@ -29,6 +29,8 @@ remctl 2.14 (unreleased)
     little practical effect unless a client stayed connected and issued
     multiple commands.)
 
+    Add documentation on extending remctl in docs/extending.
+
     Add initial protocol version three draft in docs/protocol-v3.
 
     Better check logmask options when parsing the server configuration
