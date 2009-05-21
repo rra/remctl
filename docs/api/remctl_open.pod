@@ -1,3 +1,7 @@
+=for stopwords
+remctl const TCP GSS-API DNS DNS-based KRB5CCNAME lookups canonicalization
+libdefaults Allbery CNAME
+
 =head1 NAME
 
 remctl_open - Connect to a remote remctl server
@@ -55,7 +59,7 @@ the MIT Kerberos GSS-API library, canonicalization can be disabled by
 setting C<rdns> to false in the [libdefaults] section of F<krb5.conf>.  It
 can also be disabled by passing an explicit Kerberos principal name via
 the I<principal> argument, which will then be used without changes.  If
-canonicalization is desired, the caller may wish to canonicalizae I<host>
+canonicalization is desired, the caller may wish to canonicalize I<host>
 before calling remctl_open() to avoid problems with multiple DNS calls
 returning different results.
 

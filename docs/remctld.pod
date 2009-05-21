@@ -1,3 +1,9 @@
+=for stopwords
+remctld remctl -dFhmSv keytab GSS-API tcpserver inetd subcommand AFS
+backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
+IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
+subcommands REMUSER
+
 =head1 NAME
 
 remctld - Server for remctl, a remote command execution utility
@@ -164,7 +170,7 @@ program that is listed for that service unless no subcommand was given.
 
 =item I<executable>
 
-The full path to the commmand executable to run for this command and
+The full path to the command executable to run for this command and
 subcommand combination.  (See examples below.)
 
 =item I<option>=I<value>
@@ -203,7 +209,7 @@ except the I<command> and possibly the I<subcommand>, nothing will be
 passed on standard input.
 
 This option is used primarily for passing large amounts of data that may
-not fit on the command line or data that contains nul characters.  It can
+not fit on the command line or data that contains NUL characters.  It can
 also be used for arguments like passwords that shouldn't be exposed on the
 command line.  Only at most one argument may be passed on standard input
 to the command.
@@ -274,7 +280,7 @@ explicitly include the file containing C<deny> ACL rules first.
 
 Note that C<deny> only denies access; it never grants it.  Thus, deny
 alone does not grant access to anyone, and using deny on itself as in
-C<deny:deny:foo> neither deniess nor grants access to anyone.
+C<deny:deny:foo> neither denies nor grants access to anyone.
 
 =item gput
 
@@ -411,7 +417,7 @@ processes or other system resources.  You may want to set resource limits
 in your inetd server or with B<ulimit> when running it as a standalone
 daemon or under B<tcpserver>.
 
-Command arguments may not contain nul characters and must be shorter than
+Command arguments may not contain NUL characters and must be shorter than
 the operating system limit on the length of a command line since they're
 passed to the command as command-line arguments.  The exception is an
 argument passed via standard input using the C<stdin=> option in the

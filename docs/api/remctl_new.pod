@@ -1,3 +1,6 @@
+=for stopwords
+remctl API ENOMEM Allbery
+
 =head1 NAME
 
 remctl_new - Create a new remctl client

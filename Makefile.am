@@ -36,11 +36,10 @@ EXTRA_DIST = LICENSE Makefile.w32 autogen client/libremctl.rc client/mapfile \
 	portable/getopt.h portable/gssapi.h portable/macros.h \
 	portable/socket.h portable/stdbool.h portable/system.h \
 	portable/uio.h portable/winsock.c remctl.spec \
-	tests/TESTS tests/client/pod-t tests/client/remctl-t \
-	tests/data/README tests/data/acl-bad-include \
-	tests/data/acl-bad-syntax tests/data/acl-nonexistant \
-	tests/data/acl-recursive tests/data/acl-simple \
-	tests/data/acl-too-long tests/data/acl-valid-3 \
+	tests/TESTS tests/client/remctl-t tests/data/README \
+	tests/data/acl-bad-include tests/data/acl-bad-syntax \
+	tests/data/acl-nonexistant tests/data/acl-recursive \
+	tests/data/acl-simple tests/data/acl-too-long tests/data/acl-valid-3 \
 	tests/data/acls/VALID_09 tests/data/acls/val\#id \
 	tests/data/acls/val.id tests/data/acls/valid tests/data/acls/valid-2 \
 	tests/data/acls/val~id tests/data/acls2/valid-4 tests/data/cmd-argv \
@@ -49,9 +48,9 @@ EXTRA_DIST = LICENSE Makefile.w32 autogen client/libremctl.rc client/mapfile \
 	tests/data/configs/bad-logmask-1 tests/data/configs/bad-logmask-2 \
 	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4 \
 	tests/data/configs/bad-option-1 tests/data/gput \
-	tests/tap/kerberos.sh tests/tap/libtap.sh tests/tap/remctl.sh \
-	tests/server/misc-t tests/util/xmalloc-t \
-	$(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES)
+	tests/docs/pod-spelling-t tests/docs/pod-t tests/tap/kerberos.sh \
+	tests/tap/libtap.sh tests/tap/remctl.sh tests/server/misc-t \
+	tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES)
 
 # Set this globally, since we have too many header files that include the
 # GSS-API headers even if the code itself doesn't call GSS-API functions.

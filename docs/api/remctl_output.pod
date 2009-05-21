@@ -1,3 +1,6 @@
+=for stopwords
+remctl API Allbery
+
 =head1 NAME
 
 remctl_output - Retrieve the results of a remctl command

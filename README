@@ -87,10 +87,17 @@ REQUIREMENTS
 
   To run the test suite, you will need Test::Pod as described above.  The
   test suite will also need to be able to build to 127.0.0.1 on port 11119
-  and 14444 to run test network server programs.  In order to fully test
+  and 14373 to run test network server programs.  In order to fully test
   remctl, you will also need to create a keytab for a valid Kerberos
   principal in your local realm; see tests/data/README for more
   information.
+
+  To check spelling in the POD documentation, Pod::Spell (available from
+  CPAN) and either aspell or ispell with the american dictionary are also
+  required.  The user's path is searched for aspell or ispell and aspell
+  is preferred.  Spelling tests are disabled by default since spelling
+  dictionaries differ too much between systems.  To enable those tests,
+  set RRA_MAINTAINER_TESTS to a true value.
 
   To bootstrap from a Git checkout, or if you change the Automake files
   and need to regenerate Makefile.in, you will need Automake 1.10 or

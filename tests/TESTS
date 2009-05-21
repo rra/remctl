@@ -1,8 +1,9 @@
 client/api
 client/large
 client/open
-client/pod
 client/remctl
+docs/pod
+docs/pod-spelling
 portable/asprintf
 portable/daemon
 portable/getaddrinfo

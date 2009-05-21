@@ -1,3 +1,7 @@
+=for stopwords
+remctl -dhv subcommand remctld GSS-API GSS-API's hostname AFS
+canonicalizes DNS DNS-based canonicalization Heimdal MICs Ushakov Allbery
+
 =head1 NAME
 
 remctl - Remote execution tool
@@ -10,8 +14,8 @@ remctl [B<-dhv>] [B<-p> I<port>] [B<-s> I<service>] I<host> I<command>
 =head1 DESCRIPTION
 
 B<remctl> is a program that allows a user to execute commands remotely on
-a server that is running the remctld deamon. B<remctl> does not interpret
-the commands given to it, it passes them to the server and displays the
+a server that is running the remctld daemon.  B<remctl> does not interpret
+the commands given to it.  It passes them to the server and displays the
 return message.  The commands must be defined on the server-side before a
 B<remctl> client can execute them, and the user running B<remctl> must be
 authorized to execute the particular command on the server.
@@ -66,7 +70,7 @@ called with invalid arguments, B<remctl> will exit with status 1.
 
 =head1 EXAMPLES
 
-Release an afs volume called ls.tripwire:
+Release an AFS volume called ls.tripwire:
 
     remctl lsdb afs release ls.tripwire
 
