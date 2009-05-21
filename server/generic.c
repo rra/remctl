@@ -223,9 +223,9 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
     argc = ntohl(tmp);
     p += 4;
     debug("argc is %lu", (unsigned long) argc);
-    if (argc <= 0) {
-        warn("invalid argc %lu in request message", (unsigned long) argc);
-        server_send_error(client, ERROR_BAD_COMMAND, "Invalid command token");
+    if (argc == 0) {
+        warn("command with no arguments");
+        server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
         return NULL;
     }
     if (argc > MAXCMDARGS) {

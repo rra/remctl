@@ -29,6 +29,10 @@ remctl 2.14 (unreleased)
     little practical effect unless a client stayed connected and issued
     multiple commands.)
 
+    The protocol now permits commands with no arguments.  remctld
+    currently doesn't support them, but now returns ERROR_UNKNOWN_COMMAND
+    instead of ERROR_BAD_COMMAND when receiving one.
+
     Add documentation on extending remctl in docs/extending.
 
     Add initial protocol version three draft in docs/protocol-v3.

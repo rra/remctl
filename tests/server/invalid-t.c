@@ -106,7 +106,8 @@ main(void)
         0, 0, 0, 4, 't', 'e', 's', 't',
         0, 0, 0, 6, 's', 't', 'a', 't', 'u', 's'
     };
-    static const char data_argv0[] = {
+    static const char token_argv0[] = {
+        2, MESSAGE_COMMAND, 1, 0,
         0, 0, 0, 0
     };
     static const char data_trunc[] = {
@@ -169,10 +170,11 @@ main(void)
     test_bad_token(principal, token_continue, sizeof(token_continue),
                    ERROR_BAD_COMMAND, "Invalid command token",
                    "bad command token");
+    test_bad_token(principal, token_argv0, sizeof(token_argv0),
+                   ERROR_UNKNOWN_COMMAND, "Unknown command",
+                   "empty command");
 
     /* Test a bunch of malformatted commands. */
-    test_bad_command(principal, data_argv0, sizeof(data_argv0),
-                     "empty command");
     test_bad_command(principal, data_trunc, sizeof(data_trunc),
                      "truncated command");
     test_bad_command(principal, data_trunc_arg, sizeof(data_trunc_arg),
