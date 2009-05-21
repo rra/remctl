@@ -1,7 +1,8 @@
 # Makefile.am -- Automake makefile for remctl.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2008 Board of Trustees, Leland Stanford Jr. University
+# Copyright 2006, 2007, 2008, 2009
+#     Board of Trustees, Leland Stanford Jr. University
 #
 # See LICENSE for licensing terms.
 
@@ -23,7 +24,7 @@ EXTRA_DIST = LICENSE Makefile.w32 autogen client/libremctl.rc client/mapfile \
 	docs/api/remctl_close.pod docs/api/remctl_command.pod \
 	docs/api/remctl_error.pod docs/api/remctl_new.pod \
 	docs/api/remctl_open.pod docs/api/remctl_output.pod docs/design.html \
-	docs/protocol.txt docs/protocol.html docs/protocol.xml \
+	docs/extending docs/protocol.txt docs/protocol.html docs/protocol.xml \
 	docs/remctl.pod docs/remctld.8.in docs/remctld.pod \
 	examples/remctl.conf examples/rsh-wrapper examples/xinetd \
 	java/.classpath java/.project java/Makefile java/README \
