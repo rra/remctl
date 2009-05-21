@@ -2,15 +2,12 @@
 
 Protocol:
 
- * Reserve a command of "help" in the protocol for special handling by the
-   server.
-
  * Add support for running commands as filters, passing standard input
    asynchronously from the client.  This requires significant
    re-engineering of the client loop and should wait for better
    configuration since we don't want to do this with every command.  It
    also introduces out-of-order responses and possible deadlocks to the
-   protocol, which is disturbing.
+   protocol.  docs/protocol-v3 has an initial draft.
 
 Server:
 
@@ -66,8 +63,7 @@ Server:
    override later ones) and ACL rules in the presence of deny ACLs.
 
  * Provide a way to specify handling of the empty command and then permit
-   it rather than returning a syntax error.  May also require a protocol
-   update if the protocol doesn't permit this case.
+   it rather than returning a syntax error.
 
  * Add a timeout for commands after which the server kills the command.
 
@@ -159,8 +155,5 @@ Java implementation:
    itself.  Figure out why and fix it.
 
 Test suite:
-
- * Combine the documentation tests together rather than testing POD
-   separately for server and client.
 
  * Add spelling check tests for the POD documentation.
