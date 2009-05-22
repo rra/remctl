@@ -8,6 +8,9 @@ remctl (2.14-1) unstable; urgency=low
       "service" in all documentation of remctl commands.
     - Better diagnosis of nul characters in command arguments.
     - Plug several memory leaks in the remctld server.
+  * Allow php5 as an alternative for the phpapi dependency to avoid a
+    Lintian warning (although I'm not sure this change is correct and need
+    to investigate further later).
   * Update standards version to 3.8.1 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Fri, 22 May 2009 15:37:53 -0700

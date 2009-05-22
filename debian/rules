@@ -98,7 +98,7 @@ binary-arch: install-stamp
 	dh_pysupport
 	dh_installdeb
 	dh_shlibdeps -l $(CURDIR)/debian/libremctl1/usr/lib -L libremctl1
-	echo "php:Depends=phpapi-`php-config5 --phpapi`" \
+	echo "php:Depends=php5 | phpapi-`php-config5 --phpapi`" \
 	    >> debian/php5-remctl.substvars
 	dh_gencontrol
 	dh_md5sums
