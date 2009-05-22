@@ -1,13 +1,13 @@
-                           remctl release 2.13
+                           remctl release 2.14
             (remote authenticated command execution with ACLs)
 
                    Originally written by Anton Ushakov
          Currently maintained by Russ Allbery <rra@stanford.edu>
 
-  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008 Board of Trustees,
-  Leland Stanford Jr. University.  This software is distributed under a
-  BSD-style license.  Please see the file LICENSE in the distribution for
-  more information.
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Board of
+  Trustees, Leland Stanford Jr. University.  This software is distributed
+  under a BSD-style license.  Please see the file LICENSE in the
+  distribution for more information.
 
 BLURB
 
@@ -87,15 +87,25 @@ REQUIREMENTS
 
   To run the test suite, you will need Test::Pod as described above.  The
   test suite will also need to be able to build to 127.0.0.1 on port 11119
-  and 14444 to run test network server programs.  In order to fully test
+  and 14373 to run test network server programs.  In order to fully test
   remctl, you will also need to create a keytab for a valid Kerberos
   principal in your local realm; see tests/data/README for more
   information.
 
-  If you change the Automake files and need to regenerate Makefile.in, you
-  will need Automake 1.10 or later.  If you change configure.ac or any of
-  the m4 files it includes and need to regenerate configure or
-  config.h.in, you will need Autoconf 2.61 or later.
+  To check spelling in the POD documentation, Pod::Spell (available from
+  CPAN) and either aspell or ispell with the american dictionary are also
+  required.  The user's path is searched for aspell or ispell and aspell
+  is preferred.  Spelling tests are disabled by default since spelling
+  dictionaries differ too much between systems.  To enable those tests,
+  set RRA_MAINTAINER_TESTS to a true value.
+
+  To bootstrap from a Git checkout, or if you change the Automake files
+  and need to regenerate Makefile.in, you will need Automake 1.10 or
+  later.  For bootstrap or if you change configure.ac or any of the m4
+  files it includes and need to regenerate configure or config.h.in, you
+  will need Autoconf 2.63 or later.  Perl and xml2rfc are also required to
+  generate the manual pages and protocol documentation from a fresh Git
+  checkout.
 
 INSTALLATION (UNIX)
 
@@ -235,8 +245,12 @@ TESTING
   principal in your local domain.  See tests/data/README for instructions
   on what to create and where to place the files.
 
-  If a test case fails, please run that individual test case directly and
-  send me the output when reporting the problem.  Note that on
+  If a test case fails, please run the that individual test case with
+  verbose output using:
+
+      tests/runtests -o <name-of-test>
+
+  and send me the output when reporting the problem.  Note that on
   particularly slow or loaded systems, you may see intermittant failures
   from the server/streaming test because it's timing-sensitive.
 

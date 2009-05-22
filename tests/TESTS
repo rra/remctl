@@ -1,8 +1,9 @@
 client/api
 client/large
 client/open
-client/pod
 client/remctl
+docs/pod
+docs/pod-spelling
 portable/asprintf
 portable/daemon
 portable/getaddrinfo
@@ -17,12 +18,14 @@ portable/strlcat
 portable/strlcpy
 server/accept
 server/acl
-server/background
 server/config
 server/continue
 server/env
 server/errors
 server/invalid
+server/logging
+server/misc
+server/stdin
 server/streaming
 server/version
 util/concat

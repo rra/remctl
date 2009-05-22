@@ -2,7 +2,7 @@
  * Test suite for continued commands.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2006, 2009 Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
  */
@@ -15,14 +15,16 @@
 
 #include <client/internal.h>
 #include <client/remctl.h>
-#include <tests/libtest.h>
+#include <tests/tap/basic.h>
+#include <tests/tap/kerberos.h>
+#include <tests/tap/remctl.h>
 #include <util/util.h>
 
 
 int
 main(void)
 {
-    char *principal;
+    char *principal, *config, *path;
     struct remctl *r;
     struct remctl_output *output;
     pid_t remctld;
@@ -40,24 +42,21 @@ main(void)
     OM_uint32 major, minor;
     int status;
 
-    test_init(9);
-
     /* Unless we have Kerberos available, we can't really do anything. */
+    if (chdir(getenv("SOURCE")) < 0)
+        bail("can't chdir to SOURCE");
     principal = kerberos_setup();
-    if (principal == NULL) {
-        skip_block(1, 9, "Kerberos tests not configured");
-        return 0;
-    }
-
-    /* Spawn the remctld server. */
-    remctld = spawn_remctld(principal);
-    if (remctld <= 0)
-        die("cannot spawn remctld");
+    if (principal == NULL)
+        skip_all("Kerberos tests not configured");
+    plan(9);
+    config = concatpath(getenv("SOURCE"), "data/conf-simple");
+    path = concatpath(getenv("BUILD"), "../server/remctld");
+    remctld = remctld_start(path, principal, config);
 
     /* Open a connection. */
     r = remctl_new();
-    ok(1, r != NULL);
-    ok(2, remctl_open(r, "localhost", 14444, principal));
+    ok(r != NULL, "remctl_new");
+    ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
 
     /* Send the command broken in the middle of protocol elements. */
     token.value = buffer;
@@ -66,35 +65,33 @@ main(void)
     token.length = sizeof(prefix_first) + 2;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
                              &token, &major, &minor);
-    ok_int(3, TOKEN_OK, status);
+    is_int(TOKEN_OK, status, "first token sent okay");
     memcpy(buffer, prefix_next, sizeof(prefix_next));
     memcpy(buffer + sizeof(prefix_next), data + 2, 4);
     token.length = sizeof(prefix_next) + 4;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
                              &token, &major, &minor);
-    ok_int(4, TOKEN_OK, status);
+    is_int(TOKEN_OK, status, "second token sent okay");
     memcpy(buffer, prefix_next, sizeof(prefix_next));
     memcpy(buffer + sizeof(prefix_next), data + 6, 13);
     token.length = sizeof(prefix_next) + 13;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
                              &token, &major, &minor);
-    ok_int(5, TOKEN_OK, status);
+    is_int(TOKEN_OK, status, "third token sent okay");
     memcpy(buffer, prefix_last, sizeof(prefix_last));
     memcpy(buffer + sizeof(prefix_last), data + 19, sizeof(data) - 19);
     token.length = sizeof(prefix_next) + sizeof(data) - 19;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
                              &token, &major, &minor);
-    ok_int(6, TOKEN_OK, status);
+    is_int(TOKEN_OK, status, "fourth token sent okay");
     r->ready = 1;
     output = remctl_output(r);
-    ok(7, output != NULL);
-    ok_int(8, REMCTL_OUT_STATUS, output->type);
-    ok_int(9, 2, output->status);
+    ok(output != NULL, "got output");
+    is_int(REMCTL_OUT_STATUS, output->type, "...of type status");
+    is_int(2, output->status, "...with correct status");
     remctl_close(r);
 
-    kill(remctld, SIGTERM);
-    waitpid(remctld, NULL, 0);
-    unlink("data/pid");
-
+    remctld_stop(remctld);
+    kerberos_cleanup();
     return 0;
 }

@@ -1,3 +1,6 @@
+=for stopwords
+remctl const API Allbery
+
 =head1 NAME
 
 remctl_error - Retrieve the error from a failed remctl operation

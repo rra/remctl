@@ -1,3 +1,6 @@
+=for stopwords
+remctl Allbery
+
 =head1 NAME
 
 remctl_close - Close a remctl connection and free the client object

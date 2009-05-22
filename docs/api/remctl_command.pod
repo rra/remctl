@@ -1,3 +1,6 @@
+=for stopwords
+remctl const iovec NUL-terminated argv Allbery
+
 =head1 NAME
 
 remctl_command, remctl_commandv - Send a command to a remctl server
@@ -21,7 +24,7 @@ have previously been passed to remctl_open() to open a connection to the
 server.
 
 remctl_command() takes the command as a NULL-terminated array of
-nul-terminated strings (the same layout as an argv array).  This function
+NUL-terminated strings (the same layout as an argv array).  This function
 is most convenient when passing simple text commands.
 
 remctl_commandv() takes the command as an array of iovec structs of length

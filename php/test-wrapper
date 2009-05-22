@@ -5,13 +5,14 @@
 # and didn't want to figure out how to spawn a test version of remctld inside
 # PHP.
 #
-# This script starts a remctl server, if the right configuration is
-# available, and works around the Debian bug, then runs make test, and then
-# cleans up.  It takes the path to the top of the remctl build directory as
-# its argument and should be run from the php directory.
+# This script starts a remctl server, if the right configuration is available,
+# and works around the Debian bug, then runs make test, and then cleans up.
+# It takes the path to the top of the remctl build directory and the top of
+# the source directory as its arguments and should be run from the php
+# directory.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2008 Board of Trustees, Leland Stanford Jr. University
+# Copyright 2008, 2009 Board of Trustees, Leland Stanford Jr. University
 #
 # See LICENSE for licensing terms.
 
@@ -20,6 +21,11 @@ if [ -z "$1" ] ; then
     exit 1
 fi
 top="$1"
+if [ -z "$2" ] ; then
+    echo 'Missing top source directory argument' >&2
+    exit 1
+fi
+source="$2"
 
 # Debian loads additional modules from /etc/php5/cli/conf.d, and the test
 # framework doesn't deal with this.  PHP only allows one module directory, so
@@ -50,9 +56,9 @@ if [ -f "$top/tests/data/test.keytab" ] ; then
     rm -f remctl-test.pid
     principal=`cat "$top/tests/data/test.principal"`
     keytab="$top/tests/data/test.keytab"
-    ( "$top/server/remctld" -m -p 14373 -s "$principal" -P remctl-test.pid \
-        -f "$top/tests/data/conf-simple" -d -S -F -k "$keytab" \
-         > remctl-test.out 2>&1 &)
+    ( cd "$source/tests" && "$top/server/remctld" -m -p 14373 \
+        -s "$principal" -P "$top/php/remctl-test.pid" -f "data/conf-simple" \
+        -d -S -F -k "$keytab" 2>&1 &) > remctl-test.out
 
     # Try a few different syntaxes for kinit to allow for Heimdal, MIT, or the
     # Stanford-local hack.
@@ -87,9 +93,6 @@ if [ -f "$top/tests/data/test.keytab" ] ; then
     fi
 fi
 
-# Create a link for the test data directory, needed by the remctl config.
-ln -s "$top"/tests/data data
-
 # Now we can finally run the tests, which will use remctl-test.pid as a flag
 # for whether to try the Kerberos tests.
 env LD_LIBRARY_PATH="$top"/client/.libs make test
@@ -106,7 +109,6 @@ if [ -f remctl-test.pid ] ; then
 fi
 
 # Clean up our symlinks.
-rm data
 for file in modules/* ; do
     if [ `basename "$file"` != remctl.so ] ; then
         rm "$file"

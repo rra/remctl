@@ -2,7 +2,8 @@
  * Test suite for the server connection negotiation code.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2006, 2007, 2009
+ *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
  */
@@ -15,7 +16,8 @@
 #include <sys/wait.h>
 
 #include <server/internal.h>
-#include <tests/libtest.h>
+#include <tests/tap/basic.h>
+#include <tests/tap/kerberos.h>
 #include <util/util.h>
 
 
@@ -41,7 +43,7 @@ make_connection(int protocol, const char *principal)
 
     /* Connect. */
     saddr.sin_family = AF_INET;
-    saddr.sin_port = htons(14444);
+    saddr.sin_port = htons(14373);
     saddr.sin_addr.s_addr = INADDR_ANY;
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0)
@@ -101,33 +103,30 @@ int
 main(void)
 {
     char *principal;
-    int n, s, fd, protocol;
+    int s, fd, protocol;
     pid_t child;
     struct sockaddr_in saddr;
     struct client *client;
     int on = 1;
 
-    test_init(2 * 3);
-
     /* Unless we have Kerberos available, we can't really do anything. */
     principal = kerberos_setup();
-    if (principal == NULL) {
-        skip_block(1, 6, "Kerberos tests not configured");
-        return 0;
-    }
+    if (principal == NULL)
+        skip_all("Kerberos tests not configured");
+    plan(2 * 3);
 
     /* Set up address to which we're going to bind and start listening.. */
     saddr.sin_family = AF_INET;
-    saddr.sin_port = htons(14444);
+    saddr.sin_port = htons(14373);
     saddr.sin_addr.s_addr = INADDR_ANY;
     s = socket(AF_INET, SOCK_STREAM, 0);
     if (s < 0)
-        sysdie("error creating socket");
+        sysbail("error creating socket");
     setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
     if (bind(s, (struct sockaddr *) &saddr, sizeof(saddr)) < 0)
-        sysdie("error binding socket");
+        sysbail("error binding socket");
     if (listen(s, 1) < 0)
-        sysdie("error listening to socket");
+        sysbail("error listening to socket");
 
     /*
      * We're going to try this three times, for each of the three possible
@@ -135,24 +134,24 @@ main(void)
      * test.  Each time, we're going to check that we got a context and that
      * we negotiated the appropriate protocol.
      */
-    n = 1;
     for (protocol = 0; protocol <= 2; protocol++) {
         child = fork();
         if (child < 0)
-            sysdie("cannot fork");
+            sysbail("cannot fork");
         else if (child == 0)
             make_connection(protocol, principal);
         alarm(1);
         fd = accept(s, NULL, 0);
         if (fd < 0)
-            sysdie("error accepting connection");
+            sysbail("error accepting connection");
         alarm(0);
         client = server_new_client(fd, GSS_C_NO_CREDENTIAL);
-        ok(n++, client != NULL);
+        ok(client != NULL, "accept client with protocol %d", protocol);
         if (client == NULL)
-            ok(n++, 0);
+            ok(0, "negotiated right protocol");
         else
-            ok_int(n++, (protocol < 2) ? 1 : 2, client->protocol);
+            is_int((protocol < 2) ? 1 : 2, client->protocol,
+                   "negotiated right protocol");
         server_free_client(client);
         waitpid(child, NULL, 0);
     }

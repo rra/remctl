@@ -68,7 +68,7 @@ RUNNING
       java -Djava.security.krb5.conf=k5.conf \
           -Djava.security.auth.login.config=j3.conf -jar remctl-*.jar \
           org.eyrie.eagle.remctl.RemctlClient \
-          <host> <type> <service> [<parameter> ...]
+          <host> <command> <subcommand> [<parameter> ...]
 
   This connects to the remctld on <host> and sends the command <type>
   <service> <parameter>.  If you're using ant, the JAR file will be in
@@ -77,7 +77,7 @@ RUNNING
       java -Djava.security.krb5.conf=k5.conf \
           -Djava.security.auth.login.config=j3.conf \
           -cp build:. org.eyrie.eagle.remctl.RemctlClient \
-          <host> <type> <service> [<parameter> ...]
+          <host> <command> <subcommand> [<parameter> ...]
 
   Also look at t5.java for an example of how to use the class in a Java
   program.

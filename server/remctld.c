@@ -338,6 +338,7 @@ main(int argc, char *argv[])
     struct options options;
     FILE *pid_file;
     int option;
+    struct sigaction sa;
     gss_cred_id_t creds = GSS_C_NO_CREDENTIAL;
     OM_uint32 minor;
     struct config *config;
@@ -347,6 +348,12 @@ main(int argc, char *argv[])
      * from holding on to us forever by dying after an hour.
      */
     alarm(60 * 60);
+
+    /* Ignore SIGPIPE errors from our children. */
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_IGN;
+    if (sigaction(SIGPIPE, &sa, NULL) < 0)
+        sysdie("cannot set SIGPIPE handler");
 
     /* Establish identity. */
     message_program_name = "remctld";

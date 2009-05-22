@@ -4,12 +4,12 @@ cflags=$(cflags) /I $(KRB5SDK)\inc\krb5 /I $(KRB5SDK)\inc\krb5\gssapi /I . /D_CR
 
 rcflags=$(rcflags) /I .
 
-remctl.exe: remctl.obj getopt.obj messages.obj asprintf.obj winsock.obj xmalloc.obj remctl.lib remctl.res
+remctl.exe: remctl.obj getopt.obj messages.obj messages-die.obj asprintf.obj winsock.obj xmalloc.obj remctl.lib remctl.res
 	link $(ldebug) $(lflags) /LIBPATH:$(KRB5SDK)\lib\$(CPU) /out:$@ $** ws2_32.lib advapi32.lib
 
 remctl.lib: remctl.dll
 
-remctl.dll: api.obj client-v1.obj client-v2.obj error.obj open.obj network.obj asprintf.obj concat.obj gss-tokens.obj gss-errors.obj inet_aton.obj inet_ntop.obj strlcpy.obj strlcat.obj tokens.obj messages.obj winsock.obj xmalloc.obj libremctl.res
+remctl.dll: api.obj client-v1.obj client-v2.obj error.obj open.obj network.obj asprintf.obj concat.obj gss-tokens.obj gss-errors.obj inet_aton.obj inet_ntop.obj strlcpy.obj strlcat.obj tokens.obj messages.obj messages-die.obj winsock.obj xmalloc.obj libremctl.res
 	link $(ldebug) $(lflags) /LIBPATH:$(KRB5SDK)\lib\$(CPU) /dll /out:$@ /export:remctl /export:remctl_new /export:remctl_open /export:remctl_close /export:remctl_command /export:remctl_commandv /export:remctl_error /export:remctl_output $** gssapi32.lib ws2_32.lib advapi32.lib
 
 {client\}.c{}.obj::

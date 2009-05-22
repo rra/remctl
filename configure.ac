@@ -6,16 +6,16 @@ dnl     Board of Trustees, Leland Stanford Jr. University
 dnl
 dnl See LICENSE for licensing terms.
 
-AC_PREREQ([2.61])
-AC_INIT([remctl], [2.13], [rra@stanford.edu])
+AC_PREREQ([2.63])
+AC_INIT([remctl], [2.14], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
+AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.10])
 AM_MAINTAINER_MODE
 
 AC_PROG_CC
-AC_AIX
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
@@ -63,9 +63,12 @@ RRA_MACRO_IN6_ARE_ADDR_EQUAL
 RRA_MACRO_SA_LEN
 RRA_FUNC_INET_NTOA
 RRA_FUNC_SNPRINTF
+AC_CHECK_FUNCS([getaddrinfo],
+    [RRA_FUNC_GETADDRINFO_ADDRCONFIG],
+    [AC_LIBOBJ([getaddrinfo])])
 AC_CHECK_FUNCS([setrlimit setsid])
-AC_REPLACE_FUNCS([asprintf daemon getaddrinfo getnameinfo getopt inet_aton \
-                  inet_ntop setenv strlcat strlcpy])
+AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
+                  setenv strlcat strlcpy])
 AC_TYPE_SIGNAL
 
 dnl Additional GSS-API portability checks.
@@ -74,18 +77,24 @@ AC_CHECK_HEADERS([gssapi.h])
 AC_CHECK_DECL([GSS_C_NT_USER_NAME],
     [AC_DEFINE([HAVE_GSS_RFC_OIDS], 1,
        [Define to 1 if the GSS-API library uses RFC-compliant OIDs.])], ,
-[#ifdef HAVE_GSSAPI_H
+[[
+#if defined(HAVE_GSSAPI_H)
 # include <gssapi.h>
 #else
 # include <gssapi/gssapi.h>
 #endif
-])
-AC_CHECK_DECLS([GSS_KRB5_MECHANISM], , ,
-[#ifdef HAVE_GSSAPI_H
+]])
+AC_CHECK_DECLS([GSS_KRB5_MECHANISM], ,
+    [AC_CHECK_DECLS([gss_mech_krb5], ,
+        [AC_LIBOBJ([gssapi-mech])],
+        [#include <gssapi/gssapi_krb5.h>])],
+[[
+#if defined(HAVE_GSSAPI_H)
 # include <gssapi.h>
 #else
 # include <gssapi/gssapi.h>
-#endif])
+#endif
+]])
 RRA_LIB_GSSAPI_RESTORE
 
 dnl If and only if we're on a GNU system, use mapfile to do symbol versioning
@@ -101,10 +110,6 @@ case "$host" in
     ;;
 esac
 AC_SUBST([VERSION_LDFLAGS])
-
-dnl Set this globally, since we have too many header files that include the
-dnl GSS-API headers even if the code itself doesn't call GSS-API functions.
-CPPFLAGS="$CPPFLAGS $GSSAPI_CPPFLAGS"
 
 dnl Check for the CMU GPUT library.
 RRA_LIB_GPUT
@@ -136,13 +141,14 @@ AC_ARG_ENABLE([python],
 AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
 
 AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
-AC_CONFIG_FILES([tests/client/pod-t], [chmod +x tests/client/pod-t])
 AS_IF([test x"$build_perl" = xyes],
-    [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])])
+    [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])
+     AC_CONFIG_FILES([perl/t/api.t], [chmod +x perl/t/api.t])])
 AS_IF([test x"$build_php" = xyes],
     [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])
 AS_IF([test x"$build_python" = xyes],
-    [AC_CONFIG_FILES([python/remctl.py python/setup.py])])
+    [AC_CONFIG_FILES([python/remctl.py python/setup.py])
+     AC_CONFIG_FILES([python/test_remctl.py])])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_COMMANDS([docs], [test -d docs || mkdir docs])
 AC_OUTPUT

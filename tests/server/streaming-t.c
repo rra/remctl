@@ -2,7 +2,7 @@
  * Test suite for streaming data from the server.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2006, 2009 Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
  */
@@ -15,96 +15,97 @@
 
 #include <client/internal.h>
 #include <client/remctl.h>
-#include <tests/libtest.h>
+#include <tests/tap/basic.h>
+#include <tests/tap/kerberos.h>
+#include <tests/tap/remctl.h>
 #include <util/util.h>
 
 
 int
 main(void)
 {
-    char *principal;
+    char *principal, *config, *path;
     struct remctl *r;
     struct remctl_output *output;
     pid_t remctld;
     const char *command[] = { "test", "streaming", NULL };
 
-    test_init(32);
-
     /* Unless we have Kerberos available, we can't really do anything. */
+    if (chdir(getenv("BUILD")) < 0)
+        bail("can't chdir to BUILD");
     principal = kerberos_setup();
-    if (principal == NULL) {
-        skip_block(1, 32, "Kerberos tests not configured");
-        return 0;
-    }
-
-    /* Spawn the remctld server. */
-    remctld = spawn_remctld(principal);
-    if (remctld <= 0)
-        die("cannot spawn remctld");
+    if (principal == NULL)
+        skip_all("Kerberos tests not configured");
+    plan(32);
+    config = concatpath(getenv("SOURCE"), "data/conf-simple");
+    path = concatpath(getenv("BUILD"), "../server/remctld");
+    remctld = remctld_start(path, principal, config);
 
     /* First, version 2. */
     r = remctl_new();
-    ok(1, r != NULL);
-    ok(2, remctl_open(r, "localhost", 14444, principal));
-    ok(3, remctl_command(r, command));
+    ok(r != NULL, "remctl_new");
+    ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
+    ok(remctl_command(r, command), "remctl_command");
     output = remctl_output(r);
-    ok(4, output != NULL);
-    ok_int(5, REMCTL_OUT_OUTPUT, output->type);
-    ok_int(6, 23, output->length);
+    ok(output != NULL, "output is not null");
+    is_int(REMCTL_OUT_OUTPUT, output->type, "...and is correct type");
+    is_int(23, output->length, "right length for first line");
     if (output->data == NULL)
-        ok(7, 0);
+        ok(0, "...right data for first line");
     else
-        ok(7, memcmp("This is the first line\n", output->data, 23) == 0);
-    ok_int(8, 1, output->stream);
+        ok(memcmp("This is the first line\n", output->data, 23) == 0,
+           "...right data for first line");
+    is_int(1, output->stream, "...right stream");
     output = remctl_output(r);
-    ok(9, output != NULL);
-    ok_int(10, REMCTL_OUT_OUTPUT, output->type);
-    ok_int(11, 24, output->length);
+    ok(output != NULL, "second output is not null");
+    is_int(REMCTL_OUT_OUTPUT, output->type, "...and is correct type");
+    is_int(24, output->length, "right length for second line");
     if (output->data == NULL)
-        ok(12, 0);
+        ok(0, "...right data for second line");
     else
-        ok(12, memcmp("This is the second line\n", output->data, 24) == 0);
-    ok_int(13, 2, output->stream);
+        ok(memcmp("This is the second line\n", output->data, 24) == 0,
+           "...right data for second line");
+    is_int(2, output->stream, "...right stream");
     output = remctl_output(r);
-    ok(14, output != NULL);
-    ok_int(15, REMCTL_OUT_OUTPUT, output->type);
-    ok_int(16, 23, output->length);
+    ok(output != NULL, "third output is not null");
+    is_int(REMCTL_OUT_OUTPUT, output->type, "...and is correct type");
+    is_int(23, output->length, "right length for third line");
     if (output->data == NULL)
-        ok(17, 0);
+        ok(0, "...right data for third line");
     else
-        ok(17, memcmp("This is the third line\n", output->data, 23) == 0);
-    ok_int(18, 1, output->stream);
+        ok(memcmp("This is the third line\n", output->data, 23) == 0,
+           "...right data for third line");
+    is_int(1, output->stream, "...right stream");
     output = remctl_output(r);
-    ok(19, output != NULL);
-    ok_int(20, REMCTL_OUT_STATUS, output->type);
-    ok_int(21, 0, output->status);
+    ok(output != NULL, "status is not null");
+    is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
+    is_int(0, output->status, "...and is right status");
     remctl_close(r);
 
     /* Now, version 1. */
     r = remctl_new();
     r->protocol = 1;
-    ok(22, r != NULL);
-    ok(23, remctl_open(r, "localhost", 14444, principal));
-    ok(24, remctl_command(r, command));
+    ok(r != NULL, "remctl_new protocol version 1");
+    ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
+    ok(remctl_command(r, command), "remctl_command");
     output = remctl_output(r);
-    ok(25, output != NULL);
-    ok_int(26, REMCTL_OUT_OUTPUT, output->type);
-    ok_int(27, 70, output->length);
+    ok(output != NULL, "output is not null");
+    is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
+    is_int(70, output->length, "...and right length");
     if (output->data == NULL)
-        ok(28, 0);
+        ok(0, "...and right data");
     else
-        ok(28, memcmp("This is the first line\nThis is the second line\n"
-                      "This is the third line\n", output->data, 70) == 0);
-    ok_int(29, 1, output->stream);
+        ok(memcmp("This is the first line\nThis is the second line\n"
+                  "This is the third line\n", output->data, 70) == 0,
+            "...and right data");
+    is_int(1, output->stream, "...and right stream");
     output = remctl_output(r);
-    ok(30, output != NULL);
-    ok_int(31, REMCTL_OUT_STATUS, output->type);
-    ok_int(32, 0, output->status);
+    ok(output != NULL, "status token is not null");
+    is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
+    is_int(0, output->status, "...and is right status");
     remctl_close(r);
 
-    kill(remctld, SIGTERM);
-    waitpid(remctld, NULL, 0);
-    unlink("data/pid");
-
+    remctld_stop(remctld);
+    kerberos_cleanup();
     return 0;
 }

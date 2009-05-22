@@ -1,3 +1,8 @@
+=for stopwords
+remctl const API hostname IP NUL-terminated GSS-API DNS KRB5CCNAME NULs
+ENOMEM CNAME lookups canonicalization libdefaults canonicalize Allbery
+DNS-based
+
 =head1 NAME
 
 remctl, remctl_result_free - Simple remctl call to a remote server
@@ -27,7 +32,7 @@ fails.  Future versions of the library will drop this fallback to 4444.
 I<principal> is the service principal to use for authentication; if NULL,
 C<host/I<host>> is used, with the realm determined by domain-realm
 mapping.  I<command> is the command to run as a NULL-terminated array of
-nul-terminated strings.
+NUL-terminated strings.
 
 If no principal is specified and the default is used, the underlying
 GSS-API library may canonicalize I<host> via DNS before determining the
@@ -67,7 +72,7 @@ program is through with it.
 
 If you want more control over the steps of the protocol, if you want to
 issue multiple commands on the same connection, or if you need to send
-data as part of the command that contains nuls, use the full API described
+data as part of the command that contains NULs, use the full API described
 in remctl_new(3), remctl_open(3), remctl_commandv(3), and
 remctl_output(3).
 
@@ -96,7 +101,7 @@ the MIT Kerberos GSS-API library, canonicalization can be disabled by
 setting C<rdns> to false in the [libdefaults] section of F<krb5.conf>.  It
 can also be disabled by passing an explicit Kerberos principal name via
 the I<principal> argument, which will then be used without changes.  If
-canonicalization is desired, the caller may wish to canonicalizae I<host>
+canonicalization is desired, the caller may wish to canonicalize I<host>
 before calling remctl() to avoid problems with multiple DNS calls
 returning different results.
 
