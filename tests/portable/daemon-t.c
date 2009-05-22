@@ -2,7 +2,7 @@
  * daemon test suite.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2008 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2008, 2009 Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
  */
@@ -19,7 +19,7 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 
-#include <tests/libtest.h>
+#include <tests/tap/basic.h>
 #include <util/util.h>
 
 int test_daemon(int, int);
@@ -33,7 +33,7 @@ create_sentinel(void)
 {
     int fd;
 
-    fd = open("daemon-sentinel", O_RDWR | O_CREAT);
+    fd = open("daemon-sentinel", O_RDWR | O_CREAT, 0666);
     close(fd);
 }
 
@@ -73,68 +73,64 @@ main(void)
     pid_t child;
     char start[BUFSIZ], dir[BUFSIZ];
 
-    test_init(9);
+    plan(9);
 
     /* Get the current working directory. */
     if (getcwd(start, sizeof(start)) == NULL)
-        sysdie("cannot get current working directory");
+        bail("cannot get current working directory");
 
     /* First, some basic tests. */
     child = fork();
     if (child < 0)
-        sysdie("cannot fork");
+        sysbail("cannot fork");
     else if (child == 0) {
-        ok_int(1, 0, daemon(1, 1));
+        is_int(0, daemon(1, 1), "daemon(1, 1)");
         fd = open("/dev/tty", O_RDONLY);
-        ok(2, fd < 0);
-        if (getcwd(dir, sizeof(dir)) == NULL)
-            ok(3, 0);
-        else
-            ok_string(3, start, dir);
+        ok(fd < 0, "...no tty");
+        is_string(start, getcwd(dir, sizeof(dir)), "...in same directory");
         create_sentinel();
         exit(42);
     } else {
         if (waitpid(child, &status, 0) < 0)
-            sysdie("cannot wait for child");
-        ok(4, wait_sentinel());
-        ok_int(5, 0, status);
+            bail("cannot wait for child: %s", strerror(errno));
+        testnum += 3;
+        ok(wait_sentinel(), "...child exited");
+        is_int(0, status, "...successfully");
     }
 
     /* Test chdir. */
     child = fork();
     if (child < 0)
-        sysdie("cannot fork");
+        sysbail("cannot fork");
     else if (child == 0) {
-        ok_int(6, 0, daemon(0, 1));
-        if (getcwd(dir, sizeof(dir)) == NULL)
-            ok(7, 0);
-        else
-            ok_string(7, "/", dir);
+        is_int(0, daemon(0, 1), "daemon(0, 1)");
+        is_string("/", getcwd(dir, sizeof(dir)), "...now in /");
         if (chdir(start) != 0)
-            sysdie("cannot chdir to %s", start);
+            sysbail("cannot chdir to %s", start);
         create_sentinel();
         exit(0);
     } else {
         if (waitpid(child, &status, 0) < 0)
-            sysdie("cannot wait for child");
-        ok(8, wait_sentinel());
+            sysbail("cannot wait for child");
+        testnum += 2;
+        ok(wait_sentinel(), "...child exited");
     }
 
     /* Test close. */
     child = fork();
     if (child < 0)
-        sysdie("cannot fork");
+        sysbail("cannot fork");
     else if (child == 0) {
         daemon(0, 0);
         if (chdir(start) != 0)
-            sysdie("cannot chdir to %s", start);
-        fprintf(stdout, "not ok 9\n");
+            sysbail("cannot chdir to %s", start);
+        ok(0, "output from child that should be hidden");
         create_sentinel();
         exit(0);
     } else {
         if (waitpid(child, &status, 0) < 0)
-            sysdie("cannot wait for child");
-        ok(9, wait_sentinel());
+            sysbail("cannot wait for child");
+        ok(wait_sentinel(), "daemon(0, 0)");
     }
 
     return 0;

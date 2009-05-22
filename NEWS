@@ -1,5 +1,69 @@
                        User-Visible remctl Changes
 
+remctl 2.14 (2009-05-22)
+
+    The remctld configuration file may now specify that one argument to a
+    command is passed on standard input instead of on the command line
+    using the stdin= option.  This option allows passing data to commands
+    that's too long to fit into a command-line argument or that contains
+    nul characters.
+
+    remctld logging of commands or arguments now replaces unprintable
+    characters (characters between ASCII 0 and 31 and ASCII 127) with
+    periods rather than assuming syslog will cope with them correctly.
+
+    Use command and subcommand as the names for the first two parameters
+    to the remctl client and the first two strings in a remctl command
+    instead of the unintuitive "type" and "service" terminology borrowed
+    from sysctl.  This only changes documentation and some internal
+    variable names; no external APIs should be affected.
+
+    Declare message_fatal_cleanup extern in util.h.  Fixes compilation
+    problems on Mac OS X and probably elsewhere.
+
+    Diagnose and explicitly reject on the server nul characters in command
+    arguments that don't support them rather than truncating the argument
+    silently.
+
+    Plug several memory leaks in the remctld server.  (These would have
+    little practical effect unless a client stayed connected and issued
+    multiple commands.)
+
+    The protocol now permits commands with no arguments.  remctld
+    currently doesn't support them, but now returns ERROR_UNKNOWN_COMMAND
+    instead of ERROR_BAD_COMMAND when receiving one.
+
+    Add documentation on extending remctl in docs/extending.
+
+    Add initial protocol version three draft in docs/protocol-v3.
+
+    Better check logmask options when parsing the server configuration
+    file and report errors instead of silently ignoring them.  Masking the
+    command is also no longer supported (it previously worked by
+    accident).
+
+    Support building against Solaris 10's native generic GSS-API
+    libraries.  Thanks, Peter Eriksson.
+
+    Update to rra-c-util 1.0:
+
+    * Fix open call parameters in daemon portability test.
+    * Fix AI_ADDRCONFIG portability on BSD/OS systems.
+    * Split die into a separate object to not link it in shared libraries.
+    * Don't break if the user clobbers CPPFLAGS at build time.
+    * Correctly set -L options with --with-gssapi-lib, not -I.
+    * Change AC_TRY_* to AC_*_IFELSE as recommended by Autoconf.
+    * Update portable and util test suite for C TAP Harness 1.0.
+    * Use native Kerberos instead of forking kinit in test suite.
+
+    Update to C TAP Harness 1.0:
+
+    * Rewrite of all test cases to use the new TAP library support.
+    * Much improved and simplified builddir != srcdir test suite support.
+    * Support running a single test with tests/runtests -o.
+    * Correctly handle completely skipped tests, like client/pod.
+    * Better reporting of fatal errors in the test suite.
+
 remctl 2.13 (2008-11-14)
 
     Add support for ACL methods in the remctld server.  The supported

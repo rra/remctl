@@ -28,13 +28,13 @@ SIMPLIFIED INTERFACE
 
   remctl(HOSTNAME, PORT, PRINCIPAL, COMMAND)
       Runs COMMAND on the remote system and returns an object containing
-      the results.  COMMAND should be an array of the type, the service,
-      and any parameters.  HOSTNAME is the remote host to connect to.
-      PORT is the port; pass 0 to use the default library behavior (first
-      try 4373 and then fall back to 4444).  PRINCIPAL is the principal of
-      the server to use for authentication; pass in the empty string to
-      use the default of host/HOSTNAME with the realm determined by
-      domain-realm mapping.
+      the results.  COMMAND should be an array of the command, the
+      subcommand, and any parameters.  HOSTNAME is the remote host to
+      connect to.  PORT is the port; pass 0 to use the default library
+      behavior (first try 4373 and then fall back to 4444).  PRINCIPAL is
+      the principal of the server to use for authentication; pass in the
+      empty string to use the default of host/HOSTNAME with the realm
+      determined by domain-realm mapping.
 
   The return value of remctl() is an object which will have the following
   properties:

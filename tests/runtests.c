@@ -17,12 +17,13 @@
  *
  * where <number> is the number of the test.  ok indicates success, not ok
  * indicates failure, and "# skip" indicates the test was skipped for some
- * reason (maybe because it doesn't apply to this platform).
+ * reason (maybe because it doesn't apply to this platform).  This is a subset
+ * of TAP as documented in Test::Harness::TAP, which comes with Perl.
  *
  * Any bug reports, bug fixes, and improvements are very much welcome and
  * should be sent to the e-mail address below.
  *
- * Copyright 2000, 2001, 2004, 2006, 2007, 2008
+ * Copyright 2000, 2001, 2004, 2006, 2007, 2008, 2009
  *     Russ Allbery <rra@stanford.edu>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -44,16 +45,19 @@
  * DEALINGS IN THE SOFTWARE.
 */
 
-#include <config.h>
-#include <portable/system.h>
-
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <unistd.h>
 
 /* sys/time.h must be included before sys/resource.h on some platforms. */
 #include <sys/resource.h>
@@ -61,6 +65,19 @@
 /* AIX doesn't have WCOREDUMP. */
 #ifndef WCOREDUMP
 # define WCOREDUMP(status)      ((unsigned)(status) & 0x80)
+#endif
+
+/*
+ * The source and build versions of the tests directory.  This is used to set
+ * the SOURCE and BUILD environment variables and find test programs, if set.
+ * Normally, this should be set as part of the build process to the test
+ * subdirectories of $(abs_top_srcdir) and $(abs_top_builddir) respectively.
+ */
+#ifndef SOURCE
+# define SOURCE NULL
+#endif
+#ifndef BUILD
+# define BUILD NULL
 #endif
 
 /* Test status codes. */
@@ -78,7 +95,8 @@ enum test_status {
 
 /* Structure to hold data for a set of tests. */
 struct testset {
-    const char *file;           /* The file name of the test. */
+    char *file;                 /* The file name of the test. */
+    char *path;                 /* The path to the test program. */
     int count;                  /* Expected count of tests. */
     int current;                /* The last seen test number. */
     int length;                 /* The length of the last status message. */
@@ -89,6 +107,8 @@ struct testset {
     int aborted;                /* Whether the set as aborted. */
     int reported;               /* Whether the results were reported. */
     int status;                 /* The exit status of the test. */
+    int all_skipped;            /* Whether all tests were skipped. */
+    char *reason;               /* Why all tests were skipped. */
 };
 
 /* Structure to hold a linked list of test sets. */
@@ -103,8 +123,7 @@ struct testlist {
  */
 static const char banner[] = "\n\
 Running all tests listed in %s.  If any tests fail, run the failing\n\
-test program by hand to see more details.  The test program will have the\n\
-same name as the test set but with \"-t\" appended.\n\n";
+test program with runtests -o to see more details.\n\n";
 
 /* Header for reports of failed tests. */
 static const char header[] = "\n\
@@ -114,22 +133,6 @@ Failed Set                 Fail/Total (%) Skip Stat  Failing Tests\n\
 /* Include the file name and line number in malloc failures. */
 #define xmalloc(size)   x_malloc((size), __FILE__, __LINE__)
 #define xstrdup(p)      x_strdup((p), __FILE__, __LINE__)
-
-/* Internal prototypes. */
-static void sysdie(const char *format, ...);
-static void *x_malloc(size_t, const char *file, int line);
-static char *x_strdup(const char *, const char *file, int line);
-static int test_analyze(struct testset *);
-static int test_batch(const char *testlist);
-static void test_checkline(const char *line, struct testset *);
-static void test_fail_summary(const struct testlist *);
-static int test_init(const char *line, struct testset *);
-static int test_print_range(int first, int last, int chars, int limit);
-static void test_summarize(struct testset *, int status);
-static pid_t test_start(const char *path, int *fd);
-static double tv_diff(const struct timeval *, const struct timeval *);
-static double tv_seconds(const struct timeval *);
-static double tv_sum(const struct timeval *, const struct timeval *);
 
 
 /*
@@ -219,6 +222,19 @@ tv_sum(const struct timeval *tv1, const struct timeval *tv2)
 
 
 /*
+ * Given a pointer to a string, skip any leading whitespace and return a
+ * pointer to the first non-whitespace character.
+ */
+static const char *
+skip_whitespace(const char *p)
+{
+    while (isspace((unsigned char)(*p)))
+        p++;
+    return p;
+}
+
+
+/*
  * Read the first line of test output, which should contain the range of
  * test numbers, and initialize the testset structure.  Assume it was zeroed
  * before being passed in.  Return true if initialization succeeds, false
@@ -234,15 +250,34 @@ test_init(const char *line, struct testset *ts)
      * such as 1..10, accept that too for compatibility with Perl's
      * Test::Harness.
      */
-    while (isspace((unsigned char)(*line)))
-        line++;
+    line = skip_whitespace(line);
     if (strncmp(line, "1..", 3) == 0)
         line += 3;
 
-    /* Get the count, check it for validity, and initialize the struct. */
-    i = atoi(line);
+    /*
+     * Get the count, check it for validity, and initialize the struct.  If we
+     * have something of the form "1..0 # skip foo", the whole file was
+     * skipped; record that.
+     */
+    i = strtol(line, (char **) &line, 10);
+    if (i == 0) {
+        line = skip_whitespace(line);
+        if (*line == '#') {
+            line = skip_whitespace(line + 1);
+            if (strncmp(line, "skip", 4) == 0) {
+                line = skip_whitespace(line + 4);
+                if (*line != '\0') {
+                    ts->reason = xstrdup(line);
+                    ts->reason[strlen(ts->reason) - 1] = '\0';
+                }
+                ts->all_skipped = 1;
+                ts->aborted = 1;
+                return 0;
+            }
+        }
+    }
     if (i <= 0) {
-        puts("invalid test count");
+        puts("ABORTED (invalid test count)");
         ts->aborted = 1;
         ts->reported = 1;
         return 0;
@@ -329,7 +364,27 @@ static void
 test_checkline(const char *line, struct testset *ts)
 {
     enum test_status status = TEST_PASS;
+    const char *bail;
+    char *end;
     int current;
+
+    /* Before anything, check for a test abort. */
+    bail = strstr(line, "Bail out!");
+    if (bail != NULL) {
+        bail = skip_whitespace(bail + strlen("Bail out!"));
+        if (*bail != '\0') {
+            int length;
+
+            length = strlen(bail);
+            if (bail[length - 1] == '\n')
+                length--;
+            test_backspace(ts);
+            printf("ABORTED (%.*s)\n", length, bail);
+            ts->reported = 1;
+        }
+        ts->aborted = 1;
+        return;
+    }
 
     /*
      * If the given line isn't newline-terminated, it was too big for an
@@ -343,37 +398,40 @@ test_checkline(const char *line, struct testset *ts)
         status = TEST_FAIL;
         line += 4;
     }
-    if (strncmp(line, "ok ", 3) != 0)
+    if (strncmp(line, "ok", 2) != 0)
         return;
-    line += 3;
-    current = atoi(line);
-    if (current == 0)
-        return;
-    if (current < 0 || current > ts->count) {
+    line = skip_whitespace(line + 2);
+    errno = 0;
+    current = strtol(line, &end, 10);
+    if (errno != 0 || end == line)
+        current = ts->current + 1;
+    if (current <= 0 || current > ts->count) {
         test_backspace(ts);
-        printf("invalid test number %d\n", current);
+        printf("ABORTED (invalid test number %d)\n", current);
         ts->aborted = 1;
         ts->reported = 1;
         return;
     }
-    while (isspace((unsigned char)(*line)))
-        line++;
+
+    /*
+     * Handle directives.  We should probably do something more interesting
+     * with unexpected passes of todo tests.
+     */
     while (isdigit((unsigned char)(*line)))
         line++;
-    while (isspace((unsigned char)(*line)))
-        line++;
+    line = skip_whitespace(line);
     if (*line == '#') {
-        line++;
-        while (isspace((unsigned char)(*line)))
-            line++;
-        if (strncmp(line, "skip", 4) == 0)
+        line = skip_whitespace(line + 1);
+        if (strncasecmp(line, "skip", 4) == 0)
             status = TEST_SKIP;
+        if (strncasecmp(line, "todo", 4) == 0)
+            status = (status == TEST_FAIL) ? TEST_SKIP : TEST_FAIL;
     }
 
     /* Make sure that the test number is in range and not a duplicate. */
     if (ts->results[current - 1] != TEST_INVALID) {
         test_backspace(ts);
-        printf("duplicate test number %d\n", current);
+        printf("ABORTED (duplicate test number %d)\n", current);
         ts->aborted = 1;
         ts->reported = 1;
         return;
@@ -449,9 +507,9 @@ test_summarize(struct testset *ts, int status)
     int last = 0;
 
     if (ts->aborted) {
-        fputs("aborted", stdout);
+        fputs("ABORTED", stdout);
         if (ts->count > 0)
-            printf(", passed %d/%d", ts->passed, ts->count - ts->skipped);
+            printf(" (passed %d/%d)", ts->passed, ts->count - ts->skipped);
     } else {
         for (i = 0; i < ts->count; i++) {
             if (ts->results[i] == TEST_INVALID) {
@@ -520,19 +578,25 @@ test_analyze(struct testset *ts)
 {
     if (ts->reported)
         return 0;
-    if (WIFEXITED(ts->status) && WEXITSTATUS(ts->status) != 0) {
+    if (ts->all_skipped) {
+        if (ts->reason == NULL)
+            puts("skipped");
+        else
+            printf("skipped (%s)\n", ts->reason);
+        return 1;
+    } else if (WIFEXITED(ts->status) && WEXITSTATUS(ts->status) != 0) {
         switch (WEXITSTATUS(ts->status)) {
         case CHILDERR_DUP:
             if (!ts->reported)
-                puts("can't dup file descriptors");
+                puts("ABORTED (can't dup file descriptors)");
             break;
         case CHILDERR_EXEC:
             if (!ts->reported)
-                puts("execution failed (not found?)");
+                puts("ABORTED (execution failed -- not found?)");
             break;
         case CHILDERR_STDERR:
             if (!ts->reported)
-                puts("can't open /dev/null");
+                puts("ABORTED (can't open /dev/null)");
             break;
         default:
             test_summarize(ts, WEXITSTATUS(ts->status));
@@ -561,17 +625,12 @@ test_run(struct testset *ts)
     int outfd, i, status;
     FILE *output;
     char buffer[BUFSIZ];
-    char *file;
 
     /*
      * Initialize the test and our data structures, flagging this set in error
      * if the initialization fails.
      */
-    file = xmalloc(strlen(ts->file) + 3);
-    strcpy(file, ts->file);
-    strcat(file, "-t");
-    testpid = test_start(file, &outfd);
-    free(file);
+    testpid = test_start(ts->path, &outfd);
     output = fdopen(outfd, "r");
     if (!output) {
         puts("ABORTED");
@@ -580,11 +639,8 @@ test_run(struct testset *ts)
     }
     if (!fgets(buffer, sizeof(buffer), output))
         ts->aborted = 1;
-    if (!ts->aborted && !test_init(buffer, ts)) {
-        while (fgets(buffer, sizeof(buffer), output))
-            ;
+    if (!ts->aborted && !test_init(buffer, ts))
         ts->aborted = 1;
-    }
 
     /* Pass each line of output to test_checkline(). */
     while (!ts->aborted && fgets(buffer, sizeof(buffer), output))
@@ -600,10 +656,14 @@ test_run(struct testset *ts)
     fclose(output);
     child = waitpid(testpid, &ts->status, 0);
     if (child == (pid_t) -1) {
-        puts("ABORTED");
-        fflush(stdout);
+        if (!ts->reported) {
+            puts("ABORTED");
+            fflush(stdout);
+        }
         sysdie("waitpid for %u failed", (unsigned int) testpid);
     }
+    if (ts->all_skipped)
+        ts->aborted = 0;
     status = test_analyze(ts);
 
     /* Convert missing tests to failed tests. */
@@ -666,12 +726,53 @@ test_fail_summary(const struct testlist *fails)
 
 
 /*
+ * Given the name of a test, a pointer to the testset struct, and the source
+ * and build directories, find the test.  We try first relative to the current
+ * directory, then in the build directory (if not NULL), then in the source
+ * directory.  In each of those directories, we first try a "-t" extension and
+ * then a ".t" extension.  When we find an executable program, we fill in the
+ * path member of the testset struct.  If none of those paths are executable,
+ * just fill in the name of the test with "-t" appended.
+ *
+ * The caller is responsible for freeing the path member of the testset
+ * struct.
+ */
+static void
+find_test(const char *name, struct testset *ts, const char *source,
+          const char *build)
+{
+    char *path;
+    const char *bases[] = { ".", build, source, NULL };
+    int i;
+
+    for (i = 0; bases[i] != NULL; i++) {
+        path = xmalloc(strlen(bases[i]) + strlen(name) + 4);
+        sprintf(path, "%s/%s-t", bases[i], name);
+        if (access(path, X_OK) != 0)
+            path[strlen(path) - 2] = '.';
+        if (access(path, X_OK) == 0)
+            break;
+        free(path);
+        path = NULL;
+    }
+    if (path == NULL) {
+        path = xmalloc(strlen(name) + 3);
+        sprintf(path, "%s-t", name);
+    }
+    ts->path = path;
+}
+
+
+/*
  * Run a batch of tests from a given file listing each test on a line by
- * itself.  The file must be rewindable.  Returns true iff all tests
+ * itself.  Takes two additional parameters: the root of the source directory
+ * and the root of the build directory.  Test programs will be first searched
+ * for in the current directory, then the build directory, then the source
+ * directory.  The file must be rewindable.  Returns true iff all tests
  * passed.
  */
 static int
-test_batch(const char *testlist)
+test_batch(const char *testlist, const char *source, const char *build)
 {
     FILE *tests;
     size_t length, i;
@@ -741,7 +842,14 @@ test_batch(const char *testlist)
             fflush(stdout);
         memset(&ts, 0, sizeof(ts));
         ts.file = xstrdup(buffer);
-        if (!test_run(&ts)) {
+        find_test(buffer, &ts, source, build);
+        ts.reason = NULL;
+        if (test_run(&ts)) {
+            free(ts.file);
+            free(ts.path);
+            if (ts.reason != NULL)
+                free(ts.reason);
+        } else {
             tmp = xmalloc(sizeof(struct testset));
             memcpy(tmp, &ts, sizeof(struct testset));
             if (!failhead) {
@@ -757,9 +865,9 @@ test_batch(const char *testlist)
             }
         }
         aborted += ts.aborted;
-        total += ts.count;
+        total += ts.count + ts.all_skipped;
         passed += ts.passed;
-        skipped += ts.skipped;
+        skipped += ts.skipped + ts.all_skipped;
         failed += ts.failed;
     }
     total -= skipped;
@@ -769,7 +877,8 @@ test_batch(const char *testlist)
     getrusage(RUSAGE_CHILDREN, &stats);
 
     /* Print out our final results. */
-    if (failhead) test_fail_summary(failhead);
+    if (failhead)
+        test_fail_summary(failhead);
     putchar('\n');
     if (aborted != 0) {
         if (aborted == 1)
@@ -800,15 +909,80 @@ test_batch(const char *testlist)
 
 
 /*
- * Main routine.  Given a file listing tests, run each test listed.
+ * Run a single test case.  This involves just running the test program after
+ * having done the environment setup and finding the test program.
+ */
+static void
+test_single(const char *program, const char *source, const char *build)
+{
+    struct testset ts;
+
+    memset(&ts, 0, sizeof(ts));
+    find_test(program, &ts, source, build);
+    if (execl(ts.path, ts.path, (char *) 0) == -1)
+        sysdie("cannot exec %s", ts.path);
+}
+
+
+/*
+ * Main routine.  Set the SOURCE and BUILD environment variables and then,
+ * given a file listing tests, run each test listed.
  */
 int
 main(int argc, char *argv[])
 {
-    if (argc != 2) {
+    int option;
+    int single = 0;
+    char *setting;
+    const char *list;
+    const char *source = SOURCE;
+    const char *build = BUILD;
+
+    while ((option = getopt(argc, argv, "b:os:")) != EOF) {
+        switch (option) {
+        case 'b':
+            build = optarg;
+            break;
+        case 'o':
+            single = 1;
+            break;
+        case 's':
+            source = optarg;
+            break;
+        default:
+            exit(1);
+        }
+    }
+    argc -= optind;
+    argv += optind;
+    if (argc != 1) {
         fprintf(stderr, "Usage: runtests <test-list>\n");
         exit(1);
     }
-    printf(banner, argv[1]);
-    exit(test_batch(argv[1]) ? 0 : 1);
+
+    if (source != NULL) {
+        setting = xmalloc(strlen("SOURCE=") + strlen(source) + 1);
+        sprintf(setting, "SOURCE=%s", source);
+        if (putenv(setting) != 0)
+            sysdie("cannot set SOURCE in the environment");
+    }
+    if (build != NULL) {
+        setting = xmalloc(strlen("BUILD=") + strlen(build) + 1);
+        sprintf(setting, "BUILD=%s", build);
+        if (putenv(setting) != 0)
+            sysdie("cannot set BUILD in the environment");
+    }
+
+    if (single) {
+        test_single(argv[0], source, build);
+        exit(0);
+    } else {
+        list = strrchr(argv[0], '/');
+        if (list == NULL)
+            list = argv[0];
+        else
+            list++;
+        printf(banner, list);
+        exit(test_batch(argv[0], source, build) ? 0 : 1);
+    }
 }

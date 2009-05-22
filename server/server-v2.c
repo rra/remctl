@@ -5,7 +5,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -15,6 +15,7 @@
 #include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/uio.h>
 
 #include <server/internal.h>
 #include <util/util.h>
@@ -211,10 +212,12 @@ server_v2_handle_token(struct client *client, struct config *config,
 {
     char *p;
     size_t length, total;
-    struct vector *argv = NULL;
+    struct iovec **argv = NULL;
     char *buffer = NULL;
     int status;
     OM_uint32 minor;
+    bool result = false;
+    bool allocated = false;
     bool continued = false;
 
     /*
@@ -226,15 +229,18 @@ server_v2_handle_token(struct client *client, struct config *config,
     total = 0;
     do {
         p = token->value;
-        if (p[0] != 2)
-            return server_v2_send_version(client);
-        if (p[1] == MESSAGE_QUIT) {
+        if (p[0] != 2) {
+            result = server_v2_send_version(client);
+            goto fail;
+        } else if (p[1] == MESSAGE_QUIT) {
             debug("quit received, closing connection");
-            return false;
+            result = false;
+            goto fail;
         } else if (p[1] != MESSAGE_COMMAND) {
             warn("unknown message type %d from client", (int) p[1]);
-            return server_send_error(client, ERROR_UNKNOWN_MESSAGE,
-                                     "Unknown message");
+            result = server_send_error(client, ERROR_UNKNOWN_MESSAGE,
+                                       "Unknown message");
+            goto fail;
         }
         p += 2;
         client->keepalive = p[0] ? true : false;
@@ -243,15 +249,17 @@ server_v2_handle_token(struct client *client, struct config *config,
         if (token->length > TOKEN_MAX_DATA) {
             warn("command data length %lu exceeds 64KB",
                  (unsigned long) token->length);
-            return server_send_error(client, ERROR_TOOMUCH_DATA,
-                                     "Too much data");
+            result = server_send_error(client, ERROR_TOOMUCH_DATA,
+                                       "Too much data");
+            goto fail;
         }
 
         /* Make sure the continuation is sane. */
         if ((p[1] == 1 && continued) || (p[1] > 1 && !continued) || p[1] > 3) {
             warn("bad continue status %d", (int) p[1]);
-            return server_send_error(client, ERROR_BAD_COMMAND,
-                                     "Invalid command token");
+            result = server_send_error(client, ERROR_BAD_COMMAND,
+                                       "Invalid command token");
+            goto fail;
         }
         continued = (p[1] == 1 || p[1] == 2);
 
@@ -267,6 +275,7 @@ server_v2_handle_token(struct client *client, struct config *config,
                 buffer = xmalloc(length);
             else
                 buffer = xrealloc(buffer, total + length);
+            allocated = true;
             memcpy(buffer + total, p, length);
             total += length;
         }
@@ -280,9 +289,11 @@ server_v2_handle_token(struct client *client, struct config *config,
             gss_release_buffer(&minor, token);
             status = server_v2_read_token(client, token);
             if (status == TOKEN_FAIL_EOF)
-                return false;
+                result = false;
             else if (status != TOKEN_OK)
-                return true;
+                result = true;
+            if (status != TOKEN_OK)
+                goto fail;
         } else if (buffer == NULL) {
             buffer = p;
             total = length;
@@ -294,12 +305,20 @@ server_v2_handle_token(struct client *client, struct config *config,
      * multiple tokens.  Now we can parse it.
      */
     argv = server_parse_command(client, buffer, total);
+    if (allocated)
+        free(buffer);
     if (argv == NULL)
         return !client->fatal;
 
     /* We have a command.  Now do the heavy lifting. */
     server_run_command(client, config, argv);
+    server_free_command(argv);
     return !client->fatal;
+
+fail:
+    if (allocated)
+        free(buffer);
+    return result;
 }
 
 

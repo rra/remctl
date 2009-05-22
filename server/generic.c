@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -16,6 +16,7 @@
 #include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/uio.h>
 
 #include <server/internal.h>
 #include <util/util.h>
@@ -193,24 +194,28 @@ server_free_client(struct client *client)
         free(client->user);
     if (client->fd >= 0)
         close(client->fd);
+    if (client->hostname != NULL)
+        free(client->hostname);
+    if (client->ipaddress != NULL)
+        free(client->ipaddress);
     free(client);
 }
 
 
 /*
  * Receives a command token payload and builds an argv structure for it,
- * returning that as a vector.  Takes the client struct, a pointer to the
- * beginning of the payload (starting with the argument count), and the length
- * of the payload.  If there are any problems with the request, sends an error
- * token, logs the error, and then returns NULL.  Otherwise, returns the
- * command vector.
+ * returning that as NULL-terminated array of pointers to struct iovecs.
+ * Takes the client struct, a pointer to the beginning of the payload
+ * (starting with the argument count), and the length of the payload.  If
+ * there are any problems with the request, sends an error token, logs the
+ * error, and then returns NULL.  Otherwise, returns the struct iovec array.
  */
-struct vector *
+struct iovec **
 server_parse_command(struct client *client, const char *buffer, size_t length)
 {
     OM_uint32 tmp;
-    size_t argc, arglen;
-    struct vector *argv = NULL;
+    size_t argc, arglen, count;
+    struct iovec **argv = NULL;
     const char *p = buffer;
 
     /* Read the argument count. */
@@ -218,9 +223,9 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
     argc = ntohl(tmp);
     p += 4;
     debug("argc is %lu", (unsigned long) argc);
-    if (argc <= 0) {
-        warn("invalid argc %lu in request message", (unsigned long) argc);
-        server_send_error(client, ERROR_BAD_COMMAND, "Invalid command token");
+    if (argc == 0) {
+        warn("command with no arguments");
+        server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
         return NULL;
     }
     if (argc > MAXCMDARGS) {
@@ -233,21 +238,20 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
         server_send_error(client, ERROR_BAD_COMMAND, "Invalid command token");
         return NULL;
     }
-    argv = vector_new();
-    vector_resize(argv, argc);
+    argv = xcalloc(argc + 1, sizeof(struct iovec *));
 
     /*
      * Parse out the arguments and store them into a vector.  Arguments are
      * packed: (<arglength><argument>)+.  Make sure each time through the loop
      * that they didn't send more arguments than they claimed to have.
      */
+    count = 0;
     while (p <= buffer + length - 4) {
-        if (argv->count >= argc) {
+        if (count >= argc) {
             warn("sent more arguments than argc %lu", (unsigned long) argc);
             server_send_error(client, ERROR_BAD_COMMAND,
                               "Invalid command token");
-            vector_free(argv);
-            return NULL;
+            goto fail;
         }
         memcpy(&tmp, p, 4);
         arglen = ntohl(tmp);
@@ -256,31 +260,33 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
             warn("command data invalid");
             server_send_error(client, ERROR_BAD_COMMAND,
                               "Invalid command token");
-            vector_free(argv);
-            return NULL;
+            goto fail;
         }
-
-        /*
-         * We want vector_add that takes a counted string, but that's a weird
-         * interface; cheat and write it ourselves here.  This will need to
-         * change later when we want to support nul characters.
-         */
-        argv->strings[argv->count] = xmalloc(arglen + 1);
-        if (length > 0)
-            memcpy(argv->strings[argv->count], p, arglen);
-        argv->strings[argv->count][arglen] = '\0';
-        argv->count++;
+        argv[count] = xmalloc(sizeof(struct iovec));
+        argv[count]->iov_len = arglen;
+        if (arglen == 0)
+            argv[count]->iov_base = NULL;
+        else {
+            argv[count]->iov_base = xmalloc(arglen);
+            memcpy(argv[count]->iov_base, p, arglen);
+        }
+        count++;
         p += arglen;
-        debug("arg %lu has length %lu", (unsigned long) argv->count,
+        debug("arg %lu has length %lu", (unsigned long) count,
               (unsigned long) arglen);
     }
-    if (argv->count != argc || p != buffer + length) {
+    if (count != argc || p != buffer + length) {
         warn("argument count differs from arguments seen");
         server_send_error(client, ERROR_BAD_COMMAND, "Invalid command token");
-        vector_free(argv);
-        return NULL;
+        goto fail;
     }
+    argv[count] = NULL;
     return argv;
+
+fail:
+    if (argv != NULL)
+        server_free_command(argv);
+    return NULL;
 }
 
 

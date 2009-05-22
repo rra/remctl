@@ -1,3 +1,9 @@
+=for stopwords
+remctld remctl -dFhmSv keytab GSS-API tcpserver inetd subcommand AFS
+backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
+IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
+subcommands REMUSER
+
 =head1 NAME
 
 remctld - Server for remctl, a remote command execution utility
@@ -111,13 +117,14 @@ The configuration file defines the allowed commands and specifies access
 control information.  The configuration file format is lines of space- or
 tab-separated strings, where each line is:
 
-    type service executable [logmask=n[,...]] {acl}+
+    command subcommand executable [option=value ...] acl [acl ...]
 
-Each command consists of a type, a service, and zero or more arguments.
-Each configuration line defines an acceptable commands (or, if C<ALL> is
-used as mentioned below under I<service>, a set of commands).  The first
-configuration line matching the received command is used, so list more
-specific entries before more general entries.
+Each command consists of a command, a subcommand, and zero or more
+arguments.  Each configuration line defines an acceptable command and
+subcommand (or, if C<ALL> is used as mentioned below under I<service>, a
+set of commands).  The first configuration line matching the received
+command is used, so list more specific entries before more general
+entries.
 
 Blank lines and lines beginning with C<#> are ignored.  Lines can be
 continued on the next line by ending them with a backslash (C<\>).  Be
@@ -137,45 +144,77 @@ The meaning of these fields is:
 
 =over 4
 
-=item I<type>
+=item I<command>
 
-The type of the command being requested.  Normally, related commands (such
-as all commands for managing a particular service) are grouped together
-under one type.
+The command being issued.  Normally, related commands (such as all
+commands for managing a particular service) are grouped together as
+subcommands under one command.
 
-=item I<service>
+=item I<subcommand>
 
-The service within the type being requested, such as C<release> for the
-release function of the AFS volume backend.  I<service> can also be
-thought of as the sub-command.  If the keyword C<ALL> is used instead of a
-specific service, this line matches all commands with the given type and
-can be used to dispatch all services under that type to the same
-executable with the same ACLs.  Since the first matching entry is used,
-list entries for specific services first (if any) and then the C<ALL>
-catch-all.
+The subcommand within the command being requested, such as C<release> for
+the release function of the AFS volume backend.  If the keyword C<ALL> is
+used instead of a specific subcommand, this line matches all subcommands
+with the given command and can be used to dispatch all subcommands under
+that command to the same executable with the same ACLs.  Since the first
+matching entry is used, list entries for specific services first (if any)
+and then the C<ALL> catch-all.
 
-B<remctld> accepts commands with no service argument, only a type.  Such
-commands will only match lines in the configuration file with C<ALL> for
-the service.  (The B<remctl> client will not send such commands, but they
-can be sent using the client library or via another implementation.)
+B<remctld> accepts commands with no subcommand argument.  Such commands
+will only match lines in the configuration file with C<ALL> for the
+service.  (The B<remctl> client will not send such commands, but they can
+be sent using the client library or via another implementation.)
 
-The service is always passed as the first argument to the executable
-program that is listed for that service unless no service was given.
+The subcommand is always passed as the first argument to the executable
+program that is listed for that service unless no subcommand was given.
 
 =item I<executable>
 
-The full path to the commmand executable to run for this type-service 
-combination.  (See examples below.)
+The full path to the command executable to run for this command and
+subcommand combination.  (See examples below.)
+
+=item I<option>=I<value>
+
+An option setting that applies to this command.  Supported option settings
+are:
+
+=over 4
 
 =item I<logmask>=I<n>[,...]
 
 Limit logging of command arguments.  Any argument listed in the logmask
 list will have its value logged as "**MASKED**".  This is to avoid logging
-the arguments of commands that take privileged information.
+the arguments of commands that take private information such as passwords.
+The logmask list should contain argument numbers separated by commas, with
+the I<subcommand> considered argument 1.  The I<command> argument cannot
+be masked.
 
-For example, if the command is C<admin passwd {username} {passwd}>, then
-you'd want to set logmask to C<3>, so the password argument gets logged as
-C<**MASKED**>.
+For example, if the command is C<admin passwd I<username> I<password>>,
+then you'd want to set logmask to C<3>, so the password argument gets
+logged as C<**MASKED**>.  If the command is C<user passwd I<username>
+I<old-password> I<new-password>>, you'd want to set logmask to C<3,4>.
+
+=item I<stdin>=(I<n> | C<last>)
+
+Specifies that the I<n>th or last argument to the command be passed on
+standard input instead of on the command line.  The value of this option
+must either be the number of argument to pass on standard input (with the
+I<subcommand> considered argument 1) or the special value C<last>, which
+indicates that the final argument (no matter how many there are) be passed
+on standard input.
+
+The I<subcommand> cannot be passed on standard input, so I<n> must be at
+least C<2>.  If this option is set to C<last> and no arguments are given
+except the I<command> and possibly the I<subcommand>, nothing will be
+passed on standard input.
+
+This option is used primarily for passing large amounts of data that may
+not fit on the command line or data that contains NUL characters.  It can
+also be used for arguments like passwords that shouldn't be exposed on the
+command line.  Only at most one argument may be passed on standard input
+to the command.
+
+=back
 
 =item I<acl>
 
@@ -183,6 +222,10 @@ One or more entries of the form [I<method>:]I<data>, where I<method>
 specifies an access control method to be used, and I<data> contains
 parameters whose meaning depends on the method.  If the method is omitted,
 the data is processed as described for the C<file> method.
+
+If I<method> is omitted, I<acl> must either begin with C</> or must not
+contain C<=>.  Otherwise, it will be parsed as an option instead.  If
+there is any ambiguity, prepend the I<method>.
 
 Each entry is checked in order, and access is granted as soon as an
 entry matches.  If no entry matches, access is denied.  The following
@@ -237,7 +280,7 @@ explicitly include the file containing C<deny> ACL rules first.
 
 Note that C<deny> only denies access; it never grants it.  Thus, deny
 alone does not grant access to anyone, and using deny on itself as in
-C<deny:deny:foo> neither deniess nor grants access to anyone.
+C<deny:deny:foo> neither denies nor grants access to anyone.
 
 =item gput
 
@@ -374,6 +417,12 @@ processes or other system resources.  You may want to set resource limits
 in your inetd server or with B<ulimit> when running it as a standalone
 daemon or under B<tcpserver>.
 
+Command arguments may not contain NUL characters and must be shorter than
+the operating system limit on the length of a command line since they're
+passed to the command as command-line arguments.  The exception is an
+argument passed via standard input using the C<stdin=> option in the
+configuration file.  At most one argument may be passed that way.
+
 =head1 NOTES
 
 The remctl port number, 4373, was derived by tracing the diagonals of a
@@ -393,8 +442,8 @@ current maintenance are done by Russ Allbery <rra@stanford.edu>.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008 Board of Trustees,
-Leland Stanford Jr. University.  All rights reserved.
+Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Board of
+Trustees, Leland Stanford Jr. University.  All rights reserved.
   
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose and without fee is hereby granted, provided

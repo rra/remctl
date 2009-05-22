@@ -257,7 +257,7 @@ void message_log_syslog_crit(int, const char *, va_list, int);
 typedef void (*message_handler_func)(int, const char *, va_list, int);
 
 /* If non-NULL, called before exit and its return value passed to exit. */
-int (*message_fatal_cleanup)(void);
+extern int (*message_fatal_cleanup)(void);
 
 /*
  * If non-NULL, prepended (followed by ": ") to all messages printed by either
@@ -284,6 +284,9 @@ struct cvector *cvector_new(void);
 /* Add a string to a vector.  Resizes the vector if necessary. */
 void vector_add(struct vector *, const char *string);
 void cvector_add(struct cvector *, const char *string);
+
+/* Add a counted string to a vector.  Only available for vectors. */
+void vector_addn(struct vector *, const char *string, size_t length);
 
 /*
  * Resize the array of strings to hold size entries.  Saves reallocation work

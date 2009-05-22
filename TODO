@@ -7,20 +7,36 @@ Protocol:
    re-engineering of the client loop and should wait for better
    configuration since we don't want to do this with every command.  It
    also introduces out-of-order responses and possible deadlocks to the
-   protocol, which is disturbing.
+   protocol.  docs/protocol-v3 has an initial draft.
 
 Server:
+
+ * Add support for built-in command summaries.  A command of help with no
+   subcommand would provide a list of all commands that the authenticated
+   user is permitted to run.  To do this, add a configuration option of
+   summary=<arg> to the config syntax for commands that will display a
+   summary of their supported subcommands if given <arg>.  Then, for any
+   "<command> ANY" lines the user is authorized to run, run the binary
+   with "<arg>" as the arguments, and for any "<command> <subcommand>"
+   lines, run the binary with "<arg> <subcommand>" as the arguments,
+   returning the output.
+
+ * Add support for in-depth help for a particular command.  A command of
+   "help <command>" would provide help for that command if the user was
+   authorized to run that command with its help subcommand, and a command
+   of "help <command> <subcommand>" would provide help for that command
+   and subcommand if the user is authorized to run both the help
+   subcommand and the specified one.  To implement, add a configuration
+   option of help=<arg> to the config syntax for commands that support
+   help, and then run the command with "<arg>" as the arguments for the
+   first case and "<arg> subcommand" as the arguments for the second
+   case.
 
  * Allow a more expressive configuration syntax that can set more options
    per command.  Among the things we want to configure (besides the
    logmask configuration we already have) are changing users before
    running the command, specifying an argument to pass on standard input
    (see below), or supporting things like LDAP ACLs.
-
- * Support arguments that are too long for the command line or that
-   contain nul characters.  The best approach is probably to support
-   passing one of the arguments to the executed command on standard input.
-   This may depend on the new configuration syntax.
 
  * Maximum argument count and maximum data size in MESSAGE_COMMAND should
    be configurable parameters of the server rather than hard-coded
@@ -46,7 +62,21 @@ Server:
    is deterministic.  Affects both configuration (earlier entries
    override later ones) and ACL rules in the presence of deny ACLs.
 
+ * Provide a way to specify handling of the empty command and then permit
+   it rather than returning a syntax error.
+
+ * Add a timeout for commands after which the server kills the command.
+
+ * Support binding to an IPv6 address.  Currently, the server only
+   supports IPv4.
+
+ * The server should call gss_inquire_context to retrieve the mechanism
+   OID and then pass that in to calls to gssapi_error_string rather than
+   hard-coding the Kerberos v5 OID.
+
 Client:
+
+ * Allow sending commands with no subcommands in the command-line client.
 
  * Implement file upload in the remctl client.
 
@@ -60,6 +90,19 @@ Client:
    secure data, prompting twice to ensure both times match, and then sends
    that as the last argument to the command.  This would be useful for
    remctl interfaces to change passwords.
+
+ * Allow sending the empty command in the command-line client once the
+   server supports it.
+
+Client library:
+
+ * Add a varient of open that takes a timeout.
+
+ * The client should ideally not specify an OID for the authentication
+   mechanism and instead permit GSS-API to negotiate an appropriate
+   mechanism.  It should then call gss_inquire_context to retrieve the
+   mechanism OID and then pass that in to calls to gssapi_error_string
+   rather than hard-coding the Kerberos v5 OID.
 
 Build system:
 
@@ -110,10 +153,3 @@ Java implementation:
    k5.conf file included in the java directory using the current MIT
    Kerberos on Debian.  It has to prompt for a password and get tickets
    itself.  Figure out why and fix it.
-
-Test suite:
-
- * Combine the documentation tests together rather than testing POD
-   separately for server and client.
-
- * Add spelling check tests for the POD documentation.

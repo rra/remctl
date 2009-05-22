@@ -1,156 +1,71 @@
-#! /bin/sh
+#!/bin/sh
 #
 # Test suite for the remctl command-line client.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007 Board of Trustees, Leland Stanford Jr. University
+# Copyright 2006, 2007, 2009 Board of Trustees, Leland Stanford Jr. University
 #
 # See LICENSE for licensing terms.
 
-# The count starts at 1 and is updated each time ok is printed.  printcount
-# takes "ok" or "not ok".
-count=1
-printcount () {
-    echo "$1 $count $2"
-    count=`expr $count + 1`
-}
+. "$SOURCE/tap/libtap.sh"
+. "$SOURCE/tap/kerberos.sh"
+. "$SOURCE/tap/remctl.sh"
+cd "$SOURCE"
 
-# Run a program expected to succeed, and print ok if it does and produces
-# the correct output.
-runsuccess () {
-    w_output="$1"
-    shift
-    principal=`cat data/test.principal`
-    output=`$remctl -s "$principal" -p 14444 localhost "$@" 2>&1`
-    status=$?
-    if [ $status = 0 ] && [ x"$output" = x"$w_output" ] ; then
-        printcount "ok"
-    else
-        printcount "not ok"
-        echo "  saw: $output"
-        echo "  not: $w_output"
-    fi
-}
-
-# Run a program expected to fail and make sure it fails with the correct
-# exit status and the correct failure message.  Strip the second colon and
-# everything after it off the error message since it's system-specific.
-runfailure () {
-    w_status="$1"
-    shift
-    w_output="$1"
-    shift
-    principal=`cat data/test.principal`
-    output=`$remctl -s "$principal" -p 14444 localhost "$@" 2>&1`
-    status=$?
-    output=`echo "$output" | sed 's/^\([^:]*\):.*/\1/'`
-    if [ $status = $w_status ] && [ x"$output" = x"$w_output" ] ; then
-        printcount "ok"
-    else
-        printcount "not ok"
-        echo "  saw: ($status) $output"
-        echo "  not: ($w_status) $w_output"
-    fi
-}
-
-# Print the number of tests.
-echo 12
-
-# Find the client program.
-if [ -f ../data/test.keytab ] ; then
-    cd ..
+# Test setup.
+kerberos_setup
+if [ $? != 0 ] ; then
+    skip_all "Kerberos tests not configured"
 else
-    if [ -f tests/data/test.keytab ] ; then
-        cd tests
-    fi
+    plan 11
 fi
-if [ ! -f data/test.keytab ] ; then
-    for n in 1 2 3 4 5 6 7 8 9 10 11 12 ; do
-        echo ok $n \# skip -- no Kerberos configuration
-    done
-    exit 0
-fi
-remctl=../client/remctl
+remctl="$BUILD/../client/remctl"
 if [ ! -x "$remctl" ] ; then
-    echo 'Cannot locate remctl client binary' >&2
-    exit 1
+    bail "can't locate remctl client binary"
 fi
-
-# Start the remctld daemon and wait for it to start.
-rm -f data/pid
-( ../server/remctld -m -p 14444 -s `cat data/test.principal` -P data/pid \
-    -f data/conf-simple -d -S -F -k data/test.keytab &)
-KRB5CCNAME=data/test.cache; export KRB5CCNAME
-kinit -k -t data/test.keytab `cat data/test.principal` >/dev/null </dev/null
-status=$?
-if [ $status != 0 ] ; then
-    kinit -t data/test.keytab `cat data/test.principal` >/dev/null </dev/null
-    status=$?
-fi
-if [ $status != 0 ] ; then
-    kinit -k -K data/test.keytab `cat data/test.principal` >/dev/null \
-        </dev/null
-    status=$?
-fi
-if [ $status != 0 ] ; then
-    echo 'Unable to obtain Kerberos tickets' >&2
-    [ -f data/pid ] || sleep 1
-    if [ -f data/pid ] ; then
-        kill -HUP `cat data/pid`
-    fi
-    rm -f data/pid
-    for n in 1 2 3 4 5 6 7 8 9 10 11 12 ; do
-        echo ok $n \# skip -- no Kerberos configuration
-    done
-    exit 0
-fi
-[ -f data/pid ] || sleep 1
-if [ ! -f data/pid ] ; then
-    echo 'remctld did not start' >&2
-    exit 1
-fi
+remctld_start "$BUILD/../server/remctld" "$SOURCE/data/conf-simple"
 
 # Now, we can finally run our tests.
-runsuccess "hello world" test test
-runsuccess "" test status 0
-runfailure 1 "" test status 1
-runfailure 2 "" test status 2
-runfailure 255 "Access denied" test noauth
-runfailure 255 "Access denied" test noacl
-runfailure 255 "Cannot execute" test nonexistant
-runfailure 255 "Unknown command" test bad-command
-runsuccess "201" test argv \
+ok_program "basic" 0 "hello world" \
+    "$remctl" -s "$principal" -p 14373 localhost test test
+ok_program "no output" 0 "" \
+    "$remctl" -s "$principal" -p 14373 localhost test status 0
+ok_program "exit status 1" 1 "" \
+    "$remctl" -s "$principal" -p 14373 localhost test status 1
+ok_program "exit status 2" 2 "" \
+    "$remctl" -s "$principal" -p 14373 localhost test status 2
+ok_program "wrong principal" 255 "Access denied" \
+    "$remctl" -s "$principal" -p 14373 localhost test noauth
+ok_program "non-existent ACL" 255 "Access denied" \
+    "$remctl" -s "$principal" -p 14373 localhost test noacl
+ok_program "non-existent command" 255 "Cannot execute" \
+    "$remctl" -s "$principal" -p 14373 localhost test nonexistent
+ok_program "unknown command" 255 "Unknown command" \
+    "$remctl" -s "$principal" -p 14373 localhost test bad-command
+ok_program "201 arguments" 0 "201" \
+    "$remctl" -s "$principal" -p 14373 localhost test argv \
     a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
     a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
     a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
     a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
     a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
     a a a a a a a a a a a a a a a a a a a a a a a a a
-runsuccess "Okay" test closed
 
 # Make sure that error messages end in a newline.
-principal=`cat data/test.principal`
-$remctl -s "$principal" -p 14444 localhost test noauth > data/output 2>&1
-echo 'foo' >> data/output
-if [ `wc -l data/output | sed 's/ d.*//'` -eq 2 ] ; then
-    printcount "ok"
-else
-    printcount "not ok"
-fi
+"$remctl" -s "$principal" -p 14373 localhost test noauth \
+    > "$BUILD/data/output" 2>&1
+echo 'foo' >> "$BUILD/data/output"
+ok "error messages end in a newline" \
+    [ "`wc -l "$BUILD/data/output" | sed 's, /.*,,'`" -eq 2 ]
 
 # Check refused connections.
-$remctl -p 14445 localhost test noauth > data/output 2>&1
-output=`sed 's/):.*/)/' data/output`
-if [ "$output" = "remctl: cannot connect to localhost (port 14445)" ] ; then
-    printcount "ok"
-else
-    printcount "not ok"
-    echo "  saw: $output"
-fi
+"$remctl" -p 14445 localhost test noauth > "$BUILD/data/output" 2>&1
+output=`sed 's/):.*/)/' "$BUILD/data/output"`
+echo "# saw: $output"
+ok "correct connection refused error" \
+    [ "$output" = "remctl: cannot connect to localhost (port 14445)" ]
 
 # Clean up.
-rm -f data/test.cache data/output
-if [ -f data/pid ] ; then
-    kill -TERM `cat data/pid`
-    rm -f data/pid
-fi
+rm -f "$BUILD/data/output"
+remctld_stop
+kerberos_cleanup
