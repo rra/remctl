@@ -13,20 +13,6 @@ use Test::More tests => $total;
 
 use Net::Remctl;
 
-# Find and change into the right directory for running tests.
-sub change_directory {
-    if (-f "tests/data/conf-simple") {
-        chdir 'tests' or die "cannot cd to tests: $!\n";
-    } elsif (-f "../tests/data/conf-simple") {
-        chdir '../tests' or die "cannot cd to ../tests: $!\n";
-    } elsif (-f "../../tests/data/conf-simple") {
-        chdir '../../tests' or die "cannot cd to ../../tests: $!\n";
-    }
-    unless (-f "data/conf-simple") {
-        die "cannot find test data directory\n";
-    }
-}
-
 # Returns the principal to use for authentication.
 sub get_principal {
     open (PRINC, 'data/test.principal') or return;
@@ -44,10 +30,10 @@ sub start_remctld {
     if (not defined $pid) {
         die "cannot fork: $!\n";
     } elsif ($pid == 0) {
-        exec ('../server/remctld', '-m', '-p', '14444',
+        exec ('../server/remctld', '-m', '-p', '14373',
               (defined ($princ) ? ('-s', $princ) : ()),
-              '-P', 'data/pid', '-f', 'data/conf-simple', '-d', '-S', '-F',
-              '-k', 'data/test.keytab')
+              '-P', 'data/pid', '-f', '@abs_top_srcdir@/data/conf-simple',
+              '-d', '-S', '-F', '-k', 'data/test.keytab')
             or die "cannot exec ../server/remctld: $!\n";
     }
 }
@@ -87,7 +73,7 @@ sub run_kinit {
 }
 
 # Test setup.
-change_directory;
+chdir '@abs_top_builddir@';
 my $okay = (-f 'data/test.principal' && -f 'data/test.keytab');
 if ($okay) {
     start_remctld;
@@ -101,7 +87,7 @@ SKIP: {
 
     # Now we can finally run our tests.  Basic interface, success.
     my $principal = get_principal;
-    my $result = remctl ('localhost', 14444, $principal, 'test', 'test');
+    my $result = remctl ('localhost', 14373, $principal, 'test', 'test');
     isa_ok ($result, 'Net::Remctl::Result', 'Basic remctl return');
     is ($result->status, 0, '... exit status');
     is ($result->stdout, "hello world\n", '... stdout output');
@@ -109,7 +95,7 @@ SKIP: {
     is ($result->error, undef, '... error return');
 
     # Basic interface, failure.
-    $result = remctl ('localhost', 14444, $principal, 'test', 'bad-command');
+    $result = remctl ('localhost', 14373, $principal, 'test', 'bad-command');
     isa_ok ($result, 'Net::Remctl::Result', 'Error remctl return');
     is ($result->status, 0, '... exit status');
     is ($result->stdout, undef, '... stdout output');
@@ -120,7 +106,7 @@ SKIP: {
     my $remctl = Net::Remctl->new;
     isa_ok ($remctl, 'Net::Remctl', 'Object');
     is ($remctl->error, 'no error', '... no error set');
-    ok ($remctl->open ('localhost', 14444, $principal), 'Connect to server');
+    ok ($remctl->open ('localhost', 14373, $principal), 'Connect to server');
     is ($remctl->error, 'no error', '... no error set');
     ok ($remctl->command ('test', 'test'), 'Send successful command');
     is ($remctl->error, 'no error', '... no error set');

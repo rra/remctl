@@ -142,7 +142,8 @@ AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
 
 AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
 AS_IF([test x"$build_perl" = xyes],
-    [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])])
+    [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])
+     AC_CONFIG_FILES([perl/t/api.t], [chmod +x perl/t/api.t])])
 AS_IF([test x"$build_php" = xyes],
     [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])
 AS_IF([test x"$build_python" = xyes],

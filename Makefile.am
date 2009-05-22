@@ -10,8 +10,7 @@
 # for the test suite and are not generated or touched by configure.  They're
 # listed here to be added to EXTRA_DIST and so that they can be copied over
 # properly for builddir != srcdir builds.
-PERL_FILES = perl/Remctl.xs perl/typemap perl/t/api.t perl/t/pod.t \
-	perl/t/stanford-netdb.t
+PERL_FILES = perl/Remctl.xs perl/typemap perl/t/pod.t perl/t/stanford-netdb.t
 PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
 	php/tests/002.phpt php/tests/003.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c \
@@ -318,7 +317,6 @@ BINDINGS_INSTALL =
 
 perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs $(srcdir)/perl/typemap
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
-	    mkdir perl/t 2>/dev/null || true ; \
 	    for f in $(PERL_FILES) ; do \
 	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
 	    done \
