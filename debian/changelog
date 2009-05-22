@@ -1,3 +1,16 @@
+remctl (2.14-1) unstable; urgency=low
+
+  * New upstream release.
+    - remctld can be configured to pass an argument on standard input.
+    - Arguments passed on standard input may now contain nuls.
+    - remctld logging now replaces unprintable characters.
+    - "command" and "subcommand" are now used instead of "type" and
+      "service" in all documentation of remctl commands.
+    - Better diagnosis of nul characters in command arguments.
+    - Plug several memory leaks in the remctld server.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 22 May 2009 15:37:53 -0700
+
 remctl (2.13-3) unstable; urgency=low
 
   * Upload to unstable.
