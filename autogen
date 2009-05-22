@@ -10,7 +10,7 @@ rm -rf autom4te.cache
 # Generate manual pages.
 version=`grep '^remctl' NEWS | head -1 | cut -d' ' -f2`
 pod2man --release="$version" --center="remctl" docs/remctl.pod > docs/remctl.1
-pod2man --release="$version" --center="remctl" docs/remctld.pod \
+pod2man --release="$version" --center="remctl" --section=8 docs/remctld.pod \
     > docs/remctld.8.in
 for doc in remctl remctl_close remctl_command remctl_error remctl_new \
            remctl_open remctl_output ; do
