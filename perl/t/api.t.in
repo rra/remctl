@@ -3,8 +3,9 @@
 # Tests for the Net::Remctl API.  This relies on being run as part of the
 # larger remctl build tree and uses the built remctld for testing.
 #
-# Written by Russ Allbery
-# Copyright 2007, 2008 Board of Trustees, Leland Stanford Jr. University
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2007, 2008, 2009
+#     Board of Trustees, Leland Stanford Jr. University
 #
 # See LICENSE for licensing terms.
 
@@ -30,11 +31,15 @@ sub start_remctld {
     if (not defined $pid) {
         die "cannot fork: $!\n";
     } elsif ($pid == 0) {
-        exec ('../server/remctld', '-m', '-p', '14373',
+        chdir ('@abs_top_srcdir@/tests')
+            or die "can't chdir to @abs_top_srcdir@: $!\n";
+        exec ('@abs_top_builddir@/server/remctld', '-m', '-p', '14373',
               (defined ($princ) ? ('-s', $princ) : ()),
-              '-P', 'data/pid', '-f', '@abs_top_srcdir@/data/conf-simple',
-              '-d', '-S', '-F', '-k', 'data/test.keytab')
-            or die "cannot exec ../server/remctld: $!\n";
+              '-P', '@abs_top_builddir@/tests/data/pid',
+              '-f', 'data/conf-simple',
+              '-d', '-S', '-F', '-k',
+              '@abs_top_builddir@/tests/data/test.keytab')
+            or die "cannot exec @abs_top_builddir@/server/remctld: $!\n";
     }
 }
 
@@ -73,7 +78,7 @@ sub run_kinit {
 }
 
 # Test setup.
-chdir '@abs_top_builddir@';
+chdir '@abs_top_builddir@/tests';
 my $okay = (-f 'data/test.principal' && -f 'data/test.keytab');
 if ($okay) {
     start_remctld;
