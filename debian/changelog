@@ -13,7 +13,7 @@ remctl (2.14-1) unstable; urgency=low
     to investigate further later).
   * Update standards version to 3.8.1 (no changes required).
 
- -- Russ Allbery <rra@debian.org>  Fri, 22 May 2009 15:37:53 -0700
+ -- Russ Allbery <rra@debian.org>  Fri, 22 May 2009 16:20:45 -0700
 
 remctl (2.13-3) unstable; urgency=low
 
