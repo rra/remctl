@@ -13,8 +13,7 @@
 PERL_FILES = perl/Remctl.xs perl/typemap perl/t/pod.t perl/t/stanford-netdb.t
 PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
 	php/tests/002.phpt php/tests/003.phpt
-PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c \
-	python/test_remctl.py
+PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
@@ -293,11 +292,12 @@ check-local: $(check_PROGRAMS)
 	@set -e; if [ -f perl/Makefile ] ; then \
 	    echo '' ; \
 	    cd perl && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
-	        $(MAKE) test ; \
+		$(MAKE) test ; \
 	fi
 	@set -e; if [ -f php/Makefile ] ; then \
 	    echo '' ; \
-	    cd php && ./test-wrapper "$(abs_top_builddir)" ; \
+	    cd php && ./test-wrapper "$(abs_top_builddir)" \
+		"$(abs_top_srcdir)"; \
 	fi
 	@set -e; if [ -f python/setup.py ] ; then \
 	    echo '' ; \

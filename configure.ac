@@ -147,7 +147,8 @@ AS_IF([test x"$build_perl" = xyes],
 AS_IF([test x"$build_php" = xyes],
     [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])
 AS_IF([test x"$build_python" = xyes],
-    [AC_CONFIG_FILES([python/remctl.py python/setup.py])])
+    [AC_CONFIG_FILES([python/remctl.py python/setup.py])
+     AC_CONFIG_FILES([python/test_remctl.py])])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_COMMANDS([docs], [test -d docs || mkdir docs])
 AC_OUTPUT

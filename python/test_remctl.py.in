@@ -24,15 +24,6 @@ def needs_kerberos(func):
     return wrapper
 
 class TestRemctl(unittest.TestCase):
-    def change_directory(self):
-        if os.path.isfile('tests/data/conf-simple'):
-            os.chdir('tests')
-        elif os.path.isfile('../tests/data/conf-simple'):
-            os.chdir('../tests')
-        elif os.path.isfile('../../tests/data/conf-simple'):
-            os.chdir('../../tests')
-        assert(os.path.isfile('data/conf-simple'))
-
     def get_principal(self):
         file = open('data/test.principal', 'r')
         principal = file.read().rstrip()
@@ -51,10 +42,11 @@ class TestRemctl(unittest.TestCase):
         if child == 0:
             output = open('data/test.output', 'w')
             os.dup2(output.fileno(), 1)
-            os.execl('../server/remctld', 'remctld', '-m', '-p', '14373',
-                     '-s', principal, '-P', 'data/pid', '-f',
-                     'data/conf-simple', '-d', '-S', '-F', '-k',
-                     'data/test.keytab')
+            os.chdir('@abs_top_srcdir@/tests')
+            os.execl('@abs_top_builddir@/server/remctld', 'remctld', '-m',
+                     '-p', '14373', '-s', principal, '-f', 'data/conf-simple',
+                     '-P', '@abs_top_builddir@/tests/data/pid', '-d', '-S',
+                     '-F', '-k', '@abs_top_builddir@/tests/data/test.keytab')
         if not os.path.isfile('data/pid'):
             time.sleep(1)
 
@@ -85,7 +77,7 @@ class TestRemctl(unittest.TestCase):
         return False
 
     def setUp(self):
-        self.change_directory()
+        os.chdir('@abs_top_builddir@/tests')
         self.start_remctld()
         assert(self.run_kinit())
 
