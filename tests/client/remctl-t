@@ -56,7 +56,7 @@ ok_program "201 arguments" 0 "201" \
     > "$BUILD/data/output" 2>&1
 echo 'foo' >> "$BUILD/data/output"
 ok "error messages end in a newline" \
-    [ `wc -l data/output | sed 's/ d.*//'` -eq 2 ]
+    [ "`wc -l "$BUILD/data/output" | sed 's, /.*,,'`" -eq 2 ]
 
 # Check refused connections.
 "$remctl" -p 14445 localhost test noauth > "$BUILD/data/output" 2>&1
