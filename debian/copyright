@@ -11,16 +11,16 @@ Upstream author:
 
 Debian packaging copyright:
 
-  Copyright 2005, 2006, 2007, 2008 Board of Trustees, Leland Stanford Jr.
-  University
+  Copyright 2005, 2006, 2007, 2008, 2009 Board of Trustees, Leland
+  Stanford Jr.  University
 
   All files and modifications related to Debian packaging are covered
   under the same license terms as the rest of the package.
 
 The remctl package as a whole is:
 
-  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008 Board of Trustees,
-  Leland Stanford Jr. University.  All rights reserved.
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Board of
+  Trustees, Leland Stanford Jr. University.  All rights reserved.
 
 and released under the following license:
 
@@ -42,12 +42,12 @@ and released under the following license:
 All individual files with no other license statement are released under
 this license.  Some files have additional copyright dates from earlier
 releases or may be owned by other copyright holders as noted in those
-files.  Some files are individually released under difference licenses,
-all of which are compatible with the above general package license.
+files.  Some files are individually released under different licenses, all
+of which are compatible with the above general package license.
 
 Collected copyright notices for the entire package:
 
-  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
       Board of Trustees, Leland Stanford Jr. University
   Copyright 2008 Carnegie Mellon University
   Copyright 2007 Marcus Watts
@@ -58,7 +58,7 @@ Collected copyright notices for the entire package:
   Copyright 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
       2002, 2003 by The Internet Software Consortium and Rich Salz
   Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
-  Copyright 2000, 2001, 2004, 2006, 2007, 2008
+  Copyright 2000, 2001, 2004, 2006, 2007, 2008, 2009
       Russ Allbery <rra@stanford.edu>
   Copyright 1995 Patrick Powell
   Copyright 1996, 1997 Brandon Long <blong@fiction.net>
@@ -80,10 +80,12 @@ tests/portable/strlcat-t.c, tests/portable/strlcpy-t.c,
 tests/util/concat-t.c, tests/util/fakewrite.c, tests/util/messages-t.c,
 tests/util/network-t.c, tests/util/vector-t.c, tests/util/xmalloc.c,
 tests/util/xmalloc-t, tests/util/xwrite-t.c, util/fdflag.c,
-util/messages.c, util/network.c, util/util.h, util/xmalloc.c, and
-util/xwrite.c are released under the following copyright and license:
+util/messages-die.c, util/messages.c, util/network.c, util/util.h,
+util/xmalloc.c, and util/xwrite.c are released under the following
+copyright and license:
 
-  Copyright 2006, 2007, 2008
+  Copyright 2009 Russ Allbery <rra@stanford.edu>
+  Copyright 2006, 2007, 2008, 2009
       Board of Trustees, Leland Stanford Jr. University
   Copyright (c) 2004, 2005, 2006, 2007
       by Internet Systems Consortium, Inc. ("ISC")
@@ -92,11 +94,11 @@ util/xwrite.c are released under the following copyright and license:
 
   This code is derived from software contributed to the Internet Software
   Consortium by Rich Salz.
-  
+
   Permission to use, copy, modify, and distribute this software for any
   purpose with or without fee is hereby granted, provided that the above
   copyright notice and this permission notice appear in all copies.
-  
+
   THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
   REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
   MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
@@ -118,7 +120,7 @@ following copyright and license:
 
   Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
   Copyright 2008 Russ Allbery <rra@stanford.edu>
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the
   "Software"), to deal in the Software without restriction, including
@@ -126,10 +128,10 @@ following copyright and license:
   distribute, sublicense, and/or sell copies of the Software, and to
   permit persons to whom the Software is furnished to do so, subject to
   the following conditions:
-   
+
   The above copyright notice and this permission notice shall be included
   in all copies or substantial portions of the Software.
-   
+
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -147,7 +149,7 @@ The file portable/snprintf.c is released under the following license:
 The file tests/runtests.c is released under the following copyright and
 license:
 
-  Copyright 2000, 2001, 2004, 2006, 2007, 2008
+  Copyright 2000, 2001, 2004, 2006, 2007, 2008, 2009
       Russ Allbery <rra@stanford.edu>
 
   Permission is hereby granted, free of charge, to any person obtaining a
