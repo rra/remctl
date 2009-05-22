@@ -1,13 +1,13 @@
-                           remctl release 2.13
+                           remctl release 2.14
             (remote authenticated command execution with ACLs)
 
                    Originally written by Anton Ushakov
          Currently maintained by Russ Allbery <rra@stanford.edu>
 
-  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008 Board of Trustees,
-  Leland Stanford Jr. University.  This software is distributed under a
-  BSD-style license.  Please see the file LICENSE in the distribution for
-  more information.
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Board of
+  Trustees, Leland Stanford Jr. University.  This software is distributed
+  under a BSD-style license.  Please see the file LICENSE in the
+  distribution for more information.
 
 BLURB
 

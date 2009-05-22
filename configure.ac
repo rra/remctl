@@ -6,8 +6,8 @@ dnl     Board of Trustees, Leland Stanford Jr. University
 dnl
 dnl See LICENSE for licensing terms.
 
-AC_PREREQ([2.61])
-AC_INIT([remctl], [2.13], [rra@stanford.edu])
+AC_PREREQ([2.63])
+AC_INIT([remctl], [2.14], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
