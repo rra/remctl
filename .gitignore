@@ -17,6 +17,7 @@
 /perl/Remctl.pm
 /perl/blib/
 /perl/pm_to_blib
+/perl/t/api.t
 /php/Makefile.*
 /php/acinclude.m4
 /php/autom4te.cache/
@@ -38,6 +39,7 @@
 /python/dist
 /python/remctl.py
 /python/setup.py
+/python/test_remctl.py
 /remctl-*.tar.gz
 /server/remctld
 /stamp-h1
