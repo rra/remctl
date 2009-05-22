@@ -22,8 +22,8 @@ EXTRA_DIST = LICENSE Makefile.w32 autogen client/libremctl.rc client/mapfile \
 	docs/api/remctl_close.pod docs/api/remctl_command.pod \
 	docs/api/remctl_error.pod docs/api/remctl_new.pod \
 	docs/api/remctl_open.pod docs/api/remctl_output.pod docs/design.html \
-	docs/extending docs/protocol.txt docs/protocol.html docs/protocol.xml \
-	docs/remctl.pod docs/remctld.8.in docs/remctld.pod \
+	docs/extending docs/protocol-v3 docs/protocol.txt docs/protocol.html \
+	docs/protocol.xml docs/remctl.pod docs/remctld.8.in docs/remctld.pod \
 	examples/remctl.conf examples/rsh-wrapper examples/xinetd \
 	java/.classpath java/.project java/Makefile java/README \
 	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf \
