@@ -86,6 +86,7 @@ Description: Perl client for Kerberos-authenticated command execution
  Perl bindings for the libremctl client library.
 
 Package: php5-remctl
+Section: php
 Architecture: any
 Depends: ${shlibs:Depends}, ${php:Depends}
 Description: PECL module for Kerberos-authenticated command execution

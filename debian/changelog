@@ -1,3 +1,9 @@
+remctl (2.14-2) UNRELEASED; urgency=low
+
+  * Change php5-remctl's section to php to match override.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 22 May 2009 17:19:18 -0700
+
 remctl (2.14-1) unstable; urgency=low
 
   * New upstream release.
