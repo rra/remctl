@@ -42,6 +42,7 @@ listener(int fd)
     if (client < 0) {
         sysnotice("# cannot accept connection from socket");
         ok_block(2, 0, "...socket read test");
+        return;
     }
     ok(1, "...socket accept");
     out = fdopen(client, "r");
@@ -161,7 +162,7 @@ test_ipv6(const char *source UNUSED)
  * use for client connections.
  */
 static void
-test_all(const char *source_ipv4, const char *source_ipv6)
+test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
 {
     int *fds, count, fd, i;
     pid_t child;
