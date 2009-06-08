@@ -144,7 +144,7 @@ distclean-local:
 	    done \
 	else \
 	    if [ -n "$(PHPIZE)" ] ; then \
-		cd php && touch config.m4 && $(PHPIZE) --clean ; \
+		cd php && touch config.m4 && $(PHPIZE) --clean && cd .. ; \
 	    fi ; \
 	    rm -f php/config.h.in~ php/config.m4 ; \
 	fi
