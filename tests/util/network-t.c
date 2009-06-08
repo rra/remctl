@@ -128,6 +128,7 @@ test_ipv6(const char *source)
             || errno == EADDRNOTAVAIL) {
             ipv6 = 0;
             skip_block(3, "IPv6 not supported");
+            return;
         } else
             sysbail("cannot create socket");
     }
