@@ -186,7 +186,7 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t \
 	tests/util/network-t tests/util/tokens-t tests/util/vector-t \
 	tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
-tests_runtests_CPPFLAGS =  -DSOURCE='"$(abs_top_srcdir)/tests"' \
+tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
 tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests
 tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h \
