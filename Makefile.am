@@ -128,8 +128,8 @@ clean-local:
 	fi
 	rm -rf python/build python/dist python/*.pyc
 
-# Remove the test files we copied over if srcdir != builddir.  Also clean the
-# Perl, PHP, and Python directories on make distclean if needed.
+# Also clean the Perl, PHP, and Python directories on make distclean if
+# needed.
 #
 # phpize --clean is stupid and requires that config.m4 exist, but it was
 # already deleted by the regular distclean target.  Hack around that.
