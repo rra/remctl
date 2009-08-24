@@ -75,7 +75,7 @@ install-stamp: build-stamp
 	set -e; cd python && for v in `pyversions -vs` ; do \
 	    python$$v setup.py install --root $(CURDIR)/debian/tmp ; \
 	done
-	dh_install --fail-missing
+	dh_install --fail-missing -Xlibremctl.la
 	install -m 644 $(CURDIR)/examples/remctl.conf \
 	    $(CURDIR)/debian/remctl-server/etc/remctl/remctl.conf
 	touch $@
