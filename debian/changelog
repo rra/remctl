@@ -1,3 +1,10 @@
+remctl (2.14-3) UNRELEASED; urgency=low
+
+  * Do not install the libremctl.la file.  Libtool *.la files force other
+    packages using Libtool to declare excessive library dependencies.
+
+ -- Russ Allbery <rra@debian.org>  Mon, 24 Aug 2009 15:52:49 -0700
+
 remctl (2.14-2) unstable; urgency=low
 
   * Fix test suite behavior when IPv6 support is available in the library
