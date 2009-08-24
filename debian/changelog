@@ -4,6 +4,7 @@ remctl (2.14-3) UNRELEASED; urgency=low
     packages using Libtool to declare excessive library dependencies.
   * Add an explicit build-dependency on Perl.  It was being pulled in by
     other build dependencies, but this is more correct.
+  * Update standards version to 3.8.3 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Mon, 24 Aug 2009 15:52:49 -0700
 
