@@ -1,5 +1,8 @@
 remctl (2.14-3) UNRELEASED; urgency=low
 
+  * Stop including the protocol documentation in remctl-server.  Add a
+    pointer to the remctl-client package for protocol documentation in
+    remctl-server's README.Debian.
   * Do not install the libremctl.la file.  Libtool *.la files force other
     packages using Libtool to declare excessive library dependencies.
   * Add an explicit build-dependency on Perl.  It was being pulled in by

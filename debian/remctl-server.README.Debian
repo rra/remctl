@@ -21,4 +21,8 @@ that you leave that file unchanged and drop your configuration into
 doesn't contain a period; those are skipped.  See the comments in
 /etc/remctl/remctl.conf for more details.
 
- -- Russ Allbery <rra@debian.org>, Mon, 22 Sep 2008 01:34:53 -0700
+The remctl protocol documentation is included in the remctl-client
+package.  To see it, install remctl-client and look in
+/usr/share/doc/remctl-client.
+
+ -- Russ Allbery <rra@debian.org>, Mon, 24 Aug 2009 16:04:30 -0700
