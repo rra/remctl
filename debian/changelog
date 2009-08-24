@@ -1,3 +1,9 @@
+remctl (2.14-4) UNRELEASED; urgency=low
+
+  * Skip the test suite if nocheck is set in DEB_BUILD_OPTIONS.
+
+ -- Russ Allbery <rra@debian.org>  Mon, 24 Aug 2009 16:28:04 -0700
+
 remctl (2.14-3) unstable; urgency=low
 
   * Stop including the protocol documentation in remctl-server.  Add a

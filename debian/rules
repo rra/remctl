@@ -52,7 +52,9 @@ build-stamp: configure-stamp
 	cd $(CURDIR)/perl && $(MAKE) OPTIMIZE="$(CFLAGS)"
 	gcc -g -O2 -o client/.libs/remctl client/remctl.o \
 	    client/.libs/libremctl.so util/.libs/libutil.a
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	$(MAKE) check
+endif
 	set -e; cd python && for v in `pyversions -vs` ; do \
 	    CFLAGS="$(CFLAGS)" python$$v setup.py build ; \
 	done
