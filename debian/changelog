@@ -2,6 +2,7 @@ remctl (2.14-4) UNRELEASED; urgency=low
 
   * Add --install-layout=deb to the Python setup.py install commands to
     support Python 2.6.
+  * Add php5-cli to the build dependencies so that the test suite is run.
   * Update to debhelper compability level V7.
     - Use debhelper rule minimization with overrides.
     - Skip the test suite if nocheck is set in DEB_BUILD_OPTIONS.
