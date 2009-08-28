@@ -1,22 +1,4 @@
 #!/usr/bin/make -f
-# -*- makefile -*-
-# GNU copyright 1997 to 1999 by Joey Hess.
-# Further updates by Russ Allbery <rra@stanford.edu>
-
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
-
-# This has to be exported to make some magic below work.
-export DH_OPTIONS
-
-# Tell Autoconf the correct system types.
-DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
-    SYSTEM = --build $(DEB_HOST_GNU_TYPE)
-else
-    SYSTEM = --build $(DEB_BUILD_GNU_TYPE) --host $(DEB_HOST_GNU_TYPE)
-endif
 
 CFLAGS = -Wall -g
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
@@ -25,86 +7,52 @@ else
     CFLAGS += -O2
 endif
 
-configure: configure-stamp
-configure-stamp:
-	dh_testdir
-	CFLAGS="$(CFLAGS)" ./configure --prefix=/usr \
-	    --mandir=\$${prefix}/share/man --sysconfdir=/etc/remctl \
+%:
+	dh $@
+
+override_dh_auto_configure:
+	dh_auto_configure -- --sysconfdir=/etc/remctl \
 	    --enable-reduced-depends --enable-perl --enable-php \
-	    --enable-python $(SYSTEM)
-	touch $@
+	    --enable-python
 
 # We rebuild the remctl client because Automake and Libtool combine to force
-# remctl to be linked against all the dependencies of libremctl, which creates
-# unnecessary dependencies.  Ones that probably won't matter, mind, but let's
-# do this right anyway.
+# remctl to be linked against all the dependencies of libremctl, which
+# creates unnecessary dependencies.  Ones that probably won't matter, mind,
+# but let's do this right anyway.
 #
-# We also rebuild the Perl module to encode the right installation paths,
-# since otherwise it defaults to using the local site module path.
-build: build-arch build-indep
-build-arch: build-stamp
-build-indep:
-build-stamp: configure-stamp
-	dh_testdir
-	$(MAKE)
+# We rebuild the Perl module to encode the right installation paths, since
+# otherwise it defaults to using the local site module path.
+#
+# We rebuild the Python module so that we have builds for each of the
+# supported versions of Python.
+override_dh_auto_build:
+	perl -i -pe 's/(setup.py install .*) ;/$$1 --install-layout=deb ;/' \
+	    Makefile
+	dh_auto_build
 	cd $(CURDIR)/perl && $(MAKE) clean && perl Makefile.PL \
 	    INSTALLDIRS=vendor
 	cd $(CURDIR)/perl && $(MAKE) OPTIMIZE="$(CFLAGS)"
-	gcc -g -O2 -o client/.libs/remctl client/remctl.o \
+	gcc $(CFLAGS) -o client/.libs/remctl client/remctl.o \
 	    client/.libs/libremctl.so util/.libs/libutil.a
-ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-	$(MAKE) check
-endif
 	set -e; cd python && for v in `pyversions -vs` ; do \
 	    CFLAGS="$(CFLAGS)" python$$v setup.py build ; \
 	done
-	touch $@
 
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f configure-stamp build-stamp install-stamp
-	[ ! -f Makefile ] || $(MAKE) distclean
-	dh_clean
-
-install: install-stamp
-install-stamp: build-stamp
-	dh_testdir
-	dh_testroot
-	dh_clean -k
-	dh_installdirs
-	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
+# Override install to check for missing installed files and to do the proper
+# Python module installation
+override_dh_install:
 	set -e; cd python && for v in `pyversions -vs` ; do \
-	    python$$v setup.py install --root $(CURDIR)/debian/tmp ; \
+	    python$$v setup.py install --install-layout=deb \
+		--root $(CURDIR)/debian/tmp ; \
 	done
 	dh_install --fail-missing -Xlibremctl.la
-	install -m 644 $(CURDIR)/examples/remctl.conf \
-	    $(CURDIR)/debian/remctl-server/etc/remctl/remctl.conf
-	touch $@
-
-binary: binary-arch binary-indep
-binary-indep:
-binary-arch: DH_OPTIONS=-a
-binary-arch: install-stamp
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs NEWS
-	dh_installdocs
-	dh_installexamples
-	dh_link
-	dh_fixperms
-	dh_strip
-	dh_compress
-	dh_perl
-	dh_makeshlibs -V 'libremctl1 (>= 2.10)'
 	dh_pysupport
-	dh_installdeb
-	dh_shlibdeps -l $(CURDIR)/debian/libremctl1/usr/lib -L libremctl1
+
+override_dh_makeshlibs:
+	dh_makeshlibs -V 'libremctl1 (>= 2.10)'
+
+# Override dh_gencontrol to set up the substvar for the PHP dependency.
+override_dh_gencontrol:
 	echo "php:Depends=php5 | phpapi-`php-config5 --phpapi`" \
 	    >> debian/php5-remctl.substvars
 	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-.PHONY: build build-arch build-indep clean binary binary-arch binary-indep
-.PHONY: install
