@@ -6,6 +6,14 @@
 #
 # See LICENSE for licensing terms.
 
+# These variables exist only for the use of the Debian packaging and similar
+# situations and aren't normally set.  PYTHON_INSTALL adds additional flags
+# to the setup.py install command.  PYTHON_VERSION narrows the search for
+# Python build directories during make check to only those matching that
+# version.
+PYTHON_INSTALL =
+PYTHON_VERSION =
+
 # These three lists of files are needed for Perl builds, Python builds, and
 # for the test suite and are not generated or touched by configure.  They're
 # listed here to be added to EXTRA_DIST and so that they can be copied over
@@ -304,7 +312,8 @@ check-local: $(check_PROGRAMS)
 	    echo '' ; \
 	    echo 'Testing Python extension' ; \
 	    cd python && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
-		PYTHONPATH="`ls -d build/lib.*`" python test_remctl.py ; \
+		PYTHONPATH="`ls -d build/lib.*$(PYTHON_VERSION)`" \
+		python test_remctl.py ; \
 	fi
 
 # Used for hooking in the build of optional language bindings.
@@ -376,9 +385,10 @@ stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
 
 install-data-local-python: stamp-python
 	if [ -n "$(DESTDIR)" ] ; then \
-	    cd python && python setup.py install --root $(DESTDIR) ; \
+	    cd python && python setup.py install $(PYTHON_INSTALL) \
+		--root $(DESTDIR) ; \
 	else \
-	    cd python && python setup.py install ; \
+	    cd python && python setup.py install $(PYTHON_INSTALL) ; \
 	fi
 
 # Build and install the Python bindings if desired.
