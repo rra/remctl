@@ -7,6 +7,7 @@ remctl (2.14-4) UNRELEASED; urgency=low
     - Use debhelper rule minimization with overrides.
     - Skip the test suite if nocheck is set in DEB_BUILD_OPTIONS.
     - Let dh_install handle installation of remctl.conf.
+    - Add ${misc:Depends} to all dependencies.
   * Apply a build-time fix to the upstream Makefile to only use the Python
     build directory for the default version of Python.  This is required
     now that make check is run after building Python modules for all
