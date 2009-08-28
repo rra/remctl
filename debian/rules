@@ -54,6 +54,9 @@ override_dh_install:
 	dh_install --fail-missing -Xlibremctl.la
 	dh_pysupport
 
+override_dh_installchangelogs:
+	dh_installchangelogs NEWS
+
 override_dh_makeshlibs:
 	dh_makeshlibs -V 'libremctl1 (>= 2.10)'
 
