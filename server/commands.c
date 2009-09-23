@@ -321,7 +321,8 @@ server_run_command(struct client *client, struct config *config,
         if (argv[i + 1] == NULL && cline->stdin_arg == -1)
             continue;
         if (memchr(argv[i]->iov_base, '\0', argv[i]->iov_len)) {
-            notice("argument %d from user %s contains nul octet", i, user);
+            notice("argument %lu from user %s contains nul octet",
+                   (unsigned long) i, user);
             server_send_error(client, ERROR_BAD_COMMAND,
                               "Invalid command token");
             goto done;
