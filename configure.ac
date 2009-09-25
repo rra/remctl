@@ -130,7 +130,9 @@ AC_ARG_ENABLE([php],
     [AS_IF([test x"$enableval" = xyes],
         [build_php=yes
          AC_ARG_VAR([PHPIZE], [Path to phpize])
-         AC_PATH_PROG([PHPIZE], [phpize])])])
+         AC_PATH_PROG([PHPIZE], [phpize])
+         AS_IF([test x"$PHPIZE" = x],
+             [AC_MSG_ERROR([cannot build PECL extension without phpize])])])])
 AM_CONDITIONAL([BUILD_PHP], [test x"$build_php" = xyes])
 
 dnl Whether to build the Python bindings.
