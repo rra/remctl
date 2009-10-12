@@ -108,6 +108,8 @@ const char *socket_strerror(int);
 # define socket_errno           errno
 # define socket_set_errno(e)    errno = (e)
 # define socket_strerror(e)     strerror(e)
+# define SOCKET int
+# define INVALID_SOCKET -1
 #endif
 
 /* Some systems don't define INADDR_LOOPBACK. */

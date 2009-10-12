@@ -182,7 +182,7 @@ message_log_syslog(int pri, int len, const char *fmt, va_list args, int err)
 
         eventlog = RegisterEventSource(NULL, message_program_name);
         if (eventlog != NULL) {
-            ReportEvent(eventlog, pri, 0, 0, NULL, 1, 0, &buffer, NULL);
+            ReportEvent(eventlog, (WORD)pri, 0, 0, NULL, 1, 0, &buffer, NULL);
             CloseEventLog(eventlog);
         }
     }

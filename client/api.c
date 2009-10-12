@@ -213,7 +213,7 @@ remctl_new(void)
     r = calloc(1, sizeof(struct remctl));
     if (r == NULL)
         return NULL;
-    r->fd = -1;
+    r->fd = INVALID_SOCKET;
     r->host = NULL;
     r->principal = NULL;
     r->context = NULL;

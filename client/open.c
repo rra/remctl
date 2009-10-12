@@ -31,12 +31,13 @@
  * network connection.  Returns the file descriptor if successful or -1 on
  * failure.
  */
-static int
+static SOCKET
 internal_connect(struct remctl *r, const char *host, unsigned short port)
 {
     struct addrinfo hints, *ai;
     char portbuf[16];
-    int status, fd;
+    int status;
+    SOCKET fd;
 
     /*
      * Look up the remote host and open a TCP connection.  Call getaddrinfo
@@ -51,14 +52,14 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
     if (status != 0) {
         internal_set_error(r, "unknown host %s: %s", host,
                            gai_strerror(status));
-        return -1;
+        return INVALID_SOCKET;
     }
     fd = network_connect(ai, NULL);
     freeaddrinfo(ai);
-    if (fd < 0) {
+    if (fd == INVALID_SOCKET) {
         internal_set_error(r, "cannot connect to %s (port %hu): %s", host,
                            port, socket_strerror(socket_errno));
-        return -1;
+        return INVALID_SOCKET;
     }
     return fd;
 }
@@ -133,7 +134,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
 {
     int status, flags;
     bool port_fallback = false;
-    int fd = -1;
+    SOCKET fd = INVALID_SOCKET;
     gss_buffer_desc send_tok, recv_tok, *token_ptr;
     gss_buffer_desc empty_token = { 0, (void *) "" };
     gss_name_t name = GSS_C_NO_NAME;
@@ -156,9 +157,9 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
 
     /* Make the network connection. */
     fd = internal_connect(r, host, port);
-    if (fd < 0 && port_fallback)
+    if (fd == INVALID_SOCKET && port_fallback)
         fd = internal_connect(r, host, REMCTL_PORT_OLD);
-    if (fd < 0)
+    if (fd == INVALID_SOCKET)
         goto fail;
     r->fd = fd;
 
@@ -259,9 +260,9 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     return true;
 
 fail:
-    if (fd >= 0)
+    if (fd != INVALID_SOCKET)
         socket_close(fd);
-    r->fd = -1;
+    r->fd = INVALID_SOCKET;
     if (name != GSS_C_NO_NAME)
         gss_release_name(&minor, &name);
     if (gss_context != GSS_C_NO_CONTEXT)

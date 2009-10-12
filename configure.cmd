@@ -9,7 +9,7 @@ copy /y config.h.w32 config.h > nul
 copy /y Makefile.w32 Makefile > nul
 
 setlocal
-FOR /F "usebackq tokens=2 delims='=" %%i in (`findstr /R "^PACKAGE_VERSION=" configure`) DO SET VERSION=%%i
+FOR /F "usebackq tokens=4 delims=[]" %%i in (`findstr /R "^AC_INIT" configure.ac`) DO SET VERSION=%%i
 FOR /F "usebackq tokens=1 delims=." %%i in ('%VERSION%') DO SET MAJOR=%%i
 FOR /F "usebackq tokens=2 delims=." %%i in ('%VERSION%') DO SET MINOR=%%i
 

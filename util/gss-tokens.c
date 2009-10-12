@@ -46,7 +46,7 @@ enum token_status token_recv(int, int *, gss_buffer_t, size_t);
  * side to reply with a MIC, which we then verify.
 */
 enum token_status
-token_send_priv(int fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
+token_send_priv(SOCKET fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
                 OM_uint32 *major, OM_uint32 *minor)
 {
     gss_buffer_desc out, mic;
@@ -95,7 +95,7 @@ token_send_priv(int fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
  * and send it back.
  */
 enum token_status
-token_recv_priv(int fd, gss_ctx_id_t ctx, int *flags, gss_buffer_t tok,
+token_recv_priv(SOCKET fd, gss_ctx_id_t ctx, int *flags, gss_buffer_t tok,
                 size_t max, OM_uint32 *major, OM_uint32 *minor)
 {
     gss_buffer_desc in, mic;

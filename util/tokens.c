@@ -38,17 +38,14 @@
  * length, using multiple reads if needed and handling EINTR and EAGAIN.
  */
 static ssize_t
-xread(int fd, void *buffer, size_t size)
+xread(SOCKET fd, void *buffer, size_t size)
 {
     size_t total;
     ssize_t status;
     int count = 0;
 
-    if (size == 0)
-        return 0;
-
     /* Abort the read if we try 100 times with no forward progress. */
-    for (total = 0; total < size; total += status) {
+    for (total = 0, status = 0; total < size; total += status) {
         if (++count > 100)
             break;
         status = socket_read(fd, (char *) buffer + total, size - total);
@@ -72,7 +69,7 @@ xread(int fd, void *buffer, size_t size)
  * writes).
  */
 enum token_status
-token_send(int fd, int flags, gss_buffer_t tok)
+token_send(SOCKET fd, int flags, gss_buffer_t tok)
 {
     ssize_t status;
     size_t buflen;
@@ -120,7 +117,7 @@ token_send(int fd, int flags, gss_buffer_t tok)
  * free().
  */
 enum token_status
-token_recv(int fd, int *flags, gss_buffer_t tok, size_t max)
+token_recv(SOCKET fd, int *flags, gss_buffer_t tok, size_t max)
 {
     ssize_t status;
     OM_uint32 len;

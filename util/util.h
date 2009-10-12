@@ -23,6 +23,7 @@
 #include <portable/gssapi.h>
 #include <portable/macros.h>
 #include <portable/stdbool.h>
+#include <portable/socket.h>
 
 #include <stdarg.h>
 #include <sys/types.h>
@@ -98,17 +99,17 @@ enum error_codes {
  * token returned by token_recv; this will cause crashes on Windows.  Call
  * free on the value member instead.
  */
-enum token_status token_send(int fd, int flags, gss_buffer_t);
-enum token_status token_recv(int fd, int *flags, gss_buffer_t, size_t max);
+enum token_status token_send(SOCKET fd, int flags, gss_buffer_t);
+enum token_status token_recv(SOCKET fd, int *flags, gss_buffer_t, size_t max);
 
 /*
  * The same, but with a GSS-API protection layer applied.  On a GSS-API
  * failure, the major and minor status are returned in the final two
  * arguments.
  */
-enum token_status token_send_priv(int fd, gss_ctx_id_t, int flags,
+enum token_status token_send_priv(SOCKET fd, gss_ctx_id_t, int flags,
                                   gss_buffer_t, OM_uint32 *, OM_uint32 *);
-enum token_status token_recv_priv(int fd, gss_ctx_id_t, int *flags,
+enum token_status token_recv_priv(SOCKET fd, gss_ctx_id_t, int *flags,
                                   gss_buffer_t, size_t max, OM_uint32 *,
                                   OM_uint32 *);
 
@@ -133,9 +134,9 @@ char *concatpath(const char *base, const char *name);
  * the write is not making progress or there's a real error.  Handle partial
  * writes and EINTR/EAGAIN errors.
  */
-ssize_t xpwrite(int fd, const void *buffer, size_t size, off_t offset);
-ssize_t xwrite(int fd, const void *buffer, size_t size);
-ssize_t xwritev(int fd, const struct iovec *iov, int iovcnt);
+ssize_t xpwrite(SOCKET fd, const void *buffer, size_t size, off_t offset);
+ssize_t xwrite(SOCKET fd, const void *buffer, size_t size);
+ssize_t xwritev(SOCKET fd, const struct iovec *iov, int iovcnt);
 
 /*
  * Create a socket and bind it to the specified address and port (either IPv4
@@ -143,8 +144,8 @@ ssize_t xwritev(int fd, const struct iovec *iov, int iovcnt);
  * are reported using warn/syswarn.  To bind to all interfaces, use "any" or
  * "all" for address.
  */
-int network_bind_ipv4(const char *address, unsigned short port);
-int network_bind_ipv6(const char *address, unsigned short port);
+SOCKET network_bind_ipv4(const char *address, unsigned short port);
+SOCKET network_bind_ipv6(const char *address, unsigned short port);
 
 /*
  * Create and bind sockets for every local address (normally two, one for IPv4
@@ -153,7 +154,7 @@ int network_bind_ipv6(const char *address, unsigned short port);
  * fds will be set to an array containing the resulting file descriptors, with
  * count holding the count returned.
  */
-void network_bind_all(unsigned short port, int **fds, int *count);
+void network_bind_all(unsigned short port, SOCKET **fds, int *count);
 
 /*
  * Create a socket and connect it to the remote service given by the linked
@@ -161,14 +162,14 @@ void network_bind_all(unsigned short port, int **fds, int *count);
  * -1 on failure, with the error left in errno.  Takes an optional source
  * address.
  */
-int network_connect(struct addrinfo *, const char *source);
+SOCKET network_connect(struct addrinfo *, const char *source);
 
 /*
  * Like network_connect but takes a host and port instead.  If host lookup
  * fails, errno may not be set to anything useful.
  */
-int network_connect_host(const char *host, unsigned short port,
-                         const char *source);
+SOCKET network_connect_host(const char *host, unsigned short port,
+                            const char *source);
 
 /*
  * Creates a socket of the specified domain and type and binds it to the
@@ -180,7 +181,7 @@ int network_connect_host(const char *host, unsigned short port,
  * This is a lower-level function intended primarily for the use of clients
  * that will then go on to do a non-blocking connect.
  */
-int network_client_create(int domain, int type, const char *source);
+SOCKET network_client_create(int domain, int type, const char *source);
 
 /*
  * Put an ASCII representation of the address in a sockaddr into the provided
@@ -205,8 +206,8 @@ unsigned short network_sockaddr_port(const struct sockaddr *);
 bool network_addr_match(const char *, const char *, const char *mask);
 
 /* Set a file descriptor close-on-exec or nonblocking. */
-bool fdflag_close_exec(int fd, bool flag);
-bool fdflag_nonblocking(int fd, bool flag);
+bool fdflag_close_exec(SOCKET fd, bool flag);
+bool fdflag_nonblocking(SOCKET fd, bool flag);
 
 /*
  * The reporting functions.  The ones prefaced by "sys" add a colon, a space,

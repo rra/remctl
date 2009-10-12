@@ -257,7 +257,7 @@ internal_v2_output(struct remctl *r)
         internal_token_error(r, "receiving token", status, major, minor);
         if (status == TOKEN_FAIL_EOF) {
             socket_close(r->fd);
-            r->fd = -1;
+            r->fd = INVALID_SOCKET;
         }
         return NULL;
     }
