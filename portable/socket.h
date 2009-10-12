@@ -13,7 +13,7 @@
  * Windows.  It ensures that inet_aton, inet_ntoa, and inet_ntop are available
  * and properly prototyped.
  *
- * Copyright 2008 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2008, 2009 Board of Trustees, Leland Stanford Jr. University
  * Copyright (c) 2004, 2005, 2006, 2007
  *     by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
@@ -74,7 +74,8 @@ extern const char *     inet_ntop(int, const void *, char *, socklen_t)
 /*
  * Used for portability to Windows, which requires different functions be
  * called to close sockets, send data to or read from sockets, and get socket
- * errors than the regular functions and variables.
+ * errors than the regular functions and variables.  Windows also uses SOCKET
+ * to store socket descriptors instead of an int.
  *
  * socket_init must be called before socket functions are used and
  * socket_shutdown at the end of the program.  socket_init may return failure,
@@ -89,6 +90,11 @@ extern const char *     inet_ntop(int, const void *, char *, socklen_t)
  * socket_strerror instead of errno and strerror.  When setting errno to
  * something for socket errors (to preserve errors through close, for
  * example), use socket_set_errno instead of just assigning to errno.
+ *
+ * Socket file descriptors must be passed and stored in variables of type
+ * socket_type rather than an int.  Use INVALID_SOCKET for invalid socket file
+ * descriptors rather than -1, and compare to INVALID_SOCKET when testing
+ * whether operations succeed.
  */
 #ifdef _WIN32
 int socket_init(void);
@@ -99,6 +105,7 @@ int socket_init(void);
 # define socket_errno           WSAGetLastError()
 # define socket_set_errno(e)    WSASetLastError(e)
 const char *socket_strerror(int);
+typedef SOCKET socket_type;
 #else
 # define socket_init()          1
 # define socket_shutdown()      /* empty */
@@ -108,8 +115,8 @@ const char *socket_strerror(int);
 # define socket_errno           errno
 # define socket_set_errno(e)    errno = (e)
 # define socket_strerror(e)     strerror(e)
-# define SOCKET int
-# define INVALID_SOCKET -1
+# define INVALID_SOCKET         -1
+typedef int socket_type;
 #endif
 
 /* Some systems don't define INADDR_LOOPBACK. */

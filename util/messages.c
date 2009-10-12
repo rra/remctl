@@ -39,7 +39,7 @@
  * the format and arguments), a format, an argument list as a va_list, and the
  * applicable errno value (if any).
  *
- * Copyright 2008 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2008, 2009 Board of Trustees, Leland Stanford Jr. University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
@@ -182,7 +182,7 @@ message_log_syslog(int pri, int len, const char *fmt, va_list args, int err)
 
         eventlog = RegisterEventSource(NULL, message_program_name);
         if (eventlog != NULL) {
-            ReportEvent(eventlog, (WORD)pri, 0, 0, NULL, 1, 0, &buffer, NULL);
+            ReportEvent(eventlog, (WORD) pri, 0, 0, NULL, 1, 0, &buffer, NULL);
             CloseEventLog(eventlog);
         }
     }

@@ -1,5 +1,20 @@
                        User-Visible remctl Changes
 
+remctl 2.15 (unreleased)
+
+    Use a socket_type typedef rather than int directly to store the file
+    descriptors of sockets and, on Windows, typedef that to SOCKET instead
+    of int.  Update the function signatures of the network utility
+    functions appropriately.  Compare socket_type variables against an
+    INVALID_SOCKET define instead of -1.  Fixes portability issues to
+    64-bit Windows.  Thanks, Jeffrey Altman.
+
+    For the Windows build, get the current version number from
+    configure.ac rather than configure so that the Windows build scripts
+    work from a Git checkout.  Link with the correct GSS-API library for
+    64-bit Windows builds.  Correct or suppress multiple warnings.
+    Thanks, Jeffrey Altman.
+
 remctl 2.14 (2009-05-22)
 
     The remctld configuration file may now specify that one argument to a

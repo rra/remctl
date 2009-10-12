@@ -31,7 +31,8 @@ static void
 make_connection(int protocol, const char *principal)
 {
     struct sockaddr_in saddr;
-    int fd, flags;
+    socket_type fd;
+    int flags;
     gss_buffer_desc send_tok, recv_tok, name_buffer, *token_ptr;
     gss_buffer_desc empty_token = { 0, (void *) "" };
     gss_name_t name;
@@ -46,7 +47,7 @@ make_connection(int protocol, const char *principal)
     saddr.sin_port = htons(14373);
     saddr.sin_addr.s_addr = INADDR_ANY;
     fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (fd < 0)
+    if (fd == INVALID_SOCKET)
         sysdie("error creating socket");
     if (connect(fd, (struct sockaddr *) &saddr, sizeof(saddr)) < 0)
         sysdie("error connecting");
@@ -103,11 +104,13 @@ int
 main(void)
 {
     char *principal;
-    int s, fd, protocol;
+    socket_type s, fd;
+    int protocol;
     pid_t child;
     struct sockaddr_in saddr;
     struct client *client;
     int on = 1;
+    const void *onaddr = &on;
 
     /* Unless we have Kerberos available, we can't really do anything. */
     principal = kerberos_setup();
@@ -120,9 +123,9 @@ main(void)
     saddr.sin_port = htons(14373);
     saddr.sin_addr.s_addr = INADDR_ANY;
     s = socket(AF_INET, SOCK_STREAM, 0);
-    if (s < 0)
+    if (s == INVALID_SOCKET)
         sysbail("error creating socket");
-    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
+    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, onaddr, sizeof(on));
     if (bind(s, (struct sockaddr *) &saddr, sizeof(saddr)) < 0)
         sysbail("error binding socket");
     if (listen(s, 1) < 0)
@@ -142,7 +145,7 @@ main(void)
             make_connection(protocol, principal);
         alarm(1);
         fd = accept(s, NULL, 0);
-        if (fd < 0)
+        if (fd == INVALID_SOCKET)
             sysbail("error accepting connection");
         alarm(0);
         client = server_new_client(fd, GSS_C_NO_CREDENTIAL);

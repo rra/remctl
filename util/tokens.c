@@ -7,7 +7,7 @@
  *
  * Originally written by Anton Ushakov
  * Extensive modifications by Russ Allbery <rra@stanford.edu>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -38,7 +38,7 @@
  * length, using multiple reads if needed and handling EINTR and EAGAIN.
  */
 static ssize_t
-xread(SOCKET fd, void *buffer, size_t size)
+xread(socket_type fd, void *buffer, size_t size)
 {
     size_t total;
     ssize_t status;
@@ -69,7 +69,7 @@ xread(SOCKET fd, void *buffer, size_t size)
  * writes).
  */
 enum token_status
-token_send(SOCKET fd, int flags, gss_buffer_t tok)
+token_send(socket_type fd, int flags, gss_buffer_t tok)
 {
     ssize_t status;
     size_t buflen;
@@ -117,7 +117,7 @@ token_send(SOCKET fd, int flags, gss_buffer_t tok)
  * free().
  */
 enum token_status
-token_recv(SOCKET fd, int *flags, gss_buffer_t tok, size_t max)
+token_recv(socket_type fd, int *flags, gss_buffer_t tok, size_t max)
 {
     ssize_t status;
     OM_uint32 len;

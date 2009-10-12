@@ -8,7 +8,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -28,16 +28,16 @@
 
 /*
  * Given the remctl object (for error reporting), host, and port, attempt a
- * network connection.  Returns the file descriptor if successful or -1 on
- * failure.
+ * network connection.  Returns the file descriptor if successful or
+ * INVALID_SOCKET on failure.
  */
-static SOCKET
+static socket_type
 internal_connect(struct remctl *r, const char *host, unsigned short port)
 {
     struct addrinfo hints, *ai;
     char portbuf[16];
     int status;
-    SOCKET fd;
+    socket_type fd;
 
     /*
      * Look up the remote host and open a TCP connection.  Call getaddrinfo
@@ -134,7 +134,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
 {
     int status, flags;
     bool port_fallback = false;
-    SOCKET fd = INVALID_SOCKET;
+    socket_type fd = INVALID_SOCKET;
     gss_buffer_desc send_tok, recv_tok, *token_ptr;
     gss_buffer_desc empty_token = { 0, (void *) "" };
     gss_name_t name = GSS_C_NO_NAME;

@@ -26,7 +26,7 @@ PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.rc \
-	client/mapfile client/remctl.rc config.h.w32 configure.bat \
+	client/mapfile client/remctl.rc config.h.w32 configure.cmd \
 	docs/api/remctl.pod docs/api/remctl_close.pod \
 	docs/api/remctl_command.pod docs/api/remctl_error.pod \
 	docs/api/remctl_new.pod docs/api/remctl_open.pod \

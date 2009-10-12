@@ -3,7 +3,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on prior work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -15,6 +15,7 @@
 #include <config.h>
 #include <portable/gssapi.h>
 #include <portable/macros.h>
+#include <portable/socket.h>
 #include <portable/stdbool.h>
 
 /* Forward declaration to avoid unnecessary includes. */
@@ -28,7 +29,7 @@ struct remctl {
     unsigned short port;        /*   remctl v1 requires opening a new    */
     const char *principal;      /*   connection for each command.        */
     int protocol;               /* Protocol version. */
-    SOCKET fd;
+    socket_type fd;
     gss_ctx_id_t context;
     char *error;
     struct remctl_output *output;

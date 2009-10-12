@@ -40,8 +40,10 @@ static void
 accept_connection(int protocol)
 {
     struct sockaddr_in saddr;
-    int s, conn, fd;
+    socket_type s, conn;
+    int fd;
     int on = 1;
+    const void *onaddr = &on;
     int flags, wanted_flags;
     gss_buffer_desc send_tok, recv_tok;
     OM_uint32 major, minor, ret_flags;
@@ -54,9 +56,9 @@ accept_connection(int protocol)
     saddr.sin_port = htons(14373);
     saddr.sin_addr.s_addr = INADDR_ANY;
     s = socket(AF_INET, SOCK_STREAM, 0);
-    if (s < 0)
+    if (s == INVALID_SOCKET)
         sysdie("error creating socket");
-    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
+    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, onaddr, sizeof(on));
     if (bind(s, (struct sockaddr *) &saddr, sizeof(saddr)) < 0)
         sysdie("error binding socket");
     if (listen(s, 1) < 0)
@@ -66,7 +68,7 @@ accept_connection(int protocol)
         sysdie("cannot create sentinal");
     close(fd);
     conn = accept(s, NULL, 0);
-    if (conn < 0)
+    if (conn == INVALID_SOCKET)
         sysdie("error accepting connection");
 
     /* Now do the context negotiation. */

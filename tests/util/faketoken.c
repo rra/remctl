@@ -2,7 +2,7 @@
  * Fake token_send and token_recv functions for testing.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2006, 2009 Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
  */
@@ -12,8 +12,8 @@
 
 #include <util/util.h>
 
-enum token_status fake_token_send(int, int, gss_buffer_t);
-enum token_status fake_token_recv(int, int *, gss_buffer_t, size_t);
+enum token_status fake_token_send(socket_type, int, gss_buffer_t);
+enum token_status fake_token_recv(socket_type, int *, gss_buffer_t, size_t);
 
 /*
  * The token and flags are actually read from or written to these variables.
@@ -30,7 +30,7 @@ int recv_flags;
  * Accept a token write request and store it into the buffer.
  */
 enum token_status
-fake_token_send(int fd UNUSED, int flags, gss_buffer_t tok)
+fake_token_send(socket_type fd UNUSED, int flags, gss_buffer_t tok)
 {
     if (tok->length > sizeof(send_buffer))
         return TOKEN_FAIL_SYSTEM;
@@ -45,7 +45,8 @@ fake_token_send(int fd UNUSED, int flags, gss_buffer_t tok)
  * Receive a token from the stored buffer and return it.
  */
 enum token_status
-fake_token_recv(int fd UNUSED, int *flags, gss_buffer_t tok, size_t max)
+fake_token_recv(socket_type fd UNUSED, int *flags, gss_buffer_t tok,
+                size_t max)
 {
     if (recv_length > max)
         return TOKEN_FAIL_LARGE;
