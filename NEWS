@@ -2,6 +2,9 @@
 
 remctl 2.15 (unreleased)
 
+    Fix read of uninitialized memory caused by moving one character beyond
+    the beginning of the buffer when parsing blank lines in ACL files.
+
     Use a socket_type typedef rather than int directly to store the file
     descriptors of sockets and, on Windows, typedef that to SOCKET instead
     of int.  Update the function signatures of the network utility
