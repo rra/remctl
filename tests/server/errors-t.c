@@ -34,6 +34,8 @@ test_error(struct remctl *r, const char *arg)
     const char *command[] = { "test", NULL, NULL };
 
     command[1] = arg;
+    if (arg == NULL)
+        arg = "(null)";
     if (!remctl_command(r, command)) {
         notice("# remctl error %s", remctl_error(r));
         return ERROR_INTERNAL;
