@@ -79,8 +79,6 @@ Server:
 
 Client:
 
- * Allow sending commands with no subcommands in the command-line client.
-
  * Implement file upload in the remctl client.
 
  * Add readline support to the remctl client for multiple commands to the

@@ -9,7 +9,7 @@ remctl - Remote execution tool
 =head1 SYNOPSIS
 
 remctl [B<-dhv>] [B<-p> I<port>] [B<-s> I<service>] I<host> I<command>
-    I<subcommand> [I<parameters> ...]
+    [I<subcommand> [I<parameters> ...]]
 
 =head1 DESCRIPTION
 

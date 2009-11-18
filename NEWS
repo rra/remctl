@@ -2,6 +2,10 @@
 
 remctl 2.15 (unreleased)
 
+    Allow subcommand to be omitted on the remctl command line, which sends
+    a command without a subcommand.  This makes available on the command
+    line functionality that was already available via the library API.
+
     Fix read of uninitialized memory caused by moving one character beyond
     the beginning of the buffer when parsing blank lines in ACL files.
 
