@@ -6,6 +6,13 @@ remctl 2.15 (unreleased)
     a command without a subcommand.  This makes available on the command
     line functionality that was already available via the library API.
 
+    Add the special keyword EMPTY for the subcommand field in the remctld
+    configuration file, specifying that this line should only match
+    commands with no subcommands.
+
+    Allow use of ALL in the command field in the remctld configuration
+    file as well as the subcommand field, matching all commands.
+
     Fix read of uninitialized memory caused by moving one character beyond
     the beginning of the buffer when parsing blank lines in ACL files.
 

@@ -230,6 +230,38 @@ fail:
 
 
 /*
+ * Given a configuration line, a command, and a subcommand, return true if
+ * that command and subcommand match that configuration line and false
+ * otherwise.  Handles the ALL and NULL special cases.
+ *
+ * Empty commands are not yet supported by the rest of the code, but this
+ * function copes in case that changes later.
+ */
+static bool
+line_matches(struct confline *cline, const char *command,
+             const char *subcommand)
+{
+    bool okay = false;
+
+    if (strcmp(cline->command, "ALL") == 0)
+        okay = true;
+    if (command != NULL && strcmp(cline->command, command) == 0)
+        okay = true;
+    if (command == NULL && strcmp(cline->command, "EMPTY") == 0)
+        okay = true;
+    if (okay) {
+        if (strcmp(cline->subcommand, "ALL") == 0)
+            return true;
+        if (subcommand != NULL && strcmp(cline->subcommand, subcommand) == 0)
+            return true;
+        if (subcommand == NULL && strcmp(cline->subcommand, "EMPTY") == 0)
+            return true;
+    }
+    return false;
+}
+
+
+/*
  * Process an incoming command.  Check the configuration files and the ACL
  * file, and if appropriate, forks off the command.  Takes the argument vector
  * and the user principal, and a buffer into which to put the output from the
@@ -301,13 +333,9 @@ server_run_command(struct client *client, struct config *config,
      */
     for (i = 0; i < config->count; i++) {
         cline = config->rules[i];
-        if (strcmp(cline->command, command) == 0) {
-            if (strcmp(cline->subcommand, "ALL") == 0
-                || (subcommand != NULL
-                    && strcmp(cline->subcommand, subcommand) == 0)) {
-                path = cline->program;
-                break;
-            }
+        if (line_matches(cline, command, subcommand)) {
+            path = cline->program;
+            break;
         }
     }
 
