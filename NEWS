@@ -29,6 +29,9 @@ remctl 2.15 (unreleased)
     64-bit Windows builds.  Correct or suppress multiple warnings.
     Thanks, Jeffrey Altman.
 
+    Enable Automake silent rules.  For a quieter build, pass the
+    --enable-silent-rules option to configure or build with make V=0.
+
     Update to rra-c-util 2.1:
 
     * Revert separation of die into a separate object file.

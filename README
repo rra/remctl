@@ -102,10 +102,10 @@ REQUIREMENTS
   set RRA_MAINTAINER_TESTS to a true value.
 
   To bootstrap from a Git checkout, or if you change the Automake files
-  and need to regenerate Makefile.in, you will need Automake 1.10 or
+  and need to regenerate Makefile.in, you will need Automake 1.11 or
   later.  For bootstrap or if you change configure.ac or any of the m4
   files it includes and need to regenerate configure or config.h.in, you
-  will need Autoconf 2.63 or later.  Perl and xml2rfc are also required to
+  will need Autoconf 2.64 or later.  Perl and xml2rfc are also required to
   generate the manual pages and protocol documentation from a fresh Git
   checkout.
 
@@ -116,6 +116,10 @@ INSTALLATION (UNIX)
       ./configure
       make
       make install
+
+  Pass --enable-silent-rules to configure for a quieter build (similar to
+  the Linux kernel).  Use make warnings instead of make to build with full
+  GCC compiler warnings (requires a relatively current version of GCC).
 
   The last step will probably have to be done as root.  By default, remctl
   installs itself under /usr/local; you can change that path by passing
