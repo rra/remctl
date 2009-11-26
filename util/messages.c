@@ -1,15 +1,19 @@
 /*
- * Message and error reporting (non-fatal).
+ * Message and error reporting (possibly fatal).
  *
  * Usage:
  *
  *     extern int cleanup(void);
  *     extern void log(int, const char *, va_list, int);
  *
+ *     message_fatal_cleanup = cleanup;
  *     message_program_name = argv[0];
  *
  *     warn("Something horrible happened at %lu", time);
  *     syswarn("Couldn't unlink temporary file %s", tmpfile);
+ *
+ *     die("Something fatal happened at %lu", time);
+ *     sysdie("open of %s failed", filename);
  *
  *     debug("Some debugging message about %s", string);
  *     notice("Informational notices");
@@ -19,27 +23,34 @@
  *
  * These functions implement message reporting through user-configurable
  * handler functions.  debug() only does something if DEBUG is defined, and
- * notice() and warn() just output messages as configured.
+ * notice() and warn() just output messages as configured.  die() similarly
+ * outputs a message but then exits, normally with a status of 1.
  *
  * The sys* versions do the same, but append a colon, a space, and the results
  * of strerror(errno) to the end of the message.  All functions accept
  * printf-style formatting strings and arguments.
  *
+ * If message_fatal_cleanup is non-NULL, it is called before exit by die and
+ * sysdie and its return value is used as the argument to exit.  It is a
+ * pointer to a function taking no arguments and returning an int, and can be
+ * used to call cleanup functions or to exit in some alternate fashion (such
+ * as by calling _exit).
+ *
  * If message_program_name is non-NULL, the string it points to, followed by a
  * colon and a space, is prepended to all error messages logged through the
  * message_log_stdout and message_log_stderr message handlers (the former is
- * the default for notice, and the latter is the default for warn).
+ * the default for notice, and the latter is the default for warn and die).
  *
  * Honoring error_program_name and printing to stderr is just the default
  * handler; with message_handlers_* the handlers for any message function can
- * be changed.  By default, notice prints to stdout, warn prints to stderr,
- * and the others don't do anything at all.  These functions take a count of
- * handlers and then that many function pointers, each one to a function that
- * takes a message length (the number of characters snprintf generates given
- * the format and arguments), a format, an argument list as a va_list, and the
- * applicable errno value (if any).
+ * be changed.  By default, notice prints to stdout, warn and die print to
+ * stderr, and the others don't do anything at all.  These functions take a
+ * count of handlers and then that many function pointers, each one to a
+ * function that takes a message length (the number of characters snprintf
+ * generates given the format and arguments), a format, an argument list as a
+ * va_list, and the applicable errno value (if any).
  *
- * Copyright 2008, 2009 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2008 Board of Trustees, Leland Stanford Jr. University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
@@ -80,6 +91,10 @@ static message_handler_func stderr_handlers[2] = {
 static message_handler_func *debug_handlers  = NULL;
 static message_handler_func *notice_handlers = stdout_handlers;
 static message_handler_func *warn_handlers   = stderr_handlers;
+static message_handler_func *die_handlers    = stderr_handlers;
+
+/* If non-NULL, called before exit and its return value passed to exit. */
+int (*message_fatal_cleanup)(void) = NULL;
 
 /* If non-NULL, prepended (followed by ": ") to messages. */
 const char *message_program_name = NULL;
@@ -121,6 +136,7 @@ message_handlers(message_handler_func **list, int count, va_list args)
 HANDLER_FUNCTION(debug)
 HANDLER_FUNCTION(notice)
 HANDLER_FUNCTION(warn)
+HANDLER_FUNCTION(die)
 
 
 /*
@@ -317,4 +333,43 @@ syswarn(const char *format, ...)
         (**log)(length, format, args, error);
         va_end(args);
     }
+}
+
+void
+die(const char *format, ...)
+{
+    va_list args;
+    message_handler_func *log;
+    int length;
+
+    va_start(args, format);
+    length = vsnprintf(NULL, 0, format, args);
+    va_end(args);
+    if (length >= 0)
+        for (log = die_handlers; *log != NULL; log++) {
+            va_start(args, format);
+            (**log)(length, format, args, 0);
+            va_end(args);
+        }
+    exit(message_fatal_cleanup ? (*message_fatal_cleanup)() : 1);
+}
+
+void
+sysdie(const char *format, ...)
+{
+    va_list args;
+    message_handler_func *log;
+    int length;
+    int error = errno;
+
+    va_start(args, format);
+    length = vsnprintf(NULL, 0, format, args);
+    va_end(args);
+    if (length >= 0)
+        for (log = die_handlers; *log != NULL; log++) {
+            va_start(args, format);
+            (**log)(length, format, args, error);
+            va_end(args);
+        }
+    exit(message_fatal_cleanup ? (*message_fatal_cleanup)() : 1);
 }

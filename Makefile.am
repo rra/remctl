@@ -74,9 +74,9 @@ include_HEADERS = client/remctl.h
 noinst_LTLIBRARIES = portable/libportable.la util/libutil.la
 portable_libportable_la_SOURCES = portable/dummy.c
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
-util_libutil_la_SOURCES = util/concat.c util/fdflag.c util/gss-errors.c \
-	util/gss-tokens.c util/messages-die.c util/messages.c util/network.c \
-	util/tokens.c util/util.h util/vector.c util/xmalloc.c util/xwrite.c
+util_libutil_la_SOURCES = util/concat.c util/fdflag.c util/gss-errors.c	\
+	util/gss-tokens.c util/messages.c util/network.c util/tokens.c	\
+	util/util.h util/vector.c util/xmalloc.c util/xwrite.c
 util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
 util_libutil_la_LIBADD = portable/libportable.la $(GSSAPI_LIBS)
 

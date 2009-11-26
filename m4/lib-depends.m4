@@ -1,4 +1,4 @@
-dnl lib-depends.m4 -- Provides option to change library probes.
+dnl Provides option to change library probes.
 dnl
 dnl This file provides RRA_ENABLE_REDUCED_DEPENDS, which adds the configure
 dnl option --enable-reduced-depends to request that library probes assume
@@ -18,6 +18,6 @@ dnl See LICENSE for licensing terms.
 AC_DEFUN([RRA_ENABLE_REDUCED_DEPENDS],
 [rra_reduced_depends=false
 AC_ARG_ENABLE([reduced-depends],
-    [AC_HELP_STRING([--enable-reduced-depends],
+    [AS_HELP_STRING([--enable-reduced-depends],
         [Try to minimize shared library dependencies])],
     [AS_IF([test x"$enableval" = xyes], [rra_reduced_depends=true])])])

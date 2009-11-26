@@ -40,7 +40,8 @@
 BEGIN_DECLS
 
 /* The primary interface.  Call repeatedly to return each option. */
-int getopt(int argc, char *argv[], const char *opts);
+int getopt(int argc, char *argv[], const char *opts)
+    __attribute__((__visibility__("hidden")));
 
 /*
  * The current element in the argv array or, if getopt returns -1, the index

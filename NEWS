@@ -29,6 +29,19 @@ remctl 2.15 (unreleased)
     64-bit Windows builds.  Correct or suppress multiple warnings.
     Thanks, Jeffrey Altman.
 
+    Update to rra-c-util 2.1:
+
+    * Revert separation of die into a separate object file.
+    * Fall back on manual library probing if krb5-config doesn't work.
+    * Don't try to use a non-executable krb5-config for GSS-API probes.
+    * Suppress error output from krb5-config GSS-API probes.
+    * Prefer KRB5_CONFIG over a path constructed from --with-gssapi.
+    * Fix network test suite failures when IPv6 is available but disabled.
+
+    Update to C TAP Harness 1.1:
+
+    * Summarize results at the end of test execution.
+
 remctl 2.14 (2009-05-22)
 
     The remctld configuration file may now specify that one argument to a
