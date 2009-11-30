@@ -101,6 +101,6 @@ AC_DEFUN([RRA_MACRO_SA_LEN],
     [AC_LINK_IFELSE([AC_LANG_SOURCE([_RRA_MACRO_SA_LEN_SOURCE])],
         [rra_cv_sa_len_macro=yes],
         [rra_cv_sa_len_macro=no])])
- AS_IF([test "$rra_cv_sa_len_macro" = yes],
+ AS_IF([test x"$rra_cv_sa_len_macro" = xyes],
     [AC_DEFINE([HAVE_SA_LEN], 1,
-        [Define if <sys/socket.h> defines the SA_LEN macro])])])
+        [Define if <sys/socket.h> defines the SA_LEN macro.])])])

@@ -9,7 +9,7 @@
  *
  * Originally written by Anton Ushakov
  * Extensive modifications by Russ Allbery <rra@stanford.edu>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See README for licensing terms.
@@ -46,7 +46,7 @@ enum token_status token_recv(int, int *, gss_buffer_t, size_t);
  * side to reply with a MIC, which we then verify.
 */
 enum token_status
-token_send_priv(int fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
+token_send_priv(socket_type fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
                 OM_uint32 *major, OM_uint32 *minor)
 {
     gss_buffer_desc out, mic;
@@ -95,8 +95,9 @@ token_send_priv(int fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
  * and send it back.
  */
 enum token_status
-token_recv_priv(int fd, gss_ctx_id_t ctx, int *flags, gss_buffer_t tok,
-                size_t max, OM_uint32 *major, OM_uint32 *minor)
+token_recv_priv(socket_type fd, gss_ctx_id_t ctx, int *flags,
+                gss_buffer_t tok, size_t max, OM_uint32 *major,
+                OM_uint32 *minor)
 {
     gss_buffer_desc in, mic;
     int state;

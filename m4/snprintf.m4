@@ -49,7 +49,7 @@ AC_DEFUN([RRA_FUNC_SNPRINTF],
         [rra_cv_func_snprintf_works=yes],
         [rra_cv_func_snprintf_works=no],
         [rra_cv_func_snprintf_works=no])])
- AS_IF([test "$rra_cv_func_snprintf_works" = yes],
+ AS_IF([test x"$rra_cv_func_snprintf_works" = xyes],
     [AC_DEFINE([HAVE_SNPRINTF], 1,
         [Define if your system has a working snprintf function.])],
     [AC_LIBOBJ([snprintf])])])

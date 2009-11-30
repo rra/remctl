@@ -25,7 +25,7 @@
 
 /* Usage message. */
 static const char usage_message[] = "\
-Usage: remctl <options> <host> <command> <subcommand> <parameters>\n\
+Usage: remctl <options> <host> <command> [<subcommand> [<parameters>]]\n\
 \n\
 Options:\n\
     -d            Debugging level of output\n\
@@ -147,7 +147,7 @@ main(int argc, char *argv[])
     }
     argc -= optind;
     argv += optind;
-    if (argc < 3)
+    if (argc < 2)
         usage(1);
     server_host = *argv++;
     argc--;

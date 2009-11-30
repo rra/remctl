@@ -6,6 +6,14 @@
 #
 # See LICENSE for licensing terms.
 
+# These variables exist only for the use of the Debian packaging and similar
+# situations and aren't normally set.  PYTHON_INSTALL adds additional flags
+# to the setup.py install command.  PYTHON_VERSION narrows the search for
+# Python build directories during make check to only those matching that
+# version.
+PYTHON_INSTALL =
+PYTHON_VERSION =
+
 # These three lists of files are needed for Perl builds, Python builds, and
 # for the test suite and are not generated or touched by configure.  They're
 # listed here to be added to EXTRA_DIST and so that they can be copied over
@@ -17,12 +25,13 @@ PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = LICENSE Makefile.w32 autogen client/libremctl.rc client/mapfile \
-	client/remctl.rc config.h.w32 configure.bat docs/api/remctl.pod \
-	docs/api/remctl_close.pod docs/api/remctl_command.pod \
-	docs/api/remctl_error.pod docs/api/remctl_new.pod \
-	docs/api/remctl_open.pod docs/api/remctl_output.pod docs/design.html \
-	docs/extending docs/protocol-v3 docs/protocol.txt docs/protocol.html \
+EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.rc \
+	client/mapfile client/remctl.rc config.h.w32 configure.cmd \
+	docs/api/remctl.pod docs/api/remctl_close.pod \
+	docs/api/remctl_command.pod docs/api/remctl_error.pod \
+	docs/api/remctl_new.pod docs/api/remctl_open.pod \
+	docs/api/remctl_output.pod docs/design.html docs/extending \
+	docs/protocol-v3 docs/protocol.txt docs/protocol.html \
 	docs/protocol.xml docs/remctl.pod docs/remctld.8.in docs/remctld.pod \
 	examples/remctl.conf examples/rsh-wrapper examples/xinetd \
 	java/.classpath java/.project java/Makefile java/README \
@@ -65,9 +74,9 @@ include_HEADERS = client/remctl.h
 noinst_LTLIBRARIES = portable/libportable.la util/libutil.la
 portable_libportable_la_SOURCES = portable/dummy.c
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
-util_libutil_la_SOURCES = util/concat.c util/fdflag.c util/gss-errors.c \
-	util/gss-tokens.c util/messages-die.c util/messages.c util/network.c \
-	util/tokens.c util/util.h util/vector.c util/xmalloc.c util/xwrite.c
+util_libutil_la_SOURCES = util/concat.c util/fdflag.c util/gss-errors.c	\
+	util/gss-tokens.c util/messages.c util/network.c util/tokens.c	\
+	util/util.h util/vector.c util/xmalloc.c util/xwrite.c
 util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
 util_libutil_la_LIBADD = portable/libportable.la $(GSSAPI_LIBS)
 
@@ -127,8 +136,8 @@ clean-local:
 	fi
 	rm -rf python/build python/dist python/*.pyc
 
-# Remove the test files we copied over if srcdir != builddir.  Also clean the
-# Perl, PHP, and Python directories on make distclean if needed.
+# Also clean the Perl, PHP, and Python directories on make distclean if
+# needed.
 #
 # phpize --clean is stupid and requires that config.m4 exist, but it was
 # already deleted by the regular distclean target.  Hack around that.
@@ -144,7 +153,7 @@ distclean-local:
 	    done \
 	else \
 	    if [ -n "$(PHPIZE)" ] ; then \
-		cd php && touch config.m4 && $(PHPIZE) --clean ; \
+		cd php && touch config.m4 && $(PHPIZE) --clean && cd .. ; \
 	    fi ; \
 	    rm -f php/config.h.in~ php/config.m4 ; \
 	fi
@@ -185,7 +194,7 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t \
 	tests/util/network-t tests/util/tokens-t tests/util/vector-t \
 	tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
-tests_runtests_CPPFLAGS =  -DSOURCE='"$(abs_top_srcdir)/tests"' \
+tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
 tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests
 tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h \
@@ -303,7 +312,8 @@ check-local: $(check_PROGRAMS)
 	    echo '' ; \
 	    echo 'Testing Python extension' ; \
 	    cd python && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
-		PYTHONPATH="`ls -d build/lib.*`" python test_remctl.py ; \
+		PYTHONPATH="`ls -d build/lib.*$(PYTHON_VERSION)`" \
+		python test_remctl.py ; \
 	fi
 
 # Used for hooking in the build of optional language bindings.
@@ -375,9 +385,10 @@ stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
 
 install-data-local-python: stamp-python
 	if [ -n "$(DESTDIR)" ] ; then \
-	    cd python && python setup.py install --root $(DESTDIR) ; \
+	    cd python && python setup.py install $(PYTHON_INSTALL) \
+		--root $(DESTDIR) ; \
 	else \
-	    cd python && python setup.py install ; \
+	    cd python && python setup.py install $(PYTHON_INSTALL) ; \
 	fi
 
 # Build and install the Python bindings if desired.

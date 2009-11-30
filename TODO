@@ -38,6 +38,9 @@ Server:
    running the command, specifying an argument to pass on standard input
    (see below), or supporting things like LDAP ACLs.
 
+ * Add a way of explicitly specifying the null command or subcommand in
+   the remctl configuration.
+
  * Maximum argument count and maximum data size in MESSAGE_COMMAND should
    be configurable parameters of the server rather than hard-coded
    values.  This may need to wait for better configuration parsing.
@@ -75,8 +78,6 @@ Server:
    hard-coding the Kerberos v5 OID.
 
 Client:
-
- * Allow sending commands with no subcommands in the command-line client.
 
  * Implement file upload in the remctl client.
 

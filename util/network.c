@@ -10,6 +10,7 @@
  * implementations for functions that aren't found on some pre-IPv6 systems.
  * No other part of remctl should have to care about IPv4 vs. IPv6.
  *
+ * Copyright 2009 Board of Trustees, Leland Stanford Jr. University
  * Copyright (c) 2004, 2005, 2006, 2007, 2008
  *     by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
@@ -47,11 +48,12 @@
  */
 #ifdef SO_REUSEADDR
 static void
-network_set_reuseaddr(int fd)
+network_set_reuseaddr(socket_type fd)
 {
     int flag = 1;
+    const void *flagaddr = &flag;
 
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, flagaddr, sizeof(flag)) < 0)
         syswarn("cannot mark bind address reusable");
 }
 #endif
@@ -59,20 +61,20 @@ network_set_reuseaddr(int fd)
 
 /*
  * Create an IPv4 socket and bind it, returning the resulting file descriptor
- * (or -1 on a failure).
+ * (or INVALID_SOCKET on a failure).
  */
-int
+socket_type
 network_bind_ipv4(const char *address, unsigned short port)
 {
-    int fd;
+    socket_type fd;
     struct sockaddr_in server;
     struct in_addr addr;
 
     /* Create the socket. */
     fd = socket(PF_INET, SOCK_STREAM, IPPROTO_IP);
-    if (fd < 0) {
+    if (fd == INVALID_SOCKET) {
         syswarn("cannot create IPv4 socket for %s,%hu", address, port);
-        return -1;
+        return INVALID_SOCKET;
     }
     network_set_reuseaddr(fd);
 
@@ -85,13 +87,13 @@ network_bind_ipv4(const char *address, unsigned short port)
     server.sin_port = htons(port);
     if (!inet_aton(address, &addr)) {
         warn("invalid IPv4 address %s", address);
-        return -1;
+        return INVALID_SOCKET;
     }
     server.sin_addr = addr;
     sin_set_length(&server);
     if (bind(fd, (struct sockaddr *) &server, sizeof(server)) < 0) {
         syswarn("cannot bind socket for %s,%hu", address, port);
-        return -1;
+        return INVALID_SOCKET;
     }
     return fd;
 }
@@ -99,25 +101,25 @@ network_bind_ipv4(const char *address, unsigned short port)
 
 /*
  * Create an IPv6 socket and bind it, returning the resulting file descriptor
- * (or -1 on a failure).  Note that we don't warn (but still return failure)
- * if the reason for the socket creation failure is that IPv6 isn't supported;
- * this is to handle systems like many Linux hosts where IPv6 is available in
- * userland but the kernel doesn't support it.
+ * (or INVALID_SOCKET on a failure).  Note that we don't warn (but still
+ * return failure) if the reason for the socket creation failure is that IPv6
+ * isn't supported; this is to handle systems like many Linux hosts where IPv6
+ * is available in userland but the kernel doesn't support it.
  */
 #if HAVE_INET6
-int
+socket_type
 network_bind_ipv6(const char *address, unsigned short port)
 {
-    int fd;
+    socket_type fd;
     struct sockaddr_in6 server;
     struct in6_addr addr;
 
     /* Create the socket. */
     fd = socket(PF_INET6, SOCK_STREAM, IPPROTO_IP);
-    if (fd < 0) {
+    if (fd == INVALID_SOCKET) {
         if (socket_errno != EAFNOSUPPORT && socket_errno != EPROTONOSUPPORT)
             syswarn("cannot create IPv6 socket for %s,%hu", address, port);
-        return -1;
+        return INVALID_SOCKET;
     }
     network_set_reuseaddr(fd);
 
@@ -131,23 +133,23 @@ network_bind_ipv6(const char *address, unsigned short port)
     if (inet_pton(AF_INET6, address, &addr) < 1) {
         warn("invalid IPv6 address %s", address);
         socket_close(fd);
-        return -1;
+        return INVALID_SOCKET;
     }
     server.sin6_addr = addr;
     sin6_set_length(&server);
     if (bind(fd, (struct sockaddr *) &server, sizeof(server)) < 0) {
         syswarn("cannot bind socket for %s,%hu", address, port);
         socket_close(fd);
-        return -1;
+        return INVALID_SOCKET;
     }
     return fd;
 }
 #else /* HAVE_INET6 */
-int
+socket_type
 network_bind_ipv6(const char *address, unsigned short port)
 {
     warn("cannot bind %s,%hu: not built with IPv6 support", address, port);
-    return -1;
+    return INVALID_SOCKET;
 }
 #endif /* HAVE_INET6 */
 
@@ -164,7 +166,8 @@ void
 network_bind_all(unsigned short port, int **fds, int *count)
 {
     struct addrinfo hints, *addrs, *addr;
-    int error, fd, size;
+    int error, size;
+    socket_type fd;
     char service[16], name[INET6_ADDRSTRLEN];
 
     *count = 0;
@@ -195,10 +198,10 @@ network_bind_all(unsigned short port, int **fds, int *count)
             fd = network_bind_ipv6(name, port);
         else
             continue;
-        if (fd >= 0) {
+        if (fd != INVALID_SOCKET) {
             if (*count >= size) {
                 size += 2;
-                *fds = xrealloc(*fds, size * sizeof(int));
+                *fds = xrealloc(*fds, size * sizeof(socket_type));
             }
             (*fds)[*count] = fd;
             (*count)++;
@@ -208,13 +211,13 @@ network_bind_all(unsigned short port, int **fds, int *count)
 }
 #else /* HAVE_INET6 */
 void
-network_bind_all(unsigned short port, int **fds, int *count)
+network_bind_all(unsigned short port, socket_type **fds, int *count)
 {
-    int fd;
+    socket_type fd;
 
     fd = network_bind_ipv4("0.0.0.0", port);
     if (fd >= 0) {
-        *fds = xmalloc(sizeof(int));
+        *fds = xmalloc(sizeof(socket_type));
         *fds[0] = fd;
         *count = 1;
     } else {
@@ -231,7 +234,7 @@ network_bind_all(unsigned short port, int **fds, int *count)
  * success and false on failure.
  */
 static int
-network_source(int fd, int family, const char *source)
+network_source(socket_type fd, int family, const char *source)
 {
     if (source == NULL)
         return 1;
@@ -268,21 +271,22 @@ network_source(int fd, int family, const char *source)
  * Given a linked list of addrinfo structs representing the remote service,
  * try to create a local socket and connect to that service.  Takes an
  * optional source address.  Try each address in turn until one of them
- * connects.  Returns the file descriptor of the open socket on success, or -1
- * on failure.  Tries to leave the reason for the failure in errno.
+ * connects.  Returns the file descriptor of the open socket on success, or
+ * INVALID_SOCKET on failure.  Tries to leave the reason for the failure in
+ * errno.
  */
-int
+socket_type
 network_connect(struct addrinfo *ai, const char *source)
 {
-    int fd = -1;
+    socket_type fd = INVALID_SOCKET;
     int oerrno;
     int success;
 
     for (success = 0; ai != NULL; ai = ai->ai_next) {
-        if (fd >= 0)
+        if (fd != INVALID_SOCKET)
             socket_close(fd);
         fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-        if (fd < 0)
+        if (fd == INVALID_SOCKET)
             continue;
         if (!network_source(fd, ai->ai_family, source))
             continue;
@@ -299,7 +303,7 @@ network_connect(struct addrinfo *ai, const char *source)
             socket_close(fd);
             socket_set_errno(oerrno);
         }
-        return -1;
+        return INVALID_SOCKET;
     }
 }
 
@@ -307,23 +311,24 @@ network_connect(struct addrinfo *ai, const char *source)
 /*
  * Like network_connect, but takes a host and a port instead of an addrinfo
  * struct list.  Returns the file descriptor of the open socket on success, or
- * -1 on failure.  If getaddrinfo fails, errno may not be set to anything
- * useful.
+ * INVALID_SOCKET on failure.  If getaddrinfo fails, errno may not be set to
+ * anything useful.
  */
-int
+socket_type
 network_connect_host(const char *host, unsigned short port,
                      const char *source)
 {
     struct addrinfo hints, *ai;
     char portbuf[16];
-    int fd, oerrno;
+    socket_type fd;
+    int oerrno;
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     snprintf(portbuf, sizeof(portbuf), "%d", port);
     if (getaddrinfo(host, portbuf, &hints, &ai) != 0)
-        return -1;
+        return INVALID_SOCKET;
     fd = network_connect(ai, source);
     oerrno = socket_errno;
     freeaddrinfo(ai);
@@ -335,23 +340,24 @@ network_connect_host(const char *host, unsigned short port,
 /*
  * Create a new socket of the specified domain and type and do the binding as
  * if we were a regular client socket, but then return before connecting.
- * Returns the file descriptor of the open socket on success, or -1 on
- * failure.  Intended primarily for the use of clients that will then go on to
- * do a non-blocking connect.
+ * Returns the file descriptor of the open socket on success, or
+ * INVALID_SOCKET on failure.  Intended primarily for the use of clients that
+ * will then go on to do a non-blocking connect.
  */
-int
+socket_type
 network_client_create(int domain, int type, const char *source)
 {
-    int fd, oerrno;
+    socket_type fd;
+    int oerrno;
 
     fd = socket(domain, type, 0);
-    if (fd < 0)
-        return -1;
+    if (fd == INVALID_SOCKET)
+        return INVALID_SOCKET;
     if (!network_source(fd, domain, source)) {
         oerrno = socket_errno;
         socket_close(fd);
         socket_set_errno(oerrno);
-        return -1;
+        return INVALID_SOCKET;
     }
     return fd;
 }

@@ -28,7 +28,7 @@
 #include <util/util.h>
 
 /* Abbreviation for cleaner code. */
-#define VA_NEXT(var, type)      ((var) = (type) va_arg(args, type))
+#define VA_NEXT(var, type) ((var) = (type) va_arg(args, type))
 
 
 /*

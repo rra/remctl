@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -257,7 +257,7 @@ internal_v2_output(struct remctl *r)
         internal_token_error(r, "receiving token", status, major, minor);
         if (status == TOKEN_FAIL_EOF) {
             socket_close(r->fd);
-            r->fd = -1;
+            r->fd = INVALID_SOCKET;
         }
         return NULL;
     }

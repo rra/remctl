@@ -11,7 +11,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -213,7 +213,7 @@ remctl_new(void)
     r = calloc(1, sizeof(struct remctl));
     if (r == NULL)
         return NULL;
-    r->fd = -1;
+    r->fd = INVALID_SOCKET;
     r->host = NULL;
     r->principal = NULL;
     r->context = NULL;

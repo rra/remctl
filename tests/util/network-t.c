@@ -31,7 +31,7 @@ static int ipv6 = 1;
  * client is supposed to print.
  */
 static void
-listener(int fd)
+listener(socket_type fd)
 {
     int client;
     FILE *out;
@@ -39,9 +39,10 @@ listener(int fd)
 
     client = accept(fd, NULL, NULL);
     close(fd);
-    if (client < 0) {
+    if (client == INVALID_SOCKET) {
         sysnotice("# cannot accept connection from socket");
         ok_block(2, 0, "...socket read test");
+        return;
     }
     ok(1, "...socket accept");
     out = fdopen(client, "r");
@@ -62,11 +63,11 @@ listener(int fd)
 static void
 client(const char *host, const char *source)
 {
-    int fd;
+    socket_type fd;
     FILE *out;
 
     fd = network_connect_host(host, 11119, source);
-    if (fd < 0)
+    if (fd == INVALID_SOCKET)
         sysdie("connect failed");
     out = fdopen(fd, "w");
     if (out == NULL)
@@ -85,11 +86,11 @@ client(const char *host, const char *source)
 static void
 test_ipv4(const char *source)
 {
-    int fd;
+    socket_type fd;
     pid_t child;
 
     fd = network_bind_ipv4("127.0.0.1", 11119);
-    if (fd < 0)
+    if (fd == INVALID_SOCKET)
         sysbail("cannot create or bind socket");
     if (listen(fd, 1) < 0) {
         sysnotice("# cannot listen to socket");
@@ -118,15 +119,16 @@ test_ipv4(const char *source)
 static void
 test_ipv6(const char *source)
 {
-    int fd;
+    socket_type fd;
     pid_t child;
 
     fd = network_bind_ipv6("::1", 11119);
-    if (fd < 0) {
+    if (fd == INVALID_SOCKET) {
         if (errno == EAFNOSUPPORT || errno == EPROTONOSUPPORT
             || errno == EADDRNOTAVAIL) {
             ipv6 = 0;
             skip_block(3, "IPv6 not supported");
+            return;
         } else
             sysbail("cannot create socket");
     }
@@ -161,9 +163,10 @@ test_ipv6(const char *source UNUSED)
  * use for client connections.
  */
 static void
-test_all(const char *source_ipv4, const char *source_ipv6)
+test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
 {
-    int *fds, count, fd, i;
+    socket_type *fds, fd;
+    int count, i;
     pid_t child;
     struct sockaddr_storage saddr;
     socklen_t size = sizeof(saddr);
@@ -216,11 +219,11 @@ test_all(const char *source_ipv4, const char *source_ipv6)
 static void
 test_create_ipv4(const char *source)
 {
-    int fd;
+    socket_type fd;
     pid_t child;
 
     fd = network_bind_ipv4("127.0.0.1", 11119);
-    if (fd < 0)
+    if (fd == INVALID_SOCKET)
         sysbail("cannot create or bind socket");
     if (listen(fd, 1) < 0) {
         sysnotice("# cannot listen to socket");
@@ -235,7 +238,7 @@ test_create_ipv4(const char *source)
             FILE *out;
 
             fd = network_client_create(PF_INET, SOCK_STREAM, source);
-            if (fd < 0)
+            if (fd == INVALID_SOCKET)
                 _exit(1);
             sin.sin_family = AF_INET;
             sin.sin_port = htons(11119);
