@@ -5,6 +5,8 @@ remctl (2.15-1) UNRELEASED; urgency=low
     - New special keyword EMPTY in remctld configuration.
     - Allow use of ALL for the command in the remctld configuration.
     - Fix read of uninitialized memory when parsing ACL files.
+  * Fix debian/rules logic for forcing Python module tests to be run using
+    the default version of Python.
 
  -- Russ Allbery <rra@debian.org>  Sun, 29 Nov 2009 16:58:22 -0800
 
