@@ -521,7 +521,7 @@ acl_check_file_internal(void *data, const char *aclfile)
          * whitespace.
          */
         p = buffer + length - 1;
-        while (isspace((int) *p))
+        while (p > buffer && isspace((int) *p))
             p--;
         p[1] = '\0';
         p = buffer;

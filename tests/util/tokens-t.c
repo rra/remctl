@@ -21,6 +21,16 @@
 #include <tests/tap/basic.h>
 #include <util/util.h>
 
+/*
+ * Windows requires a different function when sending to sockets, but can't
+ * return short writes on blocking sockets.
+ */
+#ifdef _WIN32
+# define socket_xwrite(fd, b, s)        send((fd), (b), (s), 0)
+#else
+# define socket_xwrite(fd, b, s)        xwrite((fd), (b), (s))
+#endif
+
 /* A token for testing. */
 static const char token[] = { 3, 0, 0, 0, 5, 'h', 'e', 'l', 'l', 'o' };
 
@@ -29,20 +39,22 @@ static const char token[] = { 3, 0, 0, 0, 5, 'h', 'e', 'l', 'l', 'o' };
  * Create a server socket, wait for a connection, and return the connected
  * socket.
  */
-static int
+static socket_type
 create_server(void)
 {
-    int fd, conn, marker;
+    socket_type fd, conn;
+    int marker;
     struct sockaddr_in saddr;
     int on = 1;
+    const void *onaddr = &on;
 
     saddr.sin_family = AF_INET;
     saddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     saddr.sin_port = htons(14373);
     fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (fd < 0)
+    if (fd == INVALID_SOCKET)
         sysbail("error creating socket");
-    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, onaddr, sizeof(on));
     if (bind(fd, (struct sockaddr *) &saddr, sizeof(saddr)) < 0)
         sysbail("error binding socket");
     if (listen(fd, 1) < 0)
@@ -51,7 +63,7 @@ create_server(void)
     if (marker < 0)
         sysbail("cannot create marker file");
     conn = accept(fd, NULL, 0);
-    if (conn < 0)
+    if (conn == INVALID_SOCKET)
         sysbail("error accepting connection");
     return conn;
 }
@@ -61,10 +73,10 @@ create_server(void)
  * Create a client socket, it for a connection, and return the connected
  * socket.
  */
-static int
+static socket_type
 create_client(void)
 {
-    int fd;
+    socket_type fd;
     struct sockaddr_in saddr;
     struct timeval tv;
 
@@ -72,7 +84,7 @@ create_client(void)
     saddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     saddr.sin_port = htons(14373);
     fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (fd < 0)
+    if (fd == INVALID_SOCKET)
         sysbail("error creating socket");
     alarm(1);
     while (access("server-ready", F_OK) != 0) {
@@ -91,9 +103,9 @@ create_client(void)
  * Send a hand-constructed token to a file descriptor.
  */
 static void
-send_hand_token(int fd)
+send_hand_token(socket_type fd)
 {
-    xwrite(fd, token, sizeof(token));
+    socket_xwrite(fd, token, sizeof(token));
 }
 
 
@@ -101,7 +113,7 @@ send_hand_token(int fd)
  * Send a token via token_send to a file descriptor.
  */
 static void
-send_regular_token(int fd)
+send_regular_token(socket_type fd)
 {
     gss_buffer_desc buffer;
 
@@ -116,7 +128,8 @@ int
 main(void)
 {
     pid_t child;
-    int server, client, status, flags;
+    socket_type server, client;
+    int status, flags;
     char buffer[20];
     ssize_t length;
     gss_buffer_desc result;
@@ -167,7 +180,7 @@ main(void)
         sysbail("cannot fork");
     else if (child == 0) {
         server = create_server();
-        xwrite(server, "\0\0\0\0\1", 5);
+        socket_xwrite(server, "\0\0\0\0\1", 5);
         exit(0);
     } else {
         client = create_client();

@@ -58,40 +58,41 @@
 
 BEGIN_DECLS
 
+/* Default to a hidden visibility for all portability functions. */
+#pragma GCC visibility push(hidden)
+
 /*
  * Provide prototypes for functions not declared in system headers.  Use the
  * HAVE_DECL macros for those functions that may be prototyped but implemented
  * incorrectly or implemented without a prototype.
  */
 #if !HAVE_ASPRINTF
-extern int              asprintf(char **, const char *, ...)
-    __attribute__((__visibility__("hidden")));
-extern int              vasprintf(char **, const char *, va_list)
-    __attribute__((__visibility__("hidden")));
+extern int asprintf(char **, const char *, ...)
+    __attribute__((__format__(printf, 2, 3)));
+extern int vasprintf(char **, const char *, va_list);
 #endif
 #if !HAVE_DECL_SNPRINTF
-extern int              snprintf(char *, size_t, const char *, ...)
+extern int snprintf(char *, size_t, const char *, ...)
     __attribute__((__format__(printf, 3, 4)));
 #endif
 #if !HAVE_DECL_VSNPRINTF
-extern int              vsnprintf(char *, size_t, const char *, va_list);
+extern int vsnprintf(char *, size_t, const char *, va_list);
 #endif
 #if !HAVE_DAEMON
-extern int              daemon(int, int)
-    __attribute__((__visibility__("hidden")));
+extern int daemon(int, int);
 #endif
 #if !HAVE_SETENV
-extern int              setenv(const char *, const char *, int)
-    __attribute__((__visibility__("hidden")));
+extern int setenv(const char *, const char *, int);
 #endif
 #if !HAVE_STRLCAT
-extern size_t           strlcat(char *, const char *, size_t)
-    __attribute__((__visibility__("hidden")));
+extern size_t strlcat(char *, const char *, size_t);
 #endif
 #if !HAVE_STRLCPY
-extern size_t           strlcpy(char *, const char *, size_t)
-    __attribute__((__visibility__("hidden")));
+extern size_t strlcpy(char *, const char *, size_t);
 #endif
+
+/* Undo default visibility change. */
+#pragma GCC visibility pop
 
 END_DECLS
 
@@ -105,9 +106,9 @@ END_DECLS
  * been defined, all the rest almost certainly have.
  */
 #ifndef STDIN_FILENO
-# define STDIN_FILENO   0
-# define STDOUT_FILENO  1
-# define STDERR_FILENO  2
+# define STDIN_FILENO  0
+# define STDOUT_FILENO 1
+# define STDERR_FILENO 2
 #endif
 
 /*
@@ -116,9 +117,9 @@ END_DECLS
  */
 #ifndef va_copy
 # ifdef __va_copy
-#  define va_copy(d, s)         __va_copy((d), (s))
+#  define va_copy(d, s) __va_copy((d), (s))
 # else
-#  define va_copy(d, s)         memcpy(&(d), &(s), sizeof(va_list))
+#  define va_copy(d, s) memcpy(&(d), &(s), sizeof(va_list))
 # endif
 #endif
 

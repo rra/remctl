@@ -80,6 +80,7 @@ main(void)
         is_int(EAGAIN, errno, "...with EAGAIN errno");
         write(data, buffer, sizeof(buffer));
         close(data);
+        testnum += 2;
     } else {
         data = socket(AF_INET, SOCK_STREAM, 0);
         if (data < 0)

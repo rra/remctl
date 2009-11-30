@@ -1,4 +1,4 @@
-dnl gssapi.m4 -- Find the compiler and linker flags for GSS-API.
+dnl Find the compiler and linker flags for GSS-API.
 dnl
 dnl Finds the compiler and linker flags for linking with GSS-API libraries.
 dnl Provides the --with-gssapi, --with-gssapi-include, and --with-gssapi-lib
@@ -104,12 +104,16 @@ AC_DEFUN([_RRA_LIB_GSSAPI_MANUAL],
  RRA_LIB_GSSAPI_RESTORE])
 
 dnl Sanity-check the results of krb5-config and be sure we can really link a
-dnl GSS-API program.
+dnl GSS-API program.  If not, fall back on the manual check.
 AC_DEFUN([_RRA_LIB_GSSAPI_CHECK],
 [RRA_LIB_GSSAPI_SWITCH
- AC_CHECK_FUNC([gss_import_name], ,
-    [AC_MSG_FAILURE([krb5-config results fail for GSS-API])])
- RRA_LIB_GSSAPI_RESTORE])
+ AC_CHECK_FUNC([gss_import_name],
+    [RRA_LIB_GSSAPI_RESTORE],
+    [RRA_LIB_GSSAPI_RESTORE
+     GSSAPI_CPPFLAGS=
+     GSSAPI_LIBS=
+     _RRA_LIB_GSSAPI_PATHS
+     _RRA_LIB_GSSAPI_MANUAL])])
 
 dnl The main macro.
 AC_DEFUN([RRA_LIB_GSSAPI],
@@ -125,17 +129,17 @@ AC_DEFUN([RRA_LIB_GSSAPI],
  AC_SUBST([GSSAPI_LIBS])
 
  AC_ARG_WITH([gssapi],
-    [AC_HELP_STRING([--with-gssapi=DIR],
+    [AS_HELP_STRING([--with-gssapi=DIR],
         [Location of GSS-API headers and libraries])],
     [AS_IF([test x"$withval" != xyes && test x"$withval" != xno],
         [rra_gssapi_root="$withval"])])
  AC_ARG_WITH([gssapi-include],
-    [AC_HELP_STRING([--with-gssapi-include=DIR],
+    [AS_HELP_STRING([--with-gssapi-include=DIR],
         [Location of GSS-API headers])],
     [AS_IF([test x"$withval" != xyes && test x"$withval" != xno],
         [rra_gssapi_includedir="$withval"])])
  AC_ARG_WITH([gssapi-lib],
-    [AC_HELP_STRING([--with-gssapi-lib=DIR],
+    [AS_HELP_STRING([--with-gssapi-lib=DIR],
         [Location of GSS-API libraries])],
     [AS_IF([test x"$withval" != xyes && test x"$withval" != xno],
         [rra_gssapi_libdir="$withval"])])
@@ -144,21 +148,21 @@ AC_DEFUN([RRA_LIB_GSSAPI],
     [_RRA_LIB_GSSAPI_PATHS
      _RRA_LIB_GSSAPI_REDUCED],
     [AC_ARG_VAR([KRB5_CONFIG], [Path to krb5-config])
-     AS_IF([test x"$rra_gssapi_root" != x],
+     AS_IF([test x"$rra_gssapi_root" != x && test -z "$KRB5_CONFIG"],
          [AS_IF([test -x "${rra_gssapi_root}/bin/krb5-config"],
              [KRB5_CONFIG="${rra_gssapi_root}/bin/krb5-config"])],
          [AC_PATH_PROG([KRB5_CONFIG], [krb5-config])])
-     AS_IF([test x"$KRB5_CONFIG" != x],
+     AS_IF([test x"$KRB5_CONFIG" != x && test -x "$KRB5_CONFIG"],
          [AC_CACHE_CHECK([for gssapi support in krb5-config],
              [rra_cv_lib_gssapi_config],
-             [AS_IF(["$KRB5_CONFIG" | grep gssapi > /dev/null 2>&1],
+             [AS_IF(["$KRB5_CONFIG" 2>&1 | grep gssapi >/dev/null 2>&1],
                  [rra_cv_lib_gssapi_config=yes],
                  [rra_cv_lib_gssapi_config=no])])
           AS_IF([test "$rra_cv_lib_gssapi_config" = yes],
-              [GSSAPI_CPPFLAGS=`"$KRB5_CONFIG" --cflags gssapi`
-               GSSAPI_LIBS=`"$KRB5_CONFIG" --libs gssapi`],
-              [GSSAPI_CPPFLAGS=`"$KRB5_CONFIG" --cflags`
-               GSSAPI_LIBS=`"$KRB5_CONFIG" --libs`])
+              [GSSAPI_CPPFLAGS=`"$KRB5_CONFIG" --cflags gssapi 2>/dev/null`
+               GSSAPI_LIBS=`"$KRB5_CONFIG" --libs gssapi 2>/dev/null`],
+              [GSSAPI_CPPFLAGS=`"$KRB5_CONFIG" --cflags 2>/dev/null`
+               GSSAPI_LIBS=`"$KRB5_CONFIG" --libs 2>/dev/null`])
           GSSAPI_CPPFLAGS=`echo "$GSSAPI_CPPFLAGS" \
               | sed 's%-I/usr/include ?%%'`
           _RRA_LIB_GSSAPI_CHECK],

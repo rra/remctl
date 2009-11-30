@@ -36,7 +36,7 @@ AC_DEFUN([RRA_C_C99_VAMACROS],
     [AC_COMPILE_IFELSE([AC_LANG_SOURCE([_RRA_C_C99_VAMACROS_SOURCE])],
         [rra_cv_c_c99_vamacros=yes],
         [rra_cv_c_c99_vamacros=no])])
- AS_IF([test $rra_cv_c_c99_vamacros = yes],
+ AS_IF([test x"$rra_cv_c_c99_vamacros" = xyes],
     [AC_DEFINE([HAVE_C99_VAMACROS], 1,
         [Define if the compiler supports C99 variadic macros.])])])
 
@@ -57,6 +57,6 @@ AC_DEFUN([RRA_C_GNU_VAMACROS],
     [AC_COMPILE_IFELSE([AC_LANG_SOURCE([_RRA_C_GNU_VAMACROS_SOURCE])],
         [rra_cv_c_gnu_vamacros=yes],
         [rra_cv_c_gnu_vamacros=no])])
- AS_IF([test $rra_cv_c_gnu_vamacros = yes],
+ AS_IF([test x"$rra_cv_c_gnu_vamacros" = xyes],
     [AC_DEFINE([HAVE_GNU_VAMACROS], 1,
         [Define if the compiler supports GNU-style variadic macros.])])])

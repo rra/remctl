@@ -38,7 +38,7 @@ AC_DEFUN([RRA_FUNC_INET_NTOA],
         [rra_cv_func_inet_ntoa_works=yes],
         [rra_cv_func_inet_ntoa_works=no],
         [rra_cv_func_inet_ntoa_works=no])])
- AS_IF([test "$rra_cv_func_inet_ntoa_works" = yes],
+ AS_IF([test x"$rra_cv_func_inet_ntoa_works" = xyes],
     [AC_DEFINE([HAVE_INET_NTOA], 1,
         [Define if your system has a working inet_ntoa function.])],
     [AC_LIBOBJ([inet_ntoa])])])

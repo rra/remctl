@@ -121,10 +121,10 @@ tab-separated strings, where each line is:
 
 Each command consists of a command, a subcommand, and zero or more
 arguments.  Each configuration line defines an acceptable command and
-subcommand (or, if C<ALL> is used as mentioned below under I<service>, a
-set of commands).  The first configuration line matching the received
-command is used, so list more specific entries before more general
-entries.
+subcommand (or, if C<ALL> is used as mentioned below under I<command> and
+I<subcommand>, a set of commands).  The first configuration line matching
+the received command is used, so list more specific entries before more
+general entries.
 
 Blank lines and lines beginning with C<#> are ignored.  Lines can be
 continued on the next line by ending them with a backslash (C<\>).  Be
@@ -146,24 +146,33 @@ The meaning of these fields is:
 
 =item I<command>
 
-The command being issued.  Normally, related commands (such as all
-commands for managing a particular service) are grouped together as
-subcommands under one command.
+The command being issued or the special keyword C<ALL>.  Normally, related
+commands (such as all commands for managing a particular service) are
+grouped together as subcommands under one command.
+
+If the keyword C<ALL> is used instead of a specific subcommand, this line
+matches all commands with the given subcommand (so C<ALL ALL> matches any
+command) and can be used to dispatch all commands to the same executable
+with the same ACLs.  Since the first matching entry is used, list entries
+for specific commands first (if any) and then the C<ALL> catch-all.  Note
+that while the subcommand is passed to the executable, the command is not,
+so the program run will not be able to distinguish between different
+commands.
 
 =item I<subcommand>
 
 The subcommand within the command being requested, such as C<release> for
-the release function of the AFS volume backend.  If the keyword C<ALL> is
-used instead of a specific subcommand, this line matches all subcommands
-with the given command and can be used to dispatch all subcommands under
-that command to the same executable with the same ACLs.  Since the first
-matching entry is used, list entries for specific services first (if any)
-and then the C<ALL> catch-all.
+the release function of the AFS volume backend, or one of the special
+keywords C<ALL> or C<EMPTY>.
 
-B<remctld> accepts commands with no subcommand argument.  Such commands
-will only match lines in the configuration file with C<ALL> for the
-service.  (The B<remctl> client will not send such commands, but they can
-be sent using the client library or via another implementation.)
+If the keyword C<ALL> is used instead of a specific subcommand, this line
+matches all subcommands with the given command and can be used to dispatch
+all subcommands under that command to the same executable with the same
+ACLs.  Since the first matching entry is used, list entries for specific
+services first (if any) and then the C<ALL> catch-all.
+
+If the keyword C<EMPTY> is used instead of a specific subcommand, this
+line matches only commands where no subcommand was given.
 
 The subcommand is always passed as the first argument to the executable
 program that is listed for that service unless no subcommand was given.

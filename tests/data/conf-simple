@@ -9,4 +9,6 @@ test argv data/cmd-argv ANYUSER
 test closed data/cmd-closed ANYUSER
 test background data/cmd-background ANYUSER
 test stdin data/cmd-stdin stdin=last ANYUSER
+empty EMPTY data/cmd-argv ANYUSER
 all ALL data/cmd-hello ANYUSER
+ALL bar data/cmd-hello ANYUSER

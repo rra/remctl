@@ -53,7 +53,7 @@ test_stdin(const char *principal, const char *test, const void *data,
     if (output->data == NULL)
         ok(0, "...and is right data");
     else {
-        notice("# data: %.*s", output->length, output->data);
+        notice("# data: %.*s", (int) output->length, output->data);
         ok(memcmp("Okay", output->data, 4) == 0, "...and is right data");
     }
     is_int(1, output->stream, "...and is right stream");

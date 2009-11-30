@@ -1,5 +1,50 @@
                        User-Visible remctl Changes
 
+remctl 2.15 (2009-11-29)
+
+    Allow subcommand to be omitted on the remctl command line, which sends
+    a command without a subcommand.  This makes available on the command
+    line functionality that was already available via the library API.
+
+    Add the special keyword EMPTY for the subcommand field in the remctld
+    configuration file, specifying that this line should only match
+    commands with no subcommands.
+
+    Allow use of ALL in the command field in the remctld configuration
+    file as well as the subcommand field, matching all commands.
+
+    Fix read of uninitialized memory caused by moving one character beyond
+    the beginning of the buffer when parsing blank lines in ACL files.
+
+    Use a socket_type typedef rather than int directly to store the file
+    descriptors of sockets and, on Windows, typedef that to SOCKET instead
+    of int.  Update the function signatures of the network utility
+    functions appropriately.  Compare socket_type variables against an
+    INVALID_SOCKET define instead of -1.  Fixes portability issues to
+    64-bit Windows.  Thanks, Jeffrey Altman.
+
+    For the Windows build, get the current version number from
+    configure.ac rather than configure so that the Windows build scripts
+    work from a Git checkout.  Link with the correct GSS-API library for
+    64-bit Windows builds.  Correct or suppress multiple warnings.
+    Thanks, Jeffrey Altman.
+
+    Enable Automake silent rules.  For a quieter build, pass the
+    --enable-silent-rules option to configure or build with make V=0.
+
+    Update to rra-c-util 2.1:
+
+    * Revert separation of die into a separate object file.
+    * Fall back on manual library probing if krb5-config doesn't work.
+    * Don't try to use a non-executable krb5-config for GSS-API probes.
+    * Suppress error output from krb5-config GSS-API probes.
+    * Prefer KRB5_CONFIG over a path constructed from --with-gssapi.
+    * Fix network test suite failures when IPv6 is available but disabled.
+
+    Update to C TAP Harness 1.1:
+
+    * Summarize results at the end of test execution.
+
 remctl 2.14 (2009-05-22)
 
     The remctld configuration file may now specify that one argument to a
