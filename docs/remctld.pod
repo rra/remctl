@@ -347,6 +347,10 @@ The hostname of the remote host, if it was available.  If reverse name
 resolution failed, this environment variable will not be set.  This
 variable was added in remctl 2.1.
 
+=item REMCTL_COMMAND
+
+What remctl command string caused this command to be ran.
+
 =back
 
 B<remctld> also used to set SCPRINCIPAL for (partial) backward
