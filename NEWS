@@ -1,5 +1,11 @@
                        User-Visible remctl Changes
 
+remctl 2.16 (unreleased)
+
+    remctld now sets the environment variable REMCTL_COMMAND to the
+    command (not subcommand or arguments) that causes a program to be
+    run.  Thanks, Thomas L. Kula.
+
 remctl 2.15 (2009-11-29)
 
     Allow subcommand to be omitted on the remctl command line, which sends
