@@ -349,7 +349,10 @@ variable was added in remctl 2.1.
 
 =item REMCTL_COMMAND
 
-What remctl command string caused this command to be ran.
+The command string that caused this command to be run.  This variable will
+contain only the command, not the subcommand or any additional arguments
+(which are passed as command arguments).  This variable was added in
+remctl 2.16.
 
 =back
 

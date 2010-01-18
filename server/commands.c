@@ -481,9 +481,9 @@ server_run_command(struct client *client, struct config *config,
             close(fd);
 
         /*
-         * Put the authenticated principal and other connection information in
-         * the environment.  REMUSER is for backwards compatibility with
-         * earlier versions of remctl.
+         * Put the authenticated principal and other connection and command
+         * information in the environment.  REMUSER is for backwards
+         * compatibility with earlier versions of remctl.
          */
         if (setenv("REMUSER", client->user, 1) < 0) {
             syswarn("cannot set REMUSER in environment");
@@ -503,10 +503,10 @@ server_run_command(struct client *client, struct config *config,
                 exit(-1);
             }
         }
-	if (setenv("REMCTL_COMMAND", command, 1) < 0) {
-	    syswarn("cannot set REMCTL_COMMAND in environment");
-	    exit(-1);
-	}
+        if (setenv("REMCTL_COMMAND", command, 1) < 0) {
+            syswarn("cannot set REMCTL_COMMAND in environment");
+            exit(-1);
+        }
 
         /* Run the command. */
         execv(path, req_argv);
