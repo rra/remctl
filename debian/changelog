@@ -1,3 +1,11 @@
+remctl (2.15-2) unstable; urgency=low
+
+  * Do not add php5 as an alternative to the phpapi dependency in
+    php5-remctl, fixing problems with the upcoming PHP 5.3 transition.
+    Thanks, Raphael Geissert.  (Closes: #566300)
+
+ -- Russ Allbery <rra@debian.org>  Fri, 22 Jan 2010 11:21:37 -0800
+
 remctl (2.15-1) unstable; urgency=low
 
   * New upstream release.

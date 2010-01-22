@@ -61,6 +61,6 @@ override_dh_makeshlibs:
 
 # Override dh_gencontrol to set up the substvar for the PHP dependency.
 override_dh_gencontrol:
-	echo "php:Depends=php5 | phpapi-`php-config5 --phpapi`" \
+	echo "php:Depends=phpapi-`php-config5 --phpapi`" \
 	    >> debian/php5-remctl.substvars
 	dh_gencontrol
