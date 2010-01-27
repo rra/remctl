@@ -89,9 +89,9 @@ server_remctld_SOURCES = server/commands.c server/config.c server/generic.c \
 	server/logging.c server/internal.h server/remctld.c \
 	server/server-v1.c server/server-v2.c
 server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\" \
-	$(GSSAPI_CPPFLAGS) $(GPUT_CPPFLAGS)
+	$(GSSAPI_CPPFLAGS) $(GPUT_CPPFLAGS) $(PCREPOSIX_CPPFLAGS)
 server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS)
-server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS) $(GPUT_LIBS)
+server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS) $(GPUT_LIBS) $(PCREPOSIX_LIBS)
 
 dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3 \
 	docs/api/remctl_command.3 docs/api/remctl_error.3 \
@@ -253,13 +253,13 @@ tests_portable_strlcpy_t_LDADD = tests/tap/libtap.a util/libutil.la
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
 tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS)
 tests_server_accept_t_LDADD = tests/tap/libtap.a util/libutil.la \
-	$(GSSAPI_LIBS) $(GPUT_LIBS)
+	$(GSSAPI_LIBS) $(GPUT_LIBS) $(PCREPOSIX_LIBS)
 tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
 tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS)
-tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la $(GPUT_LIBS)
+tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la $(GPUT_LIBS) $(PCREPOSIX_LIBS)
 tests_server_config_t_SOURCES = tests/server/config-t.c $(SERVER_FILES)
 tests_server_config_t_LDFLAGS = $(GPUT_LDFLAGS)
-tests_server_config_t_LDADD = tests/tap/libtap.a util/libutil.la $(GPUT_LIBS)
+tests_server_config_t_LDADD = tests/tap/libtap.a util/libutil.la $(GPUT_LIBS) $(PCREPOSIX_LIBS)
 tests_server_continue_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la
 tests_server_env_t_LDADD = client/libremctl.la tests/tap/libtap.a \
@@ -271,7 +271,7 @@ tests_server_invalid_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 tests_server_logging_t_SOURCES = tests/server/logging-t.c $(SERVER_FILES)
 tests_server_logging_t_LDFLAGS = $(GPUT_LDFLAGS)
 tests_server_logging_t_LDADD = tests/tap/libtap.a util/libutil.la \
-	$(GSSAPI_LIBS) $(GPUT_LIBS)
+	$(GSSAPI_LIBS) $(GPUT_LIBS) $(PCREPOSIX_LIBS)
 tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \

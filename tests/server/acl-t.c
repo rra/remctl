@@ -26,7 +26,7 @@ main(void)
     };
     const char *acls[5];
 
-    plan(56);
+    plan(62);
     if (chdir(getenv("SOURCE")) < 0)
         sysbail("can't chdir to SOURCE");
 
@@ -205,6 +205,27 @@ main(void)
               "...with not supported error");
     errors_uncapture();
     skip_block(4, "GPUT support not configured");
+#endif
+	
+	/* 
+	 * Check for pcre ACLs and make sure they behave as they should when 
+	 * not supported.
+	 */
+	server_config_set_gput_file((char *) "data/pcre");
+	acls[0] = "deny:pcre:host\\/foo.+\\.example\\.org@EXAMPLE\\.ORG";
+	acls[1] = "pcre:host\\/.+\\.example\\.org@EXAMPLE\\.ORG";
+	acls[2] = NULL;
+#ifdef HAVE_PCREPOSIX
+    ok(server_config_acl_permit(&confline, "host/bar.example.org@EXAMPLE.ORG"), "PCRE 1");
+    ok(!server_config_acl_permit(&confline, "host/foobar.example.org@EXAMPLE.ORG"), "PCRE 2");
+    ok(!server_config_acl_permit(&confline, "host/foofoo.example.org@EXAMPLE.NET"), "PCRE 3");
+#else
+    errors_capture();
+    ok(!server_config_acl_permit(&confline, "host/foobar.example.org@EXAMPLE.ORG"), "PCRE");
+    is_string("TEST:0: ACL scheme 'pcre' is not supported\n", errors,
+              "...with not supported error");
+    errors_uncapture();
+    skip_block(4, "PCRE support not configured");
 #endif
 
     /* Test for valid characters in ACL files. */

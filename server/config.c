@@ -35,6 +35,13 @@
 static char *acl_gput_file = NULL;
 #endif
 
+/* 
+ * we use pcreposix regexp-api because we just preform matches.
+ */
+#ifdef HAVE_PCREPOSIX
+# include <pcreposix.h>
+#endif
+
 /* Return codes for configuration and ACL parsing. */
 enum config_status {
     CONFIG_SUCCESS = 0,
@@ -726,6 +733,48 @@ acl_check_gput(const char *user, const char *data, const char *file,
 }
 #endif /* HAVE_GPUT */
 
+/*
+ * The ACL check operation for pcreposix matches.
+ * usefull to only allow host/-pincipals, in the remctl step, and deny 
+ * everyone else.
+ */
+#ifdef HAVE_PCREPOSIX
+static enum config_status
+acl_check_pcre(const char *user, const char *data, const char *file,
+               int lineno)
+{
+	regex_t reg_data;
+	int ret;
+	char errbuf[BUFSIZ];
+	
+	if ((ret = regcomp(&reg_data, data, REG_NOSUB)) != 0) {
+		regerror(ret, &reg_data, errbuf, BUFSIZ);
+    	warn("%s:%d: regcomp, user='%s', data='%s', ret='%d', error='%s'", 
+				file, lineno, user, data, ret, errbuf);
+    	return CONFIG_ERROR;
+	}
+
+	/* Because we compiled regexp with REG_NOSUB we ignore submatches */
+	ret = regexec(&reg_data, user, 0, NULL, 0);
+	regfree(&reg_data); /* pointers in struct needs freeing */
+
+	switch (ret) {
+		case 0: /* Match */
+			return CONFIG_SUCCESS;
+			break;
+		case REG_NOMATCH: /* Not a match */
+			return CONFIG_NOMATCH;
+			break;
+		default: /* various errors */
+			regerror(ret, &reg_data, errbuf, BUFSIZ);
+			warn("%s:%d: regcomp, user='%s', data='%s', ret='%d', error='%s'", 
+					file, lineno, user, data, ret, errbuf);
+			break;
+	}
+
+	return CONFIG_ERROR;
+}
+#endif /* HAVE_PCREPOSIX */
 
 /*
  * The table relating ACL scheme names to functions.  The first two ACL
@@ -740,6 +789,11 @@ static const struct acl_scheme schemes[] = {
     { "gput",  acl_check_gput  },
 #else
     { "gput",  NULL            },
+#endif
+#ifdef HAVE_PCREPOSIX
+    { "pcre",  acl_check_pcre  },
+#else
+    { "pcre",  NULL            },
 #endif
     { NULL,    NULL            }
 };

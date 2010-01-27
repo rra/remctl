@@ -2,7 +2,7 @@
 remctld remctl -dFhmSv keytab GSS-API tcpserver inetd subcommand AFS
 backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
 IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
-subcommands REMUSER
+subcommands REMUSER pcre PCRE
 
 =head1 NAME
 
@@ -302,6 +302,15 @@ the optional I<xform> or the default transform.
 
 This method is supported only if B<remctld> was compiled with GPUT support
 by using the C<--with-gput> configure option.
+
+=item pcre
+
+This method is used to grant or deny access based on Perl-compatible regular 
+expressions. Can be used in chain with deny:pcre:regexp to deny access based
+on regular expressions.
+
+This method is supported only if B<remctld> was compiled with PCRE support
+by using the C<--with-pcre> configure option.
 
 =back
 
