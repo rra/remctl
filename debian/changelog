@@ -5,6 +5,7 @@ remctl (2.15-3) UNRELEASED; urgency=low
     Python 2.6 is the default version.  (Closes: #571509)
   * Downgrade the libremctl-dev dependency on libkrb5-dev to suggests
     since it's only required for static linking.
+  * Update standards version to 3.8.4 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Thu, 25 Feb 2010 16:26:53 -0800
 
