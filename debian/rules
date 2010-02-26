@@ -9,7 +9,8 @@ endif
 
 # The primary Python version, used to ensure that we run the test suite with
 # the module built for the default version of Python.
-PYTHON_VERSION := $(shell pyversions -dv)
+export PYTHON_INSTALL := --install-layout=deb
+export PYTHON_VERSION := $(shell pyversions -dv)
 
 %:
 	dh $@
@@ -30,10 +31,6 @@ override_dh_auto_configure:
 # We rebuild the Python module so that we have builds for each of the
 # supported versions of Python.
 override_dh_auto_build:
-	perl -i -pe 's/(setup.py install \S+)/$$1 --install-layout=deb/' \
-	    Makefile
-	perl -i -pe 's/(PYTHONPATH="[^"]+)`"/$$1-$(PYTHON_VERSION)`"/' \
-	    Makefile
 	dh_auto_build
 	cd $(CURDIR)/perl && $(MAKE) clean && perl Makefile.PL \
 	    INSTALLDIRS=vendor

@@ -1,8 +1,8 @@
 remctl (2.15-3) UNRELEASED; urgency=low
 
-  * Fix the adjustment of the Python installation command in Makefile to
-    also adjust the $(DESTDIR) case.  Hopefully fixes installation when
-    Python 2.6 is the default version.  (Closes: #571509)
+  * Make use of the new Makefile variables in the upstream 2.15 release to
+    control the Python installation and test suite.  Hopefully fixes
+    installation with Python 2.6 as the default.  (Closes: #571509)
   * Downgrade the libremctl-dev dependency on libkrb5-dev to suggests
     since it's only required for static linking.
   * Update standards version to 3.8.4 (no changes required).
