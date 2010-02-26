@@ -3,6 +3,8 @@ remctl (2.15-3) UNRELEASED; urgency=low
   * Make use of the new Makefile variables in the upstream 2.15 release to
     control the Python installation and test suite.  Hopefully fixes
     installation with Python 2.6 as the default.  (Closes: #571509)
+  * Fix the PHP tests to work properly with PHP 5.3, which no longer
+    passes environment variables through to the running test programs.
   * Downgrade the libremctl-dev dependency on libkrb5-dev to suggests
     since it's only required for static linking.
   * Update standards version to 3.8.4 (no changes required).
