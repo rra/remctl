@@ -6,6 +6,9 @@ remctl 2.16 (unreleased)
     command (not subcommand or arguments) that causes a program to be
     run.  Thanks, Thomas L. Kula.
 
+    Fix PHP test suite to work with PHP 5.3, which no longer passes
+    environment variables down to the running test program.
+
 remctl 2.15 (2009-11-29)
 
     Allow subcommand to be omitted on the remctl command line, which sends
