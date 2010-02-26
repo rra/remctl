@@ -1,3 +1,11 @@
+remctl (2.15-3) UNRELEASED; urgency=low
+
+  * Fix the adjustment of the Python installation command in Makefile to
+    also adjust the $(DESTDIR) case.  Hopefully fixes installation when
+    Python 2.6 is the default version.  (Closes: #571509)
+
+ -- Russ Allbery <rra@debian.org>  Thu, 25 Feb 2010 16:26:53 -0800
+
 remctl (2.15-2) unstable; urgency=low
 
   * Do not add php5 as an alternative to the phpapi dependency in
