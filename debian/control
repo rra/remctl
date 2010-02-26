@@ -28,7 +28,8 @@ Package: libremctl-dev
 Section: libdevel
 Priority: extra
 Architecture: any
-Depends: ${misc:Depends}, libremctl1 (= ${binary:Version}), libkrb5-dev
+Depends: ${misc:Depends}, libremctl1 (= ${binary:Version})
+Suggests: libkrb5-dev
 Description: Development files for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
