@@ -1,4 +1,4 @@
-remctl (2.15-3) UNRELEASED; urgency=low
+remctl (2.15-3) unstable; urgency=low
 
   * Make use of the new Makefile variables in the upstream 2.15 release to
     control the Python installation and test suite.  Hopefully fixes
@@ -10,7 +10,7 @@ remctl (2.15-3) UNRELEASED; urgency=low
   * Fix a spelling error in the Net::Remctl man page.
   * Update standards version to 3.8.4 (no changes required).
 
- -- Russ Allbery <rra@debian.org>  Thu, 25 Feb 2010 16:26:53 -0800
+ -- Russ Allbery <rra@debian.org>  Thu, 25 Feb 2010 18:06:48 -0800
 
 remctl (2.15-2) unstable; urgency=low
 
