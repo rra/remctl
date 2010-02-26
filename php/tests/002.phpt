@@ -2,6 +2,7 @@
 Check simplified remctl API
 --ENV--
 KRB5CCNAME=remctl-test.cache
+LD_LIBRARY_PATH=../client/.libs
 --SKIPIF--
 <?php
     if (!file_exists("remctl-test.pid"))
