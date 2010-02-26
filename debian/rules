@@ -8,9 +8,11 @@ else
 endif
 
 # The primary Python version, used to ensure that we run the test suite with
-# the module built for the default version of Python.
-export PYTHON_INSTALL := --install-layout=deb
-export PYTHON_VERSION := $(shell pyversions -dv)
+# the module built for the default version of Python.  These are passed into
+# the upstream make via overrides of dh_auto_test and dh_auto_install.  Just
+# exporting them in the environment doesn't work for some reason.
+PYTHON_INSTALL := --install-layout=deb
+PYTHON_VERSION := $(shell pyversions -dv)
 
 %:
 	dh $@
@@ -40,6 +42,12 @@ override_dh_auto_build:
 	set -e; cd python && for v in `pyversions -vs` ; do \
 	    CFLAGS="$(CFLAGS)" python$$v setup.py build ; \
 	done
+
+override_dh_auto_test:
+	dh_auto_test -- PYTHON_VERSION=$(PYTHON_VERSION)
+
+override_dh_auto_install:
+	dh_auto_install -- PYTHON_INSTALL=$(PYTHON_INSTALL)
 
 # Override install to check for missing installed files and to do the proper
 # Python module installation
