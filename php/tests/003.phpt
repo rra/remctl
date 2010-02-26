@@ -1,5 +1,7 @@
 --TEST--
 Check full remctl API
+--ENV--
+KRB5CCNAME=remctl-test.cache
 --SKIPIF--
 <?php
     if (!file_exists("remctl-test.pid"))
