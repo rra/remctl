@@ -125,6 +125,9 @@ INSTALLATION (UNIX)
   installs itself under /usr/local; you can change that path by passing
   the --prefix=PATH argument to configure.
 
+  Solaris users should then look at examples/remctld.xml, an SMF manifest
+  for running the remctld daemon.
+
   To also build the Perl bindings for the libremctl client library, pass
   the --enable-perl option to configure.  The Perl module build is handled
   by the normal Perl extension build system, and therefore will be built

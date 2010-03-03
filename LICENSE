@@ -1,6 +1,6 @@
 The remctl package as a whole is:
 
-  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Board of
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Board of
   Trustees, Leland Stanford Jr. University.  All rights reserved.
 
 and released under the following license:
@@ -28,12 +28,13 @@ all of which are compatible with the above general package license.
 
 Collected copyright notices for the entire package:
 
-  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
       Board of Trustees, Leland Stanford Jr. University
   Copyright 2008 Carnegie Mellon University
   Copyright 2007 Marcus Watts
   Copyright 2008 Andrew Mortensen <admorten@umich.edu>
   Copyright 2008 Thomas L. Kula <kula@tproa.net>
+  Copyright 2009 Peter Eriksson <peter@ifm.liu.se>
   Copyright 2004, 2005, 2006, 2007
       by Internet Systems Consortium, Inc. ("ISC")
   Copyright 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
