@@ -74,6 +74,10 @@ Server:
 
  * Add a timeout for commands after which the server kills the command.
 
+ * Replace the global hour timeout with something based on idle time
+   between commands.  It's entirely reasonable for a protocol 2 client
+   to hold a connection open for hours.
+
  * Support binding to an IPv6 address.  Currently, the server only
    supports IPv4.
 
