@@ -1,0 +1,14 @@
+# I'm pretty sure this is an ugly hack.
+require 'rbconfig'
+old_libdir = Config::CONFIG["libdir"]
+require 'mkmf'
+Config::MAKEFILE_CONFIG["libdir"] = "@abs_top_srcdir@/client/.libs"
+
+Extension = "remctl"
+
+$CFLAGS  << " -I@abs_top_srcdir@/client @CFLAGS@ -Wall -Wpointer-arith"
+$LDFLAGS << " -L@abs_top_srcdir@/client/.libs -L#{old_libdir}"
+
+fail "Couldn't find libremctl" unless have_library("remctl", "remctl_open", "remctl.h")
+
+create_makefile Extension

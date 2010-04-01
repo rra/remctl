@@ -414,6 +414,19 @@ BINDINGS += stamp-python
 BINDINGS_INSTALL += install-data-local-python
 endif
 
+# The ruby build system actually supports vpath!
+ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c
+	cd ruby && ruby extconf.rb
+	cd ruby && $(MAKE)
+
+install-data-local-ruby: ruby/remctl.so
+	cd ruby && $(MAKE) install DESTDIR=$(DESTDIR)
+
+# Build and install the Ruby bindings if desired.
+if BUILD_RUBY
+BINDINGS += ruby/remctl.so
+BINDINGS_INSTALL += install-data-local-ruby
+endif
 
 all-local: $(BINDINGS)
 install-data-local: $(BINDINGS_INSTALL)

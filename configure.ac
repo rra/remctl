@@ -146,6 +146,13 @@ AC_ARG_ENABLE([python],
     [AS_IF([test x"$enableval" = xyes], [build_python=yes])])
 AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
 
+dnl Whether to build the Ruby bindings.
+build_ruby=
+AC_ARG_ENABLE([ruby],
+    [AC_HELP_STRING([--enable-ruby], [Build ruby libremctl bindings])],
+    [AS_IF([test x"$enableval" = xyes], [build_ruby=yes])])
+AM_CONDITIONAL([BUILD_RUBY], [test x"$build_ruby" = xyes])
+
 AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
 AS_IF([test x"$build_perl" = xyes],
     [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])
@@ -155,6 +162,8 @@ AS_IF([test x"$build_php" = xyes],
 AS_IF([test x"$build_python" = xyes],
     [AC_CONFIG_FILES([python/remctl.py python/setup.py])
      AC_CONFIG_FILES([python/test_remctl.py])])
+AS_IF([test x"$build_ruby" = xyes],
+    [AC_CONFIG_FILES([ruby/extconf.rb])])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_COMMANDS([docs], [test -d docs || mkdir docs])
 AC_OUTPUT
