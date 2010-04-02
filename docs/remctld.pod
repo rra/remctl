@@ -305,9 +305,10 @@ by using the C<--with-gput> configure option.
 
 =item pcre
 
-This method is used to grant or deny access based on Perl-compatible regular 
-expressions. Can be used in chain with deny:pcre:regexp to deny access based
-on regular expressions.
+This method is used to grant or deny access based on Perl-compatible
+regular expressions.  The data is taken to be a Perl-compatible regular
+expression and matched against the user identity.  To deny access, use the
+C<deny:pcre:regex> syntax.
 
 This method is supported only if B<remctld> was compiled with PCRE support
 by using the C<--with-pcre> configure option.

@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  * Copyright 2008 Carnegie Mellon University
  *
@@ -19,6 +19,9 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
+#ifdef HAVE_PCRE
+# include <pcre.h>
+#endif
 #include <sys/stat.h>
 
 #include <server/internal.h>
@@ -33,13 +36,6 @@
 #ifdef HAVE_GPUT
 # include <gput.h>
 static char *acl_gput_file = NULL;
-#endif
-
-/* 
- * we use pcreposix regexp-api because we just preform matches.
- */
-#ifdef HAVE_PCREPOSIX
-# include <pcreposix.h>
 #endif
 
 /* Return codes for configuration and ACL parsing. */
@@ -733,48 +729,42 @@ acl_check_gput(const char *user, const char *data, const char *file,
 }
 #endif /* HAVE_GPUT */
 
+
 /*
- * The ACL check operation for pcreposix matches.
- * usefull to only allow host/-pincipals, in the remctl step, and deny 
- * everyone else.
+ * The ACL check operation for PCRE matches.  Takes the user to check, the
+ * regular expression, and the referencing file name and line number.  This
+ * can be used to do things like allow only host principals and deny everyone
+ * else.
  */
-#ifdef HAVE_PCREPOSIX
+#ifdef HAVE_PCRE
 static enum config_status
 acl_check_pcre(const char *user, const char *data, const char *file,
                int lineno)
 {
-	regex_t reg_data;
-	int ret;
-	char errbuf[BUFSIZ];
-	
-	if ((ret = regcomp(&reg_data, data, REG_NOSUB)) != 0) {
-		regerror(ret, &reg_data, errbuf, BUFSIZ);
-    	warn("%s:%d: regcomp, user='%s', data='%s', ret='%d', error='%s'", 
-				file, lineno, user, data, ret, errbuf);
-    	return CONFIG_ERROR;
-	}
+    pcre *regex;
+    const char *error;
+    int offset, status;
 
-	/* Because we compiled regexp with REG_NOSUB we ignore submatches */
-	ret = regexec(&reg_data, user, 0, NULL, 0);
-	regfree(&reg_data); /* pointers in struct needs freeing */
-
-	switch (ret) {
-		case 0: /* Match */
-			return CONFIG_SUCCESS;
-			break;
-		case REG_NOMATCH: /* Not a match */
-			return CONFIG_NOMATCH;
-			break;
-		default: /* various errors */
-			regerror(ret, &reg_data, errbuf, BUFSIZ);
-			warn("%s:%d: regcomp, user='%s', data='%s', ret='%d', error='%s'", 
-					file, lineno, user, data, ret, errbuf);
-			break;
-	}
-
+    regex = pcre_compile(data, PCRE_NO_AUTO_CAPTURE, &error, &offset, NULL);
+    if (regex == NULL) {
+        warn("%s:%d: compilation of regex '%s' failed around %d", file,
+             lineno, data, offset);
+        return CONFIG_ERROR;
+    }
+    status = pcre_exec(regex, NULL, user, strlen(user), 0, 0, NULL, 0);
+    pcre_free(regex);
+    switch (status) {
+    case 0:
+        return CONFIG_SUCCESS;
+    case PCRE_ERROR_NOMATCH:
+        return CONFIG_NOMATCH;
+    default:
+        warn("%s:%d: matching with regex '%s' failed with status %d", file,
+             lineno, data, status);
 	return CONFIG_ERROR;
+    }
 }
-#endif /* HAVE_PCREPOSIX */
+#endif /* HAVE_PCRE */
 
 /*
  * The table relating ACL scheme names to functions.  The first two ACL
@@ -790,7 +780,7 @@ static const struct acl_scheme schemes[] = {
 #else
     { "gput",  NULL            },
 #endif
-#ifdef HAVE_PCREPOSIX
+#ifdef HAVE_PCRE
     { "pcre",  acl_check_pcre  },
 #else
     { "pcre",  NULL            },

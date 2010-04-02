@@ -2,7 +2,7 @@
  * Test suite for the server ACL checking.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2008, 2009
+ * Copyright 2007, 2008, 2009, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  * Copyright 2008 Carnegie Mellon University
  *
@@ -26,7 +26,7 @@ main(void)
     };
     const char *acls[5];
 
-    plan(62);
+    plan(61);
     if (chdir(getenv("SOURCE")) < 0)
         sysbail("can't chdir to SOURCE");
 
@@ -181,8 +181,8 @@ main(void)
     errors_uncapture();
 
     /*
-     * Check for GPUT ACLs and also make sure they behave sanely when GPUT
-     * support is not compiled.
+     * Check GPUT ACLs, or make sure they behave sanely when GPUT support is
+     * not compiled.
      */
     server_config_set_gput_file((char *) "data/gput");
     acls[0] = "gput:test";
@@ -207,25 +207,32 @@ main(void)
     skip_block(4, "GPUT support not configured");
 #endif
 	
-	/* 
-	 * Check for pcre ACLs and make sure they behave as they should when 
-	 * not supported.
-	 */
-	server_config_set_gput_file((char *) "data/pcre");
-	acls[0] = "deny:pcre:host\\/foo.+\\.example\\.org@EXAMPLE\\.ORG";
-	acls[1] = "pcre:host\\/.+\\.example\\.org@EXAMPLE\\.ORG";
-	acls[2] = NULL;
-#ifdef HAVE_PCREPOSIX
-    ok(server_config_acl_permit(&confline, "host/bar.example.org@EXAMPLE.ORG"), "PCRE 1");
-    ok(!server_config_acl_permit(&confline, "host/foobar.example.org@EXAMPLE.ORG"), "PCRE 2");
-    ok(!server_config_acl_permit(&confline, "host/foofoo.example.org@EXAMPLE.NET"), "PCRE 3");
+    /*
+     * Check PCRE ACLs, or make sure they behave as they should when not
+     * supported.
+     */
+    acls[0] = "deny:pcre:host/foo.+\\.org@EXAMPLE\\.ORG";
+    acls[1] = "pcre:host/.+\\.org@EXAMPLE\\.ORG";
+    acls[2] = NULL;
+#ifdef HAVE_PCRE
+    ok(server_config_acl_permit(&confline, "host/bar.org@EXAMPLE.ORG"),
+       "PCRE 1");
+    ok(!server_config_acl_permit(&confline, "host/foobar.org@EXAMPLE.ORG"),
+       "PCRE 2");
+    ok(!server_config_acl_permit(&confline, "host/baz.org@EXAMPLE.NET"),
+       "PCRE 3");
+    ok(!server_config_acl_permit(&confline, "host/.org@EXAMPLE.ORG"),
+       "PCRE 4 (plus operator)");
+    ok(!server_config_acl_permit(&confline, "host/seaorg@EXAMPLE.ORG"),
+       "PCRE 5 (escaped period)");
 #else
     errors_capture();
-    ok(!server_config_acl_permit(&confline, "host/foobar.example.org@EXAMPLE.ORG"), "PCRE");
+    ok(!server_config_acl_permit(&confline, "host/foobar.org@EXAMPLE.ORG"),
+       "PCRE");
     is_string("TEST:0: ACL scheme 'pcre' is not supported\n", errors,
               "...with not supported error");
     errors_uncapture();
-    skip_block(4, "PCRE support not configured");
+    skip_block(3, "PCRE support not configured");
 #endif
 
     /* Test for valid characters in ACL files. */

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010
 dnl     Board of Trustees, Leland Stanford Jr. University
 dnl
 dnl See LICENSE for licensing terms.
@@ -114,24 +114,8 @@ AC_SUBST([VERSION_LDFLAGS])
 dnl Check for the CMU GPUT library.
 RRA_LIB_GPUT
 
-dnl check for pcre and add the pcreposix 
-AC_ARG_WITH(pcre,
-			AC_HELP_STRING([--with-pcre], [Enable pcre matching acl's]),
-			[ ], [ with_pcre=no ] )
-PCREPOSIX_CPPFLAGS=
-PCREPOSIX_LIBS=
-if test "$with_pcre" != "no" ; then
-	AC_CHECK_PROG([pcre_config], "pcre-config", "yes", "no", "$PATH":/)
-	if test "$pcre_config" = "no" ; then
-		AC_MSG_ERROR([Could not find pcre-config])
-	else
-		PCREPOSIX_CPPFLAGS=`pcre-config --cflags-posix`
-		PCREPOSIX_LIBS=`pcre-config --libs-posix`
-		AC_DEFINE(HAVE_PCREPOSIX, [], [Define if we enable pcre acl maps])
-	fi
-fi
-AC_SUBST(PCREPOSIX_CPPFLAGS)
-AC_SUBST(PCREPOSIX_LIBS)
+dnl Check for PCRE for pcre:* regex support.
+RRA_LIB_PCRE_OPTIONAL
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.
