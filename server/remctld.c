@@ -92,6 +92,9 @@ usage(int status)
 #ifdef HAVE_PCRE
     fprintf(output, ", pcre");
 #endif
+#ifdef HAVE_REGCOMP
+    fprintf(output, ", regex");
+#endif
     fprintf(output, "\n");
     exit(status);
 }

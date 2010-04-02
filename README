@@ -57,8 +57,10 @@ REQUIREMENTS
   Heimdal (tested with Heimdal 0.6 and later).  remctl will also build
   against the Kerberos GSS-API implementation shipped with AIX 5.2.
 
-  The remctl server optionally supports PCRE regular expressions in ACLs.
-  To include that support, the PCRE library is required.
+  The remctl server will support regex ACLs if the system supports the
+  POSIX regex API.  The remctl server also optionally supports PCRE
+  regular expressions in ACLs.  To include that support, the PCRE library
+  is required.
 
   To build the remctl client for Windows, the Microsoft Windows SDK for
   Windows Vista and the MIT Kerberos for Windows SDK are required, along

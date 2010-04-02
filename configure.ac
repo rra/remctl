@@ -114,8 +114,9 @@ AC_SUBST([VERSION_LDFLAGS])
 dnl Check for the CMU GPUT library.
 RRA_LIB_GPUT
 
-dnl Check for PCRE for pcre:* regex support.
+dnl Check for regex libraries for pcre:* and regex:* ACL support.
 RRA_LIB_PCRE_OPTIONAL
+AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.

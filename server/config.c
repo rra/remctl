@@ -22,6 +22,9 @@
 #ifdef HAVE_PCRE
 # include <pcre.h>
 #endif
+#ifdef HAVE_REGCOMP
+# include <regex.h>
+#endif
 #include <sys/stat.h>
 
 #include <server/internal.h>
@@ -761,10 +764,55 @@ acl_check_pcre(const char *user, const char *data, const char *file,
     default:
         warn("%s:%d: matching with regex '%s' failed with status %d", file,
              lineno, data, status);
-	return CONFIG_ERROR;
+        return CONFIG_ERROR;
     }
 }
 #endif /* HAVE_PCRE */
+
+
+/*
+ * The ACL check operation for POSIX regex matches.  Takes the user to check,
+ * the regular expression, and the referencing file name and line number.
+ * This can be used to do things like allow only host principals and deny
+ * everyone else.
+ */
+#ifdef HAVE_REGCOMP
+static enum config_status
+acl_check_regex(const char *user, const char *data, const char *file,
+                int lineno)
+{
+    regex_t regex;
+    char error[BUFSIZ];
+    int status;
+    enum config_status result;
+
+    memset(&regex, 0, sizeof(regex));
+    status = regcomp(&regex, data, REG_EXTENDED | REG_NOSUB);
+    if (status != 0) {
+        regerror(status, &regex, error, sizeof(error));
+        warn("%s:%d: compilation of regex '%s' failed: %s", file, lineno,
+             data, error);
+        return CONFIG_ERROR;
+    }
+    status = regexec(&regex, user, 0, NULL, 0);
+    switch (status) {
+    case 0:
+        result = CONFIG_SUCCESS;
+        break;
+    case REG_NOMATCH:
+        result = CONFIG_NOMATCH;
+        break;
+    default:
+        regerror(status, &regex, error, sizeof(error));
+        warn("%s:%d: matching with regex '%s' failed: %s", file, lineno,
+             data, error);
+        result = CONFIG_ERROR;
+        break;
+    }
+    regfree(&regex);
+    return result;
+}
+#endif /* HAVE_REGCOMP */
 
 /*
  * The table relating ACL scheme names to functions.  The first two ACL
@@ -784,6 +832,11 @@ static const struct acl_scheme schemes[] = {
     { "pcre",  acl_check_pcre  },
 #else
     { "pcre",  NULL            },
+#endif
+#ifdef HAVE_REGCOMP
+    { "regex", acl_check_regex },
+#else
+    { "regex", NULL            },
 #endif
     { NULL,    NULL            }
 };
