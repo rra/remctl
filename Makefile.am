@@ -174,8 +174,8 @@ PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
 PYTHON_WARNINGS = -Wno-unused-parameter
 
 warnings:
-	$(MAKE) CFLAGS='$(WARNINGS)'
-	$(MAKE) CFLAGS='$(WARNINGS)' $(check_PROGRAMS)
+	$(MAKE) V=0 CFLAGS='$(WARNINGS)'
+	$(MAKE) V=0 CFLAGS='$(WARNINGS)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t \
