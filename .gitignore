@@ -40,10 +40,10 @@
 /python/remctl.py
 /python/setup.py
 /python/test_remctl.py
+/ruby/doc/
 /ruby/extconf.rb
 /ruby/mkmf.log
 /ruby/remctl.so
-/ruby/doc/
 /remctl-*.tar.gz
 /server/remctld
 /stamp-h1

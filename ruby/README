@@ -8,13 +8,14 @@ OVERVIEW
 
   This module provides two interfaces: a simple interface in Ruby that
   performs a single call to a remctl server and returns the result as an
-  object; and a full interface in Ruby which provides more control over the
-  connection, returns individual output tokens, and allows multiple commands
-  to be sent via the same connection.
+  object; and a full interface in Ruby which provides more control over
+  the connection, returns individual output tokens, and allows multiple
+  commands to be sent via the same connection.
 
 REQUIREMENTS
 
-  The module has been tested with Ruby 1.8 and Remctl 2.15.
+  The module has been tested with Ruby 1.8 and may not work with older
+  (or newer) versions of Ruby.
 
 SIMPLIFIED INTERFACE
 
@@ -23,16 +24,16 @@ SIMPLIFIED INTERFACE
       the results.
 
       Arguments:
-      * host (required): string, the host to connect to
-      * command (required): array containing strings making up the command
+      * host: string, the host to connect to
+      * args: array containing strings making up the command
 
       In order to change the port or principal used, assign to
-      Remctl.default_port and Remctl.default_principal. These default to 0
-      and nil, meaning to respect the library defaults: port 4373
-      then fall back to attempting the legacy 4444 port, and a principal of
+      Remctl.default_port and Remctl.default_principal.  These default to
+      0 and nil, meaning to respect the library defaults: port 4373 then
+      fall back to attempting the legacy 4444 port, and a principal of
       host/<host>, with the realm determined by the domain-realm mapping.
 
-      command must be an array of things which respond to #to_s.
+      args must be an array of things which respond to #to_s.
 
       Returns an object of type Remctl::Result with the following
       attributes:
@@ -41,10 +42,11 @@ SIMPLIFIED INTERFACE
       * status: integer, the exit status of the command
 
       Exceptions:
-      * ArgumentError, TypeError: an invalid argument was supplied
+      * ArgError, TypeError: an invalid argument was supplied
+      * NoMemError: memory allocation failed while making the call
       * Remctl::Error: an error occurred in the remctl communication
 
-      The message attribute (or string value) of the RemctlProtocolError
+      The message attribute (or string value) of the Remctl::Error
       exception contains the string returned by the remctl library.  This
       may be an internal error (such as a network error) or an error
       returned by the remote server (such as an unknown command error).
@@ -64,75 +66,76 @@ FULL INTERFACE
 
   The full remctl interface requires the user to do more bookkeeping, but
   provides more flexibility and visibility into what is happening at a
-  protocol level.  It allows issuing multiple commands on the same persistent
-  connection (provided that the remote server supports protocol version two;
-  if it doesn't, the library will transparently fall back to opening a
-  connection for each command).
+  protocol level.  It allows issuing multiple commands on the same
+  persistent connection (provided that the remote server supports protocol
+  version two; if it doesn't, the library will transparently fall back to
+  opening a connection for each command).
 
-  To use the full interface, first create a connection object with Remctl.new
-  and then call the Remctl#command method to issue a command.  Read output
-  tokens with Remctl#output until a status token has been received.  Then the
-  command is complete and another command can be issued.
+  To use the full interface, first create a connection object with
+  Remctl.new and then call the #command method to issue a command.  Read
+  output tokens with #output until a status token has been received.  Then
+  the command is complete and another command can be issued.
 
   Remctl.new(host, port, principal)
       The constructor.  Create a new Remctl object.  The host argument is
-      required; port and principal default to Remctl.default_port and
+      required.  port and principal default to Remctl.default_port and
       Remctl.default_principal respectively.
 
       Arguments:
       * host (required): string, the host to connect to
       * port (optional): unsigned short, the port to connect to
       * principal (optional): string, authentication identity of host
-      
-      This method immediately connects to the server.  As such it raises
-      ArgumentError in the event that the port is out of range, and
-      Remctl::Error in case of a protocol error.
+
+      This method immediately connects to the server.  It raises ArgError
+      in the event that the port is out of range and Remctl::Error in case
+      of a protocol error.
 
       If port is not given, the library default is used (try 4373 first
       and fall back to attempting the legacy 4444 port).  If principal is
       not given, the library default (host/<host> with the realm
-      determined by the domain-realm mapping) is used.      
-      
+      determined by the domain-realm mapping) is used.
+
       Exceptions:
-      * ArgumentError, TypeError: an invalid argument was supplied
+      * ArgError, TypeError: an invalid argument was supplied
+      * NoMemError: memory allocation failed while allocating the object
       * Remctl::Error: a network or authentication error occurred
 
-      The message attribute (or string value) of the Remctl::Error exception
-      contains the string returned by the remctl library remctl_error()
-      function.
+      The message attribute (or string value) of the Remctl::Error
+      exception contains the string returned by the remctl library
+      remctl_error() function.
 
   All further methods below must be called on a Remctl object as returned
   or yielded by the constructor.
 
-  Remctl.command(*args)
+  r.command(*args)
       Send a command to the remote host.  There is no return value; an
       exception is thrown on any error.
 
       The Remctl object must already be connected.  The command may, under
       the remctl protocol, contain any character, but be aware that most
       remctl servers will reject commands or arguments containing ASCII 0
-      (NUL).  This currently therefore cannot be used for upload of
-      arbitrary unencoded binary data.
+      (NUL) unless that argument is configured on the server to be passed
+      via standard input.
 
       Arguments:
-      * args (required): An array of arguments. Each must be convertible to
-        a string.
+      * args (required): An array of arguments.  Each must respond to
+        #to_s.
 
       Exceptions:
       * TypeError: an invalid argument was supplied
       * Remctl::Error: a network or authentication error occurred
       * Remctl::NotOpen: no connection currently open
 
-      The message attribute (or string value) of the Remctl::Error exception
-      contains the string returned by the remctl library.
+      The message attribute (or string value) of the Remctl::Error
+      exception contains the string returned by the remctl library.
 
-  remctl.output()
+  r.output()
       Reads an output token from the server and returns it as an array.  A
       command will result in either one error token or zero or more output
-      tokens followed by a status token.  The output is complete as soon as
-      any token other than an output token has been received, but the module
-      will keep returning done tokens to the caller for as long as
-      Remctl#output is called without another call to Remctl#command.
+      tokens followed by a status token.  The output is complete as soon
+      as any token other than an output token has been received, but the
+      module will keep returning done tokens to the caller for as long as
+      #output is called without another call to #command.
 
       The members of the returned array are, in order:
       * type: symbol, :output, :status, :error, or :done
@@ -142,10 +145,10 @@ FULL INTERFACE
       * error: integer, remctl protocol error for an error token
 
       The array always has 5 elements.  The other members of the array may
-      be nil depending on the type of token.  Output tokens will have output
-      and stream information, error tokens will have output and error
-      information, and status tokens will have status information.  Done
-      tokens will return nil for all other elements.
+      be nil depending on the type of token.  Output tokens will have
+      output and stream information, error tokens will have output and
+      error information, and status tokens will have status information.
+      Done tokens will return nil for all other elements.
 
       For error tokens, error holds the numeric error code (see the remctl
       protocol specification), which is the recommended value for programs
@@ -156,17 +159,22 @@ FULL INTERFACE
       Exceptions:
       * Remctl::NotOpen: no connection currently open
 
-  remctl.close()
-      Close a connection.  After calling this method, Remctl#reopen must be
-      called for this object before sending any further commands.  The
+  r.close()
+      Close a connection.  After calling this method, #reopen must
+      be called for this object before sending any further commands.  The
       connection will also be automatically closed when the object is
       destroyed, so calling this method is often not necessary.
 
-  remctl.reopen
+  r.reopen()
       Close the connection, reopen it, and authenticate.  Returns self.
       Raises Remctl::Error in the event that remctl_open() fails.
 
+      Exceptions:
+      * NoMemError: memory allocation failed while making the call
+      * Remctl::Error: a network or authentication error occurred
 
 HISTORY
 
-  Written by Anthony Martinez <twopir@nmt.edu> in 2010.
+  The original implementation was written by Anthony Martinez
+  <twopir@nmt.edu> in 2010.  As of remctl 2.16 it is part of the stock
+  remctl distribution.

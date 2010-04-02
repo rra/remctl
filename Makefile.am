@@ -414,7 +414,9 @@ BINDINGS += stamp-python
 BINDINGS_INSTALL += install-data-local-python
 endif
 
-# The ruby build system actually supports vpath!
+# The following section sets up the Ruby bindings for remctl.
+
+# The Ruby build system actually supports VPATH!
 ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c
 	cd ruby && ruby extconf.rb
 	cd ruby && $(MAKE)

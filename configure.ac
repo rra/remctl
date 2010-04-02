@@ -149,7 +149,7 @@ AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
 dnl Whether to build the Ruby bindings.
 build_ruby=
 AC_ARG_ENABLE([ruby],
-    [AC_HELP_STRING([--enable-ruby], [Build ruby libremctl bindings])],
+    [AC_HELP_STRING([--enable-ruby], [Build Ruby libremctl bindings])],
     [AS_IF([test x"$enableval" = xyes], [build_ruby=yes])])
 AM_CONDITIONAL([BUILD_RUBY], [test x"$build_ruby" = xyes])
 
