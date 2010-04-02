@@ -11,6 +11,9 @@ remctl 2.16 (unreleased)
     command (not subcommand or arguments) that causes a program to be
     run.  Thanks, Thomas L. Kula.
 
+    remctld -h now reports the list of supported ACL methods for that
+    build of remctld.
+
     Add an example SMF manifest for the remctld daemon in
     examples/remctld.xml.  Contributed by Peter Eriksson.
 

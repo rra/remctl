@@ -57,7 +57,9 @@ Options:\n\
     -p <port>     Port to use, only for standalone mode (default: 4373)\n\
     -S            Log to standard output/error rather than syslog\n\
     -s <service>  Service principal to use (default: host/<host>)\n\
-    -v            Display the version of remctld\n";
+    -v            Display the version of remctld\n\
+\n\
+Supported ACL methods: file, princ, deny";
 
 /* Structure used to store program options. */
 struct options {
@@ -78,11 +80,20 @@ struct options {
 static void
 usage(int status)
 {
-    fprintf((status == 0) ? stdout : stderr, usage_message);
-    if (status == 0)
-        exit(0);
-    else
-        die("invalid usage");
+    FILE *output;
+
+    output = (status == 0) ? stdout : stderr;
+    if (status != 0)
+        fprintf(output, "\n");
+    fprintf(output, usage_message);
+#ifdef HAVE_GPUT
+    fprintf(output, ", gput");
+#endif
+#ifdef HAVE_PCRE
+    fprintf(output, ", pcre");
+#endif
+    fprintf(output, "\n");
+    exit(status);
 }
 
 
