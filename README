@@ -57,6 +57,9 @@ REQUIREMENTS
   Heimdal (tested with Heimdal 0.6 and later).  remctl will also build
   against the Kerberos GSS-API implementation shipped with AIX 5.2.
 
+  The remctl server optionally supports PCRE regular expressions in ACLs.
+  To include that support, the PCRE library is required.
+
   To build the remctl client for Windows, the Microsoft Windows SDK for
   Windows Vista and the MIT Kerberos for Windows SDK are required, along
   with a Microsoft Windows build environment (probably Visual Studio).
@@ -181,6 +184,14 @@ INSTALLATION (UNIX)
   krb5-config script on your path, set KRB5_CONFIG to a nonexistent path:
 
       ./configure KRB5_CONFIG=/nonexistent
+
+  remctl will automatically build with PCRE support if pcre-config or the
+  PCRE library are found.  You can pass --with-pcre to configure to
+  specify the root directory where PCRE is installed, or set the include
+  and library directories separately with --with-pcre-include and
+  --with-pcre-lib.  You can also set PCRE_CONFIG to point to a different
+  pcre-config script, or do similar things as with KRB5_CONFIG described
+  above.
 
   remctl will automatically build with GPUT support if the GPUT header and
   library are found.  You can pass --with-gput to configure to specify the

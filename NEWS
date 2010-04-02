@@ -2,6 +2,11 @@
 
 remctl 2.16 (unreleased)
 
+    remctld now includes support for a PCRE (Perl-compatible regular
+    expressions) ACL type if the PCRE library is found at configure time.
+    A PCRE ACL matches any user whose identity matches the given regular
+    expression.  Based on work contributed by Anton Lundin.
+
     remctld now sets the environment variable REMCTL_COMMAND to the
     command (not subcommand or arguments) that causes a program to be
     run.  Thanks, Thomas L. Kula.
