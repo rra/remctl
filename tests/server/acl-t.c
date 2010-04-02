@@ -26,7 +26,7 @@ main(void)
     };
     const char *acls[5];
 
-    plan(66);
+    plan(70);
     if (chdir(getenv("SOURCE")) < 0)
         sysbail("can't chdir to SOURCE");
 
@@ -225,6 +225,13 @@ main(void)
        "PCRE 4 (plus operator)");
     ok(!server_config_acl_permit(&confline, "host/seaorg@EXAMPLE.ORG"),
        "PCRE 5 (escaped period)");
+    acls[1] = "pcre:+host/.*";
+    errors_capture();
+    ok(!server_config_acl_permit(&confline, "host/bar.org@EXAMPLE.ORG"),
+       "PCRE invalid regex");
+    is_string("TEST:0: compilation of regex '+host/.*' failed around 0\n",
+              errors, "...with invalid regex error");
+    errors_uncapture();
 #else
     errors_capture();
     ok(!server_config_acl_permit(&confline, "host/foobar.org@EXAMPLE.ORG"),
@@ -232,7 +239,7 @@ main(void)
     is_string("TEST:0: ACL scheme 'pcre' is not supported\n", errors,
               "...with not supported error");
     errors_uncapture();
-    skip_block(3, "PCRE support not configured");
+    skip_block(5, "PCRE support not configured");
 #endif
 
     /*
@@ -244,23 +251,31 @@ main(void)
     acls[2] = NULL;
 #ifdef HAVE_REGCOMP
     ok(server_config_acl_permit(&confline, "host/bar.org@EXAMPLE.ORG"),
-       "Regex 1");
+       "regex 1");
     ok(!server_config_acl_permit(&confline, "host/foobar.org@EXAMPLE.ORG"),
-       "Regex 2");
+       "regex 2");
     ok(!server_config_acl_permit(&confline, "host/baz.org@EXAMPLE.NET"),
-       "Regex 3");
+       "regex 3");
     ok(server_config_acl_permit(&confline, "host/.org@EXAMPLE.ORG"),
-       "Regex 4");
+       "regex 4");
     ok(!server_config_acl_permit(&confline, "host/seaorg@EXAMPLE.ORG"),
-       "Regex 5 (escaped period)");
+       "regex 5 (escaped period)");
+    acls[1] = "regex:*host/.*";
+    errors_capture();
+    ok(!server_config_acl_permit(&confline, "host/bar.org@EXAMPLE.ORG"),
+       "regex invalid regex");
+    ok(strncmp(errors, "TEST:0: compilation of regex '*host/.*' failed:",
+               strlen("TEST:0: compilation of regex '*host/.*' failed:")) == 0,
+       "...with invalid regex error");
+    errors_uncapture();
 #else
     errors_capture();
     ok(!server_config_acl_permit(&confline, "host/foobar.org@EXAMPLE.ORG"),
-       "Regex");
+       "regex");
     is_string("TEST:0: ACL scheme 'regex' is not supported\n", errors,
               "...with not supported error");
     errors_uncapture();
-    skip_block(3, "regex support not available");
+    skip_block(5, "regex support not available");
 #endif
 
     /* Test for valid characters in ACL files. */
