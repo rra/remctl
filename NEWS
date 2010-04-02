@@ -26,6 +26,10 @@ remctl 2.16 (unreleased)
     Fix PHP test suite to work with PHP 5.3, which no longer passes
     environment variables down to the running test program.
 
+    Update to C TAP Harness 1.1:
+
+    * Summarize results at the end of test execution.
+
 remctl 2.15 (2009-11-29)
 
     Allow subcommand to be omitted on the remctl command line, which sends
@@ -66,10 +70,6 @@ remctl 2.15 (2009-11-29)
     * Suppress error output from krb5-config GSS-API probes.
     * Prefer KRB5_CONFIG over a path constructed from --with-gssapi.
     * Fix network test suite failures when IPv6 is available but disabled.
-
-    Update to C TAP Harness 1.1:
-
-    * Summarize results at the end of test execution.
 
 remctl 2.14 (2009-05-22)
 
