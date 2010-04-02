@@ -6,7 +6,7 @@
  * obtains Kerberos credentials, sets up a ticket cache, and sets the
  * environment variable pointing to the Kerberos keytab to use for testing.
  *
- * Copyright 2006, 2007, 2009
+ * Copyright 2006, 2007, 2009, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -15,11 +15,10 @@
 #include <config.h>
 #include <portable/system.h>
 
-#include <krb5.h>
-
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
-#include <util/util.h>
+#include <util/concat.h>
+#include <util/xmalloc.h>
 
 
 /*

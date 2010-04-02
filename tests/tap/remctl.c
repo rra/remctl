@@ -19,7 +19,7 @@
 
 #include <tests/tap/basic.h>
 #include <tests/tap/remctl.h>
-#include <util/util.h>
+#include <util/concat.h>
 
 
 /*
@@ -27,6 +27,9 @@
  * server principal and the path to the configuration file to use.  Writes the
  * PID file to tests/data/remctl.pid in the BUILD directory and returns the
  * PID file.  If anything fails, calls bail().
+ *
+ * If VALGRIND is set in the environment, starts remctld under the program
+ * given in that environment variable, assuming valgrind arguments.
  */
 pid_t
 remctld_start(const char *remctld, const char *principal, const char *config)

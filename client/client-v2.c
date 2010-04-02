@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -22,7 +22,8 @@
 
 #include <client/internal.h>
 #include <client/remctl.h>
-#include <util/util.h>
+#include <util/gss-tokens.h>
+#include <util/protocol.h>
 
 
 /*

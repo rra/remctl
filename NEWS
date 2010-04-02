@@ -26,6 +26,14 @@ remctl 2.16 (unreleased)
     Fix PHP test suite to work with PHP 5.3, which no longer passes
     environment variables down to the running test program.
 
+    Update to rra-c-util 2.4:
+
+    * Improve network error handling with unknown address domains.
+    * Disable xmalloc test except for maintainers.
+    * Break util/util.h apart into separate header files.
+    * Add additional GCC function attributes to utility libraries.
+    * Use AC_TYPE_LONG_LONG_INT instead of AC_CHECK_TYPES([long long]).
+
     Update to C TAP Harness 1.1:
 
     * Summarize results at the end of test execution.

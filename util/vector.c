@@ -26,7 +26,8 @@
 
 #include <ctype.h>
 
-#include <util/util.h>
+#include <util/vector.h>
+#include <util/xmalloc.h>
 
 
 /*

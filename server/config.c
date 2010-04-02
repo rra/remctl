@@ -28,7 +28,10 @@
 #include <sys/stat.h>
 
 #include <server/internal.h>
-#include <util/util.h>
+#include <util/macros.h>
+#include <util/messages.h>
+#include <util/vector.h>
+#include <util/xmalloc.h>
 
 /*
  * acl_gput_file is currently used only by the test suite to point GPUT at a

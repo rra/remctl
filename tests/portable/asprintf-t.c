@@ -13,7 +13,8 @@
 
 #include <tests/tap/basic.h>
 
-int test_asprintf(char **, const char *, ...);
+int test_asprintf(char **, const char *, ...)
+    __attribute__((__format__(printf, 2, 3)));
 int test_vasprintf(char **, const char *, va_list);
 
 static int

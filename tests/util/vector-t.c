@@ -17,7 +17,9 @@
 #include <sys/wait.h>
 
 #include <tests/tap/basic.h>
-#include <util/util.h>
+#include <util/messages.h>
+#include <util/vector.h>
+#include <util/xmalloc.h>
 
 
 int
@@ -227,10 +229,10 @@ main(void)
     cvector_add(cvector, buffer);
     child = fork();
     if (child < 0)
-        sysdie("unable to fork");
+        sysbail("unable to fork");
     else if (child == 0)
         if (cvector_exec("/bin/sh", cvector) < 0)
-            syswarn("unable to exec /bin/sh");
+            sysnotice("# unable to exec /bin/sh");
     waitpid(child, NULL, 0);
     cvector_free(cvector);
 

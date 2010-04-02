@@ -6,7 +6,7 @@
  * right place.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2008
+ * Copyright 2006, 2007, 2008, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -21,7 +21,10 @@
 #include <errno.h>
 
 #include <server/internal.h>
-#include <util/util.h>
+#include <util/gss-errors.h>
+#include <util/messages.h>
+#include <util/tokens.h>
+#include <util/vector.h>
 
 /*
  * Report a GSS-API failure using warn.

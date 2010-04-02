@@ -2,7 +2,7 @@
  * Internal support functions for the remctld daemon.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2008, 2009
+ * Copyright 2006, 2007, 2008, 2009, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -15,8 +15,8 @@
 #include <portable/gssapi.h>
 #include <portable/macros.h>
 #include <portable/stdbool.h>
-
-#include <util/util.h>
+#include <sys/types.h>
+#include <util/protocol.h>
 
 /* Forward declarations to avoid extra includes. */
 struct iovec;
@@ -25,15 +25,13 @@ struct iovec;
  * Used as the default max buffer for the argv passed into the server, and for 
  * the return message from the server.
  */
-#define MAXBUFFER       64000  
+#define MAXBUFFER 64000
 
 /*
  * The maximum size of argc passed to the server.  This is an arbitrary limit
  * to protect against memory-based denial of service attacks on the server.
  */
-#define MAXCMDARGS      (4 * 1024)
-
-BEGIN_DECLS
+#define MAXCMDARGS (4 * 1024)
 
 /* Holds the information about a client connection. */
 struct client {
@@ -69,6 +67,8 @@ struct config {
     size_t count;
     size_t allocated;
 };
+
+BEGIN_DECLS
 
 /* Logging functions. */
 void warn_gssapi(const char *, OM_uint32 major, OM_uint32 minor);

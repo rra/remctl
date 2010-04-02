@@ -15,7 +15,6 @@
 #include <server/internal.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/messages.h>
-#include <util/util.h>
 
 
 int

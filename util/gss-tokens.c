@@ -9,17 +9,20 @@
  *
  * Originally written by Anton Ushakov
  * Extensive modifications by Russ Allbery <rra@stanford.edu>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See README for licensing terms.
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
+#include <portable/socket.h>
+#include <portable/system.h>
 
-#include <util/util.h>
+#include <util/gss-tokens.h>
+#include <util/protocol.h>
+#include <util/tokens.h>
 
 /*
  * If we're running the test suite, call testing versions of the token

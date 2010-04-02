@@ -20,7 +20,9 @@
 #include <sys/wait.h>
 
 #include <tests/tap/basic.h>
-#include <util/util.h>
+#include <util/macros.h>
+#include <util/messages.h>
+#include <util/network.h>
 
 /* Set this globally to 0 if IPv6 is available but doesn't work. */
 static int ipv6 = 1;

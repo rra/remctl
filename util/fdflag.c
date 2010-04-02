@@ -25,7 +25,7 @@
 # endif
 #endif
 
-#include <util/util.h>
+#include <util/fdflag.h>
 
 
 /*

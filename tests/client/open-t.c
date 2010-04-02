@@ -2,7 +2,7 @@
  * Test suite for the client connection negotiation code.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009
+ * Copyright 2006, 2007, 2009, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -25,7 +25,8 @@
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/util.h>
+#include <util/messages.h>
+#include <util/tokens.h>
 
 
 /*

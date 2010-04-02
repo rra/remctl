@@ -68,7 +68,8 @@
 
 #include <errno.h>
 
-#include <util/util.h>
+#include <util/messages.h>
+#include <util/xmalloc.h>
 
 
 /*

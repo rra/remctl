@@ -3,7 +3,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on prior work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -17,11 +17,10 @@
 #include <portable/macros.h>
 #include <portable/socket.h>
 #include <portable/stdbool.h>
+#include <sys/types.h>
 
 /* Forward declaration to avoid unnecessary includes. */
 struct iovec;
-
-BEGIN_DECLS
 
 /* Private structure that holds the details of an open remctl connection. */
 struct remctl {
@@ -36,6 +35,8 @@ struct remctl {
     int status;
     bool ready;                 /* If true, we are expecting server output. */
 };
+
+BEGIN_DECLS
 
 /* Internal functions should all default to hidden visibility. */
 #pragma GCC visibility push(hidden)

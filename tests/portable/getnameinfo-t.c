@@ -16,7 +16,7 @@
 #include <portable/socket.h>
 
 #include <tests/tap/basic.h>
-#include <util/util.h>
+#include <util/xmalloc.h>
 
 int test_getnameinfo(const struct sockaddr *, socklen_t, char *, socklen_t,
                      char *, socklen_t, int);

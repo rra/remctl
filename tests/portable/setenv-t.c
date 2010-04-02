@@ -17,7 +17,6 @@
 #include <errno.h>
 
 #include <tests/tap/basic.h>
-#include <util/util.h>
 
 int test_setenv(const char *name, const char *value, int overwrite);
 
