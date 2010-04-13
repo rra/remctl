@@ -42,7 +42,7 @@ SIMPLIFIED INTERFACE
       * status: integer, the exit status of the command
 
       Exceptions:
-      * ArgError, TypeError: an invalid argument was supplied
+      * ArgumentError, TypeError: an invalid argument was supplied
       * NoMemError: memory allocation failed while making the call
       * Remctl::Error: an error occurred in the remctl communication
 
@@ -86,9 +86,9 @@ FULL INTERFACE
       * port (optional): unsigned short, the port to connect to
       * principal (optional): string, authentication identity of host
 
-      This method immediately connects to the server.  It raises ArgError
-      in the event that the port is out of range and Remctl::Error in case
-      of a protocol error.
+      This method immediately connects to the server.  It raises
+      ArgumentError in the event that the port is out of range and
+      Remctl::Error in case of a protocol error.
 
       If port is not given, the library default is used (try 4373 first
       and fall back to attempting the legacy 4444 port).  If principal is
@@ -96,7 +96,7 @@ FULL INTERFACE
       determined by the domain-realm mapping) is used.
 
       Exceptions:
-      * ArgError, TypeError: an invalid argument was supplied
+      * ArgumentError, TypeError: an invalid argument was supplied
       * NoMemError: memory allocation failed while allocating the object
       * Remctl::Error: a network or authentication error occurred
 
