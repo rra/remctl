@@ -31,6 +31,12 @@ remctl 2.16 (unreleased)
     Fix PHP test suite to work with PHP 5.3, which no longer passes
     environment variables down to the running test program.
 
+    Stop passing GCC-specific warning suppression flags into the language
+    binding build systems unless the compiler used to build remctl is GCC.
+    This still isn't quite right, since the language bindings may use a
+    different compiler than the main remctl build, but it should be closer
+    than the previous behavior of using GCC flags unconditionally.
+
     Update to rra-c-util 2.4:
 
     * Improve network error handling with unknown address domains.

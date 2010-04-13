@@ -153,6 +153,10 @@ AC_ARG_ENABLE([ruby],
     [AS_IF([test x"$enableval" = xyes], [build_ruby=yes])])
 AM_CONDITIONAL([BUILD_RUBY], [test x"$build_ruby" = xyes])
 
+dnl Used to determine whether to add our GCC-specific warning suppression
+dnl flags to the language binding builds.
+AM_CONDITIONAL([GCC], [test x"$GCC" = xyes])
+
 AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
 AS_IF([test x"$build_perl" = xyes],
     [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])

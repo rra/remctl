@@ -169,12 +169,21 @@ WARNINGS = -g -O -DDEBUG=1 -Wall -W -Wendif-labels -Wpointer-arith \
 	-Wbad-function-cast -Wwrite-strings -Wstrict-prototypes \
 	-Wmissing-prototypes -Wnested-externs -Werror
 
-# Suppress some warnings for Perl, PHP, and Python code because the
+# Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code doesn't pass them.
-PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs -Wno-strict-prototypes
-PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
+if GCC
+    PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs \
+	-Wno-strict-prototypes
+    PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
 	-Wno-missing-prototypes -Wno-unused-parameter
-PYTHON_WARNINGS = -Wno-unused-parameter
+    PYTHON_WARNINGS = -Wno-unused-parameter
+    RUBY_WARNINGS = -Wno-strict-prototypes
+else
+    PERL_WARNINGS =
+    PHP_WARNINGS =
+    PYTHON_WARNINGS =
+    RUBY_WARNINGS =
+endif
 
 warnings:
 	$(MAKE) V=0 CFLAGS='$(WARNINGS)'
@@ -419,7 +428,7 @@ endif
 # The Ruby build system actually supports VPATH!
 ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c
 	cd ruby && ruby extconf.rb
-	cd ruby && $(MAKE)
+	cd ruby && $(MAKE) CFLAGS="$(CFLAGS) $(RUBY_WARNINGS)"
 
 install-data-local-ruby: ruby/remctl.so
 	cd ruby && $(MAKE) install DESTDIR=$(DESTDIR)

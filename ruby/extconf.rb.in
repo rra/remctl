@@ -14,10 +14,15 @@ old_libdir = Config::CONFIG['libdir']
 require 'mkmf'
 Config::MAKEFILE_CONFIG['libdir'] = '@abs_top_srcdir@/client/.libs'
 
-$CFLAGS  << ' -I@abs_top_srcdir@ @CFLAGS@'
-$LDFLAGS << " -L@abs_top_srcdir@/client/.libs -L#{old_libdir}"
+# We add $CFLAGS to the contents of $CPPFLAGS since otherwise we lose the
+# Ruby $CFLAGS.  The build system overrides CFLAGS with make warnings.
+# This is really a bug in Ruby; CFLAGS is a user variable that the user
+# should be able to set at build time without losing information.
+$INCFLAGS = "-I@abs_top_srcdir@ #{$INCFLAGS}"
+$CPPFLAGS << " #{$CFLAGS} @CPPFLAGS@"
+$LDFLAGS  << " -L@abs_top_srcdir@/client/.libs -L#{old_libdir} @LDFLAGS@"
 
 fail "Couldn't find libremctl"\
     unless have_library('remctl', 'remctl_open', 'remctl.h')
 
-create_makefile('Remctl')
+create_makefile('remctl')

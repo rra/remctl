@@ -27,10 +27,25 @@
 #include <portable/system.h>
 
 #include <errno.h>
-#include <ruby.h>
 #include <sys/uio.h>
 
 #include <client/remctl.h>
+#include <util/macros.h>
+
+/*
+ * The Ruby includes use a bare config.h file and don't use proper
+ * namespacing, so we have to undefine some things that we set that Ruby also
+ * sets.  We don't care about any of these settings, thankfully.
+ */
+#undef PACKAGE_NAME
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef PACKAGE_STRING
+#undef PACKAGE_BUGREPORT
+#include <ruby.h>
+
+/* Our public interface. */
+void Init_remctl(void);
 
 static VALUE cRemctl, cRemctlResult, eRemctlError, eRemctlNotOpen;
 
@@ -89,7 +104,7 @@ rb_remctl_result_new(struct remctl_result *rr)
  * Initialize a Remctl::Result object.
  */
 static VALUE
-rb_remctl_result_initialize(VALUE self)
+rb_remctl_result_initialize(VALUE self UNUSED)
 {
     rb_define_attr(cRemctlResult, "stderr", 1, 0);
     rb_define_attr(cRemctlResult, "stdout", 1, 0);
@@ -105,7 +120,7 @@ rb_remctl_result_initialize(VALUE self)
  * principal.
  */
 static VALUE
-rb_remctl_remctl(int argc, VALUE argv[], VALUE self)
+rb_remctl_remctl(int argc, VALUE argv[], VALUE self UNUSED)
 {
     VALUE vhost, vport, vprinc, vargs, tmp;
     unsigned int port;
@@ -149,7 +164,7 @@ rb_remctl_remctl(int argc, VALUE argv[], VALUE self)
  * of a complex connection.  A value of 0 indicates the default port.
  */
 static VALUE
-rb_remctl_default_port_get(VALUE self)
+rb_remctl_default_port_get(VALUE self UNUSED)
 {
     return rb_cvar_get(cRemctl, AAdefault_port);
 }
@@ -165,7 +180,7 @@ rb_remctl_default_port_get(VALUE self)
  * +ArgError+ if the port number isn't sane.
  */
 static VALUE
-rb_remctl_default_port_set(VALUE self, VALUE new)
+rb_remctl_default_port_set(VALUE self UNUSED, VALUE new)
 {
     unsigned int port;
 
@@ -185,7 +200,7 @@ rb_remctl_default_port_set(VALUE self, VALUE new)
  * instance of a complex connection.
  */
 static VALUE
-rb_remctl_default_principal_get(VALUE self)
+rb_remctl_default_principal_get(VALUE self UNUSED)
 {
     return rb_cvar_get(cRemctl, AAdefault_principal);
 }
@@ -198,7 +213,7 @@ rb_remctl_default_principal_get(VALUE self)
  * of nil requests the library default.
  */
 static VALUE
-rb_remctl_default_principal_set(VALUE self, VALUE new)
+rb_remctl_default_principal_set(VALUE self UNUSED, VALUE new)
 {
     rb_cvar_set(cRemctl, AAdefault_principal, StringValue(new), 0);
     return rb_cvar_get(cRemctl, AAdefault_principal);
@@ -301,14 +316,14 @@ rb_remctl_command(int argc, VALUE argv[], VALUE self)
     int i;
     VALUE s;
 
-    GET_REMCTL_OR_RAISE(self, rc);
+    GET_REMCTL_OR_RAISE(self, r);
     iov = ALLOC_N(struct iovec, argc);
     for (i = 0; i < argc; i++) {
         s = StringValue(argv[i]);
         iov[i].iov_base = RSTRING_PTR(s);
         iov[i].iov_len  = RSTRING_LEN(s);
     }
-    if (!remctl_commandv(rc, iov, argc))
+    if (!remctl_commandv(r, iov, argc))
         rb_raise(eRemctlError, "%s", rb_str_new2(remctl_error(r)));
     return Qnil;
 }
@@ -405,7 +420,7 @@ rb_remctl_initialize(int argc, VALUE argv[], VALUE self)
  * variables.
  */
 void
-Init_Remctl(void)
+Init_remctl(void)
 {
     cRemctl = rb_define_class("Remctl", rb_cObject);
     rb_define_singleton_method(cRemctl, "remctl", rb_remctl_remctl, -1);
