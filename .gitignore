@@ -44,6 +44,7 @@
 /ruby/extconf.rb
 /ruby/mkmf.log
 /ruby/remctl.so
+/ruby/test_remctl.rb
 /remctl-*.tar.gz
 /server/remctld
 /stamp-h1

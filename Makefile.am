@@ -332,7 +332,7 @@ check-local: $(check_PROGRAMS)
 	@set -e; if [ -f php/Makefile ] ; then \
 	    echo '' ; \
 	    cd php && ./test-wrapper "$(abs_top_builddir)" \
-		"$(abs_top_srcdir)"; \
+		"$(abs_top_srcdir)" ; \
 	fi
 	@set -e; if [ -f python/setup.py ] ; then \
 	    echo '' ; \
@@ -340,6 +340,10 @@ check-local: $(check_PROGRAMS)
 	    cd python && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
 		PYTHONPATH="`ls -d build/lib.*$(PYTHON_VERSION)`" \
 		python test_remctl.py ; \
+	fi
+	@set -e; if [ -f ruby/Makefile ] ; then \
+	    echo '' ; \
+	    cd ruby && ruby test_remctl.rb ; \
 	fi
 
 # Used for hooking in the build of optional language bindings.
