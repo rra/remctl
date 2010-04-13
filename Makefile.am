@@ -138,6 +138,9 @@ clean-local:
 	set -e; if [ -f "php/Makefile" ] ; then \
 	    cd php && $(MAKE) clean ; \
 	fi
+	set -e; if [ -f "ruby/Makefile" ] ; then \
+	    cd ruby && $(MAKE) distclean ; \
+	fi
 	rm -rf python/build python/dist python/*.pyc
 
 # Also clean the Perl, PHP, and Python directories on make distclean if
@@ -160,6 +163,9 @@ distclean-local:
 		cd php && touch config.m4 && $(PHPIZE) --clean && cd .. ; \
 	    fi ; \
 	    rm -f php/config.h.in~ php/config.m4 ; \
+	fi
+	set -e; if [ -f "ruby/Makefile" ] ; then \
+	    cd ruby && $(MAKE) distclean ; \
 	fi
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
