@@ -35,6 +35,7 @@ Collected copyright notices for the entire package:
   Copyright 2008 Andrew Mortensen <admorten@umich.edu>
   Copyright 2008 Thomas L. Kula <kula@tproa.net>
   Copyright 2009 Peter Eriksson <peter@ifm.liu.se>
+  Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
   Copyright 2004, 2005, 2006, 2007
       by Internet Systems Consortium, Inc. ("ISC")
   Copyright 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
@@ -259,6 +260,26 @@ general remctl package license:
   software without specific, written prior permission. Thomas L. Kula
   makes no representations about the suitability of this software for any
   purpose.  It is provided "as is" without express or implied warranty.
+
+  THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+The file ruby/remctl.c is covered by the following license, which is
+almost identical to the general remctl package license:
+
+  Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
+  Copyright 2010 Board of Trustees, Leland Stanford Jr. University
+
+  Permission to use, copy, modify, and distribute this software and its
+  documentation for any purpose and without fee is hereby granted,
+  provided that the above copyright notice appear in all copies and that
+  both that copyright notice and this permission notice appear in
+  supporting documentation, and that the name of Anthony M. Martinez not
+  be used in advertising or publicity pertaining to distribution of the
+  software without specific, written prior permission. Anthony M. Martinez
+  makes no representations about the suitability of this software for any
+  purpose. It is provided "as is" without express or implied warranty.
 
   THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
   WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
