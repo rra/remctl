@@ -77,15 +77,18 @@ REQUIREMENTS
   comes with Perl 5.8 and later.  Test::Pod currently must be installed
   separately, but the POD tests will be skipped without interfering with
   the rest of the tests if it's not installed.  The Perl bindings have not
-  been tested in Windows.
+  been tested on Windows.
 
   To build the PHP bindings for the C client library, you will need PHP
   5.x (only tested with 5.2) and phpize, plus any other programs that
-  phpize requires.
+  phpize requires.  The PHP bindings have not been tested on Windows.
 
   To build the Python bindings for the C client library, you will need
   Python 2.3 or later (primarily tested with Python 2.5).  The Python
   bindings have not been tested on Windows.
+
+  To build the Ruby bindings for the C client library, you will need Ruby
+  1.8 or later.  The Ruby bindings have not been tested on Windows.
 
   A Java client and Java server are available in the java subdirectory,
   but they are not integrated into the normal build or built by default.
@@ -159,6 +162,15 @@ INSTALLATION (UNIX)
   --prefix argument to configure.  To change this, you will need to run
   python setup.py install by hand in the python directory with whatever
   options you want to use.
+
+  To also build the Ruby bindings for the libremctl client library, pass
+  the --enable-ruby option to configure.  The Ruby module build is handled
+  by the normal Ruby module build system, and therefore will be installed
+  into your local Ruby module directory regardless of the --prefix
+  argument to configure.  To change this, override the sitedir variable on
+  the make install command line, as in:
+
+      make install sitedir=/opt/ruby
 
   Normally, configure will use krb5-config to determine the flags to use
   to compile with your Kerberos GSS-API libraries.  If krb5-config isn't

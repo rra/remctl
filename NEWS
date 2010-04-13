@@ -2,6 +2,11 @@
 
 remctl 2.16 (unreleased)
 
+    Add Ruby bindings contributed by Anthony M. Martinez, enabled with
+    --enable-ruby at configure time.  These bindings are tested with Ruby
+    1.8 and may not work with older versions.  See ruby/README for more
+    information.
+
     remctld now includes support for a PCRE (Perl-compatible regular
     expressions) ACL type if the PCRE library is found at configure time.
     A PCRE ACL matches any user whose identity matches the given
