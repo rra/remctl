@@ -1,4 +1,4 @@
-# test_ruby.rb -- Test suite for remctl Ruby bindings
+# test_remctl.rb -- Test suite for remctl Ruby bindings
 #
 # Written by Russ Allbery <rra@stanford.edu>
 # Copyright 2010 Board of Trustees, Leland Stanford Jr. University
@@ -11,11 +11,11 @@ require 'remctl'
 
 module Helpers
   def configured?
-    return File.exists? '@abs_top_builddir@/tests/data/test.principal'
+    return File.exists? 'data/test.principal'
   end
 
   def get_principal
-    IO.readlines('@abs_top_builddir@/tests/data/test.principal').each do |line|
+    IO.readlines('data/test.principal').each do |line|
       return line.chomp
     end
   end
@@ -26,6 +26,7 @@ module Helpers
     fork do
       $stdout.reopen('data/test.output', 'w')
       $stderr.reopen('data/test.output', 'w')
+      FileUtils.cd '@abs_top_srcdir@/tests'
       exec('@abs_top_builddir@/server/remctld', 'remctld', '-m',
            '-p', '14373', '-s', @principal, '-f', 'data/conf-simple',
            '-P', '@abs_top_builddir@/tests/data/pid', '-d', '-S', '-F',
@@ -59,7 +60,7 @@ module Helpers
   end
 
   def setup
-    FileUtils.cd '@abs_top_srcdir@/tests'
+    FileUtils.cd '@abs_top_builddir@/tests'
     if configured?
       start_remctld
       assert(run_kinit, 'Authentication with kinit failed')
