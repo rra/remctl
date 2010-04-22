@@ -45,9 +45,12 @@ remctl 2.16 (unreleased)
     * Add additional GCC function attributes to utility libraries.
     * Use AC_TYPE_LONG_LONG_INT instead of AC_CHECK_TYPES([long long]).
 
-    Update to C TAP Harness 1.1:
+    Update to C TAP Harness 1.2:
 
     * Summarize results at the end of test execution.
+    * Add diag and sysdiag functions to the basic TAP library.
+    * Clean up data types in the basic C TAP library.
+    * Add the GCC nonnull attribute to the TAP library bail functions.
 
 remctl 2.15 (2009-11-29)
 
