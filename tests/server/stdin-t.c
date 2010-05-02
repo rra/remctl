@@ -2,7 +2,7 @@
  * Test suite for the server passing data to programs on standard input.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2009, 2010 Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
  */
@@ -15,7 +15,9 @@
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/util.h>
+#include <util/concat.h>
+#include <util/messages.h>
+#include <util/xmalloc.h>
 
 
 /*

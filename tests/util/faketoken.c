@@ -2,15 +2,19 @@
  * Fake token_send and token_recv functions for testing.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2009 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2006, 2009, 2010
+ *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
  */
 
 #include <config.h>
+#include <portable/gssapi.h>
+#include <portable/socket.h>
 #include <portable/system.h>
 
-#include <util/util.h>
+#include <util/macros.h>
+#include <util/tokens.h>
 
 enum token_status fake_token_send(socket_type, int, gss_buffer_t);
 enum token_status fake_token_recv(socket_type, int *, gss_buffer_t, size_t);

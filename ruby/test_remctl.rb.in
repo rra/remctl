@@ -1,0 +1,209 @@
+# test_remctl.rb -- Test suite for remctl Ruby bindings
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2010 Board of Trustees, Leland Stanford Jr. University
+#
+# See LICENSE for licensing terms.
+
+require 'fileutils'
+require 'test/unit'
+require 'remctl'
+
+module Helpers
+  def configured?
+    return File.exists? 'data/test.principal'
+  end
+
+  def get_principal
+    IO.readlines('data/test.principal').each do |line|
+      return line.chomp
+    end
+  end
+
+  def start_remctld
+    FileUtils.rm 'data/pid', :force => true
+    @principal = get_principal
+    fork do
+      $stdout.reopen('data/test.output', 'w')
+      $stderr.reopen('data/test.output', 'w')
+      FileUtils.cd '@abs_top_srcdir@/tests'
+      exec('@abs_top_builddir@/server/remctld', 'remctld', '-m',
+           '-p', '14373', '-s', @principal, '-f', 'data/conf-simple',
+           '-P', '@abs_top_builddir@/tests/data/pid', '-d', '-S', '-F',
+           '-k', '@abs_top_builddir@/tests/data/test.keytab')
+    end
+    unless File.exists? 'data/pid' then sleep 1 end
+  end
+
+  def stop_remctld
+    IO.readlines('data/pid').each do |pid|
+      pid.chomp!
+      Process.kill('TERM', pid.to_i)
+      Process.waitpid(pid.to_i)
+      return
+    end
+  end
+
+  def run_kinit
+    ENV['KRB5CCNAME'] = 'data/test.cache'
+    commands = ['kinit -k -t data/test.keytab ' + @principal,
+                'kinit -t data/test.keytab ' + @principal,
+                'kinit -k -K data/test.keytab ' + @principal]
+    commands.each do |command|
+      if system(command + ' >/dev/null </dev/null')
+        return true
+      end
+    end
+    unless File.exists? 'data/pid' then sleep 1 end
+    stop_remctld
+    return false
+  end
+
+  def setup
+    FileUtils.cd '@abs_top_builddir@/tests'
+    if configured?
+      start_remctld
+      assert(run_kinit, 'Authentication with kinit failed')
+    end
+  end
+
+  def teardown
+    if configured?
+      stop_remctld
+      FileUtils.rm 'data/test.output'
+      FileUtils.rm 'data/test.cache', :force => true
+    end
+  end
+end
+
+class TC_RemctlSimple < Test::Unit::TestCase
+  include Helpers
+
+  def test_simple_success
+    unless configured? then return end
+    Remctl.default_port = 14373
+    Remctl.default_principal = @principal
+    assert_equal(14373, Remctl.default_port)
+    assert_equal(@principal, Remctl.default_principal)
+    result = Remctl.remctl('localhost', 'test', 'test')
+    assert_equal("hello world\n", result.stdout)
+    assert_equal("", result.stderr)
+    assert_equal(0, result.status)
+  end
+
+  def test_simple_status
+    unless configured? then return end
+    Remctl.default_port = 14373
+    Remctl.default_principal = @principal
+    command = [ 'test', 'status', '2' ]
+    result = Remctl.remctl('localhost', *command)
+    assert_equal("", result.stdout)
+    assert_equal("", result.stderr)
+    assert_equal(2, result.status)
+  end
+
+  def test_simple_failure
+    unless configured? then return end
+    Remctl.default_port = 14373
+    Remctl.default_principal = @principal
+    assert_raise Remctl::Error do
+      begin
+        result = Remctl.remctl('localhost', 'test', 'bad-command')
+      rescue Remctl::Error
+        assert_equal('Unknown command', $!.to_s)
+        raise
+      end
+    end
+  end
+
+  def test_simple_errors
+    unless configured? then return end
+    Remctl.default_port = 14373
+    Remctl.default_principal = @principal
+    assert_raise ArgumentError do Remctl.remctl end
+    assert_raise Remctl::Error do
+      begin
+        Remctl.remctl('localhost')
+      rescue
+        assert_equal('Unknown command', $!.to_s)
+        raise
+      end
+    end
+    assert_raise ArgumentError do Remctl.default_port = 'foo' end
+    assert_raise ArgumentError do Remctl.default_port = -1 end
+    assert_raise ArgumentError do
+      begin
+        Remctl.default_port = 65536
+      rescue ArgumentError
+        assert_equal('Port number 65536 out of range', $!.to_s)
+        raise
+      end
+    end
+    assert_raise TypeError do Remctl.remctl(1) end
+    assert_raise TypeError do Remctl.remctl('localhost', 1) end
+  end
+end
+
+class TC_RemctlFull < Test::Unit::TestCase
+  include Helpers
+
+  def test_full_success
+    unless configured? then return end
+    r = Remctl.new('localhost', 14373, @principal)
+    r.command('test', 'test')
+    output = r.output
+    assert_equal(output[0], :output)
+    assert_equal(output[1], "hello world\n")
+    assert_equal(output[2], 1)
+    output = r.output
+    assert_equal(output[0], :status)
+    assert_equal(output[3], 0)
+    output = r.output
+    assert_equal(output[0], :done)
+    r.reopen
+    r.command('test', 'test')
+    output = r.output
+    assert_equal(output[0], :output)
+    assert_equal(output[1], "hello world\n")
+    assert_equal(output[2], 1)
+    output = r.output
+    assert_equal(output[0], :status)
+    assert_equal(output[3], 0)
+    output = r.output
+    assert_equal(output[0], :done)
+    r.close
+  end
+
+  def test_full_failure
+    unless configured? then return end
+    r = Remctl.new('localhost', 14373, @principal)
+    r.command('test', 'bad-command')
+    output = r.output
+    assert_equal(output[0], :error)
+    assert_equal(output[1], 'Unknown command')
+    assert_equal(output[4], 5)
+  end
+
+  def test_full_errors
+    unless configured? then return end
+    assert_raise ArgumentError do Remctl.new end
+    assert_raise TypeError do Remctl.new(1, 14373, @principal) end
+    assert_raise ArgumentError do Remctl.new('localhost', 'foo', @principal) end
+    assert_raise TypeError do Remctl.new('localhost', 14373, 1) end
+    assert_raise ArgumentError do Remctl.new('localhost', -1) end
+    assert_raise ArgumentError do Remctl.new('localhost', 65536) end
+    assert_raise Remctl::Error do
+      begin
+        Remctl.new('localhost', 14444, @principal)
+      rescue Remctl::Error
+        assert_match(/^cannot connect to localhost \(port 14444\): .*/,
+                     $!.to_s)
+        raise
+      end
+    end
+    r = Remctl.new('localhost', 14373, @principal)
+    assert_raise TypeError do r.command(1) end
+    r.close
+    assert_raise Remctl::NotOpen do r.command('test', 'test') end
+  end
+end

@@ -1,7 +1,7 @@
 # Shell function library for test cases.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2009 Russ Allbery <rra@stanford.edu>
+# Copyright 2009, 2010 Russ Allbery <rra@stanford.edu>
 # Copyright 2006, 2007, 2008 Board of Trustees, Leland Stanford Jr. University
 #
 # See LICENSE for licensing terms.
@@ -9,7 +9,56 @@
 # Print out the number of test cases we expect to run.
 plan () {
     count=1
+    planned="$1"
+    failed=0
     echo "1..$1"
+    trap finish 0
+}
+
+# Prepare for lazy planning.
+plan_lazy () {
+    count=1
+    planned=0
+    failed=0
+    trap finish 0
+}
+
+# Report the test status on exit.
+finish () {
+    local highest looks
+    highest=`expr "$count" - 1`
+    if [ "$planned" = 0 ] ; then
+        echo "1..$highest"
+        planned="$highest"
+    fi
+    looks='# Looks like you'
+    if [ "$planned" -gt 0 ] ; then
+        if [ "$planned" -gt "$highest" ] ; then
+            if [ "$planned" -gt 1 ] ; then
+                echo "$looks planned $planned tests but only ran $highest"
+            else
+                echo "$looks planned $planned test but only ran $highest"
+            fi
+        elif [ "$planned" -lt "$highest" ] ; then
+            local extra
+            extra=`expr "$highest" - "$planned"`
+            if [ "$planned" -gt 1 ] ; then
+                echo "$looks planned $planned tests but ran $extra extra"
+            else
+                echo "$looks planned $planned test but ran $extra extra"
+            fi
+        elif [ "$failed" -gt 0 ] ; then
+            if [ "$failed" -gt 1 ] ; then
+                echo "$looks failed $failed tests of $planned"
+            else
+                echo "$looks failed $failed test of $planned"
+            fi
+        elif [ "$planned" -gt 1 ] ; then
+            echo "# All $planned tests successful or skipped"
+        else
+            echo "# $planned test successful or skipped"
+        fi
+    fi
 }
 
 # Skip the entire test suite.  Should be run instead of plan.
@@ -38,6 +87,7 @@ ok () {
         echo ok $count$desc
     else
         echo not ok $count$desc
+        failed=`expr $failed + 1`
     fi
     count=`expr $count + 1`
 }
@@ -51,7 +101,7 @@ skip () {
 # Report the same status on a whole set of tests.  Takes the count of tests,
 # the description, and then the command to run to determine the status.
 ok_block () {
-    local start end i desc
+    local end i desc
     i=$count
     end=`expr $count + $1`
     shift
@@ -66,7 +116,7 @@ ok_block () {
 # Skip a whole set of tests.  Takes the count and then the reason for skipping
 # the test.
 skip_block () {
-    local start end
+    local i end
     i=$count
     end=`expr $count + $1`
     shift
@@ -107,4 +157,9 @@ ok_program () {
 bail () {
     echo 'Bail out!' "$@"
     exit 1
+}
+
+# Output a diagnostic on standard error, preceded by the required # mark.
+diag () {
+    echo '#' "$@"
 }

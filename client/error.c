@@ -7,7 +7,7 @@
  * return the appropriate details.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2008
+ * Copyright 2006, 2007, 2008, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -21,7 +21,8 @@
 #include <errno.h>
 
 #include <client/internal.h>
-#include <util/util.h>
+#include <util/gss-errors.h>
+#include <util/tokens.h>
 
 /*
  * Internal function to set the error message, freeing an old error message if

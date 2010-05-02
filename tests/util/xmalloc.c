@@ -22,7 +22,8 @@
 /* Linux requires sys/time.h be included before sys/resource.h. */
 #include <sys/resource.h>
 
-#include <util/util.h>
+#include <util/messages.h>
+#include <util/xmalloc.h>
 
 
 /*

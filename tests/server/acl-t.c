@@ -2,7 +2,7 @@
  * Test suite for the server ACL checking.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2008, 2009
+ * Copyright 2007, 2008, 2009, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  * Copyright 2008 Carnegie Mellon University
  *
@@ -15,7 +15,6 @@
 #include <server/internal.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/messages.h>
-#include <util/util.h>
 
 
 int
@@ -26,7 +25,7 @@ main(void)
     };
     const char *acls[5];
 
-    plan(56);
+    plan(70);
     if (chdir(getenv("SOURCE")) < 0)
         sysbail("can't chdir to SOURCE");
 
@@ -181,8 +180,8 @@ main(void)
     errors_uncapture();
 
     /*
-     * Check for GPUT ACLs and also make sure they behave sanely when GPUT
-     * support is not compiled.
+     * Check GPUT ACLs, or make sure they behave sanely when GPUT support is
+     * not compiled.
      */
     server_config_set_gput_file((char *) "data/gput");
     acls[0] = "gput:test";
@@ -205,6 +204,77 @@ main(void)
               "...with not supported error");
     errors_uncapture();
     skip_block(4, "GPUT support not configured");
+#endif
+	
+    /*
+     * Check PCRE ACLs, or make sure they behave as they should when not
+     * supported.
+     */
+    acls[0] = "deny:pcre:host/foo.+\\.org@EXAMPLE\\.ORG";
+    acls[1] = "pcre:host/.+\\.org@EXAMPLE\\.ORG";
+    acls[2] = NULL;
+#ifdef HAVE_PCRE
+    ok(server_config_acl_permit(&confline, "host/bar.org@EXAMPLE.ORG"),
+       "PCRE 1");
+    ok(!server_config_acl_permit(&confline, "host/foobar.org@EXAMPLE.ORG"),
+       "PCRE 2");
+    ok(!server_config_acl_permit(&confline, "host/baz.org@EXAMPLE.NET"),
+       "PCRE 3");
+    ok(!server_config_acl_permit(&confline, "host/.org@EXAMPLE.ORG"),
+       "PCRE 4 (plus operator)");
+    ok(!server_config_acl_permit(&confline, "host/seaorg@EXAMPLE.ORG"),
+       "PCRE 5 (escaped period)");
+    acls[1] = "pcre:+host/.*";
+    errors_capture();
+    ok(!server_config_acl_permit(&confline, "host/bar.org@EXAMPLE.ORG"),
+       "PCRE invalid regex");
+    is_string("TEST:0: compilation of regex '+host/.*' failed around 0\n",
+              errors, "...with invalid regex error");
+    errors_uncapture();
+#else
+    errors_capture();
+    ok(!server_config_acl_permit(&confline, "host/foobar.org@EXAMPLE.ORG"),
+       "PCRE");
+    is_string("TEST:0: ACL scheme 'pcre' is not supported\n", errors,
+              "...with not supported error");
+    errors_uncapture();
+    skip_block(5, "PCRE support not configured");
+#endif
+
+    /*
+     * Check POSIX regex ACLs, or make sure they behave as they should when
+     * not supported.
+     */
+    acls[0] = "deny:regex:host/foo.*\\.org@EXAMPLE\\.ORG";
+    acls[1] = "regex:host/.*\\.org@EXAMPLE\\.ORG";
+    acls[2] = NULL;
+#ifdef HAVE_REGCOMP
+    ok(server_config_acl_permit(&confline, "host/bar.org@EXAMPLE.ORG"),
+       "regex 1");
+    ok(!server_config_acl_permit(&confline, "host/foobar.org@EXAMPLE.ORG"),
+       "regex 2");
+    ok(!server_config_acl_permit(&confline, "host/baz.org@EXAMPLE.NET"),
+       "regex 3");
+    ok(server_config_acl_permit(&confline, "host/.org@EXAMPLE.ORG"),
+       "regex 4");
+    ok(!server_config_acl_permit(&confline, "host/seaorg@EXAMPLE.ORG"),
+       "regex 5 (escaped period)");
+    acls[1] = "regex:*host/.*";
+    errors_capture();
+    ok(!server_config_acl_permit(&confline, "host/bar.org@EXAMPLE.ORG"),
+       "regex invalid regex");
+    ok(strncmp(errors, "TEST:0: compilation of regex '*host/.*' failed:",
+               strlen("TEST:0: compilation of regex '*host/.*' failed:")) == 0,
+       "...with invalid regex error");
+    errors_uncapture();
+#else
+    errors_capture();
+    ok(!server_config_acl_permit(&confline, "host/foobar.org@EXAMPLE.ORG"),
+       "regex");
+    is_string("TEST:0: ACL scheme 'regex' is not supported\n", errors,
+              "...with not supported error");
+    errors_uncapture();
+    skip_block(5, "regex support not available");
 #endif
 
     /* Test for valid characters in ACL files. */

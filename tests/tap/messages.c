@@ -19,7 +19,10 @@
 #include <portable/system.h>
 
 #include <tests/tap/messages.h>
-#include <util/util.h>
+#include <util/concat.h>
+#include <util/macros.h>
+#include <util/messages.h>
+#include <util/xmalloc.h>
 
 /* A global buffer into which message_log_buffer stores error messages. */
 char *errors = NULL;

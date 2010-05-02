@@ -21,7 +21,8 @@ BEGIN_DECLS
  * or no keytab in tests/data/test.keytab, return NULL.  Otherwise, on
  * failure, calls bail().
  */
-char *kerberos_setup(void);
+char *kerberos_setup(void)
+    __attribute__((__malloc__));
 
 /* Clean up at the end of a test. */
 void kerberos_cleanup(void);

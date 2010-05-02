@@ -3,7 +3,7 @@
 # Test suite for xmalloc and friends.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2008, 2009 Board of Trustees, Leland Stanford Jr. University
+# Copyright 2008, 2009, 2010 Board of Trustees, Leland Stanford Jr. University
 # Copyright 2004, 2005, 2006
 #     by Internet Systems Consortium, Inc. ("ISC")
 # Copyright 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
@@ -40,6 +40,13 @@ ok_xmalloc () {
     fi
 }
 
+# Skip this test suite unless maintainer-mode tests are enabled.  All of the
+# failures in automated testing have been problems with the assumptions around
+# memory allocation or problems with the test suite, not problems with the
+# underlying xmalloc code.
+if [ -z "$RRA_MAINTAINER_TESTS" ] ; then
+    skip_all 'xmalloc tests only run for maintainer'
+fi
 
 # Total tests.
 plan 36
@@ -73,41 +80,41 @@ ok_xmalloc "vasprintf large" 0 "" "v" "3500000" "0"
 # We assume that there are enough miscellaneous allocations that an allocation
 # exactly as large as the limit will always fail.
 ok_xmalloc "malloc fail" 1 \
-    "failed to malloc 3500000 bytes at xmalloc.c line 37" \
+    "failed to malloc 3500000 bytes at xmalloc.c line 38" \
     "m" "3500000" "3500000"
 ok_xmalloc "realloc fail" 1 \
-    "failed to realloc 3500000 bytes at xmalloc.c line 65" \
+    "failed to realloc 3500000 bytes at xmalloc.c line 66" \
     "r" "3500000" "3500000"
 ok_xmalloc "strdup fail" 1 \
-    "failed to strdup 3500000 bytes at xmalloc.c line 96" \
+    "failed to strdup 3500000 bytes at xmalloc.c line 97" \
     "s" "3500000" "3500000"
 ok_xmalloc "strndup fail" 1 \
-    "failed to strndup 3500000 bytes at xmalloc.c line 123" \
+    "failed to strndup 3500000 bytes at xmalloc.c line 124" \
     "n" "3500000" "3500000"
 ok_xmalloc "calloc fail" 1 \
-    "failed to calloc 3500000 bytes at xmalloc.c line 147" \
+    "failed to calloc 3500000 bytes at xmalloc.c line 148" \
     "c" "3500000" "3500000"
 ok_xmalloc "asprintf fail" 1 \
-    "failed to asprintf 3500000 bytes at xmalloc.c line 172" \
+    "failed to asprintf 3500000 bytes at xmalloc.c line 173" \
     "a" "3500000" "3500000"
 ok_xmalloc "vasprintf fail" 1 \
-    "failed to vasprintf 3500000 bytes at xmalloc.c line 192" \
+    "failed to vasprintf 3500000 bytes at xmalloc.c line 193" \
     "v" "3500000" "3500000"
 
 # Check our custom error handler.
-ok_xmalloc "malloc custom"    1 "malloc 3500000 xmalloc.c 37" \
+ok_xmalloc "malloc custom"    1 "malloc 3500000 xmalloc.c 38" \
     "M" "3500000" "3500000"
-ok_xmalloc "realloc custom"   1 "realloc 3500000 xmalloc.c 65" \
+ok_xmalloc "realloc custom"   1 "realloc 3500000 xmalloc.c 66" \
     "R" "3500000" "3500000"
-ok_xmalloc "strdup custom"    1 "strdup 3500000 xmalloc.c 96" \
+ok_xmalloc "strdup custom"    1 "strdup 3500000 xmalloc.c 97" \
     "S" "3500000" "3500000"
-ok_xmalloc "strndup custom"   1 "strndup 3500000 xmalloc.c 123" \
+ok_xmalloc "strndup custom"   1 "strndup 3500000 xmalloc.c 124" \
     "N" "3500000" "3500000"
-ok_xmalloc "calloc custom"    1 "calloc 3500000 xmalloc.c 147" \
+ok_xmalloc "calloc custom"    1 "calloc 3500000 xmalloc.c 148" \
     "C" "3500000" "3500000"
-ok_xmalloc "asprintf custom"  1 "asprintf 3500000 xmalloc.c 172" \
+ok_xmalloc "asprintf custom"  1 "asprintf 3500000 xmalloc.c 173" \
     "A" "3500000" "3500000"
-ok_xmalloc "vasprintf custom" 1 "vasprintf 3500000 xmalloc.c 192" \
+ok_xmalloc "vasprintf custom" 1 "vasprintf 3500000 xmalloc.c 193" \
     "V" "3500000" "3500000"
 
 # Check the smaller ones again just for grins.

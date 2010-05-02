@@ -2,7 +2,8 @@
  * Test suite for the server configuration parsing.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2009 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2007, 2009, 2010
+ *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
  */
@@ -13,7 +14,6 @@
 #include <server/internal.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/messages.h>
-#include <util/util.h>
 
 
 /*
