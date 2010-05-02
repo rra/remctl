@@ -20,7 +20,7 @@ PYTHON_VERSION := $(shell pyversions -dv)
 override_dh_auto_configure:
 	dh_auto_configure -- --sysconfdir=/etc/remctl \
 	    --enable-reduced-depends --enable-perl --enable-php \
-	    --enable-python
+	    --enable-python --enable-ruby
 
 # We rebuild the remctl client because Automake and Libtool combine to force
 # remctl to be linked against all the dependencies of libremctl, which
