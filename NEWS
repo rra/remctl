@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 2.16 (unreleased)
+remctl 2.16 (2010-05-02)
 
     Add Ruby bindings contributed by Anthony M. Martinez, enabled with
     --enable-ruby at configure time.  These bindings are tested with Ruby
