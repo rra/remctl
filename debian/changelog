@@ -1,3 +1,12 @@
+remctl (2.16-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    - Add Ruby bindings (install libremctl-ruby).
+    - Add support for PCRE and regex ACLs in the remctl server.
+    - remctld now sets REMCTL_COMMAND to the command run.
+
+ -- Russ Allbery <rra@debian.org>  Sun, 02 May 2010 16:37:08 -0700
+
 remctl (2.15-3) unstable; urgency=low
 
   * Make use of the new Makefile variables in the upstream 2.15 release to
