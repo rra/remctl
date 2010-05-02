@@ -16,6 +16,10 @@
 
 #include <tests/tap/basic.h>
 
+/*
+ * Intentionally don't add the printf attribute here since we pass a
+ * zero-length printf format during testing and don't want warnings.
+ */
 int test_snprintf(char *str, size_t count, const char *fmt, ...);
 int test_vsnprintf(char *str, size_t count, const char *fmt, va_list args);
 

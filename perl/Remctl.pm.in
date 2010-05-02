@@ -129,7 +129,7 @@ Returns the command's exit status.
 
 Each call to remctl() will open a new connection to the remote host and
 close it after retrieving the results of the command.  To maintain a
-persistant connection, use the full interface described below.
+persistent connection, use the full interface described below.
 
 =back
 

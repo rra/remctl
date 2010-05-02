@@ -7,7 +7,7 @@
  *
  * Written by Anton Ushakov
  * Extensive modifications by Russ Allbery <rra@stanford.edu>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -24,7 +24,10 @@
 #include <time.h>
 
 #include <server/internal.h>
-#include <util/util.h>
+#include <util/fdflag.h>
+#include <util/macros.h>
+#include <util/messages.h>
+#include <util/network.h>
 
 /*
  * Flag indicating whether we've received a SIGCHLD and need to reap children
@@ -57,7 +60,9 @@ Options:\n\
     -p <port>     Port to use, only for standalone mode (default: 4373)\n\
     -S            Log to standard output/error rather than syslog\n\
     -s <service>  Service principal to use (default: host/<host>)\n\
-    -v            Display the version of remctld\n";
+    -v            Display the version of remctld\n\
+\n\
+Supported ACL methods: file, princ, deny";
 
 /* Structure used to store program options. */
 struct options {
@@ -78,11 +83,23 @@ struct options {
 static void
 usage(int status)
 {
-    fprintf((status == 0) ? stdout : stderr, usage_message);
-    if (status == 0)
-        exit(0);
-    else
-        die("invalid usage");
+    FILE *output;
+
+    output = (status == 0) ? stdout : stderr;
+    if (status != 0)
+        fprintf(output, "\n");
+    fprintf(output, usage_message);
+#ifdef HAVE_GPUT
+    fprintf(output, ", gput");
+#endif
+#ifdef HAVE_PCRE
+    fprintf(output, ", pcre");
+#endif
+#ifdef HAVE_REGCOMP
+    fprintf(output, ", regex");
+#endif
+    fprintf(output, "\n");
+    exit(status);
 }
 
 

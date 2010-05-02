@@ -28,7 +28,8 @@ BEGIN_DECLS
  * path to the configuration file.
  */
 pid_t remctld_start(const char *path, const char *principal,
-                    const char *config);
+                    const char *config)
+    __attribute__((__nonnull__));
 void remctld_stop(pid_t);
 
 END_DECLS

@@ -2,7 +2,7 @@
 remctld remctl -dFhmSv keytab GSS-API tcpserver inetd subcommand AFS
 backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
 IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
-subcommands REMUSER
+subcommands REMUSER pcre PCRE
 
 =head1 NAME
 
@@ -59,7 +59,9 @@ The configuration file for B<remctld>, overriding the default path.
 
 =item B<-h>
 
-Show a brief usage message and then exit.
+Show a brief usage message and then exit.  This usage method will include
+a list of supported ACL types and can be used to determine if optional ACL
+methods were compiled into a given B<remctld> build.
 
 =item B<-k> I<keytab>
 
@@ -303,7 +305,20 @@ the optional I<xform> or the default transform.
 This method is supported only if B<remctld> was compiled with GPUT support
 by using the C<--with-gput> configure option.
 
+=item pcre
+
+This method is used to grant or deny access based on Perl-compatible
+regular expressions.  The data is taken to be a Perl-compatible regular
+expression and matched against the user identity.  To deny access, use the
+C<deny:pcre:regex> syntax.
+
+This method is supported only if B<remctld> was compiled with PCRE support
+by using the C<--with-pcre> configure option.
+
 =back
+
+To see the list of ACL types supported by a particular build of
+B<remctld>, run C<remctld -h>.
 
 The keyword ANYUSER may be used instead of the ACLs to allow access to all
 users.  The user still needs to authenticate to B<remctld>; this only
@@ -346,6 +361,13 @@ environment variable was added in remctl 2.1.
 The hostname of the remote host, if it was available.  If reverse name
 resolution failed, this environment variable will not be set.  This
 variable was added in remctl 2.1.
+
+=item REMCTL_COMMAND
+
+The command string that caused this command to be run.  This variable will
+contain only the command, not the subcommand or any additional arguments
+(which are passed as command arguments).  This variable was added in
+remctl 2.16.
 
 =back
 

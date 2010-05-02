@@ -2,7 +2,7 @@
  * vector test suite.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2009, 2010 Board of Trustees, Leland Stanford Jr. University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
@@ -17,7 +17,8 @@
 #include <sys/wait.h>
 
 #include <tests/tap/basic.h>
-#include <util/util.h>
+#include <util/vector.h>
+#include <util/xmalloc.h>
 
 
 int
@@ -209,28 +210,28 @@ main(void)
     vector = vector_new();
     vector_add(vector, "/bin/sh");
     vector_add(vector, "-c");
-    snprintf(buffer, sizeof(buffer), "echo ok %d - vector_exec", testnum++);
+    snprintf(buffer, sizeof(buffer), "echo ok %lu - vector_exec", testnum++);
     vector_add(vector, buffer);
     child = fork();
     if (child < 0)
         sysbail("unable to fork");
     else if (child == 0)
         if (vector_exec("/bin/sh", vector) < 0)
-            sysnotice("# unable to exec /bin/sh");
+            sysdiag("unable to exec /bin/sh");
     waitpid(child, NULL, 0);
     vector_free(vector);
 
     cvector = cvector_new();
     cvector_add(cvector, "/bin/sh");
     cvector_add(cvector, "-c");
-    snprintf(buffer, sizeof(buffer), "echo ok %d - cvector_exec", testnum++);
+    snprintf(buffer, sizeof(buffer), "echo ok %lu - cvector_exec", testnum++);
     cvector_add(cvector, buffer);
     child = fork();
     if (child < 0)
-        sysdie("unable to fork");
+        sysbail("unable to fork");
     else if (child == 0)
         if (cvector_exec("/bin/sh", cvector) < 0)
-            syswarn("unable to exec /bin/sh");
+            sysdiag("unable to exec /bin/sh");
     waitpid(child, NULL, 0);
     cvector_free(cvector);
 

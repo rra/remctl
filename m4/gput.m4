@@ -1,4 +1,4 @@
-dnl gput.m4 -- Find the compiler and linker flags for GPUT.
+dnl Find the compiler and linker flags for GPUT.
 dnl
 dnl Provides the macro RRA_LIB_GPUT, which finds the compiler and linker flags
 dnl for linking with GPUT libraries (an authorization system developed at

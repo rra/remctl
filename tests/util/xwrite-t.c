@@ -16,7 +16,7 @@
 #include <portable/uio.h>
 
 #include <tests/tap/basic.h>
-#include <util/util.h>
+#include <util/xwrite.h>
 
 /* The data array we'll use to do testing. */
 char data[256];

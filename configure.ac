@@ -1,13 +1,13 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010
 dnl     Board of Trustees, Leland Stanford Jr. University
 dnl
 dnl See LICENSE for licensing terms.
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [2.15], [rra@stanford.edu])
+AC_INIT([remctl], [2.16], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
@@ -37,7 +37,7 @@ RRA_C_GNU_VAMACROS
 AC_CHECK_MEMBERS([struct sockaddr.sa_len], , ,
     [#include <sys/types.h>
      #include <sys/socket.h>])
-AC_CHECK_TYPES([long long])
+AC_TYPE_LONG_LONG_INT
 AC_CHECK_TYPE([sig_atomic_t], ,
     [AC_DEFINE([sig_atomic_t], [int],
         [Define to int if <signal.h> does not define.])],
@@ -114,6 +114,10 @@ AC_SUBST([VERSION_LDFLAGS])
 dnl Check for the CMU GPUT library.
 RRA_LIB_GPUT
 
+dnl Check for regex libraries for pcre:* and regex:* ACL support.
+RRA_LIB_PCRE_OPTIONAL
+AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
+
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.
 build_perl=
@@ -142,6 +146,17 @@ AC_ARG_ENABLE([python],
     [AS_IF([test x"$enableval" = xyes], [build_python=yes])])
 AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
 
+dnl Whether to build the Ruby bindings.
+build_ruby=
+AC_ARG_ENABLE([ruby],
+    [AC_HELP_STRING([--enable-ruby], [Build Ruby libremctl bindings])],
+    [AS_IF([test x"$enableval" = xyes], [build_ruby=yes])])
+AM_CONDITIONAL([BUILD_RUBY], [test x"$build_ruby" = xyes])
+
+dnl Used to determine whether to add our GCC-specific warning suppression
+dnl flags to the language binding builds.
+AM_CONDITIONAL([GCC], [test x"$GCC" = xyes])
+
 AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
 AS_IF([test x"$build_perl" = xyes],
     [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])
@@ -151,6 +166,8 @@ AS_IF([test x"$build_php" = xyes],
 AS_IF([test x"$build_python" = xyes],
     [AC_CONFIG_FILES([python/remctl.py python/setup.py])
      AC_CONFIG_FILES([python/test_remctl.py])])
+AS_IF([test x"$build_ruby" = xyes],
+    [AC_CONFIG_FILES([ruby/extconf.rb ruby/test_remctl.rb])])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_COMMANDS([docs], [test -d docs || mkdir docs])
 AC_OUTPUT

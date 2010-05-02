@@ -27,7 +27,6 @@
 
 #include <client/internal.h>
 #include <client/remctl.h>
-#include <util/util.h>
 
 
 /*

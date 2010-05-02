@@ -15,7 +15,7 @@
 #include <sys/wait.h>
 
 #include <tests/tap/basic.h>
-#include <util/util.h>
+#include <util/fdflag.h>
 
 
 int

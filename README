@@ -1,10 +1,10 @@
-                           remctl release 2.15
+                           remctl release 2.16
             (remote authenticated command execution with ACLs)
 
                    Originally written by Anton Ushakov
          Currently maintained by Russ Allbery <rra@stanford.edu>
 
-  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Board of
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Board of
   Trustees, Leland Stanford Jr. University.  This software is distributed
   under a BSD-style license.  Please see the file LICENSE in the
   distribution for terms of use and redistribution.
@@ -57,6 +57,11 @@ REQUIREMENTS
   Heimdal (tested with Heimdal 0.6 and later).  remctl will also build
   against the Kerberos GSS-API implementation shipped with AIX 5.2.
 
+  The remctl server will support regex ACLs if the system supports the
+  POSIX regex API.  The remctl server also optionally supports PCRE
+  regular expressions in ACLs.  To include that support, the PCRE library
+  is required.
+
   To build the remctl client for Windows, the Microsoft Windows SDK for
   Windows Vista and the MIT Kerberos for Windows SDK are required, along
   with a Microsoft Windows build environment (probably Visual Studio).
@@ -72,15 +77,18 @@ REQUIREMENTS
   comes with Perl 5.8 and later.  Test::Pod currently must be installed
   separately, but the POD tests will be skipped without interfering with
   the rest of the tests if it's not installed.  The Perl bindings have not
-  been tested in Windows.
+  been tested on Windows.
 
   To build the PHP bindings for the C client library, you will need PHP
   5.x (only tested with 5.2) and phpize, plus any other programs that
-  phpize requires.
+  phpize requires.  The PHP bindings have not been tested on Windows.
 
   To build the Python bindings for the C client library, you will need
   Python 2.3 or later (primarily tested with Python 2.5).  The Python
   bindings have not been tested on Windows.
+
+  To build the Ruby bindings for the C client library, you will need Ruby
+  1.8 or later.  The Ruby bindings have not been tested on Windows.
 
   A Java client and Java server are available in the java subdirectory,
   but they are not integrated into the normal build or built by default.
@@ -125,6 +133,9 @@ INSTALLATION (UNIX)
   installs itself under /usr/local; you can change that path by passing
   the --prefix=PATH argument to configure.
 
+  Solaris users should then look at examples/remctld.xml, an SMF manifest
+  for running the remctld daemon.
+
   To also build the Perl bindings for the libremctl client library, pass
   the --enable-perl option to configure.  The Perl module build is handled
   by the normal Perl extension build system, and therefore will be built
@@ -152,6 +163,15 @@ INSTALLATION (UNIX)
   python setup.py install by hand in the python directory with whatever
   options you want to use.
 
+  To also build the Ruby bindings for the libremctl client library, pass
+  the --enable-ruby option to configure.  The Ruby module build is handled
+  by the normal Ruby module build system, and therefore will be installed
+  into your local Ruby module directory regardless of the --prefix
+  argument to configure.  To change this, override the sitedir variable on
+  the make install command line, as in:
+
+      make install sitedir=/opt/ruby
+
   Normally, configure will use krb5-config to determine the flags to use
   to compile with your Kerberos GSS-API libraries.  If krb5-config isn't
   found, it will look for the standard Kerberos libraries in locations
@@ -178,6 +198,14 @@ INSTALLATION (UNIX)
   krb5-config script on your path, set KRB5_CONFIG to a nonexistent path:
 
       ./configure KRB5_CONFIG=/nonexistent
+
+  remctl will automatically build with PCRE support if pcre-config or the
+  PCRE library are found.  You can pass --with-pcre to configure to
+  specify the root directory where PCRE is installed, or set the include
+  and library directories separately with --with-pcre-include and
+  --with-pcre-lib.  You can also set PCRE_CONFIG to point to a different
+  pcre-config script, or do similar things as with KRB5_CONFIG described
+  above.
 
   remctl will automatically build with GPUT support if the GPUT header and
   library are found.  You can pass --with-gput to configure to specify the

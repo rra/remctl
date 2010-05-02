@@ -2,7 +2,7 @@
  * tokens test suite.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009
+ * Copyright 2006, 2007, 2009, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  *
  * See LICENSE for licensing terms.
@@ -19,7 +19,9 @@
 #include <sys/wait.h>
 
 #include <tests/tap/basic.h>
-#include <util/util.h>
+#include <util/tokens.h>
+#include <util/xmalloc.h>
+#include <util/xwrite.h>
 
 /*
  * Windows requires a different function when sending to sockets, but can't

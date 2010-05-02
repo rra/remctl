@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  *     Board of Trustees, Leland Stanford Jr. University
  * Copyright 2008 Carnegie Mellon University
  *
@@ -19,10 +19,19 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
+#ifdef HAVE_PCRE
+# include <pcre.h>
+#endif
+#ifdef HAVE_REGCOMP
+# include <regex.h>
+#endif
 #include <sys/stat.h>
 
 #include <server/internal.h>
-#include <util/util.h>
+#include <util/macros.h>
+#include <util/messages.h>
+#include <util/vector.h>
+#include <util/xmalloc.h>
 
 /*
  * acl_gput_file is currently used only by the test suite to point GPUT at a
@@ -728,6 +737,87 @@ acl_check_gput(const char *user, const char *data, const char *file,
 
 
 /*
+ * The ACL check operation for PCRE matches.  Takes the user to check, the
+ * regular expression, and the referencing file name and line number.  This
+ * can be used to do things like allow only host principals and deny everyone
+ * else.
+ */
+#ifdef HAVE_PCRE
+static enum config_status
+acl_check_pcre(const char *user, const char *data, const char *file,
+               int lineno)
+{
+    pcre *regex;
+    const char *error;
+    int offset, status;
+
+    regex = pcre_compile(data, PCRE_NO_AUTO_CAPTURE, &error, &offset, NULL);
+    if (regex == NULL) {
+        warn("%s:%d: compilation of regex '%s' failed around %d", file,
+             lineno, data, offset);
+        return CONFIG_ERROR;
+    }
+    status = pcre_exec(regex, NULL, user, strlen(user), 0, 0, NULL, 0);
+    pcre_free(regex);
+    switch (status) {
+    case 0:
+        return CONFIG_SUCCESS;
+    case PCRE_ERROR_NOMATCH:
+        return CONFIG_NOMATCH;
+    default:
+        warn("%s:%d: matching with regex '%s' failed with status %d", file,
+             lineno, data, status);
+        return CONFIG_ERROR;
+    }
+}
+#endif /* HAVE_PCRE */
+
+
+/*
+ * The ACL check operation for POSIX regex matches.  Takes the user to check,
+ * the regular expression, and the referencing file name and line number.
+ * This can be used to do things like allow only host principals and deny
+ * everyone else.
+ */
+#ifdef HAVE_REGCOMP
+static enum config_status
+acl_check_regex(const char *user, const char *data, const char *file,
+                int lineno)
+{
+    regex_t regex;
+    char error[BUFSIZ];
+    int status;
+    enum config_status result;
+
+    memset(&regex, 0, sizeof(regex));
+    status = regcomp(&regex, data, REG_EXTENDED | REG_NOSUB);
+    if (status != 0) {
+        regerror(status, &regex, error, sizeof(error));
+        warn("%s:%d: compilation of regex '%s' failed: %s", file, lineno,
+             data, error);
+        return CONFIG_ERROR;
+    }
+    status = regexec(&regex, user, 0, NULL, 0);
+    switch (status) {
+    case 0:
+        result = CONFIG_SUCCESS;
+        break;
+    case REG_NOMATCH:
+        result = CONFIG_NOMATCH;
+        break;
+    default:
+        regerror(status, &regex, error, sizeof(error));
+        warn("%s:%d: matching with regex '%s' failed: %s", file, lineno,
+             data, error);
+        result = CONFIG_ERROR;
+        break;
+    }
+    regfree(&regex);
+    return result;
+}
+#endif /* HAVE_REGCOMP */
+
+/*
  * The table relating ACL scheme names to functions.  The first two ACL
  * schemes must remain in their current slots or the index constants set at
  * the top of the file need to change.
@@ -740,6 +830,16 @@ static const struct acl_scheme schemes[] = {
     { "gput",  acl_check_gput  },
 #else
     { "gput",  NULL            },
+#endif
+#ifdef HAVE_PCRE
+    { "pcre",  acl_check_pcre  },
+#else
+    { "pcre",  NULL            },
+#endif
+#ifdef HAVE_REGCOMP
+    { "regex", acl_check_regex },
+#else
+    { "regex", NULL            },
 #endif
     { NULL,    NULL            }
 };

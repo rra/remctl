@@ -9,6 +9,10 @@ Protocol:
    also introduces out-of-order responses and possible deadlocks to the
    protocol.  docs/protocol-v3 has an initial draft.
 
+ * Support authentication via anonymous PKINIT.  This may already work,
+   but the asserted identity should be documented and it's not clear
+   whether this should match an ANYUSER ACL.
+
 Server:
 
  * Add support for built-in command summaries.  A command of help with no
@@ -69,6 +73,10 @@ Server:
    it rather than returning a syntax error.
 
  * Add a timeout for commands after which the server kills the command.
+
+ * Replace the global hour timeout with something based on idle time
+   between commands.  It's entirely reasonable for a protocol 2 client
+   to hold a connection open for hours.
 
  * Support binding to an IPv6 address.  Currently, the server only
    supports IPv4.

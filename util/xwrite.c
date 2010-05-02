@@ -36,7 +36,7 @@
 
 #include <errno.h>
 
-#include <util/util.h>
+#include <util/xwrite.h>
 
 /*
  * If we're running the test suite, call testing versions of the write

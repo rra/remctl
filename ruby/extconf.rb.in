@@ -1,0 +1,28 @@
+# Extension setup for libremctl Ruby bindings.  -*- ruby -*-
+#
+# Original implementation by Anthony M. Martinez <twopir@nmt.edu>
+# Some subsequent updates by Russ Allbery <rra@stanford.edu>
+# Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
+# Copyright 2010 Board of Trustees, Leland Stanford Jr. University
+#
+# See LICENSE for licensing terms.
+
+# This hack is to force the extension to build against the local client
+# library rather than some other library already installed on the system.
+require 'rbconfig'
+old_libdir = Config::CONFIG['libdir']
+require 'mkmf'
+Config::MAKEFILE_CONFIG['libdir'] = '@abs_top_srcdir@/client/.libs'
+
+# We add $CFLAGS to the contents of $CPPFLAGS since otherwise we lose the
+# Ruby $CFLAGS.  The build system overrides CFLAGS with make warnings.
+# This is really a bug in Ruby; CFLAGS is a user variable that the user
+# should be able to set at build time without losing information.
+$INCFLAGS = "-I@abs_top_srcdir@ #{$INCFLAGS}"
+$CPPFLAGS << " #{$CFLAGS} @CPPFLAGS@"
+$LDFLAGS  << " -L@abs_top_srcdir@/client/.libs -L#{old_libdir} @LDFLAGS@"
+
+fail "Couldn't find libremctl"\
+    unless have_library('remctl', 'remctl_open', 'remctl.h')
+
+create_makefile('remctl')

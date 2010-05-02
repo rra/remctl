@@ -67,7 +67,6 @@ RUNNING
 
       java -Djava.security.krb5.conf=k5.conf \
           -Djava.security.auth.login.config=j3.conf -jar remctl-*.jar \
-          org.eyrie.eagle.remctl.RemctlClient \
           <host> <command> <subcommand> [<parameter> ...]
 
   This connects to the remctld on <host> and sends the command <type>

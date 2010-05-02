@@ -78,11 +78,17 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if the system has the type `long long'. */
-#undef HAVE_LONG_LONG
+/* Define to 1 if the system has the type `long long int'. */
+#undef HAVE_LONG_LONG_INT
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if the PCRE library is present. */
+#undef HAVE_PCRE
+
+/* Define to 1 if you have the `regcomp' function. */
+#undef HAVE_REGCOMP
 
 /* Define if <sys/socket.h> defines the SA_LEN macro. */
 #undef HAVE_SA_LEN
@@ -123,13 +129,13 @@
 /* Define to 1 if the system has the type `struct sockaddr_in6'. */
 #undef HAVE_STRUCT_SOCKADDR_IN6
 
-/* Define to 1 if `struct sockaddr' is a member of `sa_len'. */
+/* Define to 1 if `sa_len' is a member of `struct sockaddr'. */
 #undef HAVE_STRUCT_SOCKADDR_SA_LEN
 
 /* Define to 1 if the system has the type `struct sockaddr_storage'. */
 #undef HAVE_STRUCT_SOCKADDR_STORAGE
 
-/* Define to 1 if `struct sockaddr_storage' is a member of `ss_family'. */
+/* Define to 1 if `ss_family' is a member of `struct sockaddr_storage'. */
 #undef HAVE_STRUCT_SOCKADDR_STORAGE_SS_FAMILY
 
 /* Define to 1 if you have the <syslog.h> header file. */

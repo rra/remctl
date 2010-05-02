@@ -77,7 +77,9 @@
 # define LOG_CRIT       EVENTLOG_ERROR_TYPE
 #endif
 
-#include <util/util.h>
+#include <util/macros.h>
+#include <util/messages.h>
+#include <util/xmalloc.h>
 
 /* The default handler lists. */
 static message_handler_func stdout_handlers[2] = {

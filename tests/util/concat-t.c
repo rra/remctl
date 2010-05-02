@@ -15,7 +15,7 @@
 #include <portable/system.h>
 
 #include <tests/tap/basic.h>
-#include <util/util.h>
+#include <util/concat.h>
 
 #define END (char *) 0
 

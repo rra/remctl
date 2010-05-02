@@ -5,7 +5,7 @@
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 2.13
+Version: 2.16
 Release: 1.EL%{rel}
 Copyright: MIT
 URL: http://www.eyrie.org/~eagle/software/remctl/
@@ -96,7 +96,7 @@ find %{buildroot} -name perllocal.pod -exec rm {} \;
 /usr/include/remctl.h
 %{ldir}/libremctl.a
 %{ldir}/libremctl.la
-%{ldir}/libremctl.so.1.0.0
+%{ldir}/libremctl.so.1.0.2
 %{_mandir}/*/remctl.*
 %{_mandir}/*/remctl_*
 %if %{buildperl}
@@ -158,6 +158,10 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Sun May 2 2010 Russ Allbery <rra@stanford.edu> 2.16-1
+- Update for 2.16.
+- Ruby bindings also not yet supported.
+
 * Fri Nov 14 2008 Russ Allbery <rra@stanford.edu> 2.13-1
 - Update for 2.13.
 - PHP and Python bindings not yet supported.

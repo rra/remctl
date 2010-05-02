@@ -16,7 +16,6 @@
 #include <portable/socket.h>
 
 #include <tests/tap/basic.h>
-#include <util/util.h>
 
 /*
  * If the native platform doesn't support AI_NUMERICSERV or AI_NUMERICHOST,

@@ -16,7 +16,7 @@
  *     #include <unistd.h>
  *
  * Missing functions are provided via #define or prototyped if available from
- * the util helper library.  Also provides some standard #defines.
+ * the portable helper library.  Also provides some standard #defines.
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * This work is hereby placed in the public domain by its author.

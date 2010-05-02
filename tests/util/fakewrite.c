@@ -15,7 +15,7 @@
 
 #include <errno.h>
 
-#include <util/util.h>
+#include <util/macros.h>
 
 ssize_t fake_write(int, const void *, size_t);
 ssize_t fake_pwrite(int, const void *, size_t, off_t);
