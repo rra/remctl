@@ -696,9 +696,10 @@ top_srcdir = @top_srcdir@
 # situations and aren't normally set.  PYTHON_INSTALL adds additional flags
 # to the setup.py install command.  PYTHON_VERSION narrows the search for
 # Python build directories during make check to only those matching that
-# version.
+# version.  RUBY controls which Ruby interpretor is used to do the build.
 PYTHON_INSTALL = 
 PYTHON_VERSION = 
+RUBY = ruby
 
 # These three lists of files are needed for Perl builds, Python builds, and
 # for the test suite and are not generated or touched by configure.  They're
@@ -725,11 +726,11 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.rc     \
 	java/org/eyrie/eagle/remctl/Remctl.java				     \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			     \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	     \
-	java/t7.java portable/winsock.c remctl.spec tests/TESTS		     \
-	tests/client/remctl-t tests/data/README tests/data/acl-bad-include   \
-	tests/data/acl-bad-syntax tests/data/acl-nonexistant		     \
-	tests/data/acl-recursive tests/data/acl-simple			     \
-	tests/data/acl-too-long tests/data/acl-valid-3			     \
+	java/t7.java portable/winsock.c remctl.spec ruby/README		     \
+	ruby/remctl.c tests/TESTS tests/client/remctl-t tests/data/README    \
+	tests/data/acl-bad-include tests/data/acl-bad-syntax		     \
+	tests/data/acl-nonexistant tests/data/acl-recursive		     \
+	tests/data/acl-simple tests/data/acl-too-long tests/data/acl-valid-3 \
 	tests/data/acls/VALID_09 tests/data/acls/val\#id		     \
 	tests/data/acls/val.id tests/data/acls/valid tests/data/acls/valid-2 \
 	tests/data/acls/val~id tests/data/acls2/valid-4 tests/data/cmd-argv  \
@@ -2658,7 +2659,7 @@ check-local: $(check_PROGRAMS)
 	fi
 	@set -e; if [ -f ruby/Makefile ] ; then \
 	    echo '' ; \
-	    cd ruby && ruby test_remctl.rb ; \
+	    cd ruby && $(RUBY) test_remctl.rb ; \
 	fi
 
 # The following section sets up the Perl module build properly.  Most of the
@@ -2724,7 +2725,7 @@ install-data-local-python: stamp-python
 
 # The Ruby build system actually supports VPATH!
 ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c
-	cd ruby && ruby extconf.rb
+	cd ruby && $(RUBY) extconf.rb
 	cd ruby && $(MAKE) CFLAGS="$(CFLAGS) $(RUBY_WARNINGS)"
 
 install-data-local-ruby: ruby/remctl.so
