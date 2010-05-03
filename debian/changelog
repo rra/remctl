@@ -4,6 +4,8 @@ remctl (2.16-1) UNRELEASED; urgency=low
     - Add Ruby bindings (install libremctl-ruby).
     - Add support for PCRE and regex ACLs in the remctl server.
     - remctld now sets REMCTL_COMMAND to the command run.
+  * Use dh_gencontrol -- -V to pass the PHP version substvar instead of
+    writing it to the substvars file.
 
  -- Russ Allbery <rra@debian.org>  Sun, 02 May 2010 16:37:08 -0700
 
