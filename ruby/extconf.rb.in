@@ -10,9 +10,7 @@
 # This hack is to force the extension to build against the local client
 # library rather than some other library already installed on the system.
 require 'rbconfig'
-old_libdir = Config::CONFIG['libdir']
 require 'mkmf'
-Config::MAKEFILE_CONFIG['libdir'] = '@abs_top_srcdir@/client/.libs'
 
 # We add $CFLAGS to the contents of $CPPFLAGS since otherwise we lose the
 # Ruby $CFLAGS.  The build system overrides CFLAGS with make warnings.
@@ -20,8 +18,7 @@ Config::MAKEFILE_CONFIG['libdir'] = '@abs_top_srcdir@/client/.libs'
 # should be able to set at build time without losing information.
 $INCFLAGS = "-I@abs_top_srcdir@ #{$INCFLAGS}"
 $CPPFLAGS << " #{$CFLAGS} @CPPFLAGS@"
-$LDFLAGS  << " -L@abs_top_srcdir@/client/.libs -lremctl -L#{old_libdir}"
-$LDFLAGS  << " @LDFLAGS@"
+$LDFLAGS  = "-L@abs_top_srcdir@/client/.libs -lremctl @LDFLAGS@ #{$LDFLAGS}"
 
 # Intentionally do not check for libremctl here.  We're forcing the link
 # with LDFLAGS above, and mkmf is apparently too stupid to use $LDFLAGS

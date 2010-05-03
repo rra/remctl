@@ -44,6 +44,16 @@
 #undef PACKAGE_BUGREPORT
 #include <ruby.h>
 
+/*
+ * Ruby 1.9 changed the call signature for rb_cvar_set.  Ruby 1.8 used to
+ * define useful variables like RUBY_VERSION_MAJOR, but of course Ruby 1.9
+ * removed them all, so we use this hack instead; hopefully it will work for
+ * all the versions that people care about.
+ */
+#ifndef HAVE_RUBY_DEFINES_H
+# define rb_cvar_set(a, b, c) rb_cvar_set((a), (b), (c), 0)
+#endif
+
 /* Our public interface. */
 void Init_remctl(void);
 
@@ -188,7 +198,7 @@ rb_remctl_default_port_set(VALUE self UNUSED, VALUE new)
     if (port > 65535)
         rb_raise(rb_eArgError, "Port number %u out of range", port);
     else
-        rb_cvar_set(cRemctl, AAdefault_port, new, 0);
+        rb_cvar_set(cRemctl, AAdefault_port, new);
     return rb_cvar_get(cRemctl, AAdefault_port);
 }
 
@@ -215,7 +225,7 @@ rb_remctl_default_principal_get(VALUE self UNUSED)
 static VALUE
 rb_remctl_default_principal_set(VALUE self UNUSED, VALUE new)
 {
-    rb_cvar_set(cRemctl, AAdefault_principal, StringValue(new), 0);
+    rb_cvar_set(cRemctl, AAdefault_principal, StringValue(new));
     return rb_cvar_get(cRemctl, AAdefault_principal);
 }
 
@@ -436,8 +446,8 @@ Init_remctl(void)
     Aprincipal          = rb_intern("@principal");
 
     /* Default values for class variables. */
-    rb_cvar_set(cRemctl, AAdefault_port, UINT2NUM(0), 0);
-    rb_cvar_set(cRemctl, AAdefault_principal, Qnil, 0);
+    rb_cvar_set(cRemctl, AAdefault_port, UINT2NUM(0));
+    rb_cvar_set(cRemctl, AAdefault_principal, Qnil);
 
     /* Getter and setter methods for class variables. */
     rb_define_singleton_method(cRemctl, "default_port",
