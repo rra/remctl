@@ -14,8 +14,8 @@ OVERVIEW
 
 REQUIREMENTS
 
-  The module has been tested with Ruby 1.8 and may not work with older
-  (or newer) versions of Ruby.
+  The module has been tested with Ruby 1.8 and 1.9.1 and may not work with
+  older (or newer) versions of Ruby.
 
 SIMPLIFIED INTERFACE
 
