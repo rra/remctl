@@ -20,9 +20,12 @@ Config::MAKEFILE_CONFIG['libdir'] = '@abs_top_srcdir@/client/.libs'
 # should be able to set at build time without losing information.
 $INCFLAGS = "-I@abs_top_srcdir@ #{$INCFLAGS}"
 $CPPFLAGS << " #{$CFLAGS} @CPPFLAGS@"
-$LDFLAGS  << " -L@abs_top_srcdir@/client/.libs -L#{old_libdir} @LDFLAGS@"
+$LDFLAGS  << " -L@abs_top_srcdir@/client/.libs -lremctl -L#{old_libdir}"
+$LDFLAGS  << " @LDFLAGS@"
 
-fail "Couldn't find libremctl"\
-    unless have_library('remctl', 'remctl_open', 'remctl.h')
+# Intentionally do not check for libremctl here.  We're forcing the link
+# with LDFLAGS above, and mkmf is apparently too stupid to use $LDFLAGS
+# when searching for a shared library and fails unless libremctl is
+# already installed in the system locations.
 
 create_makefile('remctl')
