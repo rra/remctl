@@ -168,9 +168,12 @@ FULL INTERFACE
 
       * Remctl::NotOpen: no connection currently open
 
+      Errors from the server are returned as an error token, not as an
+      exception.
+
   r.close()
-      Close a connection.  After calling this method, #reopen must
-      be called for this object before sending any further commands.  The
+      Close a connection.  After calling this method, #reopen must be
+      called for this object before sending any further commands.  The
       connection will also be automatically closed when the object is
       destroyed, so calling this method is often not necessary.
 
