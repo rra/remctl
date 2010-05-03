@@ -1,4 +1,4 @@
-remctl (2.16-1) UNRELEASED; urgency=low
+remctl (2.16-1) unstable; urgency=low
 
   * New upstream release.
     - Add Ruby bindings (install libremctl-ruby).
@@ -11,7 +11,7 @@ remctl (2.16-1) UNRELEASED; urgency=low
     fixes cherry-picked from upstream and breaking those patches out
     separately would be work for no gain.
 
- -- Russ Allbery <rra@debian.org>  Sun, 02 May 2010 16:37:08 -0700
+ -- Russ Allbery <rra@debian.org>  Sun, 02 May 2010 18:13:50 -0700
 
 remctl (2.15-3) unstable; urgency=low
 
