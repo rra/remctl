@@ -6,6 +6,10 @@ remctl (2.16-1) UNRELEASED; urgency=low
     - remctld now sets REMCTL_COMMAND to the command run.
   * Use dh_gencontrol -- -V to pass the PHP version substvar instead of
     writing it to the substvars file.
+  * Switch to 3.0 (quilt) source format.  Force a single Debian patch and
+    include a custom patch header explaining that it is a rollup of any
+    fixes cherry-picked from upstream and breaking those patches out
+    separately would be work for no gain.
 
  -- Russ Allbery <rra@debian.org>  Sun, 02 May 2010 16:37:08 -0700
 
