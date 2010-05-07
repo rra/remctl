@@ -159,8 +159,8 @@ with the same ACLs.  Since the first matching entry is used, list entries
 for specific commands first (if any) and then the C<ALL> catch-all.  Note
 that while the subcommand is passed to the executable, the command is not.
 Prior to remctl 2.16, the program run will not be able to distinguish
-between different commands. From remctl 2.16 on the environment variable
-REMCTL_COMMAND will contain the command. (See the ENVIRONMENT section
+between different commands.  From remctl 2.16 on, the environment variable
+REMCTL_COMMAND will contain the command.  (See the ENVIRONMENT section
 below.)
 
 =item I<subcommand>
