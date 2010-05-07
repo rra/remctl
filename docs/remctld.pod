@@ -157,9 +157,11 @@ matches all commands with the given subcommand (so C<ALL ALL> matches any
 command) and can be used to dispatch all commands to the same executable
 with the same ACLs.  Since the first matching entry is used, list entries
 for specific commands first (if any) and then the C<ALL> catch-all.  Note
-that while the subcommand is passed to the executable, the command is not,
-so the program run will not be able to distinguish between different
-commands.
+that while the subcommand is passed to the executable, the command is not.
+Prior to remctl 2.16, the program run will not be able to distinguish
+between different commands. From remctl 2.16 on the environment variable
+REMCTL_COMMAND will contain the command. (See the ENVIRONMENT section
+below.)
 
 =item I<subcommand>
 
