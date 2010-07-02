@@ -175,10 +175,10 @@ INSTALLATION (UNIX)
   Normally, configure will use krb5-config to determine the flags to use
   to compile with your Kerberos GSS-API libraries.  If krb5-config isn't
   found, it will look for the standard Kerberos libraries in locations
-  already searched by your compiler.  If the the krb5-config script first
-  in your path is not the one corresponding to the Kerberos libraries you
-  want to use or if your Kerberos libraries and includes aren't in a
-  location searched by default by your compiler, you need to specify
+  already searched by your compiler.  If the krb5-config script first
+  in your path is not the one corresponding to the Kerberos libraries
+  you want to use or if your Kerberos libraries and includes aren't in
+  a location searched by default by your compiler, you need to specify
   --with-gssapi=PATH:
 
       ./configure --with-gssapi=/usr/pubsw
@@ -276,7 +276,7 @@ TESTING
 
   In order to do more than limited tests of the low-level routines, you
   should first create a keytab for testing use containing the key for a
-  principal in your local domain.  See tests/data/README for instructions
+  principal in your local realm.  See tests/data/README for instructions
   on what to create and where to place the files.
 
   If a test case fails, please run the that individual test case with
