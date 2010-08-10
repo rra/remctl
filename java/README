@@ -24,7 +24,8 @@ REQUIREMENTS
   To use 256-bit AES keys, you will need to get the "Java Cryptography
   Extension (ECE) Unlimited Strength Jurisdiction Policy Files 6"
   (filename jce_policy-6.zip), which is available (at least to US
-  residents) from <http://java.sun.com/javase/downloads/index.jsp>.
+  residents) from
+  <http://www.oracle.com/technetwork/java/javase/downloads/index.html>.
 
 BUILDING
 
