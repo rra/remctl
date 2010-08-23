@@ -156,13 +156,10 @@ handle_include(const char *included, const char *file, int lineno,
         }
         while ((entry = readdir(dir)) != NULL) {
             char *path;
-            size_t length;
 
             if (!valid_filename(entry->d_name))
                 continue;
-            length = strlen(included) + 1 + strlen(entry->d_name) + 1;
-            path = xmalloc(length);
-            snprintf(path, length, "%s/%s", included, entry->d_name);
+            xasprintf(&path, "%s/%s", included, entry->d_name);
             last = (*function)(data, path);
             free(path);
             if (last < -1) {
