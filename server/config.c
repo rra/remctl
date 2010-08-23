@@ -106,11 +106,11 @@ valid_filename(const char *filename)
  * Process a request for including a file, either for configuration or for
  * ACLs.  Called by read_conf_file and acl_check_file.
  *
- * Takes the vector that represents the include directive, the current file,
- * the line number, the function to call for each included file, and a piece
- * of data to pass to that function.  Handles including either files or
- * directories.  When used for processing ACL files named in the configuration
- * file, the current file and line number will be passed as zero.
+ * Takes the file to include, the current file, the line number, the function
+ * to call for each included file, and a piece of data to pass to that
+ * function.  Handles including either files or directories.  When used for
+ * processing ACL files named in the configuration file, the current file and
+ * line number will be passed as zero.
  *
  * If the function returns a value less than -1, return its return code.  If
  * the file is recursively included or if there is an error in reading a file
@@ -131,7 +131,7 @@ handle_include(const char *included, const char *file, int lineno,
         return CONFIG_ERROR;
     }
     if (stat(included, &st) < 0) {
-        warn("%s:%d: included file %s not found", file, lineno, included);
+        syswarn("%s:%d: included file %s not found", file, lineno, included);
         return CONFIG_ERROR;
     }
 
@@ -149,6 +149,11 @@ handle_include(const char *included, const char *file, int lineno,
         int last;
 
         dir = opendir(included);
+        if (dir == NULL) {
+            syswarn("%s:%d: included directory %s cannot be opened", file,
+                 lineno, included);
+            return CONFIG_ERROR;
+        }
         while ((entry = readdir(dir)) != NULL) {
             char *path;
             size_t length;
