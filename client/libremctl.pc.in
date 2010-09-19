@@ -9,4 +9,4 @@ URL: http://www.eyrie.org/~eagle/software/remctl/
 Version: @PACKAGE_VERSION@
 Cflags: -I${includedir}
 Libs: -L${libdir} -lremctl
-Libs.private: @GSSAPI_LIBS@
+Libs.private: @GSSAPI_LDFLAGS@ @GSSAPI_LIBS@
