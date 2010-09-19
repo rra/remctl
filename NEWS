@@ -1,5 +1,11 @@
                        User-Visible remctl Changes
 
+remctl 2.17 (unreleased)
+
+    The remctl client library also installs a pkg-config configuration
+    file for the use of software that wants to link against it.  Thanks to
+    Tollef Fog Heen for the assistance in writing it.
+
 remctl 2.16 (2010-05-02)
 
     Add Ruby bindings contributed by Anthony M. Martinez, enabled with

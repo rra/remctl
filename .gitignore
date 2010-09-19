@@ -1,4 +1,5 @@
 /build-aux/
+/client/libremctl.pc
 /client/remctl
 /docs/protocol.html
 /docs/protocol.txt

@@ -26,9 +26,9 @@ PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.rc     \
-	client/mapfile client/remctl.rc config.h.w32 configure.cmd	     \
-	docs/api/remctl.pod docs/api/remctl_close.pod			     \
+EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in  \
+	client/libremctl.rc client/mapfile client/remctl.rc config.h.w32     \
+	configure.cmd docs/api/remctl.pod docs/api/remctl_close.pod	     \
 	docs/api/remctl_command.pod docs/api/remctl_error.pod		     \
 	docs/api/remctl_new.pod docs/api/remctl_open.pod		     \
 	docs/api/remctl_output.pod docs/design.html docs/extending	     \
@@ -103,6 +103,19 @@ dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3 \
 	docs/api/remctl_new.3 docs/api/remctl_open.3 \
 	docs/api/remctl_output.3 docs/remctl.1
 man_MANS = docs/remctld.8
+
+pkgconfigdir = $(libdir)/pkgconfig
+nodist_pkgconfig_DATA = client/libremctl.pc
+
+client/libremctl.pc: $(srcdir)/client/libremctl.pc.in
+	sed -e 's,[@]prefix[@],$(prefix),g' \
+	    -e 's,[@]exec_prefix[@],$(exec_prefix),g' \
+	    -e 's,[@]includedir[@],$(includedir),g' \
+	    -e 's,[@]libdir[@],$(libdir),g' \
+	    -e 's,[@]PACKAGE_VERSION[@],$(PACKAGE_VERSION),g' \
+	    -e 's,[@]GSSAPI_LDFLAGS[@],$(GSSAPI_LDFLAGS),g' \
+	    -e 's,[@]GSSAPI_LIBS[@],$(GSSAPI_LIBS),g' \
+	    $(srcdir)/client/libremctl.pc.in > $@
 
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
 	[ -d docs ] || mkdir docs

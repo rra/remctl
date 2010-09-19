@@ -123,8 +123,6 @@ Build system:
    a keytab and use that for running the Kerberos tests instead of
    requiring the user to generate a keytab.
 
- * Add pkgconfig support for libremctl.
-
 Portability layer:
 
  * Refactor getopt to be easier to understand and less deeply nested.
