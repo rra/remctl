@@ -108,13 +108,13 @@ pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = client/libremctl.pc
 
 client/libremctl.pc: $(srcdir)/client/libremctl.pc.in
-	sed -e 's,[@]prefix[@],$(prefix),g' \
-	    -e 's,[@]exec_prefix[@],$(exec_prefix),g' \
-	    -e 's,[@]includedir[@],$(includedir),g' \
-	    -e 's,[@]libdir[@],$(libdir),g' \
-	    -e 's,[@]PACKAGE_VERSION[@],$(PACKAGE_VERSION),g' \
-	    -e 's,[@]GSSAPI_LDFLAGS[@],$(GSSAPI_LDFLAGS),g' \
-	    -e 's,[@]GSSAPI_LIBS[@],$(GSSAPI_LIBS),g' \
+	sed -e 's![@]prefix[@]!$(prefix)!g' \
+	    -e 's![@]exec_prefix[@]!$(exec_prefix)!g' \
+	    -e 's![@]includedir[@]!$(includedir)!g' \
+	    -e 's![@]libdir[@]!$(libdir)!g' \
+	    -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g' \
+	    -e 's![@]GSSAPI_LDFLAGS[@]!$(GSSAPI_LDFLAGS)!g' \
+	    -e 's![@]GSSAPI_LIBS[@]!$(GSSAPI_LIBS)!g' \
 	    $(srcdir)/client/libremctl.pc.in > $@
 
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
