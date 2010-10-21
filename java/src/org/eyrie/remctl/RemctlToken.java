@@ -20,7 +20,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSException;
@@ -108,11 +110,13 @@ enum RemctlMessageCode {
     }
 
     /** Map of wire byte values to #RemctlMessageCode objects. */
-    private static HashMap<Byte, RemctlMessageCode> codes = new HashMap<Byte, RemctlMessageCode>();
+    private static final Map<Byte, RemctlMessageCode> codes;
     static {
+        Map<Byte, RemctlMessageCode> m = new HashMap<Byte, RemctlMessageCode>();
         for (RemctlMessageCode c : RemctlMessageCode.class.getEnumConstants()) {
-            codes.put(c.value, c);
+            m.put(c.value, c);
         }
+        codes = Collections.unmodifiableMap(m);
     }
 
     /**
@@ -221,6 +225,19 @@ class RemctlMessageToken extends RemctlToken {
     /** Data payload of token. */
     private byte[] data;
 
+    /** Map of message codes to classes representing that message. */
+    private static final Map<RemctlMessageCode, Class<? extends RemctlToken>> messageClasses;
+    static {
+        Map<RemctlMessageCode, Class<? extends RemctlToken>> m = new HashMap<RemctlMessageCode, Class<? extends RemctlToken>>();
+        m.put(RemctlMessageCode.MESSAGE_COMMAND, RemctlCommandToken.class);
+        m.put(RemctlMessageCode.MESSAGE_QUIT, RemctlQuitToken.class);
+        m.put(RemctlMessageCode.MESSAGE_OUTPUT, RemctlOutputToken.class);
+        m.put(RemctlMessageCode.MESSAGE_STATUS, RemctlStatusToken.class);
+        m.put(RemctlMessageCode.MESSAGE_ERROR, RemctlErrorToken.class);
+        m.put(RemctlMessageCode.MESSAGE_VERSION, RemctlVersionToken.class);
+        messageClasses = Collections.unmodifiableMap(m);
+    }
+
     /**
      * Construct a message token with the given GSS-API context, version, and
      * type but no private data. This constructor should be used by child
@@ -248,11 +265,30 @@ class RemctlMessageToken extends RemctlToken {
     }
 
     /**
+     * Construct a message token from a byte array. This constructor is mostly
+     * useless in <code>RemctlMessageToken</code>. It is here to be overridden
+     * by subclasses and is the constructor used to create new classes from data
+     * read from a stream.
+     * 
+     * @param context
+     *            GSS-API context used for encryption
+     * @param data
+     *            The message-specific data in the token
+     * @throws RemctlException
+     *             The message-specific data is invalid for this type of token
+     *             or cannot be parsed
+     */
+    RemctlMessageToken(GSSContext context, byte[] data) throws RemctlException {
+        this.context = context;
+        this.version = 2;
+        this.type = RemctlMessageCode.MESSAGE_ERROR;
+    }
+
+    /**
      * Construct a message token with the given GSS-API context, version, type,
-     * and data. This constructor and class are normally not used directly;
-     * instead, a subclass representing one of the known message types should
-     * normally be used instead. It's provided to write pure byte strings as
-     * message tokens and is useful for testing.
+     * and data. This constructor is provided to write pure byte strings as
+     * message tokens and is useful for testing. It should generally not be
+     * provided by subclasses.
      * 
      * @param context
      *            GSS-API context used for encryption
@@ -360,6 +396,7 @@ class RemctlMessageToken extends RemctlToken {
         }
         byte code = message[1];
         RemctlMessageCode type = RemctlMessageCode.getCode(code);
+        Class<? extends RemctlToken> klass = messageClasses.get(type);
         return new RemctlMessageToken(context, version, type);
     }
 }
@@ -644,6 +681,22 @@ class RemctlQuitToken extends RemctlMessageToken {
     }
 
     /**
+     * Construct a quit token from token data.
+     * 
+     * @param context
+     *            GSS-API context used for encryption.
+     * @param data
+     *            Token data (must be empty)
+     * @throws RemctlException
+     *             If the data is not empty
+     */
+    RemctlQuitToken(GSSContext context, byte[] data) throws RemctlException {
+        super(context, data);
+        if (data.length != 0)
+            throw new RemctlErrorException(RemctlErrorCode.ERROR_BAD_TOKEN);
+    }
+
+    /**
      * Determine the length of this quit message token.
      * 
      * @return The length of the wire representation of the data payload of this
@@ -690,10 +743,26 @@ class RemctlVersionToken extends RemctlMessageToken {
     RemctlVersionToken(GSSContext context, int version)
             throws RemctlException {
         super(context, 2, RemctlMessageCode.MESSAGE_VERSION);
-        if (version < 2) {
+        if (version < 2)
             throw new RemctlProtocolException("Invalid protocol version"
                     + version);
-        }
+    }
+
+    /**
+     * Construct a version token from token data.
+     * 
+     * @param context
+     *            GSS-API context used for encryption.
+     * @param data
+     *            Token data to parse for version information
+     * @throws RemctlException
+     *             If the data is not a valid version number
+     */
+    RemctlVersionToken(GSSContext context, byte[] data) throws RemctlException {
+        super(context, data);
+        if (data.length != 1)
+            throw new RemctlErrorException(RemctlErrorCode.ERROR_BAD_TOKEN);
+        this.version = data[0];
     }
 
     /**
