@@ -13,13 +13,15 @@ package org.eyrie.remctl;
  * @author Russ Allbery &lt;rra@stanford.edu&gt;
  */
 public class RemctlException extends Exception {
+    /** Object ID for serialization. */
     private static final long serialVersionUID = -4221280841282852331L;
-    
+
     /**
      * Constructs a <code>RemctlException</code> with the provided detail
      * string.
      * 
-     * @param msg   The detail message
+     * @param msg
+     *            The detail message
      */
     public RemctlException(String msg) {
         super(msg);
