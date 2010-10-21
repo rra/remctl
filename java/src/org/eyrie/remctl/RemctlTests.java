@@ -6,7 +6,9 @@
  */
 package org.eyrie.remctl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import org.junit.Test;
 
 /**
@@ -24,14 +26,14 @@ public class RemctlTests {
                 RemctlMessageCode.getCode(1));
         assertNull("unknown message", RemctlMessageCode.getCode(42));
     }
-    
+
     /**
      * Test method for {@link RemctlErrorException#getMessage()}.
      */
     @Test
     public void testGetMessage() {
-        RemctlErrorException e 
-            = new RemctlErrorException(RemctlErrorCode.ERROR_INTERNAL);
+        RemctlErrorException e = new RemctlErrorException(
+                RemctlErrorCode.ERROR_INTERNAL);
         assertEquals("ERROR_INTERNAL", "Internal server failure (error 1)",
                 e.getMessage());
         e = new RemctlErrorException(RemctlErrorCode.ERROR_TOOMUCH_DATA);
