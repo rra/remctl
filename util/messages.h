@@ -60,21 +60,21 @@ void message_handlers_die(int count, ...);
  * argument list, and the errno setting if any.
  */
 void message_log_stdout(int, const char *, va_list, int)
-    __attribute((__nonnull__));
+    __attribute__((__nonnull__));
 void message_log_stderr(int, const char *, va_list, int)
-    __attribute((__nonnull__));
+    __attribute__((__nonnull__));
 void message_log_syslog_debug(int, const char *, va_list, int)
-    __attribute((__nonnull__));
+    __attribute__((__nonnull__));
 void message_log_syslog_info(int, const char *, va_list, int)
-    __attribute((__nonnull__));
+    __attribute__((__nonnull__));
 void message_log_syslog_notice(int, const char *, va_list, int)
-    __attribute((__nonnull__));
+    __attribute__((__nonnull__));
 void message_log_syslog_warning(int, const char *, va_list, int)
-    __attribute((__nonnull__));
+    __attribute__((__nonnull__));
 void message_log_syslog_err(int, const char *, va_list, int)
-    __attribute((__nonnull__));
+    __attribute__((__nonnull__));
 void message_log_syslog_crit(int, const char *, va_list, int)
-    __attribute((__nonnull__));
+    __attribute__((__nonnull__));
 
 /* The type of a message handler. */
 typedef void (*message_handler_func)(int, const char *, va_list, int);

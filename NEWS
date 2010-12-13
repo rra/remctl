@@ -9,6 +9,9 @@ remctl 2.17 (unreleased)
     Remove reference to the defunct messages-die.c source file in the
     Windows build system.
 
+    Fix broken GCC attribute markers causing problems with compilation on
+    Windows (and likely any non-GCC compiler).
+
 remctl 2.16 (2010-05-02)
 
     Add Ruby bindings contributed by Anthony M. Martinez, enabled with
