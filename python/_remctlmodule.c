@@ -99,7 +99,7 @@ py_remctl(PyObject *self, PyObject *args)
     }
     result = Py_BuildValue("(ss#s#i)", rr->error,
                            rr->stdout_buf, (int) rr->stdout_len,
-                           rr->stderr_buf, (int) rr->stderr_buf,
+                           rr->stderr_buf, (int) rr->stderr_len,
                            rr->status);
     remctl_result_free(rr);
 
