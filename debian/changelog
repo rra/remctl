@@ -3,6 +3,9 @@ remctl (2.16-2) UNRELEASED; urgency=low
   * Skip the getaddrinfo invalid host test if foo.invalid resolves using
     gethostbyname.  This hopefully works around build issues on kFreeBSD.
     (See #626047)
+  * Update network utility library from rra-c-util 3.4 to fix problems
+    with the test suite on hosts that bind IPv4 addresses when binding
+    IPv6 addresses by default.
 
  -- Russ Allbery <rra@debian.org>  Tue, 10 May 2011 20:42:18 -0700
 
