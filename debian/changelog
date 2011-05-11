@@ -1,3 +1,11 @@
+remctl (2.16-2) UNRELEASED; urgency=low
+
+  * Skip the getaddrinfo invalid host test if foo.invalid resolves using
+    gethostbyname.  This hopefully works around build issues on kFreeBSD.
+    (See #626047)
+
+ -- Russ Allbery <rra@debian.org>  Tue, 10 May 2011 20:42:18 -0700
+
 remctl (2.16-1) unstable; urgency=low
 
   * New upstream release.
