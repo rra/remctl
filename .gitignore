@@ -34,7 +34,9 @@
 /php/mkinstalldirs
 /php/modules/
 /php/php_remctl.h
+/php/php_test_results_*.txt
 /php/run-tests.php
+/php/tmp-php.ini
 /python/MANIFEST
 /python/build
 /python/dist
