@@ -3,7 +3,8 @@
 # Test suite for the remctl command-line client.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2009 Board of Trustees, Leland Stanford Jr. University
+# Copyright 2006, 2007, 2009, 2011
+#     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
 
@@ -39,7 +40,8 @@ ok_program "wrong principal" 255 "Access denied" \
 ok_program "non-existent ACL" 255 "Access denied" \
     "$remctl" -s "$principal" -p 14373 localhost test noacl
 ok_program "non-existent command" 255 "Cannot execute" \
-    "$remctl" -s "$principal" -p 14373 localhost test nonexistent
+    strip_colon_error "$remctl" -s "$principal" -p 14373 \
+        localhost test nonexistent
 ok_program "unknown command" 255 "Unknown command" \
     "$remctl" -s "$principal" -p 14373 localhost test bad-command
 ok_program "201 arguments" 0 "201" \

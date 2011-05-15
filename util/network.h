@@ -1,13 +1,28 @@
 /*
  * Prototypes for network connection utility functions.
  *
- * Copyright 2009, 2010 Board of Trustees, Leland Stanford Jr. University
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2009, 2010
+ *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007, 2008, 2010
  *     by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
  *     2002, 2003 by The Internet Software Consortium and Rich Salz
  *
- * See LICENSE for licensing terms.
+ * This code is derived from software contributed to the Internet Software
+ * Consortium by Rich Salz.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
 #ifndef UTIL_NETWORK_H
@@ -43,7 +58,8 @@ socket_type network_bind_ipv6(const char *address, unsigned short port)
  * fds will be set to an array containing the resulting file descriptors, with
  * count holding the count returned.
  */
-void network_bind_all(unsigned short port, socket_type **fds, int *count)
+void network_bind_all(unsigned short port, socket_type **fds,
+                      unsigned int *count)
     __attribute__((__nonnull__));
 
 /*

@@ -1,13 +1,27 @@
 /*
  * Prototypes for message and error reporting (possibly fatal).
  *
- * Copyright 2008, 2010 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2008, 2010
+ *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
  *     2002, 2003 by The Internet Software Consortium and Rich Salz
  *
- * See LICENSE for licensing terms.
+ * This code is derived from software contributed to the Internet Software
+ * Consortium by Rich Salz.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
 #ifndef UTIL_MESSAGES_H
@@ -49,35 +63,35 @@ void sysdie(const char *, ...)
  * of those handlers.  These functions are not thread-safe; they set global
  * variables.
  */
-void message_handlers_debug(int count, ...);
-void message_handlers_notice(int count, ...);
-void message_handlers_warn(int count, ...);
-void message_handlers_die(int count, ...);
+void message_handlers_debug(unsigned int count, ...);
+void message_handlers_notice(unsigned int count, ...);
+void message_handlers_warn(unsigned int count, ...);
+void message_handlers_die(unsigned int count, ...);
 
 /*
  * Some useful handlers, intended to be passed to message_handlers_*.  All
  * handlers take the length of the formatted message, the format, a variadic
  * argument list, and the errno setting if any.
  */
-void message_log_stdout(int, const char *, va_list, int)
+void message_log_stdout(size_t, const char *, va_list, int)
     __attribute__((__nonnull__));
-void message_log_stderr(int, const char *, va_list, int)
+void message_log_stderr(size_t, const char *, va_list, int)
     __attribute__((__nonnull__));
-void message_log_syslog_debug(int, const char *, va_list, int)
+void message_log_syslog_debug(size_t, const char *, va_list, int)
     __attribute__((__nonnull__));
-void message_log_syslog_info(int, const char *, va_list, int)
+void message_log_syslog_info(size_t, const char *, va_list, int)
     __attribute__((__nonnull__));
-void message_log_syslog_notice(int, const char *, va_list, int)
+void message_log_syslog_notice(size_t, const char *, va_list, int)
     __attribute__((__nonnull__));
-void message_log_syslog_warning(int, const char *, va_list, int)
+void message_log_syslog_warning(size_t, const char *, va_list, int)
     __attribute__((__nonnull__));
-void message_log_syslog_err(int, const char *, va_list, int)
+void message_log_syslog_err(size_t, const char *, va_list, int)
     __attribute__((__nonnull__));
-void message_log_syslog_crit(int, const char *, va_list, int)
+void message_log_syslog_crit(size_t, const char *, va_list, int)
     __attribute__((__nonnull__));
 
 /* The type of a message handler. */
-typedef void (*message_handler_func)(int, const char *, va_list, int);
+typedef void (*message_handler_func)(size_t, const char *, va_list, int);
 
 /* If non-NULL, called before exit and its return value passed to exit. */
 extern int (*message_fatal_cleanup)(void);

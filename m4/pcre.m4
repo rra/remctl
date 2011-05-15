@@ -16,9 +16,12 @@ dnl
 dnl Depends on RRA_SET_LDFLAGS.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2010 Board of Trustees, Leland Stanford Jr. University
+dnl Copyright 2010
+dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
-dnl See LICENSE for licensing terms.
+dnl This file is free software; the authors give unlimited permission to copy
+dnl and/or distribute it, with or without modifications, as long as this
+dnl notice is preserved.
 
 dnl Save the current CPPFLAGS, LDFLAGS, and LIBS settings and switch to
 dnl versions that include the PCRE flags.  Used as a wrapper, with
@@ -112,12 +115,12 @@ AC_DEFUN([RRA_LIB_PCRE_OPTIONAL],
          rra_use_pcre=true])])
  AC_ARG_WITH([pcre-include],
     [AS_HELP_STRING([--with-pcre-include=DIR],
-        [Location of Kerberos v5 headers])],
+        [Location of PCRE headers])],
     [AS_IF([test x"$withval" != xyes && test x"$withval" != xno],
         [rra_pcre_includedir="$withval"])])
  AC_ARG_WITH([pcre-lib],
     [AS_HELP_STRING([--with-pcre-lib=DIR],
-        [Location of Kerberos v5 libraries])],
+        [Location of PCRE libraries])],
     [AS_IF([test x"$withval" != xyes && test x"$withval" != xno],
         [rra_pcre_libdir="$withval"])])
 

@@ -50,13 +50,28 @@
  * generates given the format and arguments), a format, an argument list as a
  * va_list, and the applicable errno value (if any).
  *
- * Copyright 2008 Board of Trustees, Leland Stanford Jr. University
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2008, 2009, 2010
+ *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
  *     2002, 2003 by The Internet Software Consortium and Rich Salz
  *
- * See LICENSE for licensing terms.
+ * This code is derived from software contributed to the Internet Software
+ * Consortium by Rich Salz.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
 #include <config.h>
@@ -107,9 +122,9 @@ const char *message_program_name = NULL;
  * handler list, the count of handlers, and the argument list.
  */
 static void
-message_handlers(message_handler_func **list, int count, va_list args)
+message_handlers(message_handler_func **list, unsigned int count, va_list args)
 {
-    int i;
+    unsigned int i;
 
     if (*list != stdout_handlers && *list != stderr_handlers)
         free(*list);
@@ -127,7 +142,7 @@ message_handlers(message_handler_func **list, int count, va_list args)
  */
 #define HANDLER_FUNCTION(type)                                  \
     void                                                        \
-    message_handlers_ ## type(int count, ...)                   \
+    message_handlers_ ## type(unsigned int count, ...)          \
     {                                                           \
         va_list args;                                           \
                                                                 \
@@ -145,7 +160,7 @@ HANDLER_FUNCTION(die)
  * Print a message to stdout, supporting message_program_name.
  */
 void
-message_log_stdout(int len UNUSED, const char *fmt, va_list args, int err)
+message_log_stdout(size_t len UNUSED, const char *fmt, va_list args, int err)
 {
     if (message_program_name != NULL)
         fprintf(stdout, "%s: ", message_program_name);
@@ -162,7 +177,7 @@ message_log_stdout(int len UNUSED, const char *fmt, va_list args, int err)
  * stdout so that errors and regular output occur in the right order.
  */
 void
-message_log_stderr(int len UNUSED, const char *fmt, va_list args, int err)
+message_log_stderr(size_t len UNUSED, const char *fmt, va_list args, int err)
 {
     fflush(stdout);
     if (message_program_name != NULL)
@@ -183,7 +198,7 @@ message_log_stderr(int len UNUSED, const char *fmt, va_list args, int err)
  * log the errno information.
  */
 static void
-message_log_syslog(int pri, int len, const char *fmt, va_list args, int err)
+message_log_syslog(int pri, size_t len, const char *fmt, va_list args, int err)
 {
     char *buffer;
 
@@ -218,11 +233,11 @@ message_log_syslog(int pri, int len, const char *fmt, va_list args, int err)
  * Do the same sort of wrapper to generate all of the separate syslog logging
  * functions.
  */
-#define SYSLOG_FUNCTION(name, type)                                     \
-    void                                                                \
-    message_log_syslog_ ## name(int l, const char *f, va_list a, int e) \
-    {                                                                   \
-        message_log_syslog(LOG_ ## type, l, f, a, e);                   \
+#define SYSLOG_FUNCTION(name, type)                                        \
+    void                                                                   \
+    message_log_syslog_ ## name(size_t l, const char *f, va_list a, int e) \
+    {                                                                      \
+        message_log_syslog(LOG_ ## type, l, f, a, e);                      \
     }
 SYSLOG_FUNCTION(debug,   DEBUG)
 SYSLOG_FUNCTION(info,    INFO)
@@ -243,7 +258,7 @@ debug(const char *format, ...)
 {
     va_list args;
     message_handler_func *log;
-    int length;
+    ssize_t length;
 
     if (debug_handlers == NULL)
         return;
@@ -254,7 +269,7 @@ debug(const char *format, ...)
         return;
     for (log = debug_handlers; *log != NULL; log++) {
         va_start(args, format);
-        (**log)(length, format, args, 0);
+        (**log)((size_t) length, format, args, 0);
         va_end(args);
     }
 }
@@ -264,7 +279,7 @@ notice(const char *format, ...)
 {
     va_list args;
     message_handler_func *log;
-    int length;
+    ssize_t length;
 
     va_start(args, format);
     length = vsnprintf(NULL, 0, format, args);
@@ -273,7 +288,7 @@ notice(const char *format, ...)
         return;
     for (log = notice_handlers; *log != NULL; log++) {
         va_start(args, format);
-        (**log)(length, format, args, 0);
+        (**log)((size_t) length, format, args, 0);
         va_end(args);
     }
 }
@@ -283,7 +298,7 @@ sysnotice(const char *format, ...)
 {
     va_list args;
     message_handler_func *log;
-    int length;
+    ssize_t length;
     int error = errno;
 
     va_start(args, format);
@@ -293,7 +308,7 @@ sysnotice(const char *format, ...)
         return;
     for (log = notice_handlers; *log != NULL; log++) {
         va_start(args, format);
-        (**log)(length, format, args, error);
+        (**log)((size_t) length, format, args, error);
         va_end(args);
     }
 }
@@ -303,7 +318,7 @@ warn(const char *format, ...)
 {
     va_list args;
     message_handler_func *log;
-    int length;
+    ssize_t length;
 
     va_start(args, format);
     length = vsnprintf(NULL, 0, format, args);
@@ -312,7 +327,7 @@ warn(const char *format, ...)
         return;
     for (log = warn_handlers; *log != NULL; log++) {
         va_start(args, format);
-        (**log)(length, format, args, 0);
+        (**log)((size_t) length, format, args, 0);
         va_end(args);
     }
 }
@@ -322,7 +337,7 @@ syswarn(const char *format, ...)
 {
     va_list args;
     message_handler_func *log;
-    int length;
+    ssize_t length;
     int error = errno;
 
     va_start(args, format);
@@ -332,7 +347,7 @@ syswarn(const char *format, ...)
         return;
     for (log = warn_handlers; *log != NULL; log++) {
         va_start(args, format);
-        (**log)(length, format, args, error);
+        (**log)((size_t) length, format, args, error);
         va_end(args);
     }
 }
@@ -342,7 +357,7 @@ die(const char *format, ...)
 {
     va_list args;
     message_handler_func *log;
-    int length;
+    ssize_t length;
 
     va_start(args, format);
     length = vsnprintf(NULL, 0, format, args);
@@ -350,7 +365,7 @@ die(const char *format, ...)
     if (length >= 0)
         for (log = die_handlers; *log != NULL; log++) {
             va_start(args, format);
-            (**log)(length, format, args, 0);
+            (**log)((size_t) length, format, args, 0);
             va_end(args);
         }
     exit(message_fatal_cleanup ? (*message_fatal_cleanup)() : 1);
@@ -361,7 +376,7 @@ sysdie(const char *format, ...)
 {
     va_list args;
     message_handler_func *log;
-    int length;
+    ssize_t length;
     int error = errno;
 
     va_start(args, format);
@@ -370,7 +385,7 @@ sysdie(const char *format, ...)
     if (length >= 0)
         for (log = die_handlers; *log != NULL; log++) {
             va_start(args, format);
-            (**log)(length, format, args, error);
+            (**log)((size_t) length, format, args, error);
             va_end(args);
         }
     exit(message_fatal_cleanup ? (*message_fatal_cleanup)() : 1);

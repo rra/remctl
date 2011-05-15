@@ -15,6 +15,24 @@ remctl 2.17 (unreleased)
     Fix broken GCC attribute markers causing problems with compilation on
     Windows (and likely any non-GCC compiler).
 
+    Skip portable/getaddrinfo test on systems where invalid hostnames
+    still resolve.
+
+    Update to rra-c-util 3.4:
+
+    * Check for krb5-config in /usr/kerberos/bin as well as PATH.
+    * Avoid configure warnings when building with AIX bundled Kerberos.
+    * Initialize sockaddr structs more correctly.
+    * Correctly detect Heimdal GSS-API on OpenBSD without libroken.
+    * Fix underquoting in m4/socket.m4.
+
+    Update to C TAP Harness 1.7:
+
+    * Add tests/HOWTO documenting how to add new tests.
+    * More correct handling of system-specific errors in output checking.
+    * Ensure correct output ordering in test results.
+    * Add -h and a better usage message to tests/runtests.
+
 remctl 2.16 (2010-05-02)
 
     Add Ruby bindings contributed by Anthony M. Martinez, enabled with

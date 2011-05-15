@@ -11,6 +11,9 @@
  * strings to store.  There are therefore two entry points for every vector
  * function, one for vectors and one for cvectors.
  *
+ * Vectors require list of strings, not arbitrary binary data, and cannot
+ * handle data elements containing nul characters.
+ *
  * There's a whole bunch of code duplication here.  This would be a lot
  * cleaner with C++ features (either inheritance or templates would probably
  * help).  One could probably in some places just cast a cvector to a vector
@@ -18,7 +21,14 @@
  * sure if it's a violation of the C type aliasing rules.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * This work is hereby placed in the public domain by its author.
+ *
+ * The authors hereby relinquish any claim to any copyright that they may have
+ * in this work, whether granted under contract or by operation of law or
+ * international treaty, and hereby commit to the public, at large, that they
+ * shall not, at any time in the future, seek to enforce any copyright in this
+ * work against any person or entity, or prevent any person or entity from
+ * copying, publishing, distributing or creating derivative works of this
+ * work.
  */
 
 #include <config.h>
@@ -290,6 +300,101 @@ cvector_split(char *string, char separator, struct cvector *vector)
 
 
 /*
+ * Given a string and a set of separators expressed as a string, count the
+ * number of strings that it will split into when splitting on those
+ * separators.
+ */
+static size_t
+split_multi_count(const char *string, const char *seps)
+{
+    const char *p;
+    size_t count;
+
+    if (*string == '\0')
+        return 0;
+    for (count = 1, p = string + 1; *p != '\0'; p++)
+        if (strchr(seps, *p) != NULL && strchr(seps, p[-1]) == NULL)
+            count++;
+
+    /*
+     * If the string ends in separators, we've overestimated the number of
+     * strings by one.
+     */
+    if (strchr(seps, p[-1]) != NULL)
+        count--;
+    return count;
+}
+
+
+/*
+ * Given a string, split it at any of the provided separators to form a
+ * vector, copying each string segment.  If the third argument isn't NULL,
+ * reuse that vector; otherwise, allocate a new one.  Any number of
+ * consecutive separators are considered a single separator.
+ */
+struct vector *
+vector_split_multi(const char *string, const char *seps,
+                   struct vector *vector)
+{
+    const char *p, *start;
+    size_t i, count;
+
+    vector = vector_reuse(vector);
+
+    count = split_multi_count(string, seps);
+    if (vector->allocated < count)
+        vector_resize(vector, count);
+
+    for (start = string, p = string, i = 0; *p; p++)
+        if (strchr(seps, *p) != NULL) {
+            if (start != p)
+                vector->strings[i++] = xstrndup(start, p - start);
+            start = p + 1;
+        }
+    if (start != p)
+        vector->strings[i++] = xstrndup(start, p - start);
+    vector->count = i;
+
+    return vector;
+}
+
+
+/*
+ * Given a string, split it at any of the provided separators to form a
+ * vector, destructively modifying the string to nul-terminate each segment.
+ * If the third argument isn't NULL, reuse that vector; otherwise, allocate a
+ * new one.  Any number of consecutive separators are considered a single
+ * separator.
+ */
+struct cvector *
+cvector_split_multi(char *string, const char *seps, struct cvector *vector)
+{
+    char *p, *start;
+    size_t i, count;
+
+    vector = cvector_reuse(vector);
+
+    count = split_multi_count(string, seps);
+    if (vector->allocated < count)
+        cvector_resize(vector, count);
+
+    for (start = string, p = string, i = 0; *p; p++)
+        if (strchr(seps, *p) != NULL) {
+            if (start != p) {
+                *p = '\0';
+                vector->strings[i++] = start;
+            }
+            start = p + 1;
+        }
+    if (start != p)
+        vector->strings[i++] = start;
+    vector->count = i;
+
+    return vector;
+}
+
+
+/*
  * Given a string, count the number of strings that it will split into when
  * splitting on whitespace.
  */
@@ -317,9 +422,9 @@ split_space_count(const char *string)
 
 /*
  * Given a string, split it at whitespace to form a vector, copying each
- * string segment.  If the fourth argument isn't NULL, reuse that vector;
+ * string segment.  If the second argument isn't NULL, reuse that vector;
  * otherwise, allocate a new one.  Any number of consecutive whitespace
- * characters is considered a single separator.
+ * characters are considered a single separator.
  */
 struct vector *
 vector_split_space(const char *string, struct vector *vector)
@@ -349,9 +454,9 @@ vector_split_space(const char *string, struct vector *vector)
 
 /*
  * Given a string, split it at whitespace to form a vector, destructively
- * modifying the string to nul-terminate each segment.  If the fourth argument
+ * modifying the string to nul-terminate each segment.  If the second argument
  * isn't NULL, reuse that vector; otherwise, allocate a new one.  Any number
- * of consecutive whitespace characters is considered a single separator.
+ * of consecutive whitespace characters are considered a single separator.
  */
 struct cvector *
 cvector_split_space(char *string, struct cvector *vector)

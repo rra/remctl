@@ -2,13 +2,27 @@
  * network test suite.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010 Board of Trustees, Leland Stanford Jr. University
- * Copyright (c) 2004, 2005, 2006, 2007
- *     by Internet Systems Consortium, Inc. ("ISC")
- * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
- *     2002, 2003 by The Internet Software Consortium and Rich Salz
+ * Copyright 2005 Russ Allbery <rra@stanford.edu>
+ * Copyright 2009, 2010, 2011
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
 
 #include <config.h>
@@ -102,9 +116,10 @@ test_ipv4(const char *source)
         child = fork();
         if (child < 0)
             sysbail("cannot fork");
-        else if (child == 0)
+        else if (child == 0) {
+            close(fd);
             client("127.0.0.1", source);
-        else {
+        } else {
             listener(fd);
             waitpid(child, NULL, 0);
         }
@@ -142,9 +157,10 @@ test_ipv6(const char *source)
         child = fork();
         if (child < 0)
             sysbail("cannot fork");
-        else if (child == 0)
+        else if (child == 0) {
+            close(fd);
             client("::1", source);
-        else {
+        } else {
             listener(fd);
             waitpid(child, NULL, 0);
         }
@@ -168,7 +184,7 @@ static void
 test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
 {
     socket_type *fds, fd;
-    int count, i;
+    unsigned int count, i;
     pid_t child;
     struct sockaddr_storage saddr;
     socklen_t size = sizeof(saddr);
@@ -242,6 +258,7 @@ test_create_ipv4(const char *source)
             fd = network_client_create(PF_INET, SOCK_STREAM, source);
             if (fd == INVALID_SOCKET)
                 _exit(1);
+            memset(&sin, 0, sizeof(sin));
             sin.sin_family = AF_INET;
             sin.sin_port = htons(11119);
             sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);

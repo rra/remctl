@@ -5,7 +5,14 @@
  * systems that don't have it.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * This work is hereby placed in the public domain by its author.
+ *
+ * The authors hereby relinquish any claim to any copyright that they may have
+ * in this work, whether granted under contract or by operation of law or
+ * international treaty, and hereby commit to the public, at large, that they
+ * shall not, at any time in the future, seek to enforce any copyright in this
+ * work against any person or entity, or prevent any person or entity from
+ * copying, publishing, distributing or creating derivative works of this
+ * work.
  */
 
 #include <config.h>
