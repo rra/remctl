@@ -15,6 +15,9 @@ remctl 2.17 (unreleased)
     Fix broken GCC attribute markers causing problems with compilation on
     Windows (and likely any non-GCC compiler).
 
+    Set the PHP extension test suite to be noninteractive so that the user
+    is not prompted to send results to the PHP QA group.
+
     Skip portable/getaddrinfo test on systems where invalid hostnames
     still resolve.
 

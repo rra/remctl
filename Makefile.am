@@ -358,7 +358,7 @@ check-local: $(check_PROGRAMS)
 	fi
 	@set -e; if [ -f php/Makefile ] ; then \
 	    echo '' ; \
-	    cd php && ./test-wrapper "$(abs_top_builddir)" \
+	    cd php && NO_INTERACTION=1 ./test-wrapper "$(abs_top_builddir)" \
 		"$(abs_top_srcdir)" ; \
 	fi
 	@set -e; if [ -f python/setup.py ] ; then \
