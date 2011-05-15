@@ -392,7 +392,6 @@ rb_remctl_initialize(int argc, VALUE argv[], VALUE self)
 {
     VALUE vhost, vport, vprinc, vdefport, vdefprinc;
     unsigned int port;
-    char *host, *princ;
 
     rb_define_attr(cRemctl, "host", 1, 0);
     rb_define_attr(cRemctl, "port", 1, 0);
@@ -404,9 +403,7 @@ rb_remctl_initialize(int argc, VALUE argv[], VALUE self)
         vport  = vdefport;
     if (NIL_P(vprinc))
         vprinc = vdefprinc;
-    host  = StringValuePtr(vhost);
-    port  = NIL_P(vport)  ? 0    : FIX2UINT(vport);
-    princ = NIL_P(vprinc) ? NULL : StringValuePtr(vprinc);
+    port = NIL_P(vport) ? 0 : FIX2UINT(vport);
     if (port > 65535)
         rb_raise(rb_eArgError, "Port number %u out of range", port);
 

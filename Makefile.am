@@ -183,21 +183,28 @@ distclean-local:
 	fi
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
-# without optimization turned on, and add -DDEBUG=1 so we'll also compile all
-# debugging code and test it.
-WARNINGS = -g -O -DDEBUG=1 -Wall -W -Wendif-labels -Wpointer-arith \
-	-Wbad-function-cast -Wwrite-strings -Wstrict-prototypes \
-	-Wmissing-prototypes -Wnested-externs -Werror
+# without optimization turned on.  Desirable warnings that can't be turned
+# on due to other problems:
+#
+#     -Wconversion      http://bugs.debian.org/488884 (htons warnings)
+#
+# Last checked against gcc 4.6.1 (2011-05-04).
+WARNINGS = -g -O -Wall -Wextra -Wendif-labels -Wformat=2 -Winit-self	\
+	-Wswitch-enum -Wdeclaration-after-statement -Wshadow		\
+	-Wpointer-arith -Wbad-function-cast -Wwrite-strings		\
+	-Wjump-misses-init -Wlogical-op -Wstrict-prototypes		\
+	-Wmissing-prototypes -Wredundant-decls -Wnested-externs -Werror
 
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code doesn't pass them.
 if GCC
     PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs \
-	-Wno-strict-prototypes
+	-Wno-strict-prototypes -Wno-redundant-decls -Wno-shadow
     PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
-	-Wno-missing-prototypes -Wno-unused-parameter
+	-Wno-missing-prototypes -Wno-unused-parameter \
+	-Wno-redundant-decls
     PYTHON_WARNINGS = -Wno-unused-parameter
-    RUBY_WARNINGS = -Wno-strict-prototypes
+    RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
 else
     PERL_WARNINGS =
     PHP_WARNINGS =

@@ -649,6 +649,7 @@ acl_check_deny(const char *user, const char *data, const char *file,
     case CONFIG_SUCCESS: return CONFIG_DENY;
     case CONFIG_NOMATCH: return CONFIG_NOMATCH;
     case CONFIG_DENY:    return CONFIG_NOMATCH;
+    case CONFIG_ERROR:   return CONFIG_ERROR;
     default:             return s;
     }
 }

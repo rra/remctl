@@ -25,6 +25,7 @@ remctl 2.17 (unreleased)
     * Initialize sockaddr structs more correctly.
     * Correctly detect Heimdal GSS-API on OpenBSD without libroken.
     * Fix underquoting in m4/socket.m4.
+    * Update warning flags for GCC 4.6.1.
 
     Update to C TAP Harness 1.7:
 
