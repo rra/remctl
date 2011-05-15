@@ -155,7 +155,7 @@ clean-local:
 	set -e; if [ -f "ruby/Makefile" ] ; then \
 	    cd ruby && $(MAKE) distclean ; \
 	fi
-	rm -rf python/build python/dist python/*.pyc
+	rm -rf php/tmp-php.ini python/build python/dist python/*.pyc
 
 # Also clean the Perl, PHP, and Python directories on make distclean if
 # needed.
