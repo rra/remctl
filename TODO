@@ -78,12 +78,12 @@ Server:
    between commands.  It's entirely reasonable for a protocol 2 client
    to hold a connection open for hours.
 
- * Support binding to an IPv6 address.  Currently, the server only
-   supports IPv4.
-
  * The server should call gss_inquire_context to retrieve the mechanism
    OID and then pass that in to calls to gssapi_error_string rather than
    hard-coding the Kerberos v5 OID.
+
+ * Support binding to a specified address or addresses given as
+   command-line options.
 
 Client:
 

@@ -5,6 +5,9 @@ remctl 2.17 (unreleased)
     Fix construction of the return object for the Python bindings to the
     simple remctl interface.  Patch from Andrew Mortensen.
 
+    When run as a standalone daemon, remctld now binds to both IPv4 and
+    IPv6 addresses rather than only IPv4.
+
     The remctl client library also installs a pkg-config configuration
     file for the use of software that wants to link against it.  Thanks to
     Tollef Fog Heen for the assistance in writing it.

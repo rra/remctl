@@ -1,8 +1,8 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2008, 2009, 2010
-#     Board of Trustees, Leland Stanford Jr. University
+# Copyright 2006, 2007, 2008, 2009, 2010, 2011
+#     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
 
@@ -232,13 +232,14 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t	    \
 	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		    \
 	tests/portable/setenv-t tests/portable/snprintf-t		    \
 	tests/portable/strlcat-t tests/portable/strlcpy-t		    \
-	tests/server/accept-t tests/server/acl-t tests/server/config-t	    \
-	tests/server/continue-t tests/server/env-t tests/server/errors-t    \
-	tests/server/invalid-t tests/server/logging-t tests/server/stdin-t  \
-	tests/server/streaming-t tests/server/version-t tests/util/concat-t \
-	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t   \
-	tests/util/network-t tests/util/tokens-t tests/util/vector-t	    \
-	tests/util/xmalloc tests/util/xwrite-t
+	tests/server/accept-t tests/server/acl-t tests/server/bind-t	    \
+	tests/server/config-t tests/server/continue-t tests/server/env-t    \
+	tests/server/errors-t tests/server/invalid-t tests/server/logging-t \
+	tests/server/stdin-t tests/server/streaming-t			    \
+	tests/server/version-t tests/util/concat-t tests/util/fdflag-t	    \
+	tests/util/gss-tokens-t tests/util/messages-t tests/util/network-t  \
+	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	    \
+	tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
@@ -308,6 +309,8 @@ tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
 tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS)
+tests_server_bind_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
 tests_server_config_t_SOURCES = tests/server/config-t.c $(SERVER_FILES)
 tests_server_config_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_config_t_LDADD = tests/tap/libtap.a util/libutil.la \

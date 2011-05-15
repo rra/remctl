@@ -7,8 +7,8 @@
  *
  * Written by Anton Ushakov
  * Extensive modifications by Russ Allbery <rra@stanford.edu>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010
- *     Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
@@ -243,8 +243,11 @@ static void
 server_daemon(struct options *options, struct config *config,
               gss_cred_id_t creds)
 {
-    int s, stmp, status;
+    int s, status, fd, maxfd;
+    unsigned int nfds, i;
+    int *fds;
     pid_t child;
+    fd_set readfds, tmpfds;
     struct sigaction sa, oldsa;
     struct sockaddr_storage ss;
     socklen_t sslen;
@@ -275,11 +278,19 @@ server_daemon(struct options *options, struct config *config,
     notice("starting");
 
     /* Bind to the network socket. */
-    stmp = network_bind_ipv4("any", options->port);
-    if (stmp < 0)
-        sysdie("cannot create socket");
-    if (listen(stmp, 5) < 0)
-        sysdie("error listening on socket");
+    nfds = 0;
+    network_bind_all(options->port, &fds, &nfds);
+    if (nfds == 0)
+        sysdie("cannot bind any sockets");
+    FD_ZERO(&readfds);
+    maxfd = -1;
+    for (i = 0; i < nfds; i++) {
+        if (listen(fds[i], 5) < 0)
+            sysdie("error listening on socket (fd %d)", fds[i]);
+        FD_SET(fds[i], &readfds);
+        if (fds[i] > maxfd)
+            maxfd = fds[i];
+    }
 
     /*
      * The main processing loop.  Each time through the loop, check to see if
@@ -313,8 +324,23 @@ server_daemon(struct options *options, struct config *config,
                 unlink(options->pid_path);
             exit(0);
         }
+        tmpfds = readfds;
+        status = select(maxfd + 1, &tmpfds, NULL, NULL, NULL);
+        if (status < 0) {
+            if (errno != EINTR)
+                sysdie("error waiting for incoming connection");
+            continue;
+        }
+        fd = -1;
+        for (i = 0; i < nfds; i++)
+            if (FD_ISSET(fds[i], &tmpfds)) {
+                fd = fds[i];
+                break;
+            }
+        if (fd == -1)
+            continue;
         sslen = sizeof(ss);
-        s = accept(stmp, (struct sockaddr *) &ss, &sslen);
+        s = accept(fd, (struct sockaddr *) &ss, &sslen);
         if (s < 0) {
             if (errno != EINTR)
                 syswarn("error accepting connection");
@@ -327,7 +353,7 @@ server_daemon(struct options *options, struct config *config,
             warn("sleeping ten seconds in the hope we recover...");
             sleep(10);
         } else if (child == 0) {
-            close(stmp);
+            close(fd);
             if (sigaction(SIGCHLD, &oldsa, NULL) < 0)
                 syswarn("cannot reset SIGCHLD handler");
             server_handle_connection(s, config, creds);
