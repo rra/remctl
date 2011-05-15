@@ -15,6 +15,11 @@ remctl 2.17 (unreleased)
     Fix broken GCC attribute markers causing problems with compilation on
     Windows (and likely any non-GCC compiler).
 
+    Symbol versioning is now enabled on any system using GNU ld, rather
+    than only Linux and related platforms, and a Libtool symbol list is
+    used as a fallback to prevent leaking symbols with other linkers where
+    possible.
+
     Set the PHP extension test suite to be noninteractive so that the user
     is not prompted to send results to the PHP QA group.
 

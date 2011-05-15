@@ -115,10 +115,6 @@ Client library:
 
 Build system:
 
- * Add logic to detect Solaris vs. GNU ld on Solaris and pass the
-   appropriate option to use the symbol versioning map file on Solaris as
-   well.
-
  * Incorporate a program that can generate a Kerberos ticket cache from
    a keytab and use that for running the Kerberos tests instead of
    requiring the user to generate a keytab.

@@ -61,6 +61,12 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in  \
 # GSS-API headers even if the code itself doesn't call GSS-API functions.
 AM_CPPFLAGS = $(GSSAPI_CPPFLAGS)
 
+if HAVE_LD_VERSION_SCRIPT
+    VERSION_LDFLAGS = -Wl,--version-script=${srcdir}/client/libremctl.map
+else
+    VERSION_LDFLAGS = -export-symbols ${srcdir}/client/libremctl.sym
+endif
+
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
 	client/client-v2.c client/error.c client/internal.h client/open.c
