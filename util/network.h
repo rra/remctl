@@ -2,7 +2,7 @@
  * Prototypes for network connection utility functions.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010
+ * Copyright 2009, 2010, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007, 2008, 2010
  *     by Internet Systems Consortium, Inc. ("ISC")
