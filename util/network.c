@@ -161,9 +161,25 @@ network_bind_ipv6(const char *address, unsigned short port)
         syswarn("cannot set IPv6 socket to v6only");
 #endif
 
-    /* Accept "any" or "all" in the bind address to mean 0.0.0.0. */
+    /* Accept "any" or "all" in the bind address to mean ::. */
     if (!strcmp(address, "any") || !strcmp(address, "all"))
         address = "::";
+
+    /*
+     * If the address is not ::, use IP_FREEBIND if it's available.  This
+     * allows the network stack to bind to an address that isn't configured.
+     * We lose diagnosis of errors from specifying bind addresses that don't
+     * exist on the system, but we gain the ability to bind to IPv6 addresses
+     * that aren't yet configured.  Since IPv6 address configuration can take
+     * unpredictable amounts of time during system setup, this is more robust.
+     */
+#ifdef IP_FREEBIND
+    if (strcmp(address, "::") != 0) {
+        flag = 1;
+        if (setsockopt(fd, IPPROTO_IP, IP_FREEBIND, &flag, sizeof(flag)) < 0)
+            syswarn("cannot set IPv6 socket to free binding");
+    }
+#endif
 
     /* Flesh out the socket and do the bind. */
     memset(&server, 0, sizeof(server));
