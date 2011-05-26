@@ -40,7 +40,7 @@ main(void)
     plan(32);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config);
+    remctld = remctld_start(path, principal, config, NULL);
 
     /* First, version 2. */
     r = remctl_new();

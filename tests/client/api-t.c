@@ -167,7 +167,7 @@ main(void)
     plan(98);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config);
+    remctld = remctld_start(path, principal, config, NULL);
 
     /* Run the basic protocol tests. */
     do_tests(principal, 1);

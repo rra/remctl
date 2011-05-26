@@ -164,7 +164,7 @@ main(void)
     plan(11 * 8);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config);
+    remctld = remctld_start(path, principal, config, NULL);
 
     /* Test basic token errors. */
     test_bad_token(principal, token_message, sizeof(token_message),

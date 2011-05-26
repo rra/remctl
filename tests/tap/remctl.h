@@ -5,7 +5,7 @@
  * Kerberos environment and runs on port 14373 instead of the default 4373.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009
+ * Copyright 2006, 2007, 2009, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -41,12 +41,13 @@ BEGIN_DECLS
  * Start and stop remctld for tests that use it.  kerberos_setup() should
  * normally be called first to check whether a Kerberos configuration is
  * available and to set KRB5_KTNAME.  Takes the path to remctld, which may be
- * found via configure, the principal (returned by kerberos_setup), and the
- * path to the configuration file.
+ * found via configure, the principal (returned by kerberos_setup), the path
+ * to the configuration file, and then any additional arguments to remctld,
+ * terminated by NULL.
  */
 pid_t remctld_start(const char *path, const char *principal,
-                    const char *config)
-    __attribute__((__nonnull__));
+                    const char *config, ...)
+    __attribute__((__nonnull__(1, 2, 3)));
 void remctld_stop(pid_t);
 
 END_DECLS

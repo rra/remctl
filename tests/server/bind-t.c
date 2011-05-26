@@ -96,14 +96,16 @@ main(void)
         skip_all("Kerberos tests not configured");
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config);
+    remctld = remctld_start(path, principal, config, NULL);
 
-    /* Run the tests. */
+    /* Test connecting to IPv4 with default bind. */
     plan(4 * 2);
     r = remctl_new();
     ok(remctl_open(r, "127.0.0.1", 14373, principal), "Connect to 127.0.0.1");
     test_command(r);
     remctl_close(r);
+
+    /* Test connecting to IPv6 with default bind. */
 #ifdef HAVE_INET6
     if (have_ipv6()) {
         r = remctl_new();

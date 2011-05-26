@@ -52,7 +52,7 @@ main(void)
     plan(8);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config);
+    remctld = remctld_start(path, principal, config, NULL);
 
     /* Open the connection to the site. */
     r = remctl_new();

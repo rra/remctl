@@ -45,7 +45,7 @@ main(void)
     plan(6);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config);
+    remctld = remctld_start(path, principal, config, NULL);
 
     command[0].iov_len = strlen("test");
     command[0].iov_base = (char *) "test";

@@ -82,7 +82,7 @@ main(void)
     plan(9 * 9);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config);
+    remctld = remctld_start(path, principal, config, NULL);
 
     /* Run the tests. */
     test_stdin(principal, "read", "Okay", 4);
