@@ -63,6 +63,18 @@ void network_bind_all(unsigned short port, socket_type **fds,
     __attribute__((__nonnull__));
 
 /*
+ * Accept an incoming connection from any file descriptor in an array.  This
+ * is a blocking accept that will wait until there is an incoming connection,
+ * unless interrupted by receipt of a signal.  Returns the new socket or
+ * INVALID_SOCKET, and fills out the arguments with the address of the remote
+ * client.  If the wait for a connection was interrupted by a signal, returns
+ * INVALID_SOCKET with errno set to EINTR.
+ */
+socket_type network_accept_any(socket_type fds[], unsigned int count,
+                               struct sockaddr *addr, socklen_t *addrlen)
+    __attribute__((__nonnull__(1)));
+
+/*
  * Create a socket and connect it to the remote service given by the linked
  * list of addrinfo structs.  Returns the new file descriptor on success and
  * -1 on failure, with the error left in errno.  Takes an optional source

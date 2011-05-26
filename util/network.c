@@ -285,6 +285,53 @@ network_bind_all(unsigned short port, socket_type **fds, unsigned int *count)
 
 
 /*
+ * Given an array of file descriptors and the length of that array (the same
+ * data that's returned by network_bind_all), wait for an incoming connection
+ * on any of those sockets, accept the connection with accept(), and return
+ * the new file descriptor.
+ *
+ * This is essentially a replacement for accept() with a single socket for
+ * daemons that are listening to multiple separate bound sockets, possibly
+ * because they need to listen to specific interfaces or possibly because
+ * they're listening for both IPv4 and IPv6 connections.
+ *
+ * Returns the new socket on success or INVALID_SOCKET on failure.  On
+ * success, fills out the arguments with the address and address length of the
+ * accepted client.  No error will be reported, so the caller should do that.
+ * Note that INVALID_SOCKET may be returned if the timeout is interrupted by a
+ * signal, which is not, precisely speaking, an error condition.  In this
+ * case, errno will be set to EINTR.
+ */
+socket_type
+network_accept_any(socket_type fds[], unsigned int count,
+                   struct sockaddr *addr, socklen_t *addrlen)
+{
+    fd_set readfds;
+    socket_type maxfd, fd;
+    unsigned int i;
+    int status;
+
+    FD_ZERO(&readfds);
+    maxfd = -1;
+    for (i = 0; i < count; i++) {
+        FD_SET(fds[i], &readfds);
+        if (fds[i] > maxfd)
+            maxfd = fds[i];
+    }
+    status = select(maxfd + 1, &readfds, NULL, NULL, NULL);
+    if (status < 0)
+        return INVALID_SOCKET;
+    fd = INVALID_SOCKET;
+    for (i = 0; i < count; i++)
+        if (FD_ISSET(fds[i], &readfds)) {
+            fd = fds[i];
+            break;
+        }
+    return accept(fd, addr, addrlen);
+}
+
+
+/*
  * Binds the given socket to an appropriate source address for its family
  * using the provided source address.  Returns true on success and false on
  * failure.
