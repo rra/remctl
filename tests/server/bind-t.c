@@ -20,7 +20,27 @@
 #include <tests/tap/remctl.h>
 #include <util/concat.h>
 #include <util/messages.h>
-#include <util/xmalloc.h>
+#include <util/network.h>
+
+
+/*
+ * Test whether IPv6 is available.
+ */
+static bool
+have_ipv6(void)
+{
+    socket_type fd;
+
+    fd = network_bind_ipv6("::1", 14373);
+    if (fd == INVALID_SOCKET) {
+        if (errno == EAFNOSUPPORT || errno == EPROTONOSUPPORT
+            || errno == EADDRNOTAVAIL)
+            return false;
+        return true;
+    }
+    close(fd);
+    return true;
+}
 
 
 /*
@@ -84,10 +104,18 @@ main(void)
     ok(remctl_open(r, "127.0.0.1", 14373, principal), "Connect to 127.0.0.1");
     test_command(r);
     remctl_close(r);
-    r = remctl_new();
-    ok(remctl_open(r, "::1", 14373, principal), "Connect to ::1");
-    test_command(r);
-    remctl_close(r);
+#ifdef HAVE_INET6
+    if (have_ipv6()) {
+        r = remctl_new();
+        ok(remctl_open(r, "::1", 14373, principal), "Connect to ::1");
+        test_command(r);
+        remctl_close(r);
+    } else {
+        skip_block(4, "IPv6 not supported");
+    }
+#else
+    skip_block(4, "IPv6 not supported");
+#endif
 
     remctld_stop(remctld);
     kerberos_cleanup();
