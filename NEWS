@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 2.17 (unreleased)
+remctl 2.17 (2011-05-31)
 
     Fix construction of the return object for the Python bindings to the
     simple remctl interface.  Patch from Andrew Mortensen.
