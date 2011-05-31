@@ -41,20 +41,17 @@
 /* Set this globally to 0 if IPv6 is available but doesn't work. */
 static int ipv6 = 1;
 
+
 /*
- * The server portion of the test.  Listens to a socket and accepts a
- * connection, making sure what is printed on that connection matches what the
- * client is supposed to print.
+ * The core of the listener.  Takes the return value of accept and handles our
+ * test protocol.
  */
 static void
-listener(socket_type fd)
+listener_handler(socket_type client)
 {
-    int client;
     FILE *out;
     char buffer[512];
 
-    client = accept(fd, NULL, NULL);
-    close(fd);
     if (client == INVALID_SOCKET) {
         sysdiag("cannot accept connection from socket");
         ok_block(2, 0, "...socket read test");
@@ -68,6 +65,40 @@ listener(socket_type fd)
     }
     is_string("socket test\r\n", buffer, "...socket read");
     fclose(out);
+}
+
+
+/*
+ * The server portion of the test.  Listens to a socket and accepts a
+ * connection, making sure what is printed on that connection matches what the
+ * client is supposed to print.
+ */
+static void
+listener(socket_type fd)
+{
+    socket_type client;
+
+    client = accept(fd, NULL, NULL);
+    listener_handler(client);
+    close(fd);
+}
+
+
+/*
+ * A varient version of the server portion of the test.  Takes an array of
+ * sockets and the size of the sockets and accepts a connection on any of
+ * those sockets.
+ */
+static void
+listener_any(socket_type fds[], unsigned int count)
+{
+    socket_type client;
+    unsigned int i;
+
+    client = network_accept_any(fds, count, NULL, NULL);
+    listener_handler(client);
+    for (i = 0; i < count; i++)
+        close(fds[i]);
 }
 
 
@@ -230,6 +261,37 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
 
 
 /*
+ * Bring up a server on port 11119 on all addresses and try connecting to it
+ * via 127.0.0.1, using network_accept_any underneath.
+ */
+static void
+test_any(void)
+{
+    socket_type *fds;
+    unsigned int count, i;
+    pid_t child;
+
+    network_bind_all(11119, &fds, &count);
+    if (count == 0)
+        sysbail("cannot create or bind socket");
+    for (i = 0; i < count; i++)
+        if (listen(fds[i], 1) < 0) {
+            sysdiag("cannot listen to socket %d", fds[i]);
+            ok_block(2, 0, "accept any server test");
+        }
+    child = fork();
+    if (child < 0)
+        sysbail("cannot fork");
+    else if (child == 0)
+        client("127.0.0.1", NULL);
+    else {
+        listener_any(fds, count);
+        waitpid(child, NULL, 0);
+    }
+}
+
+
+/*
  * Bring up a server on port 11119 on the loopback address and test connecting
  * to it via IPv4 using network_client_create.  Takes an optional source
  * address to use for client connections.
@@ -307,7 +369,7 @@ main(void)
     static const char *ipv6_addr = "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210";
 #endif
 
-    plan(87);
+    plan(89);
 
     /*
      * If IPv6 support appears to be available but doesn't work, we have to
@@ -331,6 +393,9 @@ main(void)
     else
         skip_block(6, "IPv6 not configured");
     test_create_ipv4("127.0.0.1");
+
+    /* Test network_accept_any. */
+    test_any();
 
     /*
      * Now, test network_sockaddr_sprint, network_sockaddr_equal, and
