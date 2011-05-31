@@ -1,30 +1,37 @@
 The remctl package as a whole is:
 
   Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-  Board of Trustees, Leland Stanford Jr. University.  All rights reserved.
+      The Board of Trustees of the Leland Stanford Junior University
 
 and released under the following license:
 
-  Permission to use, copy, modify, and distribute this software and its
-  documentation for any purpose and without fee is hereby granted,
-  provided that the above copyright notice appear in all copies and that
-  both that copyright notice and this permission notice appear in
-  supporting documentation, and that the name of Stanford University not
-  be used in advertising or publicity pertaining to distribution of the
-  software without specific, written prior permission.  Stanford
-  University makes no representations about the suitability of this
-  software for any purpose.  It is provided "as is" without express or
-  implied warranty.
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
 
-  THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
-  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
-  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  The above copyright notice and this permission notice shall be included
+  in all copies or substantial portions of the Software.
 
-All individual files with no other license statement are released under
-this license.  Some files have additional copyright dates from earlier
-releases or may be owned by other copyright holders as noted in those
-files.  Some files are individually released under different licenses,
-all of which are compatible with the above general package license.
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+All individual files without an explicit exception below are released
+under this license.  Some files may have additional copyright holders as
+noted in those files.
+
+Some files in this distribution are individually released under different
+licenses, all of which are compatible with the above general package
+license but which may require preservation of additional notices.  All
+required notices are preserved in this file.
 
 Collected copyright notices for the entire package:
 
@@ -36,13 +43,13 @@ Collected copyright notices for the entire package:
   Copyright 2008 Thomas L. Kula <kula@tproa.net>
   Copyright 2009 Peter Eriksson <peter@ifm.liu.se>
   Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
-  Copyright 2004, 2005, 2006, 2007
+  Copyright 1999, 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+      2010 Russ Allbery <rra@stanford.edu>
+  Copyright 2004, 2005, 2006, 2007, 2008, 2009, 2010
       by Internet Systems Consortium, Inc. ("ISC")
-  Copyright 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-      2002, 2003 by The Internet Software Consortium and Rich Salz
+  Copyright 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+      2003 by The Internet Software Consortium and Rich Salz
   Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
-  Copyright 2000, 2001, 2004, 2006, 2007, 2008, 2009, 2010
-      Russ Allbery <rra@stanford.edu>
   Copyright 1995 Patrick Powell
   Copyright 1996, 1997 Brandon Long <blong@fiction.net>
   Copyright 1998 Thomas Roessler <roessler@guug.de>
@@ -50,27 +57,58 @@ Collected copyright notices for the entire package:
   Copyright 1998 Andrew Tridgell <tridge@samba.org>
   Copyright 2000, 2005 Hrvoje Niksic <hniksic@xemacs.org>
   Copyright 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-      2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+      2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
       Free Software Foundation, Inc.
   Copyright 1994 X Consortium
 
-The files m4/inet-nota.m4, m4/socket.m4, portable/socket.h,
-tests/libtest.c, tests/libtest.h, tests/portable/getaddrinfo-t.c,
-tests/portable/getnameinfo-t.c, tests/portable/inet_aton-t.c,
-tests/portable/inet_ntoa-t.c, tests/portable/inet_ntop-t.c,
-tests/portable/setenv-t.c, tests/portable/snprintf-t.c,
+The files mkusage, portable/asprintf.c, portable/daemon.c,
+portable/dummy.c, portable/getaddrinfo.c, portable/getaddrinfo.h,
+portable/getnameinfo.c, portable/getnameinfo.h, portable/inet_aton.c,
+portable/inet_ntoa.c, portable/inet_ntop.c, portable/macros.h,
+portable/setenv.c, portable/stdbool.h, portable/strlcat.c,
+portable/strlcpy.c, portable/system.h, portable/uio.h, portable/winsock.c,
+tests/portable/asprintf-t.c, tests/portable/daemon-t.c,
+tests/portable/getaddrinfo-t.c, tests/portable/getnameinfo-t.c,
+tests/portable/inet_aton-t.c, tests/portable/inet_ntoa-t.c,
+tests/portable/inet_ntop-t.c, tests/portable/setenv-t.c,
 tests/portable/strlcat-t.c, tests/portable/strlcpy-t.c,
-tests/util/concat-t.c, tests/util/fakewrite.c, tests/util/messages-t.c,
-tests/util/network-t.c, tests/util/vector-t.c, tests/util/xmalloc.c,
-tests/util/xmalloc-t, tests/util/xwrite-t.c, util/fdflag.c,
-util/messages-die.c, util/messages.c, util/network.c, util/util.h,
-util/xmalloc.c, and util/xwrite.c are released under the following
-copyright and license:
+tests/util/concat-t.c, tests/util/vector-t.c, util/concat.c,
+util/concat.h, util/macros.h, util/vector.c, and util/vector.h are covered
+by the following statement:
 
-  Copyright 2009 Russ Allbery <rra@stanford.edu>
-  Copyright 2006, 2007, 2008, 2009
-      Board of Trustees, Leland Stanford Jr. University
-  Copyright (c) 2004, 2005, 2006, 2007
+    The authors hereby relinquish any claim to any copyright that they may
+    have in this work, whether granted under contract or by operation of
+    law or international treaty, and hereby commit to the public, at
+    large, that they shall not, at any time in the future, seek to enforce
+    any copyright in this work against any person or entity, or prevent
+    any person or entity from copying, publishing, distributing or
+    creating derivative works of this work.
+
+In other words, you can do anything you wish with this code, although I
+would strongly prefer that any improvements or modifications be sent to me
+(rra@stanford.edu) so that I can continue to maintain a canonical version.
+
+The files m4/gput.m4, m4/gssapi.m4, m4/inet-ntoa.m4, m4/ld-version.m4,
+m4/lib-depends.m4, m4/lib-pathname.m4, m4/pcre.m4, m4/snprintf.m4, and
+m4/vamacros.m4 are released under the following copyright and license:
+
+  Copyright 1999, 2000, 2001, 2003 Russ Allbery <rra@stanford.edu>
+  Copyright 2005, 2006, 2007, 2008, 2009, 2010
+      The Board of Trustees of the Leland Stanford Junior University
+  Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+
+  This file is free software; the authors give unlimited permission to
+  copy and/or distribute it, with or without modifications, as long as
+  this notice is preserved.
+
+The files m4/socket.m4, portable/socket.h, util/fdflag.c, util/fdflag.h,
+util/messages.c, util/messages.h, util/network.c, util/network.h,
+util/xmalloc.c, util/xmalloc.h, util/xwrite.c, and util/xwrite.h are
+released under the following copyright and license:
+
+  Copyright 2008, 2009, 2010
+      The Board of Trustees of the Leland Stanford Junior University
+  Copyright (c) 2004, 2005, 2006, 2007, 2008, 2009, 2010
       by Internet Systems Consortium, Inc. ("ISC")
   Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
       2002, 2003 by The Internet Software Consortium and Rich Salz
@@ -90,78 +128,21 @@ copyright and license:
   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-The files portable/asprintf.c, portable/daemon.c, portable/dummy.c,
-portable/getaddrinfo.c, portable/getaddrinfo.h, portable/getnameinfo.c,
-portable/getnameinfo.h, portable/inet_aton.c, portable/inet_ntoa.c,
-portable/inet_ntop.c, portable/macros.h, portable/setenv.c,
-portable/stdbool.h, portable/strlcat.c, portable/strlcpy.c,
-portable/system.h, portable/uio.h, portable/winsock.c, util/concat.c, and
-util/vector.c have been placed in the public domain by their author.
-
-The files portable/getopt.c and portable/getopt.h are released under the
-following copyright and license:
-
-  Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
-  Copyright 2008 Russ Allbery <rra@stanford.edu>
-
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the
-  "Software"), to deal in the Software without restriction, including
-  without limitation the rights to use, copy, modify, merge, publish,
-  distribute, sublicense, and/or sell copies of the Software, and to
-  permit persons to whom the Software is furnished to do so, subject to
-  the following conditions:
-
-  The above copyright notice and this permission notice shall be included
-  in all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-The file portable/snprintf.c is released under the following license:
+The files portable/snprintf.c and tests/portable/snprintf-t.c are released
+under the following license:
 
   This code is based on code written by Patrick Powell (papowell@astart.com)
   It may be used for any purpose as long as this notice remains intact
   on all source code distributions
 
-The file tests/runtests.c is released under the following copyright and
-license:
-
-  Copyright 2000, 2001, 2004, 2006, 2007, 2008, 2009, 2010
-      Russ Allbery <rra@stanford.edu>
-
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the
-  "Software"), to deal in the Software without restriction, including
-  without limitation the rights to use, copy, modify, merge, publish,
-  distribute, sublicense, and/or sell copies of the Software, and to
-  permit persons to whom the Software is furnished to do so, subject to
-  the following conditions:
-
-  The above copyright notice and this permission notice shall be included
-  in all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 The files Makefile.in and aclocal.m4 are generated by GNU Automake and
 released under the following copyright and license:
 
   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-  2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
-  This file is free software; the Free Software Foundation
-  gives unlimited permission to copy and/or distribute it,
-  with or without modifications, as long as this notice is preserved.
+  2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation,
+  Inc.  This file is free software; the Free Software Foundation gives
+  unlimited permission to copy and/or distribute it, with or without
+  modifications, as long as this notice is preserved.
 
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY, to the extent permitted by law; without
@@ -172,30 +153,19 @@ The file configure is generated by GNU Autoconf and is released under the
 following copyright and license:
 
   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation,
-  Inc.  This configure script is free software; the Free Software
-  Foundation gives unlimited permission to copy, distribute and modify it.
-
-The files m4/libtool.m4, m4/ltoptions.m4, m4/ltsugar.m4, m4/ltversion.m4,
-and m4/lt~obsolete.m4 are from GNU Libtool and are released under the
-following copyright and license:
-
-  Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005,
-  2007, 2008 Free Software Foundation, Inc.
-
-  This file is free software; the Free Software Foundation gives unlimited
-  permission to copy and/or distribute it, with or without modifications,
-  as long as this notice is preserved.
+  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
+  Foundation, Inc.  This configure script is free software; the Free
+  Software Foundation gives unlimited permission to copy, distribute and
+  modify it.
 
 The files build-aux/compile, build-aux/depcomp, and build-aux/missing are
 taken from GNU Automake.  The files build-aux/config.guess and
-build-aux/config.sub are taken from the Debian autotools-dev package.  The
-file build-aux/ltmain.sh is taken from GNU Libtool.  All of these files
-are released under the following copyright and license:
+build-aux/config.sub are taken from the Debian autotools-dev package.
+These files are released under the following copyright and license:
 
   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
-  Foundation, Inc.
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free
+  Software Foundation, Inc.
 
   This program is free software; you can redistribute it and/or modify it
   under the terms of the GNU General Public License as published by the
@@ -215,6 +185,43 @@ are released under the following copyright and license:
 For the remctl distribution, the option described in the last paragraph
 has been accepted and these files are distributed under the same terms as
 the remctl package as a whole, as described at the top of this file.
+
+The file build-aux/ltmain.sh is taken from GNU Libtool and is released
+under the following copyright and license:
+
+  Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005,
+  2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+  GNU Libtool is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 2 of the License, or (at your
+  option) any later version.
+
+  As a special exception to the GNU General Public License, if you
+  distribute this file as part of a program or library that is built using
+  GNU Libtool, you may include this file under the same distribution terms
+  that you use for the rest of that program.
+
+  GNU Libtool is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  General Public License for more details.
+
+For the remctl distribution, the option described in the second-to-last
+paragraph has been accepted, and this file is distributed under the same
+terms as the remctl package as a whole, as described at the top of this
+file.
+
+The files m4/libtool.m4, m4/ltoptions.m4, m4/ltsugar.m4, m4/ltversion.m4,
+and m4/lt~obsolete.m4 are from GNU Libtool and are released under the
+following copyright and license:
+
+  Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005,
+  2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+  This file is free software; the Free Software Foundation gives unlimited
+  permission to copy and/or distribute it, with or without modifications,
+  as long as this notice is preserved.
 
 The file build-aux/install-sh is released under the following copyright
 and license:
@@ -248,8 +255,8 @@ and license:
   FSF changes to this file are in the public domain.
 
 The files python/_remctlmodule.c, python/remctl.py, and python/setup.py
-are covered by the following license, which is almost identical to the
-general remctl package license:
+are covered by the following license, which is very similar to the general
+remctl package license:
 
   Copyright 2008, Thomas L. Kula. All rights reserved.
 
@@ -267,11 +274,12 @@ general remctl package license:
   WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
   MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
-The file ruby/remctl.c is covered by the following license, which is
-almost identical to the general remctl package license:
+The file ruby/remctl.c is covered by the following license, which is very
+similar to the general remctl package license:
 
   Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
-  Copyright 2010 Board of Trustees, Leland Stanford Jr. University
+  Copyright 2010
+      The Board of Trustees of the Leland Stanford Junior University
 
   Permission to use, copy, modify, and distribute this software and its
   documentation for any purpose and without fee is hereby granted,
