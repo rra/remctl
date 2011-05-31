@@ -28,6 +28,8 @@
 #include <util/macros.h>
 #include <util/messages.h>
 #include <util/network.h>
+#include <util/vector.h>
+#include <util/xmalloc.h>
 
 /*
  * Flag indicating whether we've received a SIGCHLD and need to reap children
@@ -74,6 +76,7 @@ struct options {
     char *service;
     const char *config_path;
     const char *pid_path;
+    struct vector *bindaddrs;
 };
 
 
@@ -234,6 +237,26 @@ server_log_child(pid_t pid, int status)
 
 
 /*
+ * Given a bind address, return true if it's an IPv6 address.  Otherwise, it's
+ * assumed to be an IPv4 address.
+ */
+#ifdef HAVE_INET6
+static bool
+is_ipv6(const char *string)
+{
+    struct in6_addr addr;
+    return inet_pton(AF_INET6, string, &addr) == 1;
+}
+#else
+static bool
+is_ipv6(const char *string UNUSED)
+{
+    return false;
+}
+#endif
+
+
+/*
  * Run as a daemon.  This is the main dispatch loop, which listens for network
  * connections, forks a child to process each connection, and reaps the
  * children when they're done.  This is only used in standalone mode; when run
@@ -246,6 +269,7 @@ server_daemon(struct options *options, struct config *config,
     socket_type s;
     unsigned int nfds, i;
     socket_type *fds;
+    const char *addr;
     pid_t child;
     int status;
     struct sigaction sa, oldsa;
@@ -278,10 +302,24 @@ server_daemon(struct options *options, struct config *config,
     notice("starting");
 
     /* Bind to the network sockets and configure listening addresses. */
-    nfds = 0;
-    network_bind_all(options->port, &fds, &nfds);
-    if (nfds == 0)
-        sysdie("cannot bind any sockets");
+    if (options->bindaddrs->count == 0) {
+        nfds = 0;
+        network_bind_all(options->port, &fds, &nfds);
+        if (nfds == 0)
+            sysdie("cannot bind any sockets");
+    } else {
+        nfds = options->bindaddrs->count;
+        fds = xmalloc(nfds * sizeof(socket_type));
+        for (i = 0; i < options->bindaddrs->count; i++) {
+            addr = options->bindaddrs->strings[i];
+            if (is_ipv6(addr))
+                fds[i] = network_bind_ipv6(addr, options->port);
+            else
+                fds[i] = network_bind_ipv4(addr, options->port);
+            if (fds[i] == INVALID_SOCKET)
+                sysdie("cannot bind to address %s", addr);
+        }
+    }
     for (i = 0; i < nfds; i++)
         if (listen(fds[i], 5) < 0)
             sysdie("error listening on socket (fd %d)", fds[i]);
@@ -386,10 +424,14 @@ main(int argc, char *argv[])
     options.service = NULL;
     options.pid_path = NULL;
     options.config_path = CONFIG_FILE;
+    options.bindaddrs = vector_new();
 
     /* Parse options. */
-    while ((option = getopt(argc, argv, "dFf:hk:mP:p:Ss:v")) != EOF) {
+    while ((option = getopt(argc, argv, "b:dFf:hk:mP:p:Ss:v")) != EOF) {
         switch (option) {
+        case 'b':
+            vector_add(options.bindaddrs, optarg);
+            break;
         case 'd':
             options.debug = true;
             break;
@@ -430,6 +472,10 @@ main(int argc, char *argv[])
             break;
         }
     }
+
+    /* Check arguments for consistency. */
+    if (options.bindaddrs->count > 0 && !options.standalone)
+        die("-b only makes sense in combination with -m");
 
     /* Daemonize if told to do so. */
     if (options.standalone && !options.foreground)

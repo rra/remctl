@@ -10,8 +10,9 @@ remctld - Server for remctl, a remote command execution utility
 
 =head1 SYNOPSIS
 
-remctld [B<-dFhmSv>] [B<-f> I<config>] [B<-k> I<keytab>] [B<-P> I<file>]
-[B<-p> I<port>] [B<-s> I<service>]
+remctld [B<-dFhmSv>] [B<-b> I<bind-address> [B<-b> I<bind-address> ...]]
+    [B<-f> I<config>] [B<-k> I<keytab>] [B<-P> I<file>] [B<-p> I<port>]
+    [B<-s> I<service>]
 
 =head1 DESCRIPTION
 
@@ -40,6 +41,14 @@ below for more information.
 =head1 OPTIONS
 
 =over 4
+
+=item B<-b> I<bind-address>
+
+When running as a standalone server, bind to the specified local address
+rather than listening on all interfaces.  This option may be given
+multiple times to bind to multiple addresses.  I<bind-address> must be an
+IP address (either IPv4 or IPv6), not a hostname.  Only makes sense in
+combination with B<-m>.
 
 =item B<-d>
 

@@ -5,6 +5,10 @@ remctl 2.17 (unreleased)
     Fix construction of the return object for the Python bindings to the
     simple remctl interface.  Patch from Andrew Mortensen.
 
+    The remctld server now supports a -b command-line option specifying
+    which local addresses to which to bind.  This option may be given
+    multiple times to bind to multiple local addresses.
+
     When run as a standalone daemon, remctld now binds to both IPv4 and
     IPv6 addresses rather than only IPv4.
 

@@ -87,6 +87,9 @@ main(void)
     char *principal, *config, *path;
     struct remctl *r;
     pid_t remctld;
+#ifdef HAVE_INET6
+    bool ipv6 = false;
+#endif
 
     /* Unless we have Kerberos available, we can't really do anything. */
     if (chdir(getenv("SOURCE")) < 0)
@@ -96,18 +99,19 @@ main(void)
         skip_all("Kerberos tests not configured");
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
 
-    /* Test connecting to IPv4 with default bind. */
-    plan(4 * 2);
+    /* Initialize our testing. */
+    ipv6 = have_ipv6();
+    plan(26);
+
+    /* Test connecting to IPv4 and IPv6 with default bind. */
+    remctld = remctld_start(path, principal, config, NULL);
     r = remctl_new();
     ok(remctl_open(r, "127.0.0.1", 14373, principal), "Connect to 127.0.0.1");
     test_command(r);
     remctl_close(r);
-
-    /* Test connecting to IPv6 with default bind. */
 #ifdef HAVE_INET6
-    if (have_ipv6()) {
+    if (ipv6) {
         r = remctl_new();
         ok(remctl_open(r, "::1", 14373, principal), "Connect to ::1");
         test_command(r);
@@ -118,8 +122,73 @@ main(void)
 #else
     skip_block(4, "IPv6 not supported");
 #endif
-
     remctld_stop(remctld);
+
+    /* Try binding to only IPv4. */
+    remctld = remctld_start(path, principal, config, "-b", "127.0.0.1", NULL);
+    r = remctl_new();
+    ok(remctl_open(r, "127.0.0.1", 14373, principal),
+       "Connect to 127.0.0.1 when bound to that address");
+    test_command(r);
+    remctl_close(r);
+#ifdef HAVE_INET6
+    if (ipv6) {
+        r = remctl_new();
+        ok(!remctl_open(r, "::1", 14373, principal),
+           "Cannot connect to ::1 when only bound to 127.0.0.1");
+        remctl_close(r);
+    } else {
+        skip("IPv6 not supported");
+    }
+#else
+    skip("IPv6 not supported");
+#endif
+    remctld_stop(remctld);
+
+    /* Try binding to only IPv6. */
+#ifdef HAVE_INET6
+    if (ipv6) {
+        remctld = remctld_start(path, principal, config, "-b", "::1", NULL);
+        r = remctl_new();
+        ok(!remctl_open(r, "127.0.0.1", 14373, principal),
+           "Cannot connect to 127.0.0.1 when only bound to ::1");
+        remctl_close(r);
+        r = remctl_new();
+        ok(remctl_open(r, "::1", 14373, principal),
+           "Connect to ::1 when bound only to it");
+        test_command(r);
+        remctl_close(r);
+        remctld_stop(remctld);
+    } else {
+        skip_block(5, "IPv6 not supported");
+    }
+#else
+    skip_block(5, "IPv6 not supported");
+#endif
+
+    /* Try binding explicitly to local IPv4 and IPv6 addresses. */
+#ifdef HAVE_INET6
+    if (ipv6) {
+        remctld = remctld_start(path, principal, config, "-b", "127.0.0.1",
+                                "-b", "::1", NULL);
+        r = remctl_new();
+        ok(remctl_open(r, "127.0.0.1", 14373, principal),
+           "Connect to 127.0.0.1 when bound to both local addresses");
+        test_command(r);
+        remctl_close(r);
+        r = remctl_new();
+        ok(remctl_open(r, "::1", 14373, principal),
+           "Connect to ::1 when bound to both local addresses");
+        test_command(r);
+        remctl_close(r);
+        remctld_stop(remctld);
+    } else {
+        skip_block(8, "IPv6 not supported");
+    }
+#else
+    skip_block(8, "IPv6 not supported");
+#endif
+    
     kerberos_cleanup();
     return 0;
 }
