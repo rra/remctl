@@ -44,8 +44,6 @@ Description: Development files for Kerberos-authenticated command execution
 Package: remctl-client
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Conflicts: remctl (<< 1.10-1)
-Replaces: remctl (<< 1.10-1)
 Description: Client for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
@@ -61,8 +59,6 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, update-inetd | inet-superserver,
  netbase (>= 4.31)
 Recommends: openbsd-inetd | inet-superserver, tcpd
-Conflicts: remctl (<< 1.10-1)
-Replaces: remctl (<< 1.10-1)
 Description: Server for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
