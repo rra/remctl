@@ -2,7 +2,7 @@
  * Prototypes for network connection utility functions.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010
+ * Copyright 2009, 2010, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007, 2008, 2010
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -61,6 +61,18 @@ socket_type network_bind_ipv6(const char *address, unsigned short port)
 void network_bind_all(unsigned short port, socket_type **fds,
                       unsigned int *count)
     __attribute__((__nonnull__));
+
+/*
+ * Accept an incoming connection from any file descriptor in an array.  This
+ * is a blocking accept that will wait until there is an incoming connection,
+ * unless interrupted by receipt of a signal.  Returns the new socket or
+ * INVALID_SOCKET, and fills out the arguments with the address of the remote
+ * client.  If the wait for a connection was interrupted by a signal, returns
+ * INVALID_SOCKET with errno set to EINTR.
+ */
+socket_type network_accept_any(socket_type fds[], unsigned int count,
+                               struct sockaddr *addr, socklen_t *addrlen)
+    __attribute__((__nonnull__(1)));
 
 /*
  * Create a socket and connect it to the remote service given by the linked

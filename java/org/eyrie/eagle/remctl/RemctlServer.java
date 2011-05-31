@@ -14,7 +14,9 @@
  **  any commands.
  **
  **  Written by Anton Ushakov <antonu@stanford.edu>
- **  Copyright 2002 Board of Trustees, Leland Stanford Jr. University
+ **  Coypright 2007 Marcus Watts <mdw@umich.edu>
+ **  Copyright 2002
+ **      The Board of Trustees of the Leland Stanford Junior University
  **  See LICENSE for licensing terms.
  **
  **  This version considerably modified by Marcus Watts <mdw@umich.edu>

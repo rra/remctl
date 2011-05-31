@@ -8,7 +8,8 @@
 # in order to test undefined values passed to Net::Remctl functions.
 #
 # Written by Russ Allbery
-# Copyright 2008 Board of Trustees, Leland Stanford Jr. University
+# Copyright 2008
+#     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
 

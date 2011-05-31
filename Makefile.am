@@ -1,8 +1,8 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2008, 2009, 2010
-#     Board of Trustees, Leland Stanford Jr. University
+# Copyright 2006, 2007, 2008, 2009, 2010, 2011
+#     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
 
@@ -26,40 +26,49 @@ PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.rc     \
-	client/mapfile client/remctl.rc config.h.w32 configure.cmd	     \
-	docs/api/remctl.pod docs/api/remctl_close.pod			     \
-	docs/api/remctl_command.pod docs/api/remctl_error.pod		     \
-	docs/api/remctl_new.pod docs/api/remctl_open.pod		     \
-	docs/api/remctl_output.pod docs/design.html docs/extending	     \
-	docs/protocol-v3 docs/protocol.txt docs/protocol.html		     \
-	docs/protocol.xml docs/remctl.pod docs/remctld.8.in docs/remctld.pod \
-	examples/remctl.conf examples/rsh-wrapper examples/xinetd	     \
-	java/.classpath java/.project java/Makefile java/README		     \
-	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf     \
-	java/org/eyrie/eagle/remctl/Remctl.java				     \
-	java/org/eyrie/eagle/remctl/RemctlClient.java			     \
-	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	     \
-	java/t7.java portable/winsock.c remctl.spec ruby/README		     \
-	ruby/remctl.c tests/TESTS tests/client/remctl-t tests/data/README    \
-	tests/data/acl-bad-include tests/data/acl-bad-syntax		     \
-	tests/data/acl-nonexistant tests/data/acl-recursive		     \
-	tests/data/acl-simple tests/data/acl-too-long tests/data/acl-valid-3 \
-	tests/data/acls/VALID_09 tests/data/acls/val\#id		     \
-	tests/data/acls/val.id tests/data/acls/valid tests/data/acls/valid-2 \
-	tests/data/acls/val~id tests/data/acls2/valid-4 tests/data/cmd-argv  \
-	tests/data/cmd-env tests/data/cmd-hello tests/data/cmd-status	     \
-	tests/data/conf-simple tests/data/conf-test			     \
-	tests/data/configs/bad-logmask-1 tests/data/configs/bad-logmask-2    \
-	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4    \
-	tests/data/configs/bad-option-1 tests/data/gput			     \
-	tests/docs/pod-spelling-t tests/docs/pod-t tests/tap/kerberos.sh     \
-	tests/tap/libtap.sh tests/tap/remctl.sh tests/server/misc-t	     \
-	tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES)
+EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
+	client/libremctl.map client/libremctl.rc client/libremctl.sym	    \
+	client/remctl.rc config.h.w32 configure.cmd docs/api/remctl.pod	    \
+	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
+	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
+	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
+	docs/design.html docs/extending docs/protocol-v3 docs/protocol.txt  \
+	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
+	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
+	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
+	java/.classpath java/.project java/Makefile java/README		    \
+	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
+	java/org/eyrie/eagle/remctl/Remctl.java				    \
+	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
+	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
+	java/t7.java portable/winsock.c remctl.spec ruby/README		    \
+	ruby/remctl.c tests/HOWTO tests/TESTS tests/client/remctl-t	    \
+	tests/data/README tests/data/acl-bad-include			    \
+	tests/data/acl-bad-syntax tests/data/acl-nonexistant		    \
+	tests/data/acl-recursive tests/data/acl-simple			    \
+	tests/data/acl-too-long tests/data/acl-valid-3			    \
+	tests/data/acls/VALID_09 tests/data/acls/val\#id		    \
+	tests/data/acls/val.id tests/data/acls/valid			    \
+	tests/data/acls/valid-2 tests/data/acls/val~id			    \
+	tests/data/acls2/valid-4 tests/data/cmd-argv tests/data/cmd-env	    \
+	tests/data/cmd-hello tests/data/cmd-status tests/data/conf-simple   \
+	tests/data/conf-test tests/data/configs/bad-logmask-1		    \
+	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
+	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
+	tests/data/gput tests/docs/pod-spelling-t tests/docs/pod-t	    \
+	tests/tap/kerberos.sh tests/tap/libtap.sh tests/tap/remctl.sh	    \
+	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
+	$(PYTHON_FILES)
 
 # Set this globally, since we have too many header files that include the
 # GSS-API headers even if the code itself doesn't call GSS-API functions.
 AM_CPPFLAGS = $(GSSAPI_CPPFLAGS)
+
+if HAVE_LD_VERSION_SCRIPT
+    VERSION_LDFLAGS = -Wl,--version-script=${srcdir}/client/libremctl.map
+else
+    VERSION_LDFLAGS = -export-symbols ${srcdir}/client/libremctl.sym
+endif
 
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
@@ -104,6 +113,19 @@ dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3 \
 	docs/api/remctl_output.3 docs/remctl.1
 man_MANS = docs/remctld.8
 
+pkgconfigdir = $(libdir)/pkgconfig
+nodist_pkgconfig_DATA = client/libremctl.pc
+
+client/libremctl.pc: $(srcdir)/client/libremctl.pc.in
+	sed -e 's![@]prefix[@]!$(prefix)!g' \
+	    -e 's![@]exec_prefix[@]!$(exec_prefix)!g' \
+	    -e 's![@]includedir[@]!$(includedir)!g' \
+	    -e 's![@]libdir[@]!$(libdir)!g' \
+	    -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g' \
+	    -e 's![@]GSSAPI_LDFLAGS[@]!$(GSSAPI_LDFLAGS)!g' \
+	    -e 's![@]GSSAPI_LIBS[@]!$(GSSAPI_LIBS)!g' \
+	    $(srcdir)/client/libremctl.pc.in > $@
+
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
 	[ -d docs ] || mkdir docs
 	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \
@@ -116,7 +138,7 @@ install-data-hook:
 	rm -f $(DESTDIR)$(man3dir)/remctl_commandv.3
 	$(LN_S) remctl_command.3 $(DESTDIR)$(man3dir)/remctl_commandv.3
 
-CLEANFILES = docs/remctld.8 stamp-python
+CLEANFILES = client/libremctl.pc docs/remctld.8 stamp-python
 DISTCLEANFILES = perl/Makefile python/MANIFEST
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
 	build-aux/config.guess build-aux/config.sub build-aux/depcomp \
@@ -142,7 +164,7 @@ clean-local:
 	set -e; if [ -f "ruby/Makefile" ] ; then \
 	    cd ruby && $(MAKE) distclean ; \
 	fi
-	rm -rf python/build python/dist python/*.pyc
+	rm -rf php/tmp-php.ini python/build python/dist python/*.pyc
 
 # Also clean the Perl, PHP, and Python directories on make distclean if
 # needed.
@@ -170,21 +192,28 @@ distclean-local:
 	fi
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
-# without optimization turned on, and add -DDEBUG=1 so we'll also compile all
-# debugging code and test it.
-WARNINGS = -g -O -DDEBUG=1 -Wall -W -Wendif-labels -Wpointer-arith \
-	-Wbad-function-cast -Wwrite-strings -Wstrict-prototypes \
-	-Wmissing-prototypes -Wnested-externs -Werror
+# without optimization turned on.  Desirable warnings that can't be turned
+# on due to other problems:
+#
+#     -Wconversion      http://bugs.debian.org/488884 (htons warnings)
+#
+# Last checked against gcc 4.6.1 (2011-05-04).
+WARNINGS = -g -O -Wall -Wextra -Wendif-labels -Wformat=2 -Winit-self	\
+	-Wswitch-enum -Wdeclaration-after-statement -Wshadow		\
+	-Wpointer-arith -Wbad-function-cast -Wwrite-strings		\
+	-Wjump-misses-init -Wlogical-op -Wstrict-prototypes		\
+	-Wmissing-prototypes -Wredundant-decls -Wnested-externs -Werror
 
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code doesn't pass them.
 if GCC
     PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs \
-	-Wno-strict-prototypes
+	-Wno-strict-prototypes -Wno-redundant-decls -Wno-shadow
     PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
-	-Wno-missing-prototypes -Wno-unused-parameter
+	-Wno-missing-prototypes -Wno-unused-parameter \
+	-Wno-redundant-decls
     PYTHON_WARNINGS = -Wno-unused-parameter
-    RUBY_WARNINGS = -Wno-strict-prototypes
+    RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
 else
     PERL_WARNINGS =
     PHP_WARNINGS =
@@ -206,13 +235,14 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t	    \
 	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		    \
 	tests/portable/setenv-t tests/portable/snprintf-t		    \
 	tests/portable/strlcat-t tests/portable/strlcpy-t		    \
-	tests/server/accept-t tests/server/acl-t tests/server/config-t	    \
-	tests/server/continue-t tests/server/env-t tests/server/errors-t    \
-	tests/server/invalid-t tests/server/logging-t tests/server/stdin-t  \
-	tests/server/streaming-t tests/server/version-t tests/util/concat-t \
-	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t   \
-	tests/util/network-t tests/util/tokens-t tests/util/vector-t	    \
-	tests/util/xmalloc tests/util/xwrite-t
+	tests/server/accept-t tests/server/acl-t tests/server/bind-t	    \
+	tests/server/config-t tests/server/continue-t tests/server/env-t    \
+	tests/server/errors-t tests/server/invalid-t tests/server/logging-t \
+	tests/server/stdin-t tests/server/streaming-t			    \
+	tests/server/version-t tests/util/concat-t tests/util/fdflag-t	    \
+	tests/util/gss-tokens-t tests/util/messages-t tests/util/network-t  \
+	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	    \
+	tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
@@ -282,6 +312,8 @@ tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
 tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS)
+tests_server_bind_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
 tests_server_config_t_SOURCES = tests/server/config-t.c $(SERVER_FILES)
 tests_server_config_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_config_t_LDADD = tests/tap/libtap.a util/libutil.la \
@@ -338,7 +370,7 @@ check-local: $(check_PROGRAMS)
 	fi
 	@set -e; if [ -f php/Makefile ] ; then \
 	    echo '' ; \
-	    cd php && ./test-wrapper "$(abs_top_builddir)" \
+	    cd php && NO_INTERACTION=1 ./test-wrapper "$(abs_top_builddir)" \
 		"$(abs_top_srcdir)" ; \
 	fi
 	@set -e; if [ -f python/setup.py ] ; then \

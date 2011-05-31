@@ -6,10 +6,27 @@
  * obtains Kerberos credentials, sets up a ticket cache, and sets the
  * environment variable pointing to the Kerberos keytab to use for testing.
  *
+ * Written by Russ Allbery <rra@stanford.edu>
  * Copyright 2006, 2007, 2009, 2010
- *     Board of Trustees, Leland Stanford Jr. University
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
 
 #include <config.h>
@@ -19,33 +36,6 @@
 #include <tests/tap/kerberos.h>
 #include <util/concat.h>
 #include <util/xmalloc.h>
-
-
-/*
- * Given the partial path to a file, look under BUILD and then SOURCE for the
- * file and return the full path to the file in newly-allocated memory.
- * Returns NULL if the file doesn't exist.
- */
-static char *
-find_file(const char *file)
-{
-    char *base;
-    char *path = NULL;
-    const char *envs[] = { "BUILD", "SOURCE", NULL };
-    int i;
-
-    for (i = 0; envs[i] != NULL; i++) {
-        base = getenv(envs[i]);
-        if (base == NULL)
-            continue;
-        path = concatpath(base, file);
-        if (access(path, R_OK) == 0)
-            break;
-        free(path);
-        path = NULL;
-    }
-    return path;
-}
 
 
 /*
@@ -74,7 +64,7 @@ kerberos_setup(void)
     int status;
 
     /* Read the principal name and find the keytab file. */
-    path = find_file("data/test.principal");
+    path = test_file_path("data/test.principal");
     if (path == NULL)
         return NULL;
     file = fopen(path, "r");
@@ -91,7 +81,7 @@ kerberos_setup(void)
         bail("no newline in %s", path);
     free(path);
     principal[strlen(principal) - 1] = '\0';
-    path = find_file("data/test.keytab");
+    path = test_file_path("data/test.keytab");
     if (path == NULL)
         return NULL;
 

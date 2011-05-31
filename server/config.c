@@ -7,7 +7,7 @@
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
- *     Board of Trustees, Leland Stanford Jr. University
+ *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
  *
  * See LICENSE for licensing terms.
@@ -106,11 +106,11 @@ valid_filename(const char *filename)
  * Process a request for including a file, either for configuration or for
  * ACLs.  Called by read_conf_file and acl_check_file.
  *
- * Takes the vector that represents the include directive, the current file,
- * the line number, the function to call for each included file, and a piece
- * of data to pass to that function.  Handles including either files or
- * directories.  When used for processing ACL files named in the configuration
- * file, the current file and line number will be passed as zero.
+ * Takes the file to include, the current file, the line number, the function
+ * to call for each included file, and a piece of data to pass to that
+ * function.  Handles including either files or directories.  When used for
+ * processing ACL files named in the configuration file, the current file and
+ * line number will be passed as zero.
  *
  * If the function returns a value less than -1, return its return code.  If
  * the file is recursively included or if there is an error in reading a file
@@ -131,7 +131,7 @@ handle_include(const char *included, const char *file, int lineno,
         return CONFIG_ERROR;
     }
     if (stat(included, &st) < 0) {
-        warn("%s:%d: included file %s not found", file, lineno, included);
+        syswarn("%s:%d: included file %s not found", file, lineno, included);
         return CONFIG_ERROR;
     }
 
@@ -149,15 +149,17 @@ handle_include(const char *included, const char *file, int lineno,
         int last;
 
         dir = opendir(included);
+        if (dir == NULL) {
+            syswarn("%s:%d: included directory %s cannot be opened", file,
+                 lineno, included);
+            return CONFIG_ERROR;
+        }
         while ((entry = readdir(dir)) != NULL) {
             char *path;
-            size_t length;
 
             if (!valid_filename(entry->d_name))
                 continue;
-            length = strlen(included) + 1 + strlen(entry->d_name) + 1;
-            path = xmalloc(length);
-            snprintf(path, length, "%s/%s", included, entry->d_name);
+            xasprintf(&path, "%s/%s", included, entry->d_name);
             last = (*function)(data, path);
             free(path);
             if (last < -1) {
@@ -647,6 +649,7 @@ acl_check_deny(const char *user, const char *data, const char *file,
     case CONFIG_SUCCESS: return CONFIG_DENY;
     case CONFIG_NOMATCH: return CONFIG_NOMATCH;
     case CONFIG_DENY:    return CONFIG_NOMATCH;
+    case CONFIG_ERROR:   return CONFIG_ERROR;
     default:             return s;
     }
 }
