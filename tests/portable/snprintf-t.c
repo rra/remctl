@@ -2,19 +2,28 @@
  * snprintf test suite.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009 Board of Trustees, Leland Stanford Jr. University
- * Copyright (c) 2004, 2005, 2006
- *     by Internet Systems Consortium, Inc. ("ISC")
- * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
- *     2002, 2003 by The Internet Software Consortium and Rich Salz
+ * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006
+ *     Russ Allbery <rra@stanford.edu>
+ * Copyright 2009, 2010
+ *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 1995 Patrick Powell
+ * Copyright 2001 Hrvoje Niksic
  *
- * See LICENSE for licensing terms.
+ * This code is based on code written by Patrick Powell (papowell@astart.com)
+ * It may be used for any purpose as long as this notice remains intact
+ * on all source code distributions
  */
 
 #include <config.h>
 #include <portable/system.h>
 
 #include <tests/tap/basic.h>
+
+/*
+ * Disable the requirement that format strings be literals.  We need variable
+ * formats for easy testing.
+ */
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 
 /*
  * Intentionally don't add the printf attribute here since we pass a
@@ -86,7 +95,7 @@ static unsigned long long ullong_nums[] = {
 
 
 static void
-test_format(bool truncate, const char *expected, int count,
+test_format(bool trunc, const char *expected, int count,
             const char *format, ...)
 {
     char buf[128];
@@ -94,7 +103,7 @@ test_format(bool truncate, const char *expected, int count,
     va_list args;
 
     va_start(args, format);
-    result = test_vsnprintf(buf, truncate ? 32 : sizeof(buf), format, args);
+    result = test_vsnprintf(buf, trunc ? 32 : sizeof(buf), format, args);
     va_end(args);
     is_string(expected, buf, "format %s, wanted %s", format, expected);
     is_int(count, result, "...and output length correct");
@@ -104,7 +113,7 @@ test_format(bool truncate, const char *expected, int count,
 int
 main(void)
 {
-    int n, i, count;
+    int i, count;
     unsigned int j;
     long lcount;
     char lgbuf[128];
@@ -147,7 +156,6 @@ main(void)
     is_int(31, lcount, "correct output from long %%ln");
     test_format(true, "(null)", 6, "%s", NULL);
 
-    n = 26;
     for (i = 0; fp_formats[i] != NULL; i++)
         for (j = 0; j < ARRAY_SIZE(fp_nums); j++) {
             count = sprintf(lgbuf, fp_formats[i], fp_nums[j]);

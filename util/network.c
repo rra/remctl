@@ -10,13 +10,28 @@
  * implementations for functions that aren't found on some pre-IPv6 systems.
  * No other part of the source tree should have to care about IPv4 vs. IPv6.
  *
- * Copyright 2009 Board of Trustees, Leland Stanford Jr. University
+ * Written by Russ Allbery <rra@stanford.edu>
+ * Copyright 2009, 2011
+ *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007, 2008
  *     by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
  *     2002, 2003 by The Internet Software Consortium and Rich Salz
  *
- * See LICENSE for licensing terms.
+ * This code is derived from software contributed to the Internet Software
+ * Consortium by Rich Salz.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
 #include <config.h>
@@ -85,6 +100,7 @@ network_bind_ipv4(const char *address, unsigned short port)
         address = "0.0.0.0";
 
     /* Flesh out the socket and do the bind. */
+    memset(&server, 0, sizeof(server));
     server.sin_family = AF_INET;
     server.sin_port = htons(port);
     if (!inet_aton(address, &addr)) {
@@ -103,10 +119,14 @@ network_bind_ipv4(const char *address, unsigned short port)
 
 /*
  * Create an IPv6 socket and bind it, returning the resulting file descriptor
- * (or INVALID_SOCKET on a failure).  Note that we don't warn (but still
- * return failure) if the reason for the socket creation failure is that IPv6
- * isn't supported; this is to handle systems like many Linux hosts where IPv6
- * is available in userland but the kernel doesn't support it.
+ * (or INVALID_SOCKET on a failure).  This socket will be restricted to IPv6
+ * only if possible (as opposed to the standard behavior of binding IPv6
+ * sockets to both IPv6 and IPv4).
+ *
+ * Note that we don't warn (but still return failure) if the reason for the
+ * socket creation failure is that IPv6 isn't supported; this is to handle
+ * systems like many Linux hosts where IPv6 is available in userland but the
+ * kernel doesn't support it.
  */
 #if HAVE_INET6
 socket_type
@@ -115,6 +135,9 @@ network_bind_ipv6(const char *address, unsigned short port)
     socket_type fd;
     struct sockaddr_in6 server;
     struct in6_addr addr;
+#ifdef IPV6_V6ONLY
+    int flag;
+#endif
 
     /* Create the socket. */
     fd = socket(PF_INET6, SOCK_STREAM, IPPROTO_IP);
@@ -125,11 +148,41 @@ network_bind_ipv6(const char *address, unsigned short port)
     }
     network_set_reuseaddr(fd);
 
-    /* Accept "any" or "all" in the bind address to mean 0.0.0.0. */
+    /*
+     * Restrict the socket to IPv6 only if possible.  The default behavior is
+     * to bind IPv6 sockets to both IPv6 and IPv4 for backward compatibility,
+     * but this causes various other problems (such as with reusing sockets
+     * and requiring handling of mapped addresses).  Continue on if this
+     * fails, however.
+     */
+#ifdef IPV6_V6ONLY
+    flag = 1;
+    if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &flag, sizeof(flag)) < 0)
+        syswarn("cannot set IPv6 socket to v6only");
+#endif
+
+    /* Accept "any" or "all" in the bind address to mean ::. */
     if (!strcmp(address, "any") || !strcmp(address, "all"))
         address = "::";
 
+    /*
+     * If the address is not ::, use IP_FREEBIND if it's available.  This
+     * allows the network stack to bind to an address that isn't configured.
+     * We lose diagnosis of errors from specifying bind addresses that don't
+     * exist on the system, but we gain the ability to bind to IPv6 addresses
+     * that aren't yet configured.  Since IPv6 address configuration can take
+     * unpredictable amounts of time during system setup, this is more robust.
+     */
+#ifdef IP_FREEBIND
+    if (strcmp(address, "::") != 0) {
+        flag = 1;
+        if (setsockopt(fd, IPPROTO_IP, IP_FREEBIND, &flag, sizeof(flag)) < 0)
+            syswarn("cannot set IPv6 socket to free binding");
+    }
+#endif
+
     /* Flesh out the socket and do the bind. */
+    memset(&server, 0, sizeof(server));
     server.sin6_family = AF_INET6;
     server.sin6_port = htons(port);
     if (inet_pton(AF_INET6, address, &addr) < 1) {
@@ -165,10 +218,11 @@ network_bind_ipv6(const char *address, unsigned short port)
  */
 #if HAVE_INET6
 void
-network_bind_all(unsigned short port, int **fds, int *count)
+network_bind_all(unsigned short port, int **fds, unsigned int *count)
 {
     struct addrinfo hints, *addrs, *addr;
-    int error, size;
+    unsigned int size;
+    int error;
     socket_type fd;
     char service[16], name[INET6_ADDRSTRLEN];
 
@@ -213,7 +267,7 @@ network_bind_all(unsigned short port, int **fds, int *count)
 }
 #else /* HAVE_INET6 */
 void
-network_bind_all(unsigned short port, socket_type **fds, int *count)
+network_bind_all(unsigned short port, socket_type **fds, unsigned int *count)
 {
     socket_type fd;
 
@@ -228,6 +282,53 @@ network_bind_all(unsigned short port, socket_type **fds, int *count)
     }
 }
 #endif /* HAVE_INET6 */
+
+
+/*
+ * Given an array of file descriptors and the length of that array (the same
+ * data that's returned by network_bind_all), wait for an incoming connection
+ * on any of those sockets, accept the connection with accept(), and return
+ * the new file descriptor.
+ *
+ * This is essentially a replacement for accept() with a single socket for
+ * daemons that are listening to multiple separate bound sockets, possibly
+ * because they need to listen to specific interfaces or possibly because
+ * they're listening for both IPv4 and IPv6 connections.
+ *
+ * Returns the new socket on success or INVALID_SOCKET on failure.  On
+ * success, fills out the arguments with the address and address length of the
+ * accepted client.  No error will be reported, so the caller should do that.
+ * Note that INVALID_SOCKET may be returned if the timeout is interrupted by a
+ * signal, which is not, precisely speaking, an error condition.  In this
+ * case, errno will be set to EINTR.
+ */
+socket_type
+network_accept_any(socket_type fds[], unsigned int count,
+                   struct sockaddr *addr, socklen_t *addrlen)
+{
+    fd_set readfds;
+    socket_type maxfd, fd;
+    unsigned int i;
+    int status;
+
+    FD_ZERO(&readfds);
+    maxfd = -1;
+    for (i = 0; i < count; i++) {
+        FD_SET(fds[i], &readfds);
+        if (fds[i] > maxfd)
+            maxfd = fds[i];
+    }
+    status = select(maxfd + 1, &readfds, NULL, NULL, NULL);
+    if (status < 0)
+        return INVALID_SOCKET;
+    fd = INVALID_SOCKET;
+    for (i = 0; i < count; i++)
+        if (FD_ISSET(fds[i], &readfds)) {
+            fd = fds[i];
+            break;
+        }
+    return accept(fd, addr, addrlen);
+}
 
 
 /*
@@ -507,7 +608,7 @@ network_addr_match(const char *a, const char *b, const char *mask)
             if (cidr > 32 || *end != '\0')
                 return false;
             for (bits = 0, i = 0; i < cidr; i++)
-                bits |= (1 << (31 - i));
+                bits |= (1UL << (31 - i));
             addr_mask = htonl(bits);
         } else if (inet_aton(mask, &tmp))
             addr_mask = tmp.s_addr;
@@ -536,7 +637,7 @@ network_addr_match(const char *a, const char *b, const char *mask)
                 return false;
         } else {
             for (addr_mask = 0, bits = 0; bits < cidr % 8; bits++)
-                addr_mask |= (1 << (7 - bits));
+                addr_mask |= (1UL << (7 - bits));
             if ((a6.s6_addr[i] & addr_mask) != (b6.s6_addr[i] & addr_mask))
                 return false;
         }

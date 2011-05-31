@@ -1,7 +1,8 @@
 # Makefile.PL for libremctl Perl bindings.  -*- perl -*-
 #
 # Written by Russ Allbery
-# Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+# Copyright 2007
+#     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
 

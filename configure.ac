@@ -2,12 +2,12 @@ dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
 dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010
-dnl     Board of Trustees, Leland Stanford Jr. University
+dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl See LICENSE for licensing terms.
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [2.16], [rra@stanford.edu])
+AC_INIT([remctl], [2.17], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
@@ -19,6 +19,7 @@ AC_USE_SYSTEM_EXTENSIONS
 AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
+RRA_LD_VERSION_SCRIPT
 
 AC_SEARCH_LIBS([gethostbyname], [nsl])
 AC_SEARCH_LIBS([socket], [socket], ,
@@ -96,20 +97,6 @@ AC_CHECK_DECLS([GSS_KRB5_MECHANISM], ,
 #endif
 ]])
 RRA_LIB_GSSAPI_RESTORE
-
-dnl If and only if we're on a GNU system, use mapfile to do symbol versioning
-dnl of the libremctl library.  libtool doesn't know how to do this itself.
-dnl This is supported on Solaris as well but we need to know if we're
-dnl the GNU linker or the Solaris linker.
-case "$host" in
-*-gnu*)
-    VERSION_LDFLAGS='-Wl,--version-script=${srcdir}/client/mapfile'
-    ;;
-*)
-    VERSION_LDFLAGS=""
-    ;;
-esac
-AC_SUBST([VERSION_LDFLAGS])
 
 dnl Check for the CMU GPUT library.
 RRA_LIB_GPUT

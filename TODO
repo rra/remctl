@@ -78,12 +78,12 @@ Server:
    between commands.  It's entirely reasonable for a protocol 2 client
    to hold a connection open for hours.
 
- * Support binding to an IPv6 address.  Currently, the server only
-   supports IPv4.
-
  * The server should call gss_inquire_context to retrieve the mechanism
    OID and then pass that in to calls to gssapi_error_string rather than
    hard-coding the Kerberos v5 OID.
+
+ * Support binding to a specified address or addresses given as
+   command-line options.
 
 Client:
 
@@ -115,15 +115,9 @@ Client library:
 
 Build system:
 
- * Add logic to detect Solaris vs. GNU ld on Solaris and pass the
-   appropriate option to use the symbol versioning map file on Solaris as
-   well.
-
  * Incorporate a program that can generate a Kerberos ticket cache from
    a keytab and use that for running the Kerberos tests instead of
    requiring the user to generate a keytab.
-
- * Add pkgconfig support for libremctl.
 
 Portability layer:
 

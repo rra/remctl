@@ -5,7 +5,8 @@ dnl This file is used by the phpize frameowrk.
 dnl
 dnl Originally written by Andrew Mortensen <admorten@umich.edu>, 2008
 dnl Copyright 2008 Andrew Mortensen <admorten@umich.edu>
-dnl Copyright 2008 Board of Trustees, Leland Stanford Jr. University
+dnl Copyright 2008
+dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl See LICENSE for licensing terms.
 

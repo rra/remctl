@@ -18,6 +18,7 @@ portable/strlcat
 portable/strlcpy
 server/accept
 server/acl
+server/bind
 server/config
 server/continue
 server/env

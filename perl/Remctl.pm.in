@@ -5,7 +5,8 @@
 # file contains the bootstrap and export code and the documentation.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2007, 2008 Board of Trustees, Leland Stanford Jr. University
+# Copyright 2007, 2008
+#     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
 
@@ -289,8 +290,8 @@ Russ Allbery <rra@stanford.edu>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007, 2008 Board of Trustees, Leland Stanford Jr. University.  All
-rights reserved.
+Copyright 2007, 2008 The Board of Trustees of the Leland Stanford Junior
+University.  All rights reserved.
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose and without fee is hereby granted, provided

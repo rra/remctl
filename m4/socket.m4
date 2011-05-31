@@ -9,18 +9,33 @@ dnl     RRA_MACRO_SA_LEN
 dnl
 dnl They use a separate internal source macro to make the code easier to read.
 dnl
-dnl Copyright 2008, 2009 Board of Trustees, Leland Stanford Jr. University
+dnl Copyright 2008, 2009, 2011
+dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl Copyright (c) 2004, 2005, 2006, 2007, 2008, 2009
 dnl     by Internet Systems Consortium, Inc. ("ISC")
 dnl Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
 dnl     2002, 2003 by The Internet Software Consortium and Rich Salz
 dnl
-dnl See LICENSE for licensing terms.
+dnl This code is derived from software contributed to the Internet Software
+dnl Consortium by Rich Salz.
+dnl
+dnl Permission to use, copy, modify, and distribute this software for any
+dnl purpose with or without fee is hereby granted, provided that the above
+dnl copyright notice and this permission notice appear in all copies.
+dnl
+dnl THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+dnl REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+dnl MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
+dnl SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+dnl WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+dnl ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+dnl IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 dnl Source used by RRA_FUNC_GETADDRINFO_ADDRCONFIG.
 AC_DEFUN([_RRA_FUNC_GETADDRINFO_ADDRCONFIG_SOURCE], [[
 #include <netdb.h>
 #include <stdio.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 
 int
@@ -40,7 +55,7 @@ dnl If so, set HAVE_GETADDRINFO_ADDRCONFIG.
 AC_DEFUN([RRA_FUNC_GETADDRINFO_ADDRCONFIG],
 [AC_CACHE_CHECK([for working AI_ADDRCONFIG flag],
     [rra_cv_func_getaddrinfo_addrconfig_works],
-    [AC_RUN_IFELSE(AC_LANG_SOURCE([_RRA_FUNC_GETADDRINFO_ADDRCONFIG_SOURCE]),
+    [AC_RUN_IFELSE([AC_LANG_SOURCE([_RRA_FUNC_GETADDRINFO_ADDRCONFIG_SOURCE])],
         [rra_cv_func_getaddrinfo_addrconfig_works=yes],
         [rra_cv_func_getaddrinfo_addrconfig_works=no],
         [rra_cv_func_getaddrinfo_addrconfig_works=no])])

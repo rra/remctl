@@ -18,10 +18,11 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2008, 2009, 2010
-#     Board of Trustees, Leland Stanford Jr. University
+# Copyright 2006, 2007, 2008, 2009, 2010, 2011
+#     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
+
 
 
 
@@ -64,7 +65,7 @@ check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
 	tests/portable/strlcat-t$(EXEEXT) \
 	tests/portable/strlcpy-t$(EXEEXT) \
 	tests/server/accept-t$(EXEEXT) tests/server/acl-t$(EXEEXT) \
-	tests/server/config-t$(EXEEXT) \
+	tests/server/bind-t$(EXEEXT) tests/server/config-t$(EXEEXT) \
 	tests/server/continue-t$(EXEEXT) tests/server/env-t$(EXEEXT) \
 	tests/server/errors-t$(EXEEXT) tests/server/invalid-t$(EXEEXT) \
 	tests/server/logging-t$(EXEEXT) tests/server/stdin-t$(EXEEXT) \
@@ -115,7 +116,7 @@ DIST_COMMON = README $(am__configure_deps) $(dist_man_MANS) \
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gput.m4 \
 	$(top_srcdir)/m4/gssapi.m4 $(top_srcdir)/m4/inet-ntoa.m4 \
-	$(top_srcdir)/m4/lib-depends.m4 \
+	$(top_srcdir)/m4/ld-version.m4 $(top_srcdir)/m4/lib-depends.m4 \
 	$(top_srcdir)/m4/lib-pathname.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
 	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
@@ -174,7 +175,7 @@ am__base_list = \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(sbindir)" "$(DESTDIR)$(man1dir)" \
 	"$(DESTDIR)$(man3dir)" "$(DESTDIR)$(man8dir)" \
-	"$(DESTDIR)$(includedir)"
+	"$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 client_libremctl_la_DEPENDENCIES = util/libutil.la \
@@ -363,6 +364,10 @@ tests_server_acl_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_server_acl_t_LDFLAGS) \
 	$(LDFLAGS) -o $@
+tests_server_bind_t_SOURCES = tests/server/bind-t.c
+tests_server_bind_t_OBJECTS = tests/server/bind-t.$(OBJEXT)
+tests_server_bind_t_DEPENDENCIES = client/libremctl.la \
+	tests/tap/libtap.a util/libutil.la portable/libportable.la
 am_tests_server_config_t_OBJECTS = tests/server/config-t.$(OBJEXT) \
 	$(am__objects_1)
 tests_server_config_t_OBJECTS = $(am_tests_server_config_t_OBJECTS)
@@ -507,15 +512,16 @@ SOURCES = $(tests_tap_libtap_a_SOURCES) $(client_libremctl_la_SOURCES) \
 	$(tests_portable_strlcat_t_SOURCES) \
 	$(tests_portable_strlcpy_t_SOURCES) tests/runtests.c \
 	$(tests_server_accept_t_SOURCES) $(tests_server_acl_t_SOURCES) \
-	$(tests_server_config_t_SOURCES) tests/server/continue-t.c \
-	tests/server/env-t.c tests/server/errors-t.c \
-	tests/server/invalid-t.c $(tests_server_logging_t_SOURCES) \
-	tests/server/stdin-t.c tests/server/streaming-t.c \
-	tests/server/version-t.c tests/util/concat-t.c \
-	tests/util/fdflag-t.c $(tests_util_gss_tokens_t_SOURCES) \
-	tests/util/messages-t.c tests/util/network-t.c \
-	tests/util/tokens-t.c tests/util/vector-t.c \
-	tests/util/xmalloc.c $(tests_util_xwrite_t_SOURCES)
+	tests/server/bind-t.c $(tests_server_config_t_SOURCES) \
+	tests/server/continue-t.c tests/server/env-t.c \
+	tests/server/errors-t.c tests/server/invalid-t.c \
+	$(tests_server_logging_t_SOURCES) tests/server/stdin-t.c \
+	tests/server/streaming-t.c tests/server/version-t.c \
+	tests/util/concat-t.c tests/util/fdflag-t.c \
+	$(tests_util_gss_tokens_t_SOURCES) tests/util/messages-t.c \
+	tests/util/network-t.c tests/util/tokens-t.c \
+	tests/util/vector-t.c tests/util/xmalloc.c \
+	$(tests_util_xwrite_t_SOURCES)
 DIST_SOURCES = $(tests_tap_libtap_a_SOURCES) \
 	$(client_libremctl_la_SOURCES) \
 	$(portable_libportable_la_SOURCES) $(util_libutil_la_SOURCES) \
@@ -537,20 +543,22 @@ DIST_SOURCES = $(tests_tap_libtap_a_SOURCES) \
 	$(tests_portable_strlcat_t_SOURCES) \
 	$(tests_portable_strlcpy_t_SOURCES) tests/runtests.c \
 	$(tests_server_accept_t_SOURCES) $(tests_server_acl_t_SOURCES) \
-	$(tests_server_config_t_SOURCES) tests/server/continue-t.c \
-	tests/server/env-t.c tests/server/errors-t.c \
-	tests/server/invalid-t.c $(tests_server_logging_t_SOURCES) \
-	tests/server/stdin-t.c tests/server/streaming-t.c \
-	tests/server/version-t.c tests/util/concat-t.c \
-	tests/util/fdflag-t.c $(tests_util_gss_tokens_t_SOURCES) \
-	tests/util/messages-t.c tests/util/network-t.c \
-	tests/util/tokens-t.c tests/util/vector-t.c \
-	tests/util/xmalloc.c $(tests_util_xwrite_t_SOURCES)
+	tests/server/bind-t.c $(tests_server_config_t_SOURCES) \
+	tests/server/continue-t.c tests/server/env-t.c \
+	tests/server/errors-t.c tests/server/invalid-t.c \
+	$(tests_server_logging_t_SOURCES) tests/server/stdin-t.c \
+	tests/server/streaming-t.c tests/server/version-t.c \
+	tests/util/concat-t.c tests/util/fdflag-t.c \
+	$(tests_util_gss_tokens_t_SOURCES) tests/util/messages-t.c \
+	tests/util/network-t.c tests/util/tokens-t.c \
+	tests/util/vector-t.c tests/util/xmalloc.c \
+	$(tests_util_xwrite_t_SOURCES)
 man1dir = $(mandir)/man1
 man3dir = $(mandir)/man3
 man8dir = $(mandir)/man8
 NROFF = nroff
 MANS = $(dist_man_MANS) $(man_MANS)
+DATA = $(nodist_pkgconfig_DATA)
 HEADERS = $(include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -581,6 +589,7 @@ CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -612,6 +621,7 @@ LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
+MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 NM = @NM@
 NMEDIT = @NMEDIT@
@@ -638,11 +648,11 @@ SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
 VERSION = @VERSION@
-VERSION_LDFLAGS = @VERSION_LDFLAGS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 am__include = @am__include@
@@ -675,7 +685,6 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
-lt_ECHO = @lt_ECHO@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
@@ -712,41 +721,46 @@ PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.rc     \
-	client/mapfile client/remctl.rc config.h.w32 configure.cmd	     \
-	docs/api/remctl.pod docs/api/remctl_close.pod			     \
-	docs/api/remctl_command.pod docs/api/remctl_error.pod		     \
-	docs/api/remctl_new.pod docs/api/remctl_open.pod		     \
-	docs/api/remctl_output.pod docs/design.html docs/extending	     \
-	docs/protocol-v3 docs/protocol.txt docs/protocol.html		     \
-	docs/protocol.xml docs/remctl.pod docs/remctld.8.in docs/remctld.pod \
-	examples/remctl.conf examples/rsh-wrapper examples/xinetd	     \
-	java/.classpath java/.project java/Makefile java/README		     \
-	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf     \
-	java/org/eyrie/eagle/remctl/Remctl.java				     \
-	java/org/eyrie/eagle/remctl/RemctlClient.java			     \
-	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	     \
-	java/t7.java portable/winsock.c remctl.spec ruby/README		     \
-	ruby/remctl.c tests/TESTS tests/client/remctl-t tests/data/README    \
-	tests/data/acl-bad-include tests/data/acl-bad-syntax		     \
-	tests/data/acl-nonexistant tests/data/acl-recursive		     \
-	tests/data/acl-simple tests/data/acl-too-long tests/data/acl-valid-3 \
-	tests/data/acls/VALID_09 tests/data/acls/val\#id		     \
-	tests/data/acls/val.id tests/data/acls/valid tests/data/acls/valid-2 \
-	tests/data/acls/val~id tests/data/acls2/valid-4 tests/data/cmd-argv  \
-	tests/data/cmd-env tests/data/cmd-hello tests/data/cmd-status	     \
-	tests/data/conf-simple tests/data/conf-test			     \
-	tests/data/configs/bad-logmask-1 tests/data/configs/bad-logmask-2    \
-	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4    \
-	tests/data/configs/bad-option-1 tests/data/gput			     \
-	tests/docs/pod-spelling-t tests/docs/pod-t tests/tap/kerberos.sh     \
-	tests/tap/libtap.sh tests/tap/remctl.sh tests/server/misc-t	     \
-	tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES)
+EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
+	client/libremctl.map client/libremctl.rc client/libremctl.sym	    \
+	client/remctl.rc config.h.w32 configure.cmd docs/api/remctl.pod	    \
+	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
+	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
+	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
+	docs/design.html docs/extending docs/protocol-v3 docs/protocol.txt  \
+	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
+	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
+	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
+	java/.classpath java/.project java/Makefile java/README		    \
+	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
+	java/org/eyrie/eagle/remctl/Remctl.java				    \
+	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
+	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
+	java/t7.java portable/winsock.c remctl.spec ruby/README		    \
+	ruby/remctl.c tests/HOWTO tests/TESTS tests/client/remctl-t	    \
+	tests/data/README tests/data/acl-bad-include			    \
+	tests/data/acl-bad-syntax tests/data/acl-nonexistant		    \
+	tests/data/acl-recursive tests/data/acl-simple			    \
+	tests/data/acl-too-long tests/data/acl-valid-3			    \
+	tests/data/acls/VALID_09 tests/data/acls/val\#id		    \
+	tests/data/acls/val.id tests/data/acls/valid			    \
+	tests/data/acls/valid-2 tests/data/acls/val~id			    \
+	tests/data/acls2/valid-4 tests/data/cmd-argv tests/data/cmd-env	    \
+	tests/data/cmd-hello tests/data/cmd-status tests/data/conf-simple   \
+	tests/data/conf-test tests/data/configs/bad-logmask-1		    \
+	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
+	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
+	tests/data/gput tests/docs/pod-spelling-t tests/docs/pod-t	    \
+	tests/tap/kerberos.sh tests/tap/libtap.sh tests/tap/remctl.sh	    \
+	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
+	$(PYTHON_FILES)
 
 
 # Set this globally, since we have too many header files that include the
 # GSS-API headers even if the code itself doesn't call GSS-API functions.
 AM_CPPFLAGS = $(GSSAPI_CPPFLAGS)
+@HAVE_LD_VERSION_SCRIPT_FALSE@VERSION_LDFLAGS = -export-symbols ${srcdir}/client/libremctl.sym
+@HAVE_LD_VERSION_SCRIPT_TRUE@VERSION_LDFLAGS = -Wl,--version-script=${srcdir}/client/libremctl.map
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
 	client/client-v2.c client/error.c client/internal.h client/open.c
@@ -791,7 +805,9 @@ dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3 \
 	docs/api/remctl_output.3 docs/remctl.1
 
 man_MANS = docs/remctld.8
-CLEANFILES = docs/remctld.8 stamp-python
+pkgconfigdir = $(libdir)/pkgconfig
+nodist_pkgconfig_DATA = client/libremctl.pc
+CLEANFILES = client/libremctl.pc docs/remctld.8 stamp-python
 DISTCLEANFILES = perl/Makefile python/MANIFEST
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
 	build-aux/config.guess build-aux/config.sub build-aux/depcomp \
@@ -803,27 +819,34 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
 
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
-# without optimization turned on, and add -DDEBUG=1 so we'll also compile all
-# debugging code and test it.
-WARNINGS = -g -O -DDEBUG=1 -Wall -W -Wendif-labels -Wpointer-arith \
-	-Wbad-function-cast -Wwrite-strings -Wstrict-prototypes \
-	-Wmissing-prototypes -Wnested-externs -Werror
+# without optimization turned on.  Desirable warnings that can't be turned
+# on due to other problems:
+#
+#     -Wconversion      http://bugs.debian.org/488884 (htons warnings)
+#
+# Last checked against gcc 4.6.1 (2011-05-04).
+WARNINGS = -g -O -Wall -Wextra -Wendif-labels -Wformat=2 -Winit-self	\
+	-Wswitch-enum -Wdeclaration-after-statement -Wshadow		\
+	-Wpointer-arith -Wbad-function-cast -Wwrite-strings		\
+	-Wjump-misses-init -Wlogical-op -Wstrict-prototypes		\
+	-Wmissing-prototypes -Wredundant-decls -Wnested-externs -Werror
 
 @GCC_FALSE@PERL_WARNINGS = 
 
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code doesn't pass them.
 @GCC_TRUE@PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs \
-@GCC_TRUE@	-Wno-strict-prototypes
+@GCC_TRUE@	-Wno-strict-prototypes -Wno-redundant-decls -Wno-shadow
 
 @GCC_FALSE@PHP_WARNINGS = 
 @GCC_TRUE@PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
-@GCC_TRUE@	-Wno-missing-prototypes -Wno-unused-parameter
+@GCC_TRUE@	-Wno-missing-prototypes -Wno-unused-parameter \
+@GCC_TRUE@	-Wno-redundant-decls
 
 @GCC_FALSE@PYTHON_WARNINGS = 
 @GCC_TRUE@PYTHON_WARNINGS = -Wno-unused-parameter
 @GCC_FALSE@RUBY_WARNINGS = 
-@GCC_TRUE@RUBY_WARNINGS = -Wno-strict-prototypes
+@GCC_TRUE@RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
@@ -915,6 +938,9 @@ tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
 tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS)
+
+tests_server_bind_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
 
 tests_server_config_t_SOURCES = tests/server/config-t.c $(SERVER_FILES)
 tests_server_config_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
@@ -1478,6 +1504,11 @@ tests/server/acl-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 tests/server/acl-t$(EXEEXT): $(tests_server_acl_t_OBJECTS) $(tests_server_acl_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/acl-t$(EXEEXT)
 	$(AM_V_CCLD)$(tests_server_acl_t_LINK) $(tests_server_acl_t_OBJECTS) $(tests_server_acl_t_LDADD) $(LIBS)
+tests/server/bind-t.$(OBJEXT): tests/server/$(am__dirstamp) \
+	tests/server/$(DEPDIR)/$(am__dirstamp)
+tests/server/bind-t$(EXEEXT): $(tests_server_bind_t_OBJECTS) $(tests_server_bind_t_DEPENDENCIES) tests/server/$(am__dirstamp)
+	@rm -f tests/server/bind-t$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_server_bind_t_OBJECTS) $(tests_server_bind_t_LDADD) $(LIBS)
 tests/server/config-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 tests/server/config-t$(EXEEXT): $(tests_server_config_t_OBJECTS) $(tests_server_config_t_DEPENDENCIES) tests/server/$(am__dirstamp)
@@ -1644,6 +1675,7 @@ mostlyclean-compile:
 	-rm -f tests/portable/strlcpy.$(OBJEXT)
 	-rm -f tests/server/accept-t.$(OBJEXT)
 	-rm -f tests/server/acl-t.$(OBJEXT)
+	-rm -f tests/server/bind-t.$(OBJEXT)
 	-rm -f tests/server/config-t.$(OBJEXT)
 	-rm -f tests/server/continue-t.$(OBJEXT)
 	-rm -f tests/server/env-t.$(OBJEXT)
@@ -1763,6 +1795,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/strlcpy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/accept-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/acl-t.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/bind-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/config-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/continue-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/env-t.Po@am__quote@
@@ -2168,6 +2201,26 @@ uninstall-man8:
 	test -z "$$files" || { \
 	  echo " ( cd '$(DESTDIR)$(man8dir)' && rm -f" $$files ")"; \
 	  cd "$(DESTDIR)$(man8dir)" && rm -f $$files; }
+install-nodist_pkgconfigDATA: $(nodist_pkgconfig_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(pkgconfigdir)" || $(MKDIR_P) "$(DESTDIR)$(pkgconfigdir)"
+	@list='$(nodist_pkgconfig_DATA)'; test -n "$(pkgconfigdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pkgconfigdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pkgconfigdir)" || exit $$?; \
+	done
+
+uninstall-nodist_pkgconfigDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(nodist_pkgconfig_DATA)'; test -n "$(pkgconfigdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(pkgconfigdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(pkgconfigdir)" && rm -f $$files
 install-includeHEADERS: $(include_HEADERS)
 	@$(NORMAL_INSTALL)
 	test -z "$(includedir)" || $(MKDIR_P) "$(DESTDIR)$(includedir)"
@@ -2411,12 +2464,12 @@ check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) $(check_LIBRARIES) $(check_PROGRAMS)
 	$(MAKE) $(AM_MAKEFLAGS) check-local
 check: check-am
-all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(MANS) $(HEADERS) \
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(MANS) $(DATA) $(HEADERS) \
 		config.h all-local
 install-binPROGRAMS: install-libLTLIBRARIES
 
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(man3dir)" "$(DESTDIR)$(man8dir)" "$(DESTDIR)$(includedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(man3dir)" "$(DESTDIR)$(man8dir)" "$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -2496,7 +2549,8 @@ info: info-am
 
 info-am:
 
-install-data-am: install-data-local install-includeHEADERS install-man
+install-data-am: install-data-local install-includeHEADERS install-man \
+	install-nodist_pkgconfigDATA
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 install-dvi: install-dvi-am
@@ -2547,7 +2601,8 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-binPROGRAMS uninstall-includeHEADERS \
-	uninstall-libLTLIBRARIES uninstall-man uninstall-sbinPROGRAMS
+	uninstall-libLTLIBRARIES uninstall-man \
+	uninstall-nodist_pkgconfigDATA uninstall-sbinPROGRAMS
 
 uninstall-man: uninstall-man1 uninstall-man3 uninstall-man8
 
@@ -2568,16 +2623,27 @@ uninstall-man: uninstall-man1 uninstall-man3 uninstall-man8
 	install-exec-am install-html install-html-am \
 	install-includeHEADERS install-info install-info-am \
 	install-libLTLIBRARIES install-man install-man1 install-man3 \
-	install-man8 install-pdf install-pdf-am install-ps \
-	install-ps-am install-sbinPROGRAMS install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-binPROGRAMS \
-	uninstall-includeHEADERS uninstall-libLTLIBRARIES \
-	uninstall-man uninstall-man1 uninstall-man3 uninstall-man8 \
+	install-man8 install-nodist_pkgconfigDATA install-pdf \
+	install-pdf-am install-ps install-ps-am install-sbinPROGRAMS \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags uninstall uninstall-am \
+	uninstall-binPROGRAMS uninstall-includeHEADERS \
+	uninstall-libLTLIBRARIES uninstall-man uninstall-man1 \
+	uninstall-man3 uninstall-man8 uninstall-nodist_pkgconfigDATA \
 	uninstall-sbinPROGRAMS
 
+
+client/libremctl.pc: $(srcdir)/client/libremctl.pc.in
+	sed -e 's![@]prefix[@]!$(prefix)!g' \
+	    -e 's![@]exec_prefix[@]!$(exec_prefix)!g' \
+	    -e 's![@]includedir[@]!$(includedir)!g' \
+	    -e 's![@]libdir[@]!$(libdir)!g' \
+	    -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g' \
+	    -e 's![@]GSSAPI_LDFLAGS[@]!$(GSSAPI_LDFLAGS)!g' \
+	    -e 's![@]GSSAPI_LIBS[@]!$(GSSAPI_LIBS)!g' \
+	    $(srcdir)/client/libremctl.pc.in > $@
 
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
 	[ -d docs ] || mkdir docs
@@ -2607,7 +2673,7 @@ clean-local:
 	set -e; if [ -f "ruby/Makefile" ] ; then \
 	    cd ruby && $(MAKE) distclean ; \
 	fi
-	rm -rf python/build python/dist python/*.pyc
+	rm -rf php/tmp-php.ini python/build python/dist python/*.pyc
 
 # Also clean the Perl, PHP, and Python directories on make distclean if
 # needed.
@@ -2647,7 +2713,7 @@ check-local: $(check_PROGRAMS)
 	fi
 	@set -e; if [ -f php/Makefile ] ; then \
 	    echo '' ; \
-	    cd php && ./test-wrapper "$(abs_top_builddir)" \
+	    cd php && NO_INTERACTION=1 ./test-wrapper "$(abs_top_builddir)" \
 		"$(abs_top_srcdir)" ; \
 	fi
 	@set -e; if [ -f python/setup.py ] ; then \

@@ -2,7 +2,8 @@
  * Test suite for the server passing data to programs on standard input.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2009, 2010
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
@@ -82,7 +83,7 @@ main(void)
     plan(9 * 9);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config);
+    remctld = remctld_start(path, principal, config, NULL);
 
     /* Run the tests. */
     test_stdin(principal, "read", "Okay", 4);

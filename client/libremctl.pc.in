@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+libdir=@libdir@
+
+Name: remctl
+Description: Remote authenticated command execution with ACLs
+URL: http://www.eyrie.org/~eagle/software/remctl/
+Version: @PACKAGE_VERSION@
+Cflags: -I${includedir}
+Libs: -L${libdir} -lremctl
+Libs.private: @GSSAPI_LDFLAGS@ @GSSAPI_LIBS@

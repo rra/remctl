@@ -1,5 +1,54 @@
                        User-Visible remctl Changes
 
+remctl 2.17 (2011-05-31)
+
+    Fix construction of the return object for the Python bindings to the
+    simple remctl interface.  Patch from Andrew Mortensen.
+
+    The remctld server now supports a -b command-line option specifying
+    which local addresses to which to bind.  This option may be given
+    multiple times to bind to multiple local addresses.
+
+    When run as a standalone daemon, remctld now binds to both IPv4 and
+    IPv6 addresses rather than only IPv4.
+
+    The remctl client library also installs a pkg-config configuration
+    file for the use of software that wants to link against it.  Thanks to
+    Tollef Fog Heen for the assistance in writing it.
+
+    Remove reference to the defunct messages-die.c source file in the
+    Windows build system.
+
+    Fix broken GCC attribute markers causing problems with compilation on
+    Windows (and likely any non-GCC compiler).
+
+    Symbol versioning is now enabled on any system using GNU ld, rather
+    than only Linux and related platforms, and a Libtool symbol list is
+    used as a fallback to prevent leaking symbols with other linkers where
+    possible.
+
+    Set the PHP extension test suite to be noninteractive so that the user
+    is not prompted to send results to the PHP QA group.
+
+    Skip portable/getaddrinfo test on systems where invalid hostnames
+    still resolve.
+
+    Update to rra-c-util 3.5:
+
+    * Check for krb5-config in /usr/kerberos/bin as well as PATH.
+    * Avoid configure warnings when building with AIX bundled Kerberos.
+    * Initialize sockaddr structs more correctly.
+    * Correctly detect Heimdal GSS-API on OpenBSD without libroken.
+    * Fix underquoting in m4/socket.m4.
+    * Update warning flags for GCC 4.6.1.
+
+    Update to C TAP Harness 1.7:
+
+    * Add tests/HOWTO documenting how to add new tests.
+    * More correct handling of system-specific errors in output checking.
+    * Ensure correct output ordering in test results.
+    * Add -h and a better usage message to tests/runtests.
+
 remctl 2.16 (2010-05-02)
 
     Add Ruby bindings contributed by Anthony M. Martinez, enabled with

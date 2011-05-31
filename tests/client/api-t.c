@@ -3,7 +3,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Copyright 2006, 2007, 2009, 2010
- *     Board of Trustees, Leland Stanford Jr. University
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
@@ -167,7 +167,7 @@ main(void)
     plan(98);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config);
+    remctld = remctld_start(path, principal, config, NULL);
 
     /* Run the basic protocol tests. */
     do_tests(principal, 1);

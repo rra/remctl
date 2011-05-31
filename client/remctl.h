@@ -4,7 +4,7 @@
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on prior work by Anton Ushakov
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
- *     Board of Trustees, Leland Stanford Jr. University
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose and without fee is hereby granted, provided
