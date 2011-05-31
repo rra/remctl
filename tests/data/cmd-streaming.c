@@ -3,7 +3,8 @@
  * then one to stdout again.  Used to test remctl streaming support.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2006
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */

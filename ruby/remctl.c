@@ -6,7 +6,8 @@
  *
  * Original implementation by Anthony M. Martinez <twopir@nmt.edu>
  * Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
- * Copyright 2010 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2010
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose and without fee is hereby granted, provided

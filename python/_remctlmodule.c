@@ -7,7 +7,8 @@
  *
  * Original implementation by Thomas L. Kula <kula@tproa.net>
  * Copyright 2008 Thomas L. Kula <kula@tproa.net>
- * Copyright 2008 Board of Trustees, Leland Stanford Jr. University
+ * Copyright 2008
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose and without fee is hereby granted, provided
