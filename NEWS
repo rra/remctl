@@ -33,7 +33,7 @@ remctl 2.17 (2011-05-31)
     Skip portable/getaddrinfo test on systems where invalid hostnames
     still resolve.
 
-    Update to rra-c-util 3.4:
+    Update to rra-c-util 3.5:
 
     * Check for krb5-config in /usr/kerberos/bin as well as PATH.
     * Avoid configure warnings when building with AIX bundled Kerberos.
