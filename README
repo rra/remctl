@@ -1,4 +1,4 @@
-                           remctl release 2.17
+                           remctl release 2.18
             (remote authenticated command execution with ACLs)
 
                    Originally written by Anton Ushakov
@@ -80,12 +80,12 @@ REQUIREMENTS
   been tested on Windows.
 
   To build the PHP bindings for the C client library, you will need PHP
-  5.x (only tested with 5.2) and phpize, plus any other programs that
-  phpize requires.  The PHP bindings have not been tested on Windows.
+  5.x (only tested with 5.2 and 5.3) and phpize, plus any other programs
+  that phpize requires.  The PHP bindings have not been tested on Windows.
 
   To build the Python bindings for the C client library, you will need
-  Python 2.3 or later (primarily tested with Python 2.5).  The Python
-  bindings have not been tested on Windows.
+  Python 2.3 or later (primarily tested with Python 2.5 and later).  The
+  Python bindings have not been tested on Windows.
 
   To build the Ruby bindings for the C client library, you will need Ruby
   1.8 or later.  The Ruby bindings have not been tested on Windows.
@@ -93,7 +93,8 @@ REQUIREMENTS
   A Java client and Java server are available in the java subdirectory,
   but they are not integrated into the normal build or built by default.
   There is a basic Makefile in that directory that may require some
-  tweaking.  It currently requires the Sun Java JDK (1.4.2, 5, or 6).
+  tweaking.  It currently requires the Sun Java JDK (1.4.2, 5, or 6) or
+  OpenJDK 6 or later.
 
   To run the test suite, you will need Test::Pod as described above.  The
   test suite will also need to be able to build to 127.0.0.1 on port 11119

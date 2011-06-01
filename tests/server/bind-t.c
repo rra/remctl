@@ -21,6 +21,7 @@
 #include <util/concat.h>
 #include <util/messages.h>
 #include <util/network.h>
+#include <util/xmalloc.h>
 
 
 /*
@@ -44,13 +45,15 @@ have_ipv6(void)
 
 
 /*
- * Run the remote test command and confirm the output is correct.
+ * Run the remote test command and confirm the output is correct.  Takes the
+ * string to expect the REMOTE_ADDR environment variable to be set to.
  */
 static void
-test_command(struct remctl *r)
+test_command(struct remctl *r, const char *addr)
 {
     struct remctl_output *output;
-    const char *command[] = { "test", "test", NULL };
+    char *seen;
+    const char *command[] = { "test", "env", "REMOTE_ADDR", NULL };
 
     if (!remctl_command(r, command)) {
         notice("# remctl error %s", remctl_error(r));
@@ -61,9 +64,12 @@ test_command(struct remctl *r)
         output = remctl_output(r);
         switch (output->type) {
         case REMCTL_OUT_OUTPUT:
-            is_int(strlen("hello world\n"), output->length, "... length ok");
-            is_int(0, memcmp("hello world\n", output->data, output->length),
-                   "... data ok");
+            is_int(strlen(addr) + 1, output->length, "... length ok");
+            seen = xmalloc(output->length);
+            memcpy(seen, output->data, output->length);
+            seen[output->length - 1] = '\0';
+            is_string(addr, seen, "... REMOTE_ADDR correct");
+            free(seen);
             break;
         case REMCTL_OUT_STATUS:
             is_int(0, output->status, "... status ok");
@@ -108,13 +114,13 @@ main(void)
     remctld = remctld_start(path, principal, config, NULL);
     r = remctl_new();
     ok(remctl_open(r, "127.0.0.1", 14373, principal), "Connect to 127.0.0.1");
-    test_command(r);
+    test_command(r, "127.0.0.1");
     remctl_close(r);
 #ifdef HAVE_INET6
     if (ipv6) {
         r = remctl_new();
         ok(remctl_open(r, "::1", 14373, principal), "Connect to ::1");
-        test_command(r);
+        test_command(r, "::1");
         remctl_close(r);
     } else {
         skip_block(4, "IPv6 not supported");
@@ -129,7 +135,7 @@ main(void)
     r = remctl_new();
     ok(remctl_open(r, "127.0.0.1", 14373, principal),
        "Connect to 127.0.0.1 when bound to that address");
-    test_command(r);
+    test_command(r, "127.0.0.1");
     remctl_close(r);
 #ifdef HAVE_INET6
     if (ipv6) {
@@ -156,7 +162,7 @@ main(void)
         r = remctl_new();
         ok(remctl_open(r, "::1", 14373, principal),
            "Connect to ::1 when bound only to it");
-        test_command(r);
+        test_command(r, "::1");
         remctl_close(r);
         remctld_stop(remctld);
     } else {
@@ -174,12 +180,12 @@ main(void)
         r = remctl_new();
         ok(remctl_open(r, "127.0.0.1", 14373, principal),
            "Connect to 127.0.0.1 when bound to both local addresses");
-        test_command(r);
+        test_command(r, "127.0.0.1");
         remctl_close(r);
         r = remctl_new();
         ok(remctl_open(r, "::1", 14373, principal),
            "Connect to ::1 when bound to both local addresses");
-        test_command(r);
+        test_command(r, "::1");
         remctl_close(r);
         remctld_stop(remctld);
     } else {
