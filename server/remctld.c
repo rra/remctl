@@ -356,6 +356,7 @@ server_daemon(struct options *options, struct config *config,
                 unlink(options->pid_path);
             exit(0);
         }
+        sslen = sizeof(ss);
         s = network_accept_any(fds, nfds, (struct sockaddr *) &ss, &sslen);
         if (s == INVALID_SOCKET) {
             if (errno != EINTR)

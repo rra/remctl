@@ -1,5 +1,11 @@
                        User-Visible remctl Changes
 
+remctl 2.18 (2011-05-31)
+
+    Fix uninitialized variable in the remctld standalone server code that
+    could cause all remote connections to fail and add a more complete
+    test suite for remote address handling.
+
 remctl 2.17 (2011-05-31)
 
     Fix construction of the return object for the Python bindings to the
