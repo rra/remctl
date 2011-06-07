@@ -13,14 +13,14 @@ public class MessageStatusTests {
     public void testFromBytes() throws RemctlException {
         byte[] message = { 0 };
 
-        RemctlStatusToken statusToken = new RemctlStatusToken(null, message);
+        RemctlStatusToken statusToken = new RemctlStatusToken(message);
 
         assertEquals("Status code should match", 0, statusToken.getStatus());
         assertTrue("Status was successful", statusToken.isSuccessful());
 
         message = new byte[] { -1 };
 
-        statusToken = new RemctlStatusToken(null, message);
+        statusToken = new RemctlStatusToken(message);
 
         assertEquals("Status code should match", -1, statusToken.getStatus());
         assertFalse("Status was unsuccessful", statusToken.isSuccessful());

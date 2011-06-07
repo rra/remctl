@@ -7,7 +7,6 @@ import java.io.IOException;
 
 import org.eyrie.remctl.RemctlErrorCode;
 import org.eyrie.remctl.RemctlException;
-import org.ietf.jgss.GSSContext;
 
 /**
  * Represents a remctl error token. This is sent from the server to the client
@@ -38,9 +37,9 @@ public class RemctlErrorToken extends RemctlMessageToken {
      * @throws RemctlException
      *             Invalid arguments to constructor
      */
-    RemctlErrorToken(GSSContext context, RemctlErrorCode code, String message)
+    public RemctlErrorToken(RemctlErrorCode code, String message)
             throws RemctlException {
-        super(context, 2, RemctlMessageCode.MESSAGE_ERROR);
+        super(2);
         this.code = code;
         this.message = message;
     }
@@ -56,15 +55,15 @@ public class RemctlErrorToken extends RemctlMessageToken {
      * @throws RemctlException
      *             Invalid argument to constructor
      */
-    RemctlErrorToken(GSSContext context, RemctlErrorCode code)
+    public RemctlErrorToken(RemctlErrorCode code)
             throws RemctlException {
-        this(context, code, code.description);
+        this(code, code.description);
     }
 
-    RemctlErrorToken(GSSContext context, byte[] data)
+    public RemctlErrorToken(byte[] data)
             throws RemctlException {
 
-        super(context, 2, RemctlMessageCode.MESSAGE_OUTPUT);
+        super(2);
         if (data.length < MIN_SIZE) {
             throw new IllegalArgumentException(
                     "Command data size is to small. Expected " + MIN_SIZE
@@ -147,6 +146,11 @@ public class RemctlErrorToken extends RemctlMessageToken {
      */
     public String getMessage() {
         return this.message;
+    }
+
+    @Override
+    RemctlMessageCode getType() {
+        return RemctlMessageCode.MESSAGE_ERROR;
     }
 
 }

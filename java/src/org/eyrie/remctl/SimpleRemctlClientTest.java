@@ -103,5 +103,9 @@ public class SimpleRemctlClientTest {
                 "tools3.stanford.edu");
         remctlClient.execute("no-such-command");
 
+        assertEquals("Error token should match",
+                RemctlErrorCode.ERROR_UNKNOWN_COMMAND,
+                remctlClient.errorToken.getCode());
+
     }
 }

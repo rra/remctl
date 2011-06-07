@@ -4,7 +4,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import org.eyrie.remctl.RemctlException;
-import org.ietf.jgss.GSSContext;
 
 /**
  * Represents a remctl status token. This is sent from the server to the client
@@ -19,26 +18,23 @@ public class RemctlStatusToken extends RemctlMessageToken {
     /**
      * Construct a status token with the given status code.
      * 
-     * @param context
-     *            GSS-API context used for encryption
      * @param status
      *            The exit status code of the command, which must be between 0
      *            and 255, inclusive.
      * @throws RemctlException
      *             Thrown if the status parameter is out of range.
      */
-    RemctlStatusToken(GSSContext context, int status)
-            throws RemctlException {
-        super(context, 2, RemctlMessageCode.MESSAGE_STATUS);
+    public RemctlStatusToken(int status) throws RemctlException {
+        super(2);
         if (status < 0 || status > 255) {
             throw new RemctlException("status " + status + " out of range");
         }
         this.status = status;
     }
 
-    RemctlStatusToken(GSSContext context, byte[] data)
+    public RemctlStatusToken(byte[] data)
             throws RemctlException {
-        super(context, 2, RemctlMessageCode.MESSAGE_OUTPUT);
+        super(2);
 
         //FIXME: validate data length
         this.status = data[0];
@@ -73,7 +69,7 @@ public class RemctlStatusToken extends RemctlMessageToken {
     /**
      * @return the status
      */
-    int getStatus() {
+    public int getStatus() {
         return this.status;
     }
 
@@ -92,5 +88,10 @@ public class RemctlStatusToken extends RemctlMessageToken {
     @Override
     public String toString() {
         return "RemctlStatusToken [status=" + this.status + "]";
+    }
+
+    @Override
+    RemctlMessageCode getType() {
+        return RemctlMessageCode.MESSAGE_STATUS;
     }
 }

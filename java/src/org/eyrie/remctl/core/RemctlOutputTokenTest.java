@@ -15,7 +15,7 @@ public class RemctlOutputTokenTest {
                 0, 0, 0, 0 /* no length */
         };
 
-        RemctlOutputToken outputToken = new RemctlOutputToken(null, message);
+        RemctlOutputToken outputToken = new RemctlOutputToken(message);
 
         assertEquals("Stream should match", 1,
                 outputToken.getStream());
@@ -29,7 +29,7 @@ public class RemctlOutputTokenTest {
                 66, 111, 111
         };
 
-        outputToken = new RemctlOutputToken(null, message);
+        outputToken = new RemctlOutputToken(message);
 
         assertEquals("Stream should match", 2,
                 outputToken.getStream());

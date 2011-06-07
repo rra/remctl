@@ -4,7 +4,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import org.eyrie.remctl.RemctlException;
-import org.ietf.jgss.GSSContext;
 
 /**
  * Represents a remctl command token. This token is sent by a client to a server
@@ -21,8 +20,6 @@ public class RemctlCommandToken extends RemctlMessageToken {
      * Construct a command token with the given keep-alive status and command
      * arguments.
      * 
-     * @param context
-     *            GSS-API context used for encryption
      * @param keepalive
      *            Whether to keep the connection open after completing this
      *            command
@@ -31,9 +28,10 @@ public class RemctlCommandToken extends RemctlMessageToken {
      * @throws RemctlException
      *             Invalid argument to constructor
      */
-    RemctlCommandToken(GSSContext context, boolean keepalive, String... args)
+    public RemctlCommandToken(boolean keepalive,
+            String... args)
             throws RemctlException {
-        super(context, 2, RemctlMessageCode.MESSAGE_COMMAND);
+        super(2);
         this.keepalive = keepalive;
         this.args = args;
     }
@@ -72,5 +70,10 @@ public class RemctlCommandToken extends RemctlMessageToken {
             output.writeInt(arg.length());
             output.writeBytes(arg);
         }
+    }
+
+    @Override
+    RemctlMessageCode getType() {
+        return RemctlMessageCode.MESSAGE_COMMAND;
     }
 }

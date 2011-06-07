@@ -6,37 +6,30 @@ import java.io.IOException;
 import org.eyrie.remctl.RemctlErrorCode;
 import org.eyrie.remctl.RemctlErrorException;
 import org.eyrie.remctl.RemctlException;
-import org.ietf.jgss.GSSContext;
 
 /**
  * Represents a remctl quit token. This is sent from the client to the server
  * when it is done issuing commands.
  */
-class RemctlQuitToken extends RemctlMessageToken {
+public class RemctlQuitToken extends RemctlMessageToken {
     /**
      * Construct a quit token.
      * 
-     * @param context
-     *            GSS-API context used for encryption
-     * @throws RemctlException
-     *             Invalid argument to constructor
      */
-    RemctlQuitToken(GSSContext context) throws RemctlException {
-        super(context, 2, RemctlMessageCode.MESSAGE_QUIT);
+    public RemctlQuitToken() throws RemctlException {
+        super(2);
     }
 
     /**
      * Construct a quit token from token data.
      * 
-     * @param context
-     *            GSS-API context used for encryption.
      * @param data
      *            Token data (must be empty)
      * @throws RemctlException
      *             If the data is not empty
      */
-    RemctlQuitToken(GSSContext context, byte[] data) throws RemctlException {
-        super(context, data);
+    public RemctlQuitToken(byte[] data) throws RemctlException {
+        super(2);
         if (data.length != 0)
             throw new RemctlErrorException(RemctlErrorCode.ERROR_BAD_TOKEN);
     }
@@ -63,5 +56,10 @@ class RemctlQuitToken extends RemctlMessageToken {
      */
     @Override
     void writeData(DataOutputStream stream) throws IOException {
+    }
+
+    @Override
+    RemctlMessageCode getType() {
+        return RemctlMessageCode.MESSAGE_QUIT;
     }
 }

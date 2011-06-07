@@ -21,16 +21,14 @@ public class RemctlVersionToken extends RemctlMessageToken {
     /**
      * Construct a version token with the given maximum supported version.
      * 
-     * @param context
-     *            GSS-API context used for encryption
      * @param version
      *            The maximum supported protocol version
      * @throws RemctlException
      *             If the provided version is not valid
      */
-    RemctlVersionToken(GSSContext context, int version)
+    RemctlVersionToken(int version)
             throws RemctlException {
-        super(context, 2, RemctlMessageCode.MESSAGE_VERSION);
+        super(2);
         if (version < 2)
             throw new RemctlProtocolException("Invalid protocol version"
                     + version);
@@ -47,7 +45,7 @@ public class RemctlVersionToken extends RemctlMessageToken {
      *             If the data is not a valid version number
      */
     RemctlVersionToken(GSSContext context, byte[] data) throws RemctlException {
-        super(context, data);
+        super(2);
         if (data.length != 1)
             throw new RemctlErrorException(RemctlErrorCode.ERROR_BAD_TOKEN);
         this.highestSupportedVersion = data[0];
@@ -92,6 +90,11 @@ public class RemctlVersionToken extends RemctlMessageToken {
     public String toString() {
         return "RemctlVersionToken [highestSupportedVersion="
                 + this.highestSupportedVersion + "]";
+    }
+
+    @Override
+    RemctlMessageCode getType() {
+        return RemctlMessageCode.MESSAGE_VERSION;
     }
 
 }

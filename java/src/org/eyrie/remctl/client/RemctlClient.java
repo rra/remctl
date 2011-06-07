@@ -26,6 +26,8 @@ import org.ietf.jgss.Oid;
 /**
  * A simplified interface for a remctl client.
  * 
+ * It is not thread safe.
+ * 
  * @author pradtke
  * 
  */
@@ -41,6 +43,9 @@ public class RemctlClient {
      */
     private String serverPrincipal;
 
+    /**
+     * Converts RemctlTokens to/from their wire representations
+     */
     RemctlMessageConverter messageConverter;
 
     /**
@@ -53,7 +58,14 @@ public class RemctlClient {
      */
     int port = 4373;
 
+    /**
+     * Data stream sent from the server
+     */
     DataInputStream inStream;
+
+    /**
+     * Data stream sent to the server
+     */
     DataOutputStream outStream;
 
     /**
@@ -85,16 +97,36 @@ public class RemctlClient {
         this.serverPrincipal = serverPrincipal;
     }
 
+    /**
+     * Send the token to the server
+     * 
+     * <p>
+     * The token will be encrypted and sent.
+     * 
+     * @param token
+     *            The token to send
+     */
     public void writeToken(RemctlToken token) {
         this.messageConverter.encodeMessage(this.outStream, token);
 
     }
 
+    /**
+     * Read a token from the server.
+     * 
+     * @return The next token read from the server
+     */
     public RemctlToken readToken() {
         return this.messageConverter
                 .decodeMessage(this.inStream);
     }
 
+    /**
+     * Read tokens from the server until a Status or Error Token is reached.
+     * 
+     * @return A list of all tokens (including the ending Status or Error Token)
+     *         read from the server.
+     */
     public List<RemctlToken> readAllTokens() {
         List<RemctlToken> tokenList = new ArrayList<RemctlToken>();
 
@@ -113,7 +145,22 @@ public class RemctlClient {
         return tokenList;
     }
 
-    public void connect() {
+    /**
+     * Indicates if we are already connected.
+     */
+    private boolean isConnected = false;
+
+    /**
+     * Connect to the remctl server and establish the GSS context.
+     * 
+     * @return true if the client created a new connection, or false if it was
+     *         already connected
+     */
+    public boolean connect() {
+
+        if (this.isConnected)
+            return false;
+
         try {
             //FIXME: move this out of here. set it only if no jaas is already defined.
             System.setProperty("java.security.auth.login.config",
@@ -123,10 +170,10 @@ public class RemctlClient {
             LoginContext context = new LoginContext("RemctlClient");
             context.login();
             Subject subject = context.getSubject();
-            PrivilegedExceptionAction pea =
-                    new PrivilegedExceptionAction() {
+            PrivilegedExceptionAction<Void> pea =
+                    new PrivilegedExceptionAction<Void>() {
                         @Override
-                        public Object run()
+                        public Void run()
                                 throws Exception, IOException {
                             System.out.println("in action");
                             RemctlClient.this.establishContext();
@@ -138,12 +185,25 @@ public class RemctlClient {
 
             this.messageConverter = new RemctlMessageConverter(
                     this.context);
+
+            this.isConnected = true;
+            return this.isConnected;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
     }
 
+    /**
+     * Connect and establish the context
+     * 
+     * @throws UnknownHostException
+     *             thrown if host doesn't exist
+     * @throws IOException
+     *             thrown on IO issues
+     * @throws GSSException
+     *             thrown on GSS issues
+     */
     private void establishContext() throws UnknownHostException, IOException,
             GSSException {
         /**

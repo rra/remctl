@@ -23,7 +23,7 @@ public class RemctlErrorTokenTests {
                 0, 0, 0, 0 /* no message */
         };
 
-        RemctlErrorToken errorToken = new RemctlErrorToken(null, message);
+        RemctlErrorToken errorToken = new RemctlErrorToken(message);
 
         assertEquals("Error code should match", RemctlErrorCode.ERROR_INTERNAL,
                 errorToken.getCode());
@@ -37,7 +37,7 @@ public class RemctlErrorTokenTests {
                 66, 111, 111
         };
 
-        errorToken = new RemctlErrorToken(null, message);
+        errorToken = new RemctlErrorToken(message);
 
         assertEquals("Error code should match",
                 RemctlErrorCode.ERROR_BAD_COMMAND,
@@ -59,7 +59,7 @@ public class RemctlErrorTokenTests {
                 0, 0, 0, 0, /* no message */
         };
 
-        RemctlErrorToken errorToken = new RemctlErrorToken(null, message);
+        RemctlErrorToken errorToken = new RemctlErrorToken(message);
 
         //FIXME errorToken enum can't handle unknown error code
         assertEquals("Error code should match", 4096,
@@ -85,7 +85,7 @@ public class RemctlErrorTokenTests {
         };
 
         try {
-            new RemctlErrorToken(null, message);
+            new RemctlErrorToken(message);
             Assert.fail("Exception should have been thrown");
         } catch (IllegalStateException e) {
             assertEquals(
@@ -99,7 +99,7 @@ public class RemctlErrorTokenTests {
                 0, 0, 0 /* missing byte */
         };
         try {
-            new RemctlErrorToken(null, message);
+            new RemctlErrorToken(message);
             Assert.fail("Exception should have been thrown");
         } catch (IllegalArgumentException e) {
             assertEquals(

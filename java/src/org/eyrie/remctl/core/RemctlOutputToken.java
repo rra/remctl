@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import org.eyrie.remctl.RemctlException;
-import org.ietf.jgss.GSSContext;
 
 /**
  * Represents a remctl output token. This is sent from the server to the client
@@ -25,8 +24,6 @@ public class RemctlOutputToken extends RemctlMessageToken {
     /**
      * Construct an output token with the given output data.
      * 
-     * @param context
-     *            GSS-API context used for encryption
      * @param stream
      *            The output stream, either 1 for standard output or 2 for
      *            standard error
@@ -35,9 +32,9 @@ public class RemctlOutputToken extends RemctlMessageToken {
      * @throws RemctlException
      *             If the stream is not 1 or 2
      */
-    RemctlOutputToken(GSSContext context, int stream, byte output[])
+    RemctlOutputToken(int stream, byte output[])
             throws RemctlException {
-        super(context, 2, RemctlMessageCode.MESSAGE_OUTPUT);
+        super(2);
         if (stream != 1 && stream != 2) {
             throw new RemctlException("invalid stream" + stream);
         }
@@ -72,9 +69,9 @@ public class RemctlOutputToken extends RemctlMessageToken {
         stream.write(this.output);
     }
 
-    RemctlOutputToken(GSSContext context, byte[] data)
+    public RemctlOutputToken(byte[] data)
             throws RemctlException {
-        super(context, 2, RemctlMessageCode.MESSAGE_OUTPUT);
+        super(2);
         DataInputStream stream = new DataInputStream(new ByteArrayInputStream(
                 data));
         try {
@@ -101,7 +98,7 @@ public class RemctlOutputToken extends RemctlMessageToken {
         return this.output;
     }
 
-    String getOutputAsString() {
+    public String getOutputAsString() {
         try {
             return new String(this.output, "UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -118,6 +115,11 @@ public class RemctlOutputToken extends RemctlMessageToken {
     public String toString() {
         return "RemctlOutputToken [stream=" + this.stream + ", output size ="
                 + this.output.length + "]";
+    }
+
+    @Override
+    RemctlMessageCode getType() {
+        return RemctlMessageCode.MESSAGE_OUTPUT;
     }
 
 }
