@@ -7,9 +7,16 @@
 
 package org.eyrie.remctl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Holds the protocol-standardized error codes and English error strings for
  * remctl errors that can be sent via a MESSAGE_ERROR token.
+ * 
+ * FIXME error codes may be extended, and client must accept them. I don't think
+ * that would be possible with enums, since the 'accepted' ones are a compile
+ * time constant.
  * 
  * @author Russ Allbery &lt;rra@stanford.edu&gt;
  */
@@ -62,5 +69,30 @@ public enum RemctlErrorCode {
     private RemctlErrorCode(int value, String description) {
         this.value = (byte) value;
         this.description = description;
+    }
+
+    private static final Map<String, RemctlErrorCode> descriptionToCode = new HashMap<String, RemctlErrorCode>();
+    private static final Map<Byte, RemctlErrorCode> byteValueToCode = new HashMap<Byte, RemctlErrorCode>();
+    static {
+        for (RemctlErrorCode errorCode : values()) {
+            descriptionToCode.put(errorCode.description, errorCode);
+            byteValueToCode.put(errorCode.value, errorCode);
+        }
+    }
+
+    /**
+     * @return The string representation of a status
+     */
+    @Override
+    public String toString() {
+        return super.toString().toLowerCase();
+    }
+
+    public static RemctlErrorCode fromByte(byte value) {
+        return byteValueToCode.get(value);
+    }
+
+    public static RemctlErrorCode fromInt(int value) {
+        return fromByte((byte) value);
     }
 }

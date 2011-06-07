@@ -42,4 +42,13 @@ public class RemctlErrorException extends RemctlException {
     public String getMessage() {
         return this.code.description + " (error " + this.code.value + ")";
     }
+
+    /**
+     * Return the specific protocol error code.
+     * 
+     * @return The RemctlErrorCode constant for the error
+     */
+    public RemctlErrorCode getErrorCode() {
+        return this.code;
+    }
 }

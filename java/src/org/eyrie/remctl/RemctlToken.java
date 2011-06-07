@@ -15,12 +15,17 @@ package org.eyrie.remctl;
 
 import static org.eyrie.remctl.RemctlErrorCode.ERROR_BAD_TOKEN;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -191,7 +196,8 @@ abstract class RemctlToken {
         if ((flag & RemctlFlag.TOKEN_PROTOCOL.value) == 0) {
             throw new RemctlProtocolException("Protocol v1 not supported");
         }
-        if (flag == RemctlFlag.TOKEN_PROTOCOL.value) {
+        //FIXME: what should this be
+        if ((flag & RemctlFlag.TOKEN_PROTOCOL.value) == RemctlFlag.TOKEN_PROTOCOL.value) {
             int length = stream.readInt();
             if (length < 0 || length > maxData) {
                 throw new RemctlErrorException(ERROR_BAD_TOKEN);
@@ -228,7 +234,8 @@ class RemctlMessageToken extends RemctlToken {
     /** Map of message codes to classes representing that message. */
     private static final Map<RemctlMessageCode, Class<? extends RemctlToken>> messageClasses;
     static {
-        Map<RemctlMessageCode, Class<? extends RemctlToken>> m = new HashMap<RemctlMessageCode, Class<? extends RemctlToken>>();
+        EnumMap<RemctlMessageCode, Class<? extends RemctlToken>> m = new EnumMap<RemctlMessageCode, Class<? extends RemctlToken>>(
+                RemctlMessageCode.class);
         m.put(RemctlMessageCode.MESSAGE_COMMAND, RemctlCommandToken.class);
         m.put(RemctlMessageCode.MESSAGE_QUIT, RemctlQuitToken.class);
         m.put(RemctlMessageCode.MESSAGE_OUTPUT, RemctlOutputToken.class);
@@ -265,6 +272,11 @@ class RemctlMessageToken extends RemctlToken {
     }
 
     /**
+     * FIXME We can't force a constructor signature on subclasses. I think we
+     * are looking for an AbstractFacotry for 'forcing' a standard way to build
+     * things, but for now we will just implement the constructor on all
+     * subclasses.
+     * 
      * Construct a message token from a byte array. This constructor is mostly
      * useless in <code>RemctlMessageToken</code>. It is here to be overridden
      * by subclasses and is the constructor used to create new classes from data
@@ -334,8 +346,14 @@ class RemctlMessageToken extends RemctlToken {
         }
         MessageProp prop = new MessageProp(0, true);
         byte[] message = array.toByteArray();
-        byte[] token = this.context.wrap(message, 0, message.length, prop);
-        stream.write(token);
+        byte[] encryptedToken = this.context.wrap(message, 0, message.length,
+                prop);
+
+        DataOutputStream outStream = new DataOutputStream(stream);
+        outStream.writeByte(RemctlFlag.TOKEN_DATA.value
+                      ^ RemctlFlag.TOKEN_PROTOCOL.value);
+        outStream.writeInt(encryptedToken.length);
+        outStream.write(encryptedToken);
     }
 
     /**
@@ -372,7 +390,7 @@ class RemctlMessageToken extends RemctlToken {
      * 
      * @param context
      *            GSS-API context to use to decrypt the token
-     * @param token
+     * @param encryptedToken
      *            An encrypted token
      * @return The decrypted token object
      * @throws GSSException
@@ -380,10 +398,11 @@ class RemctlMessageToken extends RemctlToken {
      * @throws RemctlException
      *             If the token type is not recognized
      */
-    static RemctlToken parseToken(GSSContext context, byte[] token)
+    static RemctlToken parseToken(GSSContext context, byte[] encryptedToken)
             throws GSSException, RemctlException {
         MessageProp prop = new MessageProp(0, true);
-        byte[] message = context.unwrap(token, 0, token.length, prop);
+        byte[] message = context.unwrap(encryptedToken, 0,
+                encryptedToken.length, prop);
         byte version = message[0];
         if (version < 1) {
             throw new RemctlProtocolException("Invalid protocol version "
@@ -397,7 +416,36 @@ class RemctlMessageToken extends RemctlToken {
         byte code = message[1];
         RemctlMessageCode type = RemctlMessageCode.getCode(code);
         Class<? extends RemctlToken> klass = messageClasses.get(type);
-        return new RemctlMessageToken(context, version, type);
+        System.out.println("message class " + klass.getName());
+        try {
+            // Constructor<?>[] allC = klass.getDeclaredConstructors();
+            Constructor<? extends RemctlToken> constructor = klass
+                    .getDeclaredConstructor(
+                            GSSContext.class, byte[].class);
+            RemctlToken tokenClass = constructor.newInstance(context,
+                    Arrays.copyOfRange(message, 2, message.length));
+
+            return tokenClass;
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            throw new IllegalStateException("unable parse input", e);
+        }
+
+    }
+
+    /**
+     * @return the version
+     */
+    private byte getVersion() {
+        return this.version;
+    }
+
+    /**
+     * @return the type
+     */
+    RemctlMessageCode getType() {
+        return this.type;
     }
 }
 
@@ -426,7 +474,7 @@ class RemctlCommandToken extends RemctlMessageToken {
      * @throws RemctlException
      *             Invalid argument to constructor
      */
-    RemctlCommandToken(GSSContext context, boolean keepalive, String args[])
+    RemctlCommandToken(GSSContext context, boolean keepalive, String... args)
             throws RemctlException {
         super(context, 2, RemctlMessageCode.MESSAGE_COMMAND);
         this.keepalive = keepalive;
@@ -458,11 +506,12 @@ class RemctlCommandToken extends RemctlMessageToken {
      *             On errors writing to the output stream
      */
     @Override
-    void writeData(DataOutputStream output) throws IOException {
+    protected void writeData(DataOutputStream output) throws IOException {
         output.writeByte(this.keepalive ? 1 : 0);
         output.writeByte(0);
         output.writeInt(this.args.length);
         for (String arg : this.args) {
+            //FIXME these calls assume one byte per character, and we should support UTF-8
             output.writeInt(arg.length());
             output.writeBytes(arg);
         }
@@ -531,6 +580,55 @@ class RemctlOutputToken extends RemctlMessageToken {
         stream.writeInt(this.output.length);
         stream.write(this.output);
     }
+
+    RemctlOutputToken(GSSContext context, byte[] data)
+            throws RemctlException {
+        super(context, 2, RemctlMessageCode.MESSAGE_OUTPUT);
+        DataInputStream stream = new DataInputStream(new ByteArrayInputStream(
+                data));
+        try {
+            this.stream = stream.readByte();
+            int length = stream.readInt();
+            this.output = new byte[length];
+            stream.readFully(this.output, 0, length);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * @return the stream
+     */
+    byte getStream() {
+        return this.stream;
+    }
+
+    /**
+     * @return the output
+     */
+    byte[] getOutput() {
+        return this.output;
+    }
+
+    String getOutputAsString() {
+        try {
+            return new String(this.output, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "RemctlOutputToken [stream=" + this.stream + ", output size ="
+                + this.output.length + "]";
+    }
+
 }
 
 /**
@@ -563,6 +661,15 @@ class RemctlStatusToken extends RemctlMessageToken {
         this.status = status;
     }
 
+    RemctlStatusToken(GSSContext context, byte[] data)
+            throws RemctlException {
+        super(context, 2, RemctlMessageCode.MESSAGE_OUTPUT);
+
+        //FIXME: validate data length
+        this.status = data[0];
+
+    }
+
     /**
      * Determine the length of this status message token.
      * 
@@ -587,6 +694,30 @@ class RemctlStatusToken extends RemctlMessageToken {
     void writeData(DataOutputStream stream) throws IOException {
         stream.writeByte(this.status);
     }
+
+    /**
+     * @return the status
+     */
+    int getStatus() {
+        return this.status;
+    }
+
+    /**
+     * Check if the status was success
+     * 
+     * @return true if status was 0, or false for non-zero return codes.
+     */
+    boolean isSuccessful() {
+        return 0 == this.status;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "RemctlStatusToken [status=" + this.status + "]";
+    }
 }
 
 /**
@@ -594,11 +725,17 @@ class RemctlStatusToken extends RemctlMessageToken {
  * and represents an error in a command.
  */
 class RemctlErrorToken extends RemctlMessageToken {
+
     /** Error code, used by software to identify the error. */
     private final RemctlErrorCode code;
 
     /** Human-readable description of the error returned by server. */
     private final String message;
+
+    /**
+     * Minimum size in octets. 4 for error code, 4 for message length
+     */
+    static private final int MIN_SIZE = 8;
 
     /**
      * Construct an error token with the given error code and message.
@@ -635,6 +772,44 @@ class RemctlErrorToken extends RemctlMessageToken {
         this(context, code, code.description);
     }
 
+    RemctlErrorToken(GSSContext context, byte[] data)
+            throws RemctlException {
+
+        super(context, 2, RemctlMessageCode.MESSAGE_OUTPUT);
+        if (data.length < MIN_SIZE) {
+            throw new IllegalArgumentException(
+                    "Command data size is to small. Expected " + MIN_SIZE
+                            + ", but was " + data.length);
+        }
+
+        DataInputStream stream = new DataInputStream(new ByteArrayInputStream(
+                data));
+        try {
+            int codeInt = stream.readInt();
+            this.code = RemctlErrorCode.fromInt(codeInt);
+            //TODO: length is signed, so we'll overflow to a negative length for large length, but I think
+            //max packet format length is 1,048,576 which easily fits in an int, so this is probably a non issue
+            int length = stream.readInt();
+            if (length != data.length - 8) {
+                throw new IllegalStateException(
+                        "Expected length mismatch: Command length is " + length
+                                + ", but data length is "
+                                + (data.length - MIN_SIZE));
+            }
+            //            if (length == 0) {
+            //                this.message = "";
+            //            } else {
+            byte[] messageBytes = new byte[length];
+            stream.readFully(messageBytes, 0, length);
+            this.message = new String(messageBytes,
+                        "UTF-8");
+            //            }
+
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     /**
      * Determine the length of this error message token.
      * 
@@ -661,6 +836,30 @@ class RemctlErrorToken extends RemctlMessageToken {
         stream.writeInt(this.message.length());
         stream.writeBytes(this.message);
     }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "RemctlErrorToken [code=" + this.code + ", message="
+                + this.message + "]";
+    }
+
+    /**
+     * @return the code
+     */
+    public RemctlErrorCode getCode() {
+        return this.code;
+    }
+
+    /**
+     * @return the message
+     */
+    public String getMessage() {
+        return this.message;
+    }
+
 }
 
 /**
@@ -728,7 +927,7 @@ class RemctlQuitToken extends RemctlMessageToken {
  */
 class RemctlVersionToken extends RemctlMessageToken {
     /** Protocol version stored in the token. */
-    private byte version;
+    private byte highestSupportedVersion;
 
     /**
      * Construct a version token with the given maximum supported version.
@@ -762,7 +961,7 @@ class RemctlVersionToken extends RemctlMessageToken {
         super(context, data);
         if (data.length != 1)
             throw new RemctlErrorException(RemctlErrorCode.ERROR_BAD_TOKEN);
-        this.version = data[0];
+        this.highestSupportedVersion = data[0];
     }
 
     /**
@@ -787,6 +986,23 @@ class RemctlVersionToken extends RemctlMessageToken {
      */
     @Override
     void writeData(DataOutputStream stream) throws IOException {
-        stream.writeByte(this.version);
+        stream.writeByte(this.highestSupportedVersion);
     }
+
+    /**
+     * @return the highestSupportedVersion
+     */
+    byte getHighestSupportedVersion() {
+        return this.highestSupportedVersion;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "RemctlVersionToken [highestSupportedVersion="
+                + this.highestSupportedVersion + "]";
+    }
+
 }
