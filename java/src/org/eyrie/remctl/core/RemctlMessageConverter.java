@@ -1,4 +1,4 @@
-package org.eyrie.remctl;
+package org.eyrie.remctl.core;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -11,15 +11,10 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 
-import org.eyrie.remctl.core.RemctlCommandToken;
-import org.eyrie.remctl.core.RemctlErrorToken;
-import org.eyrie.remctl.core.RemctlFlag;
-import org.eyrie.remctl.core.RemctlMessageCode;
-import org.eyrie.remctl.core.RemctlOutputToken;
-import org.eyrie.remctl.core.RemctlQuitToken;
-import org.eyrie.remctl.core.RemctlStatusToken;
-import org.eyrie.remctl.core.RemctlToken;
-import org.eyrie.remctl.core.RemctlVersionToken;
+import org.eyrie.remctl.RemctlErrorCode;
+import org.eyrie.remctl.RemctlErrorException;
+import org.eyrie.remctl.RemctlException;
+import org.eyrie.remctl.RemctlProtocolException;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.MessageProp;
@@ -38,8 +33,18 @@ import org.ietf.jgss.MessageProp;
  */
 public class RemctlMessageConverter {
 
+    /**
+     * The GSS context used for encrypting/decrypting the payload
+     */
     private final GSSContext context;
 
+    /**
+     * Create a message converter that uses the context for
+     * encrypting/decrypting the payload
+     * 
+     * @param context
+     *            the GSSContext
+     */
     public RemctlMessageConverter(GSSContext context) {
         this.context = context;
     }
@@ -148,6 +153,15 @@ public class RemctlMessageConverter {
 
     }
 
+    /**
+     * Encrypts the token for use as the payload and adds 'flag' and 'length'
+     * headers to create a Remctl packet that is written to output stream.
+     * 
+     * @param outputStream
+     *            The stream to write the message to.
+     * @param remctlToken
+     *            The token to write
+     */
     public void encodeMessage(OutputStream outputStream, RemctlToken remctlToken) {
 
         try {
@@ -169,6 +183,13 @@ public class RemctlMessageConverter {
 
     }
 
+    /**
+     * Decode the RemctlToken from the input stream
+     * 
+     * @param inputStream
+     *            The inputstream
+     * @return The token decrypted from the payload of inputstream.
+     */
     public RemctlToken decodeMessage(InputStream inputStream) {
         try {
             return getToken(new DataInputStream(inputStream),
