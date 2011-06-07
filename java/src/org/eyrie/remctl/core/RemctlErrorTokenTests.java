@@ -1,7 +1,9 @@
-package org.eyrie.remctl;
+package org.eyrie.remctl.core;
 
 import static org.junit.Assert.assertEquals;
 
+import org.eyrie.remctl.RemctlErrorCode;
+import org.eyrie.remctl.RemctlException;
 import org.junit.Assert;
 import org.junit.Test;
 

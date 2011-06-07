@@ -1,4 +1,4 @@
-package org.eyrie.remctl;
+package org.eyrie.remctl.client;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -6,11 +6,17 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginContext;
 
-import org.eyrie.remctl.RemctlTests.RemctlFlag;
+import org.eyrie.remctl.RemctlMessageConverter;
+import org.eyrie.remctl.core.RemctlErrorToken;
+import org.eyrie.remctl.core.RemctlFlag;
+import org.eyrie.remctl.core.RemctlStatusToken;
+import org.eyrie.remctl.core.RemctlToken;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.GSSManager;
@@ -23,29 +29,41 @@ import org.ietf.jgss.Oid;
  * @author pradtke
  * 
  */
-public class SimpleRemctlClient {
+public class RemctlClient {
 
-    StringBuilder stdOutResponse = new StringBuilder();
-    StringBuilder stdErrResponse = new StringBuilder();
+    /**
+     * Our GSS context
+     */
+    private GSSContext context;
 
-    GSSContext context;
+    /**
+     * The server principal
+     */
+    private String serverPrincipal;
 
-    Integer returnStatus;
+    RemctlMessageConverter messageConverter;
 
-    //    String hostname;
-    //    String serverPrincipal;
-    //    int port;
-
-    String serverPrincipal;
+    /**
+     * The hostname to connect to.
+     */
     String hostname;
+
+    /**
+     * the port to connect to.
+     */
     int port = 4373;
 
     DataInputStream inStream;
     DataOutputStream outStream;
 
-    RemctlErrorToken errorToken;
-
-    public SimpleRemctlClient(String hostname) {
+    /**
+     * RemctlClient that will connect to the provide host, on the default port
+     * (4373) using the default principal name 'host/canonical_servername'.
+     * 
+     * @param hostname
+     *            the FQDN to connect to.
+     */
+    public RemctlClient(String hostname) {
         this(hostname, 0, null);
     }
 
@@ -55,30 +73,53 @@ public class SimpleRemctlClient {
      * @param hostname
      *            The host to connect to
      * @param port
-     *            The port to connect on
+     *            The port to connect on. If 0, defaults to 4373
      * @param serverPrincipal
-     *            The server principal. If null, defaults to 'host/hostname'
-     * @param clientPrincipal
-     *            The client principal
+     *            The server principal. If null, defaults to
+     *            'host/canonical_servername'
      */
-    public SimpleRemctlClient(String hostname, int port,
+    public RemctlClient(String hostname, int port,
             String serverPrincipal) {
         this.hostname = hostname;
         this.port = port == 0 ? 4373 : port;
         this.serverPrincipal = serverPrincipal;
     }
 
-    /**
-     * Runs the list of arguments against the remctl server.
-     * 
-     * @param arguments
-     *            The arguments to run. Generally the first argument is the
-     *            command, and the rest are arguments for that command.
-     */
-    public void execute(String... arguments) {
+    public void writeToken(RemctlToken token) {
+        this.messageConverter.encodeMessage(this.outStream, token);
+
+    }
+
+    public RemctlToken readToken() {
+        return this.messageConverter
+                .decodeMessage(this.inStream);
+    }
+
+    public List<RemctlToken> readAllTokens() {
+        List<RemctlToken> tokenList = new ArrayList<RemctlToken>();
+
+        while (true) {
+            RemctlToken outputToken = this.readToken();
+            tokenList.add(outputToken);
+            System.out.println("token  " + outputToken);
+            if (outputToken instanceof RemctlErrorToken) {
+                break;
+            } else if (outputToken instanceof RemctlStatusToken) {
+                System.out.println("Status done");
+                break;
+            }
+        }
+
+        return tokenList;
+    }
+
+    public void connect() {
         try {
+            //FIXME: move this out of here. set it only if no jaas is already defined.
             System.setProperty("java.security.auth.login.config",
                     "/Users/pradtke/Desktop/kerberos/remctl/java/gss_jaas.conf");
+
+            /** Login so can access kerb ticket **/
             LoginContext context = new LoginContext("RemctlClient");
             context.login();
             Subject subject = context.getSubject();
@@ -88,50 +129,19 @@ public class SimpleRemctlClient {
                         public Object run()
                                 throws Exception, IOException {
                             System.out.println("in action");
-                            SimpleRemctlClient.this.establishContext();
+                            RemctlClient.this.establishContext();
                             return null;
                         }
                     };
 
             Subject.doAs(subject, pea);
 
-            RemctlCommandToken command = new RemctlCommandToken(this.context,
-                                false,
-                                arguments);
-
-            RemctlMessageConverter messageConverter = new RemctlMessageConverter(
+            this.messageConverter = new RemctlMessageConverter(
                     this.context);
-
-            messageConverter.encodeMessage(this.outStream, command);
-
-            while (true) {
-                RemctlMessageToken outputToken = (RemctlMessageToken) messageConverter
-                        .decodeMessage(this.inStream);
-
-                System.out.println("token type " + outputToken.getType());
-                System.out.println("token  " + outputToken);
-                if (outputToken instanceof RemctlErrorToken) {
-                    this.errorToken = (RemctlErrorToken) outputToken;
-                    break;
-                } else if (outputToken instanceof RemctlOutputToken) {
-                    RemctlOutputToken remctlOutputToken = (RemctlOutputToken) outputToken;
-                    if (remctlOutputToken.getStream() == 1) {
-                        this.stdOutResponse.append(remctlOutputToken
-                                            .getOutputAsString());
-                    } else {
-                        this.stdErrResponse.append(remctlOutputToken
-                                            .getOutputAsString());
-                    }
-                } else if (outputToken instanceof RemctlStatusToken) {
-                    System.out.println("Status done");
-                    this.returnStatus = ((RemctlStatusToken) outputToken)
-                                        .getStatus();
-                    break;
-                }
-            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
     }
 
     private void establishContext() throws UnknownHostException, IOException,
@@ -206,9 +216,9 @@ public class SimpleRemctlClient {
         this.context.requestInteg(true); // Will use integrity later
 
         //Establish as protocol 2
-        byte flag = (byte) (RemctlFlag.TOKEN_NOOP.value
-                ^ RemctlFlag.TOKEN_CONTEXT_NEXT.value
-                ^ RemctlFlag.TOKEN_PROTOCOL.value);
+        byte flag = (byte) (RemctlFlag.TOKEN_NOOP.getValue()
+                ^ RemctlFlag.TOKEN_CONTEXT_NEXT.getValue()
+                ^ RemctlFlag.TOKEN_PROTOCOL.getValue());
         System.out.println("flags " + flag);
         this.outStream.writeByte(flag);
         this.outStream.writeInt(0);
@@ -233,8 +243,8 @@ public class SimpleRemctlClient {
                 //                RemctlVersionToken versionToken = new RemctlVersionToken(
                 //                        context, 2);
                 // versionToken.writeData(outStream);
-                flag = (byte) (RemctlFlag.TOKEN_CONTEXT.value
-                        ^ RemctlFlag.TOKEN_PROTOCOL.value);
+                flag = (byte) (RemctlFlag.TOKEN_CONTEXT.getValue()
+                        ^ RemctlFlag.TOKEN_PROTOCOL.getValue());
                 System.out.println("flags " + flag);
 
                 this.outStream.writeByte(flag);
@@ -247,7 +257,8 @@ public class SimpleRemctlClient {
             // then there will be no more tokens to read in this loop
             if (!this.context.isEstablished()) {
                 flag = this.inStream.readByte();
-                if ((flag ^ RemctlFlag.TOKEN_PROTOCOL.value ^ RemctlFlag.TOKEN_CONTEXT.value) != 0) {
+                if ((flag ^ RemctlFlag.TOKEN_PROTOCOL.getValue() ^ RemctlFlag.TOKEN_CONTEXT
+                        .getValue()) != 0) {
                     System.out.println("Unexpected token: " + flag);
                 }
                 token = new byte[this.inStream.readInt()];
@@ -273,27 +284,6 @@ public class SimpleRemctlClient {
          */
         if (this.context.getMutualAuthState())
             System.out.println("Mutual authentication took place!");
-    }
-
-    /**
-     * @return the stdOutResponse
-     */
-    String getStdOutResponse() {
-        return this.stdOutResponse.toString();
-    }
-
-    /**
-     * @return the stdErrResponse
-     */
-    String getStdErrResponse() {
-        return this.stdErrResponse.toString();
-    }
-
-    /**
-     * @return the returnStatus
-     */
-    Integer getReturnStatus() {
-        return this.returnStatus;
     }
 
 }

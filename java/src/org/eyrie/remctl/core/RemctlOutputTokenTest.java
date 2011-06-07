@@ -1,7 +1,8 @@
-package org.eyrie.remctl;
+package org.eyrie.remctl.core;
 
 import static org.junit.Assert.assertEquals;
 
+import org.eyrie.remctl.RemctlException;
 import org.junit.Test;
 
 public class RemctlOutputTokenTest {

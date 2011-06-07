@@ -49,13 +49,13 @@ public enum RemctlErrorCode {
     ERROR_TOOMUCH_DATA(8, "Argument size exceeds server limit");
 
     /** The wire representation of this error code. */
-    byte value;
+    public byte value;
 
     /**
      * The English description for this error code from the protocol
      * specification.
      */
-    String description;
+    public String description;
 
     /**
      * Construct a #RemctlErrorCode with the given protocol value and default
