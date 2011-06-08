@@ -37,8 +37,7 @@ public abstract class RemctlMessageToken implements RemctlToken {
      *             If version is out of range. The version is not checked
      *             against {@link RemctlToken#supportedVersion}.
      */
-    RemctlMessageToken(int version)
-            throws RemctlException {
+    RemctlMessageToken(int version) {
         if (version < 2 || version > 127) {
             throw new RemctlProtocolException("Invalid protocol version "
                     + version);
@@ -72,16 +71,7 @@ public abstract class RemctlMessageToken implements RemctlToken {
             // to fail, so turn them into runtime exceptions.
             throw new RuntimeException(e);
         }
-        //        MessageProp prop = new MessageProp(0, true);
-        //        byte[] message = array.toByteArray();
-        //        byte[] encryptedToken = this.context.wrap(message, 0, message.length,
-        //                prop);
 
-        //DataOutputStream outStream = new DataOutputStream(stream);
-        //outStream.writeByte(RemctlFlag.TOKEN_DATA.value
-        //            ^ RemctlFlag.TOKEN_PROTOCOL.value);
-        //outStream.writeInt(encryptedToken.length);
-        //outStream.write(encryptedToken);
     }
 
     /**

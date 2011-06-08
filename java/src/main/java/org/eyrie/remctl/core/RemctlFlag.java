@@ -29,7 +29,7 @@ public enum RemctlFlag {
     TOKEN_PROTOCOL(0x40);
 
     /** The wire representation of this flag. */
-    byte value;
+    private byte value;
 
     /**
      * Create #RemctlFlag with a particular value.

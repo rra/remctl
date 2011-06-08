@@ -12,7 +12,7 @@ package org.eyrie.remctl;
  * 
  * @author Russ Allbery &lt;rra@stanford.edu&gt;
  */
-public class RemctlException extends Exception {
+public class RemctlException extends RuntimeException {
     /** Object ID for serialization. */
     private static final long serialVersionUID = -4221280841282852331L;
 

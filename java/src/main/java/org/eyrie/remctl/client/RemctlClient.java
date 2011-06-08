@@ -15,6 +15,7 @@ import javax.security.auth.login.LoginContext;
 import org.eyrie.remctl.core.RemctlErrorToken;
 import org.eyrie.remctl.core.RemctlFlag;
 import org.eyrie.remctl.core.RemctlMessageConverter;
+import org.eyrie.remctl.core.RemctlQuitToken;
 import org.eyrie.remctl.core.RemctlStatusToken;
 import org.eyrie.remctl.core.RemctlToken;
 import org.ietf.jgss.GSSContext;
@@ -143,6 +144,14 @@ public class RemctlClient {
         }
 
         return tokenList;
+    }
+
+    public void close() {
+        if (this.isConnected) {
+            this.writeToken(new RemctlQuitToken());
+            this.isConnected = false;
+        }
+
     }
 
     /**
