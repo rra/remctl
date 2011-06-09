@@ -27,6 +27,7 @@ public class MessageQuitTests {
         //not really anyhing to test. We are mostly checking that no exceptions
         //are thrown and that the token has a constructor that takes byte[]
         assertNotNull(quitToken);
+
     }
 
 }

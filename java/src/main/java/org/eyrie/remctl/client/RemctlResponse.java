@@ -103,21 +103,21 @@ public class RemctlResponse {
     /**
      * @return the stdOutResponse
      */
-    String getStdOut() {
+    public String getStdOut() {
         return this.stdOut;
     }
 
     /**
      * @return the stdErrResponse
      */
-    String getStdErr() {
+    public String getStdErr() {
         return this.stdErr;
     }
 
     /**
      * @return the returnStatus
      */
-    Integer getStatus() {
+    public Integer getStatus() {
         return this.returnStatus;
     }
 
