@@ -1,18 +1,23 @@
-package org.eyrie.remctl;
+package org.eyrie.remctl.client;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class SimpleRemctlClientTest {
 
+    /**
+     * Test getting a response on std out
+     */
     @Test
     public void testStdOut() {
 
         SimpleRemctlClient remctlClient = new SimpleRemctlClient(
                 "acct-scripts-dev.stanford.edu");
 
-        remctlClient.execute("account-show", "show", "bob");
+        RemctlResponse remctlResponse = remctlClient.execute("account-show",
+                "show", "bob");
 
         String expectedOutput = "Account bob\n"
                 +
@@ -41,13 +46,13 @@ public class SimpleRemctlClientTest {
                 "   identifies:  person/468c983ee76911d1a32a2436000baa77 -- Edwards, Robert Scott (bob)\n";
 
         assertEquals("Status is success", Integer.valueOf(0),
-                remctlClient.returnStatus);
+                remctlResponse.getStatus());
 
         assertEquals("Stdout should match", expectedOutput,
-                remctlClient.getStdOutResponse());
+                remctlResponse.getStdOut());
 
         assertEquals("Stderr should be emtpy", "",
-                remctlClient.getStdErrResponse());
+                remctlResponse.getStdErr());
 
     }
 
@@ -76,6 +81,17 @@ public class SimpleRemctlClientTest {
     }
 
     /**
+     * Confirm client can be used multiple times
+     */
+    @Test
+    public void testMultipleExecutes() {
+        SimpleRemctlClient remctlClient = new SimpleRemctlClient(
+                "tools3.stanford.edu");
+        this.assertStdError(remctlClient);
+        this.assertStdError(remctlClient);
+    }
+
+    /**
      * Execute and test the contents.
      * 
      * @param remctlClient
@@ -85,16 +101,16 @@ public class SimpleRemctlClientTest {
         //note the [31m and [0m make the shell print colors, and don't appear as text when run from the cmdline
         String expectedErr = "[31mTicket.pm: error loading '67': \n[0merror loading '67':  at /usr/share/perl5/Remedy/Ticket.pm line 280\n";
 
-        remctlClient.execute("ticket", "67");
+        RemctlResponse remctlResponse = remctlClient.execute("ticket", "67");
 
         assertEquals("Status is success", Integer.valueOf(-1),
-                remctlClient.returnStatus);
+                remctlResponse.getStatus());
 
         assertEquals("Stdout should be emtpy", "",
-                remctlClient.getStdOutResponse());
+                remctlResponse.getStdOut());
 
         assertEquals("Stderr should match", expectedErr,
-                remctlClient.getStdErrResponse());
+                remctlResponse.getStdErr());
     }
 
     @Test
@@ -103,9 +119,7 @@ public class SimpleRemctlClientTest {
                 "tools3.stanford.edu");
         remctlClient.execute("no-such-command");
 
-        assertEquals("Error token should match",
-                RemctlErrorCode.ERROR_UNKNOWN_COMMAND,
-                remctlClient.errorToken.getCode());
+        Assert.fail("Error tokens should be exceptions");
 
     }
 }

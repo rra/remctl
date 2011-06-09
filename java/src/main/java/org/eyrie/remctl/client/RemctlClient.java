@@ -146,6 +146,9 @@ public class RemctlClient {
         return tokenList;
     }
 
+    /**
+     * Close this connection if open.
+     */
     public void close() {
         if (this.isConnected) {
             this.writeToken(new RemctlQuitToken());
