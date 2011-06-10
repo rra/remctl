@@ -175,8 +175,8 @@ public class RemctlClient {
 
         try {
             //FIXME: move this out of here. set it only if no jaas is already defined.
-            System.setProperty("java.security.auth.login.config",
-                    "/Users/pradtke/Desktop/kerberos/remctl/java/gss_jaas.conf");
+            //            System.setProperty("java.security.auth.login.config",
+            //                    "/Users/pradtke/Desktop/kerberos/remctl/java/gss_jaas.conf");
 
             /** Login so can access kerb ticket **/
             LoginContext context = new LoginContext("RemctlClient");

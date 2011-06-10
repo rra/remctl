@@ -71,7 +71,7 @@ public class RemctlResponse {
             logger.trace("Processing token {} " + outputToken.getClass());
             if (outputToken instanceof RemctlErrorToken) {
                 //FIXME: throw correct type of exceptions
-                throw new RuntimeException("Error token");
+                throw new RuntimeException("Error token " + outputToken);
             } else if (outputToken instanceof RemctlOutputToken) {
                 RemctlOutputToken remctlOutputToken = (RemctlOutputToken) outputToken;
                 byte stream = remctlOutputToken.getStream();
