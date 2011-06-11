@@ -2,9 +2,18 @@ package org.eyrie.remctl.client;
 
 import static org.junit.Assert.assertEquals;
 
+import org.eyrie.remctl.RemctlErrorException;
+import org.eyrie.remctl.RemctlStatusException;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * FIXME: this test is highly dependent on stanford infrastructure. We should
+ * mock up the dependencies
+ * 
+ * @author pradtke
+ * 
+ */
 public class SimpleRemctlClientTest {
 
     /**
@@ -101,25 +110,34 @@ public class SimpleRemctlClientTest {
         //note the [31m and [0m make the shell print colors, and don't appear as text when run from the cmdline
         String expectedErr = "[31mTicket.pm: error loading '67': \n[0merror loading '67':  at /usr/share/perl5/Remedy/Ticket.pm line 280\n";
 
-        RemctlResponse remctlResponse = remctlClient.execute("ticket", "67");
+        try {
+            remctlClient.execute("ticket", "67");
+        } catch (RemctlStatusException statusException) {
+            assertEquals("Status is success", Integer.valueOf(-1),
+                    statusException.getStatus());
 
-        assertEquals("Status is success", Integer.valueOf(-1),
-                remctlResponse.getStatus());
+            assertEquals("Stdout should be emtpy", "",
+                    statusException.getStdOut());
 
-        assertEquals("Stdout should be emtpy", "",
-                remctlResponse.getStdOut());
-
-        assertEquals("Stderr should match", expectedErr,
-                remctlResponse.getStdErr());
+            assertEquals("Stderr should match", expectedErr,
+                    statusException.getStdErr());
+        }
     }
 
+    /**
+     * Test behavior when error token is encountered
+     */
     @Test
-    public void testException() {
+    public void testErrorToken() {
         SimpleRemctlClient remctlClient = new SimpleRemctlClient(
                 "tools3.stanford.edu");
-        remctlClient.execute("no-such-command");
+        try {
+            remctlClient.execute("no-such-command");
 
-        Assert.fail("Error tokens should be exceptions");
+            Assert.fail("Error tokens should be exceptions");
+        } catch (RemctlErrorException e) {
+            assertEquals("Code shoud match", 5, e.getErrorCode());
+        }
 
     }
 }

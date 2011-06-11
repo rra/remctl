@@ -1,5 +1,8 @@
 package org.eyrie.remctl.client;
 
+import org.eyrie.remctl.RemctlErrorCode;
+import org.eyrie.remctl.RemctlErrorException;
+import org.eyrie.remctl.RemctlProtocolException;
 import org.eyrie.remctl.core.RemctlErrorToken;
 import org.eyrie.remctl.core.RemctlOutputToken;
 import org.eyrie.remctl.core.RemctlStatusToken;
@@ -57,8 +60,10 @@ public class RemctlResponse {
      * @param responseTokens
      *            The token received from the server
      * @return The remctlReponse
-     * @throws RuntimeException
-     *             if error token, or other error
+     * @throws RemctlProtocolException
+     *             If the list has an unexpected protocol
+     * @throws RemctlErrorException
+     *             If a token is malformed, or an error token is seen
      */
     static public RemctlResponse buildFromTokens(
             Iterable<RemctlToken> responseTokens) {
@@ -70,8 +75,8 @@ public class RemctlResponse {
 
             logger.trace("Processing token {} " + outputToken.getClass());
             if (outputToken instanceof RemctlErrorToken) {
-                //FIXME: throw correct type of exceptions
-                throw new RuntimeException("Error token " + outputToken);
+                logger.info("RemctlErrorToken in response {}", outputToken);
+                throw new RemctlErrorException((RemctlErrorToken) outputToken);
             } else if (outputToken instanceof RemctlOutputToken) {
                 RemctlOutputToken remctlOutputToken = (RemctlOutputToken) outputToken;
                 byte stream = remctlOutputToken.getStream();
@@ -82,15 +87,17 @@ public class RemctlResponse {
                     stdErrResponse.append(remctlOutputToken
                                             .getOutputAsString());
                 } else {
-                    throw new IllegalStateException("Unrecognized stream " +
-                                stream);
+                    throw new RemctlErrorException(
+                            RemctlErrorCode.ERROR_BAD_TOKEN.value,
+                            "Unrecognized stream " +
+                                    stream);
                 }
             } else if (outputToken instanceof RemctlStatusToken) {
                 status = ((RemctlStatusToken) outputToken)
                                         .getStatus();
                 break;
             } else {
-                throw new IllegalStateException(
+                throw new RemctlProtocolException(
                             "Unrecognized response token " +
                                     outputToken.getClass());
             }

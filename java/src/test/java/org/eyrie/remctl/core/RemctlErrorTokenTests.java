@@ -3,19 +3,25 @@ package org.eyrie.remctl.core;
 import static org.junit.Assert.assertEquals;
 
 import org.eyrie.remctl.RemctlErrorCode;
-import org.eyrie.remctl.RemctlException;
+import org.eyrie.remctl.RemctlErrorException;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
+/**
+ * Test RemctlErrorToken conversion
+ * 
+ * @author pradtke
+ * 
+ */
 public class RemctlErrorTokenTests {
 
     /**
-     * Test converting valid bytes into messages
+     * Test converting valid application bytes into messages
      * 
-     * @throws RemctlException
      */
     @Test
-    public void testFromBytes() throws RemctlException {
+    public void testFromBytes() {
 
         // -- test no message --
         byte[] message = new byte[] {
@@ -49,10 +55,10 @@ public class RemctlErrorTokenTests {
     /**
      * Test an unexpected error value in message
      * 
-     * @throws RemctlException
      */
     @Test
-    public void testUnexpectedErrorToken() throws RemctlException {
+    @Ignore("Alternate error codes not supported yet")
+    public void testUnexpectedErrorToken() {
         // -- test no message --
         byte[] message = new byte[] {
                 1, 0, 0, 0, /* error code 4096*/
@@ -72,10 +78,9 @@ public class RemctlErrorTokenTests {
      * Test handling of malformed message: invalid lengths, not enough miminum
      * bytes
      * 
-     * @throws RemctlException
      */
     @Test
-    public void testBadMessageLength() throws RemctlException {
+    public void testBadMessageLength() {
 
         //---  command length mismatch ---
         byte[] message = new byte[] {
@@ -87,10 +92,8 @@ public class RemctlErrorTokenTests {
         try {
             new RemctlErrorToken(message);
             Assert.fail("Exception should have been thrown");
-        } catch (IllegalStateException e) {
-            assertEquals(
-                    "Expected length mismatch: Command length is 5, but data length is 1",
-                    e.getMessage());
+        } catch (RemctlErrorException e) {
+            assertEquals(2, e.getErrorCode());
         }
 
         //--- not enough bytes ---
@@ -101,10 +104,8 @@ public class RemctlErrorTokenTests {
         try {
             new RemctlErrorToken(message);
             Assert.fail("Exception should have been thrown");
-        } catch (IllegalArgumentException e) {
-            assertEquals(
-                    "Command data size is to small. Expected 8, but was 7",
-                    e.getMessage());
+        } catch (RemctlErrorException e) {
+            assertEquals(2, e.getErrorCode());
         }
 
     }

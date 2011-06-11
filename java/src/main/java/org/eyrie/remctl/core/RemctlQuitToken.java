@@ -16,7 +16,7 @@ public class RemctlQuitToken extends RemctlMessageToken {
      * Construct a quit token.
      * 
      */
-    public RemctlQuitToken() throws RemctlException {
+    public RemctlQuitToken() {
         super(2);
     }
 

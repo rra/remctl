@@ -3,14 +3,24 @@ package org.eyrie.remctl.core;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import junit.framework.Assert;
 
-import org.eyrie.remctl.RemctlException;
+import org.eyrie.remctl.RemctlErrorException;
 import org.junit.Test;
 
+/**
+ * Test MessageStatusToken conversion
+ * 
+ * @author pradtke
+ * 
+ */
 public class MessageStatusTests {
 
+    /**
+     * Test building the token from command specific bytes
+     */
     @Test
-    public void testFromBytes() throws RemctlException {
+    public void testFromBytes() {
         byte[] message = { 0 };
 
         RemctlStatusToken statusToken = new RemctlStatusToken(message);
@@ -27,6 +37,29 @@ public class MessageStatusTests {
 
     }
 
-    //FIXME Add test for bad message lengths
+    /**
+     * Test handling of malformed message: invalid lengths, not enough miminum
+     * bytes, etc
+     */
+    @Test
+    public void testBadMessageLength() {
+        byte[] message = {};
 
+        try {
+            new RemctlStatusToken(message);
+            Assert.fail("Exception expected");
+        } catch (RemctlErrorException e) {
+            assertEquals(2, e.getErrorCode());
+        }
+
+        message = new byte[] { 1, 1 };
+
+        try {
+            new RemctlStatusToken(message);
+            Assert.fail("Exception expected");
+        } catch (RemctlErrorException e) {
+            assertEquals(2, e.getErrorCode());
+        }
+
+    }
 }

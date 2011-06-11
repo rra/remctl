@@ -3,6 +3,8 @@ package org.eyrie.remctl.core;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import org.eyrie.remctl.RemctlErrorCode;
+import org.eyrie.remctl.RemctlErrorException;
 import org.eyrie.remctl.RemctlException;
 
 /**
@@ -32,11 +34,21 @@ public class RemctlStatusToken extends RemctlMessageToken {
         this.status = status;
     }
 
+    /**
+     * Create a Status token from command specific bytes
+     * 
+     * @param data
+     *            command specific bytes
+     * @throws RemctlErrorException
+     *             If bytes make an invalid token
+     */
     public RemctlStatusToken(byte[] data)
-            throws RemctlException {
+            throws RemctlErrorException {
         super(2);
+        if (data.length != 1)
+            throw new RemctlErrorException(RemctlErrorCode.ERROR_BAD_TOKEN,
+                    "Expected size 1, byte length " + data.length);
 
-        //FIXME: validate data length
         this.status = data[0];
 
     }

@@ -1,5 +1,6 @@
 package org.eyrie.remctl.client;
 
+import org.eyrie.remctl.RemctlStatusException;
 import org.eyrie.remctl.core.RemctlCommandToken;
 
 /**
@@ -76,8 +77,7 @@ public class SimpleRemctlClient {
         RemctlResponse response = this.executeAllowAnyStatus(arguments);
         if (response.getStatus() == null
                         || response.getStatus() != 0) {
-            throw new RuntimeException("Unexpected status. Expected "
-                            + 0 + ", recieved " + response.getStatus());
+            throw new RemctlStatusException(response);
         }
         return response;
 

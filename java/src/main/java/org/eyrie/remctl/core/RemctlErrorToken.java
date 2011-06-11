@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import org.eyrie.remctl.RemctlErrorCode;
+import org.eyrie.remctl.RemctlErrorException;
 import org.eyrie.remctl.RemctlException;
 
 /**
@@ -60,12 +61,20 @@ public class RemctlErrorToken extends RemctlMessageToken {
         this(code, code.description);
     }
 
+    /**
+     * Create a Error token from command specific bytes
+     * 
+     * @param data
+     *            command specific bytes
+     * @throws RemctlErrorException
+     *             If bytes make an invalid token
+     */
     public RemctlErrorToken(byte[] data)
-            throws RemctlException {
+            throws RemctlErrorException {
 
         super(2);
         if (data.length < MIN_SIZE) {
-            throw new IllegalArgumentException(
+            throw new RemctlErrorException(RemctlErrorCode.ERROR_BAD_TOKEN,
                     "Command data size is to small. Expected " + MIN_SIZE
                             + ", but was " + data.length);
         }
@@ -79,22 +88,20 @@ public class RemctlErrorToken extends RemctlMessageToken {
             //max packet format length is 1,048,576 which easily fits in an int, so this is probably a non issue
             int length = stream.readInt();
             if (length != data.length - 8) {
-                throw new IllegalStateException(
+                throw new RemctlErrorException(RemctlErrorCode.ERROR_BAD_TOKEN,
                         "Expected length mismatch: Command length is " + length
                                 + ", but data length is "
                                 + (data.length - MIN_SIZE));
             }
-            //            if (length == 0) {
-            //                this.message = "";
-            //            } else {
+
+            //FIXME: make encoding configurable
             byte[] messageBytes = new byte[length];
             stream.readFully(messageBytes, 0, length);
             this.message = new String(messageBytes,
                         "UTF-8");
-            //            }
 
         } catch (IOException e) {
-            throw new IllegalStateException(e);
+            throw new RemctlException("Error converting bytes", e);
         }
     }
 
