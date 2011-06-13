@@ -43,7 +43,8 @@ public class RemctlVersionTokenTest {
                     message);
             Assert.fail("exception expected");
         } catch (RemctlErrorException e) {
-            assertEquals(RemctlErrorCode.ERROR_BAD_TOKEN, e.getErrorCode());
+            assertEquals(RemctlErrorCode.ERROR_BAD_TOKEN.value,
+                    e.getErrorCode());
         }
         message = new byte[] { 5, 6 };
 
@@ -52,7 +53,8 @@ public class RemctlVersionTokenTest {
                     message);
             Assert.fail("exception expected");
         } catch (RemctlErrorException e) {
-            assertEquals(RemctlErrorCode.ERROR_BAD_TOKEN, e.getErrorCode());
+            assertEquals(RemctlErrorCode.ERROR_BAD_TOKEN.value,
+                    e.getErrorCode());
         }
 
     }
