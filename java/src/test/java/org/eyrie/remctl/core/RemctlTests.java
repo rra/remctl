@@ -7,21 +7,14 @@
 package org.eyrie.remctl.core;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-
-import java.security.PrivilegedActionException;
-
-import javax.security.auth.Subject;
-import javax.security.auth.login.LoginContext;
-import javax.security.auth.login.LoginException;
 
 import org.eyrie.remctl.RemctlErrorCode;
 import org.eyrie.remctl.RemctlErrorException;
 import org.junit.Test;
 
 /**
- * JUnit test suite for the org.eyrie.remctl package.
+ * Catch-all JUnit test suite for the org.eyrie.remctl.core package.
  * 
  * @author Russ Allbery &lt;rra@stanford.edu&gt;
  */
@@ -49,19 +42,6 @@ public class RemctlTests {
         assertEquals("ERROR_TOOMUCH_DATA",
                 "Argument size exceeds server limit (error 8)",
                 e.getMessage());
-    }
-
-    @Test
-    public void testLogin() throws LoginException, PrivilegedActionException {
-        System.setProperty("java.security.auth.login.config",
-                "/Users/pradtke/Desktop/kerberos/remctl/java/gss_jaas.conf");
-        LoginContext context = new LoginContext("RemctlClient");
-        context.login();
-        Subject subject = context.getSubject();
-        assertNotNull(subject);
-
-        System.out.println(subject.getPrincipals());
-
     }
 
 }

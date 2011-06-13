@@ -1,4 +1,7 @@
 /*
+ * 
+ * FIXME: remctl token is still part of public API incase some one wants
+ * to use the lower level RemctlConnection
  * remctl token classes.
  * 
  * This file contains the definitions of the classes that represent wire
@@ -42,9 +45,12 @@ public interface RemctlToken {
      * Encode the token, encrypting it if necessary, and write it to the
      * provided output stream.
      * 
+     * FIXME: Currently we just use the returned byte array (since that is was
+     * the GSS context uses). We can remove the output stream from the arguments
+     * 
      * @param stream
      *            Stream to which to write the token
-     * @return
+     * @return The encoded token as a byte array
      * @throws IOException
      *             An error occurred writing the token to the stream
      * @throws GSSException

@@ -29,8 +29,6 @@ public class RemctlErrorToken extends RemctlMessageToken {
     /**
      * Construct an error token with the given error code and message.
      * 
-     * @param context
-     *            GSS-API context used for encryption
      * @param code
      *            The remctl error code
      * @param message
@@ -49,8 +47,6 @@ public class RemctlErrorToken extends RemctlMessageToken {
      * Construct an error token with the given error code. The error message
      * will be the stock error message for that code.
      * 
-     * @param context
-     *            GSS-API context used for encryption
      * @param code
      *            The remctl error code
      * @throws RemctlException

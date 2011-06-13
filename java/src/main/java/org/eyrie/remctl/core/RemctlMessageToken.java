@@ -98,8 +98,12 @@ public abstract class RemctlMessageToken implements RemctlToken {
     abstract void writeData(DataOutputStream stream) throws IOException;
 
     /**
+     * FIXME Do we use this? We check version in a few places. Maybe once the
+     * server is implemented
+     * 
      * @return the version
      */
+    @SuppressWarnings("unused")
     private byte getVersion() {
         return this.version;
     }

@@ -6,6 +6,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
+import org.eyrie.remctl.RemctlErrorCode;
+import org.eyrie.remctl.RemctlErrorException;
 import org.eyrie.remctl.RemctlException;
 
 /**
@@ -69,16 +71,37 @@ public class RemctlOutputToken extends RemctlMessageToken {
         stream.write(this.output);
     }
 
+    /**
+     * Create a Output token from command specific bytes
+     * 
+     * @param data
+     *            command specific bytes
+     * @throws RemctlErrorException
+     *             If bytes make an invalid token
+     */
     public RemctlOutputToken(byte[] data)
-            throws RemctlException {
+            throws RemctlErrorException {
         super(2);
-        DataInputStream stream = new DataInputStream(new ByteArrayInputStream(
-                data));
+        if (data.length < 5)
+            throw new RemctlErrorException(RemctlErrorCode.ERROR_BAD_TOKEN,
+                    "Minimum size 5, byte length " + data.length);
+        DataInputStream inputStream = new DataInputStream(
+                new ByteArrayInputStream(
+                        data));
         try {
-            this.stream = stream.readByte();
-            int length = stream.readInt();
+            this.stream = inputStream.readByte();
+            if (this.stream != 1 && this.stream != 2) {
+                throw new RemctlException("invalid stream" + inputStream);
+            }
+            int length = inputStream.readInt();
+            if (data.length - 5 != length) {
+                throw new RemctlErrorException(RemctlErrorCode.ERROR_BAD_TOKEN,
+                        "Expected length mismatch: Command length is " + length
+                                + ", but data length is "
+                                + (data.length - 5));
+            }
             this.output = new byte[length];
-            stream.readFully(this.output, 0, length);
+            inputStream.readFully(this.output, 0, length);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -98,13 +121,18 @@ public class RemctlOutputToken extends RemctlMessageToken {
         return this.output;
     }
 
+    /**
+     * Get the byte[] of output as a UTF-8 string
+     * 
+     * @return String representation of the output
+     */
     public String getOutputAsString() {
         try {
             return new String(this.output, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new RemctlException(
+                    "Unable to convert bytes to string on stream "
+                            + this.stream, e);
         }
     }
 

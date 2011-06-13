@@ -5,19 +5,23 @@ import junit.framework.Assert;
 
 import org.eyrie.remctl.RemctlErrorCode;
 import org.eyrie.remctl.RemctlErrorException;
-import org.eyrie.remctl.RemctlException;
 import org.junit.Test;
 
+/**
+ * Test conversion to/from streams and back to RemctlVersionTokenTest tokens
+ * 
+ * @author pradtke
+ * 
+ */
 public class RemctlVersionTokenTest {
 
     /**
      * Test that token can be created from bytes. Token has a single byte for
      * body
      * 
-     * @throws RemctlException
      */
     @Test
-    public void testFromBytes() throws RemctlException {
+    public void testFromBytes() {
         byte[] message = { 9 };
 
         RemctlVersionToken versionToken = new RemctlVersionToken(null, message);
@@ -29,16 +33,15 @@ public class RemctlVersionTokenTest {
      * Test handling of malformed message: invalid lengths, not enough miminum
      * bytes
      * 
-     * @throws RemctlException
      */
     @Test
-    public void testBadMessageLength() throws RemctlException {
+    public void testBadMessageLength() {
         byte[] message = {};
 
         try {
             new RemctlVersionToken(null,
                     message);
-            Assert.fail("excpetion expected");
+            Assert.fail("exception expected");
         } catch (RemctlErrorException e) {
             assertEquals(RemctlErrorCode.ERROR_BAD_TOKEN, e.getErrorCode());
         }
@@ -47,7 +50,7 @@ public class RemctlVersionTokenTest {
         try {
             new RemctlVersionToken(null,
                     message);
-            Assert.fail("excpetion expected");
+            Assert.fail("exception expected");
         } catch (RemctlErrorException e) {
             assertEquals(RemctlErrorCode.ERROR_BAD_TOKEN, e.getErrorCode());
         }
