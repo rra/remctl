@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import junit.framework.Assert;
 
 import org.eyrie.remctl.RemctlErrorException;
+import org.eyrie.remctl.RemctlException;
 import org.junit.Test;
 
 /**
@@ -111,15 +112,15 @@ public class RemctlOutputTokenTest {
 
         // -- invalid stream --
         message = new byte[] {
-                 2, /*  bad stream */
+                 8, /*  bad stream */
                 0, 0, 0, 0 /* no length */
         };
 
         try {
             new RemctlOutputToken(message);
             Assert.fail("Exception expected");
-        } catch (RemctlErrorException e) {
-            assertEquals(2, e.getErrorCode());
+        } catch (RemctlException e) {
+            assertEquals("invalid stream 8", e.getMessage());
         }
 
     }

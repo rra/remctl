@@ -14,7 +14,7 @@ import org.junit.Test;
  * @author pradtke
  * 
  */
-public class RemctlErrorTokenTests {
+public class RemctlErrorTokenTest {
 
     /**
      * Test converting valid application bytes into messages

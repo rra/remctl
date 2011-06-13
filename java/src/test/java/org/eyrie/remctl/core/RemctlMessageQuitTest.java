@@ -13,7 +13,7 @@ import org.junit.Test;
  * @author pradtke
  * 
  */
-public class MessageQuitTests {
+public class RemctlMessageQuitTest {
 
     /**
      * Test that token can be created from bytes. Token has no message body so

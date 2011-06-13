@@ -91,7 +91,7 @@ public class RemctlOutputToken extends RemctlMessageToken {
         try {
             this.stream = inputStream.readByte();
             if (this.stream != 1 && this.stream != 2) {
-                throw new RemctlException("invalid stream" + inputStream);
+                throw new RemctlException("invalid stream " + this.stream);
             }
             int length = inputStream.readInt();
             if (data.length - 5 != length) {

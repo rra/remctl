@@ -14,7 +14,7 @@ import org.junit.Test;
  * @author pradtke
  * 
  */
-public class MessageStatusTests {
+public class RemctlMessageStatusTest {
 
     /**
      * Test building the token from command specific bytes
