@@ -69,19 +69,15 @@ public class RemctlMessageConverter {
      * 
      * @param stream
      *            Stream from which to read the token
-     * @param context
-     *            GSS-API context for decryption of token
      * @return Token read from the stream
      * @throws IOException
      *             An error occurred reading from the stream
-     * @throws GSSException
-     *             GSS-API error decoding the token
      * @throws RemctlException
      *             Protocol error in the token read from the stream
      */
-    public static RemctlToken getToken(DataInputStream stream,
-            GSSContext context)
-            throws IOException, GSSException, RemctlException {
+    private RemctlToken getToken(DataInputStream stream
+            )
+                    throws IOException, RemctlException {
         byte flag = stream.readByte();
         if ((flag & RemctlFlag.TOKEN_PROTOCOL.getValue()) == 0) {
             throw new RemctlProtocolException("Protocol v1 not supported");
@@ -96,7 +92,7 @@ public class RemctlMessageConverter {
             }
             byte token[] = new byte[length];
             stream.readFully(token);
-            return parseToken(context, token);
+            return this.parseToken(token);
         } else {
             throw new RemctlErrorException(RemctlErrorCode.ERROR_BAD_TOKEN);
         }
@@ -107,21 +103,22 @@ public class RemctlMessageConverter {
      * decrypt the token, parse it, construct the appropriate subclass of
      * <code>RemctlMessageToken</code>, and return it.
      * 
-     * @param context
-     *            GSS-API context to use to decrypt the token
      * @param encryptedToken
      *            An encrypted token
      * @return The decrypted token object
-     * @throws GSSException
-     *             On errors decrypting the token
      * @throws RemctlException
      *             If the token type is not recognized
      */
-    static RemctlToken parseToken(GSSContext context, byte[] encryptedToken)
-            throws GSSException, RemctlException {
+    private RemctlToken parseToken(byte[] encryptedToken)
+            throws RemctlException {
         MessageProp prop = new MessageProp(0, true);
-        byte[] message = context.unwrap(encryptedToken, 0,
-                encryptedToken.length, prop);
+        byte[] message;
+        try {
+            message = this.context.unwrap(encryptedToken, 0,
+                    encryptedToken.length, prop);
+        } catch (GSSException e1) {
+            throw new RemctlException("Unable to decrypt token", e1);
+        }
         byte version = message[0];
         if (version < 1) {
             throw new RemctlProtocolException("Invalid protocol version "
@@ -134,21 +131,24 @@ public class RemctlMessageConverter {
         }
         byte code = message[1];
         RemctlMessageCode type = RemctlMessageCode.getCode(code);
+        //FIXME: This should probably be a switch/case with explicit constructor
+        //calls allow compile time checking.
         Class<? extends RemctlToken> klass = messageClasses.get(type);
         System.out.println("message class " + klass.getName());
+        //try {
+        // Constructor<?>[] allC = klass.getDeclaredConstructors();
         try {
-            // Constructor<?>[] allC = klass.getDeclaredConstructors();
             Constructor<? extends RemctlToken> constructor = klass
-                    .getDeclaredConstructor(
-                             byte[].class);
+                        .getDeclaredConstructor(
+                                 byte[].class);
             RemctlToken tokenClass = constructor.newInstance(
-                    Arrays.copyOfRange(message, 2, message.length));
+                        Arrays.copyOfRange(message, 2, message.length));
 
             return tokenClass;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            throw new IllegalStateException("unable parse input", e);
+            throw new RemctlException("Unable to build token " + type);
         }
 
     }
@@ -177,8 +177,7 @@ public class RemctlMessageConverter {
             outStream.writeInt(encryptedToken.length);
             outStream.write(encryptedToken);
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new RemctlException("Unable to send token " + remctlToken, e);
         }
 
     }
@@ -187,18 +186,16 @@ public class RemctlMessageConverter {
      * Decode the RemctlToken from the input stream
      * 
      * @param inputStream
-     *            The inputstream
+     *            The input stream
      * @return The token decrypted from the payload of inputstream.
      */
     public RemctlToken decodeMessage(InputStream inputStream) {
         try {
-            return getToken(new DataInputStream(inputStream),
-                    this.context);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            return this.getToken(new DataInputStream(inputStream)
+                        );
+        } catch (IOException e) {
+            throw new RemctlException("Unable to read from input stream", e);
         }
 
     }
-
 }

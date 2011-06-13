@@ -6,6 +6,7 @@ import org.apache.commons.pool.impl.GenericObjectPool;
 import org.eyrie.remctl.RemctlErrorException;
 import org.eyrie.remctl.RemctlStatusException;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -19,6 +20,15 @@ import org.junit.Test;
  * 
  */
 public class SimpleRemctlClientTest {
+
+    @Before
+    /**
+     * Setup things before test
+     */
+    public void setup() {
+        System.setProperty("java.security.auth.login.config",
+                "gss_jaas.conf");
+    }
 
     /**
      * Test getting a response on std out
