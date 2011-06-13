@@ -16,7 +16,7 @@ import org.eyrie.remctl.core.RemctlCommandToken;
  * @author pradtke
  * 
  */
-public class SimpleRemctlClient {
+public class SimpleRemctlClient implements RemctlClient {
 
     /**
      * hostname to connect to
@@ -62,17 +62,10 @@ public class SimpleRemctlClient {
 
     }
 
-    /**
-     * Runs the list of arguments against the remctl server.
-     * 
-     * @param arguments
-     *            The arguments to run. Generally the first argument is the
-     *            command, and the rest are arguments for that command.
-     * @return The response from the server
-     * @throws RuntimeException
-     *             if error token is returned or this is an error contacting
-     *             server.
+    /* (non-Javadoc)
+     * @see org.eyrie.remctl.client.RemctlClient#execute(java.lang.String)
      */
+    @Override
     public RemctlResponse execute(String... arguments) {
         RemctlResponse response = this.executeAllowAnyStatus(arguments);
         if (response.getStatus() == null
@@ -83,26 +76,14 @@ public class SimpleRemctlClient {
 
     }
 
-    /**
-     * Runs the list of arguments against the remctl server.
-     * 
-     * @param arguments
-     *            The arguments to run. Generally the first argument is the
-     *            command, and the rest are arguments for that command.
-     * @return The response from the server
-     * @throws RuntimeException
-     *             if error token is returned or this is an error contacting
-     *             server.
+    /* (non-Javadoc)
+     * @see org.eyrie.remctl.client.RemctlClient#executeAllowAnyStatus(java.lang.String)
      */
+    @Override
     public RemctlResponse executeAllowAnyStatus(String... arguments) {
-        //        RemctlResponse response = this.execute(arguments);
-        //        if (response.getStatus() == null
-        //                || response.getStatus() != expectedStatus) {
-        //            throw new RuntimeException("Unexpected status. Expected "
-        //                    + expectedStatus + ", recieved " + response.getStatus());
-        //        }
 
-        RemctlClient remctlClient = new RemctlClient(this.hostname, this.port,
+        RemctlConnection remctlClient = new RemctlConnection(this.hostname,
+                this.port,
                 this.serverPrincipal);
 
         remctlClient.connect();
