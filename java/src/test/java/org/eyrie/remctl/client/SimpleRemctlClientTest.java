@@ -2,6 +2,7 @@ package org.eyrie.remctl.client;
 
 import static org.junit.Assert.assertEquals;
 
+import org.apache.commons.pool.impl.GenericObjectPool;
 import org.eyrie.remctl.RemctlErrorException;
 import org.eyrie.remctl.RemctlStatusException;
 import org.junit.Assert;
@@ -10,6 +11,9 @@ import org.junit.Test;
 /**
  * FIXME: this test is highly dependent on stanford infrastructure. We should
  * mock up the dependencies
+ * 
+ * FIXME: these tests should be run against SimpleRemctlClient and
+ * PooledRemctlClient
  * 
  * @author pradtke
  * 
@@ -91,13 +95,24 @@ public class SimpleRemctlClientTest {
 
     /**
      * Confirm client can be used multiple times
+     * 
+     * @throws Exception
+     *             exception from pool
      */
     @Test
-    public void testMultipleExecutes() {
-        SimpleRemctlClient remctlClient = new SimpleRemctlClient(
-                "tools3.stanford.edu");
+    public void testMultipleExecutes() throws Exception {
+        RemctlConnectionFactory factory = new RemctlConnectionFactory();
+        factory.setHostname("tools3.stanford.edu");
+
+        GenericObjectPool pool = new GenericObjectPool(factory);
+
+        PooledRemctlClient remctlClient = new PooledRemctlClient(
+                pool);
         this.assertStdError(remctlClient);
         this.assertStdError(remctlClient);
+
+        //clean up
+        pool.close();
     }
 
     /**
@@ -106,7 +121,7 @@ public class SimpleRemctlClientTest {
      * @param remctlClient
      *            The remctl client to run execute with.
      */
-    private void assertStdError(SimpleRemctlClient remctlClient) {
+    private void assertStdError(RemctlClient remctlClient) {
         //note the [31m and [0m make the shell print colors, and don't appear as text when run from the cmdline
         String expectedErr = "[31mTicket.pm: error loading '67': \n[0merror loading '67':  at /usr/share/perl5/Remedy/Ticket.pm line 280\n";
 

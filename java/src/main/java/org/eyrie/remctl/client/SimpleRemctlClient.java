@@ -82,21 +82,24 @@ public class SimpleRemctlClient implements RemctlClient {
     @Override
     public RemctlResponse executeAllowAnyStatus(String... arguments) {
 
-        RemctlConnection remctlClient = new RemctlConnection(this.hostname,
+        //FIXME: we should use our connection factory (which we can get from a 
+        // a setter or a constructor). That would allow us to use a mock connection
+        // for testing the functionality.
+        RemctlConnection remctlConnection = new RemctlConnection(this.hostname,
                 this.port,
                 this.serverPrincipal);
 
-        remctlClient.connect();
+        remctlConnection.connect();
 
         RemctlCommandToken command = new RemctlCommandToken(
                                     false,
                                     arguments);
 
-        remctlClient.writeToken(command);
+        remctlConnection.writeToken(command);
 
         //remctl server should auto-close connection since keep alive is false
         return RemctlResponse
-                .buildFromTokens(remctlClient.readAllTokens());
+                .buildFromTokens(remctlConnection.readAllTokens());
     }
 
 }
