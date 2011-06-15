@@ -60,11 +60,11 @@ SIMPLIFIED INTERFACE
 
   Here is an example using the simplified interface:
 
-      use remctl, sys
+      import remctl, sys
       command = ('test', 'test')
       try:
-          result = remctl(host = 'foo.example.com', command = command)
-      except RemctlProtocolError, error:
+          result = remctl.remctl(host = 'foo.example.com', command = command)
+      except remctl.RemctlProtocolError, error:
           print "Error:", str(error)
           sys.exit(1)
       if result.stdout:
