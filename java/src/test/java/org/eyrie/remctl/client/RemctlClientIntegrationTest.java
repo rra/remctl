@@ -2,7 +2,6 @@ package org.eyrie.remctl.client;
 
 import static org.junit.Assert.assertEquals;
 
-import org.apache.commons.pool.impl.GenericObjectPool;
 import org.eyrie.remctl.RemctlErrorException;
 import org.eyrie.remctl.RemctlStatusException;
 import org.junit.Assert;
@@ -19,7 +18,7 @@ import org.junit.Test;
  * @author pradtke
  * 
  */
-public class SimpleRemctlClientTest {
+public class RemctlClientIntegrationTest {
 
     @Before
     /**
@@ -114,7 +113,7 @@ public class SimpleRemctlClientTest {
         RemctlConnectionFactory factory = new RemctlConnectionFactory();
         factory.setHostname("tools3.stanford.edu");
 
-        GenericObjectPool pool = new GenericObjectPool(factory);
+        RemctlConnectionPool pool = new RemctlConnectionPool(factory);
 
         PooledRemctlClient remctlClient = new PooledRemctlClient(
                 pool);

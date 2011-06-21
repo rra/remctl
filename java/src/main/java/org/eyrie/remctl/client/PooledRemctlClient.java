@@ -1,6 +1,5 @@
 package org.eyrie.remctl.client;
 
-import org.apache.commons.pool.impl.GenericObjectPool;
 import org.eyrie.remctl.RemctlException;
 import org.eyrie.remctl.RemctlStatusException;
 import org.eyrie.remctl.core.RemctlCommandToken;
@@ -28,7 +27,7 @@ public class PooledRemctlClient implements RemctlClient {
     /**
      * Our connection pool
      */
-    GenericObjectPool pool;
+    RemctlConnectionPool pool;
 
     /**
      * Create a client that uses a pool of connections
@@ -36,7 +35,7 @@ public class PooledRemctlClient implements RemctlClient {
      * @param remctlConnectionPool
      *            The source of our connections
      */
-    public PooledRemctlClient(GenericObjectPool remctlConnectionPool) {
+    public PooledRemctlClient(RemctlConnectionPool remctlConnectionPool) {
         this.pool = remctlConnectionPool;
     }
 
@@ -58,7 +57,7 @@ public class PooledRemctlClient implements RemctlClient {
 
         RemctlConnection remctlClient;
         try {
-            remctlClient = (RemctlConnection) this.pool
+            remctlClient = this.pool
                     .borrowObject();
         } catch (RemctlException e) {
             //just rethrow

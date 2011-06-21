@@ -14,7 +14,7 @@ public class RemctlCommandToken extends RemctlMessageToken {
     boolean keepalive;
 
     /** The arguments of the command. */
-    private final String args[];
+    private String args[];
 
     /**
      * Construct a command token with the given keep-alive status and command
@@ -76,4 +76,35 @@ public class RemctlCommandToken extends RemctlMessageToken {
     RemctlMessageCode getType() {
         return RemctlMessageCode.MESSAGE_COMMAND;
     }
+
+    /**
+     * @return the keepalive
+     */
+    public boolean isKeepalive() {
+        return this.keepalive;
+    }
+
+    /**
+     * @param keepalive
+     *            the keepalive to set
+     */
+    public void setKeepalive(boolean keepalive) {
+        this.keepalive = keepalive;
+    }
+
+    /**
+     * @return the args
+     */
+    public String[] getArgs() {
+        return this.args;
+    }
+
+    /**
+     * @param args
+     *            the args to set
+     */
+    public void setArgs(String[] args) {
+        this.args = args;
+    }
+
 }

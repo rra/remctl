@@ -26,7 +26,7 @@ public class RemctlVersionToken extends RemctlMessageToken {
      * @throws RemctlException
      *             If the provided version is not valid
      */
-    RemctlVersionToken(int version)
+    public RemctlVersionToken(int version)
             throws RemctlException {
         super(2);
         if (version < 2)

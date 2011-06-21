@@ -1,6 +1,7 @@
 package org.eyrie.remctl.client;
 
 import org.apache.commons.pool.BasePoolableObjectFactory;
+import org.eyrie.remctl.core.RemctlVersionToken;
 
 /**
  * A connection factory for creating RemctlConnections.
@@ -98,6 +99,21 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
     public void destroyObject(Object obj) throws Exception {
         RemctlConnection connection = (RemctlConnection) obj;
         connection.close();
+    }
+
+    /* (non-Javadoc)
+     * @see org.apache.commons.pool.BasePoolableObjectFactory#validateObject(java.lang.Object)
+     */
+    @Override
+    public boolean validateObject(Object obj) {
+        RemctlConnection connection = (RemctlConnection) obj;
+        //FIXME: Can we really send a version token to the server?
+        RemctlVersionToken versionToken = new RemctlVersionToken(2);
+        connection.writeToken(versionToken);
+        //FIXME: what is the expected response?
+        connection.readAllTokens();
+        return true;
+
     }
 
 }
