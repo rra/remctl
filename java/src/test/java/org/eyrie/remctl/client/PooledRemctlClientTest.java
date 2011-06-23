@@ -90,7 +90,7 @@ public class PooledRemctlClientTest {
     public void testKeepAliveIsSet() {
 
         RemctlClient client = new PooledRemctlClient(this.mockPool);
-        client.execute("test");
+        client.executeAllowAnyStatus("test");
         ArgumentCaptor<RemctlCommandToken> argument = ArgumentCaptor
                 .forClass(RemctlCommandToken.class);
         verify(this.mockConnection).writeToken(argument.capture());
