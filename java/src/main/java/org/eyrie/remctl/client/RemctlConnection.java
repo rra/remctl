@@ -7,17 +7,20 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginContext;
 
+import org.eyrie.remctl.RemctlException;
 import org.eyrie.remctl.core.RemctlErrorToken;
 import org.eyrie.remctl.core.RemctlFlag;
 import org.eyrie.remctl.core.RemctlMessageConverter;
 import org.eyrie.remctl.core.RemctlQuitToken;
 import org.eyrie.remctl.core.RemctlStatusToken;
 import org.eyrie.remctl.core.RemctlToken;
+import org.eyrie.remctl.core.RemctlVersionToken;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.GSSManager;
@@ -69,6 +72,11 @@ public class RemctlConnection {
      * Data stream sent to the server
      */
     DataOutputStream outStream;
+
+    /**
+     * Time connection was established
+     */
+    private Date connectionEstablishedTime;
 
     /**
      * RemctlClient that will connect to the provide host, on the default port
@@ -141,6 +149,9 @@ public class RemctlConnection {
             } else if (outputToken instanceof RemctlStatusToken) {
                 System.out.println("Status done");
                 break;
+            } else if (outputToken instanceof RemctlVersionToken) {
+                //version token is the end of the tokens
+                break;
             }
         }
 
@@ -175,10 +186,7 @@ public class RemctlConnection {
             return false;
 
         try {
-            //FIXME: move this out of here. set it only if no jaas is already defined.
-            //            System.setProperty("java.security.auth.login.config",
-            //                    "/Users/pradtke/Desktop/kerberos/remctl/java/gss_jaas.conf");
-
+            this.connectionEstablishedTime = new Date();
             /** Login so can access kerb ticket **/
             LoginContext context = new LoginContext("RemctlClient");
             context.login();
@@ -357,6 +365,33 @@ public class RemctlConnection {
          */
         if (this.context.getMutualAuthState())
             System.out.println("Mutual authentication took place!");
+    }
+
+    /**
+     * Return the time the connection was established.
+     * 
+     * @return the a copy connectionEstablishedTime
+     */
+    public Date getConnectionEstablishedTime() {
+        return new Date(this.connectionEstablishedTime.getTime());
+    }
+
+    /**
+     * Checks the input stream for incoming data.
+     * 
+     * <p>
+     * Useful for determining if there is unread data buffered on the input
+     * stream, prior to sending another command
+     * </p>
+     * 
+     * @return true if there is data that can be read.
+     */
+    public boolean hasPendingData() {
+        try {
+            return this.inStream.available() > 0;
+        } catch (IOException e) {
+            throw new RemctlException("Unable to check for pending data", e);
+        }
     }
 
 }

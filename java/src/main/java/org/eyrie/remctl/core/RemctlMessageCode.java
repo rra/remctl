@@ -28,7 +28,10 @@ public enum RemctlMessageCode {
     MESSAGE_ERROR(5),
 
     /** Highest supported protocol version (server to client). */
-    MESSAGE_VERSION(6);
+    MESSAGE_VERSION(6),
+
+    /** A NO-OP message for generating traffic on idle connections. (Message 7) */
+    MESSAGE_NOOP(7);
 
     /** The wire representation of this message code. */
     byte value;

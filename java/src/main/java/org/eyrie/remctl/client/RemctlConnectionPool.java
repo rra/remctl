@@ -12,7 +12,6 @@ import org.apache.commons.pool.impl.GenericObjectPool;
  * less that the server timeout
  * </p>
  * 
- * FIXME: Do we even need this? Using generic object pool may be sufficient.
  */
 public class RemctlConnectionPool extends GenericObjectPool {
 

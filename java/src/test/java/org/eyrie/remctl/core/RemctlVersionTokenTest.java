@@ -24,7 +24,7 @@ public class RemctlVersionTokenTest {
     public void testFromBytes() {
         byte[] message = { 9 };
 
-        RemctlVersionToken versionToken = new RemctlVersionToken(null, message);
+        RemctlVersionToken versionToken = new RemctlVersionToken(message);
         assertEquals("version should match", 9,
                 versionToken.getHighestSupportedVersion());
     }
@@ -39,7 +39,7 @@ public class RemctlVersionTokenTest {
         byte[] message = {};
 
         try {
-            new RemctlVersionToken(null,
+            new RemctlVersionToken(
                     message);
             Assert.fail("exception expected");
         } catch (RemctlErrorException e) {
@@ -49,7 +49,7 @@ public class RemctlVersionTokenTest {
         message = new byte[] { 5, 6 };
 
         try {
-            new RemctlVersionToken(null,
+            new RemctlVersionToken(
                     message);
             Assert.fail("exception expected");
         } catch (RemctlErrorException e) {

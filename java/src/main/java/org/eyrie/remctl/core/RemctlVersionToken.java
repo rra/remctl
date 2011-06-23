@@ -7,7 +7,6 @@ import org.eyrie.remctl.RemctlErrorCode;
 import org.eyrie.remctl.RemctlErrorException;
 import org.eyrie.remctl.RemctlException;
 import org.eyrie.remctl.RemctlProtocolException;
-import org.ietf.jgss.GSSContext;
 
 /**
  * Represents a remctl version token. This is sent from the server to the client
@@ -37,14 +36,12 @@ public class RemctlVersionToken extends RemctlMessageToken {
     /**
      * Construct a version token from token data.
      * 
-     * @param context
-     *            GSS-API context used for encryption.
      * @param data
      *            Token data to parse for version information
      * @throws RemctlException
      *             If the data is not a valid version number
      */
-    RemctlVersionToken(GSSContext context, byte[] data) throws RemctlException {
+    RemctlVersionToken(byte[] data) throws RemctlException {
         super(2);
         if (data.length != 1)
             throw new RemctlErrorException(RemctlErrorCode.ERROR_BAD_TOKEN);
