@@ -1,11 +1,6 @@
 package org.eyrie.remctl.client;
 
-import java.util.List;
-
 import org.apache.commons.pool.BasePoolableObjectFactory;
-import org.eyrie.remctl.core.RemctlNoopToken;
-import org.eyrie.remctl.core.RemctlToken;
-import org.eyrie.remctl.core.RemctlVersionToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +43,11 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
      * The server principal
      */
     private String serverPrincipal;
+
+    /**
+     * Set a default validation strategy
+     */
+    private RemctlConnectionValidationStrategy validationStrategy = new BaseValidationStrategy();
 
     @Override
     public RemctlConnection makeObject() throws Exception {
@@ -113,62 +113,31 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
     }
 
     /**
-     * Validate the RemctlConnection.
+     * Validate the RemctlConnection using the <code>validationStrategy</code>
      * 
-     * <p>
-     * A connection is considered valid if:
-     * <ul>
-     * <li>A NOOP token results in a response of NOOP or VERSION</li>
-     * <li>The connection has been open less than 55 minutes</li>
-     * </ul>
      */
     @Override
     public boolean validateObject(Object obj) {
         RemctlConnection connection = (RemctlConnection) obj;
 
-        /**
-         * Remctl server closes connection after an hour.
-         */
-        long now = System.currentTimeMillis();
-        long elapsedTime = now
-                - connection.getConnectionEstablishedTime().getTime();
-        //FIXME: make max life span configurable
-        if (elapsedTime > 55 * 60 * 10000) {
-            logger.debug("Connection open 55 minutes. Marking invalid");
-            return false;
-        }
+        return this.validationStrategy.isValid(connection);
 
-        /**
-         * Read any unread, stale tokens from a previous checkout
-         */
-        while (connection.hasPendingData()) {
-            connection.readAllTokens();
-        }
+    }
 
-        RemctlNoopToken noopToken = new RemctlNoopToken();
-        connection.writeToken(noopToken);
-        List<RemctlToken> tokens = connection.readAllTokens();
-        if (tokens.size() != 1) {
-            logger.warn(
-                    "Unexpected number of tokens returned in valdate ({}). Marking invalid",
-                    tokens.size());
-        }
+    /**
+     * @param validationStrategy
+     *            the validationStrategy to set
+     */
+    public void setValidationStrategy(
+            RemctlConnectionValidationStrategy validationStrategy) {
+        this.validationStrategy = validationStrategy;
+    }
 
-        RemctlToken token = tokens.get(0);
-        if (token instanceof RemctlNoopToken) {
-            return true;
-        } else if (token instanceof RemctlVersionToken) {
-            //Server doesn't support protocol version 3. That is OK.
-            return true;
-        } else {
-            logger.warn("Unexpected token returned from NOOP message: {}",
-                    token);
-        }
-        //FIXME: make sure there is no more date in the output stream
-        //FIXME: the remctl server closes a connection after an hour (even if active)
-        //so we need a way to 'invalidate' connections after an hour.
-        return true;
-
+    /**
+     * @return the validationStrategy
+     */
+    public RemctlConnectionValidationStrategy getValidationStrategy() {
+        return this.validationStrategy;
     }
 
 }
