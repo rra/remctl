@@ -34,7 +34,7 @@ public class RemctlOutputToken extends RemctlMessageToken {
      * @throws RemctlException
      *             If the stream is not 1 or 2
      */
-    RemctlOutputToken(int stream, byte output[])
+    public RemctlOutputToken(int stream, byte output[])
             throws RemctlException {
         super(2);
         if (stream != 1 && stream != 2) {

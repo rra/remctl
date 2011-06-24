@@ -25,7 +25,7 @@ public interface RemctlConnectionValidationStrategy {
      * Determines if the connection is still valid for use.
      * <p>
      * When returning true, implementations must leave the connection in a state
-     * where it can be re-used
+     * where it can be re-used. All implementations must be thread safe.
      * </p>
      * 
      * @param connection

@@ -47,7 +47,7 @@ public class RemctlResponse {
      * @param returnStatus
      *            The return status (maybe null)
      */
-    private RemctlResponse(String stdOut, String stdErr, Integer returnStatus) {
+    RemctlResponse(String stdOut, String stdErr, Integer returnStatus) {
         super();
         this.stdOut = stdOut;
         this.stdErr = stdErr;
