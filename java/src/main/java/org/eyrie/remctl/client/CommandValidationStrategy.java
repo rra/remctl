@@ -2,7 +2,6 @@ package org.eyrie.remctl.client;
 
 import java.util.List;
 
-import org.eyrie.remctl.RemctlException;
 import org.eyrie.remctl.core.RemctlCommandToken;
 import org.eyrie.remctl.core.RemctlToken;
 
@@ -21,23 +20,14 @@ public class CommandValidationStrategy extends BaseValidationStrategy {
     String[] commands = { "noop" };
 
     @Override
-    public boolean isValid(RemctlConnection connection) {
+    public boolean checkConnection(RemctlConnection connection) {
 
-        //check base validation
-        if (!super.isValid(connection))
-            return false;
-
-        try {
-            RemctlCommandToken token = new RemctlCommandToken(true,
+        RemctlCommandToken token = new RemctlCommandToken(true,
                     this.commands);
-            connection.writeToken(token);
-            List<RemctlToken> tokens = connection.readAllTokens();
-            RemctlResponse response = RemctlResponse.buildFromTokens(tokens);
-            return this.checkResponse(response);
-        } catch (RemctlException e) {
-            logger.info("Error validting connection {}", e);
-            return false;
-        }
+        connection.writeToken(token);
+        List<RemctlToken> tokens = connection.readAllTokens();
+        RemctlResponse response = RemctlResponse.buildFromTokens(tokens);
+        return this.checkResponse(response);
     }
 
     /**

@@ -16,12 +16,10 @@ public class NoopValidationStrategy extends
         BaseValidationStrategy {
 
     /**
-     * Performs base validations strategy and then sends an NOOP token.
+     * Sends a NOOP token and check the response.
      */
     @Override
-    public boolean isValid(RemctlConnection connection) {
-        if (!super.isValid(connection))
-            return false;
+    public boolean checkConnection(RemctlConnection connection) {
 
         RemctlNoopToken noopToken = new RemctlNoopToken();
         connection.writeToken(noopToken);

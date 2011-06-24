@@ -45,6 +45,30 @@ public class BaseValidationStrategy implements
             return false;
         }
 
+        try {
+            return this.checkConnection(connection);
+        } catch (Exception e) {
+            //TODO: re-evaluate what level this should be logged.
+            logger.info("Error validting connection {}. Marking it invalid", e);
+            return false;
+        }
+    }
+
+    /**
+     * An extension point for subclasses that want to add additional validation
+     * on top of what is performed by isValid.
+     * 
+     * <p>
+     * Base implementation returns true.
+     * </p>
+     * 
+     * @param connection
+     *            the connection to check
+     * @return true if additional checks are successful
+     * @throws Exception
+     *             any exceptions are treated as invalid connection
+     */
+    boolean checkConnection(RemctlConnection connection) throws Exception {
         return true;
     }
 
