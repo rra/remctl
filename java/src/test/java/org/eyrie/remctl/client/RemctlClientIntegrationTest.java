@@ -164,4 +164,26 @@ public class RemctlClientIntegrationTest {
         }
 
     }
+
+    /**
+     * Test enabling command validator
+     */
+    @Test
+    public void testWithCommandValidation() {
+        //---setup connection and pool
+        RemctlConnectionFactory factory = new RemctlConnectionFactory();
+        factory.setHostname("acct-scripts-dev.stanford.edu");
+        RemctlConnectionPool pool = new RemctlConnectionPool(factory);
+
+        PooledRemctlClient remctlClient = new PooledRemctlClient(
+                pool);
+        CommandValidationStrategy validationStrategy = new CommandValidationStrategy(
+                "account-show", "show", "bob");
+        factory.setValidationStrategy(validationStrategy);
+
+        RemctlResponse reponse = remctlClient.execute("account-show", "list",
+                "pradtke");
+        assertEquals(0, reponse.getStatus().intValue());
+
+    }
 }

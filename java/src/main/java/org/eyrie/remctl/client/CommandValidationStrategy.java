@@ -19,6 +19,23 @@ public class CommandValidationStrategy extends BaseValidationStrategy {
      */
     String[] commands = { "noop" };
 
+    /**
+     * Default constructor
+     */
+    public CommandValidationStrategy() {
+
+    }
+
+    /**
+     * Create a CommandValidationStrategy that runs the specified commands
+     * 
+     * @param commands
+     *            The commands to run
+     */
+    public CommandValidationStrategy(String... commands) {
+        this.setCommands(commands);
+    }
+
     @Override
     public boolean checkConnection(RemctlConnection connection) {
 
