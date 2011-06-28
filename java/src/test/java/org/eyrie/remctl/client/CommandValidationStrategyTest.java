@@ -3,13 +3,7 @@ package org.eyrie.remctl.client;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 
 import org.eyrie.remctl.RemctlErrorCode;
 import org.eyrie.remctl.core.RemctlCommandToken;
@@ -51,33 +45,17 @@ public class CommandValidationStrategyTest {
      */
     public void buildMocks(int minutesSinceCreate, boolean extraData,
             RemctlToken... tokens) {
-        this.mockConnection = mock(RemctlConnection.class);
-        Date created = new Date(System.currentTimeMillis()
-                - (minutesSinceCreate * 60 * 100));
-        when(this.mockConnection.getConnectionEstablishedTime()).thenReturn(
-                created);
-        when(this.mockConnection.hasPendingData()).thenReturn(extraData);
-
-        List<RemctlToken> tokenList = Arrays.asList(tokens);
-        when(this.mockConnection.readAllTokens()).thenReturn(tokenList);
-
+        this.mockConnection = BaseValidationStrategyTest.buildMockConnection(
+                minutesSinceCreate, extraData, tokens);
     }
 
     /**
      * Confirm inherited validation works.
-     * 
-     * FIXME: refactor this so that it can be pasted in a strategy and can
-     * validate others.
      */
     @Test
     public void inheritedIsValidTest() {
-        //test stale token data
-        this.buildMocks(0, true);
-        assertFalse(this.validationStrategy.isValid(this.mockConnection));
-
-        //test max lifetime
-        this.buildMocks(60, false);
-        assertFalse(this.validationStrategy.isValid(this.mockConnection));
+        BaseValidationStrategyTest
+                .testBaseFailedValidations(this.validationStrategy);
 
     }
 

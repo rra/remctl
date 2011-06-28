@@ -1,5 +1,6 @@
 package org.eyrie.remctl.client;
 
+import org.eyrie.remctl.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +17,7 @@ public class BaseValidationStrategy implements
     /**
      * default 55 minutes
      */
-    long maxLife = 55 * 60 * 10000;
+    long maxLife = 55 * 60 * 1000;
 
     /**
      * Allow logging
@@ -33,8 +34,8 @@ public class BaseValidationStrategy implements
         long elapsedTime = now
                 - connection.getConnectionEstablishedTime().getTime();
         if (elapsedTime > this.maxLife) {
-            logger.debug("Connection open {} minutes. Marking invalid",
-                    this.maxLife);
+            logger.debug("Connection open {}. Max life {}. Marking invalid",
+                    elapsedTime, this.maxLife);
             return false;
         }
 
@@ -42,14 +43,17 @@ public class BaseValidationStrategy implements
          * If connection has any unread, stale tokens then mark it invalid.
          */
         if (connection.hasPendingData()) {
+            logger.debug("Connection has stale pending data. Marking invalid");
             return false;
         }
 
         try {
             return this.checkConnection(connection);
         } catch (Exception e) {
-            //TODO: re-evaluate what level this should be logged.
-            logger.info("Error validting connection {}. Marking it invalid", e);
+            if (logger.isInfoEnabled()) {
+                logger.info("Error validating connection. Marking it invalid.");
+                logger.info("Stack trace {}", Utils.throwableToString(e));
+            }
             return false;
         }
     }
