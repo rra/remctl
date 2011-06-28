@@ -134,9 +134,6 @@ public class RemctlMessageConverter {
         //FIXME: This should probably be a switch/case with explicit constructor
         //calls allow compile time checking.
         Class<? extends RemctlToken> klass = messageClasses.get(type);
-        System.out.println("message class " + klass.getName());
-        //try {
-        // Constructor<?>[] allC = klass.getDeclaredConstructors();
         try {
             Constructor<? extends RemctlToken> constructor = klass
                         .getDeclaredConstructor(

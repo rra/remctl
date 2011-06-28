@@ -22,7 +22,7 @@ public class BaseValidationStrategy implements
      * Allow logging
      */
     static final Logger logger = LoggerFactory
-            .getLogger(RemctlConnectionFactory.class);
+            .getLogger(BaseValidationStrategy.class);
 
     @Override
     public boolean isValid(RemctlConnection connection) {

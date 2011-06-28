@@ -119,7 +119,6 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
     @Override
     public boolean validateObject(Object obj) {
         RemctlConnection connection = (RemctlConnection) obj;
-
         return this.validationStrategy.isValid(connection);
 
     }
