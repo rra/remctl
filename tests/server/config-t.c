@@ -2,7 +2,7 @@
  * Test suite for the server configuration parsing.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2009, 2010
+ * Copyright 2007, 2009, 2010, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -24,10 +24,18 @@ static void
 test_error(const char *file, const char *expected)
 {
     struct config *config;
+    char *p;
 
     errors_capture();
     config = server_config_load(file);
     ok(config == NULL, "%s failed", file);
+
+    /* For not found errors, we have to trim off the system error message. */
+    p = strstr(errors, "not found: ");
+    if (p != NULL) {
+        p += strlen("not found");
+        *p = '\0';
+    }
     is_string(expected, errors, "...with the right error");
 }
 
@@ -37,7 +45,7 @@ main(void)
 {
     struct config *config;
 
-    plan(43);
+    plan(45);
     if (chdir(getenv("SOURCE")) < 0)
         sysbail("can't chdir to SOURCE");
 
@@ -93,6 +101,9 @@ main(void)
                " biteme\n");
     test_error("data/configs/bad-logmask-4",
                "data/configs/bad-logmask-4:1: invalid logmask parameter -1\n");
+    test_error("data/configs/bad-include-1",
+               "data/configs/bad-include-1:1: included file /no/th/ing not"
+               " found\n");
 
     return 0;
 }

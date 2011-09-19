@@ -53,12 +53,12 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/acls2/valid-4 tests/data/cmd-argv tests/data/cmd-env	    \
 	tests/data/cmd-hello tests/data/cmd-status tests/data/conf-simple   \
 	tests/data/conf-test tests/data/configs/bad-logmask-1		    \
-	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
-	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
-	tests/data/gput tests/docs/pod-spelling-t tests/docs/pod-t	    \
-	tests/tap/kerberos.sh tests/tap/libtap.sh tests/tap/remctl.sh	    \
-	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
-	$(PYTHON_FILES)
+	tests/data/configs/bad-include-1 tests/data/configs/bad-logmask-2   \
+	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4   \
+	tests/data/configs/bad-option-1 tests/data/gput			    \
+	tests/docs/pod-spelling-t tests/docs/pod-t tests/tap/kerberos.sh    \
+	tests/tap/libtap.sh tests/tap/remctl.sh tests/server/misc-t	    \
+	tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES)
 
 # Set this globally, since we have too many header files that include the
 # GSS-API headers even if the code itself doesn't call GSS-API functions.
