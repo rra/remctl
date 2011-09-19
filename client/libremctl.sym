@@ -7,3 +7,4 @@ remctl_new
 remctl_open
 remctl_output
 remctl_result_free
+remctl_set_source_ip

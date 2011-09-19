@@ -212,6 +212,7 @@ remctl_new(void)
     r = calloc(1, sizeof(struct remctl));
     if (r == NULL)
         return NULL;
+    r->source = NULL;
     r->fd = INVALID_SOCKET;
     r->host = NULL;
     r->principal = NULL;
@@ -219,6 +220,25 @@ remctl_new(void)
     r->error = NULL;
     r->output = NULL;
     return r;
+}
+
+
+/*
+ * Set the source address for client connections.  Takes a string, which may
+ * be NULL to use whatever the default source address is.  The string will be
+ * parsed as an IPv4 or IPv6 address, and only connections over the
+ * corresponding protocol will be attempted.  Returns true on success and
+ * false on failure to allocate memory.
+ */
+int
+remctl_set_source_ip(struct remctl *r, const char *source)
+{
+    r->source = strdup(source);
+    if (r->source == NULL) {
+        internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
+        return 0;
+    }
+    return 1;
 }
 
 
@@ -257,6 +277,8 @@ remctl_close(struct remctl *r)
     if (r != NULL) {
         if (r->protocol > 1 && r->fd != -1)
             internal_v2_quit(r);
+        if (r->source != NULL)
+            free(r->source);
         if (r->fd != -1)
             socket_close(r->fd);
         if (r->error != NULL)

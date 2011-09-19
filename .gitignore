@@ -56,6 +56,7 @@
 /tests/client/pod-t
 /tests/client/large-t
 /tests/client/open-t
+/tests/client/source-ip-t
 /tests/data/cmd-background
 /tests/data/cmd-closed
 /tests/data/cmd-stdin

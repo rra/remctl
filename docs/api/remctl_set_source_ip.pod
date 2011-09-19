@@ -1,0 +1,47 @@
+=for stopwords
+remctl API Allbery const IP IPv4 IPv6 IPv4-only IPv6-only
+
+=head1 NAME
+
+remctl_set_source_ip - Set source IP for remctl client connections
+
+=head1 SYNOPSIS
+
+#include <remctl.h>
+
+int B<remctl_set_source_ip>(struct remctl *I<r>, const char *I<source>);
+
+=head1 DESCRIPTION
+
+remctl_set_source_ip() sets the source IP address for subsequent calls to
+remctl_open() on the same struct remctl object.  Call this function before
+remctl_open() if remctl client connections need to come from a specific
+source IP.
+
+The I<source> parameter may be an IPv4 or IPv6 address (assuming the host
+supports IPv6).
+
+Be aware that if you set an IPv4 source address and then attempt to
+connect to an IPv6 address or IPv6-only host, or if you set an IPv6
+address and then attempt to connect to an IPv4 address or IPv4-only host,
+you will get a connection failure error from remctl_open().
+
+=head1 RETURN VALUE
+
+remctl_set_source_ip() returns true on success and false on failure.  On
+failure, the caller should call remctl_error() to retrieve the error
+message.
+
+=head1 SEE ALSO
+
+remctl_new(3), remctl_open(3), remctl_error(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=head1 AUTHOR
+
+Russ Allbery <rra@stanford.edu>
+
+=cut

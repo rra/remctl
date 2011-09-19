@@ -28,6 +28,7 @@ struct remctl {
     unsigned short port;        /*   remctl v1 requires opening a new    */
     const char *principal;      /*   connection for each command.        */
     int protocol;               /* Protocol version. */
+    char *source;               /* Source address for connection. */
     socket_type fd;
     gss_ctx_id_t context;
     char *error;

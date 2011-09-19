@@ -119,6 +119,17 @@ int remctl_open(struct remctl *, const char *host, unsigned short port,
 void remctl_close(struct remctl *);
 
 /*
+ * Set the source address for connections.  If remctl_set_source_ip is called
+ * before remctl_open, the IP address passed into remctl_set_source_ip will be
+ * used as the source address.  This may be NULL to use the default system
+ * source address; otherwise, it should be either an IPv4 or an IPv6 address.
+ * Returns true on success, false on failure.  On failure, use remctl_error to
+ * get the error.
+ */
+int remctl_set_source_ip(struct remctl *, const char *);
+
+
+/*
  * Send a complete remote command.  Returns true on success, false on failure.
  * On failure, use remctl_error to get the error.  There are two forms of this
  * function; remctl_command takes a NULL-terminated array of nul-terminated

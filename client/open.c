@@ -56,7 +56,7 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
                            gai_strerror(status));
         return INVALID_SOCKET;
     }
-    fd = network_connect(ai, NULL);
+    fd = network_connect(ai, r->source);
     freeaddrinfo(ai);
     if (fd == INVALID_SOCKET) {
         internal_set_error(r, "cannot connect to %s (port %hu): %s", host,
