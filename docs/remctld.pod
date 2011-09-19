@@ -2,7 +2,7 @@
 remctld remctl -dFhmSv keytab GSS-API tcpserver inetd subcommand AFS
 backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
 IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
-subcommands REMUSER pcre PCRE
+subcommands REMUSER pcre PCRE triple-DES MERCHANTABILITY
 
 =head1 NAME
 
