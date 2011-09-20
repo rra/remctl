@@ -11,10 +11,13 @@
 
 #include <config.h>
 
-#ifdef HAVE_GSSAPI_H
-# include <gssapi.h>
-#else
+#ifdef HAVE_GSSAPI_GSSAPI_H
 # include <gssapi/gssapi.h>
+#else
+# include <gssapi.h>
+#endif
+#ifdef HAVE_GSSAPI_GSSAPI_KRB5_H
+# include <gssapi/gssapi_krb5.h>
 #endif
 
 /* Handle compatibility to older versions of MIT Kerberos. */
@@ -31,9 +34,7 @@
  * hard-coded GSS-API OID struct.
  */
 #if !HAVE_DECL_GSS_KRB5_MECHANISM
-# if HAVE_DECL_GSS_MECH_KRB5
-#  include <gssapi/gssapi_krb5.h>
-# else
+# if !HAVE_DECL_GSS_MECH_KRB5
 extern const gss_OID_desc * const gss_mech_krb5;
 # endif
 # define GSS_KRB5_MECHANISM gss_mech_krb5

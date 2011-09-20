@@ -7,6 +7,14 @@ remctl 2.19 (unreleased)
     source IP address that will be used for subequent client connections
     to a remctl server.
 
+    Add new remctl_set_ccache function to the remctl library API.  Call
+    this function after remctl_new and before remctl_open to set the
+    Kerberos credential cache that will be used for client authentication,
+    overriding KRB5CCNAME.  Be aware that this will normally change the
+    default credential cache for all other GSS-API operations in this
+    context or thread, not just for that remctl object, due to GSS-API
+    limitations.
+
     remctld can be configured to pass the subcommand on standard input,
     but the documentation said this was not allowed.  Fix the
     documentation to match the implementation.

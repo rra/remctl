@@ -11,7 +11,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -27,6 +27,7 @@
 
 #include <client/internal.h>
 #include <client/remctl.h>
+#include <util/macros.h>
 
 
 /*
@@ -221,6 +222,45 @@ remctl_new(void)
     r->output = NULL;
     return r;
 }
+
+
+/*
+ * Set the Kerberos credential cache for client connections.  Takes a string
+ * representing the Kerberos credential cache name (the format may vary based
+ * on the underlying Kerberos implementation).  When the GSS-API context is
+ * created for a client connection in a subsequent remctl_open, this will be
+ * set as the Kerberos credential cache.  Returns true on success and false on
+ * failure.
+ *
+ * Callers should be prepared for failure for GSS-API implementations that do
+ * not support setting the Kerberos ticket cache.  A reasonable fallback is to
+ * set the KRB5CCNAME environment variable.
+ *
+ * Be aware that this function sets the Kerberos credential cache globally for
+ * all uses of GSS-API by that process.  The GSS-API does not provide a way of
+ * setting it only for one particular GSS-API context.
+ */
+#ifdef HAVE_GSS_KRB5_CCACHE_NAME
+int
+remctl_set_ccache(struct remctl *r, const char *ccache)
+{
+    OM_uint32 major, minor;
+
+    major = gss_krb5_ccache_name(&minor, ccache, NULL);
+    if (major != GSS_S_COMPLETE) {
+        internal_gssapi_error(r, "cannot set credential cache", major, minor);
+        return 0;
+    }
+    return 1;
+}
+#else /* !HAVE_GSS_KRB5_CCACHE_NAME */
+int
+remctl_set_ccache(struct remctl *r, const char *ccache UNUSED)
+{
+    internal_set_error(r, "setting Kerberos ticket cache not supported");
+    return 0;
+}
+#endif /* !HAVE_GSS_KRB5_CCACHE_NAME */
 
 
 /*

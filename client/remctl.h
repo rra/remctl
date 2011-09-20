@@ -3,7 +3,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on prior work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -119,6 +119,22 @@ int remctl_open(struct remctl *, const char *host, unsigned short port,
 void remctl_close(struct remctl *);
 
 /*
+ * Set the Kerberos credential cache for client connections.  This must be
+ * called before remctl_open.  Takes a string representing the Kerberos
+ * credential cache name (the format may vary based on the underlying Kerberos
+ * implementation).  Returns true on success and false on failure.
+ *
+ * Callers should be prepared for failure for GSS-API implementations that do
+ * not support setting the Kerberos ticket cache.  A reasonable fallback is to
+ * set the KRB5CCNAME environment variable.
+ *
+ * Be aware that this function sets the Kerberos credential cache globally for
+ * all uses of GSS-API by that process.  The GSS-API does not provide a way of
+ * setting it only for one particular GSS-API context.
+ */
+int remctl_set_ccache(struct remctl *, const char *);
+
+/*
  * Set the source address for connections.  If remctl_set_source_ip is called
  * before remctl_open, the IP address passed into remctl_set_source_ip will be
  * used as the source address.  This may be NULL to use the default system
@@ -127,7 +143,6 @@ void remctl_close(struct remctl *);
  * get the error.
  */
 int remctl_set_source_ip(struct remctl *, const char *);
-
 
 /*
  * Send a complete remote command.  Returns true on success, false on failure.

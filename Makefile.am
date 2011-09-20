@@ -32,13 +32,14 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
 	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
 	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
-	docs/api/remctl_set_source_ip.pod docs/design.html docs/extending   \
-	docs/protocol-v3 docs/protocol.txt docs/protocol.html		    \
-	docs/protocol.xml docs/remctl.pod docs/remctld.8.in		    \
-	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
-	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
-	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf    \
-	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java   \
+	docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.pod    \
+	docs/design.html docs/extending docs/protocol-v3 docs/protocol.txt  \
+	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
+	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
+	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
+	java/.classpath java/.project java/Makefile java/README		    \
+	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
+	java/org/eyrie/eagle/remctl/Remctl.java				    \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java portable/winsock.c remctl.spec ruby/README		    \
@@ -107,11 +108,11 @@ server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS) $(GPUT_LIBS) \
 	$(PCRE_LIBS)
 
-dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3		\
-	docs/api/remctl_command.3 docs/api/remctl_error.3		\
-	docs/api/remctl_new.3 docs/api/remctl_open.3			\
-	docs/api/remctl_output.3 docs/api/remctl_set_source_ip.3	\
-	docs/remctl.1
+dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3	\
+	docs/api/remctl_command.3 docs/api/remctl_error.3	\
+	docs/api/remctl_new.3 docs/api/remctl_open.3		\
+	docs/api/remctl_output.3 docs/api/remctl_set_ccache.3	\
+	docs/api/remctl_set_source_ip.3 docs/remctl.1
 man_MANS = docs/remctld.8
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -227,8 +228,8 @@ warnings:
 	$(MAKE) V=0 CFLAGS='$(WARNINGS)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
-check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t	    \
-	tests/client/open-t tests/client/source-ip-t			    \
+check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
+	tests/client/large-t tests/client/open-t tests/client/source-ip-t   \
 	tests/data/cmd-background tests/data/cmd-closed			    \
 	tests/data/cmd-stdin tests/data/cmd-streaming			    \
 	tests/portable/asprintf-t tests/portable/daemon-t		    \
@@ -260,6 +261,8 @@ SERVER_FILES = server/commands.c server/config.c server/generic.c \
 
 # All of the test programs.
 tests_client_api_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	portable/libportable.la util/libutil.la
+tests_client_ccache_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	portable/libportable.la util/libutil.la
 tests_client_open_t_LDFLAGS = $(GSSAPI_LDFLAGS)
 tests_client_open_t_LDADD = client/libremctl.la tests/tap/libtap.a \

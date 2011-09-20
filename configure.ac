@@ -74,7 +74,7 @@ AC_TYPE_SIGNAL
 
 dnl Additional GSS-API portability checks.
 RRA_LIB_GSSAPI_SWITCH
-AC_CHECK_HEADERS([gssapi.h])
+AC_CHECK_HEADERS([gssapi/gssapi.h gssapi/gssapi_krb5.h])
 AC_CHECK_DECL([GSS_C_NT_USER_NAME],
     [AC_DEFINE([HAVE_GSS_RFC_OIDS], 1,
        [Define to 1 if the GSS-API library uses RFC-compliant OIDs.])], [],
@@ -88,7 +88,17 @@ AC_CHECK_DECL([GSS_C_NT_USER_NAME],
 AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
     [AC_CHECK_DECLS([gss_mech_krb5], [],
         [AC_LIBOBJ([gssapi-mech])],
-        [#include <gssapi/gssapi_krb5.h>])],
+[[
+#ifdef HAVE_GSSAPI_GSSAPI_H
+# include <gssapi/gssapi.h>
+#else
+# include <gssapi.h>
+#endif
+#ifdef HAVE_GSSAPI_GSSAPI_KRB5_H
+# include <gssapi/gssapi_krb5.h>
+#endif
+#include <gssapi/gssapi_krb5.h>
+]])],
 [[
 #ifdef HAVE_GSSAPI_GSSAPI_H
 # include <gssapi/gssapi.h>
@@ -96,6 +106,7 @@ AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
 # include <gssapi.h>
 #endif
 ]])
+AC_CHECK_FUNCS([gss_krb5_ccache_name])
 RRA_LIB_GSSAPI_RESTORE
 
 dnl Check for the CMU GPUT library.

@@ -53,6 +53,7 @@
 /stamp-h1
 /stamp-python
 /tests/client/api-t
+/tests/client/ccache-t
 /tests/client/pod-t
 /tests/client/large-t
 /tests/client/open-t
