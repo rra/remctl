@@ -273,11 +273,16 @@ remctl_set_ccache(struct remctl *r, const char *ccache UNUSED)
 int
 remctl_set_source_ip(struct remctl *r, const char *source)
 {
-    r->source = strdup(source);
-    if (r->source == NULL) {
+    char *copy;
+
+    copy = strdup(source);
+    if (copy == NULL) {
         internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
         return 0;
     }
+    if (r->source != NULL)
+        free(r->source);
+    r->source = copy;
     return 1;
 }
 
