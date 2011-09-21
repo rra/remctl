@@ -1,6 +1,9 @@
 /*
  * getaddrinfo test suite.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
@@ -65,7 +68,7 @@ main(void)
     is_int(sizeof(struct sockaddr_in), ai->ai_addrlen, "...right addrlen");
     saddr = (struct sockaddr_in *) ai->ai_addr;
     is_int(htons(25), saddr->sin_port, "...right port");
-    ok(saddr->sin_addr.s_addr == INADDR_LOOPBACK, "...right address");
+    is_int(htonl(0x7f000001UL), saddr->sin_addr.s_addr, "...right address");
     test_freeaddrinfo(ai);
 
     memset(&hints, 0, sizeof(hints));
@@ -75,7 +78,7 @@ main(void)
     is_int(SOCK_STREAM, ai->ai_socktype, "...right socktype");
     saddr = (struct sockaddr_in *) ai->ai_addr;
     is_int(htons(25), saddr->sin_port, "...right port");
-    ok(saddr->sin_addr.s_addr == INADDR_ANY, "...right address");
+    is_int(INADDR_ANY, saddr->sin_addr.s_addr, "...right address");
     test_freeaddrinfo(ai);
 
     service = getservbyname("smtp", "tcp");
@@ -88,7 +91,7 @@ main(void)
         is_int(SOCK_STREAM, ai->ai_socktype, "...right socktype");
         saddr = (struct sockaddr_in *) ai->ai_addr;
         is_int(htons(25), saddr->sin_port, "...right port");
-        ok(saddr->sin_addr.s_addr == INADDR_ANY, "...right address");
+        is_int(INADDR_ANY, saddr->sin_addr.s_addr, "...right address");
         test_freeaddrinfo(ai);
     }
 
@@ -103,7 +106,7 @@ main(void)
        "valid AI_NUMERICSERV");
     saddr = (struct sockaddr_in *) ai->ai_addr;
     is_int(htons(25), saddr->sin_port, "...right port");
-    ok(saddr->sin_addr.s_addr == INADDR_LOOPBACK, "...right address");
+    is_int(htonl(0x7f000001UL), saddr->sin_addr.s_addr, "...right address");
     test_freeaddrinfo(ai);
 
     ok(test_getaddrinfo(NULL, NULL, NULL, &ai) == EAI_NONAME, "EAI_NONAME");

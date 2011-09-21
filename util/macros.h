@@ -1,6 +1,9 @@
 /*
  * Some standard helpful macros.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
@@ -16,6 +19,15 @@
 #define UTIL_MACROS_H 1
 
 #include <portable/macros.h>
+
+/*
+ * Used for iterating through arrays.  ARRAY_SIZE returns the number of
+ * elements in the array (useful for a < upper bound in a for loop) and
+ * ARRAY_END returns a pointer to the element past the end (ISO C99 makes it
+ * legal to refer to such a pointer as long as it's never dereferenced).
+ */
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
+#define ARRAY_END(array)  (&(array)[ARRAY_SIZE(array)])
 
 /* Used for unused parameters to silence gcc warnings. */
 #define UNUSED __attribute__((__unused__))

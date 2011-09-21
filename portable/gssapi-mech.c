@@ -1,13 +1,26 @@
 /*
- * Define the Kerberos v5 GSS-API mechanism OID.
+ * Define the Kerberos GSS-API mechanism OID.
  *
- * This short bit of code exposes the Kerberos v5 GSS-API mechanism OID has
+ * This short bit of code exposes the Kerberos GSS-API mechanism OID has
  * gss_mech_krb5 on platforms that don't have GSS_KRB5_MECHANISM or
  * gss_mech_krb5, such as Solaris 10.
  *
  * On Solaris 10, we could call gss_str_to_oid to convert "kerberos_v5" to an
  * OID or to parse the numeric form of an OID, but this doesn't rely on
  * configuration files and is just as portable in practice.
+ *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
+ * Written by Russ Allbery <rra@stanford.edu>
+ *
+ * The authors hereby relinquish any claim to any copyright that they may have
+ * in this work, whether granted under contract or by operation of law or
+ * international treaty, and hereby commit to the public, at large, that they
+ * shall not, at any time in the future, seek to enforce any copyright in this
+ * work against any person or entity, or prevent any person or entity from
+ * copying, publishing, distributing or creating derivative works of this
+ * work.
  */
 
 #include <portable/gssapi.h>

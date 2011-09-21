@@ -50,6 +50,9 @@
  * generates given the format and arguments), a format, an argument list as a
  * va_list, and the applicable errno value (if any).
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  * Copyright 2008, 2009, 2010
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -204,8 +207,8 @@ message_log_syslog(int pri, size_t len, const char *fmt, va_list args, int err)
 
     buffer = malloc(len + 1);
     if (buffer == NULL) {
-        fprintf(stderr, "failed to malloc %u bytes at %s line %d: %s",
-                len + 1, __FILE__, __LINE__, strerror(errno));
+        fprintf(stderr, "failed to malloc %lu bytes at %s line %d: %s",
+                (unsigned long) len + 1, __FILE__, __LINE__, strerror(errno));
         exit(message_fatal_cleanup ? (*message_fatal_cleanup)() : 1);
     }
     vsnprintf(buffer, len + 1, fmt, args);

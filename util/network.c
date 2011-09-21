@@ -10,6 +10,15 @@
  * implementations for functions that aren't found on some pre-IPv6 systems.
  * No other part of the source tree should have to care about IPv4 vs. IPv6.
  *
+ * In this file, casts through void * or const void * of struct sockaddr *
+ * parameters are to silence gcc warnings with -Wcast-align.  The specific
+ * address types often require stronger alignment than a struct sockaddr, and
+ * were originally allocated with that alignment.  GCC doesn't have a good way
+ * of knowing that this code is correct.
+ *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  * Copyright 2009, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -39,7 +48,14 @@
 #include <portable/socket.h>
 
 #include <errno.h>
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
 
+#include <util/fdflag.h>
 #include <util/messages.h>
 #include <util/network.h>
 #include <util/xmalloc.h>
@@ -218,7 +234,7 @@ network_bind_ipv6(const char *address, unsigned short port)
  */
 #if HAVE_INET6
 void
-network_bind_all(unsigned short port, int **fds, unsigned int *count)
+network_bind_all(unsigned short port, socket_type **fds, unsigned int *count)
 {
     struct addrinfo hints, *addrs, *addr;
     unsigned int size;
@@ -245,7 +261,7 @@ network_bind_all(unsigned short port, int **fds, unsigned int *count)
      * assuming an IPv6 and IPv4 socket, and grow it by two when necessary.
      */
     size = 2;
-    *fds = xmalloc(size * sizeof(int));
+    *fds = xmalloc(size * sizeof(socket_type));
     for (addr = addrs; addr != NULL; addr = addr->ai_next) {
         network_sockaddr_sprint(name, sizeof(name), addr->ai_addr);
         if (addr->ai_family == AF_INET)
@@ -282,6 +298,18 @@ network_bind_all(unsigned short port, socket_type **fds, unsigned int *count)
     }
 }
 #endif /* HAVE_INET6 */
+
+
+/*
+ * Free the array of file descriptors allocated by network_bind_all.  This is
+ * a simple wrapper around free, needed on platforms where libraries allocate
+ * memory from a different memory domain than programs (such as Windows).
+ */
+void
+network_bind_all_free(socket_type *fds)
+{
+    free(fds);
+}
 
 
 /*
@@ -327,7 +355,10 @@ network_accept_any(socket_type fds[], unsigned int count,
             fd = fds[i];
             break;
         }
-    return accept(fd, addr, addrlen);
+    if (fd == INVALID_SOCKET)
+        return INVALID_SOCKET;
+    else
+        return accept(fd, addr, addrlen);
 }
 
 
@@ -336,18 +367,18 @@ network_accept_any(socket_type fds[], unsigned int count,
  * using the provided source address.  Returns true on success and false on
  * failure.
  */
-static int
+static bool
 network_source(socket_type fd, int family, const char *source)
 {
     if (source == NULL || strcmp(source, "all") == 0)
-        return 1;
+        return true;
     if (family == AF_INET) {
         struct sockaddr_in saddr;
 
         memset(&saddr, 0, sizeof(saddr));
         saddr.sin_family = AF_INET;
         if (!inet_aton(source, &saddr.sin_addr))
-            return 0;
+            return false;
         return bind(fd, (struct sockaddr *) &saddr, sizeof(saddr)) == 0;
     }
 #ifdef HAVE_INET6
@@ -357,7 +388,7 @@ network_source(socket_type fd, int family, const char *source)
         memset(&saddr, 0, sizeof(saddr));
         saddr.sin6_family = AF_INET6;
         if (inet_pton(AF_INET6, source, &saddr.sin6_addr) < 1)
-            return 0;
+            return false;
         return bind(fd, (struct sockaddr *) &saddr, sizeof(saddr)) == 0;
     }
 #endif
@@ -367,7 +398,7 @@ network_source(socket_type fd, int family, const char *source)
 #else
         socket_set_errno(EINVAL);
 #endif
-        return 0;
+        return false;
     }
 }
 
@@ -381,13 +412,15 @@ network_source(socket_type fd, int family, const char *source)
  * errno.
  */
 socket_type
-network_connect(struct addrinfo *ai, const char *source)
+network_connect(struct addrinfo *ai, const char *source, time_t timeout)
 {
     socket_type fd = INVALID_SOCKET;
-    int oerrno;
-    int success;
+    int oerrno, status, err;
+    socklen_t len;
+    struct timeval tv;
+    fd_set set;
 
-    for (success = 0; ai != NULL; ai = ai->ai_next) {
+    for (status = -1; status != 0 && ai != NULL; ai = ai->ai_next) {
         if (fd != INVALID_SOCKET)
             socket_close(fd);
         fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
@@ -395,15 +428,34 @@ network_connect(struct addrinfo *ai, const char *source)
             continue;
         if (!network_source(fd, ai->ai_family, source))
             continue;
-        if (connect(fd, ai->ai_addr, ai->ai_addrlen) == 0) {
-            success = 1;
-            break;
+        if (timeout == 0)
+            status = connect(fd, ai->ai_addr, ai->ai_addrlen);
+        else {
+            fdflag_nonblocking(fd, true);
+            status = connect(fd, ai->ai_addr, ai->ai_addrlen);
+            if (status < 0 && socket_errno == EINPROGRESS) {
+                tv.tv_sec = timeout;
+                tv.tv_usec = 0;
+                FD_ZERO(&set);
+                FD_SET(fd, &set);
+                status = select(fd + 1, NULL, &set, NULL, &tv);
+                if (status == 0 && !FD_ISSET(fd, &set)) {
+                    status = -1;
+                    socket_set_errno(ETIMEDOUT);
+                } else if (status > 0 && FD_ISSET(fd, &set)) {
+                    len = sizeof(err);
+                    status = getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
+                    if (status == 0)
+                        status = err;
+                }
+            }
+            fdflag_nonblocking(fd, false);
         }
     }
-    if (success)
+    if (status == 0)
         return fd;
     else {
-        if (fd >= 0) {
+        if (fd != INVALID_SOCKET) {
             oerrno = socket_errno;
             socket_close(fd);
             socket_set_errno(oerrno);
@@ -421,7 +473,7 @@ network_connect(struct addrinfo *ai, const char *source)
  */
 socket_type
 network_connect_host(const char *host, unsigned short port,
-                     const char *source)
+                     const char *source, time_t timeout)
 {
     struct addrinfo hints, *ai;
     char portbuf[16];
@@ -434,7 +486,7 @@ network_connect_host(const char *host, unsigned short port,
     snprintf(portbuf, sizeof(portbuf), "%d", port);
     if (getaddrinfo(host, portbuf, &hints, &ai) != 0)
         return INVALID_SOCKET;
-    fd = network_connect(ai, source);
+    fd = network_connect(ai, source, timeout);
     oerrno = socket_errno;
     freeaddrinfo(ai);
     socket_set_errno(oerrno);
@@ -483,7 +535,7 @@ network_sockaddr_sprint(char *dst, size_t size, const struct sockaddr *addr)
     if (addr->sa_family == AF_INET6) {
         const struct sockaddr_in6 *sin6;
 
-        sin6 = (const struct sockaddr_in6 *) addr;
+        sin6 = (const struct sockaddr_in6 *) (const void *) addr;
         if (IN6_IS_ADDR_V4MAPPED(&sin6->sin6_addr)) {
             struct in_addr in;
 
@@ -497,7 +549,7 @@ network_sockaddr_sprint(char *dst, size_t size, const struct sockaddr *addr)
     if (addr->sa_family == AF_INET) {
         const struct sockaddr_in *sin;
 
-        sin = (const struct sockaddr_in *) addr;
+        sin = (const struct sockaddr_in *) (const void *) addr;
         result = inet_ntop(AF_INET, &sin->sin_addr, dst, size);
         return (result != NULL);
     } else {
@@ -515,20 +567,26 @@ network_sockaddr_sprint(char *dst, size_t size, const struct sockaddr *addr)
 bool
 network_sockaddr_equal(const struct sockaddr *a, const struct sockaddr *b)
 {
-    const struct sockaddr_in *a4 = (const struct sockaddr_in *) a;
-    const struct sockaddr_in *b4 = (const struct sockaddr_in *) b;
+    const struct sockaddr_in *a4;
+    const struct sockaddr_in *b4;
+#ifdef HAVE_INET6
+    const struct sockaddr_in6 *a6;
+    const struct sockaddr_in6 *b6;
+    const struct sockaddr *tmp;
+#endif
+
+    a4 = (const struct sockaddr_in *) (const void *) a;
+    b4 = (const struct sockaddr_in *) (const void *) b;
 
 #ifdef HAVE_INET6
-    const struct sockaddr_in6 *a6 = (const struct sockaddr_in6 *) a;
-    const struct sockaddr_in6 *b6 = (const struct sockaddr_in6 *) b;
-    const struct sockaddr *tmp;
-
+    a6 = (const struct sockaddr_in6 *) (const void *) a;
+    b6 = (const struct sockaddr_in6 *) (const void *) b;
     if (a->sa_family == AF_INET && b->sa_family == AF_INET6) {
         tmp = a;
         a = b;
         b = tmp;
-        a6 = (const struct sockaddr_in6 *) a;
-        b4 = (const struct sockaddr_in *) b;
+        a6 = (const struct sockaddr_in6 *) (const void *) a;
+        b4 = (const struct sockaddr_in *) (const void *) b;
     }
     if (a->sa_family == AF_INET6) {
         if (b->sa_family == AF_INET6)
@@ -564,14 +622,14 @@ network_sockaddr_port(const struct sockaddr *sa)
     const struct sockaddr_in6 *sin6;
 
     if (sa->sa_family == AF_INET6) {
-        sin6 = (const struct sockaddr_in6 *) sa;
+        sin6 = (const struct sockaddr_in6 *) (const void *) sa;
         return htons(sin6->sin6_port);
     }
 #endif
     if (sa->sa_family != AF_INET)
         return 0;
     else {
-        sin = (const struct sockaddr_in *) sa;
+        sin = (const struct sockaddr_in *) (const void *) sa;
         return htons(sin->sin_port);
     }
 }

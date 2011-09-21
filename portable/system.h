@@ -13,10 +13,14 @@
  *     #include <stddef.h>
  *     #include <stdint.h>
  *     #include <string.h>
+ *     #include <strings.h>
  *     #include <unistd.h>
  *
  * Missing functions are provided via #define or prototyped if available from
  * the portable helper library.  Also provides some standard #defines.
+ *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <rra@stanford.edu>
  *
@@ -45,6 +49,9 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <string.h>
+#if HAVE_STRINGS_H
+# include <strings.h>
+#endif
 #if HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
@@ -62,6 +69,38 @@
 
 /* Get the bool type. */
 #include <portable/stdbool.h>
+
+/* Windows provides snprintf under a different name. */
+#ifdef _WIN32
+# define snprintf _snprintf
+#endif
+
+/* Define sig_atomic_t if it's not available in signal.h. */
+#ifndef HAVE_SIG_ATOMIC_T
+typedef sig_atomic_t int;
+#endif
+
+/*
+ * POSIX requires that these be defined in <unistd.h>.  If one of them has
+ * been defined, all the rest almost certainly have.
+ */
+#ifndef STDIN_FILENO
+# define STDIN_FILENO  0
+# define STDOUT_FILENO 1
+# define STDERR_FILENO 2
+#endif
+
+/*
+ * C99 requires va_copy.  Older versions of GCC provide __va_copy.  Per the
+ * Autoconf manual, memcpy is a generally portable fallback.
+ */
+#ifndef va_copy
+# ifdef __va_copy
+#  define va_copy(d, s) __va_copy((d), (s))
+# else
+#  define va_copy(d, s) memcpy(&(d), &(s), sizeof(va_list))
+# endif
+#endif
 
 BEGIN_DECLS
 
@@ -102,32 +141,5 @@ extern size_t strlcpy(char *, const char *, size_t);
 #pragma GCC visibility pop
 
 END_DECLS
-
-/* Windows provides snprintf under a different name. */
-#ifdef _WIN32
-# define snprintf _snprintf
-#endif
-
-/*
- * POSIX requires that these be defined in <unistd.h>.  If one of them has
- * been defined, all the rest almost certainly have.
- */
-#ifndef STDIN_FILENO
-# define STDIN_FILENO  0
-# define STDOUT_FILENO 1
-# define STDERR_FILENO 2
-#endif
-
-/*
- * C99 requires va_copy.  Older versions of GCC provide __va_copy.  Per the
- * Autoconf manual, memcpy is a generally portable fallback.
- */
-#ifndef va_copy
-# ifdef __va_copy
-#  define va_copy(d, s) __va_copy((d), (s))
-# else
-#  define va_copy(d, s) memcpy(&(d), &(s), sizeof(va_list))
-# endif
-#endif
 
 #endif /* !PORTABLE_SYSTEM_H */

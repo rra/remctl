@@ -6,6 +6,9 @@
  * as on IRIX when using gcc to compile).  inet_ntoa is not thread-safe since
  * it uses static storage (inet_ntop should be used instead when available).
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  *
  * The authors hereby relinquish any claim to any copyright that they may have

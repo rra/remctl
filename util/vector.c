@@ -20,6 +20,9 @@
  * and perform the same operations, but I'm leery of doing that as I'm not
  * sure if it's a violation of the C type aliasing rules.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
@@ -345,7 +348,7 @@ vector_split_multi(const char *string, const char *seps,
     if (vector->allocated < count)
         vector_resize(vector, count);
 
-    for (start = string, p = string, i = 0; *p; p++)
+    for (start = string, p = string, i = 0; *p != '\0'; p++)
         if (strchr(seps, *p) != NULL) {
             if (start != p)
                 vector->strings[i++] = xstrndup(start, p - start);
@@ -378,7 +381,7 @@ cvector_split_multi(char *string, const char *seps, struct cvector *vector)
     if (vector->allocated < count)
         cvector_resize(vector, count);
 
-    for (start = string, p = string, i = 0; *p; p++)
+    for (start = string, p = string, i = 0; *p != '\0'; p++)
         if (strchr(seps, *p) != NULL) {
             if (start != p) {
                 *p = '\0';
@@ -438,7 +441,7 @@ vector_split_space(const char *string, struct vector *vector)
     if (vector->allocated < count)
         vector_resize(vector, count);
 
-    for (start = string, p = string, i = 0; *p; p++)
+    for (start = string, p = string, i = 0; *p != '\0'; p++)
         if (*p == ' ' || *p == '\t') {
             if (start != p)
                 vector->strings[i++] = xstrndup(start, p - start);
@@ -470,7 +473,7 @@ cvector_split_space(char *string, struct cvector *vector)
     if (vector->allocated < count)
         cvector_resize(vector, count);
 
-    for (start = string, p = string, i = 0; *p; p++)
+    for (start = string, p = string, i = 0; *p != '\0'; p++)
         if (*p == ' ' || *p == '\t') {
             if (start != p) {
                 *p = '\0';

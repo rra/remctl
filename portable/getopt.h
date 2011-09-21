@@ -6,6 +6,9 @@
  * since remctl doesn't use GNU long options, and the code has been rearranged
  * and reworked somewhat to fit with my coding style.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
  * Copyright 2008 Russ Allbery <rra@stanford.edu>
  *
@@ -39,9 +42,8 @@
 
 BEGIN_DECLS
 
-/* The primary interface.  Call repeatedly to return each option. */
-int getopt(int argc, char *argv[], const char *opts)
-    __attribute__((__visibility__("hidden")));
+/* Default to a hidden visibility for all portability functions. */
+#pragma GCC visibility push(hidden)
 
 /*
  * The current element in the argv array or, if getopt returns -1, the index
@@ -57,6 +59,12 @@ extern int optopt;
 
 /* The argument to an option. */
 extern char *optarg;
+
+/* The primary interface.  Call repeatedly to return each option. */
+int getopt(int argc, char *argv[], const char *opts);
+
+/* Undo default visibility change. */
+#pragma GCC visibility pop
 
 END_DECLS
 

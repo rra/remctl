@@ -1,6 +1,9 @@
 /*
  * Test suite for xmalloc and family.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Copyright 2000, 2001, 2006 Russ Allbery <rra@stanford.edu>
  * Copyright 2008
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -76,9 +79,9 @@ test_malloc(size_t size)
 
 
 /*
- * Allocate half the memory given, write to it, then reallocate to the desired
- * size, writing to the rest and then checking it all.  Returns true on
- * success, false on any failure.
+ * Allocate 10 bytes of memory given, write to it, then reallocate to the
+ * desired size, writing to the rest and then checking it all.  Returns true
+ * on success, false on any failure.
  */
 static int
 test_realloc(size_t size)

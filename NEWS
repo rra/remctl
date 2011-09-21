@@ -22,10 +22,23 @@ remctl 2.19 (unreleased)
     but the documentation said this was not allowed.  Fix the
     documentation to match the implementation.
 
+    Use PATH_KRB5_CONFIG as the environment variable to set the path to
+    krb5-config rather than KRB5_CONFIG when running configure, since the
+    latter is used by the Kerberos libraries to specify an alternative
+    path to krb5.conf.
+
     Update to rra-c-util 3.9:
 
+    * Prefer gssapi/gssapi.h to gssapi.h.
+    * Include strings.h if it exists for strncasecmp on some platforms.
+    * getaddrinfo replacement now portable to systems with bad netdb.h.
+    * Avoid krb5-config if --with-gssapi-{include,lib} are given.
+    * Add Windows implementation of fdflag_nonblocking.
+    * The network_connect utility functions now take an optional timeout.
     * Wait longer for remctld to start in remctl tests.
     * Use an atexit handler to clean up after Kerberos tests.
+    * Use typedef instead of #define for socklen_t and sig_atomic_t.
+    * Stop providing or using INADDR_LOOPBACK for portability reasons.
 
     Update to C TAP Harness 1.8:
 

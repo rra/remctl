@@ -1,6 +1,9 @@
 /*
  * network test suite.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  * Copyright 2005 Russ Allbery <rra@stanford.edu>
  * Copyright 2009, 2010, 2011
@@ -88,15 +91,28 @@ listener(socket_type fd)
  * A varient version of the server portion of the test.  Takes an array of
  * sockets and the size of the sockets and accepts a connection on any of
  * those sockets.
+ *
+ * saddr is allocated from the heap instead of using a local struct
+ * sockaddr_storage to work around a misdiagnosis of strict aliasing
+ * violations from gcc 4.4 (fixed in later versions).
  */
 static void
 listener_any(socket_type fds[], unsigned int count)
 {
     socket_type client;
     unsigned int i;
+    struct sockaddr *saddr;
+    socklen_t slen;
 
-    client = network_accept_any(fds, count, NULL, NULL);
+    slen = sizeof(struct sockaddr_storage);
+    saddr = bmalloc(slen);
+    client = network_accept_any(fds, count, saddr, &slen);
     listener_handler(client);
+    is_int(AF_INET, saddr->sa_family, "...address family is IPv4");
+    is_int(htonl(0x7f000001UL),
+           ((struct sockaddr_in *) saddr)->sin_addr.s_addr,
+           "...and client address is 127.0.0.1");
+    free(saddr);
     for (i = 0; i < count; i++)
         close(fds[i]);
 }
@@ -105,17 +121,23 @@ listener_any(socket_type fds[], unsigned int count)
 /*
  * Connect to the given host on port 11119 and send a constant string to a
  * socket, used to do the client side of the testing.  Takes the source
- * address as well to pass into network_connect_host.
+ * address as well to pass into network_connect_host.  If the flag is true,
+ * expects to succeed in connecting; otherwise, fail the test if the
+ * connection is successful.
  */
 static void
-client(const char *host, const char *source)
+client(const char *host, const char *source, bool succeed)
 {
     socket_type fd;
     FILE *out;
 
-    fd = network_connect_host(host, 11119, source);
-    if (fd == INVALID_SOCKET)
-        sysdie("connect failed");
+    fd = network_connect_host(host, 11119, source, 0);
+    if (fd == INVALID_SOCKET) {
+        if (succeed)
+            _exit(1);
+        else
+            return;
+    }
     out = fdopen(fd, "w");
     if (out == NULL)
         sysdie("fdopen failed");
@@ -149,7 +171,7 @@ test_ipv4(const char *source)
             sysbail("cannot fork");
         else if (child == 0) {
             close(fd);
-            client("127.0.0.1", source);
+            client("127.0.0.1", source, true);
         } else {
             listener(fd);
             waitpid(child, NULL, 0);
@@ -169,20 +191,21 @@ test_ipv6(const char *source)
 {
     socket_type fd;
     pid_t child;
+    int status;
 
     fd = network_bind_ipv6("::1", 11119);
     if (fd == INVALID_SOCKET) {
         if (errno == EAFNOSUPPORT || errno == EPROTONOSUPPORT
             || errno == EADDRNOTAVAIL) {
             ipv6 = 0;
-            skip_block(3, "IPv6 not supported");
+            skip_block(4, "IPv6 not supported");
             return;
         } else
             sysbail("cannot create socket");
     }
     if (listen(fd, 1) < 0) {
         sysdiag("cannot listen to socket");
-        ok_block(3, 0, "IPv6 server test");
+        ok_block(4, 0, "IPv6 server test");
     } else {
         ok(1, "IPv6 server test");
         child = fork();
@@ -190,10 +213,14 @@ test_ipv6(const char *source)
             sysbail("cannot fork");
         else if (child == 0) {
             close(fd);
-            client("::1", source);
+#ifdef IPV6_V6ONLY
+            client("127.0.0.1", NULL, false);
+#endif
+            client("::1", source, true);
         } else {
             listener(fd);
-            waitpid(child, NULL, 0);
+            waitpid(child, &status, 0);
+            is_int(0, status, "client made correct connections");
         }
     }
 }
@@ -201,7 +228,7 @@ test_ipv6(const char *source)
 static void
 test_ipv6(const char *source UNUSED)
 {
-    skip_block(3, "IPv6 not supported");
+    skip_block(4, "IPv6 not supported");
 }
 #endif /* !HAVE_INET6 */
 
@@ -218,7 +245,8 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
     unsigned int count, i;
     pid_t child;
     struct sockaddr_storage saddr;
-    socklen_t size = sizeof(saddr);
+    socklen_t size;
+    int status;
 
     network_bind_all(11119, &fds, &count);
     if (count == 0)
@@ -234,29 +262,35 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
             ok_block(3, 0, "all address server test");
         } else {
             ok(1, "all address server test (part %d)", i);
+            size = sizeof(saddr);
+            if (getsockname(fd, (struct sockaddr *) &saddr, &size) < 0)
+                sysbail("cannot getsockname");
             child = fork();
             if (child < 0)
                 sysbail("cannot fork");
             else if (child == 0) {
-                if (getsockname(fd, (struct sockaddr *) &saddr, &size) < 0)
-                    sysbail("cannot getsockname");
-                if (saddr.ss_family == AF_INET)
-                    client("127.0.0.1", source_ipv4);
+                if (saddr.ss_family == AF_INET) {
+                    client("::1", source_ipv6, false);
+                    client("127.0.0.1", source_ipv4, true);
 #ifdef HAVE_INET6
-                else if (saddr.ss_family == AF_INET6)
-                    client("::1", source_ipv6);
+                } else if (saddr.ss_family == AF_INET6) {
+# ifdef IPV6_V6ONLY
+                    client("127.0.0.1", source_ipv4, false);
+# endif
+                    client("::1", source_ipv6, true);
 #endif
-                else
-                    skip_block(2, "unknown socket family %d", saddr.ss_family);
-                size = sizeof(saddr);
+                }
+                _exit(1);
             } else {
                 listener(fd);
-                waitpid(child, NULL, 0);
+                waitpid(child, &status, 0);
+                is_int(0, status, "client made correct connections");
             }
         }
     }
     if (count == 1)
         skip_block(3, "only one listening socket");
+    network_bind_all_free(fds);
 }
 
 
@@ -283,11 +317,12 @@ test_any(void)
     if (child < 0)
         sysbail("cannot fork");
     else if (child == 0)
-        client("127.0.0.1", NULL);
+        client("127.0.0.1", NULL, true);
     else {
         listener_any(fds, count);
         waitpid(child, NULL, 0);
     }
+    network_bind_all_free(fds);
 }
 
 
@@ -323,7 +358,7 @@ test_create_ipv4(const char *source)
             memset(&sin, 0, sizeof(sin));
             sin.sin_family = AF_INET;
             sin.sin_port = htons(11119);
-            sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+            sin.sin_addr.s_addr = htonl(0x7f000001UL);
             if (connect(fd, (struct sockaddr *) &sin, sizeof(sin)) < 0)
                 _exit(1);
             out = fdopen(fd, "w");
@@ -337,6 +372,73 @@ test_create_ipv4(const char *source)
             waitpid(child, NULL, 0);
         }
     }
+}
+
+
+/*
+ * Test connect timeouts using IPv4.  Bring up a server on port 11119 on the
+ * loopback address and test connections to it.  The server only accepts one
+ * connection at a time, so the second connection will time out.
+ */
+static void
+test_timeout_ipv4(void)
+{
+    socket_type fd, c;
+    pid_t child;
+
+    fd = network_bind_ipv4("127.0.0.1", 11119);
+    if (fd == INVALID_SOCKET)
+        sysbail("cannot create or bind socket");
+    if (listen(fd, 1) < 0) {
+        sysdiag("cannot listen to socket");
+        ok_block(3, 0, "IPv4 network client with timeout");
+        close(fd);
+        return;
+    }
+    child = fork();
+    if (child < 0)
+        sysbail("cannot fork");
+    else if (child == 0) {
+        struct sockaddr_in sin;
+        socklen_t slen;
+
+        alarm(10);
+        c = accept(fd, &sin, &slen);
+        if (c == INVALID_SOCKET)
+            _exit(1);
+        sleep(9);
+        _exit(0);
+    } else {
+        socket_type block[20];
+        int i;
+
+        close(fd);
+        c = network_connect_host("127.0.0.1", 11119, NULL, 1);
+        ok(c != INVALID_SOCKET, "Timeout: first connection worked");
+
+        /*
+         * For some reason, despite a listening queue of only 1, it can take
+         * up to seven connections on Linux before connections start actually
+         * timing out.
+         */
+        alarm(10);
+        for (i = 0; i < (int) ARRAY_SIZE(block); i++) {
+            block[i] = network_connect_host("127.0.0.1", 11119, NULL, 1);
+            if (block[i] == INVALID_SOCKET)
+                break;
+        }
+        diag("Finally timed out on socket %d", i);
+        ok(block[i] == INVALID_SOCKET, "Timeout: later connection timed out");
+        is_int(ETIMEDOUT, socket_errno, "...with correct error");
+        alarm(0);
+        kill(child, SIGTERM);
+        waitpid(child, NULL, 0);
+        close(c);
+        for (; i >= 0; i--)
+            if (block[i] != INVALID_SOCKET)
+                close(block[i]);
+    }
+    close(fd);
 }
 
 
@@ -369,7 +471,7 @@ main(void)
     static const char *ipv6_addr = "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210";
 #endif
 
-    plan(89);
+    plan(100);
 
     /*
      * If IPv6 support appears to be available but doesn't work, we have to
@@ -396,6 +498,9 @@ main(void)
 
     /* Test network_accept_any. */
     test_any();
+
+    /* Test network_connect with a timeout. */
+    test_timeout_ipv4();
 
     /*
      * Now, test network_sockaddr_sprint, network_sockaddr_equal, and
@@ -439,6 +544,7 @@ main(void)
        "...and not equal to IPv4");
     ok(!network_sockaddr_equal(ai6->ai_addr, ai4->ai_addr),
        "...other way around");
+    freeaddrinfo(ai6);
 
     /* Test IPv4 mapped addresses. */
     status = getaddrinfo("::ffff:7f00:1", NULL, &hints, &ai6);
@@ -459,6 +565,7 @@ main(void)
 #else
     skip_block(12, "IPv6 not supported");
 #endif
+    freeaddrinfo(ai);
 
     /* Check the domains of functions and their error handling. */
     ai4->ai_addr->sa_family = AF_UNIX;
@@ -466,6 +573,7 @@ main(void)
        "equal not equal with address mismatches");
     is_int(0, network_sockaddr_port(ai4->ai_addr),
            "port meaningless for AF_UNIX");
+    freeaddrinfo(ai4);
 
     /* Tests for network_addr_compare. */
     ok_addr(1, "127.0.0.1", "127.0.0.1",   NULL);

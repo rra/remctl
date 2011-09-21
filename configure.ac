@@ -29,6 +29,7 @@ RRA_LIB_GSSAPI
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/uio.h syslog.h])
 AC_CHECK_DECLS([snprintf, vsnprintf])
+AC_CHECK_DECLS([h_errno], [], [], [#include <netdb.h>])
 AC_CHECK_DECLS([inet_aton, inet_ntoa], [], [],
     [#include <sys/types.h>
      #include <netinet/in.h>
@@ -39,14 +40,10 @@ AC_CHECK_MEMBERS([struct sockaddr.sa_len], [], [],
     [#include <sys/types.h>
      #include <sys/socket.h>])
 AC_TYPE_LONG_LONG_INT
-AC_CHECK_TYPE([sig_atomic_t], [],
-    [AC_DEFINE([sig_atomic_t], [int],
-        [Define to int if <signal.h> does not define.])],
+AC_CHECK_TYPES([sig_atomic_t], [], [],
     [#include <sys/types.h>
      #include <signal.h>])
-AC_CHECK_TYPE([socklen_t], ,
-    [AC_DEFINE([socklen_t], [int],
-        [Define to int if <sys/socket.h> does not define.])],
+AC_CHECK_TYPES([socklen_t], [], [],
     [#include <sys/types.h>
      #include <sys/socket.h>])
 AC_CHECK_TYPES([struct sockaddr_in6],
