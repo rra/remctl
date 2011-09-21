@@ -25,6 +25,7 @@ remctl 2.19 (unreleased)
     Update to rra-c-util 3.9:
 
     * Wait longer for remctld to start in remctl tests.
+    * Use an atexit handler to clean up after Kerberos tests.
 
     Update to C TAP Harness 1.8:
 

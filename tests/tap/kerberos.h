@@ -1,8 +1,11 @@
 /*
  * Utility functions for tests that use Kerberos.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009
+ * Copyright 2006, 2007, 2009, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -33,15 +36,25 @@
 BEGIN_DECLS
 
 /*
- * Set up Kerberos, returning the test principal in newly allocated memory if
- * we were successful.  If there is no principal in tests/data/test.principal
- * or no keytab in tests/data/test.keytab, return NULL.  Otherwise, on
- * failure, calls bail().
+ * Set up Kerberos, returning the test principal.  If there is no principal in
+ * tests/data/test.principal or no keytab in tests/data/test.keytab, return
+ * NULL.  Otherwise, on failure, calls bail().
+ *
+ * kerberos_cleanup will be set up to run from an atexit() handler.  This
+ * means that any child processes that should not remove the Kerberos ticket
+ * cache should call _exit instead of exit.
+ *
+ * The principal will be automatically freed when kerberos_cleanup is called
+ * or if kerberos_setup is called again.  The caller doesn't need to worry
+ * about it.
  */
-char *kerberos_setup(void)
+const char *kerberos_setup(void)
     __attribute__((__malloc__));
 
-/* Clean up at the end of a test. */
+/*
+ * Clean up at the end of a test.  This is registered as an atexit handler,
+ * so normally never needs to be called explicitly.
+ */
 void kerberos_cleanup(void);
 
 END_DECLS

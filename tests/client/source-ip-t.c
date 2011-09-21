@@ -23,7 +23,8 @@
 int
 main(void)
 {
-    char *principal, *config, *path;
+    const char *principal;
+    char *config, *path;
     const char *err;
     pid_t remctld;
     struct remctl *r;
@@ -70,6 +71,5 @@ main(void)
 
     /* Clean up. */
     remctld_stop(remctld);
-    kerberos_cleanup();
     return 0;
 }

@@ -76,7 +76,8 @@ test_env(struct remctl *r, const char *variable)
 int
 main(void)
 {
-    char *principal, *config, *path, *expected, *value;
+    const char *principal;
+    char *config, *path, *expected, *value;
     struct remctl *r;
     pid_t remctld;
 
@@ -112,6 +113,5 @@ main(void)
     remctl_close(r);
 
     remctld_stop(remctld);
-    kerberos_cleanup();
     return 0;
 }

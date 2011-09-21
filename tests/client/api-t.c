@@ -153,7 +153,8 @@ do_tests(const char *principal, int protocol)
 int
 main(void)
 {
-    char *principal, *path, *config;
+    const char *principal;
+    char *path, *config;
     pid_t remctld;
     struct remctl_result *result;
     const char *test[] = { "test", "test", NULL };
@@ -204,6 +205,5 @@ main(void)
     remctl_result_free(result);
 
     remctld_stop(remctld);
-    kerberos_cleanup();
     return 0;
 }

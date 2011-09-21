@@ -98,7 +98,8 @@ test_bad_command(const char *principal, const char *data, size_t length,
 int
 main(void)
 {
-    char *principal, *config, *path;
+    const char *principal;
+    char *config, *path;
     pid_t remctld;
     static const char token_message[] = {
         2, 47
@@ -196,6 +197,5 @@ main(void)
                      "nul in argument");
 
     remctld_stop(remctld);
-    kerberos_cleanup();
     return 0;
 }

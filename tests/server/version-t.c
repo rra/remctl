@@ -36,7 +36,8 @@ static const char token[] = {
 int
 main(void)
 {
-    char *principal, *config, *path;
+    const char *principal;
+    char *config, *path;
     struct remctl *r;
     pid_t remctld;
     OM_uint32 major, minor;
@@ -81,6 +82,5 @@ main(void)
     remctl_close(r);
 
     remctld_stop(remctld);
-    kerberos_cleanup();
     return 0;
 }
