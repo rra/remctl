@@ -15,6 +15,11 @@ remctl 2.19 (unreleased)
     context or thread, not just for that remctl object, due to GSS-API
     limitations.
 
+    In the client, only check the negotiated GSS-API context flags after
+    the context has been fully established.  Current versions of Heimdal,
+    including the system Kerberos libraries in Mac OS X Lion, only declare
+    mutual authentication once the context negotiation is complete.
+
     Close a client memory leak caused by the GSS-API context not being
     freed by the client in remctl_close.
 
