@@ -45,6 +45,7 @@ remctl 2.19 (unreleased)
     * Use an atexit handler to clean up after Kerberos tests.
     * Use typedef instead of #define for socklen_t and sig_atomic_t.
     * Stop providing or using INADDR_LOOPBACK for portability reasons.
+    * Don't override a user's existing AFS tokens while testing.
 
     Update to C TAP Harness 1.8:
 

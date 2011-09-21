@@ -105,7 +105,8 @@ kerberos_cleanup(void)
 const char *
 kerberos_setup(void)
 {
-    static const char * const format[3] = {
+    static const char * const format[] = {
+        "kinit --no-afslog -k -t %s %s >/dev/null 2>&1 </dev/null",
         "kinit -k -t %s %s >/dev/null 2>&1 </dev/null",
         "kinit -t %s %s >/dev/null 2>&1 </dev/null",
         "kinit -k -K %s %s >/dev/null 2>&1 </dev/null"
