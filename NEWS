@@ -22,6 +22,11 @@ remctl 2.19 (unreleased)
     but the documentation said this was not allowed.  Fix the
     documentation to match the implementation.
 
+    Update to C TAP Harness 1.8:
+
+    * Add bmalloc, bcalloc, brealloc, and bstrdup TAP library functions.
+    * Fix runtests to still honor SOURCE and -s without BUILD and -b.
+
 remctl 2.18 (2011-05-31)
 
     Fix uninitialized variable in the remctld standalone server code that
