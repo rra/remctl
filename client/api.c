@@ -217,7 +217,7 @@ remctl_new(void)
     r->fd = INVALID_SOCKET;
     r->host = NULL;
     r->principal = NULL;
-    r->context = NULL;
+    r->context = GSS_C_NO_CONTEXT;
     r->error = NULL;
     r->output = NULL;
     return r;
@@ -319,6 +319,8 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
 void
 remctl_close(struct remctl *r)
 {
+    OM_uint32 minor;
+
     if (r != NULL) {
         if (r->protocol > 1 && r->fd != -1)
             internal_v2_quit(r);
@@ -330,6 +332,8 @@ remctl_close(struct remctl *r)
             free(r->error);
         if (r->output != NULL)
             free(r->output);
+        if (r->context != GSS_C_NO_CONTEXT)
+            gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
         free(r);
     }
     socket_shutdown();

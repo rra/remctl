@@ -15,6 +15,9 @@ remctl 2.19 (unreleased)
     context or thread, not just for that remctl object, due to GSS-API
     limitations.
 
+    Close a client memory leak caused by the GSS-API context not being
+    freed by the client in remctl_close.
+
     remctld can be configured to pass the subcommand on standard input,
     but the documentation said this was not allowed.  Fix the
     documentation to match the implementation.
