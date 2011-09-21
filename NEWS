@@ -22,6 +22,10 @@ remctl 2.19 (unreleased)
     but the documentation said this was not allowed.  Fix the
     documentation to match the implementation.
 
+    Update to rra-c-util 3.9:
+
+    * Wait longer for remctld to start in remctl tests.
+
     Update to C TAP Harness 1.8:
 
     * Add bmalloc, bcalloc, brealloc, and bstrdup TAP library functions.

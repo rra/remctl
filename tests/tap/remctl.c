@@ -4,6 +4,9 @@
  * Provides functions to start and stop a remctl daemon that uses the test
  * Kerberos environment and runs on port 14373 instead of the default 4373.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  * Copyright 2006, 2007, 2009, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -105,7 +108,7 @@ remctld_start(const char *remctld, const char *principal, const char *config,
             execv(remctld, (char * const *) argv);
         _exit(1);
     } else {
-        for (n = 0; n < 100 && access(pidfile, F_OK) != 0; n++) {
+        for (n = 0; n < 1000 && access(pidfile, F_OK) != 0; n++) {
             tv.tv_sec = (getenv("VALGRIND") != NULL) ? 1 : 0;
             tv.tv_usec = 10000;
             select(0, NULL, NULL, NULL, &tv);
