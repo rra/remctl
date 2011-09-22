@@ -23,6 +23,9 @@ remctl 2.19 (unreleased)
     Close a client memory leak caused by the GSS-API context not being
     freed by the client in remctl_close.
 
+    When calling remctl_open on an existing struct remctl object, send
+    QUIT to the server if a connection is already open.
+
     remctld can be configured to pass the subcommand on standard input,
     but the documentation said this was not allowed.  Fix the
     documentation to match the implementation.

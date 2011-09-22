@@ -295,8 +295,11 @@ int
 remctl_open(struct remctl *r, const char *host, unsigned short port,
             const char *principal)
 {
-    if (r->fd != -1)
+    if (r->fd != -1) {
+        if (r->protocol > 1)
+            internal_v2_quit(r);
         socket_close(r->fd);
+    }
     if (r->error != NULL) {
         free(r->error);
         r->error = NULL;
