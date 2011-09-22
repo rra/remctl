@@ -21,7 +21,7 @@
  * members of the struct.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2008
+ * Copyright 2007, 2008, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -106,6 +106,16 @@ DESTROY(self)
   CODE:
     if (self != NULL)
         remctl_close(self);
+
+void
+remctl_set_source_ip(self, source)
+    Net::Remctl self
+    const char *source
+  PPCODE:
+    if (remctl_set_source_ip(self, source))
+        XSRETURN_YES;
+    else
+        XSRETURN_UNDEF;
 
 void
 remctl_open(self, host, ...)

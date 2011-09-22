@@ -5,7 +5,7 @@
 # file contains the bootstrap and export code and the documentation.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2007, 2008
+# Copyright 2007, 2008, 2011
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -163,6 +163,13 @@ allocate memory.
 Retrieves the error message from the last failing operation and returns it
 as a string.
 
+=item set_source_ip(SOURCE)
+
+Sets the source IP for outgoing connections to SOURCE, which can be either
+an IPv4 or an IPv6 address (if IPv6 is supported).  It must be an IP
+address, not a host name.  This method must be called prior to calling
+open()and will affect all subsequent open() calls on the same object.
+
 =item open(HOSTNAME[, PORT[, PRINCIPAL]])
 
 Connect to HOSTNAME on port PORT using PRINCIPAL as the remote server's
@@ -290,8 +297,8 @@ Russ Allbery <rra@stanford.edu>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007, 2008 The Board of Trustees of the Leland Stanford Junior
-University.  All rights reserved.
+Copyright 2007, 2008, 2011 The Board of Trustees of the Leland Stanford
+Junior University.  All rights reserved.
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose and without fee is hereby granted, provided

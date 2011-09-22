@@ -4,12 +4,12 @@
 # larger remctl build tree and uses the built remctld for testing.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2007, 2008, 2009
+# Copyright 2007, 2008, 2009, 2011
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
 
-BEGIN { our $total = 30 }
+BEGIN { our $total = 40 }
 use Test::More tests => $total;
 
 use Net::Remctl;
@@ -134,6 +134,23 @@ SKIP: {
     is ($output->type, 'error', '... of type error');
     is ($output->data, 'Unknown command', '... with the error message');
     is ($output->error, 5, '... and the right code');
+
+    # Complex interface with source IP.
+    $remctl = Net::Remctl->new;
+    isa_ok ($remctl, 'Net::Remctl', 'Object');
+    is ($remctl->error, 'no error', '... no error set');
+    is ($remctl->set_source_ip ('127.0.0.1'), 1, 'Set source IP');
+    is ($remctl->error, 'no error', '... no error set');
+    ok ($remctl->open ('127.0.0.1', 14373, $principal), 'Connect to server');
+    is ($remctl->error, 'no error', '... no error set');
+
+    # Complex interface with unworkable source IP.
+    is ($remctl->set_source_ip ('::1'), 1, 'Set source IP to ::1');
+    is ($remctl->error, 'no error', '... no error set');
+    ok (!$remctl->open ('127.0.0.1', 14373, $principal),
+        'Cannot connect to server');
+    like ($remctl->error, qr/^(cannot connect to|unknown host) /,
+          '... with correct error');
 }
 
 END {

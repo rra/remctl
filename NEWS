@@ -2,10 +2,10 @@
 
 remctl 2.19 (unreleased)
 
-    Add new remctl_set_source_ip function to the remctl library API.  Call
-    this function after remctl_new and before remctl_open to set the
-    source IP address that will be used for subequent client connections
-    to a remctl server.
+    Add new remctl_set_source_ip function to the remctl library API and
+    the Perl bindings.  Call this function after remctl_new and before
+    remctl_open to set the source IP address that will be used for
+    subequent client connections to a remctl server.
 
     Add new remctl_set_ccache function to the remctl library API.  Call
     this function after remctl_new and before remctl_open to set the
