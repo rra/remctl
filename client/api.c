@@ -257,7 +257,7 @@ remctl_set_ccache(struct remctl *r, const char *ccache)
 int
 remctl_set_ccache(struct remctl *r, const char *ccache UNUSED)
 {
-    internal_set_error(r, "setting Kerberos ticket cache not supported");
+    internal_set_error(r, "setting credential cache not supported");
     return 0;
 }
 #endif /* !HAVE_GSS_KRB5_CCACHE_NAME */
