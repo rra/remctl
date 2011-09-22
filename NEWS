@@ -37,6 +37,9 @@ remctl 2.19 (unreleased)
     latter is used by the Kerberos libraries to specify an alternative
     path to krb5.conf.
 
+    Fix the Ruby bindings test suite to test against the newly-built
+    libremctl and Ruby module rather than any installed on the system.
+
     Update to rra-c-util 3.9:
 
     * Add notices in each file copied from rra-c-util.

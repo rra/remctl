@@ -389,7 +389,8 @@ check-local: $(check_PROGRAMS)
 	fi
 	@set -e; if [ -f ruby/Makefile ] ; then \
 	    echo '' ; \
-	    cd ruby && $(RUBY) test_remctl.rb ; \
+	    cd ruby && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
+		$(RUBY) -I. test_remctl.rb ; \
 	fi
 
 # Used for hooking in the build of optional language bindings.
