@@ -47,7 +47,8 @@ module Helpers
 
   def run_kinit
     ENV['KRB5CCNAME'] = 'data/test.cache'
-    commands = ['kinit -k -t data/test.keytab ' + @principal,
+    commands = ['kinit --no-afslog -k -t data/test.keytab ' + @principal,
+                'kinit -k -t data/test.keytab ' + @principal,
                 'kinit -t data/test.keytab ' + @principal,
                 'kinit -k -K data/test.keytab ' + @principal]
     commands.each do |command|

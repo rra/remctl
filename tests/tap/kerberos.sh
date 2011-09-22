@@ -4,7 +4,7 @@
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2009, 2010
+# Copyright 2009, 2010, 2011
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -37,8 +37,12 @@ kerberos_setup () {
         return 1
     fi
     KRB5CCNAME="$BUILD/data/test.cache"; export KRB5CCNAME
-    kinit -k -t "$keytab" "$principal" >/dev/null </dev/null
+    kinit --no-afslog -k -t "$keytab" "$principal" >/dev/null </dev/null
     status=$?
+    if [ $status != 0 ] ; then
+        kinit -k -t "$keytab" "$principal" >/dev/null </dev/null
+        status=$?
+    fi
     if [ $status != 0 ] ; then
         kinit -t "$keytab" "$principal" >/dev/null </dev/null
         status=$?

@@ -59,7 +59,8 @@ sub run_kinit {
     $ENV{KRB5CCNAME} = 'data/test.cache';
     my $princ = get_principal;
     return unless $princ;
-    my @commands = ([ qw(kinit -k -t data/test.keytab), $princ ],
+    my @commands = ([ qw(kinit --no-afslog -k -t data/test.keytab), $princ ],
+                    [ qw(kinit -k -t data/test.keytab), $princ ],
                     [ qw(kinit -t data/test.keytab), $princ ],
                     [ qw(kinit -k -K data/test.keytab), $princ ]);
     my $status;

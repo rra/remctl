@@ -66,9 +66,11 @@ class TestRemctl(unittest.TestCase):
     def run_kinit(self):
         os.environ['KRB5CCNAME'] = 'data/test.cache'
         self.principal = self.get_principal()
-        commands = ('kinit -k -t data/test.keytab ' + self.principal,
-                    'kinit -t data/test.keytab ' + self.principal,
-                    'kinit -k -K data/test.keytab ' + self.principal)
+        commands = (
+            'kinit --no-afslog -k -t data/test.keytab ' + self.principal,
+            'kinit -k -t data/test.keytab ' + self.principal,
+            'kinit -t data/test.keytab ' + self.principal,
+            'kinit -k -K data/test.keytab ' + self.principal)
         for command in commands:
             if os.system(command + ' >/dev/null </dev/null') == 0:
                 return True
