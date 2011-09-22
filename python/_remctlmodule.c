@@ -137,6 +137,22 @@ py_remctl_new(PyObject *self, PyObject *args)
 
 
 static PyObject *
+py_remctl_set_source_ip(PyObject *self, PyObject *args)
+{
+    PyObject *object = NULL;
+    struct remctl *r;
+    char *source = NULL;
+    int status;
+
+    if (!PyArg_ParseTuple(args, "Os", &object, &source))
+        return NULL;
+    r = PyCObject_AsVoidPtr(object);
+    status = remctl_set_source_ip(r, source);
+    return Py_BuildValue("i", status);
+}
+
+
+static PyObject *
 py_remctl_open(PyObject *self, PyObject *args)
 {
     PyObject *object = NULL;
@@ -264,14 +280,15 @@ py_remctl_output(PyObject *self, PyObject *args)
 
 
 static PyMethodDef methods[] = {
-    { "remctl",          py_remctl,          METH_VARARGS, NULL },
-    { "remctl_new",      py_remctl_new,      METH_VARARGS, NULL },
-    { "remctl_open",     py_remctl_open,     METH_VARARGS, NULL },
-    { "remctl_close",    py_remctl_close,    METH_VARARGS, NULL },
-    { "remctl_error",    py_remctl_error,    METH_VARARGS, NULL },
-    { "remctl_commandv", py_remctl_commandv, METH_VARARGS, NULL },
-    { "remctl_output",   py_remctl_output,   METH_VARARGS, NULL },
-    { NULL,              NULL,               0,            NULL },
+    { "remctl",               py_remctl,               METH_VARARGS, NULL },
+    { "remctl_new",           py_remctl_new,           METH_VARARGS, NULL },
+    { "remctl_set_source_ip", py_remctl_set_source_ip, METH_VARARGS, NULL },
+    { "remctl_open",          py_remctl_open,          METH_VARARGS, NULL },
+    { "remctl_close",         py_remctl_close,         METH_VARARGS, NULL },
+    { "remctl_error",         py_remctl_error,         METH_VARARGS, NULL },
+    { "remctl_commandv",      py_remctl_commandv,      METH_VARARGS, NULL },
+    { "remctl_output",        py_remctl_output,        METH_VARARGS, NULL },
+    { NULL,                   NULL,                    0,            NULL },
 };
 
 

@@ -178,6 +178,18 @@ class TestRemctlFull(TestRemctl):
         self.assertEqual(error, 5)
 
     @needs_kerberos
+    def test_source_ip(self):
+        r = remctl.Remctl()
+        r.set_source_ip('127.0.0.1')
+        r.open('127.0.0.1', 14373, self.principal)
+        r.set_source_ip('::1')
+        pattern = '(cannot connect to|unknown host) .*'
+        try:
+            r.open('127.0.0.1', 14373, self.principal)
+        except remctl.RemctlError, error:
+            self.assert_(re.compile(pattern).match(str(error)))
+
+    @needs_kerberos
     def test_full_errors(self):
         r = remctl.Remctl()
         try:
