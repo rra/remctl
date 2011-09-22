@@ -6,7 +6,7 @@
  *
  * Original implementation by Anthony M. Martinez <twopir@nmt.edu>
  * Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
- * Copyright 2010
+ * Copyright 2010, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -61,7 +61,8 @@ void Init_remctl(void);
 static VALUE cRemctl, cRemctlResult, eRemctlError, eRemctlNotOpen;
 
 /* Since we can't have @ in our names here... */
-static ID AAdefault_port, AAdefault_principal, Ahost, Aport, Aprincipal;
+static ID AAdefault_port, AAdefault_principal, AAsource_ip;
+static ID Ahost, Aport, Aprincipal;
 
 /* Map the remctl_output type constants to strings. */
 const struct {
@@ -231,6 +232,36 @@ rb_remctl_default_principal_set(VALUE self UNUSED, VALUE new)
 }
 
 
+/* call-seq:
+ * Remctl.source_ip  -> nil
+ *
+ * Return the default source IP used for a Remctl complex connection.  A value
+ * of nil says to let the kernel assign a source IP.
+ */
+static VALUE
+rb_remctl_source_ip_get(VALUE self UNUSED)
+{
+    return rb_cvar_get(cRemctl, AAsource_ip);
+}
+
+
+/* call-seq:
+ * Remctl.source_ip = '127.0.0.1'  -> 0
+ *
+ * Change the source IP used for a new instance of a complex connection.  A
+ * value of nil indicates the default port.
+ */
+static VALUE
+rb_remctl_source_ip_set(VALUE self UNUSED, VALUE new)
+{
+    if (NIL_P(new))
+        rb_cvar_set(cRemctl, AAsource_ip, Qnil);
+    else
+        rb_cvar_set(cRemctl, AAsource_ip, StringValue(new));
+    return rb_cvar_get(cRemctl, AAsource_ip);
+}
+
+
 /*
  * Destructor for a Remctl object.  Closes the connection and frees the
  * underlying memory.
@@ -284,7 +315,7 @@ static VALUE
 rb_remctl_reopen(VALUE self)
 {
     struct remctl *r;
-    VALUE vhost, vport, vprinc;
+    VALUE vhost, vport, vprinc, vdefsource;
     char *host, *princ;
     unsigned int port;
 
@@ -294,6 +325,12 @@ rb_remctl_reopen(VALUE self)
     r = remctl_new();
     if (r == NULL)
         rb_raise(rb_eNoMemError, "remctl");
+
+    /* Set the source IP if needed. */
+    vdefsource = rb_cvar_get(cRemctl, AAsource_ip);
+    if (!NIL_P(vdefsource))
+        if (!remctl_set_source_ip(r, StringValuePtr(vdefsource)))
+            rb_raise(eRemctlError, "%s", remctl_error(r));
 
     /* Retrieve the stored host, port, and principal values. */
     vhost  = rb_ivar_get(self, Ahost);
@@ -439,6 +476,7 @@ Init_remctl(void)
      */
     AAdefault_port      = rb_intern("@@default_port");
     AAdefault_principal = rb_intern("@@default_principal");
+    AAsource_ip         = rb_intern("@@source_ip");
     Ahost               = rb_intern("@host");
     Aport               = rb_intern("@port");
     Aprincipal          = rb_intern("@principal");
@@ -446,6 +484,7 @@ Init_remctl(void)
     /* Default values for class variables. */
     rb_cvar_set(cRemctl, AAdefault_port, UINT2NUM(0));
     rb_cvar_set(cRemctl, AAdefault_principal, Qnil);
+    rb_cvar_set(cRemctl, AAsource_ip, Qnil);
 
     /* Getter and setter methods for class variables. */
     rb_define_singleton_method(cRemctl, "default_port",
@@ -456,6 +495,10 @@ Init_remctl(void)
                                rb_remctl_default_principal_get, 0);
     rb_define_singleton_method(cRemctl, "default_principal=",
                                rb_remctl_default_principal_set, 1);
+    rb_define_singleton_method(cRemctl, "source_ip",
+                               rb_remctl_source_ip_get, 0);
+    rb_define_singleton_method(cRemctl, "source_ip=",
+                               rb_remctl_source_ip_set, 1);
 
     /* Create the Remctl class. */
     rb_define_alloc_func(cRemctl, rb_remctl_alloc);

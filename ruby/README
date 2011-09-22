@@ -99,6 +99,10 @@ FULL INTERFACE
       not given, the library default (host/<host> with the realm
       determined by the domain-realm mapping) is used.
 
+      Normally, the source IP used to connect to the server is assigned by
+      the kernel.  To use a specific source IP, assign that IP address (as
+      a string) to Remctl.source_ip before calling Remctl.new.
+
       Exceptions:
 
       * ArgumentError, TypeError: an invalid argument was supplied

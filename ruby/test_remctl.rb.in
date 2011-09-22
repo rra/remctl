@@ -185,6 +185,18 @@ class TC_RemctlFull < Test::Unit::TestCase
     assert_equal(output[4], 5)
   end
 
+  def test_full_source_ip
+    unless configured? then return end
+    Remctl.source_ip = '127.0.0.1'
+    r = Remctl.new('127.0.0.1', 14373, @principal)
+    r.close
+    Remctl.source_ip = '::1'
+    assert_raise Remctl::Error do
+      Remctl.new('127.0.0.1', 14374, @principal)
+    end
+    Remctl.source_ip = nil
+  end
+
   def test_full_errors
     unless configured? then return end
     assert_raise ArgumentError do Remctl.new end
