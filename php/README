@@ -109,6 +109,13 @@ FULL INTERFACE
       Returns, as a string, the error message from the last failed
       operation on the connection object CONNECTION.
 
+  remctl_set_source_ip(SOURCE)
+      Sets the source IP for outgoing connections to SOURCE, which can be
+      either an IPv4 or an IPv6 address (if IPv6 is supported).  It must
+      be an IP address, not a host name.  This method must be called prior
+      to calling remctl_open() and will affect all subsequent
+      remctl_open() calls on the same object.
+
   remctl_open(CONNECTION, HOSTNAME[, PORT[, PRINCIPAL]])
       Connect to HOSTNAME on port PORT using PRINCIPAL as the remote
       server's principal for authentication.  If PORT is omitted or 0, use

@@ -213,7 +213,7 @@ if GCC
 	-Wno-strict-prototypes -Wno-redundant-decls -Wno-shadow
     PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
 	-Wno-missing-prototypes -Wno-unused-parameter \
-	-Wno-redundant-decls
+	-Wno-redundant-decls -Wno-sign-compare
     PYTHON_WARNINGS = -Wno-unused-parameter
     RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
 else
