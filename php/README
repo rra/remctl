@@ -109,12 +109,33 @@ FULL INTERFACE
       Returns, as a string, the error message from the last failed
       operation on the connection object CONNECTION.
 
+  remctl_set_ccache(CCACHE)
+      Sets the credential cache for outgoing connections to CCACHE.  This
+      is normally the full path to a Kerberos ticket cache, but may have
+      other valid forms depending on the underlying Kerberos
+      implementation in use by GSS-API.  This method must be called prior
+      to calling remctl_open() and will affect all subsequent
+      remctl_open() calls on the same object.  Returns true on success,
+      false on failure.
+
+      For current GSS-API implementations, this will affect not only all
+      subsequent open() calls for the same object, but all subsequent
+      remctl connections of any kind from the same process, and even other
+      GSS-API connections from the same process unrelated to remctl.  This
+      is due to a limitation in the GSS-API that makes this setting a
+      global setting for the process or thread.
+
+      Not all GSS-API implementations support setting the credential
+      cache.  If this is not supported, false (for failure) will be
+      returned.
+
   remctl_set_source_ip(SOURCE)
       Sets the source IP for outgoing connections to SOURCE, which can be
       either an IPv4 or an IPv6 address (if IPv6 is supported).  It must
       be an IP address, not a host name.  This method must be called prior
       to calling remctl_open() and will affect all subsequent
-      remctl_open() calls on the same object.
+      remctl_open() calls on the same object.  Returns true on success,
+      false on failure.
 
   remctl_open(CONNECTION, HOSTNAME[, PORT[, PRINCIPAL]])
       Connect to HOSTNAME on port PORT using PRINCIPAL as the remote
