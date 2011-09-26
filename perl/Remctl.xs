@@ -108,6 +108,16 @@ DESTROY(self)
         remctl_close(self);
 
 void
+remctl_set_ccache(self, ccache)
+    Net::Remctl self
+    const char *ccache
+  PPCODE:
+    if (remctl_set_ccache(self, ccache))
+        XSRETURN_YES;
+    else
+        XSRETURN_UNDEF;
+
+void
 remctl_set_source_ip(self, source)
     Net::Remctl self
     const char *source

@@ -9,7 +9,7 @@
 #
 # See LICENSE for licensing terms.
 
-BEGIN { our $total = 40 }
+BEGIN { our $total = 44 }
 use Test::More tests => $total;
 
 use Net::Remctl;
@@ -152,6 +152,19 @@ SKIP: {
         'Cannot connect to server');
     like ($remctl->error, qr/^(cannot connect to|unknown host) /,
           '... with correct error');
+
+    # Get the current ticket cache location and then change KRB5CCNAME.
+    # Connecting should then fail since we have no ticket cache.
+    my $cache = $ENV{KRB5CCNAME};
+    $ENV{KRB5CCNAME} = './nonexistent-file';
+    $remctl = Net::Remctl->new;
+    isa_ok ($remctl, 'Net::Remctl', 'Object');
+    ok (!$remctl->open ('localhost', 14373, $principal),
+        'Cannot connect without cache');
+
+    # Set the ticket cache, and then open should work.
+    ok ($remctl->set_ccache ($cache), 'Setting credential cache');
+    ok ($remctl->open ('localhost', 14373, $principal), 'Connect now works');
 }
 
 END {

@@ -163,12 +163,27 @@ allocate memory.
 Retrieves the error message from the last failing operation and returns it
 as a string.
 
+=item set_ccache(CCACHE)
+
+Sets the GSS-API credential cache for outgoing connections to CCACHE,
+which is normally the path to a Kerberos ticket cache but may have other
+valid forms depending on the underlying Kerberos implementation in use by
+GSS-API.  This method must be called prior to calling open() and will
+affect all subsequent open() calls on at least the same object.
+
+For current GSS-API implementations, this will affect not only all
+subsequent open() calls for the same object, but all subsequent remctl
+connections of any kind from the same process, and even other GSS-API
+connections from the same process unrelated to remctl.  This is due to a
+limitation in the GSS-API that makes this setting a global setting for the
+process or thread.
+
 =item set_source_ip(SOURCE)
 
 Sets the source IP for outgoing connections to SOURCE, which can be either
 an IPv4 or an IPv6 address (if IPv6 is supported).  It must be an IP
 address, not a host name.  This method must be called prior to calling
-open()and will affect all subsequent open() calls on the same object.
+open() and will affect all subsequent open() calls on the same object.
 
 =item open(HOSTNAME[, PORT[, PRINCIPAL]])
 
