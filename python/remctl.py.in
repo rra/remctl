@@ -112,6 +112,10 @@ class Remctl:
         if host != None:
             self.open(host, port, principal)
 
+    def set_ccache(self, ccache):
+        if not _remctl.remctl_set_ccache(self.r, ccache):
+            raise RemctlError, self.error()
+
     def set_source_ip(self, source):
         if not _remctl.remctl_set_source_ip(self.r, source):
             raise RemctlError, self.error()

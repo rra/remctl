@@ -137,6 +137,22 @@ py_remctl_new(PyObject *self, PyObject *args)
 
 
 static PyObject *
+py_remctl_set_ccache(PyObject *self, PyObject *args)
+{
+    PyObject *object = NULL;
+    struct remctl *r;
+    char *ccache = NULL;
+    int status;
+
+    if (!PyArg_ParseTuple(args, "Os", &object, &ccache))
+        return NULL;
+    r = PyCObject_AsVoidPtr(object);
+    status = remctl_set_ccache(r, ccache);
+    return Py_BuildValue("i", status);
+}
+
+
+static PyObject *
 py_remctl_set_source_ip(PyObject *self, PyObject *args)
 {
     PyObject *object = NULL;
@@ -282,6 +298,7 @@ py_remctl_output(PyObject *self, PyObject *args)
 static PyMethodDef methods[] = {
     { "remctl",               py_remctl,               METH_VARARGS, NULL },
     { "remctl_new",           py_remctl_new,           METH_VARARGS, NULL },
+    { "remctl_set_ccache",    py_remctl_set_ccache,    METH_VARARGS, NULL },
     { "remctl_set_source_ip", py_remctl_set_source_ip, METH_VARARGS, NULL },
     { "remctl_open",          py_remctl_open,          METH_VARARGS, NULL },
     { "remctl_close",         py_remctl_close,         METH_VARARGS, NULL },

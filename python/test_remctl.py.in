@@ -180,6 +180,25 @@ class TestRemctlFull(TestRemctl):
         self.assertEqual(error, 5)
 
     @needs_kerberos
+    def test_ccache(self):
+        r = remctl.Remctl()
+        os.environ['KRB5CCNAME'] = 'nonexistent-file'
+        try:
+            r.open('localhost', 14373, self.principal)
+            self.fail('open without ticket cache succeeded')
+        except RemctlError, error:
+            pass
+        okay = False
+        try:
+            r.set_ccache('data/test.cache')
+            okay = True
+        except RemctlError, error:
+            pass
+        if okay:
+            r.open('localhost', 14373, self.principal)
+        r.close()
+
+    @needs_kerberos
     def test_source_ip(self):
         r = remctl.Remctl()
         r.set_source_ip('127.0.0.1')
