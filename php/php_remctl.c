@@ -31,6 +31,7 @@ static int le_remctl_internal;
 static zend_function_entry remctl_functions[] = {
     ZEND_FE(remctl,               NULL)
     ZEND_FE(remctl_new,           NULL)
+    ZEND_FE(remctl_set_ccache,    NULL)
     ZEND_FE(remctl_set_source_ip, NULL)
     ZEND_FE(remctl_open,          NULL)
     ZEND_FE(remctl_close,         NULL)
@@ -211,6 +212,30 @@ ZEND_FUNCTION(remctl_new)
         RETURN_NULL();
     }
     ZEND_REGISTER_RESOURCE(return_value, r, le_remctl_internal);
+}
+
+
+/*
+ * Set the credential cache for subsequent connections with remctl_open.
+ */
+ZEND_FUNCTION(remctl_set_ccache)
+{
+    struct remctl *r;
+    zval *zrem;
+    char *ccache;
+    int clen, status;
+
+    status = zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zrem,
+                 &ccache, &clen);
+    if (status == FAILURE) {
+        zend_error(E_WARNING, "remctl_set_ccache: invalid parameters\n");
+        RETURN_FALSE;
+    }
+    ZEND_FETCH_RESOURCE(r, struct remctl *, &zrem, -1, PHP_REMCTL_RES_NAME,
+        le_remctl_internal);
+    if (!remctl_set_ccache(r, ccache))
+        RETURN_FALSE;
+    RETURN_TRUE;
 }
 
 

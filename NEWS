@@ -10,7 +10,7 @@ remctl 2.19 (unreleased)
     rather than a separate method.
 
     Add new remctl_set_ccache function to the remctl library API and the
-    Perl bindings.  Call this function after remctl_new and before
+    Perl and PHP bindings.  Call this function after remctl_new and before
     remctl_open to set the Kerberos credential cache that will be used for
     client authentication, overriding KRB5CCNAME.  Be aware that this will
     normally change the default credential cache for all other GSS-API
