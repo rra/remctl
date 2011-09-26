@@ -9,7 +9,7 @@
 #
 # See LICENSE for licensing terms.
 
-BEGIN { our $total = 44 }
+BEGIN { our $total = 43 }
 use Test::More tests => $total;
 
 use Net::Remctl;
@@ -163,8 +163,12 @@ SKIP: {
         'Cannot connect without cache');
 
     # Set the ticket cache, and then open should work.
-    ok ($remctl->set_ccache ($cache), 'Setting credential cache');
-    ok ($remctl->open ('localhost', 14373, $principal), 'Connect now works');
+  SKIP: {
+        skip 'gss_krb5_set_ccache not supported', 1
+            unless $remctl->set_ccache ($cache);
+        ok ($remctl->open ('localhost', 14373, $principal),
+            'Connect now works');
+    }
 }
 
 END {
