@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on prior work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -26,7 +26,8 @@ enum message_types {
     MESSAGE_OUTPUT  = 3,
     MESSAGE_STATUS  = 4,
     MESSAGE_ERROR   = 5,
-    MESSAGE_VERSION = 6
+    MESSAGE_VERSION = 6,
+    MESSAGE_NOOP    = 7
 };
 
 /* Windows uses this for something else. */

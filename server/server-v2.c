@@ -165,13 +165,44 @@ server_v2_send_version(struct client *client)
     token.value = &buffer;
     buffer[0] = 2;
     buffer[1] = MESSAGE_VERSION;
-    buffer[2] = 2;
+    buffer[2] = 3;
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
                  TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending version token", status, major, minor);
+        client->fatal = true;
+        return false;
+    }
+    return true;
+}
+
+
+/*
+ * Given the client struct, send a protocol v3 no-op token to the client.
+ * This is the response to a no-op token.  Returns true on success, false on
+ * failure (and logs a message on failure).
+ */
+static bool
+server_v3_send_noop(struct client *client)
+{
+    gss_buffer_desc token;
+    char buffer[1 + 1];
+    OM_uint32 major, minor;
+    int status;
+
+    /* Build the version token. */
+    token.length = 1 + 1;
+    token.value = &buffer;
+    buffer[0] = 3;
+    buffer[1] = MESSAGE_NOOP;
+
+    /* Send the token. */
+    status = token_send_priv(client->fd, client->context,
+                 TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
+    if (status != TOKEN_OK) {
+        warn_token("sending no-op token", status, major, minor);
         client->fatal = true;
         return false;
     }
@@ -221,6 +252,7 @@ server_v2_handle_token(struct client *client, struct config *config,
     bool result = false;
     bool allocated = false;
     bool continued = false;
+    bool keepalive = false;
 
     /*
      * Loop on tokens until we have a complete command, allowing for continued
@@ -231,12 +263,23 @@ server_v2_handle_token(struct client *client, struct config *config,
     total = 0;
     do {
         p = token->value;
-        if (p[0] != 2) {
+        if (p[0] != 2 && p[0] != 3) {
             result = server_v2_send_version(client);
             goto fail;
         } else if (p[1] == MESSAGE_QUIT) {
             debug("quit received, closing connection");
             result = false;
+            goto fail;
+        } else if (p[1] == MESSAGE_NOOP) {
+            if (continued) {
+                warn("noop message in middle of continued command");
+                result = server_send_error(client, ERROR_BAD_COMMAND,
+                                           "Invalid command token");
+                goto fail;
+            }
+            debug("replying to no-op message");
+            result = server_v3_send_noop(client);
+            client->keepalive = true;
             goto fail;
         } else if (p[1] != MESSAGE_COMMAND) {
             warn("unknown message type %d from client", (int) p[1]);
@@ -300,7 +343,7 @@ server_v2_handle_token(struct client *client, struct config *config,
             buffer = p;
             total = length;
         }
-    } while (continued);
+    } while (continued || keepalive);
 
     /*
      * Okay, we now have a complete command that was possibly spread over
