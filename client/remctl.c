@@ -7,7 +7,7 @@
  *
  * Originally written by Anton Ushakov
  * Extensive modifications by Russ Allbery <rra@stanford.edu>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -29,6 +29,7 @@ static const char usage_message[] = "\
 Usage: remctl <options> <host> <command> [<subcommand> [<parameters>]]\n\
 \n\
 Options:\n\
+    -b <source>   Source IP used for outgoing connections\n\
     -d            Debugging level of output\n\
     -h            Display this help\n\
     -p <port>     remctld port (default: 4373 falling back to 4444)\n\
@@ -104,7 +105,8 @@ main(int argc, char *argv[])
     int option, status;
     char *server_host;
     struct addrinfo hints, *ai;
-    char *service_name = NULL;
+    const char *source = NULL;
+    const char *service_name = NULL;
     unsigned short port = 0;
     struct remctl *r;
     int errorcode = 0;
@@ -121,8 +123,11 @@ main(int argc, char *argv[])
      * Non-GNU getopt will treat the + as a supported option, which is handled
      * below.
      */
-    while ((option = getopt(argc, argv, "+dhp:s:v")) != EOF) {
+    while ((option = getopt(argc, argv, "+b:dhp:s:v")) != EOF) {
         switch (option) {
+        case 'b':
+            source = optarg;
+            break;
         case 'd':
             message_handlers_debug(1, message_log_stderr);
             break;
@@ -196,6 +201,9 @@ main(int argc, char *argv[])
     r = remctl_new();
     if (r == NULL)
         sysdie("cannot initialize remctl connection");
+    if (source != NULL)
+        if (!remctl_set_source_ip(r, source))
+            die("%s", remctl_error(r));
     if (!remctl_open(r, server_host, port, service_name))
         die("%s", remctl_error(r));
 
