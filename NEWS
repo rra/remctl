@@ -10,12 +10,14 @@ remctl 2.19 (unreleased)
     rather than a separate method.
 
     Add new remctl_set_ccache function to the remctl library API and the
-    Perl, PHP, and Python bindings.  Call this function after remctl_new
-    and before remctl_open to set the Kerberos credential cache that will
-    be used for client authentication, overriding KRB5CCNAME.  Be aware
-    that this will normally change the default credential cache for all
-    other GSS-API operations in this context or thread, not just for that
-    remctl object, due to GSS-API limitations.
+    Perl, PHP, Python, and Ruby bindings.  Call this function after
+    remctl_new and before remctl_open to set the Kerberos credential cache
+    that will be used for client authentication, overriding KRB5CCNAME.
+    Be aware that this will normally change the default credential cache
+    for all other GSS-API operations in this context or thread, not just
+    for that remctl object, due to GSS-API limitations.  For the Ruby
+    bindings, this is implemented as the ccache class variable rather than
+    a separate method.
 
     In the client, only check the negotiated GSS-API context flags after
     the context has been fully established.  Current versions of Heimdal,

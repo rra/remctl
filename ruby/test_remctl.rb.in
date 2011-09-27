@@ -186,6 +186,20 @@ class TC_RemctlFull < Test::Unit::TestCase
     assert_equal(output[4], 5)
   end
 
+  def test_full_ccache
+    unless configured? then return end
+    ENV['KRB5CCNAME'] = 'nonexistent-file'
+    assert_raise Remctl::Error do
+      Remctl.new('127.0.0.1', 14373, @principal)
+    end
+    Remctl.ccache = 'data/test.cache'
+    begin
+      Remctl.new('127.0.0.1', 14373, @principal)
+    rescue Remctl::Error
+      assert_equal('setting credential cache not supported', $!.to_s)
+    end
+  end
+
   def test_full_source_ip
     unless configured? then return end
     Remctl.source_ip = '127.0.0.1'
@@ -193,7 +207,7 @@ class TC_RemctlFull < Test::Unit::TestCase
     r.close
     Remctl.source_ip = '::1'
     assert_raise Remctl::Error do
-      Remctl.new('127.0.0.1', 14374, @principal)
+      Remctl.new('127.0.0.1', 14373, @principal)
     end
     Remctl.source_ip = nil
   end

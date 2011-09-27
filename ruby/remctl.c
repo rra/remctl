@@ -61,7 +61,7 @@ void Init_remctl(void);
 static VALUE cRemctl, cRemctlResult, eRemctlError, eRemctlNotOpen;
 
 /* Since we can't have @ in our names here... */
-static ID AAdefault_port, AAdefault_principal, AAsource_ip;
+static ID AAdefault_port, AAdefault_principal, AAccache, AAsource_ip;
 static ID Ahost, Aport, Aprincipal;
 
 /* Map the remctl_output type constants to strings. */
@@ -233,6 +233,39 @@ rb_remctl_default_principal_set(VALUE self UNUSED, VALUE new)
 
 
 /* call-seq:
+ * Remctl.ccache  -> nil
+ *
+ * Return the last set credential cache location for new remctl connections.
+ * This will only return values set through the remctl library, not query
+ * GSS-API for its underlying setting.
+ */
+static VALUE
+rb_remctl_ccache_get(VALUE self UNUSED)
+{
+    return rb_cvar_get(cRemctl, AAccache);
+}
+
+
+/* call-seq:
+ * Remctl.ccahe = '/path/to/some/file'  -> 0
+ *
+ * Change the credential cache used for new remctl connections.  This will
+ * also, with most GSS-API implementations, affect all other GSS-API
+ * connections in the same process, including other remctl objects, once the
+ * value is used during open.
+ */
+static VALUE
+rb_remctl_ccache_set(VALUE self UNUSED, VALUE new)
+{
+    if (NIL_P(new))
+        rb_cvar_set(cRemctl, AAccache, Qnil);
+    else
+        rb_cvar_set(cRemctl, AAccache, StringValue(new));
+    return rb_cvar_get(cRemctl, AAccache);
+}
+
+
+/* call-seq:
  * Remctl.source_ip  -> nil
  *
  * Return the default source IP used for a Remctl complex connection.  A value
@@ -315,7 +348,7 @@ static VALUE
 rb_remctl_reopen(VALUE self)
 {
     struct remctl *r;
-    VALUE vhost, vport, vprinc, vdefsource;
+    VALUE vhost, vport, vprinc, vdefccache, vdefsource;
     char *host, *princ;
     unsigned int port;
 
@@ -325,6 +358,12 @@ rb_remctl_reopen(VALUE self)
     r = remctl_new();
     if (r == NULL)
         rb_raise(rb_eNoMemError, "remctl");
+
+    /* Set the credential cache if needed. */
+    vdefccache = rb_cvar_get(cRemctl, AAccache);
+    if (!NIL_P(vdefccache))
+        if (!remctl_set_ccache(r, StringValuePtr(vdefccache)))
+            rb_raise(eRemctlError, "%s", remctl_error(r));
 
     /* Set the source IP if needed. */
     vdefsource = rb_cvar_get(cRemctl, AAsource_ip);
@@ -476,6 +515,7 @@ Init_remctl(void)
      */
     AAdefault_port      = rb_intern("@@default_port");
     AAdefault_principal = rb_intern("@@default_principal");
+    AAccache            = rb_intern("@@ccache");
     AAsource_ip         = rb_intern("@@source_ip");
     Ahost               = rb_intern("@host");
     Aport               = rb_intern("@port");
@@ -484,6 +524,7 @@ Init_remctl(void)
     /* Default values for class variables. */
     rb_cvar_set(cRemctl, AAdefault_port, UINT2NUM(0));
     rb_cvar_set(cRemctl, AAdefault_principal, Qnil);
+    rb_cvar_set(cRemctl, AAccache, Qnil);
     rb_cvar_set(cRemctl, AAsource_ip, Qnil);
 
     /* Getter and setter methods for class variables. */
@@ -495,6 +536,10 @@ Init_remctl(void)
                                rb_remctl_default_principal_get, 0);
     rb_define_singleton_method(cRemctl, "default_principal=",
                                rb_remctl_default_principal_set, 1);
+    rb_define_singleton_method(cRemctl, "ccache",
+                               rb_remctl_ccache_get, 0);
+    rb_define_singleton_method(cRemctl, "ccache=",
+                               rb_remctl_ccache_set, 1);
     rb_define_singleton_method(cRemctl, "source_ip",
                                rb_remctl_source_ip_get, 0);
     rb_define_singleton_method(cRemctl, "source_ip=",
