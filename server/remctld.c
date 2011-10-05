@@ -204,9 +204,9 @@ server_handle_connection(int fd, struct config *config, gss_cred_id_t creds)
      * the client is done sending commands and we're done replying.
      */
     if (client->protocol == 1)
-        server_v1_handle_commands(client, config);
+        server_v1_handle_messages(client, config);
     else
-        server_v2_handle_commands(client, config);
+        server_v2_handle_messages(client, config);
 
     /* We're done; shut down the client connection. */
     server_free_client(client);

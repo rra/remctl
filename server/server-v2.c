@@ -374,7 +374,7 @@ fail:
  * terminated.
  */
 void
-server_v2_handle_commands(struct client *client, struct config *config)
+server_v2_handle_messages(struct client *client, struct config *config)
 {
     gss_buffer_desc token;
     OM_uint32 minor;
