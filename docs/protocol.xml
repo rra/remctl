@@ -16,7 +16,7 @@
         <uri>http://www.eyrie.org/~eagle/</uri>
       </address>
     </author>
-    <date month='September' year='2011' />
+    <date month='October' year='2011' />
 
     <abstract>
       <t>This document specifies the remctl wire protocol, used to send
@@ -223,13 +223,13 @@
 
         <t>If the continue status is 1, it indicates that there is more
         data coming.  The server should accept the data sent, buffer or
-        process it, and wait for more data before responding.  If the the
-        continue status is 2, it indicates that this message is logically
-        a part of the previous message (which MUST have had a continue
-        status of 1 or 2) and still has more data coming.  If the continue
-        status is 3, it says that this message is logically part of the
-        previous message, like 2, but it also says that this is the end of
-        the command.</t>
+        process it, and wait for additional messages before responding.
+        If the the continue status is 2, it indicates that this message is
+        logically a part of the previous message (which MUST have had a
+        continue status of 1 or 2) and still has more data coming.  If the
+        continue status is 3, it says that this message is logically part
+        of the previous message, like 2, but it also says that this is the
+        end of the command.</t>
 
         <t>A continuation of a message starts with the keep-alive flag and
         continue status and then the next chunk of data.  To reconstruct a
@@ -242,6 +242,26 @@
         first MESSAGE_COMMAND (with continue status 1) and the last octet
         would then be in the next MESSAGE_COMMAND (with continue status 2
         or 3).</t>
+
+        <t>For as long as the continue status is 1 or 2, the next message
+        from the client MUST be either another MESSAGE_COMMAND with a
+        continue status of 2 or 3 or a MESSAGE_QUIT.  In other words,
+        other message types MUST NOT be intermixed with continued
+        commands, but MESSAGE_QUIT may be sent by the client in the middle
+        of a continued command to abort that command.  If the server
+        receives MESSAGE_QUIT from the client before receiving a
+        MESSAGE_COMMAND with a status of 3 (indicating the end of the
+        command), the command MUST be discarded and not executed.</t>
+
+        <t>If a client sends an invalid sequence of MESSAGE_COMMAND
+        messages that violate the continuation rules described above, the
+        server SHOULD reply with a MESSAGE_ERROR message, generally with
+        either ERROR_BAD_TOKEN, ERROR_UNKNOWN_MESSAGE, ERROR_BAD_COMMAND,
+        or ERROR_UNEXPECTED_MESSAGE error codes.  It MUST discard the
+        partial command without acting on it.  The client cannot correct
+        an error in a continued MESSAGE_COMMAND stream by resending the
+        previous part.  It MUST start again at the beginning with a
+        MESSAGE_COMMAND with a continue status of 0 or 1.</t>
 
         <t>Number of arguments is a four-octet number in network byte
         order that gives the total number of command arguments.  For each
@@ -326,6 +346,7 @@
     6  ERROR_ACCESS             Access denied
     7  ERROR_TOOMANY_ARGS       Argument count exceeds server limit
     8  ERROR_TOOMUCH_DATA       Argument size exceeds server limit
+    9  ERROR_UNEXPECTED_MESSAGE Message type not valid now
           </artwork>
         </figure>
 
