@@ -7,6 +7,17 @@ remctl 3.0 (unreleased)
     This can be used to keep a persistent remctl connection alive despite
     network session timeouts.
 
+    Be more explicit in the protocol about handling of continuation
+    commands.  Do not allow any messages from the client after a continued
+    command except the continuation of that command or a QUIT message.
+    Explicitly document that a QUIT message abandons the partial command.
+    Add the new ERROR_UNEXPECTED_MESSAGE error code, used when the client
+    sends incorrect messages during a command continuation.
+
+    The server no longer closes the connection after version or error
+    replies.  The connection will now stay open until MESSAGE_COMMAND is
+    sent without keepalive or MESSAGE_QUIT is sent.
+
     Add new remctl_set_source_ip function to the remctl library API and
     the Perl, PHP, Python, and Ruby bindings.  Call this function after
     remctl_new and before remctl_open to set the source IP address that
