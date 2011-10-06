@@ -37,14 +37,15 @@ enum message_types {
 
 /* Error codes. */
 enum error_codes {
-    ERROR_INTERNAL        = 1,  /* Internal server failure. */
-    ERROR_BAD_TOKEN       = 2,  /* Invalid format in token. */
-    ERROR_UNKNOWN_MESSAGE = 3,  /* Unknown message type. */
-    ERROR_BAD_COMMAND     = 4,  /* Invalid command format in token. */
-    ERROR_UNKNOWN_COMMAND = 5,  /* Unknown command. */
-    ERROR_ACCESS          = 6,  /* Access denied. */
-    ERROR_TOOMANY_ARGS    = 7,  /* Argument count exceeds server limit. */
-    ERROR_TOOMUCH_DATA    = 8   /* Argument size exceeds server limit. */
+    ERROR_INTERNAL           = 1,  /* Internal server failure. */
+    ERROR_BAD_TOKEN          = 2,  /* Invalid format in token. */
+    ERROR_UNKNOWN_MESSAGE    = 3,  /* Unknown message type. */
+    ERROR_BAD_COMMAND        = 4,  /* Invalid command format in token. */
+    ERROR_UNKNOWN_COMMAND    = 5,  /* Unknown command. */
+    ERROR_ACCESS             = 6,  /* Access denied. */
+    ERROR_TOOMANY_ARGS       = 7,  /* Argument count exceeds server limit. */
+    ERROR_TOOMUCH_DATA       = 8,  /* Argument size exceeds server limit. */
+    ERROR_UNEXPECTED_MESSAGE = 9   /* Message type not valid now. */
 };
 
 #endif /* UTIL_PROTOCOL_H */

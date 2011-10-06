@@ -225,7 +225,7 @@ server_v2_read_token(struct client *client, gss_buffer_t token)
     status = token_recv_priv(client->fd, client->context, &flags, token,
                              TOKEN_MAX_LENGTH, &major, &minor);
     if (status != TOKEN_OK) {
-        warn_token("receiving command token", status, major, minor);
+        warn_token("receiving token", status, major, minor);
         if (status != TOKEN_FAIL_EOF)
             if (!server_send_error(client, ERROR_BAD_TOKEN, "Invalid token"))
                 return TOKEN_FAIL_EOF;
@@ -235,24 +235,59 @@ server_v2_read_token(struct client *client, gss_buffer_t token)
 
 
 /*
- * Handles a single token from the client, responding or running a command as
- * appropriate.  Returns true if we should continue, false if an error
- * occurred or QUIT was received and we should stop processing tokens.
+ * Read a continuation token for a command.  This handles checking the message
+ * version, verifying that it's a command token, handling MESSAGE_QUIT, and so
+ * forth.  It's almost but not quite the same as the processing in
+ * server_v2_handle_token.  Stores the token in the provided token argument
+ * and returns true if a valid token was received.  Returns false if an
+ * invalid token was received or if some other error occurred, or if
+ * MESSAGE_QUIT was received.  False should result in aborting the pending
+ * command.
  */
 static bool
-server_v2_handle_token(struct client *client, struct config *config,
-                       gss_buffer_t token)
+server_v2_read_continuation(struct client *client, gss_buffer_t token)
+{
+    int status;
+    char *p;
+
+    status = server_v2_read_token(client, token);
+    if (status != TOKEN_OK)
+        return false;
+    p = token->value;
+    if (p[0] != 2 && p[0] != 3) {
+        server_v2_send_version(client);
+        return false;
+    } else if (p[1] == MESSAGE_QUIT) {
+        debug("quit received, aborting command and closing connection");
+        return false;
+    } else if (p[1] != MESSAGE_COMMAND) {
+        warn("unexpected message type %d from client", (int) p[1]);
+        server_send_error(client, ERROR_UNEXPECTED_MESSAGE,
+                          "Unexpected message");
+        return false;
+    }
+    return true;
+}
+
+
+/*
+ * Handles a single command message from the client, responding or running the
+ * command as appropriate.  Returns true if we should continue to process
+ * further messages on that connection, and false if a fatal error occurred
+ * and the connection should be closed.
+ */
+static bool
+server_v2_handle_command(struct client *client, struct config *config,
+                         gss_buffer_t token)
 {
     char *p;
     size_t length, total;
-    struct iovec **argv = NULL;
     char *buffer = NULL;
-    int status;
     OM_uint32 minor;
+    struct iovec **argv = NULL;
     bool result = false;
     bool allocated = false;
     bool continued = false;
-    bool keepalive = false;
 
     /*
      * Loop on tokens until we have a complete command, allowing for continued
@@ -263,32 +298,7 @@ server_v2_handle_token(struct client *client, struct config *config,
     total = 0;
     do {
         p = token->value;
-        if (p[0] != 2 && p[0] != 3) {
-            result = server_v2_send_version(client);
-            goto fail;
-        } else if (p[1] == MESSAGE_QUIT) {
-            debug("quit received, closing connection");
-            result = false;
-            goto fail;
-        } else if (p[1] == MESSAGE_NOOP) {
-            if (continued) {
-                warn("noop message in middle of continued command");
-                result = server_send_error(client, ERROR_BAD_COMMAND,
-                                           "Invalid command token");
-                goto fail;
-            }
-            debug("replying to no-op message");
-            result = server_v3_send_noop(client);
-            client->keepalive = true;
-            goto fail;
-        } else if (p[1] != MESSAGE_COMMAND) {
-            warn("unknown message type %d from client", (int) p[1]);
-            result = server_send_error(client, ERROR_UNKNOWN_MESSAGE,
-                                       "Unknown message");
-            goto fail;
-        }
-        p += 2;
-        client->keepalive = p[0] ? true : false;
+        client->keepalive = p[2] ? true : false;
 
         /* Check the data size. */
         if (token->length > TOKEN_MAX_DATA) {
@@ -300,20 +310,20 @@ server_v2_handle_token(struct client *client, struct config *config,
         }
 
         /* Make sure the continuation is sane. */
-        if ((p[1] == 1 && continued) || (p[1] > 1 && !continued) || p[1] > 3) {
-            warn("bad continue status %d", (int) p[1]);
+        if ((p[3] == 1 && continued) || (p[3] > 1 && !continued) || p[3] > 3) {
+            warn("bad continue status %d", (int) p[3]);
             result = server_send_error(client, ERROR_BAD_COMMAND,
                                        "Invalid command token");
             goto fail;
         }
-        continued = (p[1] == 1 || p[1] == 2);
+        continued = (p[3] == 1 || p[3] == 2);
 
         /*
          * Read the token data.  If the command is continued *or* if buffer is
          * non-NULL (meaning the command was previously continued), we copy
          * the data into the buffer.
          */
-        p += 2;
+        p += 4;
         length = token->length - (p - (char *) token->value);
         if (continued || buffer != NULL) {
             if (buffer == NULL)
@@ -332,18 +342,13 @@ server_v2_handle_token(struct client *client, struct config *config,
          */
         if (continued) {
             gss_release_buffer(&minor, token);
-            status = server_v2_read_token(client, token);
-            if (status == TOKEN_FAIL_EOF)
-                result = false;
-            else if (status != TOKEN_OK)
-                result = true;
-            if (status != TOKEN_OK)
+            if (!server_v2_read_continuation(client, token))
                 goto fail;
         } else if (buffer == NULL) {
             buffer = p;
             total = length;
         }
-    } while (continued || keepalive);
+    } while (continued);
 
     /*
      * Okay, we now have a complete command that was possibly spread over
@@ -363,6 +368,46 @@ server_v2_handle_token(struct client *client, struct config *config,
 fail:
     if (allocated)
         free(buffer);
+    return result;
+}
+
+
+/*
+ * Handles a single token from the client, responding or running a command as
+ * appropriate.  Returns true if we should continue processing messages, false
+ * if a fatal error occurred (like a network error), a command was sent
+ * without keep-alive, or QUIT was received and we should stop processing
+ * tokens.
+ */
+static bool
+server_v2_handle_token(struct client *client, struct config *config,
+                       gss_buffer_t token)
+{
+    char *p;
+    bool result = true;
+
+    p = token->value;
+    if (p[0] != 2 && p[0] != 3)
+        return server_v2_send_version(client);
+    switch (p[1]) {
+    case MESSAGE_COMMAND:
+        result = server_v2_handle_command(client, config, token);
+        break;
+    case MESSAGE_NOOP:
+        debug("replying to no-op message");
+        result = server_v3_send_noop(client);
+        client->keepalive = true;
+        break;
+    case MESSAGE_QUIT:
+        debug("quit received, closing connection");
+        result = false;
+        break;
+    default:
+        warn("unknown message type %d from client", (int) p[1]);
+        result = server_send_error(client, ERROR_UNKNOWN_MESSAGE,
+                                   "Unknown message");
+        break;
+    }
     return result;
 }
 
