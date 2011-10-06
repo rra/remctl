@@ -259,6 +259,7 @@ server_v2_read_continuation(struct client *client, gss_buffer_t token)
         return false;
     } else if (p[1] == MESSAGE_QUIT) {
         debug("quit received, aborting command and closing connection");
+        client->keepalive = false;
         return false;
     } else if (p[1] != MESSAGE_COMMAND) {
         warn("unexpected message type %d from client", (int) p[1]);
@@ -396,10 +397,10 @@ server_v2_handle_token(struct client *client, struct config *config,
     case MESSAGE_NOOP:
         debug("replying to no-op message");
         result = server_v3_send_noop(client);
-        client->keepalive = true;
         break;
     case MESSAGE_QUIT:
         debug("quit received, closing connection");
+        client->keepalive = false;
         result = false;
         break;
     default:
@@ -426,6 +427,7 @@ server_v2_handle_messages(struct client *client, struct config *config)
     int status;
 
     /* Loop receiving messages until we're finished. */
+    client->keepalive = true;
     do {
         status = server_v2_read_token(client, &token);
         if (status == TOKEN_FAIL_EOF)

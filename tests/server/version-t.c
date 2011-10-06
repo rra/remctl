@@ -43,6 +43,7 @@ main(void)
     OM_uint32 major, minor;
     int flags, status;
     gss_buffer_desc tok;
+    struct sigaction sa;
 
     /* Unless we have Kerberos available, we can't really do anything. */
     if (chdir(getenv("SOURCE")) < 0)
@@ -54,7 +55,13 @@ main(void)
     path = concatpath(getenv("BUILD"), "../server/remctld");
     remctld = remctld_start(path, principal, config, NULL);
 
-    plan(8);
+    plan(10);
+
+    /* Ignore SIGPIPE signals so that we get errors from write. */
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_IGN;
+    if (sigaction(SIGPIPE, &sa, NULL) < 0)
+        sysbail("cannot set SIGPIPE handler");
 
     /* Open the connection to the site. */
     r = remctl_new();
@@ -78,6 +85,21 @@ main(void)
     is_int(2, ((char *) tok.value)[0], "protocol version is 2");
     is_int(MESSAGE_VERSION, ((char *) tok.value)[1], "message version code");
     is_int(3, ((char *) tok.value)[2], "highest supported version is 3");
+
+    /*
+     * Send the token again and get another response to ensure that the server
+     * hadn't closed the connection.
+     */
+    status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
+                             &tok, &major, &minor);
+    is_int(TOKEN_OK, status, "connection is still open");
+    if (status == TOKEN_OK) {
+        status = token_recv_priv(r->fd, r->context, &flags, &tok, 1024 * 64,
+                                 &major, &minor);
+        is_int(TOKEN_OK, status, "received token correctly");
+    } else {
+        ok(false, "unable to get reply to token");
+    }
 
     /* Close things out. */
     remctl_close(r);
