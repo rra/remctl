@@ -1,11 +1,16 @@
 package org.eyrie.remctl.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.eyrie.remctl.RemctlException;
+import java.io.IOException;
+import java.io.InputStream;
+
+import junit.framework.Assert;
+
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.MessageProp;
@@ -13,6 +18,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Test converting the remctl packets to/from tokens.
@@ -26,7 +33,20 @@ import org.mockito.stubbing.Answer;
  */
 public class RemctlMessageConverterTest {
 
+    /**
+     * Allow logging
+     */
+    static final Logger logger = LoggerFactory
+    .getLogger(RemctlMessageConverterTest.class);
+
+    /**
+     * Class under test
+     */
     RemctlMessageConverter messageConverter;
+
+    /**
+     * A mocked context
+     */
     GSSContext mockContext;
 
     /**
@@ -52,6 +72,27 @@ public class RemctlMessageConverterTest {
                 any(MessageProp.class))).thenAnswer(new ReturnInput());
     }
 
+    /**
+     * Test handling of IO exceptions
+     * 
+     * @throws Exception
+     *             if exception
+     */
+    @Test
+    public void testExceptionTranslation() throws Exception {
+
+        InputStream input = mock(InputStream.class);
+        when(input.read()).thenThrow(new IOException("connection died"));
+        try {
+            this.messageConverter.decodeMessage(input);
+            Assert.fail("Expected exception");
+        } catch (RemctlException e) {
+            logger.debug("Caught {}", e);
+            assertEquals("connection died",e.getCause().getMessage());
+        }
+
+    }
+
     @Test
     public void testWrite() throws RemctlException {
 
@@ -62,14 +103,14 @@ public class RemctlMessageConverterTest {
         //
         //
         //        this.messageConverter.encodeMessage(byteArrayOutputStream, commandToken);
-        //        
-        //        
+        //
+        //
         //        byte[] expectedBytes = { 1, /* flags */
         //                0,0,0,1, /*length */
         //                /* payload */
         //                2, /* protocol version */
         //                3, /* message type */
-        //                
+        //
         //        }
 
     }

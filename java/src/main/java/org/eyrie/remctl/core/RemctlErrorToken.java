@@ -5,9 +5,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.eyrie.remctl.RemctlErrorCode;
-import org.eyrie.remctl.RemctlErrorException;
-import org.eyrie.remctl.RemctlException;
 
 /**
  * Represents a remctl error token. This is sent from the server to the client

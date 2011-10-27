@@ -1,6 +1,5 @@
 package org.eyrie.remctl.client;
 
-import org.eyrie.remctl.RemctlStatusException;
 import org.eyrie.remctl.core.RemctlCommandToken;
 
 /**

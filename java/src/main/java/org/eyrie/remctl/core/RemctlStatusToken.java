@@ -3,9 +3,6 @@ package org.eyrie.remctl.core;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.eyrie.remctl.RemctlErrorCode;
-import org.eyrie.remctl.RemctlErrorException;
-import org.eyrie.remctl.RemctlException;
 
 /**
  * Represents a remctl status token. This is sent from the server to the client

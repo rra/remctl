@@ -3,7 +3,6 @@ package org.eyrie.remctl.core;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.eyrie.remctl.RemctlException;
 
 /**
  * Represents a remctl command token. This token is sent by a client to a server

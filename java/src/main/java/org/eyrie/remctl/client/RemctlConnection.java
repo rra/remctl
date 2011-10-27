@@ -13,8 +13,8 @@ import java.util.List;
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginContext;
 
-import org.eyrie.remctl.RemctlException;
 import org.eyrie.remctl.core.RemctlErrorToken;
+import org.eyrie.remctl.core.RemctlException;
 import org.eyrie.remctl.core.RemctlFlag;
 import org.eyrie.remctl.core.RemctlMessageConverter;
 import org.eyrie.remctl.core.RemctlQuitToken;

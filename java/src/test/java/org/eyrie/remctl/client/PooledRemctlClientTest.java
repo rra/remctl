@@ -9,8 +9,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 
-import org.eyrie.remctl.RemctlException;
 import org.eyrie.remctl.core.RemctlCommandToken;
+import org.eyrie.remctl.core.RemctlException;
 import org.eyrie.remctl.core.RemctlToken;
 import org.junit.Assert;
 import org.junit.Before;

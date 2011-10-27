@@ -1,10 +1,10 @@
 package org.eyrie.remctl.client;
 
-import org.eyrie.remctl.RemctlErrorCode;
-import org.eyrie.remctl.RemctlErrorException;
-import org.eyrie.remctl.RemctlProtocolException;
+import org.eyrie.remctl.core.RemctlErrorCode;
+import org.eyrie.remctl.core.RemctlErrorException;
 import org.eyrie.remctl.core.RemctlErrorToken;
 import org.eyrie.remctl.core.RemctlOutputToken;
+import org.eyrie.remctl.core.RemctlProtocolException;
 import org.eyrie.remctl.core.RemctlStatusToken;
 import org.eyrie.remctl.core.RemctlToken;
 import org.slf4j.Logger;

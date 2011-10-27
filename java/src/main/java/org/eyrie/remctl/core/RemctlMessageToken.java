@@ -5,8 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.eyrie.remctl.RemctlException;
-import org.eyrie.remctl.RemctlProtocolException;
 import org.ietf.jgss.GSSException;
 
 /**
@@ -103,7 +101,6 @@ public abstract class RemctlMessageToken implements RemctlToken {
      * 
      * @return the version
      */
-    @SuppressWarnings("unused")
     private byte getVersion() {
         return this.version;
     }
@@ -112,4 +109,13 @@ public abstract class RemctlMessageToken implements RemctlToken {
      * @return the type
      */
     abstract RemctlMessageCode getType();
+
+    /**
+     * Prints the token type and version.
+     */
+    @Override
+    public String toString() {
+        return "RemctlToken: " + this.getType() + " version "
+        + this.getVersion();
+    }
 }

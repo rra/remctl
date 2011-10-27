@@ -1,8 +1,7 @@
 package org.eyrie.remctl.client;
 
-import org.eyrie.remctl.RemctlException;
-import org.eyrie.remctl.RemctlStatusException;
 import org.eyrie.remctl.core.RemctlCommandToken;
+import org.eyrie.remctl.core.RemctlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

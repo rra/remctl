@@ -5,7 +5,7 @@
  * See LICENSE for licensing terms.
  */
 
-package org.eyrie.remctl;
+package org.eyrie.remctl.core;
 
 /**
  * Parent class for exceptions specific to the remctl protocol or API.

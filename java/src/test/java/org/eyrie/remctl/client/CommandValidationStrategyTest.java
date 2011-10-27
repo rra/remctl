@@ -5,8 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 
-import org.eyrie.remctl.RemctlErrorCode;
 import org.eyrie.remctl.core.RemctlCommandToken;
+import org.eyrie.remctl.core.RemctlErrorCode;
 import org.eyrie.remctl.core.RemctlErrorToken;
 import org.eyrie.remctl.core.RemctlOutputToken;
 import org.eyrie.remctl.core.RemctlStatusToken;

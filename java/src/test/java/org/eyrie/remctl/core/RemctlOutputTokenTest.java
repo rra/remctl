@@ -3,8 +3,6 @@ package org.eyrie.remctl.core;
 import static org.junit.Assert.assertEquals;
 import junit.framework.Assert;
 
-import org.eyrie.remctl.RemctlErrorException;
-import org.eyrie.remctl.RemctlException;
 import org.junit.Test;
 
 /**

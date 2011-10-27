@@ -5,7 +5,7 @@
  * See LICENSE for licensing terms.
  */
 
-package org.eyrie.remctl;
+package org.eyrie.remctl.core;
 
 import java.util.HashMap;
 import java.util.Map;

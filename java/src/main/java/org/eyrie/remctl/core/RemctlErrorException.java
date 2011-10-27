@@ -5,9 +5,8 @@
  * See LICENSE for licensing terms.
  */
 
-package org.eyrie.remctl;
+package org.eyrie.remctl.core;
 
-import org.eyrie.remctl.core.RemctlErrorToken;
 
 /**
  * An exception representing a remctl protocol error, or error token

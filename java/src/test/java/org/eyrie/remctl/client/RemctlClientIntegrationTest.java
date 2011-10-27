@@ -2,8 +2,7 @@ package org.eyrie.remctl.client;
 
 import static org.junit.Assert.assertEquals;
 
-import org.eyrie.remctl.RemctlErrorException;
-import org.eyrie.remctl.RemctlStatusException;
+import org.eyrie.remctl.core.RemctlErrorException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

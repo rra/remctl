@@ -5,7 +5,8 @@
  * See LICENSE for licensing terms.
  */
 
-package org.eyrie.remctl;
+package org.eyrie.remctl.core;
+
 
 /**
  * Parent class for protocol exceptions, thrown if we encounter a token from an

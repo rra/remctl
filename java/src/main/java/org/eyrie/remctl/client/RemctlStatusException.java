@@ -1,6 +1,5 @@
-package org.eyrie.remctl;
+package org.eyrie.remctl.client;
 
-import org.eyrie.remctl.client.RemctlResponse;
 
 /**
  * Exception thrown when a remctl command returns a non-0 status code. This
@@ -8,8 +7,8 @@ import org.eyrie.remctl.client.RemctlResponse;
  * 
  * <p>
  * If you don't consider a non-0 status codes to be an exceptional condition,
- * then you can use the (FIXME as a link) executeAllowAnyStatus call to return a
- * RemctlResponse with non-0 status codes
+ * then you can use the {@link RemctlClient#executeAllowAnyStatus(String...)}
+ * call to return a RemctlResponse with non-0 status codes
  * <p>
  * 
  * @author pradtke

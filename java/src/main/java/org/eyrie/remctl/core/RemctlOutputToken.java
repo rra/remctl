@@ -6,9 +6,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-import org.eyrie.remctl.RemctlErrorCode;
-import org.eyrie.remctl.RemctlErrorException;
-import org.eyrie.remctl.RemctlException;
 
 /**
  * Represents a remctl output token. This is sent from the server to the client
