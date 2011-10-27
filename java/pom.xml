@@ -4,10 +4,48 @@
     <groupId>org.eyrie</groupId>
     <artifactId>remctl</artifactId>
     <version>2.1.0-SNAPSHOT</version>
+    <name>Java Remctl</name>
     <description>Java implementation of the remctl protocol</description>
+    <url>http://www.eyrie.org/~eagle/software/remctl/java</url>
+    <licenses>
+        <license>
+        <comments>License is for overall project, inlcuding C code and language specific bindings</comments>
+        <url>http://www.eyrie.org/~eagle/software/remctl/license.html</url>
+        <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <issueManagement>
+      <system>JIRA</system>
+      <url>https://devspace.stanford.edu/jira/browse/IDG</url>
+    </issueManagement>
     
-    <build>
-     <plugins>
+       <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.8</version>
+        <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -20,8 +58,31 @@
                 </configuration>
             </plugin>
             
-            </plugins>
-    </build>
+          <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <junitArtifactName>junit:junit</junitArtifactName>
+                    
+                    <classesDirectory>${project.build.directory}/generated-classes/emma/classes</classesDirectory>
+                </configuration>
+            </plugin>
+        <plugin>
+          <groupId>org.sonatype.maven.plugin</groupId>
+          <artifactId>emma-maven-plugin</artifactId>
+          <version>1.2</version>
+          <executions>
+        <execution>
+          <phase>process-classes</phase>
+          <goals>
+            <goal>instrument</goal>
+          </goals>
+        </execution>
+          </executions>
+        </plugin>
+       
+        </plugins>
+        </build>
     
     <dependencies>
         <dependency>
@@ -59,4 +120,97 @@
         	<scope>test</scope>
         </dependency>
     </dependencies>
+    
+    <developers>
+      <developer>
+         <id>pradtke@stanford.edu</id>
+         <name>Patrick Radtke</name>
+         <email>pradtke@stanford.edu</email>
+         <roles>
+            <role>Java Guy</role>
+         </roles>
+       </developer>
+        <developer>
+         <id>russ</id>
+         <name>Russ Allbery</name>
+         <email>eagle@eyrie.org</email>
+         <roles>
+            <role>Head Honcho</role>
+         </roles>
+       </developer>
+     </developers>
+     <contributors>
+        <contributor>
+        <name>To be named later.</name>
+        </contributor>
+     </contributors>
+  <scm>
+      <url>http://git.eyrie.org/?p=kerberos/remctl.git;a=shortlog;h=refs/heads/java</url>
+      <tag>java</tag>
+      <developerConnection>scm:git:ssh://git.stanford.edu/srv/git/kerberos/remctl.git</developerConnection>
+  </scm>
+  
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jdepend-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+    <artifactId>jxr-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.6</version>
+      </plugin>
+       <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+       <!-- http://www.sonatype.com/people/2009/06/integration-tests-with-maven-part-2-test-coverage-reports/ -->
+       <!-- TODO: look at Cobertura -->
+      <plugin>
+        <groupId>org.sonatype.maven.plugin</groupId>
+        <artifactId>emma-maven-plugin</artifactId>
+        <version>1.2</version>
+        <inherited>true</inherited>
+      </plugin>
+      <plugin>
+    <groupId>org.codehaus.mojo</groupId>
+        <artifactId>surefire-report-maven-plugin</artifactId>
+        <inherited>true</inherited>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-changelog-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <connectionType>developerConnection</connectionType>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>taglist-maven-plugin</artifactId>
+        <version>2.4</version>
+    <configuration>
+          <linkXRef>true</linkXRef>
+          <tags>
+            <tag>TODO</tag>
+            <tag>FIXME</tag>
+            <tag>@deprecated</tag>
+          </tags>
+        </configuration>
+      </plugin>
+<!--      <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-linkcheck-plugin</artifactId>
+        <version>1.1</version>
+      </plugin> -->
+     </plugins>
+  </reporting>
 </project>

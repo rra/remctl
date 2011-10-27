@@ -1,0 +1,21 @@
+<project name="Stanford Account"> 
+<version position="right"/>
+<body>
+<breadcrumbs>
+      <item name="Remctl" />
+      <item name="Java" />
+</breadcrumbs>
+<menu name="User Guide" > 
+<item name="Remctl Overview" href="http://www.eyrie.org/~eagle/software/remctl/"/>
+<item name="Java User Guide" href="user.html"/>
+<item name="Java Developer Guide" href="dev.html" collapse="true">
+</item>
+</menu>
+<menu ref="reports" inherit="bottom"/> 
+</body>
+<skin>
+        <groupId>com.googlecode.fluido-skin</groupId>
+        <artifactId>fluido-skin</artifactId>
+        <version>1.3</version>
+</skin>
+</project>
