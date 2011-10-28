@@ -173,7 +173,7 @@ public class RemctlMessageConverter {
 	}
 
 	/**
-	 * Decode the RemctlToken from the input stream
+	 * Decode the RemctlToken from the input stream.
 	 * 
 	 * @param inputStream
 	 *            The input stream
