@@ -15,18 +15,18 @@ public class BaseValidationStrategy implements
 		RemctlConnectionValidationStrategy {
 
 	/**
-	 * default 55 minutes
+	 * default 55 minutes.
 	 */
 	long maxLife = 55 * 60 * 1000;
 
 	/**
-	 * Allow logging
+	 * Allow logging.
 	 */
 	static final Logger logger = LoggerFactory
 			.getLogger(BaseValidationStrategy.class);
 
 	@Override
-	public boolean isValid(RemctlConnection connection) {
+	final public boolean isValid(RemctlConnection connection) {
 		/**
 		 * Remctl server closes connection after an hour.
 		 */
@@ -77,6 +77,7 @@ public class BaseValidationStrategy implements
 	}
 
 	/**
+	 * The maximum connection lifetime in milliseconds.
 	 * @return the maxLife
 	 */
 	public long getMaxLife() {
@@ -84,6 +85,8 @@ public class BaseValidationStrategy implements
 	}
 
 	/**
+	 * Set the maximum time a connection should be open.
+	 * <p>In milliseconds</p>
 	 * @param maxLife
 	 *            the maxLife to set
 	 */

@@ -49,6 +49,23 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
 	 */
 	private RemctlConnectionValidationStrategy validationStrategy = new BaseValidationStrategy();
 
+	/**
+	 * Default constructor. Setter methods should be used for configuration.
+	 */
+	public RemctlConnectionFactory() {
+
+	}
+
+	/**
+	 * Create a RemctlConnectionFactory that creates connections connected to
+	 * hostname on the default port.
+	 * 
+	 * @param hostname the hostname connections should connect to.
+	 */
+	public RemctlConnectionFactory(String hostname) {
+		this.hostname = hostname;
+	}
+
 	@Override
 	public RemctlConnection makeObject() throws Exception {
 		RemctlConnection connection = new RemctlConnection(this.hostname,

@@ -3,14 +3,13 @@ package org.eyrie.remctl.client;
 import org.eyrie.remctl.core.RemctlCommandToken;
 
 /**
- * A simplified interface for a remctl client.
+ * A simple implementation of a remctl client.
  * 
- * It is thread safe, and does not use keep alive. Each call to execute opens a
- * new remctl connection.
+ *<p>It is thread safe, and does not use keep alive. Each call to execute opens a
+ * new remctl connection.</p>
  * 
- * <p>
+ * For better performance, consider using {@link PooledRemctlClient}.
  * 
- * TODO: create connection pool form remctlclient as a different class
  * 
  * @author pradtke
  * 

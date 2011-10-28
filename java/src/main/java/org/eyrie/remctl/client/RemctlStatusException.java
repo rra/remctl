@@ -21,20 +21,20 @@ public class RemctlStatusException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * The server response
+	 * The server response.
 	 */
 	private final RemctlResponse response;
 
 	/**
-	 * Constructor for RemctlStatusException
+	 * Constructor for RemctlStatusException.
 	 * 
-	 * @param response
+	 * @param remctlResponse
 	 *            the server response that caused the exception
 	 */
-	public RemctlStatusException(RemctlResponse response) {
+	public RemctlStatusException(RemctlResponse remctlResponse) {
 		super("Unexpected status. Expected 0, recieved '"
-				+ response.getStatus() + "'");
-		this.response = response;
+				+ remctlResponse.getStatus() + "'");
+		this.response = remctlResponse;
 	}
 
 	/**

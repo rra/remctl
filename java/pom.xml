@@ -80,7 +80,26 @@
                     </execution>
                 </executions>
             </plugin>
-
+			<plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-site-plugin</artifactId>
+                                <version>2.2</version>
+                                <dependencies>
+                                        <dependency>
+                                        <!--  FIXME: this uses a patch version to accept .mdwn suffixed files -->
+                                          <!-- Manual build and deploy with mvn deploy:deploy-file -Durl=file:/afs/ir/product/acco\
+unt/maven-repo -DrepositoryId=afs-repo -Dfile=target/doxia-module-markdown-1.1.4.jar -Dversion=1.1.4 -DgroupId=org.apache.maven.do\
+xia -DartifactId=doxia-module-markdown -Dpackaging=jar -->
+                                                <groupId>org.apache.maven.doxia</groupId>
+                                                <artifactId>doxia-module-markdown</artifactId>
+                                                <version>1.1.4</version>
+                                                                        </dependency>
+                                </dependencies>
+                                                <configuration>
+                                        <inputEncoding>UTF-8</inputEncoding>
+                                        <outputEncoding>UTF-8</outputEncoding>
+                                </configuration>
+                        </plugin>
         </plugins>
     </build>
 

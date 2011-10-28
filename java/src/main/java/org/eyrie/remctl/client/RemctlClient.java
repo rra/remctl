@@ -1,5 +1,7 @@
 package org.eyrie.remctl.client;
 
+import org.eyrie.remctl.core.RemctlException;
+
 /**
  * A client for a remctl server.
  * 
@@ -20,9 +22,11 @@ public interface RemctlClient {
 	 *            The arguments to run. Generally the first argument is the
 	 *            command, and the rest are arguments for that command.
 	 * @return The response from the server
-	 * @throws RuntimeException
+	 * @throws RemctlException
 	 *             if error token is returned or this is an error contacting
 	 *             server.
+	 * @throws RemctlStatusException if the return status is not 0.
+	 * @throws RemctlErrorException if error token encountered during processing.
 	 */
 	public RemctlResponse execute(String... arguments);
 
@@ -33,9 +37,10 @@ public interface RemctlClient {
 	 *            The arguments to run. Generally the first argument is the
 	 *            command, and the rest are arguments for that command.
 	 * @return The response from the server
-	 * @throws RuntimeException
+	 * @throws RemctlException
 	 *             if error token is returned or this is an error contacting
 	 *             server.
+	 * @throws RemctlErrorException if error token encountered during processing.
 	 */
 	public RemctlResponse executeAllowAnyStatus(String... arguments);
 

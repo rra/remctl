@@ -28,7 +28,7 @@ public class RemctlException extends RuntimeException {
 	}
 
 	/**
-	 * {@link RuntimeException#RuntimeException(String, Throwable)}
+	 * {@link RuntimeException#RuntimeException(String, Throwable)}.
 	 */
 	public RemctlException(String msg, Throwable t) {
 		super(msg, t);

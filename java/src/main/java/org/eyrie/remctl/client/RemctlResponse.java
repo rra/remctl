@@ -19,16 +19,16 @@ import org.slf4j.LoggerFactory;
 public class RemctlResponse {
 
 	/**
-	 * Allow logging
+	 * Allow logging.
 	 */
 	static final Logger logger = LoggerFactory.getLogger(RemctlResponse.class);
 
 	/**
-	 * Output Messages on stream 1
+	 * Output Messages on stream 1.
 	 */
 	private final String stdOut;
 	/**
-	 * Output Messages on stream 2
+	 * Output Messages on stream 2.
 	 */
 	private final String stdErr;
 
@@ -38,7 +38,7 @@ public class RemctlResponse {
 	private final Integer returnStatus;
 
 	/**
-	 * Use factory method
+	 * Use factory method.
 	 * 
 	 * @param stdOut
 	 *            stdOut string
@@ -49,13 +49,14 @@ public class RemctlResponse {
 	 */
 	RemctlResponse(String stdOut, String stdErr, Integer returnStatus) {
 		super();
+		//TODO: assert stdout and stderr are not null
 		this.stdOut = stdOut;
 		this.stdErr = stdErr;
 		this.returnStatus = returnStatus;
 	}
 
 	/**
-	 * Build a response based on a set of remctl tokens
+	 * Build a response based on a set of remctl tokens.
 	 * 
 	 * @param responseTokens
 	 *            The token received from the server
@@ -105,21 +106,25 @@ public class RemctlResponse {
 	}
 
 	/**
-	 * @return the stdOutResponse
+	 * Get the stdout response returned from the server.
+	 * @return the stout
 	 */
 	public String getStdOut() {
 		return this.stdOut;
 	}
 
 	/**
-	 * @return the stdErrResponse
+	 * Get the stderr response returned from the server.
+	 * @return the stdErrResponse.
 	 */
 	public String getStdErr() {
 		return this.stdErr;
 	}
 
 	/**
-	 * @return the returnStatus
+	 * Return the status of the response.
+	 * <p>May be null if an RemctlErrorCode was returned instead of a RemctlStatusToken.</p>
+	 * @return the returnStatus.
 	 */
 	public Integer getStatus() {
 		return this.returnStatus;
