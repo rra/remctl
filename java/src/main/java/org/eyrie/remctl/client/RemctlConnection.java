@@ -21,6 +21,7 @@ import org.eyrie.remctl.core.RemctlQuitToken;
 import org.eyrie.remctl.core.RemctlStatusToken;
 import org.eyrie.remctl.core.RemctlToken;
 import org.eyrie.remctl.core.RemctlVersionToken;
+import org.eyrie.remctl.core.Utils;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.GSSManager;
@@ -68,7 +69,7 @@ public class RemctlConnection {
     /**
      * the port to connect to.
      */
-    private int port = 4373;
+    private int port = Utils.DEFAULT_PORT;
 
     /**
      * Data stream sent from the server.
@@ -92,7 +93,7 @@ public class RemctlConnection {
      * @param hostname
      *            the FQDN to connect to.
      */
-    public RemctlConnection(String hostname) {
+    public RemctlConnection(final String hostname) {
         this(hostname, 0, null);
     }
 
@@ -107,9 +108,9 @@ public class RemctlConnection {
      *            The server principal. If null, defaults to
      *            'host/canonical_servername'
      */
-    public RemctlConnection(String hostname, int port, String serverPrincipal) {
+    public RemctlConnection(final String hostname, final int port, final String serverPrincipal) {
         this.hostname = hostname;
-        this.port = port == 0 ? 4373 : port;
+        this.port = port == 0 ? Utils.DEFAULT_PORT : port;
         this.serverPrincipal = serverPrincipal;
     }
 
@@ -122,7 +123,7 @@ public class RemctlConnection {
      * @param token
      *            The token to send
      */
-    public void writeToken(RemctlToken token) {
+    public void writeToken(final RemctlToken token) {
         this.messageConverter.encodeMessage(this.outStream, token);
 
     }
@@ -186,8 +187,9 @@ public class RemctlConnection {
      */
     public boolean connect() {
 
-        if (this.isConnected)
+        if (this.isConnected) {
             return false;
+        }
 
         try {
             this.connectionEstablishedTime = new Date();
@@ -197,7 +199,7 @@ public class RemctlConnection {
             Subject subject = context.getSubject();
             PrivilegedExceptionAction<Void> pea = new PrivilegedExceptionAction<Void>() {
                 @Override
-                public Void run() throws Exception, IOException {
+                public Void run() throws Exception {
                     RemctlConnection.this.establishContext();
                     return null;
                 }
@@ -216,7 +218,7 @@ public class RemctlConnection {
     }
 
     /**
-     * Connect and establish the context
+     * Connect and establish the context.
      * 
      * @throws UnknownHostException
      *             thrown if host doesn't exist
@@ -338,8 +340,9 @@ public class RemctlConnection {
          * authenticated to the server. Otherwise, both client and server were
          * authenticated to each other.
          */
-        if (this.gssContext.getMutualAuthState())
+        if (this.gssContext.getMutualAuthState()) {
             logger.info("Mutual authentication took place!");
+        }
     }
 
     /**

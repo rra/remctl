@@ -18,28 +18,28 @@ import org.slf4j.LoggerFactory;
 public class PooledRemctlClient implements RemctlClient {
 
 	/**
-	 * Allow logging
+	 * Allow logging.
 	 */
 	static final Logger logger = LoggerFactory
 			.getLogger(PooledRemctlClient.class);
 
 	/**
-	 * Our connection pool
+	 * Our connection pool.
 	 */
-	RemctlConnectionPool pool;
+	private RemctlConnectionPool pool;
 
 	/**
-	 * Create a client that uses a pool of connections
+	 * Create a client that uses a pool of connections.
 	 * 
 	 * @param remctlConnectionPool
 	 *            The source of our connections
 	 */
-	public PooledRemctlClient(RemctlConnectionPool remctlConnectionPool) {
+	public PooledRemctlClient(final RemctlConnectionPool remctlConnectionPool) {
 		this.pool = remctlConnectionPool;
 	}
 
 	@Override
-	public RemctlResponse execute(String... arguments) {
+	public RemctlResponse execute(final String... arguments) {
 		RemctlResponse response = this.executeAllowAnyStatus(arguments);
 		if (response.getStatus() == null || response.getStatus() != 0) {
 			throw new RemctlStatusException(response);
@@ -48,7 +48,7 @@ public class PooledRemctlClient implements RemctlClient {
 	}
 
 	@Override
-	public RemctlResponse executeAllowAnyStatus(String... arguments) {
+	public RemctlResponse executeAllowAnyStatus(final String... arguments) {
 		RemctlCommandToken command = new RemctlCommandToken(true, arguments);
 
 		RemctlConnection remctlClient;

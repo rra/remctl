@@ -26,6 +26,12 @@ public final class Utils {
      * Milliseconds in a minute.
      */
     public static final long MILLS_IN_MINUTE = 60 * 1000;
+    
+    /**
+     * The default remctl port 4373.
+     */
+    public static final int DEFAULT_PORT = 4373;
+
 
     /**
      * Convert a throwable and stack trace into a String.
