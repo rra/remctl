@@ -47,50 +47,50 @@ public class Remctl {
 	/** Default name to use in the login configuration file */
 	public static final String DEFAULT_NAME = "RemctlClient";
 
-	protected static final int TOKEN_MAX_DATA =         65536;
+	protected static final int TOKEN_MAX_DATA = 65536;
 
 	/* Token types */
-	protected static final byte TOKEN_NOOP  =           1;
-	protected static final byte TOKEN_CONTEXT =         2;
-	protected static final byte TOKEN_DATA =            4;
-	protected static final byte TOKEN_MIC =             8;
+	protected static final byte TOKEN_NOOP = 1;
+	protected static final byte TOKEN_CONTEXT = 2;
+	protected static final byte TOKEN_DATA = 4;
+	protected static final byte TOKEN_MIC = 8;
 
 	/* Token flags */
-	protected static final byte TOKEN_CONTEXT_NEXT =    16;
-	protected static final byte TOKEN_SEND_MIC =        32;
-	protected static final byte TOKEN_PROTOCOL =        64;
+	protected static final byte TOKEN_CONTEXT_NEXT = 16;
+	protected static final byte TOKEN_SEND_MIC = 32;
+	protected static final byte TOKEN_PROTOCOL = 64;
 
 	/* V2 only uses these flag combinations */
-	protected static final byte TOKEN_V2_INIT =         TOKEN_NOOP|TOKEN_CONTEXT_NEXT|TOKEN_PROTOCOL;
-	protected static final byte TOKEN_V2_CTX =          TOKEN_CONTEXT|TOKEN_PROTOCOL;
-	protected static final byte TOKEN_V2_RUN =          TOKEN_DATA|TOKEN_PROTOCOL;
+	protected static final byte TOKEN_V2_INIT = TOKEN_NOOP | TOKEN_CONTEXT_NEXT
+			| TOKEN_PROTOCOL;
+	protected static final byte TOKEN_V2_CTX = TOKEN_CONTEXT | TOKEN_PROTOCOL;
+	protected static final byte TOKEN_V2_RUN = TOKEN_DATA | TOKEN_PROTOCOL;
 
 	/* Message types */
-	protected static final byte MESSAGE_COMMAND =       1;
-	protected static final byte MESSAGE_QUIT =          2;
-	protected static final byte MESSAGE_OUTPUT =        3;
-	protected static final byte MESSAGE_STATUS =        4;
-	protected static final byte MESSAGE_ERROR =         5;
-	protected static final byte MESSAGE_VERSION =       6;
+	protected static final byte MESSAGE_COMMAND = 1;
+	protected static final byte MESSAGE_QUIT = 2;
+	protected static final byte MESSAGE_OUTPUT = 3;
+	protected static final byte MESSAGE_STATUS = 4;
+	protected static final byte MESSAGE_ERROR = 5;
+	protected static final byte MESSAGE_VERSION = 6;
 
-	protected static final byte MESSAGE_V2 =            2;
+	protected static final byte MESSAGE_V2 = 2;
 
-	public static final int ERROR_INTERNAL =         1;
-	public static final int ERROR_BAD_TOKEN =        2;
-	public static final int ERROR_UNKNOWN_MESSAGE =  3;
-	public static final int ERROR_BAD_COMMAND =      4;
-	public static final int ERROR_UNKNOWN_COMMAND =  5;
-	public static final int ERROR_ACCESS =           6;
-	public static final int ERROR_TOOMANY_ARGS =     7;
-	public static final int ERROR_TOOMUCH_DATA =     8;
+	public static final int ERROR_INTERNAL = 1;
+	public static final int ERROR_BAD_TOKEN = 2;
+	public static final int ERROR_UNKNOWN_MESSAGE = 3;
+	public static final int ERROR_BAD_COMMAND = 4;
+	public static final int ERROR_UNKNOWN_COMMAND = 5;
+	public static final int ERROR_ACCESS = 6;
+	public static final int ERROR_TOOMANY_ARGS = 7;
+	public static final int ERROR_TOOMUCH_DATA = 8;
 
 	protected ByteBuffer responseBytes;
 	protected GSSContext context;
 	/*
-	 * The first MessageProp argument is 0 to request
-	 * the default Quality-of-Protection.
-	 * The second argument is true to request
-	 * privacy (encryption of the message).
+	 * The first MessageProp argument is 0 to request the default
+	 * Quality-of-Protection. The second argument is true to request privacy
+	 * (encryption of the message).
 	 */
 	protected static MessageProp prop = new MessageProp(0, true);
 	public Socket socket;
@@ -103,9 +103,9 @@ public class Remctl {
 
 	/**
 	 * Returns the client's Kerberos principal name.
-	 *
+	 * 
 	 * @return Returns the client's Kerberos principal name.
-	 *
+	 * 
 	 */
 	public String getClientIdentity() {
 		return clientIdentity;
@@ -113,9 +113,9 @@ public class Remctl {
 
 	/**
 	 * Returns the server's Kerberos principal name.
-	 *
+	 * 
 	 * @return Returns the server's Kerberos principal name.
-	 *
+	 * 
 	 */
 	public String getServerIdentity() {
 		return serverIdentity;
@@ -125,23 +125,20 @@ public class Remctl {
 		return returnCode;
 	}
 
-	protected void write_some_bytes(byte[] bytes)
-	throws GSSException, IOException 
-	{
+	protected void write_some_bytes(byte[] bytes) throws GSSException,
+			IOException {
 		byte[] token = context.wrap(bytes, 0, bytes.length, prop);
 		outStream.writeByte(TOKEN_V2_RUN);
 		outStream.writeInt(token.length);
 		outStream.write(token);
 	}
 
-	protected byte[] read_a_token(byte state)
-	throws GSSException, IOException 
-	{
+	protected byte[] read_a_token(byte state) throws GSSException, IOException {
 		byte flag = inStream.readByte();
 		// XXX is throwing an exception best?
 		if (flag != state) {
-			throw new IOException("remctl: Wrong token type received, got " +
-					flag + " expected " + state);
+			throw new IOException("remctl: Wrong token type received, got "
+					+ flag + " expected " + state);
 		}
 		byte[] token = new byte[inStream.readInt()];
 		inStream.readFully(token);
@@ -150,8 +147,5 @@ public class Remctl {
 }
 
 /*
- **  Local variables:
- **  java-basic-offset: 4
- **  indent-tabs-mode: nil
- **  end:
+ * * Local variables:* java-basic-offset: 4* indent-tabs-mode: nil* end:
  */

@@ -26,37 +26,36 @@ import org.ietf.jgss.GSSException;
  * which also provides static factory methods to read tokens from a stream.
  */
 public interface RemctlToken {
-    /**
-     * The maximum size of the data payload of a remctl token as specified by
-     * the protocol standard. Each token has a five-byte header (a one byte
-     * flags value and a four byte length), followed by the data, and the total
-     * token size may not exceed 1MiB, so {@value} is the maximum size of the
-     * data payload.
-     */
-    public static final int maxData = (1024 * 1024) - 5;
+	/**
+	 * The maximum size of the data payload of a remctl token as specified by
+	 * the protocol standard. Each token has a five-byte header (a one byte
+	 * flags value and a four byte length), followed by the data, and the total
+	 * token size may not exceed 1MiB, so {@value} is the maximum size of the
+	 * data payload.
+	 */
+	public static final int maxData = (1024 * 1024) - 5;
 
-    /**
-     * The highest protocol version supported by this implementation, currently
-     * * {@value} .
-     */
-    public static final int supportedVersion = 2;
+	/**
+	 * The highest protocol version supported by this implementation, currently
+	 * * {@value} .
+	 */
+	public static final int supportedVersion = 2;
 
-    /**
-     * Encode the token, encrypting it if necessary, and write it to the
-     * provided output stream.
-     * 
-     * FIXME: Currently we just use the returned byte array (since that is was
-     * the GSS context uses). We can remove the output stream from the arguments
-     * 
-     * @param stream
-     *            Stream to which to write the token
-     * @return The encoded token as a byte array
-     * @throws IOException
-     *             An error occurred writing the token to the stream
-     * @throws GSSException
-     *             On errors encrypting the token
-     */
-    public byte[] write(OutputStream stream)
-            throws GSSException, IOException;
+	/**
+	 * Encode the token, encrypting it if necessary, and write it to the
+	 * provided output stream.
+	 * 
+	 * FIXME: Currently we just use the returned byte array (since that is was
+	 * the GSS context uses). We can remove the output stream from the arguments
+	 * 
+	 * @param stream
+	 *            Stream to which to write the token
+	 * @return The encoded token as a byte array
+	 * @throws IOException
+	 *             An error occurred writing the token to the stream
+	 * @throws GSSException
+	 *             On errors encrypting the token
+	 */
+	public byte[] write(OutputStream stream) throws GSSException, IOException;
 
 }

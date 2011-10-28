@@ -12,34 +12,33 @@ import org.eyrie.remctl.core.RemctlVersionToken;
  * @author pradtke
  * 
  */
-public class NoopValidationStrategy extends
-        BaseValidationStrategy {
+public class NoopValidationStrategy extends BaseValidationStrategy {
 
-    /**
-     * Sends a NOOP token and check the response.
-     */
-    @Override
-    public boolean checkConnection(RemctlConnection connection) {
+	/**
+	 * Sends a NOOP token and check the response.
+	 */
+	@Override
+	public boolean checkConnection(RemctlConnection connection) {
 
-        RemctlNoopToken noopToken = new RemctlNoopToken();
-        connection.writeToken(noopToken);
-        List<RemctlToken> tokens = connection.readAllTokens();
-        if (tokens.size() != 1) {
-            logger.warn(
-                    "Unexpected number of tokens returned in valdate ({}). Marking invalid",
-                    tokens.size());
-        }
+		RemctlNoopToken noopToken = new RemctlNoopToken();
+		connection.writeToken(noopToken);
+		List<RemctlToken> tokens = connection.readAllTokens();
+		if (tokens.size() != 1) {
+			logger.warn(
+					"Unexpected number of tokens returned in valdate ({}). Marking invalid",
+					tokens.size());
+		}
 
-        RemctlToken token = tokens.get(0);
-        if (token instanceof RemctlNoopToken) {
-            return true;
-        } else if (token instanceof RemctlVersionToken) {
-            //Server doesn't support protocol version 3. That is OK.
-            return true;
-        } else {
-            logger.warn("Unexpected token returned from NOOP message: {}",
-                    token);
-        }
-        return false;
-    }
+		RemctlToken token = tokens.get(0);
+		if (token instanceof RemctlNoopToken) {
+			return true;
+		} else if (token instanceof RemctlVersionToken) {
+			// Server doesn't support protocol version 3. That is OK.
+			return true;
+		} else {
+			logger.warn("Unexpected token returned from NOOP message: {}",
+					token);
+		}
+		return false;
+	}
 }

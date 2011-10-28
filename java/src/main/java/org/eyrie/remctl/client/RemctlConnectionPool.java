@@ -15,38 +15,40 @@ import org.apache.commons.pool.impl.GenericObjectPool;
  */
 public class RemctlConnectionPool extends GenericObjectPool {
 
-    /**
-     * Creates a RemctlConnection pool with some intelligent defaults settings.
-     * 
-     * <p>
-     * <ul>
-     * <li>maxWait: 10 seconds</li>
-     * <li>minEvictableIdleTimeMillis: 10 minutes</li>
-     * <li>testOnBorrow: true</li>
-     * <li>testWhileIdle: true</li>
-     * <li>timeBetweenEvictionRunsMillis: 2 minutes</li>
-     * </ul>
-     * 
-     * @param connectionFactory
-     *            The RemctlConnectionFactory that will create new connections,
-     *            and validate existing ones.
-     */
-    public RemctlConnectionPool(RemctlConnectionFactory connectionFactory) {
-        super(connectionFactory);
+	/**
+	 * Creates a RemctlConnection pool with some intelligent defaults settings.
+	 * 
+	 * <p>
+	 * <ul>
+	 * <li>maxWait: 10 seconds</li>
+	 * <li>minEvictableIdleTimeMillis: 10 minutes</li>
+	 * <li>testOnBorrow: true</li>
+	 * <li>testWhileIdle: true</li>
+	 * <li>timeBetweenEvictionRunsMillis: 2 minutes</li>
+	 * </ul>
+	 * 
+	 * @param connectionFactory
+	 *            The RemctlConnectionFactory that will create new connections,
+	 *            and validate existing ones.
+	 */
+	public RemctlConnectionPool(RemctlConnectionFactory connectionFactory) {
+		super(connectionFactory);
 
-        this.setMaxWait(10 * 1000);
-        this.setMinEvictableIdleTimeMillis(10 * 60 * 1000);
-        this.setTestOnBorrow(true);
-        this.setTestWhileIdle(true);
-        this.setTimeBetweenEvictionRunsMillis(2 * 60 * 1000);
-    }
+		this.setMaxWait(10 * 1000);
+		this.setMinEvictableIdleTimeMillis(10 * 60 * 1000);
+		this.setTestOnBorrow(true);
+		this.setTestWhileIdle(true);
+		this.setTimeBetweenEvictionRunsMillis(2 * 60 * 1000);
+	}
 
-    /* (non-Javadoc)
-     * @see org.apache.commons.pool.impl.GenericObjectPool#borrowObject()
-     */
-    @Override
-    public RemctlConnection borrowObject() throws Exception {
-        return (RemctlConnection) super.borrowObject();
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.apache.commons.pool.impl.GenericObjectPool#borrowObject()
+	 */
+	@Override
+	public RemctlConnection borrowObject() throws Exception {
+		return (RemctlConnection) super.borrowObject();
+	}
 
 }

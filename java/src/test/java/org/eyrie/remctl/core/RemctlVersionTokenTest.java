@@ -13,48 +13,46 @@ import org.junit.Test;
  */
 public class RemctlVersionTokenTest {
 
-    /**
-     * Test that token can be created from bytes. Token has a single byte for
-     * body
-     * 
-     */
-    @Test
-    public void testFromBytes() {
-        byte[] message = { 9 };
+	/**
+	 * Test that token can be created from bytes. Token has a single byte for
+	 * body
+	 * 
+	 */
+	@Test
+	public void testFromBytes() {
+		byte[] message = { 9 };
 
-        RemctlVersionToken versionToken = new RemctlVersionToken(message);
-        assertEquals("version should match", 9,
-                versionToken.getHighestSupportedVersion());
-    }
+		RemctlVersionToken versionToken = new RemctlVersionToken(message);
+		assertEquals("version should match", 9,
+				versionToken.getHighestSupportedVersion());
+	}
 
-    /**
-     * Test handling of malformed message: invalid lengths, not enough miminum
-     * bytes
-     * 
-     */
-    @Test
-    public void testBadMessageLength() {
-        byte[] message = {};
+	/**
+	 * Test handling of malformed message: invalid lengths, not enough miminum
+	 * bytes
+	 * 
+	 */
+	@Test
+	public void testBadMessageLength() {
+		byte[] message = {};
 
-        try {
-            new RemctlVersionToken(
-                    message);
-            Assert.fail("exception expected");
-        } catch (RemctlErrorException e) {
-            assertEquals(RemctlErrorCode.ERROR_BAD_TOKEN.value,
-                    e.getErrorCode());
-        }
-        message = new byte[] { 5, 6 };
+		try {
+			new RemctlVersionToken(message);
+			Assert.fail("exception expected");
+		} catch (RemctlErrorException e) {
+			assertEquals(RemctlErrorCode.ERROR_BAD_TOKEN.value,
+					e.getErrorCode());
+		}
+		message = new byte[] { 5, 6 };
 
-        try {
-            new RemctlVersionToken(
-                    message);
-            Assert.fail("exception expected");
-        } catch (RemctlErrorException e) {
-            assertEquals(RemctlErrorCode.ERROR_BAD_TOKEN.value,
-                    e.getErrorCode());
-        }
+		try {
+			new RemctlVersionToken(message);
+			Assert.fail("exception expected");
+		} catch (RemctlErrorException e) {
+			assertEquals(RemctlErrorCode.ERROR_BAD_TOKEN.value,
+					e.getErrorCode());
+		}
 
-    }
+	}
 
 }

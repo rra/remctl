@@ -7,45 +7,45 @@ package org.eyrie.remctl.core;
  * flags are used only with the legacy version 1 protocol.
  */
 public enum RemctlFlag {
-    /** Sent by client in the first packet at the start of the session. */
-    TOKEN_NOOP(0x01),
+	/** Sent by client in the first packet at the start of the session. */
+	TOKEN_NOOP(0x01),
 
-    /** Used for all tokens during initial context setup. */
-    TOKEN_CONTEXT(0x02),
+	/** Used for all tokens during initial context setup. */
+	TOKEN_CONTEXT(0x02),
 
-    /** Protocol v1: regular data packet from server or client. */
-    TOKEN_DATA(0x04),
+	/** Protocol v1: regular data packet from server or client. */
+	TOKEN_DATA(0x04),
 
-    /** Protocol v1: MIC token from server. */
-    TOKEN_MIC(0x08),
+	/** Protocol v1: MIC token from server. */
+	TOKEN_MIC(0x08),
 
-    /** Sent by client in the first packet at the start of the session. */
-    TOKEN_CONTEXT_NEXT(0x10),
+	/** Sent by client in the first packet at the start of the session. */
+	TOKEN_CONTEXT_NEXT(0x10),
 
-    /** Protocol v1: client requests server send a MIC in reply. */
-    TOKEN_SEND_MIC(0x20),
+	/** Protocol v1: client requests server send a MIC in reply. */
+	TOKEN_SEND_MIC(0x20),
 
-    /** Protocol v2: set on all protocol v2 tokens. */
-    TOKEN_PROTOCOL(0x40);
+	/** Protocol v2: set on all protocol v2 tokens. */
+	TOKEN_PROTOCOL(0x40);
 
-    /** The wire representation of this flag. */
-    private byte value;
+	/** The wire representation of this flag. */
+	private byte value;
 
-    /**
-     * Create #RemctlFlag with a particular value.
-     * 
-     * @param value
-     *            Byte value of flag.
-     */
-    private RemctlFlag(int value) {
-        this.value = (byte) value;
-    }
+	/**
+	 * Create #RemctlFlag with a particular value.
+	 * 
+	 * @param value
+	 *            Byte value of flag.
+	 */
+	private RemctlFlag(int value) {
+		this.value = (byte) value;
+	}
 
-    /**
-     * @return the value
-     */
-    public byte getValue() {
-        return this.value;
-    }
+	/**
+	 * @return the value
+	 */
+	public byte getValue() {
+		return this.value;
+	}
 
 }

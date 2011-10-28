@@ -15,22 +15,22 @@ import java.io.StringWriter;
  */
 public class Utils {
 
-    /**
-     * Convert a throwable and stack trace into a String.
-     * 
-     * <p>
-     * Useful for cases when we need to log an exception at a non-error level
-     * </p>
-     * 
-     * @param throwable
-     *            the throwable to convert
-     * @return The thowable stack trace as a string.
-     */
-    static public String throwableToString(Throwable throwable) {
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
-        throwable.printStackTrace(printWriter);
-        return stringWriter.toString();
-    }
+	/**
+	 * Convert a throwable and stack trace into a String.
+	 * 
+	 * <p>
+	 * Useful for cases when we need to log an exception at a non-error level
+	 * </p>
+	 * 
+	 * @param throwable
+	 *            the throwable to convert
+	 * @return The thowable stack trace as a string.
+	 */
+	static public String throwableToString(Throwable throwable) {
+		StringWriter stringWriter = new StringWriter();
+		PrintWriter printWriter = new PrintWriter(stringWriter);
+		throwable.printStackTrace(printWriter);
+		return stringWriter.toString();
+	}
 
 }

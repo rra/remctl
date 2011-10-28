@@ -33,85 +33,89 @@ import org.slf4j.LoggerFactory;
  */
 public class RemctlMessageConverterTest {
 
-    /**
-     * Allow logging
-     */
-    static final Logger logger = LoggerFactory
-    .getLogger(RemctlMessageConverterTest.class);
+	/**
+	 * Allow logging
+	 */
+	static final Logger logger = LoggerFactory
+			.getLogger(RemctlMessageConverterTest.class);
 
-    /**
-     * Class under test
-     */
-    RemctlMessageConverter messageConverter;
+	/**
+	 * Class under test
+	 */
+	RemctlMessageConverter messageConverter;
 
-    /**
-     * A mocked context
-     */
-    GSSContext mockContext;
+	/**
+	 * A mocked context
+	 */
+	GSSContext mockContext;
 
-    /**
-     * Return the first argument
-     * 
-     * @author pradtke
-     * 
-     */
-    class ReturnInput implements Answer<byte[]> {
+	/**
+	 * Return the first argument
+	 * 
+	 * @author pradtke
+	 * 
+	 */
+	class ReturnInput implements Answer<byte[]> {
 
-        @Override
-        public byte[] answer(InvocationOnMock invocation) throws Throwable {
-            return (byte[]) invocation.getArguments()[0];
-        }
+		@Override
+		public byte[] answer(InvocationOnMock invocation) throws Throwable {
+			return (byte[]) invocation.getArguments()[0];
+		}
 
-    }
+	}
 
-    @Before
-    public void setup() throws GSSException {
-        this.mockContext = mock(GSSContext.class);
-        this.messageConverter = new RemctlMessageConverter(this.mockContext);
-        when(this.mockContext.wrap(any(byte[].class), anyInt(), anyInt(),
-                any(MessageProp.class))).thenAnswer(new ReturnInput());
-    }
+	@Before
+	public void setup() throws GSSException {
+		this.mockContext = mock(GSSContext.class);
+		this.messageConverter = new RemctlMessageConverter(this.mockContext);
+		when(
+				this.mockContext.wrap(any(byte[].class), anyInt(), anyInt(),
+						any(MessageProp.class))).thenAnswer(new ReturnInput());
+	}
 
-    /**
-     * Test handling of IO exceptions
-     * 
-     * @throws Exception
-     *             if exception
-     */
-    @Test
-    public void testExceptionTranslation() throws Exception {
+	/**
+	 * Test handling of IO exceptions
+	 * 
+	 * @throws Exception
+	 *             if exception
+	 */
+	@Test
+	public void testExceptionTranslation() throws Exception {
 
-        InputStream input = mock(InputStream.class);
-        when(input.read()).thenThrow(new IOException("connection died"));
-        try {
-            this.messageConverter.decodeMessage(input);
-            Assert.fail("Expected exception");
-        } catch (RemctlException e) {
-            logger.debug("Caught {}", e);
-            assertEquals("connection died",e.getCause().getMessage());
-        }
+		InputStream input = mock(InputStream.class);
+		when(input.read()).thenThrow(new IOException("connection died"));
+		try {
+			this.messageConverter.decodeMessage(input);
+			Assert.fail("Expected exception");
+		} catch (RemctlException e) {
+			logger.debug("Caught {}", e);
+			assertEquals("connection died", e.getCause().getMessage());
+		}
 
-    }
+	}
 
-    @Test
-    public void testWrite() throws RemctlException {
+	@Test
+	public void testWrite() throws RemctlException {
 
-        //        RemctlCommandToken commandToken = new RemctlCommandToken(true, "test",
-        //                "command");
-        //
-        //        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        //
-        //
-        //        this.messageConverter.encodeMessage(byteArrayOutputStream, commandToken);
-        //
-        //
-        //        byte[] expectedBytes = { 1, /* flags */
-        //                0,0,0,1, /*length */
-        //                /* payload */
-        //                2, /* protocol version */
-        //                3, /* message type */
-        //
-        //        }
+		// RemctlCommandToken commandToken = new RemctlCommandToken(true,
+		// "test",
+		// "command");
+		//
+		// ByteArrayOutputStream byteArrayOutputStream = new
+		// ByteArrayOutputStream();
+		//
+		//
+		// this.messageConverter.encodeMessage(byteArrayOutputStream,
+		// commandToken);
+		//
+		//
+		// byte[] expectedBytes = { 1, /* flags */
+		// 0,0,0,1, /*length */
+		// /* payload */
+		// 2, /* protocol version */
+		// 3, /* message type */
+		//
+		// }
 
-    }
+	}
 }

@@ -21,17 +21,17 @@ package org.eyrie.remctl.client;
  */
 public interface RemctlConnectionValidationStrategy {
 
-    /**
-     * Determines if the connection is still valid for use.
-     * <p>
-     * When returning true, implementations must leave the connection in a state
-     * where it can be re-used. All implementations must be thread safe.
-     * </p>
-     * 
-     * @param connection
-     *            The connection to test
-     * @return true if the connection is ready for use, false otherwise
-     */
-    public boolean isValid(RemctlConnection connection);
+	/**
+	 * Determines if the connection is still valid for use.
+	 * <p>
+	 * When returning true, implementations must leave the connection in a state
+	 * where it can be re-used. All implementations must be thread safe.
+	 * </p>
+	 * 
+	 * @param connection
+	 *            The connection to test
+	 * @return true if the connection is ready for use, false otherwise
+	 */
+	public boolean isValid(RemctlConnection connection);
 
 }
