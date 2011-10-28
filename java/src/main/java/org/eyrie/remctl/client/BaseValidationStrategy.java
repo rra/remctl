@@ -12,85 +12,94 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class BaseValidationStrategy implements
-		RemctlConnectionValidationStrategy {
+        RemctlConnectionValidationStrategy {
 
-	/**
-	 * default 55 minutes.
-	 */
-	long maxLife = 55 * 60 * 1000;
+    /**
+     * default 55 minutes.
+     */
+    private static final long DEFAULT_MAX_LIFE = 55 * Utils.MILLS_IN_MINUTE;
 
-	/**
-	 * Allow logging.
-	 */
-	static final Logger logger = LoggerFactory
-			.getLogger(BaseValidationStrategy.class);
+    /**
+     * default 55 minutes.
+     */
+    private long maxLife = DEFAULT_MAX_LIFE;
 
-	@Override
-	final public boolean isValid(RemctlConnection connection) {
-		/**
-		 * Remctl server closes connection after an hour.
-		 */
-		long now = System.currentTimeMillis();
-		long elapsedTime = now
-				- connection.getConnectionEstablishedTime().getTime();
-		if (elapsedTime > this.maxLife) {
-			logger.debug("Connection open {}. Max life {}. Marking invalid",
-					elapsedTime, this.maxLife);
-			return false;
-		}
+    /**
+     * Allow logging.
+     */
+    static final Logger logger = LoggerFactory
+            .getLogger(BaseValidationStrategy.class);
 
-		/**
-		 * If connection has any unread, stale tokens then mark it invalid.
-		 */
-		if (connection.hasPendingData()) {
-			logger.debug("Connection has stale pending data. Marking invalid");
-			return false;
-		}
+    @Override
+    public final boolean isValid(final RemctlConnection connection) {
+        /**
+         * Remctl server closes connection after an hour.
+         */
+        long now = System.currentTimeMillis();
+        long elapsedTime = now
+                - connection.getConnectionEstablishedTime().getTime();
+        if (elapsedTime > this.maxLife) {
+            logger.debug("Connection open {}. Max life {}. Marking invalid",
+                    elapsedTime, this.maxLife);
+            return false;
+        }
 
-		try {
-			return this.checkConnection(connection);
-		} catch (Exception e) {
-			if (logger.isInfoEnabled()) {
-				logger.info("Error validating connection. Marking it invalid.");
-				logger.info("Stack trace {}", Utils.throwableToString(e));
-			}
-			return false;
-		}
-	}
+        /**
+         * If connection has any unread, stale tokens then mark it invalid.
+         */
+        if (connection.hasPendingData()) {
+            logger.debug("Connection has stale pending data. Marking invalid");
+            return false;
+        }
 
-	/**
-	 * An extension point for subclasses that want to add additional validation
-	 * on top of what is performed by isValid.
-	 * 
-	 * <p>
-	 * Base implementation returns true.
-	 * </p>
-	 * 
-	 * @param connection
-	 *            the connection to check
-	 * @return true if additional checks are successful
-	 * @throws Exception
-	 *             any exceptions are treated as invalid connection
-	 */
-	boolean checkConnection(RemctlConnection connection) throws Exception {
-		return true;
-	}
+        try {
+            return this.checkConnection(connection);
+        } catch (Exception e) {
+            if (logger.isInfoEnabled()) {
+                logger.info("Error validating connection. Marking it invalid.");
+                logger.info("Stack trace {}", Utils.throwableToString(e));
+            }
+            return false;
+        }
+    }
 
-	/**
-	 * The maximum connection lifetime in milliseconds.
-	 * @return the maxLife
-	 */
-	public long getMaxLife() {
-		return this.maxLife;
-	}
+    /**
+     * An extension point for subclasses that want to add additional validation
+     * on top of what is performed by isValid.
+     * 
+     * <p>
+     * Base implementation returns true.
+     * </p>
+     * 
+     * @param connection
+     *            the connection to check
+     * @return true if additional checks are successful
+     * @throws Exception
+     *             any exceptions are treated as invalid connection
+     */
+    boolean checkConnection(final RemctlConnection connection) throws Exception {
+        return true;
+    }
 
-	/**
-	 * Set the maximum time a connection should be open.
-	 * <p>In milliseconds</p>
-	 * @param maxLife
-	 *            the maxLife to set
-	 */
-	public void setMaxLife(long maxLife) {
-		this.maxLife = maxLife;
-	}
+    /**
+     * The maximum connection lifetime in milliseconds.
+     * 
+     * @return the maxLife
+     */
+    public long getMaxLife() {
+        return this.maxLife;
+    }
+
+    /**
+     * Set the maximum time a connection should be open.
+     * <p>
+     * In milliseconds
+     * </p>
+     * 
+     * @param maxLife
+     *            the maxLife to set
+     */
+    public void setMaxLife(final long maxLife) {
+        this.maxLife = maxLife;
+    }
 }
