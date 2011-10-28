@@ -1,7 +1,5 @@
 package org.eyrie.remctl.client;
 
-import org.eyrie.remctl.core.RemctlException;
-
 /**
  * A client for a remctl server.
  * 
@@ -28,7 +26,7 @@ public interface RemctlClient {
 	 * @throws RemctlStatusException if the return status is not 0.
 	 * @throws RemctlErrorException if error token encountered during processing.
 	 */
-	public RemctlResponse execute(String... arguments);
+	RemctlResponse execute(String... arguments);
 
 	/**
 	 * Runs the list of arguments against the remctl server.
@@ -42,6 +40,6 @@ public interface RemctlClient {
 	 *             server.
 	 * @throws RemctlErrorException if error token encountered during processing.
 	 */
-	public RemctlResponse executeAllowAnyStatus(String... arguments);
+	RemctlResponse executeAllowAnyStatus(String... arguments);
 
 }

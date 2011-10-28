@@ -39,49 +39,49 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class RemctlConnection {
-
+    
 	/**
-	 * Allow logging
+	 * Allow logging.
 	 */
 	static final Logger logger = LoggerFactory
 			.getLogger(RemctlConnection.class);
 	/**
-	 * Our GSS context
+	 * Our GSS context.
 	 */
 	private GSSContext gssContext;
 
 	/**
-	 * The server principal
+	 * The server principal.
 	 */
 	private String serverPrincipal;
 
 	/**
-	 * Converts RemctlTokens to/from their wire representations
+	 * Converts RemctlTokens to/from their wire representations.
 	 */
-	RemctlMessageConverter messageConverter;
+	private RemctlMessageConverter messageConverter;
 
 	/**
 	 * The hostname to connect to.
 	 */
-	String hostname;
+	private String hostname;
 
 	/**
 	 * the port to connect to.
 	 */
-	int port = 4373;
+	private int port = 4373;
 
 	/**
-	 * Data stream sent from the server
+	 * Data stream sent from the server.
 	 */
-	DataInputStream inStream;
+	private DataInputStream inStream;
 
 	/**
-	 * Data stream sent to the server
+	 * Data stream sent to the server.
 	 */
-	DataOutputStream outStream;
+	private DataOutputStream outStream;
 
 	/**
-	 * Time connection was established
+	 * Time connection was established.
 	 */
 	private Date connectionEstablishedTime;
 
@@ -97,7 +97,7 @@ public class RemctlConnection {
 	}
 
 	/**
-	 * Create a simple Remctl client
+	 * Create a remctl connection.
 	 * 
 	 * @param hostname
 	 *            The host to connect to
