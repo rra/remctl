@@ -1,232 +1,233 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>org.eyrie</groupId>
-    <artifactId>remctl</artifactId>
-    <version>2.1.0-SNAPSHOT</version>
-    <name>Java Remctl</name>
-    <description>Java implementation of the remctl protocol</description>
-    <url>http://www.eyrie.org/~eagle/software/remctl/java</url>
-    <licenses>
-        <license>
-            <comments>License is for overall project, inlcuding C code and language specific bindings</comments>
-            <url>http://www.eyrie.org/~eagle/software/remctl/license.html</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <issueManagement>
-        <system>JIRA</system>
-        <url>https://devspace.stanford.edu/jira/browse/IDG</url>
-    </issueManagement>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.eyrie</groupId>
+	<artifactId>remctl</artifactId>
+	<version>2.1.0-SNAPSHOT</version>
+	<name>Java Remctl</name>
+	<description>Java implementation of the remctl protocol</description>
+	<url>http://www.eyrie.org/~eagle/software/remctl/java</url>
+	<licenses>
+		<license>
+			<comments>License is for overall project, inlcuding C code and language specific bindings</comments>
+			<url>http://www.eyrie.org/~eagle/software/remctl/license.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<issueManagement>
+		<system>JIRA</system>
+		<url>https://devspace.stanford.edu/jira/browse/IDG</url>
+	</issueManagement>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.8</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
-                    <compilerArgument>-Xlint:all</compilerArgument>
-                    <showWarnings>true</showWarnings>
-                    <showDeprecation>false</showDeprecation>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <junitArtifactName>junit:junit</junitArtifactName>
-
-                    <classesDirectory>${project.build.directory}/generated-classes/emma/classes</classesDirectory>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.maven.plugin</groupId>
-                <artifactId>emma-maven-plugin</artifactId>
-                <version>1.2</version>
-                <executions>
-                    <execution>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>instrument</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+	<build>
+		<plugins>
 			<plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-site-plugin</artifactId>
-                                <version>2.2</version>
-                                <dependencies>
-                                        <dependency>
-                                        <!--  FIXME: this uses a patch version to accept .mdwn suffixed files -->
-                                          <!-- Manual build and deploy with mvn deploy:deploy-file -Durl=file:/afs/ir/product/acco\
-unt/maven-repo -DrepositoryId=afs-repo -Dfile=target/doxia-module-markdown-1.1.4.jar -Dversion=1.1.4 -DgroupId=org.apache.maven.do\
-xia -DartifactId=doxia-module-markdown -Dpackaging=jar -->
-                                                <groupId>org.apache.maven.doxia</groupId>
-                                                <artifactId>doxia-module-markdown</artifactId>
-                                                <version>1.1.4</version>
-                                                                        </dependency>
-                                </dependencies>
-                                                <configuration>
-                                        <inputEncoding>UTF-8</inputEncoding>
-                                        <outputEncoding>UTF-8</outputEncoding>
-                                </configuration>
-                        </plugin>
-        </plugins>
-    </build>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.8</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+					<compilerArgument>-Xlint:all</compilerArgument>
+					<showWarnings>true</showWarnings>
+					<showDeprecation>false</showDeprecation>
+				</configuration>
+			</plugin>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.6.1</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-pool</groupId>
-            <artifactId>commons-pool</artifactId>
-            <version>1.5.6</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.8.2</version>
-            <type>jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.9.0-rc1</version>
-            <type>jar</type>
-            <scope>test</scope>
-        </dependency>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<junitArtifactName>junit:junit</junitArtifactName>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.6.1</version>
-            <type>jar</type>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+					<classesDirectory>${project.build.directory}/generated-classes/emma/classes</classesDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.maven.plugin</groupId>
+				<artifactId>emma-maven-plugin</artifactId>
+				<version>1.2</version>
+				<executions>
+					<execution>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>instrument</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>2.2</version>
+				<dependencies>
+					<dependency>
+						<!-- FIXME: this uses a patch version to accept .mdwn suffixed files -->
+						<!-- Manual build and deploy with mvn deploy:deploy-file -Durl=file:/afs/ir/product/acco\ 
+							unt/maven-repo -DrepositoryId=afs-repo -Dfile=target/doxia-module-markdown-1.1.4.jar 
+							-Dversion=1.1.4 -DgroupId=org.apache.maven.do\ xia -DartifactId=doxia-module-markdown 
+							-Dpackaging=jar -->
+						<groupId>org.apache.maven.doxia</groupId>
+						<artifactId>doxia-module-markdown</artifactId>
+						<version>1.1.4</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<inputEncoding>UTF-8</inputEncoding>
+					<outputEncoding>UTF-8</outputEncoding>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
-    <developers>
-        <developer>
-            <id>pradtke@stanford.edu</id>
-            <name>Patrick Radtke</name>
-            <email>pradtke@stanford.edu</email>
-            <roles>
-                <role>Java Guy</role>
-            </roles>
-        </developer>
-        <developer>
-            <id>russ</id>
-            <name>Russ Allbery</name>
-            <email>eagle@eyrie.org</email>
-            <roles>
-                <role>Head Honcho</role>
-            </roles>
-        </developer>
-    </developers>
-    <contributors>
-        <contributor>
-            <name>To be named later.</name>
-        </contributor>
-    </contributors>
-    <scm>
-        <url>http://git.eyrie.org/?p=kerberos/remctl.git;a=shortlog;h=refs/heads/java</url>
-        <tag>java</tag>
-        <developerConnection>scm:git:ssh://git.stanford.edu/srv/git/kerberos/remctl.git</developerConnection>
-    </scm>
+	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.6.1</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-pool</groupId>
+			<artifactId>commons-pool</artifactId>
+			<version>1.5.6</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.2</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.9.0-rc1</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
 
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>jdepend-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>jxr-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.6</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-            <!-- http://www.sonatype.com/people/2009/06/integration-tests-with-maven-part-2-test-coverage-reports/ -->
-            <!-- TODO: look at Cobertura -->
-            <plugin>
-                <groupId>org.sonatype.maven.plugin</groupId>
-                <artifactId>emma-maven-plugin</artifactId>
-                <version>1.2</version>
-                <inherited>true</inherited>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>surefire-report-maven-plugin</artifactId>
-                <inherited>true</inherited>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-changelog-plugin</artifactId>
-                <version>2.2</version>
-                <configuration>
-                    <connectionType>developerConnection</connectionType>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>taglist-maven-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <linkXRef>true</linkXRef>
-                    <tags>
-                        <tag>TODO</tag>
-                        <tag>FIXME</tag>
-                        <tag>@deprecated</tag>
-                    </tags>
-                </configuration>
-            </plugin>
-            <!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-linkcheck-plugin</artifactId> 
-                <version>1.1</version> </plugin> -->
-        </plugins>
-    </reporting>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.6.1</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<developers>
+		<developer>
+			<id>pradtke@stanford.edu</id>
+			<name>Patrick Radtke</name>
+			<email>pradtke@stanford.edu</email>
+			<roles>
+				<role>Java Guy</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>russ</id>
+			<name>Russ Allbery</name>
+			<email>eagle@eyrie.org</email>
+			<roles>
+				<role>Head Honcho</role>
+			</roles>
+		</developer>
+	</developers>
+	<contributors>
+		<contributor>
+			<name>To be named later.</name>
+		</contributor>
+	</contributors>
+	<scm>
+		<url>http://git.eyrie.org/?p=kerberos/remctl.git;a=shortlog;h=refs/heads/java</url>
+		<tag>java</tag>
+		<developerConnection>scm:git:ssh://git.stanford.edu/srv/git/kerberos/remctl.git</developerConnection>
+	</scm>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jdepend-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jxr-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.6</version>
+			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+			</plugin>
+			<!-- http://www.sonatype.com/people/2009/06/integration-tests-with-maven-part-2-test-coverage-reports/ -->
+			<!-- TODO: look at Cobertura -->
+			<plugin>
+				<groupId>org.sonatype.maven.plugin</groupId>
+				<artifactId>emma-maven-plugin</artifactId>
+				<version>1.2</version>
+				<inherited>true</inherited>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>surefire-report-maven-plugin</artifactId>
+				<inherited>true</inherited>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-changelog-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<connectionType>developerConnection</connectionType>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>taglist-maven-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<linkXRef>true</linkXRef>
+					<tags>
+						<tag>TODO</tag>
+						<tag>FIXME</tag>
+						<tag>@deprecated</tag>
+					</tags>
+				</configuration>
+			</plugin>
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-linkcheck-plugin</artifactId> 
+				<version>1.1</version> </plugin> -->
+		</plugins>
+	</reporting>
 </project>

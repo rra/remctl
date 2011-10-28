@@ -2,7 +2,7 @@
 
 ## Running Commands
 
-The (`RemctlClient`)[../apidocs/org/eyrie/remctl/client/RemctlClient.html] interface allows you to make remctl calls.
+The `RemctlClient` interface allows you to make remctl calls.
 
 Example
 
