@@ -1,6 +1,7 @@
 package org.eyrie.remctl.client;
 
 import org.apache.commons.pool.BasePoolableObjectFactory;
+import org.eyrie.remctl.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,18 +15,13 @@ import org.slf4j.LoggerFactory;
  * FIXME: add some logging. Excpetions may be lost, so try-catch our code and
  * log what exceptions we generate
  * 
- * FIXME: add options for validating a remctl connection - remctl connection
- * inputstream.avialble() has bytes, then we're invalid since an earlier client
- * didn;t read all of its tokens. -call quit remctl call on server to keep
- * connection alive/confirm its up
- * 
  * @author pradtke
  * 
  */
 public class RemctlConnectionFactory extends BasePoolableObjectFactory {
 
 	/**
-	 * Allow logging
+	 * Allow logging.
 	 */
 	static final Logger logger = LoggerFactory
 			.getLogger(RemctlConnectionFactory.class);
@@ -37,15 +33,15 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
 	/**
 	 * the port to connect to.
 	 */
-	private int port = 4373;
+	private int port = Utils.DEFAULT_PORT;
 
 	/**
-	 * The server principal
+	 * The server principal.
 	 */
 	private String serverPrincipal;
 
 	/**
-	 * Set a default validation strategy
+	 * Set a default validation strategy.
 	 */
 	private RemctlConnectionValidationStrategy validationStrategy = new BaseValidationStrategy();
 
@@ -62,7 +58,7 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
 	 * 
 	 * @param hostname the hostname connections should connect to.
 	 */
-	public RemctlConnectionFactory(String hostname) {
+	public RemctlConnectionFactory(final String hostname) {
 		this.hostname = hostname;
 	}
 
@@ -75,6 +71,7 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
 	}
 
 	/**
+	 * Get the hostname that connections are made to.
 	 * @return the hostname
 	 */
 	public String getHostname() {
@@ -82,10 +79,11 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
 	}
 
 	/**
+	 * Set the hostname that connections are made to.
 	 * @param hostname
 	 *            the hostname to set
 	 */
-	public void setHostname(String hostname) {
+	public void setHostname(final String hostname) {
 		this.hostname = hostname;
 	}
 
@@ -100,7 +98,7 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
 	 * @param port
 	 *            the port to set
 	 */
-	public void setPort(int port) {
+	public void setPort(final int port) {
 		this.port = port;
 	}
 
@@ -115,7 +113,7 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
 	 * @param serverPrincipal
 	 *            the serverPrincipal to set
 	 */
-	public void setServerPrincipal(String serverPrincipal) {
+	public void setServerPrincipal(final String serverPrincipal) {
 		this.serverPrincipal = serverPrincipal;
 	}
 
@@ -127,17 +125,20 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
 	 * lang.Object)
 	 */
 	@Override
-	public void destroyObject(Object obj) throws Exception {
+	public void destroyObject(final Object obj) throws Exception {
 		RemctlConnection connection = (RemctlConnection) obj;
 		connection.close();
 	}
 
 	/**
-	 * Validate the RemctlConnection using the <code>validationStrategy</code>
+	 * Validate the RemctlConnection using the <code>validationStrategy</code>.
+	 * 
+	 * @param obj the object to validate.
+	 * @return true if object if valid, false otherwise
 	 * 
 	 */
 	@Override
-	public boolean validateObject(Object obj) {
+	public boolean validateObject(final Object obj) {
 		RemctlConnection connection = (RemctlConnection) obj;
 		return this.validationStrategy.isValid(connection);
 
@@ -148,7 +149,7 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
 	 *            the validationStrategy to set
 	 */
 	public void setValidationStrategy(
-			RemctlConnectionValidationStrategy validationStrategy) {
+	        final RemctlConnectionValidationStrategy validationStrategy) {
 		this.validationStrategy = validationStrategy;
 	}
 

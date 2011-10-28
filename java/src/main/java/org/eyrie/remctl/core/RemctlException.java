@@ -13,24 +13,23 @@ package org.eyrie.remctl.core;
  * @author Russ Allbery &lt;rra@stanford.edu&gt;
  */
 public class RemctlException extends RuntimeException {
-	/** Object ID for serialization. */
-	private static final long serialVersionUID = -4221280841282852331L;
+    /** Object ID for serialization. */
+    private static final long serialVersionUID = -4221280841282852331L;
 
-	/**
-	 * Constructs a <code>RemctlException</code> with the provided detail
-	 * string.
-	 * 
-	 * @param msg
-	 *            The detail message
-	 */
-	public RemctlException(String msg) {
-		super(msg);
-	}
+    /**
+     * Constructs a <code>RemctlException</code> with the provided detail string.
+     * 
+     * @param msg
+     *            The detail message
+     */
+    public RemctlException(final String msg) {
+        super(msg);
+    }
 
-	/**
-	 * {@link RuntimeException#RuntimeException(String, Throwable)}.
-	 */
-	public RemctlException(String msg, Throwable t) {
-		super(msg, t);
-	}
+    /**
+     * {@link RuntimeException#RuntimeException(String, Throwable)}.
+     */
+    public RemctlException(final String msg, final Throwable t) {
+        super(msg, t);
+    }
 }

@@ -32,6 +32,6 @@ public interface RemctlConnectionValidationStrategy {
 	 *            The connection to test
 	 * @return true if the connection is ready for use, false otherwise
 	 */
-	public boolean isValid(RemctlConnection connection);
+	boolean isValid(RemctlConnection connection);
 
 }

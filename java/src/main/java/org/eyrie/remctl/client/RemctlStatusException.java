@@ -31,7 +31,7 @@ public class RemctlStatusException extends RuntimeException {
 	 * @param remctlResponse
 	 *            the server response that caused the exception
 	 */
-	public RemctlStatusException(RemctlResponse remctlResponse) {
+	public RemctlStatusException(final RemctlResponse remctlResponse) {
 		super("Unexpected status. Expected 0, recieved '"
 				+ remctlResponse.getStatus() + "'");
 		this.response = remctlResponse;

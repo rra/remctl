@@ -14,6 +14,11 @@ import org.apache.commons.pool.impl.GenericObjectPool;
  * 
  */
 public class RemctlConnectionPool extends GenericObjectPool {
+    
+    /**
+     * Default max wait time.
+     */
+    private static final int DEFAULT_WAIT = 10 * 1000;
 
 	/**
 	 * Creates a RemctlConnection pool with some intelligent defaults settings.
@@ -31,10 +36,10 @@ public class RemctlConnectionPool extends GenericObjectPool {
 	 *            The RemctlConnectionFactory that will create new connections,
 	 *            and validate existing ones.
 	 */
-	public RemctlConnectionPool(RemctlConnectionFactory connectionFactory) {
+	public RemctlConnectionPool(final RemctlConnectionFactory connectionFactory) {
 		super(connectionFactory);
 
-		this.setMaxWait(10 * 1000);
+		this.setMaxWait(DEFAULT_WAIT);
 		this.setMinEvictableIdleTimeMillis(10 * 60 * 1000);
 		this.setTestOnBorrow(true);
 		this.setTestWhileIdle(true);
