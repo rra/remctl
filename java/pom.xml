@@ -215,6 +215,11 @@
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>2.3.2</version>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>taglist-maven-plugin</artifactId>
 				<version>2.4</version>
 				<configuration>
@@ -226,8 +231,19 @@
 					</tags>
 				</configuration>
 			</plugin>
-			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-linkcheck-plugin</artifactId> 
-				<version>1.1</version> </plugin> -->
+			<!--  link check is really slow. comment out by default -->
+			<!-- <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-linkcheck-plugin</artifactId>
+				<version>1.1</version>
+				<configuration>
+              <excludedLinks>
+                <excludedLink>http://git.eyrie.org/*</excludedLink>
+                <excludedLink>http://download.oracle.com/*</excludedLink>
+                <excludedLink>**/checkstyle.html</excludedLink>
+              </excludedLinks>
+            </configuration>
+			</plugin> -->
 		</plugins>
 	</reporting>
 </project>

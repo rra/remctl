@@ -17,23 +17,23 @@ import org.eyrie.remctl.core.RemctlCommandToken;
 public class SimpleRemctlClient implements RemctlClient {
 
 	/**
-	 * hostname to connect to
+	 * hostname to connect to.
 	 */
 	private final String hostname;
 
 	/**
-	 * port to connect on
+	 * port to connect on.
 	 */
 	private final int port;
 
 	/**
-	 * Server princicpal
+	 * Server principal.
 	 */
-	String serverPrincipal;
+	private final String serverPrincipal;
 
 	/**
-	 * Create a simple Remctl client that connects to hostname using default
-	 * port and server prinicpals
+	 * Create a SimpleRemctlClient that connects to hostname using default
+	 * port and server principal.
 	 * 
 	 * @param hostname
 	 *            The host to connect to.
@@ -43,7 +43,7 @@ public class SimpleRemctlClient implements RemctlClient {
 	}
 
 	/**
-	 * Create a simple Remctl client
+	 * Create a SimpleRemctlClient with the given connection information.
 	 * 
 	 * @param hostname
 	 *            The host to connect to

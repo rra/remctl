@@ -21,7 +21,7 @@ import org.junit.Test;
  * 
  */
 public class BaseValidationStrategyTest {
-
+	
 	/**
 	 * Create a new stubbed connection.
 	 * 
@@ -38,7 +38,7 @@ public class BaseValidationStrategyTest {
 			boolean extraData, RemctlToken... tokens) {
 		RemctlConnection mockConnection = mock(RemctlConnection.class);
 		Date created = new Date(System.currentTimeMillis()
-				- (minutesSinceCreate * 60 * 1000));
+				- (60L * 1000 * minutesSinceCreate));
 		when(mockConnection.getConnectionEstablishedTime()).thenReturn(created);
 		when(mockConnection.hasPendingData()).thenReturn(extraData);
 

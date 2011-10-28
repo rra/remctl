@@ -55,7 +55,7 @@ public class RemctlMessageConverterTest {
 	 * @author pradtke
 	 * 
 	 */
-	class ReturnInput implements Answer<byte[]> {
+	static class ReturnInput implements Answer<byte[]> {
 
 		@Override
 		public byte[] answer(InvocationOnMock invocation) throws Throwable {
