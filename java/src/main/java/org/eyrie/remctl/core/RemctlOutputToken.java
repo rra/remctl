@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 /**
  * Represents a remctl output token. This is sent from the server to the client
@@ -36,7 +37,7 @@ public class RemctlOutputToken extends RemctlMessageToken {
 			throw new RemctlException("invalid stream" + stream);
 		}
 		this.stream = (byte) stream;
-		this.output = output;
+		this.output = Arrays.copyOf(output, output.length);
 	}
 
 	/**

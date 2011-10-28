@@ -46,15 +46,13 @@ public abstract class RemctlMessageToken implements RemctlToken {
 	/**
 	 * Encrypt the token and write it to the provided stream.
 	 * 
-	 * @param stream
-	 *            Stream to which to write the token
 	 * @throws IOException
 	 *             An error occurred writing the token to the stream
 	 * @throws GSSException
 	 *             On errors encrypting the token
 	 */
 	@Override
-	public byte[] write(OutputStream stream) throws GSSException, IOException {
+	public byte[] write() throws GSSException, IOException {
 		int length = this.length() + 2;
 		ByteArrayOutputStream array = new ByteArrayOutputStream(length);
 		DataOutputStream encode = new DataOutputStream(array);

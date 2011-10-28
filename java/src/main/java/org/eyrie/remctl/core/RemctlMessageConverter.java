@@ -156,7 +156,7 @@ public class RemctlMessageConverter {
 	public void encodeMessage(OutputStream outputStream, RemctlToken remctlToken) {
 
 		try {
-			byte[] message = remctlToken.write(null);
+			byte[] message = remctlToken.write();
 			MessageProp prop = new MessageProp(0, true);
 			byte[] encryptedToken = this.context.wrap(message, 0,
 					message.length, prop);

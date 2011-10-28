@@ -1,5 +1,6 @@
 package org.eyrie.remctl.client;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.eyrie.remctl.core.RemctlCommandToken;
@@ -66,7 +67,8 @@ public class CommandValidationStrategy extends BaseValidationStrategy {
 	 * @return the commands
 	 */
 	public String[] getCommands() {
-		return this.commands;
+		//don't let caller manipulate our internal state.
+		return Arrays.copyOf(this.commands, commands.length);
 	}
 
 	/**

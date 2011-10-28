@@ -2,6 +2,7 @@ package org.eyrie.remctl.core;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Represents a remctl command token. This token is sent by a client to a server
@@ -30,7 +31,7 @@ public class RemctlCommandToken extends RemctlMessageToken {
 			throws RemctlException {
 		super(2);
 		this.keepalive = keepalive;
-		this.args = args;
+		this.args = Arrays.copyOf(args, args.length);
 	}
 
 	/**
@@ -91,18 +92,12 @@ public class RemctlCommandToken extends RemctlMessageToken {
 	}
 
 	/**
-	 * @return the args
+	 * Return a copy of the arguments used in the command.
+	 * 
+	 * @return the args the arguments
 	 */
 	public String[] getArgs() {
-		return this.args;
-	}
-
-	/**
-	 * @param args
-	 *            the args to set
-	 */
-	public void setArgs(String[] args) {
-		this.args = args;
+		return Arrays.copyOf(this.args, args.length);
 	}
 
 }
