@@ -31,8 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A connection to a remctl control server that allows you to send and recieve
- * remctl tokens.
+ * A connection to a remctl control server that allows you to send and recieve remctl tokens.
  * 
  * It is not thread safe.
  * 
@@ -44,8 +43,7 @@ public class RemctlConnection {
     /**
      * Allow logging.
      */
-    static final Logger logger = LoggerFactory
-            .getLogger(RemctlConnection.class);
+    static final Logger logger = LoggerFactory.getLogger(RemctlConnection.class);
     /**
      * Our GSS context.
      */
@@ -87,8 +85,8 @@ public class RemctlConnection {
     private Date connectionEstablishedTime;
 
     /**
-     * RemctlClient that will connect to the provide host, on the default port
-     * (4373) using the default principal name 'host/canonical_servername'.
+     * RemctlClient that will connect to the provide host, on the default port (4373) using the default principal name
+     * 'host/canonical_servername'.
      * 
      * @param hostname
      *            the FQDN to connect to.
@@ -105,8 +103,7 @@ public class RemctlConnection {
      * @param port
      *            The port to connect on. If 0, defaults to 4373
      * @param serverPrincipal
-     *            The server principal. If null, defaults to
-     *            'host/canonical_servername'
+     *            The server principal. If null, defaults to 'host/canonical_servername'
      */
     public RemctlConnection(final String hostname, final int port, final String serverPrincipal) {
         this.hostname = hostname;
@@ -140,8 +137,7 @@ public class RemctlConnection {
     /**
      * Read tokens from the server until a Status or Error Token is reached.
      * 
-     * @return A list of all tokens (including the ending Status or Error Token)
-     *         read from the server.
+     * @return A list of all tokens (including the ending Status or Error Token) read from the server.
      */
     public List<RemctlToken> readAllTokens() {
         List<RemctlToken> tokenList = new ArrayList<RemctlToken>();
@@ -182,8 +178,7 @@ public class RemctlConnection {
     /**
      * Connect to the remctl server and establish the GSS context.
      * 
-     * @return true if the client created a new connection, or false if it was
-     *         already connected
+     * @return true if the client created a new connection, or false if it was already connected
      */
     public boolean connect() {
 
@@ -227,12 +222,9 @@ public class RemctlConnection {
      * @throws GSSException
      *             thrown on GSS issues
      */
-    private void establishContext() throws UnknownHostException, IOException,
-            GSSException {
+    private void establishContext() throws UnknownHostException, IOException, GSSException {
         /**
-         * Copied from
-         * http://download.oracle.com/javase/1.5.0/docs/guide/security
-         * /jgss/tutorials/SampleClient.java
+         * Copied from http://download.oracle.com/javase/1.5.0/docs/guide/security /jgss/tutorials/SampleClient.java
          */
         Socket socket = new Socket(this.hostname, this.port);
         this.inStream = new DataInputStream(socket.getInputStream());
@@ -241,46 +233,37 @@ public class RemctlConnection {
         logger.info("Connected to server {} ", socket.getInetAddress());
 
         if (this.serverPrincipal == null) {
-            String cannonicalName = socket.getInetAddress()
-                    .getCanonicalHostName().toLowerCase();
+            String cannonicalName = socket.getInetAddress().getCanonicalHostName().toLowerCase();
             if (!cannonicalName.equalsIgnoreCase(this.hostname)) {
-                logger.info("Using Canonical server name in principal ({})",
-                        cannonicalName);
+                logger.info("Using Canonical server name in principal ({})", cannonicalName);
             }
             this.serverPrincipal = "host/" + cannonicalName;
         }
 
         /*
-         * This Oid is used to represent the Kerberos version 5 GSS-API
-         * mechanism. It is defined in RFC 1964. We will use this Oid whenever
-         * we need to indicate to the GSS-API that it must use Kerberos for some
-         * purpose.
+         * This Oid is used to represent the Kerberos version 5 GSS-API mechanism. It is defined in RFC 1964. We will
+         * use this Oid whenever we need to indicate to the GSS-API that it must use Kerberos for some purpose.
          */
         Oid krb5Oid = new Oid("1.2.840.113554.1.2.2");
 
         GSSManager manager = GSSManager.getInstance();
 
         /*
-         * Create a GSSName out of the server's name. The null indicates that
-         * this application does not wish to make any claims about the syntax of
-         * this name and that the underlying mechanism should try to parse it as
-         * per whatever default syntax it chooses.
+         * Create a GSSName out of the server's name. The null indicates that this application does not wish to make any
+         * claims about the syntax of this name and that the underlying mechanism should try to parse it as per whatever
+         * default syntax it chooses.
          */
         GSSName serverName = manager.createName(this.serverPrincipal, null);
 
         /*
-         * Create a GSSContext for mutual authentication with the server. -
-         * serverName is the GSSName that represents the server. - krb5Oid is
-         * the Oid that represents the mechanism to use. The client chooses the
-         * mechanism to use. - null is passed in for client credentials -
-         * DEFAULT_LIFETIME lets the mechanism decide how long the context can
-         * remain valid. Note: Passing in null for the credentials asks GSS-API
-         * to use the default credentials. This means that the mechanism will
-         * look among the credentials stored in the current Subject to find the
-         * right kind of credentials that it needs.
+         * Create a GSSContext for mutual authentication with the server. - serverName is the GSSName that represents
+         * the server. - krb5Oid is the Oid that represents the mechanism to use. The client chooses the mechanism to
+         * use. - null is passed in for client credentials - DEFAULT_LIFETIME lets the mechanism decide how long the
+         * context can remain valid. Note: Passing in null for the credentials asks GSS-API to use the default
+         * credentials. This means that the mechanism will look among the credentials stored in the current Subject to
+         * find the right kind of credentials that it needs.
          */
-        this.gssContext = manager.createContext(serverName, krb5Oid, null,
-                GSSContext.DEFAULT_LIFETIME);
+        this.gssContext = manager.createContext(serverName, krb5Oid, null, GSSContext.DEFAULT_LIFETIME);
 
         // Set the desired optional features on the context. The client
         // chooses these options.
@@ -290,8 +273,7 @@ public class RemctlConnection {
         this.gssContext.requestInteg(true); // Will use integrity later
 
         // Establish as protocol 2
-        byte flag = (byte) (RemctlFlag.TOKEN_NOOP.getValue()
-                ^ RemctlFlag.TOKEN_CONTEXT_NEXT.getValue() ^ RemctlFlag.TOKEN_PROTOCOL
+        byte flag = (byte) (RemctlFlag.TOKEN_NOOP.getValue() ^ RemctlFlag.TOKEN_CONTEXT_NEXT.getValue() ^ RemctlFlag.TOKEN_PROTOCOL
                 .getValue());
         this.outStream.writeByte(flag);
         this.outStream.writeInt(0);
@@ -309,8 +291,7 @@ public class RemctlConnection {
             // Send a token to the server if one was generated by
             // initSecContext
             if (token != null) {
-                flag = (byte) (RemctlFlag.TOKEN_CONTEXT.getValue() ^ RemctlFlag.TOKEN_PROTOCOL
-                        .getValue());
+                flag = (byte) (RemctlFlag.TOKEN_CONTEXT.getValue() ^ RemctlFlag.TOKEN_PROTOCOL.getValue());
 
                 this.outStream.writeByte(flag);
                 this.outStream.writeInt(token.length);
@@ -322,8 +303,7 @@ public class RemctlConnection {
             // then there will be no more tokens to read in this loop
             if (!this.gssContext.isEstablished()) {
                 flag = this.inStream.readByte();
-                if ((flag ^ RemctlFlag.TOKEN_PROTOCOL.getValue() ^ RemctlFlag.TOKEN_CONTEXT
-                        .getValue()) != 0) {
+                if ((flag ^ RemctlFlag.TOKEN_PROTOCOL.getValue() ^ RemctlFlag.TOKEN_CONTEXT.getValue()) != 0) {
                     logger.warn("Unexpected token flag {} ", flag);
                 }
                 token = new byte[this.inStream.readInt()];
@@ -336,9 +316,8 @@ public class RemctlConnection {
         logger.debug("Server is {}", this.gssContext.getTargName());
 
         /*
-         * If mutual authentication did not take place, then only the client was
-         * authenticated to the server. Otherwise, both client and server were
-         * authenticated to each other.
+         * If mutual authentication did not take place, then only the client was authenticated to the server. Otherwise,
+         * both client and server were authenticated to each other.
          */
         if (this.gssContext.getMutualAuthState()) {
             logger.info("Mutual authentication took place!");
@@ -358,8 +337,7 @@ public class RemctlConnection {
      * Checks the input stream for incoming data.
      * 
      * <p>
-     * Useful for determining if there is unread data buffered on the input
-     * stream, prior to sending another command
+     * Useful for determining if there is unread data buffered on the input stream, prior to sending another command
      * </p>
      * 
      * @return true if there is data that can be read.
