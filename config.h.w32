@@ -37,6 +37,12 @@
 /* Define to 1 if the system has the type `krb5_realm'. */
 #define HAVE_KRB5_REALM
 
+/* Define to 1 if the system has <gssapi/gssapi.h>. */
+#define HAVE_GSSAPI_GSSAPI_H
+
+/* Define to 1 if the system has <gssapi/gssapi_krb5.h>. */
+#define HAVE_GSSAPI_GSSAPI_KRB5_H
+
 /* Define to 1 if the system has the type `long long'. */
 #define HAVE_LONG_LONG
 
@@ -67,4 +73,13 @@
 
 #pragma warning( disable: 4068 )        /* unknown pragma */
 #pragma warning( disable: 4996 )        /* POSIX strdup */
+
+#ifndef RC_INVOKED
+# include <sdkddkver.h>
+# if (NTDDI_VERSION >= NTDDI_VISTA)
+#  error Your build environment is configured for Windows Vista or above.  \
+This will cause compilation to fail.  \
+Configure your build environment to target Windows XP.
+# endif
+#endif
 

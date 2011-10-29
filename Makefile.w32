@@ -10,8 +10,8 @@ cflags=$(cflags) /I "$(KRB5SDK)"\inc\krb5 /I "$(KRB5SDK)"\inc\krb5\gssapi /I . /
 
 rcflags=$(rcflags) /I .
 
-remctl.exe: remctl.obj getopt.obj messages.obj asprintf.obj winsock.obj xmalloc.obj remctl.lib remctl.res
-	link $(ldebug) $(lflags) /LIBPATH:"$(KRB5SDK)"\lib\$(CPU) /out:$@ $** ws2_32.lib advapi32.lib
+remctl.exe: api.obj client-v1.obj client-v2.obj gss-tokens.obj gss-errors.obj error.obj open.obj strlcpy.obj strlcat.obj concat.obj tokens.obj network.obj inet_aton.obj inet_ntop.obj fdflag.obj remctl.obj getopt.obj messages.obj asprintf.obj winsock.obj xmalloc.obj remctl.lib remctl.res
+	link $(ldebug) $(lflags) /LIBPATH:"$(KRB5SDK)"\lib\$(CPU) /out:$@ $** $(GSSAPI_LIB) ws2_32.lib advapi32.lib
 
 remctl.lib: remctl.dll
 
