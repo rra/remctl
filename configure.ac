@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010
+dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl See LICENSE for licensing terms.
@@ -43,6 +43,8 @@ AC_TYPE_LONG_LONG_INT
 AC_CHECK_TYPES([sig_atomic_t], [], [],
     [#include <sys/types.h>
      #include <signal.h>])
+AC_CHECK_TYPES([ssize_t], [], [],
+    [#include <sys/types.h>])
 AC_CHECK_TYPES([socklen_t], [], [],
     [#include <sys/types.h>
      #include <sys/socket.h>])

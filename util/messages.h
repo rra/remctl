@@ -94,7 +94,7 @@ void message_log_syslog_crit(size_t, const char *, va_list, int)
     __attribute__((__nonnull__));
 
 /* The type of a message handler. */
-typedef void (*message_handler_func)(unsigned int, const char *, va_list, int);
+typedef void (*message_handler_func)(size_t, const char *, va_list, int);
 
 /* If non-NULL, called before exit and its return value passed to exit. */
 extern int (*message_fatal_cleanup)(void);

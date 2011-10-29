@@ -500,6 +500,8 @@ vector_join(const struct vector *vector, const char *seperator)
     char *string;
     size_t i, size, seplen;
 
+    if (vector->count == 0)
+        return xstrdup("");
     seplen = strlen(seperator);
     for (size = 0, i = 0; i < vector->count; i++)
         size += strlen(vector->strings[i]);
@@ -521,6 +523,8 @@ cvector_join(const struct cvector *vector, const char *seperator)
     char *string;
     size_t i, size, seplen;
 
+    if (vector->count == 0)
+        return xstrdup("");
     seplen = strlen(seperator);
     for (size = 0, i = 0; i < vector->count; i++)
         size += strlen(vector->strings[i]);

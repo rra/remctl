@@ -61,7 +61,7 @@ remctl 3.0 (unreleased)
     Fix the Ruby bindings test suite to test against the newly-built
     libremctl and Ruby module rather than any installed on the system.
 
-    Update to rra-c-util 3.9:
+    Update to rra-c-util 3.10:
 
     * Add notices in each file copied from rra-c-util.
     * Prefer gssapi/gssapi.h to gssapi.h.
@@ -75,6 +75,9 @@ remctl 3.0 (unreleased)
     * Use typedef instead of #define for socklen_t and sig_atomic_t.
     * Stop providing or using INADDR_LOOPBACK for portability reasons.
     * Don't override a user's existing AFS tokens while testing.
+    * Fix removal of -I/usr/include from GSS-API CPPFLAGS.
+    * Provide ssize_t on platforms without it, such as Windows.
+    * Fix vector_join and cvector_join with empty vectors.
 
     Update to C TAP Harness 1.8:
 

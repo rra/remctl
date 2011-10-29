@@ -93,8 +93,8 @@ static void test11(void *data UNUSED) {
     sysdie("fatal");
 }
 
-static void log_msg(int len, const char *format, va_list args, int error) {
-    fprintf(stderr, "%d %d ", len, error);
+static void log_msg(size_t len, const char *format, va_list args, int error) {
+    fprintf(stderr, "%lu %d ", (unsigned long) len, error);
     vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
 }

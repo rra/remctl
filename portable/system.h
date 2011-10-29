@@ -77,7 +77,12 @@
 
 /* Define sig_atomic_t if it's not available in signal.h. */
 #ifndef HAVE_SIG_ATOMIC_T
-typedef sig_atomic_t int;
+typedef int sig_atomic_t;
+#endif
+
+/* Windows does not define ssize_t. */
+#ifndef HAVE_SSIZE_T
+typedef ptrdiff_t ssize_t;
 #endif
 
 /*

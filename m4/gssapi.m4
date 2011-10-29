@@ -141,7 +141,8 @@ AC_DEFUN([_RRA_LIB_GSSAPI_CONFIG],
            GSSAPI_LIBS=`"$PATH_KRB5_CONFIG" --libs gssapi 2>/dev/null`],
           [GSSAPI_CPPFLAGS=`"$PATH_KRB5_CONFIG" --cflags 2>/dev/null`
            GSSAPI_LIBS=`"$PATH_KRB5_CONFIG" --libs 2>/dev/null`])
-      GSSAPI_CPPFLAGS=`echo "$GSSAPI_CPPFLAGS" | sed 's%-I/usr/include ?%%'`
+      GSSAPI_CPPFLAGS=`echo "$GSSAPI_CPPFLAGS" | sed 's%-I/usr/include %%'`
+      GSSAPI_CPPFLAGS=`echo "$GSSAPI_CPPFLAGS" | sed 's%-I/usr/include$%%'`
       _RRA_LIB_GSSAPI_CHECK],
      [_RRA_LIB_GSSAPI_PATHS
       _RRA_LIB_GSSAPI_MANUAL])])
