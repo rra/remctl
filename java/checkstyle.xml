@@ -12,6 +12,7 @@ Slightly modified version of Sun Checks that better matches the default code for
 <module name="Checker">
   <property name="severity" value="warning"/>
   <module name="TreeWalker">
+    <property name="cacheFile" value="checkstyle-cachefile"/>
     <property name="tabWidth" value="4"/>
     <module name="JavadocMethod">
       <property name="allowUndeclaredRTE" value="true"/>
