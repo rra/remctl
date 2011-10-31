@@ -5,7 +5,8 @@ remctl 3.0 (unreleased)
     New protocol version 3, which introduces a new NOOP message.  When the
     client sends this message, the server replies with a NOOP message.
     This can be used to keep a persistent remctl connection alive despite
-    network session timeouts.
+    network session timeouts.  Add new remctl_noop function to the remctl
+    library API to send the NOOP message and read the response.
 
     Be more explicit in the protocol about handling of continuation
     commands.  Do not allow any messages from the client after a continued

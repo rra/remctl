@@ -108,10 +108,10 @@ server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS) $(GPUT_LIBS) \
 	$(PCRE_LIBS)
 
-dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3	\
-	docs/api/remctl_command.3 docs/api/remctl_error.3	\
-	docs/api/remctl_new.3 docs/api/remctl_open.3		\
-	docs/api/remctl_output.3 docs/api/remctl_set_ccache.3	\
+dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3		    \
+	docs/api/remctl_command.3 docs/api/remctl_error.3		    \
+	docs/api/remctl_new.3 docs/api/remctl_noop.3 docs/api/remctl_open.3 \
+	docs/api/remctl_output.3 docs/api/remctl_set_ccache.3		    \
 	docs/api/remctl_set_source_ip.3 docs/remctl.1
 man_MANS = docs/remctld.8
 

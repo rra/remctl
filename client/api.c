@@ -344,6 +344,31 @@ remctl_close(struct remctl *r)
 
 
 /*
+ * Internal function to reopen the connection if it was closed and verify that
+ * we have an open connection, and reset the error message.  Used by
+ * remctl_commandv and remctl_noop.  Returns true on success and false on
+ * failure.
+ */
+static bool
+internal_reopen(struct remctl *r)
+{
+    if (r->fd < 0) {
+        if (r->host == NULL) {
+            internal_set_error(r, "no connection open");
+            return false;
+        }
+        if (!remctl_open(r, r->host, r->port, r->principal))
+            return false;
+    }
+    if (r->error != NULL) {
+        free(r->error);
+        r->error = NULL;
+    }
+    return true;
+}
+
+
+/*
  * Send a complete remote command.  Returns true on success, false on failure.
  * On failure, use remctl_error to get the error.  command is a
  * NULL-terminated array of nul-terminated strings.  finished is a boolean
@@ -383,22 +408,30 @@ remctl_command(struct remctl *r, const char **command)
 int
 remctl_commandv(struct remctl *r, const struct iovec *command, size_t count)
 {
-    if (r->fd < 0) {
-        if (r->host == NULL) {
-            internal_set_error(r, "no connection open");
-            return 0;
-        }
-        if (!remctl_open(r, r->host, r->port, r->principal))
-            return 0;
-    }
-    if (r->error != NULL) {
-        free(r->error);
-        r->error = NULL;
-    }
+    if (!internal_reopen(r))
+        return 0;
     if (r->protocol == 1)
         return internal_v1_commandv(r, command, count);
     else
         return internal_v2_commandv(r, command, count);
+}
+
+
+/*
+ * Send a NOOP command, or return an error if we're using too old of a
+ * protocol version.  Returns true on success, false on failure.  On failure,
+ * use remctl_error to get the error.
+ */
+int
+remctl_noop(struct remctl *r)
+{
+    if (!internal_reopen(r))
+        return 0;
+    if (r->protocol == 1) {
+        internal_set_error(r, "NOOP message not supported");
+        return 0;
+    }
+    return internal_noop(r);
 }
 
 

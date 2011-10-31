@@ -6,6 +6,7 @@ REMCTL_1.0 {
         remctl_commandv;
         remctl_error;
         remctl_new;
+        remctl_noop;
         remctl_open;
         remctl_output;
         remctl_result_free;

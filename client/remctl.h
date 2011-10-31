@@ -155,6 +155,18 @@ int remctl_command(struct remctl *, const char **command);
 int remctl_commandv(struct remctl *, const struct iovec *, size_t count);
 
 /*
+ * Send a NOOP message to the server and read the NOOP reply.  This is
+ * normally used to keep a connection alive (through a firewall with timeouts,
+ * for example) while awaiting subsequent commands.  Returns true on success
+ * and false on failure.  On failure, use remctl_error to get the error.
+ *
+ * This is a protocol version 3 message and requires a server that supports
+ * it, so the caller should be prepared to handle an error return and fall
+ * back on reopening the connection when necessary.
+ */
+int remctl_noop(struct remctl *);
+
+/*
  * Retrieve output from the remote server.  Each call to this function on the
  * same connection invalidates the previous returned remctl_output struct, so
  * copy any data that should be persistant before calling this function again.

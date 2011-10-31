@@ -67,6 +67,9 @@ struct remctl_output *internal_v1_output(struct remctl *);
 bool internal_v2_commandv(struct remctl *, const struct iovec *command,
                           size_t count);
 
+/* Send a protocol v3 NOOP command. */
+bool internal_noop(struct remctl *);
+
 /* Send a protocol v2 QUIT command. */
 bool internal_v2_quit(struct remctl *);
 

@@ -180,10 +180,52 @@ internal_v2_quit(struct remctl *r)
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
                              &token, &major, &minor);
     if (status != TOKEN_OK) {
-        internal_token_error(r, "sending token", status, major, minor);
+        internal_token_error(r, "sending QUIT token", status, major, minor);
         return false;
     }
     return true;
+}
+
+
+/*
+ * Read a token from the server connection and store it in the provided
+ * buffer.  Return true on success and false on any failure.
+ */
+static bool
+internal_v2_read_token(struct remctl *r, gss_buffer_t token)
+{
+    int status, flags;
+    OM_uint32 major, minor;
+    char *p;
+
+    status = token_recv_priv(r->fd, r->context, &flags, token,
+                             TOKEN_MAX_LENGTH, &major, &minor);
+    if (status != TOKEN_OK) {
+        internal_token_error(r, "receiving token", status, major, minor);
+        if (status == TOKEN_FAIL_EOF) {
+            socket_close(r->fd);
+            r->fd = INVALID_SOCKET;
+        }
+        return false;
+    }
+    if (flags != (TOKEN_DATA | TOKEN_PROTOCOL)) {
+        internal_set_error(r, "unexpected token from server");
+        goto fail;
+    }
+    if (token->length < 2) {
+        internal_set_error(r, "malformed result token from server");
+        goto fail;
+    }
+    p = token->value;
+    if (p[0] != 2 && p[0] != 3) {
+        internal_set_error(r, "unexpected protocol %d from server", p[0]);
+        goto fail;
+    }
+    return true;
+
+fail:
+    gss_release_buffer(&minor, token);
+    return false;
 }
 
 
@@ -228,9 +270,8 @@ internal_v2_read_string(struct remctl *r, gss_buffer_t token, size_t offset)
 struct remctl_output *
 internal_v2_output(struct remctl *r)
 {
-    int status, flags;
-    gss_buffer_desc token;
-    OM_uint32 data, major, minor;
+    gss_buffer_desc token = GSS_C_EMPTY_BUFFER;
+    OM_uint32 data, minor;
     char *p;
     int type;
 
@@ -252,34 +293,12 @@ internal_v2_output(struct remctl *r)
         return r->output;
 
     /* Otherwise, we have to read the token from the server. */
-    status = token_recv_priv(r->fd, r->context, &flags, &token,
-                             TOKEN_MAX_LENGTH, &major, &minor);
-    if (status != TOKEN_OK) {
-        internal_token_error(r, "receiving token", status, major, minor);
-        if (status == TOKEN_FAIL_EOF) {
-            socket_close(r->fd);
-            r->fd = INVALID_SOCKET;
-        }
+    if (!internal_v2_read_token(r, &token))
         return NULL;
-    }
-    if (flags != (TOKEN_DATA | TOKEN_PROTOCOL)) {
-        internal_set_error(r, "unexpected token from server");
-        goto fail;
-    }
-    if (token.length < 2) {
-        internal_set_error(r, "malformed result token from server");
-        goto fail;
-    }
-
-    /* Extract the message protocol and type. */
-    p = token.value;
-    if (p[0] != 2) {
-        internal_set_error(r, "unexpected protocol %d from server", p[0]);
-        goto fail;
-    }
-    type = p[1];
 
     /* Now, what we do depends on the message type. */
+    p = token.value;
+    type = p[1];
     switch (type) {
     case MESSAGE_OUTPUT:
         if (token.length < 2 + 5) {
@@ -331,4 +350,45 @@ internal_v2_output(struct remctl *r)
 fail:
     gss_release_buffer(&minor, &token);
     return NULL;
+}
+
+
+/*
+ * Send a NOOP command to the server using protocol v3 and read the response.
+ * Returns true on success, false on failure.
+ */
+bool
+internal_noop(struct remctl *r)
+{
+    gss_buffer_desc token;
+    char buffer[2] = { 3, MESSAGE_NOOP };
+    OM_uint32 major, minor;
+    int status;
+    char *p;
+
+    /* Send the NOOP token. */
+    token.length = 1 + 1;
+    token.value = buffer;
+    status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
+                             &token, &major, &minor);
+    if (status != TOKEN_OK) {
+        internal_token_error(r, "sending NOOP token", status, major, minor);
+        return false;
+    }
+
+    /* Read the resulting NOOP token. */
+    token.length = 0;
+    token.value = GSS_C_NO_BUFFER;
+    if (!internal_v2_read_token(r, &token))
+        return false;
+    p = token.value;
+    if (p[1] != MESSAGE_NOOP) {
+        internal_set_error(r, "unexpected message type %d from server", p[1]);
+        gss_release_buffer(&minor, &token);
+        return false;
+    }
+    gss_release_buffer(&minor, &token);
+
+    /* Everything looks good. */
+    return true;
 }
