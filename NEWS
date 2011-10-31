@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.0 (unreleased)
+remctl 3.0 (2011-10-31)
 
     New protocol version 3, which introduces a new NOOP message.  When the
     client sends this message, the server replies with a NOOP message.
