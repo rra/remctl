@@ -6,10 +6,8 @@
       <item name="Java" />
 </breadcrumbs>
 <menu name="User Guide" > 
-<item name="Remctl Overview" href="http://www.eyrie.org/~eagle/software/remctl/"/>
+<item name="Remctl Overview" href="index.html"/>
 <item name="Java User Guide" href="user-guide.html"/>
-<item name="Java Developer Guide (not completed)" href="dev.html" collapse="true">
-</item>
 </menu>
 <menu ref="reports" inherit="bottom"/> 
 </body>

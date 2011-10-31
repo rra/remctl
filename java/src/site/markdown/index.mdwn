@@ -1,0 +1,6 @@
+#Java Remctl Library
+
+Provides a simplified (and pooled connection) to Remctl servers. 
+The tokenized internals can be used for custom low level work with the Remctl protocol.
+	
+More details on Remctl can be found at the [Remctl site](http://www.eyrie.org/~eagle/software/remctl/)

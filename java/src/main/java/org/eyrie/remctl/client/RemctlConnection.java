@@ -224,7 +224,7 @@ public class RemctlConnection {
      */
     private void establishContext() throws UnknownHostException, IOException, GSSException {
         /**
-         * Copied from http://download.oracle.com/javase/1.5.0/docs/guide/security /jgss/tutorials/SampleClient.java
+         * See http://download.oracle.com/javase/1.5.0/docs/guide/security /jgss/tutorials/SampleClient.java for guide.
          */
         Socket socket = new Socket(this.hostname, this.port);
         this.inStream = new DataInputStream(socket.getInputStream());

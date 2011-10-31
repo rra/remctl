@@ -55,7 +55,7 @@ A summary of the validation strategies is below.
   * `CommandValidationStrategy`: Periodically runs a remctl command and ensures the return status is 0. Also performs `BaseValidationStrategy` validations.
   
 Until `NoopValidationStrategy` work is complete, we recommend using `CommandValidationStrategy`. By default it runs a command called `noop`.
-An example server side `noop` implemntation is below.
+An example server side `noop` implementation is below.
 
     #!/usr/bin/perl -w
     #noop remctl command.
@@ -63,6 +63,27 @@ An example server side `noop` implemntation is below.
 
     print "NOOP\n";
     exit 0;
+    
+## Authenticating
+
+The Java Remctl client relies on a JAAS configuration file when authenticating to the Remctl server.
+Depending on your setup, you can export the location of your JAAS file as a Java system property.
+
+     -Djava.security.auth.login.config=/path/to/jaas.conf
+
+The library looks for a configuration called RemctlClient
+
+    RemctlClient {
+    com.sun.security.auth.module.Krb5LoginModule required
+        principal="service/my-app-name"
+        useKeyTab=true
+        keyTab="my-key-tab.keytab"
+        doNotPrompt=true
+        useTicketCache=true
+        storeKey=true
+        renewTGT=true;
+    };
+
     
 ## Exceptions
 
