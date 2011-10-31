@@ -456,6 +456,26 @@ rb_remctl_output(VALUE self)
 
 
 /* call-seq:
+ * r.noop()  -> nil
+ *
+ * Send a NOOP message and read the reply.  Returns nil.
+ *
+ * Raises Remctl::Error in the event of failure, and Remctl::NotOpen if the
+ * connection has been closed.
+ */
+static VALUE
+rb_remctl_noop(VALUE self)
+{
+    struct remctl *r;
+
+    GET_REMCTL_OR_RAISE(self, r);
+    if (!remctl_noop(r))
+        rb_raise(eRemctlError, "%s", remctl_error(r));
+    return Qnil;
+}
+
+
+/* call-seq:
  * Remctl.new(host, port=Remctl.default_port, princ=Remctl.default_principal) -> #&lt;Remctl&gt;
  * Remctl.new(host, port, princ) {|r| ...} -> nil
  *
@@ -552,6 +572,7 @@ Init_remctl(void)
     rb_define_method(cRemctl, "reopen", rb_remctl_reopen, 0);
     rb_define_method(cRemctl, "command", rb_remctl_command, -1);
     rb_define_method(cRemctl, "output", rb_remctl_output, 0);
+    rb_define_method(cRemctl, "noop", rb_remctl_noop, 0);
 
     /* Document-class: Remctl::Result
      *

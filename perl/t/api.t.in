@@ -9,7 +9,7 @@
 #
 # See LICENSE for licensing terms.
 
-BEGIN { our $total = 43 }
+BEGIN { our $total = 45 }
 use Test::More tests => $total;
 
 use Net::Remctl;
@@ -113,6 +113,8 @@ SKIP: {
     isa_ok ($remctl, 'Net::Remctl', 'Object');
     is ($remctl->error, 'no error', '... no error set');
     ok ($remctl->open ('localhost', 14373, $principal), 'Connect to server');
+    is ($remctl->error, 'no error', '... no error set');
+    ok ($remctl->noop, 'Send NOOP message');
     is ($remctl->error, 'no error', '... no error set');
     ok ($remctl->command ('test', 'test'), 'Send successful command');
     is ($remctl->error, 'no error', '... no error set');

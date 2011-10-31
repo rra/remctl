@@ -295,6 +295,21 @@ py_remctl_output(PyObject *self, PyObject *args)
 }
 
 
+static PyObject *
+py_remctl_noop(PyObject *self, PyObject *args)
+{
+    PyObject *object = NULL;
+    struct remctl *r;
+    int status;
+
+    if (!PyArg_ParseTuple(args, "O", &object))
+        return NULL;
+    r = PyCObject_AsVoidPtr(object);
+    status = remctl_noop(r);
+    return Py_BuildValue("i", status);
+}
+
+
 static PyMethodDef methods[] = {
     { "remctl",               py_remctl,               METH_VARARGS, NULL },
     { "remctl_new",           py_remctl_new,           METH_VARARGS, NULL },
@@ -305,6 +320,7 @@ static PyMethodDef methods[] = {
     { "remctl_error",         py_remctl_error,         METH_VARARGS, NULL },
     { "remctl_commandv",      py_remctl_commandv,      METH_VARARGS, NULL },
     { "remctl_output",        py_remctl_output,        METH_VARARGS, NULL },
+    { "remctl_noop",          py_remctl_noop,          METH_VARARGS, NULL },
     { NULL,                   NULL,                    0,            NULL },
 };
 

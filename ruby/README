@@ -179,10 +179,28 @@ FULL INTERFACE
 
       Exceptions:
 
+      * Remctl::Error: a network or authentication error occurred
       * Remctl::NotOpen: no connection currently open
 
       Errors from the server are returned as an error token, not as an
       exception.
+
+  r.noop()
+      Send a NOOP message to the server and read the reply.  This is
+      primarily used to keep a connection to a remctl server alive, such
+      as through a firewall with a session timeout, while waiting to issue
+      further commands.  Returns true on success, false on failure.
+
+      The NOOP message requires protocol version 3 support in the server,
+      so the caller should be prepared for this function to fail,
+      indicating that the connection could not be kept alive and possibly
+      that it was closed by the server.  In this case, the client will
+      need to explicitly reopen the connection with open().
+
+      Exceptions:
+
+      * Remctl::Error: a network or authentication error occurred
+      * Remctl::NotOpen: no connection currently open
 
   r.close()
       Close a connection.  After calling this method, #reopen must be

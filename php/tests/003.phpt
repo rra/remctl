@@ -23,6 +23,11 @@ LD_LIBRARY_PATH=../client/.libs
         exit(2);
     }
     echo "Opened connection\n";
+    if (!remctl_noop($r)) {
+        echo "remctl_noop failed\n";
+        exit(2);
+    }
+    echo "Send NOOP message\n";
     $args = array("test", "test");
     if (!remctl_command($r, $args)) {
         echo "remctl_command failed\n";
@@ -63,6 +68,7 @@ LD_LIBRARY_PATH=../client/.libs
 --EXPECT--
 Created object
 Opened connection
+Send NOOP message
 Sent command
 1: output
 1: (stream 1) hello world

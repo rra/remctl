@@ -25,6 +25,7 @@ PHP_FUNCTION(remctl_set_source_ip);
 PHP_FUNCTION(remctl_open);
 PHP_FUNCTION(remctl_command);
 PHP_FUNCTION(remctl_output);
+PHP_FUNCTION(remctl_noop);
 PHP_FUNCTION(remctl_error);
 PHP_FUNCTION(remctl_close);
 

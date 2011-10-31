@@ -187,6 +187,18 @@ FULL INTERFACE
           For an "error" token, returns the remctl error code for the
           protocol error.  The text message will be returned in data.
 
+  remctl_noop(CONNECTION)
+      Send a NOOP message to the server and read the reply.  This is
+      primarily used to keep a connection to a remctl server alive, such
+      as through a firewall with a session timeout, while waiting to issue
+      further commands.  Returns true on success, false on failure.
+
+      The NOOP message requires protocol version 3 support in the server,
+      so the caller should be prepared for this function to fail,
+      indicating that the connection could not be kept alive and possibly
+      that it was closed by the server.  In this case, the client will
+      need to explicitly reopen the connection with remctl_open.
+
   remctl_close(CONNECTION)
       Explicitly close the connection and destroy the connection object.
       This will also be done automatically when the object is destroyed,
@@ -237,6 +249,7 @@ FULL INTERFACE
           echo "remctl_output failed: " . remctl_error($r) . "\n";
           exit(2);
       }
+      remctl_noop($r)
       remctl_close($r)
 
   As mentioned above, the final remctl_close() is normally not needed.

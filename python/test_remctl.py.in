@@ -169,6 +169,7 @@ class TestRemctlFull(TestRemctl):
         self.assertEqual(status, 0)
         type, data, stream, status, error = r.output()
         self.assertEqual(type, "done")
+        r.noop()
         r.close()
 
     @needs_kerberos

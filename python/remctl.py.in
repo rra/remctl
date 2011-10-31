@@ -158,6 +158,12 @@ class Remctl:
             raise RemctlNotOpenedError, 'no currently open connection'
         return _remctl.remctl_output(self.r)
 
+    def noop(self):
+        if not self.opened:
+            raise RemctlNotOpenedError, 'no currently open connection'
+        if not _remctl.remctl_noop(self.r):
+            raise RemctlError, self.error()
+
     def close(self):
         del(self.r)
         self.r = None

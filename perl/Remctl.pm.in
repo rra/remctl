@@ -73,6 +73,7 @@ Net::Remctl - Perl bindings for remctl (Kerberos remote command execution)
             die "Unknown output token from library: ", $output->type, "\n";
         }
     } while ($output->type eq 'output');
+    $remctl->noop or die "Cannot send NOOP: ", $remctl->error, "\n";
 
 =head1 DESCRIPTION
 
@@ -268,6 +269,20 @@ error.  The text message will be returned by data().  The value is undefined
 for all other token types.
 
 =back
+
+=item noop()
+
+Send a NOOP message to the server and read the reply.  This is primarily
+used to keep a connection to a remctl server alive, such as through a
+firewall with a session timeout, while waiting to issue further commands.
+Returns true on success, false on failure.  On failure, call error() to
+get the failure message.
+
+The NOOP message requires protocol version 3 support in the server, so the
+caller should be prepared for this function to fail, indicating that the
+connection could not be kept alive and possibly that it was closed by the
+server.  In this case, the client will need to explicitly reopen the
+connection with open().
 
 =back
 

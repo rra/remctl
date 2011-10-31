@@ -37,6 +37,7 @@ static zend_function_entry remctl_functions[] = {
     ZEND_FE(remctl_close,         NULL)
     ZEND_FE(remctl_command,       NULL)
     ZEND_FE(remctl_output,        NULL)
+    ZEND_FE(remctl_noop,          NULL)
     ZEND_FE(remctl_error,         NULL)
     { NULL, NULL, NULL, 0, 0 }
 };
@@ -435,6 +436,28 @@ ZEND_FUNCTION(remctl_output)
         add_property_string(return_value, "type", "done", 1);
         break;
     }
+}
+
+
+/*
+ * Sends a NOOP message to the server and reads the reply.
+ */
+ZEND_FUNCTION(remctl_noop)
+{
+    struct remctl *r;
+    zval *zrem;
+    int status;
+
+    status = zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zrem);
+    if (status == FAILURE) {
+        zend_error(E_WARNING, "remctl_noop: invalid parameters\n");
+        RETURN_FALSE;
+    }
+    ZEND_FETCH_RESOURCE(r, struct remctl *, &zrem, -1, PHP_REMCTL_RES_NAME,
+        le_remctl_internal);
+    if (!remctl_noop(r))
+        RETURN_FALSE;
+    RETURN_TRUE;
 }
 
 

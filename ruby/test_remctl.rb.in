@@ -173,6 +173,7 @@ class TC_RemctlFull < Test::Unit::TestCase
     assert_equal(output[3], 0)
     output = r.output
     assert_equal(output[0], :done)
+    r.noop
     r.close
   end
 

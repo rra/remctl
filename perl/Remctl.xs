@@ -179,6 +179,15 @@ Net::Remctl::Output
 remctl_output(self)
     Net::Remctl self
 
+void
+remctl_noop(self)
+    Net::Remctl self
+  PPCODE:
+    if (remctl_noop(self))
+        XSRETURN_YES;
+    else
+        XSRETURN_UNDEF;
+
 const char *
 remctl_error(self)
     Net::Remctl self
