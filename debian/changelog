@@ -17,6 +17,7 @@ remctl (3.0-1) UNRELEASED; urgency=low
     - Add Pre-Depends: ${misc:Pre-Depends} to libremctl1.
     - Use dpkg-buildflags to set CFLAGS.
     - Enable bindnow hardening.  Leave pie off for right now.
+    - Add Lintian override for using an experimental debhelper level.
 
  -- Russ Allbery <rra@debian.org>  Mon, 31 Oct 2011 17:06:14 -0700
 
