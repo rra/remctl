@@ -1,4 +1,4 @@
-remctl (3.0-1) UNRELEASED; urgency=low
+remctl (3.0-1) unstable; urgency=low
 
   * New upstream release.
     - New protocol version 3, adding a NOOP command.
@@ -23,7 +23,7 @@ remctl (3.0-1) UNRELEASED; urgency=low
     - Add python2 debhelper add-on to debian/rules.
     - Remove build dependency on python-support.
 
- -- Russ Allbery <rra@debian.org>  Mon, 31 Oct 2011 17:06:14 -0700
+ -- Russ Allbery <rra@debian.org>  Mon, 31 Oct 2011 18:05:11 -0700
 
 remctl (2.18-1) unstable; urgency=low
 
