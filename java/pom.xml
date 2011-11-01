@@ -7,10 +7,19 @@
     <name>Java Remctl</name>
     <description>Java implementation of the Remctl protocol.</description>
     <url>http://www.eyrie.org/~eagle/software/remctl/java</url>
+
+    <!-- sonatype parent provides repo deployment info -->
+    <parent>
+       <groupId>org.sonatype.oss</groupId>
+       <artifactId>oss-parent</artifactId>
+       <version>7</version>
+    </parent>
     <licenses>
         <license>
-            <comments>License is for overall project, inlcuding C code and language specific bindings</comments>
-            <url>http://www.eyrie.org/~eagle/software/remctl/license.html</url>
+            <comments>License is for overall project, inlcuding C code
+                and language specific bindings</comments>
+            <url>http://www.eyrie.org/~eagle/software/remctl/license.html
+            </url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -142,6 +151,36 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.1</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <developers>
         <developer>
             <id>pradtke@stanford.edu</id>
@@ -166,9 +205,11 @@
         </contributor>
     </contributors>
     <scm>
-        <url>http://git.eyrie.org/?p=kerberos/remctl.git;a=shortlog;h=refs/heads/java</url>
+        <url>http://git.eyrie.org/?p=kerberos/remctl.git;a=shortlog;h=refs/heads/java
+        </url>
         <tag>java</tag>
-        <developerConnection>scm:git:ssh://git.stanford.edu/srv/git/kerberos/remctl.git</developerConnection>
+        <developerConnection>scm:git:ssh://git.stanford.edu/srv/git/kerberos/remctl.git
+        </developerConnection>
     </scm>
 
     <reporting>
