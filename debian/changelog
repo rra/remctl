@@ -12,6 +12,9 @@ remctl (3.0-1) UNRELEASED; urgency=low
       to use for GSS-API authentication.
     - Fix a client memory leak on remctl_close.
     - Send QUIT to the server when reopening a remctl object.
+  * Update to (experimental) debhelper compatibility level V9.
+    - Use dpkg-buildflags to set CFLAGS.
+    - Enable bindnow hardening.  Leave pie off for right now.
 
  -- Russ Allbery <rra@debian.org>  Mon, 31 Oct 2011 17:06:14 -0700
 

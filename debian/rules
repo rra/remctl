@@ -1,11 +1,13 @@
 #!/usr/bin/make -f
 
-CFLAGS = -Wall -g
-ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-    CFLAGS += -O0
-else
-    CFLAGS += -O2
-endif
+# Add additional hardening features.  +pie not added for right now since it
+# needs testing to ensure it doesn't break the shared library and module
+# builds.
+export DEB_BUILD_MAINT_OPTIONS = hardening=+bindnow
+
+# Get CFLAGS for rebuilding the remctl client binary and Perl and Python
+# modules.
+CFLAGS := $(shell dpkg-buildflags --get CFLAGS)
 
 # The primary Python version, used to ensure that we run the test suite with
 # the module built for the default version of Python.  These are passed into
