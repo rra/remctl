@@ -25,7 +25,6 @@ PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
 	php/tests/005.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 
-AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	client/libremctl.map client/libremctl.rc client/libremctl.sym	    \
