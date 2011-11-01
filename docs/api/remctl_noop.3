@@ -135,7 +135,7 @@ remctl_noop \- Send a NOOP message to a remctl server
 .IX Header "SYNOPSIS"
 #include <remctl.h>
 .PP
-int \fBremctl_noop\fR(struct remctl I*<r>);
+int \fBremctl_noop\fR(struct remctl *\fIr\fR);
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
 \&\fIremctl_noop()\fR sends a \s-1NOOP\s0 message to a remctl server and reads the
