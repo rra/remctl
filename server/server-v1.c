@@ -71,7 +71,7 @@ server_v1_send_output(struct client *client, int exit_status)
  * if appropriate, and sends any output back to the client.
 */
 void
-server_v1_handle_commands(struct client *client, struct config *config)
+server_v1_handle_messages(struct client *client, struct config *config)
 {
     gss_buffer_desc token;
     OM_uint32 major, minor;

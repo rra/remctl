@@ -1,4 +1,4 @@
-                           remctl release 2.18
+                            remctl release 3.0
             (remote authenticated command execution with ACLs)
 
                    Originally written by Anton Ushakov
@@ -187,18 +187,21 @@ INSTALLATION (UNIX)
   You can also individually set the paths to the include directory and the
   library directory with --with-gssapi-include and --with-gssapi-lib.  You
   may need to do this if Autoconf can't figure out whether to use lib,
-  lib32, or lib64 on your platform.  Note that these settings aren't used
-  if a krb5-config script is found.
+  lib32, or lib64 on your platform.
 
   To specify a particular krb5-config script to use, either set the
-  KRB5_CONFIG environment variable or pass it to configure like:
+  PATH_KRB5_CONFIG environment variable or pass it to configure like:
 
-      ./configure KRB5_CONFIG=/path/to/krb5-config
+      ./configure PATH_KRB5_CONFIG=/path/to/krb5-config
 
   To not use krb5-config and force library probing even if there is a
-  krb5-config script on your path, set KRB5_CONFIG to a nonexistent path:
+  krb5-config script on your path, set PATH_KRB5_CONFIG to a nonexistent
+  path:
 
-      ./configure KRB5_CONFIG=/nonexistent
+      ./configure PATH_KRB5_CONFIG=/nonexistent
+
+  krb5-config is not used and library probing is always done if either
+  --with-gssapi-include or --with-gssapi-lib are given.
 
   remctl will automatically build with PCRE support if pcre-config or the
   PCRE library are found.  You can pass --with-pcre to configure to

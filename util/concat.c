@@ -18,6 +18,9 @@
  * together and returned.  This is useful for building file names where names
  * that aren't fully qualified are qualified with some particular directory.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  *
  * The authors hereby relinquish any claim to any copyright that they may have

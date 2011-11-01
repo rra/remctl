@@ -6,7 +6,7 @@
  *
  * Originally written by Andrew Mortensen <admorten@umich.edu>, 2008
  * Copyright 2008 Andrew Mortensen <admorten@umich.edu>
- * Copyright 2008
+ * Copyright 2008, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -29,13 +29,16 @@
 static int le_remctl_internal;
 
 static zend_function_entry remctl_functions[] = {
-    ZEND_FE(remctl,         NULL)
-    ZEND_FE(remctl_new,     NULL)
-    ZEND_FE(remctl_open,    NULL)
-    ZEND_FE(remctl_close,   NULL)
-    ZEND_FE(remctl_command, NULL)
-    ZEND_FE(remctl_output,  NULL)
-    ZEND_FE(remctl_error,   NULL)
+    ZEND_FE(remctl,               NULL)
+    ZEND_FE(remctl_new,           NULL)
+    ZEND_FE(remctl_set_ccache,    NULL)
+    ZEND_FE(remctl_set_source_ip, NULL)
+    ZEND_FE(remctl_open,          NULL)
+    ZEND_FE(remctl_close,         NULL)
+    ZEND_FE(remctl_command,       NULL)
+    ZEND_FE(remctl_output,        NULL)
+    ZEND_FE(remctl_noop,          NULL)
+    ZEND_FE(remctl_error,         NULL)
     { NULL, NULL, NULL, 0, 0 }
 };
 
@@ -214,6 +217,54 @@ ZEND_FUNCTION(remctl_new)
 
 
 /*
+ * Set the credential cache for subsequent connections with remctl_open.
+ */
+ZEND_FUNCTION(remctl_set_ccache)
+{
+    struct remctl *r;
+    zval *zrem;
+    char *ccache;
+    int clen, status;
+
+    status = zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zrem,
+                 &ccache, &clen);
+    if (status == FAILURE) {
+        zend_error(E_WARNING, "remctl_set_ccache: invalid parameters\n");
+        RETURN_FALSE;
+    }
+    ZEND_FETCH_RESOURCE(r, struct remctl *, &zrem, -1, PHP_REMCTL_RES_NAME,
+        le_remctl_internal);
+    if (!remctl_set_ccache(r, ccache))
+        RETURN_FALSE;
+    RETURN_TRUE;
+}
+
+
+/*
+ * Set the source IP for subsequent connections with remctl_open.
+ */
+ZEND_FUNCTION(remctl_set_source_ip)
+{
+    struct remctl *r;
+    zval *zrem;
+    char *source;
+    int slen, status;
+
+    status = zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zrem,
+                 &source, &slen);
+    if (status == FAILURE) {
+        zend_error(E_WARNING, "remctl_set_source_ip: invalid parameters\n");
+        RETURN_FALSE;
+    }
+    ZEND_FETCH_RESOURCE(r, struct remctl *, &zrem, -1, PHP_REMCTL_RES_NAME,
+        le_remctl_internal);
+    if (!remctl_set_source_ip(r, source))
+        RETURN_FALSE;
+    RETURN_TRUE;
+}
+
+
+/*
  * Open a connection to the remote host.  Only the host parameter is required;
  * the rest are optional.  PHP may require something be passed in for
  * principal, but the empty string is taken to mean "use the library default."
@@ -385,6 +436,28 @@ ZEND_FUNCTION(remctl_output)
         add_property_string(return_value, "type", "done", 1);
         break;
     }
+}
+
+
+/*
+ * Sends a NOOP message to the server and reads the reply.
+ */
+ZEND_FUNCTION(remctl_noop)
+{
+    struct remctl *r;
+    zval *zrem;
+    int status;
+
+    status = zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zrem);
+    if (status == FAILURE) {
+        zend_error(E_WARNING, "remctl_noop: invalid parameters\n");
+        RETURN_FALSE;
+    }
+    ZEND_FETCH_RESOURCE(r, struct remctl *, &zrem, -1, PHP_REMCTL_RES_NAME,
+        le_remctl_internal);
+    if (!remctl_noop(r))
+        RETURN_FALSE;
+    RETURN_TRUE;
 }
 
 

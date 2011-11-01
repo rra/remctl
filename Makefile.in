@@ -48,7 +48,8 @@ host_triplet = @host@
 bin_PROGRAMS = client/remctl$(EXEEXT)
 sbin_PROGRAMS = server/remctld$(EXEEXT)
 check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
-	tests/client/large-t$(EXEEXT) tests/client/open-t$(EXEEXT) \
+	tests/client/ccache-t$(EXEEXT) tests/client/large-t$(EXEEXT) \
+	tests/client/open-t$(EXEEXT) tests/client/source-ip-t$(EXEEXT) \
 	tests/data/cmd-background$(EXEEXT) \
 	tests/data/cmd-closed$(EXEEXT) tests/data/cmd-stdin$(EXEEXT) \
 	tests/data/cmd-streaming$(EXEEXT) \
@@ -68,7 +69,8 @@ check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
 	tests/server/bind-t$(EXEEXT) tests/server/config-t$(EXEEXT) \
 	tests/server/continue-t$(EXEEXT) tests/server/env-t$(EXEEXT) \
 	tests/server/errors-t$(EXEEXT) tests/server/invalid-t$(EXEEXT) \
-	tests/server/logging-t$(EXEEXT) tests/server/stdin-t$(EXEEXT) \
+	tests/server/logging-t$(EXEEXT) tests/server/noop-t$(EXEEXT) \
+	tests/server/stdin-t$(EXEEXT) \
 	tests/server/streaming-t$(EXEEXT) \
 	tests/server/version-t$(EXEEXT) tests/util/concat-t$(EXEEXT) \
 	tests/util/fdflag-t$(EXEEXT) tests/util/gss-tokens-t$(EXEEXT) \
@@ -228,6 +230,10 @@ tests_client_api_t_SOURCES = tests/client/api-t.c
 tests_client_api_t_OBJECTS = tests/client/api-t.$(OBJEXT)
 tests_client_api_t_DEPENDENCIES = client/libremctl.la \
 	tests/tap/libtap.a portable/libportable.la util/libutil.la
+tests_client_ccache_t_SOURCES = tests/client/ccache-t.c
+tests_client_ccache_t_OBJECTS = tests/client/ccache-t.$(OBJEXT)
+tests_client_ccache_t_DEPENDENCIES = client/libremctl.la \
+	tests/tap/libtap.a portable/libportable.la util/libutil.la
 tests_client_large_t_SOURCES = tests/client/large-t.c
 tests_client_large_t_OBJECTS = tests/client/large-t.$(OBJEXT)
 tests_client_large_t_DEPENDENCIES = client/libremctl.la \
@@ -241,6 +247,10 @@ tests_client_open_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_client_open_t_LDFLAGS) \
 	$(LDFLAGS) -o $@
+tests_client_source_ip_t_SOURCES = tests/client/source-ip-t.c
+tests_client_source_ip_t_OBJECTS = tests/client/source-ip-t.$(OBJEXT)
+tests_client_source_ip_t_DEPENDENCIES = client/libremctl.la \
+	tests/tap/libtap.a portable/libportable.la util/libutil.la
 tests_data_cmd_background_SOURCES = tests/data/cmd-background.c
 tests_data_cmd_background_OBJECTS =  \
 	tests/data/cmd-background.$(OBJEXT)
@@ -404,6 +414,15 @@ tests_server_logging_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_server_logging_t_LDFLAGS) \
 	$(LDFLAGS) -o $@
+tests_server_noop_t_SOURCES = tests/server/noop-t.c
+tests_server_noop_t_OBJECTS = tests/server/noop-t.$(OBJEXT)
+tests_server_noop_t_DEPENDENCIES = client/libremctl.la \
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+tests_server_noop_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_noop_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_server_stdin_t_SOURCES = tests/server/stdin-t.c
 tests_server_stdin_t_OBJECTS = tests/server/stdin-t.$(OBJEXT)
 tests_server_stdin_t_DEPENDENCIES = client/libremctl.la \
@@ -495,8 +514,9 @@ am__v_GEN_0 = @echo "  GEN   " $@;
 SOURCES = $(tests_tap_libtap_a_SOURCES) $(client_libremctl_la_SOURCES) \
 	$(portable_libportable_la_SOURCES) $(util_libutil_la_SOURCES) \
 	$(client_remctl_SOURCES) $(server_remctld_SOURCES) \
-	tests/client/api-t.c tests/client/large-t.c \
-	tests/client/open-t.c tests/data/cmd-background.c \
+	tests/client/api-t.c tests/client/ccache-t.c \
+	tests/client/large-t.c tests/client/open-t.c \
+	tests/client/source-ip-t.c tests/data/cmd-background.c \
 	tests/data/cmd-closed.c tests/data/cmd-stdin.c \
 	tests/data/cmd-streaming.c \
 	$(tests_portable_asprintf_t_SOURCES) \
@@ -515,19 +535,20 @@ SOURCES = $(tests_tap_libtap_a_SOURCES) $(client_libremctl_la_SOURCES) \
 	tests/server/bind-t.c $(tests_server_config_t_SOURCES) \
 	tests/server/continue-t.c tests/server/env-t.c \
 	tests/server/errors-t.c tests/server/invalid-t.c \
-	$(tests_server_logging_t_SOURCES) tests/server/stdin-t.c \
-	tests/server/streaming-t.c tests/server/version-t.c \
-	tests/util/concat-t.c tests/util/fdflag-t.c \
-	$(tests_util_gss_tokens_t_SOURCES) tests/util/messages-t.c \
-	tests/util/network-t.c tests/util/tokens-t.c \
-	tests/util/vector-t.c tests/util/xmalloc.c \
-	$(tests_util_xwrite_t_SOURCES)
+	$(tests_server_logging_t_SOURCES) tests/server/noop-t.c \
+	tests/server/stdin-t.c tests/server/streaming-t.c \
+	tests/server/version-t.c tests/util/concat-t.c \
+	tests/util/fdflag-t.c $(tests_util_gss_tokens_t_SOURCES) \
+	tests/util/messages-t.c tests/util/network-t.c \
+	tests/util/tokens-t.c tests/util/vector-t.c \
+	tests/util/xmalloc.c $(tests_util_xwrite_t_SOURCES)
 DIST_SOURCES = $(tests_tap_libtap_a_SOURCES) \
 	$(client_libremctl_la_SOURCES) \
 	$(portable_libportable_la_SOURCES) $(util_libutil_la_SOURCES) \
 	$(client_remctl_SOURCES) $(server_remctld_SOURCES) \
-	tests/client/api-t.c tests/client/large-t.c \
-	tests/client/open-t.c tests/data/cmd-background.c \
+	tests/client/api-t.c tests/client/ccache-t.c \
+	tests/client/large-t.c tests/client/open-t.c \
+	tests/client/source-ip-t.c tests/data/cmd-background.c \
 	tests/data/cmd-closed.c tests/data/cmd-stdin.c \
 	tests/data/cmd-streaming.c \
 	$(tests_portable_asprintf_t_SOURCES) \
@@ -546,13 +567,13 @@ DIST_SOURCES = $(tests_tap_libtap_a_SOURCES) \
 	tests/server/bind-t.c $(tests_server_config_t_SOURCES) \
 	tests/server/continue-t.c tests/server/env-t.c \
 	tests/server/errors-t.c tests/server/invalid-t.c \
-	$(tests_server_logging_t_SOURCES) tests/server/stdin-t.c \
-	tests/server/streaming-t.c tests/server/version-t.c \
-	tests/util/concat-t.c tests/util/fdflag-t.c \
-	$(tests_util_gss_tokens_t_SOURCES) tests/util/messages-t.c \
-	tests/util/network-t.c tests/util/tokens-t.c \
-	tests/util/vector-t.c tests/util/xmalloc.c \
-	$(tests_util_xwrite_t_SOURCES)
+	$(tests_server_logging_t_SOURCES) tests/server/noop-t.c \
+	tests/server/stdin-t.c tests/server/streaming-t.c \
+	tests/server/version-t.c tests/util/concat-t.c \
+	tests/util/fdflag-t.c $(tests_util_gss_tokens_t_SOURCES) \
+	tests/util/messages-t.c tests/util/network-t.c \
+	tests/util/tokens-t.c tests/util/vector-t.c \
+	tests/util/xmalloc.c $(tests_util_xwrite_t_SOURCES)
 man1dir = $(mandir)/man1
 man3dir = $(mandir)/man3
 man8dir = $(mandir)/man8
@@ -610,7 +631,6 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-KRB5_CONFIG = @KRB5_CONFIG@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
@@ -636,6 +656,7 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
+PATH_KRB5_CONFIG = @PATH_KRB5_CONFIG@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PCRE_CONFIG = @PCRE_CONFIG@
 PCRE_CPPFLAGS = @PCRE_CPPFLAGS@
@@ -716,24 +737,25 @@ RUBY = ruby
 # properly for builddir != srcdir builds.
 PERL_FILES = perl/Remctl.xs perl/typemap perl/t/pod.t perl/t/stanford-netdb.t
 PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
-	php/tests/002.phpt php/tests/003.phpt
+	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
+	php/tests/005.phpt
 
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
-AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	client/libremctl.map client/libremctl.rc client/libremctl.sym	    \
 	client/remctl.rc config.h.w32 configure.cmd docs/api/remctl.pod	    \
 	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
 	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
-	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
-	docs/design.html docs/extending docs/protocol-v3 docs/protocol.txt  \
-	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
-	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
-	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
-	java/.classpath java/.project java/Makefile java/README		    \
-	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
-	java/org/eyrie/eagle/remctl/Remctl.java				    \
+	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
+	docs/api/remctl_output.pod docs/api/remctl_set_ccache.pod	    \
+	docs/api/remctl_set_source_ip.pod docs/design.html docs/extending   \
+	docs/protocol-v3 docs/protocol.txt docs/protocol.html		    \
+	docs/protocol.xml docs/remctl.pod docs/remctld.8.in		    \
+	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
+	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
+	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf    \
+	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java   \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java portable/winsock.c remctl.spec ruby/README		    \
@@ -748,12 +770,12 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/acls2/valid-4 tests/data/cmd-argv tests/data/cmd-env	    \
 	tests/data/cmd-hello tests/data/cmd-status tests/data/conf-simple   \
 	tests/data/conf-test tests/data/configs/bad-logmask-1		    \
-	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
-	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
-	tests/data/gput tests/docs/pod-spelling-t tests/docs/pod-t	    \
-	tests/tap/kerberos.sh tests/tap/libtap.sh tests/tap/remctl.sh	    \
-	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
-	$(PYTHON_FILES)
+	tests/data/configs/bad-include-1 tests/data/configs/bad-logmask-2   \
+	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4   \
+	tests/data/configs/bad-option-1 tests/data/gput			    \
+	tests/docs/pod-spelling-t tests/docs/pod-t tests/tap/kerberos.sh    \
+	tests/tap/libtap.sh tests/tap/remctl.sh tests/server/misc-t	    \
+	tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES)
 
 
 # Set this globally, since we have too many header files that include the
@@ -799,10 +821,11 @@ server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS) $(GPUT_LIBS) \
 	$(PCRE_LIBS)
 
-dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3 \
-	docs/api/remctl_command.3 docs/api/remctl_error.3 \
-	docs/api/remctl_new.3 docs/api/remctl_open.3 \
-	docs/api/remctl_output.3 docs/remctl.1
+dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3		    \
+	docs/api/remctl_command.3 docs/api/remctl_error.3		    \
+	docs/api/remctl_new.3 docs/api/remctl_noop.3 docs/api/remctl_open.3 \
+	docs/api/remctl_output.3 docs/api/remctl_set_ccache.3		    \
+	docs/api/remctl_set_source_ip.3 docs/remctl.1
 
 man_MANS = docs/remctld.8
 pkgconfigdir = $(libdir)/pkgconfig
@@ -841,7 +864,7 @@ WARNINGS = -g -O -Wall -Wextra -Wendif-labels -Wformat=2 -Winit-self	\
 @GCC_FALSE@PHP_WARNINGS = 
 @GCC_TRUE@PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
 @GCC_TRUE@	-Wno-missing-prototypes -Wno-unused-parameter \
-@GCC_TRUE@	-Wno-redundant-decls
+@GCC_TRUE@	-Wno-redundant-decls -Wno-sign-compare
 
 @GCC_FALSE@PYTHON_WARNINGS = 
 @GCC_TRUE@PYTHON_WARNINGS = -Wno-unused-parameter
@@ -867,11 +890,17 @@ SERVER_FILES = server/commands.c server/config.c server/generic.c \
 tests_client_api_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	portable/libportable.la util/libutil.la
 
+tests_client_ccache_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	portable/libportable.la util/libutil.la
+
 tests_client_open_t_LDFLAGS = $(GSSAPI_LDFLAGS)
 tests_client_open_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	portable/libportable.la util/libutil.la $(GSSAPI_LIBS)
 
 tests_client_large_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	portable/libportable.la util/libutil.la
+
+tests_client_source_ip_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	portable/libportable.la util/libutil.la
 
 tests_data_cmd_stdin_LDADD = util/libutil.la
@@ -963,6 +992,10 @@ tests_server_logging_t_SOURCES = tests/server/logging-t.c $(SERVER_FILES)
 tests_server_logging_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_logging_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)
+
+tests_server_noop_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(PCRE_LDFLAGS)
+tests_server_noop_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(PCRE_LIBS)
 
 tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
@@ -1337,6 +1370,11 @@ tests/client/api-t.$(OBJEXT): tests/client/$(am__dirstamp) \
 tests/client/api-t$(EXEEXT): $(tests_client_api_t_OBJECTS) $(tests_client_api_t_DEPENDENCIES) tests/client/$(am__dirstamp)
 	@rm -f tests/client/api-t$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(tests_client_api_t_OBJECTS) $(tests_client_api_t_LDADD) $(LIBS)
+tests/client/ccache-t.$(OBJEXT): tests/client/$(am__dirstamp) \
+	tests/client/$(DEPDIR)/$(am__dirstamp)
+tests/client/ccache-t$(EXEEXT): $(tests_client_ccache_t_OBJECTS) $(tests_client_ccache_t_DEPENDENCIES) tests/client/$(am__dirstamp)
+	@rm -f tests/client/ccache-t$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_client_ccache_t_OBJECTS) $(tests_client_ccache_t_LDADD) $(LIBS)
 tests/client/large-t.$(OBJEXT): tests/client/$(am__dirstamp) \
 	tests/client/$(DEPDIR)/$(am__dirstamp)
 tests/client/large-t$(EXEEXT): $(tests_client_large_t_OBJECTS) $(tests_client_large_t_DEPENDENCIES) tests/client/$(am__dirstamp)
@@ -1347,6 +1385,11 @@ tests/client/open-t.$(OBJEXT): tests/client/$(am__dirstamp) \
 tests/client/open-t$(EXEEXT): $(tests_client_open_t_OBJECTS) $(tests_client_open_t_DEPENDENCIES) tests/client/$(am__dirstamp)
 	@rm -f tests/client/open-t$(EXEEXT)
 	$(AM_V_CCLD)$(tests_client_open_t_LINK) $(tests_client_open_t_OBJECTS) $(tests_client_open_t_LDADD) $(LIBS)
+tests/client/source-ip-t.$(OBJEXT): tests/client/$(am__dirstamp) \
+	tests/client/$(DEPDIR)/$(am__dirstamp)
+tests/client/source-ip-t$(EXEEXT): $(tests_client_source_ip_t_OBJECTS) $(tests_client_source_ip_t_DEPENDENCIES) tests/client/$(am__dirstamp)
+	@rm -f tests/client/source-ip-t$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_client_source_ip_t_OBJECTS) $(tests_client_source_ip_t_LDADD) $(LIBS)
 tests/data/$(am__dirstamp):
 	@$(MKDIR_P) tests/data
 	@: > tests/data/$(am__dirstamp)
@@ -1539,6 +1582,11 @@ tests/server/logging-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 tests/server/logging-t$(EXEEXT): $(tests_server_logging_t_OBJECTS) $(tests_server_logging_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/logging-t$(EXEEXT)
 	$(AM_V_CCLD)$(tests_server_logging_t_LINK) $(tests_server_logging_t_OBJECTS) $(tests_server_logging_t_LDADD) $(LIBS)
+tests/server/noop-t.$(OBJEXT): tests/server/$(am__dirstamp) \
+	tests/server/$(DEPDIR)/$(am__dirstamp)
+tests/server/noop-t$(EXEEXT): $(tests_server_noop_t_OBJECTS) $(tests_server_noop_t_DEPENDENCIES) tests/server/$(am__dirstamp)
+	@rm -f tests/server/noop-t$(EXEEXT)
+	$(AM_V_CCLD)$(tests_server_noop_t_LINK) $(tests_server_noop_t_OBJECTS) $(tests_server_noop_t_LDADD) $(LIBS)
 tests/server/stdin-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 tests/server/stdin-t$(EXEEXT): $(tests_server_stdin_t_OBJECTS) $(tests_server_stdin_t_DEPENDENCIES) tests/server/$(am__dirstamp)
@@ -1643,8 +1691,10 @@ mostlyclean-compile:
 	-rm -f server/server_remctld-server-v1.$(OBJEXT)
 	-rm -f server/server_remctld-server-v2.$(OBJEXT)
 	-rm -f tests/client/api-t.$(OBJEXT)
+	-rm -f tests/client/ccache-t.$(OBJEXT)
 	-rm -f tests/client/large-t.$(OBJEXT)
 	-rm -f tests/client/open-t.$(OBJEXT)
+	-rm -f tests/client/source-ip-t.$(OBJEXT)
 	-rm -f tests/data/cmd-background.$(OBJEXT)
 	-rm -f tests/data/cmd-closed.$(OBJEXT)
 	-rm -f tests/data/cmd-stdin.$(OBJEXT)
@@ -1682,6 +1732,7 @@ mostlyclean-compile:
 	-rm -f tests/server/errors-t.$(OBJEXT)
 	-rm -f tests/server/invalid-t.$(OBJEXT)
 	-rm -f tests/server/logging-t.$(OBJEXT)
+	-rm -f tests/server/noop-t.$(OBJEXT)
 	-rm -f tests/server/stdin-t.$(OBJEXT)
 	-rm -f tests/server/streaming-t.$(OBJEXT)
 	-rm -f tests/server/version-t.$(OBJEXT)
@@ -1763,8 +1814,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctld-server-v2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/tests_runtests-runtests.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/client/$(DEPDIR)/api-t.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/client/$(DEPDIR)/ccache-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/client/$(DEPDIR)/large-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/client/$(DEPDIR)/open-t.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/client/$(DEPDIR)/source-ip-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/data/$(DEPDIR)/cmd-background.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/data/$(DEPDIR)/cmd-closed.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/data/$(DEPDIR)/cmd-stdin.Po@am__quote@
@@ -1802,6 +1855,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/errors-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/invalid-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/logging-t.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/noop-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/stdin-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/streaming-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/version-t.Po@am__quote@
@@ -2725,7 +2779,8 @@ check-local: $(check_PROGRAMS)
 	fi
 	@set -e; if [ -f ruby/Makefile ] ; then \
 	    echo '' ; \
-	    cd ruby && $(RUBY) test_remctl.rb ; \
+	    cd ruby && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
+		$(RUBY) -I. test_remctl.rb ; \
 	fi
 
 # The following section sets up the Perl module build properly.  Most of the

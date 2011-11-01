@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on prior work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -26,7 +26,8 @@ enum message_types {
     MESSAGE_OUTPUT  = 3,
     MESSAGE_STATUS  = 4,
     MESSAGE_ERROR   = 5,
-    MESSAGE_VERSION = 6
+    MESSAGE_VERSION = 6,
+    MESSAGE_NOOP    = 7
 };
 
 /* Windows uses this for something else. */
@@ -36,14 +37,15 @@ enum message_types {
 
 /* Error codes. */
 enum error_codes {
-    ERROR_INTERNAL        = 1,  /* Internal server failure. */
-    ERROR_BAD_TOKEN       = 2,  /* Invalid format in token. */
-    ERROR_UNKNOWN_MESSAGE = 3,  /* Unknown message type. */
-    ERROR_BAD_COMMAND     = 4,  /* Invalid command format in token. */
-    ERROR_UNKNOWN_COMMAND = 5,  /* Unknown command. */
-    ERROR_ACCESS          = 6,  /* Access denied. */
-    ERROR_TOOMANY_ARGS    = 7,  /* Argument count exceeds server limit. */
-    ERROR_TOOMUCH_DATA    = 8   /* Argument size exceeds server limit. */
+    ERROR_INTERNAL           = 1,  /* Internal server failure. */
+    ERROR_BAD_TOKEN          = 2,  /* Invalid format in token. */
+    ERROR_UNKNOWN_MESSAGE    = 3,  /* Unknown message type. */
+    ERROR_BAD_COMMAND        = 4,  /* Invalid command format in token. */
+    ERROR_UNKNOWN_COMMAND    = 5,  /* Unknown command. */
+    ERROR_ACCESS             = 6,  /* Access denied. */
+    ERROR_TOOMANY_ARGS       = 7,  /* Argument count exceeds server limit. */
+    ERROR_TOOMUCH_DATA       = 8,  /* Argument size exceeds server limit. */
+    ERROR_UNEXPECTED_MESSAGE = 9   /* Message type not valid now. */
 };
 
 #endif /* UTIL_PROTOCOL_H */

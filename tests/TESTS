@@ -1,6 +1,8 @@
 client/api
+client/ccache
 client/large
 client/open
+client/source-ip
 client/remctl
 docs/pod
 docs/pod-spelling

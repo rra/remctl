@@ -56,7 +56,7 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
                            gai_strerror(status));
         return INVALID_SOCKET;
     }
-    fd = network_connect(ai, NULL);
+    fd = network_connect(ai, r->source, 0);
     freeaddrinfo(ai);
     if (fd == INVALID_SOCKET) {
         internal_set_error(r, "cannot connect to %s (port %hu): %s", host,
@@ -232,16 +232,6 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
             goto fail;
         }
 
-        /*
-         * If the flags we get back from the server are bad and we're doing
-         * protocol v2, report an error and abort.
-         */
-        if (r->protocol > 1 && (gss_flags & req_gss_flags) != req_gss_flags) {
-            internal_set_error(r, "server did not negotiate acceptable"
-                               " GSS-API flags");
-            goto fail;
-        }
-
         /* If we're still expecting more, retrieve it. */
         if (major == GSS_S_CONTINUE_NEEDED) {
             status = token_recv(fd, &flags, &recv_tok, TOKEN_MAX_LENGTH);
@@ -256,6 +246,19 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
         }
     } while (major == GSS_S_CONTINUE_NEEDED);
 
+    /*
+     * If the flags we get back from the server are bad and we're doing
+     * protocol v2, report an error and abort.  This must be done after
+     * establishing the context, since Heimdal doesn't report all flags until
+     * context negotiation is complete.
+     */
+    if (r->protocol > 1 && (gss_flags & req_gss_flags) != req_gss_flags) {
+        internal_set_error(r, "server did not negotiate acceptable GSS-API"
+                           " flags");
+        goto fail;
+    }
+
+    /* Success.  Set the context in the struct remctl object. */
     r->context = gss_context;
     r->ready = 0;
     gss_release_name(&minor, &name);

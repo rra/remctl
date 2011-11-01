@@ -47,7 +47,8 @@ module Helpers
 
   def run_kinit
     ENV['KRB5CCNAME'] = 'data/test.cache'
-    commands = ['kinit -k -t data/test.keytab ' + @principal,
+    commands = ['kinit --no-afslog -k -t data/test.keytab ' + @principal,
+                'kinit -k -t data/test.keytab ' + @principal,
                 'kinit -t data/test.keytab ' + @principal,
                 'kinit -k -K data/test.keytab ' + @principal]
     commands.each do |command|
@@ -172,6 +173,7 @@ class TC_RemctlFull < Test::Unit::TestCase
     assert_equal(output[3], 0)
     output = r.output
     assert_equal(output[0], :done)
+    r.noop
     r.close
   end
 
@@ -183,6 +185,32 @@ class TC_RemctlFull < Test::Unit::TestCase
     assert_equal(output[0], :error)
     assert_equal(output[1], 'Unknown command')
     assert_equal(output[4], 5)
+  end
+
+  def test_full_ccache
+    unless configured? then return end
+    ENV['KRB5CCNAME'] = 'nonexistent-file'
+    assert_raise Remctl::Error do
+      Remctl.new('127.0.0.1', 14373, @principal)
+    end
+    Remctl.ccache = 'data/test.cache'
+    begin
+      Remctl.new('127.0.0.1', 14373, @principal)
+    rescue Remctl::Error
+      assert_equal('setting credential cache not supported', $!.to_s)
+    end
+  end
+
+  def test_full_source_ip
+    unless configured? then return end
+    Remctl.source_ip = '127.0.0.1'
+    r = Remctl.new('127.0.0.1', 14373, @principal)
+    r.close
+    Remctl.source_ip = '::1'
+    assert_raise Remctl::Error do
+      Remctl.new('127.0.0.1', 14373, @principal)
+    end
+    Remctl.source_ip = nil
   end
 
   def test_full_errors

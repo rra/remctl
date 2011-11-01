@@ -1,5 +1,91 @@
                        User-Visible remctl Changes
 
+remctl 3.0 (2011-10-31)
+
+    New protocol version 3, which introduces a new NOOP message.  When the
+    client sends this message, the server replies with a NOOP message.
+    This can be used to keep a persistent remctl connection alive despite
+    network session timeouts.  Add new remctl_noop function to the remctl
+    library API and the Perl, PHP, Python, and Ruby bindings to send the
+    NOOP message and read the response.
+
+    Be more explicit in the protocol about handling of continuation
+    commands.  Do not allow any messages from the client after a continued
+    command except the continuation of that command or a QUIT message.
+    Explicitly document that a QUIT message abandons the partial command.
+    Add the new ERROR_UNEXPECTED_MESSAGE error code, used when the client
+    sends incorrect messages during a command continuation.
+
+    The server no longer closes the connection after version or error
+    replies.  The connection will now stay open until MESSAGE_COMMAND is
+    sent without keepalive or MESSAGE_QUIT is sent.
+
+    Add new remctl_set_source_ip function to the remctl library API and
+    the Perl, PHP, Python, and Ruby bindings.  Call this function after
+    remctl_new and before remctl_open to set the source IP address that
+    will be used for subequent client connections to a remctl server.  For
+    the Ruby bindings, this is implemented as the source_ip class variable
+    rather than a separate method.
+
+    Add new -b option to the remctl command-line client to specify the
+    source IP for client connections.
+
+    Add new remctl_set_ccache function to the remctl library API and the
+    Perl, PHP, Python, and Ruby bindings.  Call this function after
+    remctl_new and before remctl_open to set the Kerberos credential cache
+    that will be used for client authentication, overriding KRB5CCNAME.
+    Be aware that this will normally change the default credential cache
+    for all other GSS-API operations in this context or thread, not just
+    for that remctl object, due to GSS-API limitations.  For the Ruby
+    bindings, this is implemented as the ccache class variable rather than
+    a separate method.
+
+    In the client, only check the negotiated GSS-API context flags after
+    the context has been fully established.  Current versions of Heimdal,
+    including the system Kerberos libraries in Mac OS X Lion, only declare
+    mutual authentication once the context negotiation is complete.
+
+    Close a client memory leak caused by the GSS-API context not being
+    freed by the client in remctl_close.
+
+    When calling remctl_open on an existing struct remctl object, send
+    QUIT to the server if a connection is already open.
+
+    remctld can be configured to pass the subcommand on standard input,
+    but the documentation said this was not allowed.  Fix the
+    documentation to match the implementation.
+
+    Use PATH_KRB5_CONFIG as the environment variable to set the path to
+    krb5-config rather than KRB5_CONFIG when running configure, since the
+    latter is used by the Kerberos libraries to specify an alternative
+    path to krb5.conf.
+
+    Fix the Ruby bindings test suite to test against the newly-built
+    libremctl and Ruby module rather than any installed on the system.
+
+    Update to rra-c-util 3.10:
+
+    * Add notices in each file copied from rra-c-util.
+    * Prefer gssapi/gssapi.h to gssapi.h.
+    * Include strings.h if it exists for strncasecmp on some platforms.
+    * getaddrinfo replacement now portable to systems with bad netdb.h.
+    * Avoid krb5-config if --with-gssapi-{include,lib} are given.
+    * Add Windows implementation of fdflag_nonblocking.
+    * The network_connect utility functions now take an optional timeout.
+    * Wait longer for remctld to start in remctl tests.
+    * Use an atexit handler to clean up after Kerberos tests.
+    * Use typedef instead of #define for socklen_t and sig_atomic_t.
+    * Stop providing or using INADDR_LOOPBACK for portability reasons.
+    * Don't override a user's existing AFS tokens while testing.
+    * Fix removal of -I/usr/include from GSS-API CPPFLAGS.
+    * Provide ssize_t on platforms without it, such as Windows.
+    * Fix vector_join and cvector_join with empty vectors.
+
+    Update to C TAP Harness 1.8:
+
+    * Add bmalloc, bcalloc, brealloc, and bstrdup TAP library functions.
+    * Fix runtests to still honor SOURCE and -s without BUILD and -b.
+
 remctl 2.18 (2011-05-31)
 
     Fix uninitialized variable in the remctld standalone server code that

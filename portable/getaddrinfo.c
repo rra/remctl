@@ -16,6 +16,9 @@
  * needed to date.  Adding IPv6 support isn't worth it; systems with IPv6
  * support should already support getaddrinfo natively.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
@@ -33,6 +36,26 @@
 
 #include <errno.h>
 
+/* We need access to h_errno to map errors from gethostbyname. */
+#if !HAVE_DECL_H_ERRNO
+extern int h_errno;
+#endif
+
+/*
+ * The netdb constants, which aren't always defined (particularly if h_errno
+ * isn't declared).  We also make sure that a few of the less-used ones are
+ * defined so that we can deal with them in case statements.
+ */
+#ifndef HOST_NOT_FOUND
+# define HOST_NOT_FOUND 1
+# define TRY_AGAIN      2
+# define NO_RECOVERY    3
+# define NO_DATA        4
+#endif
+#ifndef NETDB_INTERNAL
+# define NETDB_INTERNAL -1
+#endif
+
 /*
  * If we're running the test suite, rename the functions to avoid conflicts
  * with the system version.  Note that we don't rename the structures and
@@ -46,11 +69,13 @@ const char *test_gai_strerror(int);
 void test_freeaddrinfo(struct addrinfo *);
 int test_getaddrinfo(const char *, const char *, const struct addrinfo *,
                      struct addrinfo **);
+#endif
 
 /*
  * If the native platform doesn't support AI_NUMERICSERV or AI_NUMERICHOST,
  * pick some other values for them.
  */
+#if TESTING
 # if AI_NUMERICSERV == 0
 #  undef AI_NUMERICSERV
 #  define AI_NUMERICSERV 0x0080
@@ -59,6 +84,20 @@ int test_getaddrinfo(const char *, const char *, const struct addrinfo *,
 #  undef AI_NUMERICHOST
 #  define AI_NUMERICHOST 0x0100
 # endif
+#endif
+
+/*
+ * Value representing all of the hint flags set.  Linux uses flags up to
+ * 0x0400, so be sure not to break when testing on that platform.
+ */
+#if TESTING
+# ifdef HAVE_GETADDRINFO
+#  define AI_INTERNAL_ALL 0x04ff
+# else
+#  define AI_INTERNAL_ALL 0x01ff
+# endif
+#else
+# define AI_INTERNAL_ALL 0x007f
 #endif
 
 /* Table of strings corresponding to the EAI_* error codes. */
@@ -75,32 +114,18 @@ static const char * const gai_errors[] = {
     "Supplied buffer too small",        /* 10 EAI_OVERFLOW */
 };
 
-/*
- * Value representing all of the hint flags set.  Linux uses flags up to
- * 0x0400, so be sure not to break when testing on that platform.
- */
-#if TESTING
-# ifdef HAVE_GETADDRINFO
-#  define AI_INTERNAL_ALL 0x04ff
-# else
-#  define AI_INTERNAL_ALL 0x01ff
-# endif
-#else
-# define AI_INTERNAL_ALL 0x007f
-#endif
-
 /* Macro to set the len attribute of sockaddr_in. */
 #if HAVE_STRUCT_SOCKADDR_SA_LEN
-# define sin_set_length(s)      ((s)->sin_len  = sizeof(struct sockaddr_in))
+# define sin_set_length(s) ((s)->sin_len  = sizeof(struct sockaddr_in))
 #else
-# define sin_set_length(s)      /* empty */
+# define sin_set_length(s) /* empty */
 #endif
 
 /*
  * Used for iterating through arrays.  ARRAY_SIZE returns the number of
  * elements in the array (useful for a < upper bound in a for loop).
  */
-#define ARRAY_SIZE(array)       (sizeof(array) / sizeof((array)[0]))
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
 
 /*
@@ -378,7 +403,10 @@ getaddrinfo(const char *nodename, const char *servname,
     else {
         if (servname == NULL)
             return EAI_NONAME;
-        addr.s_addr = (flags & AI_PASSIVE) ? INADDR_ANY : INADDR_LOOPBACK;
+        if ((flags & AI_PASSIVE) == AI_PASSIVE)
+            addr.s_addr = INADDR_ANY;
+        else
+            addr.s_addr = htonl(0x7f000001UL);
         ai = gai_addrinfo_new(socktype, NULL, addr, port);
         if (ai == NULL)
             return EAI_MEMORY;

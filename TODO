@@ -103,9 +103,14 @@ Client:
  * Allow sending the empty command in the command-line client once the
    server supports it.
 
+ * Add support for specifying the bind address for client connections once
+   the library supports it.
+
 Client library:
 
  * Add a varient of open that takes a timeout.
+
+ * Add support for specifying the bind address for client connections.
 
  * The client should ideally not specify an OID for the authentication
    mechanism and instead permit GSS-API to negotiate an appropriate

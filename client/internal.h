@@ -28,6 +28,7 @@ struct remctl {
     unsigned short port;        /*   remctl v1 requires opening a new    */
     const char *principal;      /*   connection for each command.        */
     int protocol;               /* Protocol version. */
+    char *source;               /* Source address for connection. */
     socket_type fd;
     gss_ctx_id_t context;
     char *error;
@@ -65,6 +66,9 @@ struct remctl_output *internal_v1_output(struct remctl *);
 /* Send a protocol v2 command. */
 bool internal_v2_commandv(struct remctl *, const struct iovec *command,
                           size_t count);
+
+/* Send a protocol v3 NOOP command. */
+bool internal_noop(struct remctl *);
 
 /* Send a protocol v2 QUIT command. */
 bool internal_v2_quit(struct remctl *);

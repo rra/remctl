@@ -3,20 +3,20 @@
 
 remctl Protocol                                               R. Allbery
                                                      Stanford University
-                                                          September 2007
+                                                        October 31, 2011
 
 
               remctl: Remote Authenticated Command Service
 
+Abstract
 
-
-
-
-
-
-
-
-
+   This document specifies the remctl wire protocol, used to send
+   commands and arguments to a remote system and receive the results of
+   executing that command.  The protocol uses GSS-API and Kerberos v5
+   for authentication, confidentiality, and integrity protection.  Both
+   the current (version 3) protocol and the older version 1 protocol are
+   described.  The version 1 protocol should only be implemented for
+   backward compatibility.
 
 
 
@@ -54,35 +54,35 @@ remctl Protocol                                               R. Allbery
 
 Allbery                                                         [Page 1]
 
-                                 remctl                   September 2007
-
-
-Abstract
-
-   This document specifies the remctl wire protocol, used to send
-   commands and arguments to a remote system and receive the results of
-   executing that command.  The protocol uses GSS-API and Kerberos v5
-   for authentication, confidentiality, and integrity protection.  Both
-   the current (version 2) protocol and the older version 1 protocol are
-   described.  The version 1 protocol should only be implemented for
-   backward compatibility.
+                                 remctl                     October 2011
 
 
 Table of Contents
 
    1.  Basic Packet Format  . . . . . . . . . . . . . . . . . . . . .  3
-   2.  Network Protocol (version 2) . . . . . . . . . . . . . . . . .  4
+   2.  Network Protocol (version 3) . . . . . . . . . . . . . . . . .  4
      2.1.  Session Sequence . . . . . . . . . . . . . . . . . . . . .  4
      2.2.  Message Format . . . . . . . . . . . . . . . . . . . . . .  5
      2.3.  Protocol Version Negotiation . . . . . . . . . . . . . . .  5
-     2.4.  MESSAGE_COMMAND  . . . . . . . . . . . . . . . . . . . . .  5
+     2.4.  MESSAGE_COMMAND  . . . . . . . . . . . . . . . . . . . . .  6
      2.5.  MESSAGE_OUTPUT and MESSAGE_STATUS  . . . . . . . . . . . .  7
-     2.6.  MESSAGE_ERROR  . . . . . . . . . . . . . . . . . . . . . .  7
-     2.7.  MESSAGE_QUIT . . . . . . . . . . . . . . . . . . . . . . .  8
-   3.  Network Protocol (version 1) . . . . . . . . . . . . . . . . .  9
-   4.  Security Considerations  . . . . . . . . . . . . . . . . . . . 11
-   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 12
-   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 13
+     2.6.  MESSAGE_ERROR  . . . . . . . . . . . . . . . . . . . . . .  8
+     2.7.  MESSAGE_QUIT . . . . . . . . . . . . . . . . . . . . . . .  9
+     2.8.  MESSAGE_NOOP . . . . . . . . . . . . . . . . . . . . . . .  9
+   3.  Network Protocol (version 1) . . . . . . . . . . . . . . . . . 10
+   4.  Security Considerations  . . . . . . . . . . . . . . . . . . . 12
+   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 13
+   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 14
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -110,7 +110,7 @@ Table of Contents
 
 Allbery                                                         [Page 2]
 
-                                 remctl                   September 2007
+                                 remctl                     October 2011
 
 
 1.  Basic Packet Format
@@ -140,8 +140,9 @@ Allbery                                                         [Page 2]
        0x40        TOKEN_PROTOCOL
 
    Only TOKEN_CONTEXT, TOKEN_CONTEXT_NEXT, TOKEN_DATA, and
-   TOKEN_PROTOCOL are used for version 2 packets.  The other flags are
-   used only with the legacy version 1 protocol.
+   TOKEN_PROTOCOL are used for packets for version 2 and of the
+   protocol.  The other flags are used only with the legacy version 1
+   protocol.
 
    The length field is a four-octet length in network byte order,
    specifying the number of octets in the following data payload.
@@ -163,13 +164,12 @@ Allbery                                                         [Page 2]
 
 
 
-
 Allbery                                                         [Page 3]
 
-                                 remctl                   September 2007
+                                 remctl                     October 2011
 
 
-2.  Network Protocol (version 2)
+2.  Network Protocol (version 3)
 
 2.1.  Session Sequence
 
@@ -222,7 +222,7 @@ Allbery                                                         [Page 3]
 
 Allbery                                                         [Page 4]
 
-                                 remctl                   September 2007
+                                 remctl                     October 2011
 
 
        requesting both confidentiality and integrity services.
@@ -237,10 +237,11 @@ Allbery                                                         [Page 4]
        1 octet     message type
        <command-specific data>
 
-   The protocol version for the version 2 protocol is 2.  (Note that the
-   version 1 protocol does not use this message format, and therefore a
-   protocol version of 1 is invalid.)  See below for protocol version
-   negotiation.
+   The protocol version sent for all messages should be 2 with the
+   exception of MESSAGE_NOOP, which should have a protocol version of 3.
+   The version 1 protocol does not use this message format, and
+   therefore a protocol version of 1 is invalid.  See below for protocol
+   version negotiation.
 
    The message type is one of the following constants:
 
@@ -250,10 +251,14 @@ Allbery                                                         [Page 4]
        4   MESSAGE_STATUS
        5   MESSAGE_ERROR
        6   MESSAGE_VERSION
+       7   MESSAGE_NOOP
 
    The first two message types are client messages and MUST NOT be sent
    by the server.  The remaining message types are server messages and
    MUST NOT by sent by the client.
+
+   All of these message types were introduced in protocol version 2
+   except for MESSAGE_NOOP, which is a protocol version 3 message.
 
 2.3.  Protocol Version Negotiation
 
@@ -268,18 +273,23 @@ Allbery                                                         [Page 4]
    protocol version or lower or send MESSAGE_QUIT and close the
    connection.
 
-2.4.  MESSAGE_COMMAND
-
-   Most client messages will be of type MESSAGE_COMMAND, which has the
-   following format:
-
 
 
 
 Allbery                                                         [Page 5]
 
-                                 remctl                   September 2007
+                                 remctl                     October 2011
 
+
+   Currently, there are only two meaningful values for the highest
+   supported version: 3, which indicates everything in this
+   specification is supported, or 2, which indicates that everything
+   except MESSAGE_NOOP is supported.
+
+2.4.  MESSAGE_COMMAND
+
+   Most client messages will be of type MESSAGE_COMMAND, which has the
+   following format:
 
        1 octet     keep-alive flag
        1 octet     continue status
@@ -295,12 +305,13 @@ Allbery                                                         [Page 5]
 
    If the continue status is 1, it indicates that there is more data
    coming.  The server should accept the data sent, buffer or process
-   it, and wait for more data before responding.  If the the continue
-   status is 2, it indicates that this message is logically a part of
-   the previous message (which MUST have had a continue status of 1 or
-   2) and still has more data coming.  If the continue status is 3, it
-   says that this message is logically part of the previous message,
-   like 2, but it also says that this is the end of the command.
+   it, and wait for additional messages before responding.  If the the
+   continue status is 2, it indicates that this message is logically a
+   part of the previous message (which MUST have had a continue status
+   of 1 or 2) and still has more data coming.  If the continue status is
+   3, it says that this message is logically part of the previous
+   message, like 2, but it also says that this is the end of the
+   command.
 
    A continuation of a message starts with the keep-alive flag and
    continue status and then the next chunk of data.  To reconstruct a
@@ -312,6 +323,34 @@ Allbery                                                         [Page 5]
    three octets of the number of arguments could be in the first
    MESSAGE_COMMAND (with continue status 1) and the last octet would
    then be in the next MESSAGE_COMMAND (with continue status 2 or 3).
+
+   For as long as the continue status is 1 or 2, the next message from
+   the client MUST be either another MESSAGE_COMMAND with a continue
+   status of 2 or 3 or a MESSAGE_QUIT.  In other words, other message
+   types MUST NOT be intermixed with continued commands, but
+   MESSAGE_QUIT may be sent by the client in the middle of a continued
+
+
+
+Allbery                                                         [Page 6]
+
+                                 remctl                     October 2011
+
+
+   command to abort that command.  If the server receives MESSAGE_QUIT
+   from the client before receiving a MESSAGE_COMMAND with a status of 3
+   (indicating the end of the command), the command MUST be discarded
+   and not executed.
+
+   If a client sends an invalid sequence of MESSAGE_COMMAND messages
+   that violate the continuation rules described above, the server
+   SHOULD reply with a MESSAGE_ERROR message, generally with either
+   ERROR_BAD_TOKEN, ERROR_UNKNOWN_MESSAGE, ERROR_BAD_COMMAND, or
+   ERROR_UNEXPECTED_MESSAGE error codes.  It MUST discard the partial
+   command without acting on it.  The client cannot correct an error in
+   a continued MESSAGE_COMMAND stream by resending the previous part.
+   It MUST start again at the beginning with a MESSAGE_COMMAND with a
+   continue status of 0 or 1.
 
    Number of arguments is a four-octet number in network byte order that
    gives the total number of command arguments.  For each argument,
@@ -325,17 +364,6 @@ Allbery                                                         [Page 5]
    one of those limits, the server MUST respond with MESSAGE_ERROR with
    an error code of ERROR_TOOMANY_ARGS or ERROR_TOOMUCH_DATA as
    appropriate.
-
-
-
-
-
-
-
-Allbery                                                         [Page 6]
-
-                                 remctl                   September 2007
-
 
 2.5.  MESSAGE_OUTPUT and MESSAGE_STATUS
 
@@ -357,6 +385,14 @@ Allbery                                                         [Page 6]
 
    MESSAGE_STATUS indicates the command has finished and returns the
    final exit stauts of the command.  Exit status is 0 for success and
+
+
+
+Allbery                                                         [Page 7]
+
+                                 remctl                     October 2011
+
+
    non-zero for failure, where the meaning of non-zero exit statuses is
    left to the application to define.  (This is identical to a Unix
    command exit status.)
@@ -380,19 +416,6 @@ Allbery                                                         [Page 6]
    indicating the type of error.  The error code may be one of the
    following values:
 
-
-
-
-
-
-
-
-
-Allbery                                                         [Page 7]
-
-                                 remctl                   September 2007
-
-
        1  ERROR_INTERNAL           Internal server failure
        2  ERROR_BAD_TOKEN          Invalid format in token
        3  ERROR_UNKNOWN_MESSAGE    Unknown message type
@@ -401,6 +424,7 @@ Allbery                                                         [Page 7]
        6  ERROR_ACCESS             Access denied
        7  ERROR_TOOMANY_ARGS       Argument count exceeds server limit
        8  ERROR_TOOMUCH_DATA       Argument size exceeds server limit
+       9  ERROR_UNEXPECTED_MESSAGE Message type not valid now
 
    Additional error codes may be added without changing the version of
    the remctl protocol, so clients MUST accept error codes other than
@@ -417,6 +441,14 @@ Allbery                                                         [Page 7]
    immediately after sending the MESSAGE_ERROR response message.
    Otherwise, the server SHOULD still honor that flag, although the
    server MAY terminate the connection after an unreasonable number of
+
+
+
+Allbery                                                         [Page 8]
+
+                                 remctl                     October 2011
+
+
    errors.
 
 2.7.  MESSAGE_QUIT
@@ -426,6 +458,18 @@ Allbery                                                         [Page 7]
    no message body.  Upon receiving this message, the server MUST
    immediately close the connection.
 
+2.8.  MESSAGE_NOOP
+
+   MESSAGE_NOOP provides a way for a client to keep the connection open
+   to a remctl server, including through firewall session timeouts and
+   similar network constraints that require periodic activity, without
+   sending new commands.  There is no body.  When the client sends a
+   MESSAGE_NOOP message, the server replies with a MESSAGE_NOOP message.
+
+   Note that MESSAGE_NOOP was introduced in protocol version 3 and
+   therefore should be marked accordingly.  Clients should be prepared
+   for older servers to reply with MESSAGE_VERSION instead of
+   MESSAGE_NOOP.
 
 
 
@@ -444,9 +488,21 @@ Allbery                                                         [Page 7]
 
 
 
-Allbery                                                         [Page 8]
+
+
+
+
+
+
+
+
+
+
+
+
+Allbery                                                         [Page 9]
 
-                                 remctl                   September 2007
+                                 remctl                     October 2011
 
 
 3.  Network Protocol (version 1)
@@ -500,9 +556,9 @@ Allbery                                                         [Page 8]
 
 
 
-Allbery                                                         [Page 9]
+Allbery                                                        [Page 10]
 
-                                 remctl                   September 2007
+                                 remctl                     October 2011
 
 
    9.   Server runs the command, collects the output, and sends the
@@ -556,9 +612,9 @@ Allbery                                                         [Page 9]
 
 
 
-Allbery                                                        [Page 10]
+Allbery                                                        [Page 11]
 
-                                 remctl                   September 2007
+                                 remctl                     October 2011
 
 
 4.  Security Considerations
@@ -612,9 +668,9 @@ Allbery                                                        [Page 10]
 
 
 
-Allbery                                                        [Page 11]
+Allbery                                                        [Page 12]
 
-                                 remctl                   September 2007
+                                 remctl                     October 2011
 
 
 Appendix A.  Acknowledgements
@@ -668,9 +724,9 @@ Appendix A.  Acknowledgements
 
 
 
-Allbery                                                        [Page 12]
+Allbery                                                        [Page 13]
 
-                                 remctl                   September 2007
+                                 remctl                     October 2011
 
 
 Author's Address
@@ -724,5 +780,5 @@ Author's Address
 
 
 
-Allbery                                                        [Page 13]
+Allbery                                                        [Page 14]
 

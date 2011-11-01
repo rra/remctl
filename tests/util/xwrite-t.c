@@ -1,6 +1,9 @@
 /*
  * Test suite for xwrite, xwritev, and xpwrite.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Copyright 2000, 2001, 2002, 2004 Russ Allbery <rra@stanford.edu>
  * Copyright 2009
  *     The Board of Trustees of the Leland Stanford Junior University

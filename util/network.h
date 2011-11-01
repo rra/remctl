@@ -1,6 +1,9 @@
 /*
  * Prototypes for network connection utility functions.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  * Copyright 2009, 2010, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -56,11 +59,13 @@ socket_type network_bind_ipv6(const char *address, unsigned short port)
  * and one for IPv6, if IPv6 support is enabled).  If IPv6 is not enabled,
  * just one socket will be created and bound to the IPv4 wildcard address.
  * fds will be set to an array containing the resulting file descriptors, with
- * count holding the count returned.
+ * count holding the count returned.  Use network_bind_all_free to free the
+ * array of file descriptors when no longer needed.
  */
 void network_bind_all(unsigned short port, socket_type **fds,
                       unsigned int *count)
     __attribute__((__nonnull__));
+void network_bind_all_free(socket_type *fds);
 
 /*
  * Accept an incoming connection from any file descriptor in an array.  This
@@ -78,9 +83,9 @@ socket_type network_accept_any(socket_type fds[], unsigned int count,
  * Create a socket and connect it to the remote service given by the linked
  * list of addrinfo structs.  Returns the new file descriptor on success and
  * -1 on failure, with the error left in errno.  Takes an optional source
- * address.
+ * address and a timeout in seconds, which may be 0 for no timeout.
  */
-socket_type network_connect(struct addrinfo *, const char *source)
+socket_type network_connect(struct addrinfo *, const char *source, time_t)
     __attribute__((__nonnull__(1)));
 
 /*
@@ -88,7 +93,7 @@ socket_type network_connect(struct addrinfo *, const char *source)
  * fails, errno may not be set to anything useful.
  */
 socket_type network_connect_host(const char *host, unsigned short port,
-                                 const char *source)
+                                 const char *source, time_t)
     __attribute__((__nonnull__(1)));
 
 /*

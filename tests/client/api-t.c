@@ -2,7 +2,7 @@
  * Test suite for the high-level remctl library API.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Copyright 2006, 2007, 2009, 2010, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -52,6 +52,16 @@ do_tests(const char *principal, int protocol)
     r->protocol = protocol;
     ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
     is_string("no error", remctl_error(r), "...still no error");
+
+    /* Send NOOP for protocol version 2 and higher. */
+    if (protocol == 2) {
+        ok(remctl_noop(r), "remctl_noop");
+        is_string("no error", remctl_error(r), "...still no error");
+    } else {
+        ok(!remctl_noop(r), "remctl_noop fails");
+        is_string("NOOP message not supported", remctl_error(r),
+                  "...with correct error");
+    }
 
     /* Send a successful command. */
     ok(remctl_command(r, test), "remctl_command");
@@ -153,7 +163,8 @@ do_tests(const char *principal, int protocol)
 int
 main(void)
 {
-    char *principal, *path, *config;
+    const char *principal;
+    char *path, *config;
     pid_t remctld;
     struct remctl_result *result;
     const char *test[] = { "test", "test", NULL };
@@ -164,7 +175,7 @@ main(void)
     principal = kerberos_setup();
     if (principal == NULL)
         skip_all("Kerberos tests not configured");
-    plan(98);
+    plan(102);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
     remctld = remctld_start(path, principal, config, NULL);
@@ -204,6 +215,5 @@ main(void)
     remctl_result_free(result);
 
     remctld_stop(remctld);
-    kerberos_cleanup();
     return 0;
 }

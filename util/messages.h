@@ -1,6 +1,9 @@
 /*
  * Prototypes for message and error reporting (possibly fatal).
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Copyright 2008, 2010
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006

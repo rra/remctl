@@ -21,24 +21,25 @@ RUBY = ruby
 # properly for builddir != srcdir builds.
 PERL_FILES = perl/Remctl.xs perl/typemap perl/t/pod.t perl/t/stanford-netdb.t
 PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
-	php/tests/002.phpt php/tests/003.phpt
+	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
+	php/tests/005.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 
-AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	client/libremctl.map client/libremctl.rc client/libremctl.sym	    \
 	client/remctl.rc config.h.w32 configure.cmd docs/api/remctl.pod	    \
 	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
 	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
-	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
-	docs/design.html docs/extending docs/protocol-v3 docs/protocol.txt  \
-	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
-	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
-	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
-	java/.classpath java/.project java/Makefile java/README		    \
-	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
-	java/org/eyrie/eagle/remctl/Remctl.java				    \
+	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
+	docs/api/remctl_output.pod docs/api/remctl_set_ccache.pod	    \
+	docs/api/remctl_set_source_ip.pod docs/design.html docs/extending   \
+	docs/protocol-v3 docs/protocol.txt docs/protocol.html		    \
+	docs/protocol.xml docs/remctl.pod docs/remctld.8.in		    \
+	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
+	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
+	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf    \
+	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java   \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java portable/winsock.c remctl.spec ruby/README		    \
@@ -53,12 +54,12 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/acls2/valid-4 tests/data/cmd-argv tests/data/cmd-env	    \
 	tests/data/cmd-hello tests/data/cmd-status tests/data/conf-simple   \
 	tests/data/conf-test tests/data/configs/bad-logmask-1		    \
-	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
-	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
-	tests/data/gput tests/docs/pod-spelling-t tests/docs/pod-t	    \
-	tests/tap/kerberos.sh tests/tap/libtap.sh tests/tap/remctl.sh	    \
-	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
-	$(PYTHON_FILES)
+	tests/data/configs/bad-include-1 tests/data/configs/bad-logmask-2   \
+	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4   \
+	tests/data/configs/bad-option-1 tests/data/gput			    \
+	tests/docs/pod-spelling-t tests/docs/pod-t tests/tap/kerberos.sh    \
+	tests/tap/libtap.sh tests/tap/remctl.sh tests/server/misc-t	    \
+	tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES)
 
 # Set this globally, since we have too many header files that include the
 # GSS-API headers even if the code itself doesn't call GSS-API functions.
@@ -107,10 +108,11 @@ server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS) $(GPUT_LIBS) \
 	$(PCRE_LIBS)
 
-dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3 \
-	docs/api/remctl_command.3 docs/api/remctl_error.3 \
-	docs/api/remctl_new.3 docs/api/remctl_open.3 \
-	docs/api/remctl_output.3 docs/remctl.1
+dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3		    \
+	docs/api/remctl_command.3 docs/api/remctl_error.3		    \
+	docs/api/remctl_new.3 docs/api/remctl_noop.3 docs/api/remctl_open.3 \
+	docs/api/remctl_output.3 docs/api/remctl_set_ccache.3		    \
+	docs/api/remctl_set_source_ip.3 docs/remctl.1
 man_MANS = docs/remctld.8
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -211,7 +213,7 @@ if GCC
 	-Wno-strict-prototypes -Wno-redundant-decls -Wno-shadow
     PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
 	-Wno-missing-prototypes -Wno-unused-parameter \
-	-Wno-redundant-decls
+	-Wno-redundant-decls -Wno-sign-compare
     PYTHON_WARNINGS = -Wno-unused-parameter
     RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
 else
@@ -226,8 +228,9 @@ warnings:
 	$(MAKE) V=0 CFLAGS='$(WARNINGS)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
-check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t	    \
-	tests/client/open-t tests/data/cmd-background tests/data/cmd-closed \
+check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
+	tests/client/large-t tests/client/open-t tests/client/source-ip-t   \
+	tests/data/cmd-background tests/data/cmd-closed			    \
 	tests/data/cmd-stdin tests/data/cmd-streaming			    \
 	tests/portable/asprintf-t tests/portable/daemon-t		    \
 	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	    \
@@ -238,7 +241,7 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/large-t	    \
 	tests/server/accept-t tests/server/acl-t tests/server/bind-t	    \
 	tests/server/config-t tests/server/continue-t tests/server/env-t    \
 	tests/server/errors-t tests/server/invalid-t tests/server/logging-t \
-	tests/server/stdin-t tests/server/streaming-t			    \
+	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t   \
 	tests/server/version-t tests/util/concat-t tests/util/fdflag-t	    \
 	tests/util/gss-tokens-t tests/util/messages-t tests/util/network-t  \
 	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	    \
@@ -259,10 +262,14 @@ SERVER_FILES = server/commands.c server/config.c server/generic.c \
 # All of the test programs.
 tests_client_api_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	portable/libportable.la util/libutil.la
+tests_client_ccache_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	portable/libportable.la util/libutil.la
 tests_client_open_t_LDFLAGS = $(GSSAPI_LDFLAGS)
 tests_client_open_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	portable/libportable.la util/libutil.la $(GSSAPI_LIBS)
 tests_client_large_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	portable/libportable.la util/libutil.la
+tests_client_source_ip_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	portable/libportable.la util/libutil.la
 tests_data_cmd_stdin_LDADD = util/libutil.la
 tests_portable_asprintf_t_SOURCES = tests/portable/asprintf-t.c \
@@ -330,6 +337,9 @@ tests_server_logging_t_SOURCES = tests/server/logging-t.c $(SERVER_FILES)
 tests_server_logging_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_logging_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)
+tests_server_noop_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(PCRE_LDFLAGS)
+tests_server_noop_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(PCRE_LIBS)
 tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
@@ -382,7 +392,8 @@ check-local: $(check_PROGRAMS)
 	fi
 	@set -e; if [ -f ruby/Makefile ] ; then \
 	    echo '' ; \
-	    cd ruby && $(RUBY) test_remctl.rb ; \
+	    cd ruby && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
+		$(RUBY) -I. test_remctl.rb ; \
 	fi
 
 # Used for hooking in the build of optional language bindings.

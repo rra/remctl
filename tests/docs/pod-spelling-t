@@ -45,7 +45,8 @@ plan skip_all => 'aspell or ispell required to test POD spelling'
 $| = 1;
 my @pod = map { s,[^/]+/../,,; $_ }
     (glob ("$ENV{SOURCE}/../docs/*.pod"),
-     glob ("$ENV{SOURCE}/../docs/api/*.pod"));
+     glob ("$ENV{SOURCE}/../docs/api/*.pod"),
+     "$ENV{SOURCE}/../perl/Remctl.pm.in");
 plan tests => scalar @pod;
 
 # Finally, do the checks.

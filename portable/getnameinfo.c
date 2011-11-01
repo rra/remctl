@@ -13,6 +13,9 @@
  * needed so far.  Adding IPv6 support isn't worth it; systems with IPv6
  * support should already support getnameinfo natively.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
@@ -60,7 +63,7 @@ try_name(const char *name, char *node, socklen_t nodelen, int *status)
 {
     if (strchr(name, '.') == NULL)
         return 0;
-    if (strlen(name) > nodelen - 1)
+    if (strlen(name) + 1 > (size_t) nodelen)
         *status = EAI_OVERFLOW;
     else {
         strlcpy(node, name, nodelen);
@@ -108,7 +111,7 @@ lookup_name(const struct in_addr *addr, char *node, socklen_t nodelen,
 
     /* Just convert the address to ASCII. */
     name = inet_ntoa(*addr);
-    if (strlen(name) > nodelen - 1)
+    if (strlen(name) + 1 > (size_t) nodelen)
         return EAI_OVERFLOW;
     strlcpy(node, name, nodelen);
     return 0;
@@ -131,7 +134,7 @@ lookup_service(unsigned short port, char *service, socklen_t servicelen,
         protocol = (flags & NI_DGRAM) ? "udp" : "tcp";
         srv = getservbyport(htons(port), protocol);
         if (srv != NULL) {
-            if (strlen(srv->s_name) > servicelen - 1)
+            if (strlen(srv->s_name) + 1 > (size_t) servicelen)
                 return EAI_OVERFLOW;
             strlcpy(service, srv->s_name, servicelen);
             return 0;

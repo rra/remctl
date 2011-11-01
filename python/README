@@ -60,11 +60,11 @@ SIMPLIFIED INTERFACE
 
   Here is an example using the simplified interface:
 
-      use remctl, sys
+      import remctl, sys
       command = ('test', 'test')
       try:
-          result = remctl(host = 'foo.example.com', command = command)
-      except RemctlProtocolError, error:
+          result = remctl.remctl(host = 'foo.example.com', command = command)
+      except remctl.RemctlProtocolError, error:
           print "Error:", str(error)
           sys.exit(1)
       if result.stdout:
@@ -97,6 +97,46 @@ FULL INTERFACE
 
   All further methods below must be called on a Remctl object as returned
   by the constructor.
+
+  Remctl.set_ccache(ccache)
+      Sets the credential cache for outgoing connections to ccache.
+
+      Arguments:
+      * ccache (required): string, the credential cache to use
+
+      This is normally the full path to a Kerberos ticket cache, but may
+      have other valid forms depending on the underlying Kerberos
+      implementation in use by GSS-API.  This method must be called prior
+      to calling remctl_open() and will affect all subsequent
+      remctl_open() calls on the same object.
+
+      For current GSS-API implementations, this will affect not only all
+      subsequent open() calls for the same object, but all subsequent
+      remctl connections of any kind from the same process, and even other
+      GSS-API connections from the same process unrelated to remctl.  This
+      is due to a limitation in the GSS-API that makes this setting a
+      global setting for the process or thread.
+
+      Not all GSS-API implementations support setting the credential
+      cache.  If this operation is not supported, a RemctlError exception
+      will be thrown.
+
+      Exceptions:
+      * RemctlError: setting the credential cache isn't supported
+
+  Remctl.set_source_ip(source)
+      Sets the source IP for outgoing connections.  This method must be
+      called prior to calling open() and will affect all subsequent open()
+      calls on the same object.
+
+      Arguments:
+      * source (required): string, the source IP address
+
+      The source may be either an IPv4 or an IPv6 address (if IPv6 is
+      supported).  It must be an IP address, not a host name.
+
+      Exceptions:
+      * RemctlError: a memory allocation failure occurred
 
   Remctl.open(host, port, principal)
       Open a connection to a remote server and authenticate.  There is no
@@ -174,6 +214,23 @@ FULL INTERFACE
       change.
 
       Exceptions:
+      * RemctlError: a network or authentication error occurred
+      * RemctlNotOpenedError: no connection currently open
+
+  Remctl.noop()
+      Send a NOOP message to the server and read the reply.  This is
+      primarily used to keep a connection to a remctl server alive, such
+      as through a firewall with a session timeout, while waiting to issue
+      further commands.  Returns true on success, false on failure.
+
+      The NOOP message requires protocol version 3 support in the server,
+      so the caller should be prepared for this function to fail,
+      indicating that the connection could not be kept alive and possibly
+      that it was closed by the server.  In this case, the client will
+      need to explicitly reopen the connection with open().
+
+      Exceptions:
+      * RemctlError: a network or authentication error occurred
       * RemctlNotOpenedError: no connection currently open
 
   Remctl.close()

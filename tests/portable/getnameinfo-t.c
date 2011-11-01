@@ -1,6 +1,9 @@
 /*
  * getnameinfo test suite.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
@@ -90,6 +93,8 @@ main(void)
     serv = getservbyname("biff", "udp");
     if (serv == NULL)
         skip("biff service not found");
+    else if (strcmp(service, "comsat") == 0)
+        is_string("comsat", service, "...and found comsat");
     else
         is_string("biff", service, "...and found biff");
     status = test_getnameinfo(sa, sizeof(sin), node, sizeof(node), NULL, 0,

@@ -1,6 +1,9 @@
 /*
  * vector test suite.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
@@ -37,7 +40,7 @@ main(void)
     char *p;
     pid_t child;
 
-    plan(117);
+    plan(119);
 
     vector = vector_new();
     ok(vector != NULL, "vector_new returns non-NULL");
@@ -168,9 +171,15 @@ main(void)
 
     vector = vector_split_space("", NULL);
     is_int(0, vector->count, "vector_split_space on empty string");
+    p = vector_join(vector, "mumble");
+    is_string("", p, "vector_join with an empty vector works");
+    free(p);
     vector_free(vector);
     cvector = cvector_split_space(empty, NULL);
     is_int(0, cvector->count, "cvector_split_space on empty string");
+    p = cvector_join(cvector, "mumble");
+    is_string("", p, "cvector_join with an empty vector works");
+    free(p);
     cvector_free(cvector);
 
     vector = vector_split(tabs, '\t', NULL);

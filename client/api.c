@@ -11,7 +11,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -27,6 +27,7 @@
 
 #include <client/internal.h>
 #include <client/remctl.h>
+#include <util/macros.h>
 
 
 /*
@@ -212,13 +213,77 @@ remctl_new(void)
     r = calloc(1, sizeof(struct remctl));
     if (r == NULL)
         return NULL;
+    r->source = NULL;
     r->fd = INVALID_SOCKET;
     r->host = NULL;
     r->principal = NULL;
-    r->context = NULL;
+    r->context = GSS_C_NO_CONTEXT;
     r->error = NULL;
     r->output = NULL;
     return r;
+}
+
+
+/*
+ * Set the Kerberos credential cache for client connections.  Takes a string
+ * representing the Kerberos credential cache name (the format may vary based
+ * on the underlying Kerberos implementation).  When the GSS-API context is
+ * created for a client connection in a subsequent remctl_open, this will be
+ * set as the Kerberos credential cache.  Returns true on success and false on
+ * failure.
+ *
+ * Callers should be prepared for failure for GSS-API implementations that do
+ * not support setting the Kerberos ticket cache.  A reasonable fallback is to
+ * set the KRB5CCNAME environment variable.
+ *
+ * Be aware that this function sets the Kerberos credential cache globally for
+ * all uses of GSS-API by that process.  The GSS-API does not provide a way of
+ * setting it only for one particular GSS-API context.
+ */
+#ifdef HAVE_GSS_KRB5_CCACHE_NAME
+int
+remctl_set_ccache(struct remctl *r, const char *ccache)
+{
+    OM_uint32 major, minor;
+
+    major = gss_krb5_ccache_name(&minor, ccache, NULL);
+    if (major != GSS_S_COMPLETE) {
+        internal_gssapi_error(r, "cannot set credential cache", major, minor);
+        return 0;
+    }
+    return 1;
+}
+#else /* !HAVE_GSS_KRB5_CCACHE_NAME */
+int
+remctl_set_ccache(struct remctl *r, const char *ccache UNUSED)
+{
+    internal_set_error(r, "setting credential cache not supported");
+    return 0;
+}
+#endif /* !HAVE_GSS_KRB5_CCACHE_NAME */
+
+
+/*
+ * Set the source address for client connections.  Takes a string, which may
+ * be NULL to use whatever the default source address is.  The string will be
+ * parsed as an IPv4 or IPv6 address, and only connections over the
+ * corresponding protocol will be attempted.  Returns true on success and
+ * false on failure to allocate memory.
+ */
+int
+remctl_set_source_ip(struct remctl *r, const char *source)
+{
+    char *copy;
+
+    copy = strdup(source);
+    if (copy == NULL) {
+        internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
+        return 0;
+    }
+    if (r->source != NULL)
+        free(r->source);
+    r->source = copy;
+    return 1;
 }
 
 
@@ -230,8 +295,11 @@ int
 remctl_open(struct remctl *r, const char *host, unsigned short port,
             const char *principal)
 {
-    if (r->fd != -1)
+    if (r->fd != -1) {
+        if (r->protocol > 1)
+            internal_v2_quit(r);
         socket_close(r->fd);
+    }
     if (r->error != NULL) {
         free(r->error);
         r->error = NULL;
@@ -254,18 +322,49 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
 void
 remctl_close(struct remctl *r)
 {
+    OM_uint32 minor;
+
     if (r != NULL) {
         if (r->protocol > 1 && r->fd != -1)
             internal_v2_quit(r);
+        if (r->source != NULL)
+            free(r->source);
         if (r->fd != -1)
             socket_close(r->fd);
         if (r->error != NULL)
             free(r->error);
         if (r->output != NULL)
             free(r->output);
+        if (r->context != GSS_C_NO_CONTEXT)
+            gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
         free(r);
     }
     socket_shutdown();
+}
+
+
+/*
+ * Internal function to reopen the connection if it was closed and verify that
+ * we have an open connection, and reset the error message.  Used by
+ * remctl_commandv and remctl_noop.  Returns true on success and false on
+ * failure.
+ */
+static bool
+internal_reopen(struct remctl *r)
+{
+    if (r->fd < 0) {
+        if (r->host == NULL) {
+            internal_set_error(r, "no connection open");
+            return false;
+        }
+        if (!remctl_open(r, r->host, r->port, r->principal))
+            return false;
+    }
+    if (r->error != NULL) {
+        free(r->error);
+        r->error = NULL;
+    }
+    return true;
 }
 
 
@@ -309,22 +408,30 @@ remctl_command(struct remctl *r, const char **command)
 int
 remctl_commandv(struct remctl *r, const struct iovec *command, size_t count)
 {
-    if (r->fd < 0) {
-        if (r->host == NULL) {
-            internal_set_error(r, "no connection open");
-            return 0;
-        }
-        if (!remctl_open(r, r->host, r->port, r->principal))
-            return 0;
-    }
-    if (r->error != NULL) {
-        free(r->error);
-        r->error = NULL;
-    }
+    if (!internal_reopen(r))
+        return 0;
     if (r->protocol == 1)
         return internal_v1_commandv(r, command, count);
     else
         return internal_v2_commandv(r, command, count);
+}
+
+
+/*
+ * Send a NOOP command, or return an error if we're using too old of a
+ * protocol version.  Returns true on success, false on failure.  On failure,
+ * use remctl_error to get the error.
+ */
+int
+remctl_noop(struct remctl *r)
+{
+    if (!internal_reopen(r))
+        return 0;
+    if (r->protocol == 1) {
+        internal_set_error(r, "NOOP message not supported");
+        return 0;
+    }
+    return internal_noop(r);
 }
 
 

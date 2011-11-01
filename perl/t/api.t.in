@@ -4,12 +4,12 @@
 # larger remctl build tree and uses the built remctld for testing.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2007, 2008, 2009
+# Copyright 2007, 2008, 2009, 2011
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
 
-BEGIN { our $total = 30 }
+BEGIN { our $total = 45 }
 use Test::More tests => $total;
 
 use Net::Remctl;
@@ -59,7 +59,8 @@ sub run_kinit {
     $ENV{KRB5CCNAME} = 'data/test.cache';
     my $princ = get_principal;
     return unless $princ;
-    my @commands = ([ qw(kinit -k -t data/test.keytab), $princ ],
+    my @commands = ([ qw(kinit --no-afslog -k -t data/test.keytab), $princ ],
+                    [ qw(kinit -k -t data/test.keytab), $princ ],
                     [ qw(kinit -t data/test.keytab), $princ ],
                     [ qw(kinit -k -K data/test.keytab), $princ ]);
     my $status;
@@ -113,6 +114,8 @@ SKIP: {
     is ($remctl->error, 'no error', '... no error set');
     ok ($remctl->open ('localhost', 14373, $principal), 'Connect to server');
     is ($remctl->error, 'no error', '... no error set');
+    ok ($remctl->noop, 'Send NOOP message');
+    is ($remctl->error, 'no error', '... no error set');
     ok ($remctl->command ('test', 'test'), 'Send successful command');
     is ($remctl->error, 'no error', '... no error set');
     my $output = $remctl->output;
@@ -134,6 +137,40 @@ SKIP: {
     is ($output->type, 'error', '... of type error');
     is ($output->data, 'Unknown command', '... with the error message');
     is ($output->error, 5, '... and the right code');
+
+    # Complex interface with source IP.
+    $remctl = Net::Remctl->new;
+    isa_ok ($remctl, 'Net::Remctl', 'Object');
+    is ($remctl->error, 'no error', '... no error set');
+    is ($remctl->set_source_ip ('127.0.0.1'), 1, 'Set source IP');
+    is ($remctl->error, 'no error', '... no error set');
+    ok ($remctl->open ('127.0.0.1', 14373, $principal), 'Connect to server');
+    is ($remctl->error, 'no error', '... no error set');
+
+    # Complex interface with unworkable source IP.
+    is ($remctl->set_source_ip ('::1'), 1, 'Set source IP to ::1');
+    is ($remctl->error, 'no error', '... no error set');
+    ok (!$remctl->open ('127.0.0.1', 14373, $principal),
+        'Cannot connect to server');
+    like ($remctl->error, qr/^(cannot connect to|unknown host) /,
+          '... with correct error');
+
+    # Get the current ticket cache location and then change KRB5CCNAME.
+    # Connecting should then fail since we have no ticket cache.
+    my $cache = $ENV{KRB5CCNAME};
+    $ENV{KRB5CCNAME} = './nonexistent-file';
+    $remctl = Net::Remctl->new;
+    isa_ok ($remctl, 'Net::Remctl', 'Object');
+    ok (!$remctl->open ('localhost', 14373, $principal),
+        'Cannot connect without cache');
+
+    # Set the ticket cache, and then open should work.
+  SKIP: {
+        skip 'gss_krb5_set_ccache not supported', 1
+            unless $remctl->set_ccache ($cache);
+        ok ($remctl->open ('localhost', 14373, $principal),
+            'Connect now works');
+    }
 }
 
 END {

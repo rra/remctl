@@ -13,7 +13,10 @@
  * Windows.  It ensures that inet_aton, inet_ntoa, and inet_ntop are available
  * and properly prototyped.
  *
- * Copyright 2008, 2009
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
+ * Copyright 2008, 2009, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -63,98 +66,45 @@
 #include <portable/getaddrinfo.h>
 #include <portable/getnameinfo.h>
 
-BEGIN_DECLS
-
-/*
- * Provide prototypes for inet_aton and inet_ntoa if not prototyped in the
- * system header files since they're occasionally available without proper
- * prototypes.
- */
-#if !HAVE_DECL_INET_ATON
-extern int              inet_aton(const char *, struct in_addr *);
-#endif
-#if !HAVE_DECL_INET_NTOA
-extern const char *     inet_ntoa(const struct in_addr);
-#endif
-#if !HAVE_INET_NTOP
-# ifdef _WIN32
-extern const char *     inet_ntop(int, const void *, char *, int);
-# else
-extern const char *     inet_ntop(int, const void *, char *, socklen_t)
-    __attribute__((__visibility__("hidden")));
-# endif
+/* Define socklen_t if it's not available in sys/socket.h. */
+#ifndef HAVE_SOCKLEN_T
+typedef int socklen_t;
 #endif
 
 /*
- * Used for portability to Windows, which requires different functions be
- * called to close sockets, send data to or read from sockets, and get socket
- * errors than the regular functions and variables.  Windows also uses SOCKET
- * to store socket descriptors instead of an int.
- *
- * socket_init must be called before socket functions are used and
- * socket_shutdown at the end of the program.  socket_init may return failure,
- * but this interface doesn't have a way to retrieve the exact error.
- *
- * socket_close, socket_read, and socket_write must be used instead of the
- * standard functions.  On Windows, closesocket must be called instead of
- * close for sockets and recv and send must always be used instead of read and
- * write.
- *
- * When reporting errors from socket functions, use socket_errno and
- * socket_strerror instead of errno and strerror.  When setting errno to
- * something for socket errors (to preserve errors through close, for
- * example), use socket_set_errno instead of just assigning to errno.
- *
- * Socket file descriptors must be passed and stored in variables of type
- * socket_type rather than an int.  Use INVALID_SOCKET for invalid socket file
- * descriptors rather than -1, and compare to INVALID_SOCKET when testing
- * whether operations succeed.
- */
-#ifdef _WIN32
-int socket_init(void);
-# define socket_shutdown()      WSACleanup()
-# define socket_close(fd)       closesocket(fd)
-# define socket_read(fd, b, s)  recv((fd), (b), (s), 0)
-# define socket_write(fd, b, s) send((fd), (b), (s), 0)
-# define socket_errno           WSAGetLastError()
-# define socket_set_errno(e)    WSASetLastError(e)
-const char *socket_strerror(int);
-typedef SOCKET socket_type;
-#else
-# define socket_init()          1
-# define socket_shutdown()      /* empty */
-# define socket_close(fd)       close(fd)
-# define socket_read(fd, b, s)  read((fd), (b), (s))
-# define socket_write(fd, b, s) write((fd), (b), (s))
-# define socket_errno           errno
-# define socket_set_errno(e)    errno = (e)
-# define socket_strerror(e)     strerror(e)
-# define INVALID_SOCKET         -1
-typedef int socket_type;
-#endif
-
-/* Some systems don't define INADDR_LOOPBACK. */
-#ifndef INADDR_LOOPBACK
-# define INADDR_LOOPBACK 0x7f000001UL
-#endif
-
-/*
- * Defined by RFC 3493, used to store a generic address.  Note that this
- * doesn't do the alignment mangling that RFC 3493 does; it's not clear if
- * that needs be added.  However, I've not gotten any complaints yet (probably
- * because nearly everyone now has sockaddr_storage).
+ * Defined by RFC 3493, used to store a generic address.  All of the extra
+ * goop here is to ensure that the structs are appropriately aligned on
+ * platforms that may require 64-bit alignment for the embedded addresses.
  */
 #if !HAVE_STRUCT_SOCKADDR_STORAGE
+# define SS_MAXSIZE_ 128
+# ifdef HAVE_LONG_LONG_INT
+#  define SS_ALIGNSIZE_ sizeof(long long)
+#  define SS_ALIGNTYPE_ long long
+# else
+#  define SS_ALIGNSIZE_ sizeof(long)
+#  define SS_ALIGNTYPE_ long
+# endif
 # if HAVE_STRUCT_SOCKADDR_SA_LEN
+#  define SS_PAD1SIZE_ (SS_ALIGNSIZE_ - 2 * sizeof(unsigned char))
+#  define SS_PAD2SIZE_ \
+    (SS_MAXSIZE_ - (2 * sizeof(unsigned char) + SS_PAD1SIZE_ + SS_ALIGNSIZE_))
 struct sockaddr_storage {
     unsigned char ss_len;
     unsigned char ss_family;
-    unsigned char __padding[128 - 2];
+    char __ss_pad1[SS_PAD1SIZE_];
+    SS_ALIGNTYPE_ __ss_align;
+    char __ss_pad2[SS_PAD2SIZE_];
 };
 # else
+#  define SS_PAD1SIZE_ (SS_ALIGNSIZE_ - sizeof(unsigned char))
+#  define SS_PAD2SIZE_ \
+    (SS_MAXSIZE_ - (sizeof(unsigned char) + SS_PAD1SIZE_ + SS_ALIGNSIZE_))
 struct sockaddr_storage {
     unsigned short ss_family;
-    unsigned char __padding[128 - 2];
+    char __ss_pad1[SS_PAD1SIZE_];
+    SS_ALIGNTYPE_ __ss_align;
+    char __ss_pad2[SS_PAD2SIZE_];
 };
 # endif
 #endif
@@ -237,6 +187,82 @@ struct sockaddr_storage {
 #ifndef EAFNOSUPPORT
 # define EAFNOSUPPORT EDOM
 #endif
+
+BEGIN_DECLS
+
+/*
+ * Provide prototypes for inet_aton and inet_ntoa if not prototyped in the
+ * system header files since they're occasionally available without proper
+ * prototypes.
+ */
+#if !HAVE_DECL_INET_ATON
+extern int inet_aton(const char *, struct in_addr *);
+#endif
+#if !HAVE_DECL_INET_NTOA
+extern const char *inet_ntoa(const struct in_addr);
+#endif
+
+/* Default to a hidden visibility for all portability functions. */
+#pragma GCC visibility push(hidden)
+
+#if !HAVE_INET_NTOP
+# ifdef _WIN32
+extern const char *inet_ntop(int, const void *, char *, int);
+# else
+extern const char *inet_ntop(int, const void *, char *, socklen_t);
+# endif
+#endif
+
+/*
+ * Used for portability to Windows, which requires different functions be
+ * called to close sockets, send data to or read from sockets, and get socket
+ * errors than the regular functions and variables.  Windows also uses SOCKET
+ * to store socket descriptors instead of an int.
+ *
+ * socket_init must be called before socket functions are used and
+ * socket_shutdown at the end of the program.  socket_init may return failure,
+ * but this interface doesn't have a way to retrieve the exact error.
+ *
+ * socket_close, socket_read, and socket_write must be used instead of the
+ * standard functions.  On Windows, closesocket must be called instead of
+ * close for sockets and recv and send must always be used instead of read and
+ * write.
+ *
+ * When reporting errors from socket functions, use socket_errno and
+ * socket_strerror instead of errno and strerror.  When setting errno to
+ * something for socket errors (to preserve errors through close, for
+ * example), use socket_set_errno instead of just assigning to errno.
+ *
+ * Socket file descriptors must be passed and stored in variables of type
+ * socket_type rather than an int.  Use INVALID_SOCKET for invalid socket file
+ * descriptors rather than -1, and compare to INVALID_SOCKET when testing
+ * whether operations succeed.
+ */
+#ifdef _WIN32
+int socket_init(void);
+# define socket_shutdown()      WSACleanup()
+# define socket_close(fd)       closesocket(fd)
+# define socket_read(fd, b, s)  recv((fd), (b), (s), 0)
+# define socket_write(fd, b, s) send((fd), (b), (s), 0)
+# define socket_errno           WSAGetLastError()
+# define socket_set_errno(e)    WSASetLastError(e)
+const char *socket_strerror(int);
+typedef SOCKET socket_type;
+#else
+# define socket_init()          1
+# define socket_shutdown()      /* empty */
+# define socket_close(fd)       close(fd)
+# define socket_read(fd, b, s)  read((fd), (b), (s))
+# define socket_write(fd, b, s) write((fd), (b), (s))
+# define socket_errno           errno
+# define socket_set_errno(e)    errno = (e)
+# define socket_strerror(e)     strerror(e)
+# define INVALID_SOCKET         -1
+typedef int socket_type;
+#endif
+
+/* Undo default visibility change. */
+#pragma GCC visibility pop
 
 END_DECLS
 
