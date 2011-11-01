@@ -9,7 +9,7 @@ remctl_noop - Send a NOOP message to a remctl server
 
 #include <remctl.h>
 
-int B<remctl_noop>(struct remctl I*<r>);
+int B<remctl_noop>(struct remctl *I<r>);
 
 =head1 DESCRIPTION
 
