@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.eyrie</groupId>
     <artifactId>remctl</artifactId>
-    <version>2.1.0</version>
+    <version>2.1.0-SNAPSHOT</version>
     <name>Java Remctl</name>
     <description>Java implementation of the Remctl protocol.</description>
     <url>http://www.eyrie.org/~eagle/software/remctl/java</url>
@@ -16,6 +16,7 @@
     </parent>
     <licenses>
         <license>
+            <name>MIT/X Consortium</name>
             <comments>License is for overall project, inlcuding C code
                 and language specific bindings</comments>
             <url>http://www.eyrie.org/~eagle/software/remctl/license.html
