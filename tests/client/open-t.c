@@ -103,14 +103,15 @@ accept_connection(int protocol)
     } while (major == GSS_S_CONTINUE_NEEDED);
 
     /* All done.  Don't bother cleaning up, just exit. */
-    exit(0);
+    _exit(0);
 }
 
 
 int
 main(void)
 {
-    char *principal, *p;
+    const char *principal;
+    char *p;
     const char *error;
     struct remctl *r;
     int protocol;

@@ -1,13 +1,21 @@
 /*
- * Utility functions for tests that use Kerberos.
+ * Utility functions for tests that use Kerberos, without using the libraries.
+ *
+ * This is an alternate implementation of tap/kerberos.c that does the same
+ * setup but without using the Kerberos libraries.  It's suitable for packages
+ * that need Kerberos tickets but only use GSS-API or some other interface and
+ * therefore don't have Kerberos portability functions or library probes.
  *
  * Currently only provides kerberos_setup(), which assumes a particular set of
  * data files in either the SOURCE or BUILD directories and, using those,
  * obtains Kerberos credentials, sets up a ticket cache, and sets the
  * environment variable pointing to the Kerberos keytab to use for testing.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Copyright 2006, 2007, 2009, 2010, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -37,6 +45,53 @@
 #include <util/concat.h>
 #include <util/xmalloc.h>
 
+/*
+ * Disable the requirement that format strings be literals, since it's easier
+ * to handle the possible patterns for kinit commands as an array.
+ */
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+
+
+/*
+ * These variables hold the allocated strings for the principal and the
+ * environment to point to a different Kerberos ticket cache and keytab.  We
+ * store them so that we can free them on exit for cleaner valgrind output,
+ * making it easier to find real memory leaks in the tested programs.
+ */
+static char *principal = NULL;
+static char *krb5ccname = NULL;
+static char *krb5_ktname = NULL;
+
+
+/*
+ * Clean up at the end of a test.  This removes the ticket cache and resets
+ * and frees the memory allocated for the environment variables so that
+ * valgrind output on test suites is cleaner.
+ */
+void
+kerberos_cleanup(void)
+{
+    char *path;
+
+    path = concatpath(getenv("BUILD"), "data/test.cache");
+    unlink(path);
+    free(path);
+    if (principal != NULL) {
+        free(principal);
+        principal = NULL;
+    }
+    putenv((char *) "KRB5CCNAME=");
+    putenv((char *) "KRB5_KTNAME=");
+    if (krb5ccname != NULL) {
+        free(krb5ccname);
+        krb5ccname = NULL;
+    }
+    if (krb5_ktname != NULL) {
+        free(krb5_ktname);
+        krb5_ktname = NULL;
+    }
+}
+
 
 /*
  * Obtain Kerberos tickets for the principal specified in test.principal using
@@ -47,20 +102,20 @@
  * Kerberos tests are apparently not configured.  If Kerberos tests are
  * configured but something else fails, calls bail().
  */
-char *
+const char *
 kerberos_setup(void)
 {
-    static const char format1[]
-        = "kinit -k -t %s %s >/dev/null 2>&1 </dev/null";
-    static const char format2[]
-        = "kinit -t %s %s >/dev/null 2>&1 </dev/null";
-    static const char format3[]
-        = "kinit -k -K %s %s >/dev/null 2>&1 </dev/null";
+    static const char * const format[] = {
+        "kinit --no-afslog -k -t %s %s >/dev/null 2>&1 </dev/null",
+        "kinit -k -t %s %s >/dev/null 2>&1 </dev/null",
+        "kinit -t %s %s >/dev/null 2>&1 </dev/null",
+        "kinit -k -K %s %s >/dev/null 2>&1 </dev/null"
+    };
     FILE *file;
     char *path;
     const char *build;
-    char principal[BUFSIZ], *command;
-    size_t length;
+    char buffer[BUFSIZ], *command;
+    size_t length, i;
     int status;
 
     /* Read the principal name and find the keytab file. */
@@ -72,15 +127,15 @@ kerberos_setup(void)
         free(path);
         return NULL;
     }
-    if (fgets(principal, sizeof(principal), file) == NULL) {
+    if (fgets(buffer, sizeof(buffer), file) == NULL) {
         fclose(file);
         bail("cannot read %s", path);
     }
     fclose(file);
-    if (principal[strlen(principal) - 1] != '\n')
+    if (buffer[strlen(buffer) - 1] != '\n')
         bail("no newline in %s", path);
-    free(path);
-    principal[strlen(principal) - 1] = '\0';
+    test_file_path_free(path);
+    buffer[strlen(buffer) - 1] = '\0';
     path = test_file_path("data/test.keytab");
     if (path == NULL)
         return NULL;
@@ -89,46 +144,33 @@ kerberos_setup(void)
     build = getenv("BUILD");
     if (build == NULL)
         build = ".";
-    putenv(concat("KRB5CCNAME=", build, "/data/test.cache", (char *) 0));
-    putenv(concat("KRB5_KTNAME=", path, (char *) 0));
+    krb5ccname = concat("KRB5CCNAME=", build, "/data/test.cache", (char *) 0);
+    krb5_ktname = concat("KRB5_KTNAME=", path, (char *) 0);
+    putenv(krb5ccname);
+    putenv(krb5_ktname);
 
     /* Now do the Kerberos initialization. */
-    length = strlen(format1) + strlen(path) + strlen(principal);
-    command = xmalloc(length);
-    snprintf(command, length, format1, path, principal);
-    status = system(command);
-    free(command);
-    if (status == -1 || WEXITSTATUS(status) != 0) {
-        length = strlen(format2) + strlen(path) + strlen(principal);
+    for (i = 0; i < ARRAY_SIZE(format); i++) {
+        length = strlen(format[i]) + strlen(path) + strlen(buffer);
         command = xmalloc(length);
-        snprintf(command, length, format2, path, principal);
+        snprintf(command, length, format[i], path, buffer);
         status = system(command);
         free(command);
-    }
-    if (status == -1 || WEXITSTATUS(status) != 0) {
-        length = strlen(format3) + strlen(path) + strlen(principal);
-        command = xmalloc(length);
-        snprintf(command, length, format3, path, principal);
-        status = system(command);
-        free(command);
+        if (status != -1 && WEXITSTATUS(status) == 0)
+            break;
     }
     if (status == -1 || WEXITSTATUS(status) != 0)
         return NULL;
-    free(path);
-    return xstrdup(principal);
-}
+    test_file_path_free(path);
 
+    /*
+     * Register the cleanup function as an atexit handler so that the caller
+     * doesn't have to worry about cleanup.
+     */
+    if (atexit(kerberos_cleanup) != 0)
+        sysdiag("cannot register cleanup function");
 
-/*
- * Clean up at the end of a test.  Currently, all this does is remove the
- * ticket cache.
- */
-void
-kerberos_cleanup(void)
-{
-    char *path;
-
-    path = concatpath(getenv("BUILD"), "data/test.cache");
-    unlink(path);
-    free(path);
+    /* Store the principal and return it. */
+    principal = bstrdup(buffer);
+    return principal;
 }

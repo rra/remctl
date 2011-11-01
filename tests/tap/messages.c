@@ -5,6 +5,9 @@
  * into a buffer that can be inspected later, allowing testing of error
  * handling.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Copyright 2002, 2004, 2005 Russ Allbery <rra@stanford.edu>
  * Copyright 2006, 2007, 2009
  *     The Board of Trustees of the Leland Stanford Junior University

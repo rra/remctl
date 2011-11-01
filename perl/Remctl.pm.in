@@ -5,7 +5,7 @@
 # file contains the bootstrap and export code and the documentation.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2007, 2008
+# Copyright 2007, 2008, 2011
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -26,6 +26,11 @@ our @EXPORT = qw(remctl);
 
 bootstrap Net::Remctl;
 1;
+
+=for stopwords
+remctl libremctl GSS-API HOSTNAME remctld IPv4 IPv6 NUL CNAME DNS Allbery
+MERCHANTABILITY libdefaults CCACHE IP DNS-based unencoded lookups
+canonicalization
 
 =head1 NAME
 
@@ -68,6 +73,7 @@ Net::Remctl - Perl bindings for remctl (Kerberos remote command execution)
             die "Unknown output token from library: ", $output->type, "\n";
         }
     } while ($output->type eq 'output');
+    $remctl->noop or die "Cannot send NOOP: ", $remctl->error, "\n";
 
 =head1 DESCRIPTION
 
@@ -163,6 +169,33 @@ allocate memory.
 Retrieves the error message from the last failing operation and returns it
 as a string.
 
+=item set_ccache(CCACHE)
+
+Sets the GSS-API credential cache for outgoing connections to CCACHE,
+which is normally the path to a Kerberos ticket cache but may have other
+valid forms depending on the underlying Kerberos implementation in use by
+GSS-API.  This method must be called prior to calling open() and will
+affect all subsequent open() calls on at least the same object.  Returns
+true on success and false on failure.
+
+For current GSS-API implementations, this will affect not only all
+subsequent open() calls for the same object, but all subsequent remctl
+connections of any kind from the same process, and even other GSS-API
+connections from the same process unrelated to remctl.  This is due to a
+limitation in the GSS-API that makes this setting a global setting for the
+process or thread.
+
+Not all GSS-API implementations support setting the credential cache.  If
+this is not supported, false will be returned.
+
+=item set_source_ip(SOURCE)
+
+Sets the source IP for outgoing connections to SOURCE, which can be either
+an IPv4 or an IPv6 address (if IPv6 is supported).  It must be an IP
+address, not a host name.  This method must be called prior to calling
+open() and will affect all subsequent open() calls on the same object.
+Returns true on success and false on failure.
+
 =item open(HOSTNAME[, PORT[, PRINCIPAL]])
 
 Connect to HOSTNAME on port PORT using PRINCIPAL as the remote server's
@@ -237,6 +270,20 @@ for all other token types.
 
 =back
 
+=item noop()
+
+Send a NOOP message to the server and read the reply.  This is primarily
+used to keep a connection to a remctl server alive, such as through a
+firewall with a session timeout, while waiting to issue further commands.
+Returns true on success, false on failure.  On failure, call error() to
+get the failure message.
+
+The NOOP message requires protocol version 3 support in the server, so the
+caller should be prepared for this function to fail, indicating that the
+connection could not be kept alive and possibly that it was closed by the
+server.  In this case, the client will need to explicitly reopen the
+connection with open().
+
 =back
 
 Note that, due to internal implementation details in the library, the
@@ -262,7 +309,7 @@ the MIT Kerberos GSS-API library, canonicalization can be disabled by
 setting C<rdns> to false in the [libdefaults] section of F<krb5.conf>.  It
 can also be disabled by passing an explicit Kerberos principal name via
 the I<principal> argument, which will then be used without changes.  If
-canonicalization is desired, the caller may wish to canonicalizae I<host>
+canonicalization is desired, the caller may wish to canonicalize I<host>
 before calling remctl() or remctl_open() to avoid problems with multiple
 DNS calls returning different results.
 
@@ -290,8 +337,8 @@ Russ Allbery <rra@stanford.edu>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007, 2008 The Board of Trustees of the Leland Stanford Junior
-University.  All rights reserved.
+Copyright 2007, 2008, 2011 The Board of Trustees of the Leland Stanford
+Junior University.  All rights reserved.
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose and without fee is hereby granted, provided

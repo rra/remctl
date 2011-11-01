@@ -97,14 +97,14 @@ make_connection(int protocol, const char *principal)
     } while (major == GSS_S_CONTINUE_NEEDED);
 
     /* All done.  Don't bother cleaning up, just exit. */
-    exit(0);
+    _exit(0);
 }
 
 
 int
 main(void)
 {
-    char *principal;
+    const char *principal;
     socket_type s, fd;
     int protocol;
     pid_t child;

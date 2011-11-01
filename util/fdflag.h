@@ -1,7 +1,10 @@
 /*
  * Prototypes for setting or clearing file descriptor flags.
  *
- * Copyright 2008, 2010
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
+ * Copyright 2008, 2010, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -30,15 +33,22 @@
 #include <config.h>
 #include <portable/macros.h>
 #include <portable/stdbool.h>
+#include <portable/socket.h>
 
 BEGIN_DECLS
 
 /* Default to a hidden visibility for all util functions. */
 #pragma GCC visibility push(hidden)
 
-/* Set a file descriptor close-on-exec or nonblocking. */
+/*
+ * Set a file descriptor close-on-exec or nonblocking.  fdflag_close_exec is
+ * not supported on Windows and will always return false.  fdflag_nonblocking
+ * is defined to take a socket_type so that it can be supported on Windows.
+ * On UNIX systems, you can safely pass in a non-socket file descriptor, but
+ * be aware that this will fail to compile on Windows.
+ */
 bool fdflag_close_exec(int fd, bool flag);
-bool fdflag_nonblocking(int fd, bool flag);
+bool fdflag_nonblocking(socket_type fd, bool flag);
 
 /* Undo default visibility change. */
 #pragma GCC visibility pop

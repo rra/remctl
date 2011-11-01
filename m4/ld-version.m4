@@ -4,6 +4,9 @@ dnl Probes whether the linker supports --version-script with a simple version
 dnl script that only defines a single version.  Sets the Automake conditional
 dnl HAVE_LD_VERSION_SCRIPT based on whether it is supported.
 dnl
+dnl The canonical version of this file is maintained in the rra-c-util
+dnl package, available at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
 dnl Based on the gnulib ld-version-script macro from Simon Josefsson
 dnl Copyright 2010

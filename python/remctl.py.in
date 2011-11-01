@@ -6,7 +6,7 @@
 #
 # Original implementation by Thomas L. Kula <kula@tproa.net>
 # Copyright 2008 Thomas L. Kula <kula@tproa.net>
-# Copyright 2008
+# Copyright 2008, 2011
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -112,6 +112,14 @@ class Remctl:
         if host != None:
             self.open(host, port, principal)
 
+    def set_ccache(self, ccache):
+        if not _remctl.remctl_set_ccache(self.r, ccache):
+            raise RemctlError, self.error()
+
+    def set_source_ip(self, source):
+        if not _remctl.remctl_set_source_ip(self.r, source):
+            raise RemctlError, self.error()
+
     def open(self, host, port = None, principal = None):
         if port == None:
             port = 0
@@ -149,6 +157,12 @@ class Remctl:
         if not self.opened:
             raise RemctlNotOpenedError, 'no currently open connection'
         return _remctl.remctl_output(self.r)
+
+    def noop(self):
+        if not self.opened:
+            raise RemctlNotOpenedError, 'no currently open connection'
+        if not _remctl.remctl_noop(self.r):
+            raise RemctlError, self.error()
 
     def close(self):
         del(self.r)

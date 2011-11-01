@@ -4,7 +4,10 @@
  * Simple functions (wrappers around fcntl) to set or clear file descriptor
  * flags like close-on-exec or nonblocking I/O.
  *
- * Copyright 2008
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
+ * Copyright 2008, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -30,16 +33,21 @@
 #include <config.h>
 #include <portable/system.h>
 
-#include <errno.h>
-#include <fcntl.h>
-#ifndef O_NONBLOCK
-# include <sys/ioctl.h>
-# if HAVE_SYS_FILIO_H
-#  include <sys/filio.h>
+#ifdef _WIN32
+# include <winsock2.h>
+#else
+# include <errno.h>
+# include <fcntl.h>
+# ifndef O_NONBLOCK
+#  include <sys/ioctl.h>
+#  if HAVE_SYS_FILIO_H
+#   include <sys/filio.h>
+#  endif
 # endif
 #endif
 
 #include <util/fdflag.h>
+#include <util/macros.h>
 
 
 /*
@@ -49,7 +57,17 @@
  * One is supposed to retrieve the flags, add FD_CLOEXEC, and then set them,
  * although I've never seen a system with any flags other than close-on-exec.
  * Do it right anyway; it's not that expensive.
-*/
+ *
+ * Stub this out on Windows, where it's not supported (at least currently by
+ * this utility library).
+ */
+#ifdef _WIN32
+bool
+fdflag_close_exec(int fd UNUSED, bool flag UNUSED)
+{
+    return false;
+}
+#else
 bool
 fdflag_close_exec(int fd, bool flag)
 {
@@ -61,17 +79,23 @@ fdflag_close_exec(int fd, bool flag)
     mode = flag ? (oflag | FD_CLOEXEC) : (oflag & ~FD_CLOEXEC);
     return (fcntl(fd, F_SETFD, mode) == 0);
 }
+#endif
 
 
 /*
  * Set a file descriptor to nonblocking (or clear the nonblocking flag if flag
  * is false), returning true on success and false on failure.
  *
- * Always use O_NONBLOCK; O_NDELAY is not the same thing historically.  The
- * semantics of O_NDELAY are that if the read would block, it returns 0
- * instead.  This is indistinguishable from an end of file condition.  POSIX
- * added O_NONBLOCK, which requires read to return -1 and set errno to EAGAIN,
- * which is what we want.
+ * For Windows, be aware that this will only work for sockets.  For UNIX, you
+ * can pass a non-socket in and it will do the right thing, since UNIX doesn't
+ * distinguish, but Windows will not allow that.  Thankfully, there's rarely
+ * any need to set non-sockets non-blocking.
+ *
+ * For UNIX, always use O_NONBLOCK; O_NDELAY is not the same thing
+ * historically.  The semantics of O_NDELAY are that if the read would block,
+ * it returns 0 instead.  This is indistinguishable from an end of file
+ * condition.  POSIX added O_NONBLOCK, which requires read to return -1 and
+ * set errno to EAGAIN, which is what we want.
  *
  * FNDELAY (4.3BSD) originally did the correct thing, although it has a
  * different incompatibility (affecting all users of a socket rather than just
@@ -93,9 +117,18 @@ fdflag_close_exec(int fd, bool flag)
  * O_NONBLOCK).  Accordingly, we currently unconditionally use O_NONBLOCK.  If
  * this causes too many problems, an autoconf test may be required.
  */
-#ifdef O_NONBLOCK
+#if defined(_WIN32)
 bool
-fdflag_nonblocking(int fd, bool flag)
+fdflag_nonblocking(socket_type fd, bool flag)
+{
+    u_long mode;
+
+    mode = flag ? 1 : 0;
+    return (ioctlsocket(fd, FIONBIO, &mode) == 0);
+}
+#elif defined(O_NONBLOCK)
+bool
+fdflag_nonblocking(socket_type fd, bool flag)
 {
     int mode;
 
@@ -106,8 +139,8 @@ fdflag_nonblocking(int fd, bool flag)
     return (fcntl(fd, F_SETFL, mode) == 0);
 }
 #else /* !O_NONBLOCK */
-int
-nonblocking(int fd, bool flag)
+bool
+fdflag_nonblocking(socket_type fd, bool flag)
 {
     int state;
 

@@ -2,7 +2,7 @@
 remctld remctl -dFhmSv keytab GSS-API tcpserver inetd subcommand AFS
 backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
 IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
-subcommands REMUSER pcre PCRE
+subcommands REMUSER pcre PCRE triple-DES MERCHANTABILITY
 
 =head1 NAME
 
@@ -225,8 +225,8 @@ I<subcommand> considered argument 1) or the special value C<last>, which
 indicates that the final argument (no matter how many there are) be passed
 on standard input.
 
-The I<subcommand> cannot be passed on standard input, so I<n> must be at
-least C<2>.  If this option is set to C<last> and no arguments are given
+The I<command> cannot be passed on standard input, so I<n> must be at
+least C<1>.  If this option is set to C<last> and no arguments are given
 except the I<command> and possibly the I<subcommand>, nothing will be
 passed on standard input.
 
@@ -234,7 +234,9 @@ This option is used primarily for passing large amounts of data that may
 not fit on the command line or data that contains NUL characters.  It can
 also be used for arguments like passwords that shouldn't be exposed on the
 command line.  Only at most one argument may be passed on standard input
-to the command.
+to the command.  Be aware that even if the I<subcommand> is the designated
+argument to pass on standard input (C<stdin=1>), the I<subcommand> may not
+contain NUL characters.
 
 =back
 

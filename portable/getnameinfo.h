@@ -8,6 +8,9 @@
  * This file should generally be included by way of portable/socket.h rather
  * than directly.
  *
+ * The canonical version of this file is maintained in the rra-c-util package,
+ * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ *
  * Written by Russ Allbery <rra@stanford.edu>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
@@ -53,11 +56,16 @@
 
 BEGIN_DECLS
 
+/* Default to a hidden visibility for all portability functions. */
+#pragma GCC visibility push(hidden)
+
 /* Function prototypes. */
 int getnameinfo(const struct sockaddr *sa, socklen_t salen,
                 char *node, socklen_t nodelen,
-                char *service, socklen_t servicelen, int flags)
-    __attribute__((__visibility__("hidden")));
+                char *service, socklen_t servicelen, int flags);
+
+/* Undo default visibility change. */
+#pragma GCC visibility pop
 
 END_DECLS
 

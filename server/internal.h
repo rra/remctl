@@ -95,13 +95,13 @@ bool server_send_error(struct client *, enum error_codes, const char *);
 
 /* Protocol v1 functions. */
 bool server_v1_send_output(struct client *, int status);
-void server_v1_handle_commands(struct client *, struct config *);
+void server_v1_handle_messages(struct client *, struct config *);
 
 /* Protocol v2 functions. */
 bool server_v2_send_output(struct client *, int stream);
 bool server_v2_send_status(struct client *, int);
 bool server_v2_send_error(struct client *, enum error_codes, const char *);
-void server_v2_handle_commands(struct client *, struct config *);
+void server_v2_handle_messages(struct client *, struct config *);
 
 END_DECLS
 

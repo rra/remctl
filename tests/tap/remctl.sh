@@ -1,5 +1,8 @@
 # Shell function library to start and stop remctld
 #
+# The canonical version of this file is maintained in the rra-c-util package,
+# which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+#
 # Written by Russ Allbery <rra@stanford.edu>
 # Copyright 2009
 #     The Board of Trustees of the Leland Stanford Junior University

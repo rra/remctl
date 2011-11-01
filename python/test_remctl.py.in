@@ -1,7 +1,7 @@
 # test_remctl.py -- Test suite for remctl Python bindings
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2008
+# Copyright 2008, 2011
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -43,6 +43,7 @@ class TestRemctl(unittest.TestCase):
         if child == 0:
             output = open('data/test.output', 'w')
             os.dup2(output.fileno(), 1)
+            os.dup2(output.fileno(), 2)
             os.chdir('@abs_top_srcdir@/tests')
             os.execl('@abs_top_builddir@/server/remctld', 'remctld', '-m',
                      '-p', '14373', '-s', principal, '-f', 'data/conf-simple',
@@ -66,9 +67,11 @@ class TestRemctl(unittest.TestCase):
     def run_kinit(self):
         os.environ['KRB5CCNAME'] = 'data/test.cache'
         self.principal = self.get_principal()
-        commands = ('kinit -k -t data/test.keytab ' + self.principal,
-                    'kinit -t data/test.keytab ' + self.principal,
-                    'kinit -k -K data/test.keytab ' + self.principal)
+        commands = (
+            'kinit --no-afslog -k -t data/test.keytab ' + self.principal,
+            'kinit -k -t data/test.keytab ' + self.principal,
+            'kinit -t data/test.keytab ' + self.principal,
+            'kinit -k -K data/test.keytab ' + self.principal)
         for command in commands:
             if os.system(command + ' >/dev/null </dev/null') == 0:
                 return True
@@ -166,6 +169,7 @@ class TestRemctlFull(TestRemctl):
         self.assertEqual(status, 0)
         type, data, stream, status, error = r.output()
         self.assertEqual(type, "done")
+        r.noop()
         r.close()
 
     @needs_kerberos
@@ -176,6 +180,37 @@ class TestRemctlFull(TestRemctl):
         self.assertEqual(type, "error")
         self.assertEqual(data, 'Unknown command')
         self.assertEqual(error, 5)
+
+    @needs_kerberos
+    def test_ccache(self):
+        r = remctl.Remctl()
+        os.environ['KRB5CCNAME'] = 'nonexistent-file'
+        try:
+            r.open('localhost', 14373, self.principal)
+            self.fail('open without ticket cache succeeded')
+        except remctl.RemctlError, error:
+            pass
+        okay = False
+        try:
+            r.set_ccache('data/test.cache')
+            okay = True
+        except remctl.RemctlError, error:
+            pass
+        if okay:
+            r.open('localhost', 14373, self.principal)
+        r.close()
+
+    @needs_kerberos
+    def test_source_ip(self):
+        r = remctl.Remctl()
+        r.set_source_ip('127.0.0.1')
+        r.open('127.0.0.1', 14373, self.principal)
+        r.set_source_ip('::1')
+        pattern = '(cannot connect to|unknown host) .*'
+        try:
+            r.open('127.0.0.1', 14373, self.principal)
+        except remctl.RemctlError, error:
+            self.assert_(re.compile(pattern).match(str(error)))
 
     @needs_kerberos
     def test_full_errors(self):

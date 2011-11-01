@@ -4,6 +4,9 @@ remctl_command
 remctl_commandv
 remctl_error
 remctl_new
+remctl_noop
 remctl_open
 remctl_output
 remctl_result_free
+remctl_set_ccache
+remctl_set_source_ip

@@ -7,7 +7,7 @@
  *
  * Original implementation by Thomas L. Kula <kula@tproa.net>
  * Copyright 2008 Thomas L. Kula <kula@tproa.net>
- * Copyright 2008
+ * Copyright 2008, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -133,6 +133,38 @@ py_remctl_new(PyObject *self, PyObject *args)
         return NULL;
     }
     return PyCObject_FromVoidPtr(r, remctl_destruct);
+}
+
+
+static PyObject *
+py_remctl_set_ccache(PyObject *self, PyObject *args)
+{
+    PyObject *object = NULL;
+    struct remctl *r;
+    char *ccache = NULL;
+    int status;
+
+    if (!PyArg_ParseTuple(args, "Os", &object, &ccache))
+        return NULL;
+    r = PyCObject_AsVoidPtr(object);
+    status = remctl_set_ccache(r, ccache);
+    return Py_BuildValue("i", status);
+}
+
+
+static PyObject *
+py_remctl_set_source_ip(PyObject *self, PyObject *args)
+{
+    PyObject *object = NULL;
+    struct remctl *r;
+    char *source = NULL;
+    int status;
+
+    if (!PyArg_ParseTuple(args, "Os", &object, &source))
+        return NULL;
+    r = PyCObject_AsVoidPtr(object);
+    status = remctl_set_source_ip(r, source);
+    return Py_BuildValue("i", status);
 }
 
 
@@ -263,15 +295,33 @@ py_remctl_output(PyObject *self, PyObject *args)
 }
 
 
+static PyObject *
+py_remctl_noop(PyObject *self, PyObject *args)
+{
+    PyObject *object = NULL;
+    struct remctl *r;
+    int status;
+
+    if (!PyArg_ParseTuple(args, "O", &object))
+        return NULL;
+    r = PyCObject_AsVoidPtr(object);
+    status = remctl_noop(r);
+    return Py_BuildValue("i", status);
+}
+
+
 static PyMethodDef methods[] = {
-    { "remctl",          py_remctl,          METH_VARARGS, NULL },
-    { "remctl_new",      py_remctl_new,      METH_VARARGS, NULL },
-    { "remctl_open",     py_remctl_open,     METH_VARARGS, NULL },
-    { "remctl_close",    py_remctl_close,    METH_VARARGS, NULL },
-    { "remctl_error",    py_remctl_error,    METH_VARARGS, NULL },
-    { "remctl_commandv", py_remctl_commandv, METH_VARARGS, NULL },
-    { "remctl_output",   py_remctl_output,   METH_VARARGS, NULL },
-    { NULL,              NULL,               0,            NULL },
+    { "remctl",               py_remctl,               METH_VARARGS, NULL },
+    { "remctl_new",           py_remctl_new,           METH_VARARGS, NULL },
+    { "remctl_set_ccache",    py_remctl_set_ccache,    METH_VARARGS, NULL },
+    { "remctl_set_source_ip", py_remctl_set_source_ip, METH_VARARGS, NULL },
+    { "remctl_open",          py_remctl_open,          METH_VARARGS, NULL },
+    { "remctl_close",         py_remctl_close,         METH_VARARGS, NULL },
+    { "remctl_error",         py_remctl_error,         METH_VARARGS, NULL },
+    { "remctl_commandv",      py_remctl_commandv,      METH_VARARGS, NULL },
+    { "remctl_output",        py_remctl_output,        METH_VARARGS, NULL },
+    { "remctl_noop",          py_remctl_noop,          METH_VARARGS, NULL },
+    { NULL,                   NULL,                    0,            NULL },
 };
 
 

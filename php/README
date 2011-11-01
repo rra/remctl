@@ -109,6 +109,34 @@ FULL INTERFACE
       Returns, as a string, the error message from the last failed
       operation on the connection object CONNECTION.
 
+  remctl_set_ccache(CCACHE)
+      Sets the credential cache for outgoing connections to CCACHE.  This
+      is normally the full path to a Kerberos ticket cache, but may have
+      other valid forms depending on the underlying Kerberos
+      implementation in use by GSS-API.  This method must be called prior
+      to calling remctl_open() and will affect all subsequent
+      remctl_open() calls on the same object.  Returns true on success,
+      false on failure.
+
+      For current GSS-API implementations, this will affect not only all
+      subsequent open() calls for the same object, but all subsequent
+      remctl connections of any kind from the same process, and even other
+      GSS-API connections from the same process unrelated to remctl.  This
+      is due to a limitation in the GSS-API that makes this setting a
+      global setting for the process or thread.
+
+      Not all GSS-API implementations support setting the credential
+      cache.  If this is not supported, false (for failure) will be
+      returned.
+
+  remctl_set_source_ip(SOURCE)
+      Sets the source IP for outgoing connections to SOURCE, which can be
+      either an IPv4 or an IPv6 address (if IPv6 is supported).  It must
+      be an IP address, not a host name.  This method must be called prior
+      to calling remctl_open() and will affect all subsequent
+      remctl_open() calls on the same object.  Returns true on success,
+      false on failure.
+
   remctl_open(CONNECTION, HOSTNAME[, PORT[, PRINCIPAL]])
       Connect to HOSTNAME on port PORT using PRINCIPAL as the remote
       server's principal for authentication.  If PORT is omitted or 0, use
@@ -158,6 +186,18 @@ FULL INTERFACE
       error
           For an "error" token, returns the remctl error code for the
           protocol error.  The text message will be returned in data.
+
+  remctl_noop(CONNECTION)
+      Send a NOOP message to the server and read the reply.  This is
+      primarily used to keep a connection to a remctl server alive, such
+      as through a firewall with a session timeout, while waiting to issue
+      further commands.  Returns true on success, false on failure.
+
+      The NOOP message requires protocol version 3 support in the server,
+      so the caller should be prepared for this function to fail,
+      indicating that the connection could not be kept alive and possibly
+      that it was closed by the server.  In this case, the client will
+      need to explicitly reopen the connection with remctl_open.
 
   remctl_close(CONNECTION)
       Explicitly close the connection and destroy the connection object.
@@ -209,6 +249,7 @@ FULL INTERFACE
           echo "remctl_output failed: " . remctl_error($r) . "\n";
           exit(2);
       }
+      remctl_noop($r)
       remctl_close($r)
 
   As mentioned above, the final remctl_close() is normally not needed.

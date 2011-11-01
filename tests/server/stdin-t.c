@@ -71,7 +71,8 @@ test_stdin(const char *principal, const char *test, const void *data,
 int
 main(void)
 {
-    char *principal, *config, *path, *buffer;
+    const char *principal;
+    char *config, *path, *buffer;
     pid_t remctld;
 
     /* Unless we have Kerberos available, we can't really do anything. */
@@ -99,6 +100,5 @@ main(void)
     test_stdin(principal, "delay", buffer, 1024 * 1024);
 
     remctld_stop(remctld);
-    kerberos_cleanup();
     return 0;
 }

@@ -6,6 +6,9 @@ dnl may still not function with gcc on some platforms (such as IRIX).
 dnl Provides RRA_FUNC_INET_NTOA and defines HAVE_INET_NTOA if inet_ntoa is
 dnl present and working.
 dnl
+dnl The canonical version of this file is maintained in the rra-c-util
+dnl package, available at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+dnl
 dnl Copyright 1999, 2000, 2001, 2003 Russ Allbery <rra@stanford.edu>
 dnl Copyright 2008, 2009
 dnl     The Board of Trustees of the Leland Stanford Junior University

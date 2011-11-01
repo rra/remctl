@@ -1,6 +1,7 @@
 =for stopwords
 remctl -dhv subcommand remctld GSS-API GSS-API's hostname AFS
 canonicalizes DNS DNS-based canonicalization Heimdal MICs Ushakov Allbery
+triple-DES MERCHANTABILITY IP IPv4 IPv6 source-ip
 
 =head1 NAME
 
@@ -8,8 +9,8 @@ remctl - Remote execution tool
 
 =head1 SYNOPSIS
 
-remctl [B<-dhv>] [B<-p> I<port>] [B<-s> I<service>] I<host> I<command>
-    [I<subcommand> [I<parameters> ...]]
+remctl [B<-dhv>] [B<-b> I<source-ip>] [B<-p> I<port>] [B<-s> I<service>]
+    I<host> I<command> [I<subcommand> [I<parameters> ...]]
 
 =head1 DESCRIPTION
 
@@ -33,6 +34,14 @@ any additional command-line parameters to pass to the remote command.
 =head1 OPTIONS
 
 =over 4
+
+=item B<-b> I<source-ip>
+
+When connecting to the remote remctl server, use I<source-ip> as the
+source IP address.  This can be useful on multihomed systems where the
+remctl connections need to be made over a particular network.
+I<source-ip> must be an IP address, not a hostname, and can be either an
+IPv4 or IPv6 address (assuming IPv6 is supported).
 
 =item B<-d>
 

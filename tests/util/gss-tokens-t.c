@@ -27,7 +27,7 @@ extern int recv_flags;
 int
 main(void)
 {
-    char *principal;
+    const char *principal;
     gss_buffer_desc name_buf, server_tok, client_tok, *token_ptr;
     gss_name_t server_name, client_name;
     gss_ctx_id_t server_ctx, client_ctx;
@@ -45,7 +45,7 @@ main(void)
      * We have to set up a context first in order to do this test, which is
      * rather annoying.
      */
-    name_buf.value = principal;
+    name_buf.value = (char *) principal;
     name_buf.length = strlen(principal) + 1;
     s_stat = gss_import_name(&s_min_stat, &name_buf, GSS_C_NT_USER_NAME,
                              &server_name);

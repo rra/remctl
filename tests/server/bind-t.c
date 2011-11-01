@@ -90,7 +90,8 @@ test_command(struct remctl *r, const char *addr)
 int
 main(void)
 {
-    char *principal, *config, *path;
+    const char *principal;
+    char *config, *path;
     struct remctl *r;
     pid_t remctld;
 #ifdef HAVE_INET6
@@ -195,6 +196,5 @@ main(void)
     skip_block(8, "IPv6 not supported");
 #endif
     
-    kerberos_cleanup();
     return 0;
 }

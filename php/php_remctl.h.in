@@ -3,7 +3,7 @@
  *
  * Originally written by Andrew Mortensen <admorten@umich.edu>, 2008
  * Copyright 2008 Andrew Mortensen <admorten@umich.edu>
- * Copyright 2008
+ * Copyright 2008, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -20,9 +20,12 @@
 PHP_MINIT_FUNCTION(remctl);
 PHP_FUNCTION(remctl);
 PHP_FUNCTION(remctl_new);
+PHP_FUNCTION(remctl_set_ccache);
+PHP_FUNCTION(remctl_set_source_ip);
 PHP_FUNCTION(remctl_open);
 PHP_FUNCTION(remctl_command);
 PHP_FUNCTION(remctl_output);
+PHP_FUNCTION(remctl_noop);
 PHP_FUNCTION(remctl_error);
 PHP_FUNCTION(remctl_close);
 

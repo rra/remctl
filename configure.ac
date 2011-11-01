@@ -1,17 +1,18 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010
+dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl See LICENSE for licensing terms.
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [2.18], [rra@stanford.edu])
+AC_INIT([remctl], [3.0], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([1.11 check-news silent-rules])
+AM_INIT_AUTOMAKE([1.11 check-news foreign silent-rules subdir-objects
+    -Wall -Werror])
 AM_MAINTAINER_MODE
 
 AC_PROG_CC
@@ -23,41 +24,40 @@ RRA_LD_VERSION_SCRIPT
 
 AC_SEARCH_LIBS([gethostbyname], [nsl])
 AC_SEARCH_LIBS([socket], [socket], ,
-    [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], ,
+    [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], [],
         [-lsocket])])
 RRA_LIB_GSSAPI
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/uio.h syslog.h])
 AC_CHECK_DECLS([snprintf, vsnprintf])
-AC_CHECK_DECLS([inet_aton, inet_ntoa], , ,
+AC_CHECK_DECLS([h_errno], [], [], [#include <netdb.h>])
+AC_CHECK_DECLS([inet_aton, inet_ntoa], [], [],
     [#include <sys/types.h>
      #include <netinet/in.h>
      #include <arpa/inet.h>])
 RRA_C_C99_VAMACROS
 RRA_C_GNU_VAMACROS
-AC_CHECK_MEMBERS([struct sockaddr.sa_len], , ,
+AC_CHECK_MEMBERS([struct sockaddr.sa_len], [], [],
     [#include <sys/types.h>
      #include <sys/socket.h>])
 AC_TYPE_LONG_LONG_INT
-AC_CHECK_TYPE([sig_atomic_t], ,
-    [AC_DEFINE([sig_atomic_t], [int],
-        [Define to int if <signal.h> does not define.])],
+AC_CHECK_TYPES([sig_atomic_t], [], [],
     [#include <sys/types.h>
      #include <signal.h>])
-AC_CHECK_TYPE([socklen_t], ,
-    [AC_DEFINE([socklen_t], [int],
-        [Define to int if <sys/socket.h> does not define.])],
+AC_CHECK_TYPES([ssize_t], [], [],
+    [#include <sys/types.h>])
+AC_CHECK_TYPES([socklen_t], [], [],
     [#include <sys/types.h>
      #include <sys/socket.h>])
 AC_CHECK_TYPES([struct sockaddr_in6],
     [AC_DEFINE([HAVE_INET6], [1],
-        [Define to 1 if IPv6 library interfaces are available.])], ,
+        [Define to 1 if IPv6 library interfaces are available.])], [],
     [#include <sys/types.h>
      #include <netinet/in.h>])
 AC_CHECK_TYPES([struct sockaddr_storage],
-    [AC_CHECK_MEMBERS([struct sockaddr_storage.ss_family], , ,
+    [AC_CHECK_MEMBERS([struct sockaddr_storage.ss_family], [], [],
         [#include <sys/types.h>
-         #include <sys/socket.h>])], ,
+         #include <sys/socket.h>])], [],
     [#include <sys/types.h>
      #include <sys/socket.h>])
 RRA_MACRO_IN6_ARE_ADDR_EQUAL
@@ -74,28 +74,41 @@ AC_TYPE_SIGNAL
 
 dnl Additional GSS-API portability checks.
 RRA_LIB_GSSAPI_SWITCH
-AC_CHECK_HEADERS([gssapi.h])
+AC_CHECK_HEADERS([gssapi/gssapi.h gssapi/gssapi_krb5.h])
 AC_CHECK_DECL([GSS_C_NT_USER_NAME],
     [AC_DEFINE([HAVE_GSS_RFC_OIDS], 1,
-       [Define to 1 if the GSS-API library uses RFC-compliant OIDs.])], ,
+       [Define to 1 if the GSS-API library uses RFC-compliant OIDs.])], [],
 [[
-#if defined(HAVE_GSSAPI_H)
-# include <gssapi.h>
-#else
+#ifdef HAVE_GSSAPI_GSSAPI_H
 # include <gssapi/gssapi.h>
+#else
+# include <gssapi.h>
 #endif
 ]])
-AC_CHECK_DECLS([GSS_KRB5_MECHANISM], ,
-    [AC_CHECK_DECLS([gss_mech_krb5], ,
+AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
+    [AC_CHECK_DECLS([gss_mech_krb5], [],
         [AC_LIBOBJ([gssapi-mech])],
-        [#include <gssapi/gssapi_krb5.h>])],
 [[
-#if defined(HAVE_GSSAPI_H)
-# include <gssapi.h>
-#else
+#ifdef HAVE_GSSAPI_GSSAPI_H
 # include <gssapi/gssapi.h>
+#else
+# include <gssapi.h>
+#endif
+#ifdef HAVE_GSSAPI_GSSAPI_KRB5_H
+# include <gssapi/gssapi_krb5.h>
+#endif
+]])],
+[[
+#ifdef HAVE_GSSAPI_GSSAPI_H
+# include <gssapi/gssapi.h>
+#else
+# include <gssapi.h>
+#endif
+#ifdef HAVE_GSSAPI_GSSAPI_KRB5_H
+# include <gssapi/gssapi_krb5.h>
 #endif
 ]])
+AC_CHECK_FUNCS([gss_krb5_ccache_name])
 RRA_LIB_GSSAPI_RESTORE
 
 dnl Check for the CMU GPUT library.

@@ -18,7 +18,7 @@ kerberos_setup
 if [ $? != 0 ] ; then
     skip_all "Kerberos tests not configured"
 else
-    plan 11
+    plan 14
 fi
 remctl="$BUILD/../client/remctl"
 if [ ! -x "$remctl" ] ; then
@@ -66,6 +66,17 @@ output=`sed 's/):.*/)/' "$BUILD/data/output"`
 echo "# saw: $output"
 ok "correct connection refused error" \
     [ "$output" = "remctl: cannot connect to localhost (port 14445)" ]
+
+# Check binding to a particular source IP.
+ok_program "source of 127.0.0.1" 0 "hello world" \
+    "$remctl" -b 127.0.0.1 -s "$principal" -p 14373 127.0.0.1 test test
+"$remctl" -b ::1 -p 14373 127.0.0.1 test test > "$BUILD/data/output" 2>&1
+status=$?
+ok "source of ::1 fails" [ "$status" != 0 ]
+output=`sed 's/):.*/)/' "$BUILD/data/output"`
+echo "# saw: $output"
+ok "correct bind address error" \
+    [ "$output" = "remctl: cannot connect to 127.0.0.1 (port 14373)" ]
 
 # Clean up.
 rm -f "$BUILD/data/output"

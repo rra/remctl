@@ -110,7 +110,8 @@ test_excess_args(struct remctl *r)
 int
 main(void)
 {
-    char *principal, *config, *path;
+    const char *principal;
+    char *config, *path;
     struct remctl *r;
     pid_t remctld;
     int status;
@@ -141,6 +142,5 @@ main(void)
     remctl_close(r);
 
     remctld_stop(remctld);
-    kerberos_cleanup();
     return 0;
 }
