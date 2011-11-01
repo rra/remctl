@@ -1,3 +1,20 @@
+remctl (3.0-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    - New protocol version 3, adding a NOOP command.
+    - More consistent and formal handling of continuation commands.
+    - The server no longer closes the connection after version or error
+      replies.
+    - Add new remctl_set_source_ip function to set the source IP address
+      for outgoing client connections.
+    - Add new -b option to remctl command-line client to set source IP.
+    - Add new remctl_set_ccache function to specify the credential store
+      to use for GSS-API authentication.
+    - Fix a client memory leak on remctl_close.
+    - Send QUIT to the server when reopening a remctl object.
+
+ -- Russ Allbery <rra@debian.org>  Mon, 31 Oct 2011 17:06:14 -0700
+
 remctl (2.18-1) unstable; urgency=low
 
   * New upstream release.
