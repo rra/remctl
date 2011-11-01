@@ -21,7 +21,8 @@ RUBY = ruby
 # properly for builddir != srcdir builds.
 PERL_FILES = perl/Remctl.xs perl/typemap perl/t/pod.t perl/t/stanford-netdb.t
 PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
-	php/tests/002.phpt php/tests/003.phpt
+	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
+	php/tests/005.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
@@ -31,15 +32,15 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	client/remctl.rc config.h.w32 configure.cmd docs/api/remctl.pod	    \
 	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
 	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
-	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
-	docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.pod    \
-	docs/design.html docs/extending docs/protocol-v3 docs/protocol.txt  \
-	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
-	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
-	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
-	java/.classpath java/.project java/Makefile java/README		    \
-	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
-	java/org/eyrie/eagle/remctl/Remctl.java				    \
+	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
+	docs/api/remctl_output.pod docs/api/remctl_set_ccache.pod	    \
+	docs/api/remctl_set_source_ip.pod docs/design.html docs/extending   \
+	docs/protocol-v3 docs/protocol.txt docs/protocol.html		    \
+	docs/protocol.xml docs/remctl.pod docs/remctld.8.in		    \
+	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
+	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
+	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf    \
+	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java   \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java portable/winsock.c remctl.spec ruby/README		    \
