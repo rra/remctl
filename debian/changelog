@@ -18,6 +18,10 @@ remctl (3.0-1) UNRELEASED; urgency=low
     - Use dpkg-buildflags to set CFLAGS.
     - Enable bindnow hardening.  Leave pie off for right now.
     - Add Lintian override for using an experimental debhelper level.
+  * Update Python packaging to use dh_python2.
+    - Add XS-Python-Version to debian/control.
+    - Add python2 debhelper add-on to debian/rules.
+    - Remove build dependency on python-support.
 
  -- Russ Allbery <rra@debian.org>  Mon, 31 Oct 2011 17:06:14 -0700
 

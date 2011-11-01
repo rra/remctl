@@ -17,7 +17,7 @@ PYTHON_INSTALL := --install-layout=deb
 PYTHON_VERSION := $(shell pyversions -dv)
 
 %:
-	dh $@
+	dh $@ --with python2
 
 override_dh_auto_configure:
 	dh_auto_configure -- --sysconfdir=/etc/remctl \
