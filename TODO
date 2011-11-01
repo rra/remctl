@@ -7,7 +7,7 @@ Protocol:
    re-engineering of the client loop and should wait for better
    configuration since we don't want to do this with every command.  It
    also introduces out-of-order responses and possible deadlocks to the
-   protocol.  docs/protocol-v3 has an initial draft.
+   protocol.  docs/protocol-v4 has an initial draft.
 
  * Support authentication via anonymous PKINIT.  This may already work,
    but the asserted identity should be documented and it's not clear

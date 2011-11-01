@@ -34,7 +34,7 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
 	docs/api/remctl_output.pod docs/api/remctl_set_ccache.pod	    \
 	docs/api/remctl_set_source_ip.pod docs/design.html docs/extending   \
-	docs/protocol-v3 docs/protocol.txt docs/protocol.html		    \
+	docs/protocol-v4 docs/protocol.txt docs/protocol.html		    \
 	docs/protocol.xml docs/remctl.pod docs/remctld.8.in		    \
 	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
 	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
