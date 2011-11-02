@@ -1,3 +1,12 @@
+remctl (3.0-3) unstable; urgency=low
+
+  * Further test suite fixes for kfreebsd: Skip network timeout tests if a
+    short listen queue doesn't cause any connections to fail, and fix the
+    bounds handling when closing open sockets if all connections
+    succeeded.  (Closes: #647254)
+
+ -- Russ Allbery <rra@debian.org>  Wed, 02 Nov 2011 12:47:06 -0700
+
 remctl (3.0-2) unstable; urgency=low
 
   * Allow for different networking behavior seen on kfreebsd systems in

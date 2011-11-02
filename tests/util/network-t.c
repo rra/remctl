@@ -427,17 +427,21 @@ test_timeout_ipv4(void)
             if (block[i] == INVALID_SOCKET)
                 break;
         }
-        diag("Finally timed out on socket %d", i);
-        ok(block[i] == INVALID_SOCKET, "Timeout: later connection timed out");
-        if (socket_errno == ECONNRESET)
-            skip("unable to test timeouts with short listening queue");
-        else
-            is_int(ETIMEDOUT, socket_errno, "...with correct error");
+        if (i == ARRAY_SIZE(block))
+            skip_block(2, "short listen queue does not prevent connections");
+        else {
+            diag("Finally timed out on socket %d", i);
+            ok(block[i] == INVALID_SOCKET, "Later connection timed out");
+            if (socket_errno == ECONNRESET)
+                skip("connections rejected without timeout");
+            else
+                is_int(ETIMEDOUT, socket_errno, "...with correct error");
+        }
         alarm(0);
         kill(child, SIGTERM);
         waitpid(child, NULL, 0);
         close(c);
-        for (; i >= 0; i--)
+        for (i--; i >= 0; i--)
             if (block[i] != INVALID_SOCKET)
                 close(block[i]);
     }
