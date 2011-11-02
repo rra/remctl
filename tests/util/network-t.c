@@ -429,7 +429,10 @@ test_timeout_ipv4(void)
         }
         diag("Finally timed out on socket %d", i);
         ok(block[i] == INVALID_SOCKET, "Timeout: later connection timed out");
-        is_int(ETIMEDOUT, socket_errno, "...with correct error");
+        if (socket_errno == ECONNRESET)
+            skip("unable to test timeouts with short listening queue");
+        else
+            is_int(ETIMEDOUT, socket_errno, "...with correct error");
         alarm(0);
         kill(child, SIGTERM);
         waitpid(child, NULL, 0);

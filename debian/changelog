@@ -1,3 +1,12 @@
+remctl (3.0-2) unstable; urgency=low
+
+  * Allow for different networking behavior seen on kfreebsd systems in
+    the test suite.  (Closes: #647254)
+    - FreeBSD kernel refuses connections after listen queue exhaustion.
+    - getaddrinfo may return other errors on invalid host lookups.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 01 Nov 2011 21:07:03 -0700
+
 remctl (3.0-1) unstable; urgency=low
 
   * New upstream release.
