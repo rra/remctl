@@ -51,6 +51,8 @@ override_dh_auto_build:
 override_dh_auto_test:
 	LD_LIBRARY_PATH='$(CURDIR)/client/.libs' dh_auto_test \
 	    -- PYTHON_VERSION=$(PYTHON_VERSION) RUBY=ruby1.8
+	echo '=== Special test run for debugging kfreebsd-amd64 ==='
+	tests/runtests -o util/network
 
 # After installing the build for the default version of Ruby, go back and
 # rebuild for the newer version.

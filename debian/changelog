@@ -1,3 +1,12 @@
+remctl (3.0-4) unstable; urgency=low
+
+  * Disable the network timeout test for right now since kfreebsd-amd64 is
+    still failing.  Add some additional debugging and run the test with
+    full output for now so that this test can hopefully be reinstated in a
+    later version.
+
+ -- Russ Allbery <rra@debian.org>  Wed, 02 Nov 2011 19:21:14 -0700
+
 remctl (3.0-3) unstable; urgency=low
 
   * Further test suite fixes for kfreebsd: Skip network timeout tests if a
