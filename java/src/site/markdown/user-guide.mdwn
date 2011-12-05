@@ -10,7 +10,8 @@ If you are using maven, add this dependency to your pom.xml
             <version>2.1.0</version>
         </dependency>
 
-The `.jar` file can also be download [directly](http://repo1.maven.org/maven2/org/eyrie/remctl/2.1.0/remctl-2.1.0.jar).
+The `.jar` file can also be download
+[directly](http://repo1.maven.org/maven2/org/eyrie/remctl/2.1.0/remctl-2.1.0.jar).
 
 ## Running Commands
 
@@ -21,18 +22,24 @@ Example
     RemctlResponse response = remctlClient.execute("oath", "create-list", "bob");
     doApplicationBusinessLogic(response.getStdOut());
     
-There are two `execute` methods which allow you to pass in a variable amount of `String` arguments.
-In most cases you will use `public RemctlResponse execute(String... arguments)`. It will wrap the STDOUT and STDERR response from the server in a `RemctlResponse`
-and will throw a `RemctlStatusException` for non-zero statuses. Uses this method saves you the need to check that the status is 0. If having a non-zero status code
-is expected behavior then use `public RemctlResponse executeAllowAnyStatus(String... arguments)`.
+There are two `execute` methods which allow you to pass in a variable amount of
+`String` arguments.  In most cases you will use `public RemctlResponse
+execute(String... arguments)`. It will wrap the STDOUT and STDERR response from
+the server in a `RemctlResponse` and will throw a `RemctlStatusException` for
+non-zero statuses. Uses this method saves you the need to check that the status
+is 0. If having a non-zero status code is expected behavior then use `public
+RemctlResponse executeAllowAnyStatus(String... arguments)`.
 
-The `RemctlResponse` provides methods for accessing the STDOUT, STDERR and the status code of the command run.
+The `RemctlResponse` provides methods for accessing the STDOUT, STDERR and the
+status code of the command run.
 
 ## Setting up a Connection
 
 ### SimpleRemctlClient
-The `SimpleRemctlClient` provides the easiest way to create a `RemctlClient`. You give it a hostname, and optionally a port and server principal and it will create a 
-new connection for every `execute()` call.
+
+The `SimpleRemctlClient` provides the easiest way to create a
+`RemctlClient`. You give it a hostname, and optionally a port and server
+principal and it will create a new connection for every `execute()` call.
 
 Example
 
@@ -40,10 +47,14 @@ Example
 
 ### PooledRemctlClient
 
-For long-lived applications use `PooledRemctlClient`. It provides a number of features: a connection pool, connection validation and connection lifecycle management.
-The establishment of a connection and the GSSContext can take longer then executing simple commands, so using pooled connection can improve your response time.
+For long-lived applications use `PooledRemctlClient`. It provides a number of
+features: a connection pool, connection validation and connection lifecycle
+management.  The establishment of a connection and the GSSContext can take
+longer then executing simple commands, so using pooled connection can improve
+your response time.
 
-Creating a `PooledRemctlClient` required more setup code. A connection factory and a connection pool need to be created.
+Creating a `PooledRemctlClient` required more setup code. A connection factory
+and a connection pool need to be created.
 
     RemctlConnectionFactory connectionFactory = new RemctlConnectionFactory("acct-scripts-dev.stanford.edu");
     //create the pool for the connections
@@ -51,9 +62,13 @@ Creating a `PooledRemctlClient` required more setup code. A connection factory a
 	//create the pooled client
     RemctlClient remctlClient = new PooledRemctlClient(pool);
     
-If during your application life cycle you want to clean up resources, you can close the pool. This will of course make the `PooledRemctlClient` non-functional.
+If during your application life cycle you want to clean up resources, you can
+close the pool. This will of course make the `PooledRemctlClient`
+non-functional.
 
-You can set a `RemctlConnectionValidationStrategy` that will ensure that the connection in the pool stay valid. By default the `BaseValidationStrategy` is used.
+You can set a `RemctlConnectionValidationStrategy` that will ensure that the
+connection in the pool stay valid. By default the `BaseValidationStrategy` is
+used.
 
 Example
 
@@ -66,8 +81,9 @@ A summary of the validation strategies is below.
   * `NoopValidationStrategy`: Experimental. Uses protocol 3 NO-OP token to keep connection alive, along with `BaseValidationStrategy` validators
   * `CommandValidationStrategy`: Periodically runs a remctl command and ensures the return status is 0. Also performs `BaseValidationStrategy` validations.
   
-Until `NoopValidationStrategy` work is complete, we recommend using `CommandValidationStrategy`. By default it runs a command called `noop`.
-An example server side `noop` implementation is below.
+Until `NoopValidationStrategy` work is complete, we recommend using
+`CommandValidationStrategy`. By default it runs a command called `noop`.  An
+example server side `noop` implementation is below.
 
     #!/usr/bin/perl -w
     #noop remctl command.
@@ -78,8 +94,9 @@ An example server side `noop` implementation is below.
     
 ## Authenticating
 
-The Java Remctl client relies on a JAAS configuration file when authenticating to the Remctl server.
-Depending on your setup, you can export the location of your JAAS file as a Java system property.
+The Java Remctl client relies on a JAAS configuration file when authenticating
+to the Remctl server.  Depending on your setup, you can export the location of
+your JAAS file as a Java system property.
 
      -Djava.security.auth.login.config=/path/to/jaas.conf
 
@@ -99,17 +116,21 @@ The library looks for a configuration called RemctlClient
     
 ## Exceptions
 
-The Java remctl library uses unchecked exceptions. Generally there is very little a calling application can do to rectify an exception caused by a Kerberos issue, or 
-server side errors. Checked exceptions, such as `IOExcpetion`, within the remctl library are wrapped in a `RemctlException`.
+The Java remctl library uses unchecked exceptions. Generally there is very
+little a calling application can do to rectify an exception caused by a Kerberos
+issue, or server side errors. Checked exceptions, such as `IOExcpetion`, within
+the remctl library are wrapped in a `RemctlException`.
 
-More specific exceptions are subclassed off of `RemctlException` and can allow you to responds to specific issues (like the presence of an `RemctlErrorToken`)
+More specific exceptions are subclassed off of `RemctlException` and can allow
+you to responds to specific issues (like the presence of an `RemctlErrorToken`)
 
 ## Things that will change and break your code.
 
-The majority of the implementation is hidden from the user behind the `RemctlClient` and `RemctlResponse`, and those classes will remain stable.
-The initial implementation of remctl error codes does not gracefully handle new error codes being introduced by the server and this code
-will be changed in the future.
+The majority of the implementation is hidden from the user behind the
+`RemctlClient` and `RemctlResponse`, and those classes will remain stable.  The
+initial implementation of remctl error codes does not gracefully handle new
+error codes being introduced by the server and this code will be changed in the
+future.
 
-Token implementations may change during the Java server rewrite and during remctl protocol 3 work. You likely won't need low level access to the tokens.
-
-
+Token implementations may change during the Java server rewrite and during
+remctl protocol 3 work. You likely won't need low level access to the tokens.
