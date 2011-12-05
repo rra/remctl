@@ -1,5 +1,17 @@
 # Java Remctl User Guide
 
+## Getting Remctl library
+
+If you are using maven, add this dependency to your pom.xml
+
+        <dependency>
+            <groupId>org.eyrie</groupId>
+            <artifactId>remctl</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+
+The `.jar` file can also be download [directly](http://repo1.maven.org/maven2/org/eyrie/remctl/2.1.0/remctl-2.1.0.jar).
+
 ## Running Commands
 
 The `RemctlClient` interface allows you to make remctl calls.
