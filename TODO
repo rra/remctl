@@ -92,9 +92,6 @@ Client:
  * Add readline support to the remctl client for multiple commands to the
    same server in the same authenticated session.
 
- * Support setting a timeout and failing the remctl call if the server
-   takes too long to connect or send back data.
-
  * Add an option that prompts the user, with echo disabled, for a piece of
    secure data, prompting twice to ensure both times match, and then sends
    that as the last argument to the command.  This would be useful for
@@ -112,6 +109,9 @@ Client library:
    mechanism.  It should then call gss_inquire_context to retrieve the
    mechanism OID and then pass that in to calls to gssapi_error_string
    rather than hard-coding the Kerberos v5 OID.
+
+ * Support setting a timeout and failing the remctl call if the server
+   takes too long to connect or send back data.  (REMCTL-2)
 
 Build system:
 
@@ -135,14 +135,10 @@ Windows port:
 
 Java implementation:
 
+ * Integrate the new Java client implementation.  (REMCTL-1)
+
  * Fix the coding style of the Java implementation to match the coding
    style of the rest of remctl.
-
- * Consider reorganizing the java directory so that it already matches the
-   layout of an Apache Jakarta project rather than having ant tar shuffle
-   everything around.
-
- * Add a JUnit test suite for the Java implementation.
 
  * Integrate the Java build into the rest of the build system so that it
    is enabled using an --enable-java flag similar to the bindings, finds
