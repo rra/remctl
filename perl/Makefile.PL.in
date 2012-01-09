@@ -1,7 +1,7 @@
 # Makefile.PL for libremctl Perl bindings.  -*- perl -*-
 #
 # Written by Russ Allbery
-# Copyright 2007
+# Copyright 2007, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -38,7 +38,7 @@ $lddlflags =~ s%(^| )-L% $additions -L%;
 package MY;
 sub const_loadlibs {
     my $loadlibs = shift->SUPER::const_loadlibs (@_);
-    $loadlibs =~ s%^(LD_RUN_PATH =.*[\s:])$main::PATH(:|\n)%$1$2%m;
+    $loadlibs =~ s%^(LD_RUN_PATH =.*[\s:])\Q$main::PATH\E(:|\n)%$1$2%m;
     return $loadlibs;
 }
 package main;
