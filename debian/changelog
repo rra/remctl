@@ -3,8 +3,10 @@ remctl (3.0-5) unstable; urgency=low
   * Fix the skip count for the network utility test suite, fixing a
     spurious test failure on systems without IPv6.  Patch from Felix
     Geyer.  (Closes: #654982)
+  * Fix removal of build directory paths from RPATH when building the Perl
+    module inside a build directory that contains regex metacharacters.
 
- -- Russ Allbery <rra@debian.org>  Sun, 08 Jan 2012 20:51:19 -0800
+ -- Russ Allbery <rra@debian.org>  Sun, 08 Jan 2012 21:01:28 -0800
 
 remctl (3.0-4) unstable; urgency=low
 
