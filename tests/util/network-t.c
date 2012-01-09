@@ -259,7 +259,7 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
         fd = fds[i];
         if (listen(fd, 1) < 0) {
             sysdiag("cannot listen to socket %d", fd);
-            ok_block(3, 0, "all address server test");
+            ok_block(4, 0, "all address server test (part %d)", i);
         } else {
             ok(1, "all address server test (part %d)", i);
             size = sizeof(saddr);
@@ -289,7 +289,7 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
         }
     }
     if (count == 1)
-        skip_block(3, "only one listening socket");
+        skip_block(4, "only one listening socket");
     network_bind_all_free(fds);
 }
 
@@ -493,7 +493,7 @@ main(void)
     if (ipv6)
         test_all(NULL, NULL);
     else
-        skip_block(6, "IPv6 not configured");
+        skip_block(8, "IPv6 not configured");
     test_create_ipv4(NULL);
 
     /* This won't make a difference for loopback connections. */
@@ -502,7 +502,7 @@ main(void)
     if (ipv6)
         test_all("127.0.0.1", "::1");
     else
-        skip_block(6, "IPv6 not configured");
+        skip_block(8, "IPv6 not configured");
     test_create_ipv4("127.0.0.1");
 
     /* Test network_accept_any. */
