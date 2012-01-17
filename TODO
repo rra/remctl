@@ -85,6 +85,8 @@ Server:
  * Support binding to a specified address or addresses given as
    command-line options.
 
+ * Add option to mask all arguments.
+
 Client:
 
  * Implement file upload in the remctl client.
