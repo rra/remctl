@@ -1,6 +1,10 @@
 remctl (3.0-6) UNRELEASED; urgency=low
 
-  * Enable PIE hardening flags.  libtool should do the right thing.
+  * Patch the upstream build system to provide more hooks for Perl and
+    Python builds and make use of them, removing all the complexity in
+    debian/rules to selectively rebuild parts of the source.  As a side
+    effect, fix application of the hardening flags to all of the
+    interpretor modules.
   * Use dh-autoreconf to rebuild the Autotools build system, and link with
     --as-needed to remove the additional unnecessarily library
     dependencies for the client.  Remove the workaround of relinking the
