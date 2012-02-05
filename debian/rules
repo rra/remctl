@@ -1,13 +1,20 @@
 #!/usr/bin/make -f
 
-# Add additional hardening features.  +pie not added for right now since it
-# needs testing to ensure it doesn't break the shared library and module
-# builds.
-export DEB_BUILD_MAINT_OPTIONS = hardening=+bindnow
+# Add hardening build flags.
+export DEB_BUILD_MAINT_OPTIONS = hardening=+bindnow,+pie
 
-# Get CFLAGS for rebuilding the remctl client binary and Perl and Python
-# modules.
-CFLAGS := $(shell dpkg-buildflags --get CFLAGS)
+# Link with --as-needed so that the remctl client library doesn't inherit
+# the shared library dependencies of libremctl.
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+
+# Get CFLAGS and LDFLAGS for rebuilding the Perl and Python modules.  This
+# doesn't get the exported variables set above, which is fine; we'll
+# explicitly add bindnow to the linker options, and we don't want PIE for
+# those modules anyway.
+CFLAGS  := $(shell dpkg-buildflags --get CPPFLAGS) \
+	   $(shell dpkg-buildflags --get CFLAGS)
+LDFLAGS := $(shell DEB_BUILD_MAINT_OPTIONS=hardening=+bindnow \
+	          dpkg-buildflags --get LDFLAGS)
 
 # The primary Python version, used to ensure that we run the test suite with
 # the module built for the default version of Python.  These are passed into
@@ -17,18 +24,16 @@ PYTHON_INSTALL := --install-layout=deb
 PYTHON_VERSION := $(shell pyversions -dv)
 
 %:
-	dh $@ --with python2
+	dh $@ --with python2,autoreconf
+
+override_dh_autoreconf:
+	dh_autoreconf --as-needed
 
 override_dh_auto_configure:
 	dh_auto_configure -- --sysconfdir=/etc/remctl \
 	    --enable-reduced-depends --enable-perl --enable-php \
 	    --enable-python --enable-ruby
 
-# We rebuild the remctl client because Automake and Libtool combine to force
-# remctl to be linked against all the dependencies of libremctl, which
-# creates unnecessary dependencies.  Ones that probably won't matter, mind,
-# but let's do this right anyway.
-#
 # We rebuild the Perl module to encode the right installation paths, since
 # otherwise it defaults to using the local site module path.
 #
@@ -41,11 +46,9 @@ override_dh_auto_build:
 	dh_auto_build -- RUBY=ruby1.8
 	cd $(CURDIR)/perl && $(MAKE) clean && perl Makefile.PL \
 	    INSTALLDIRS=vendor
-	cd $(CURDIR)/perl && $(MAKE) OPTIMIZE="$(CFLAGS)"
-	gcc $(CFLAGS) -o client/.libs/remctl client/remctl.o \
-	    client/.libs/libremctl.so util/.libs/libutil.a
+	cd $(CURDIR)/perl && $(MAKE) OPTIMIZE="$(CFLAGS)" LDDFLAGS="$(LDFLAGS)"
 	set -e; cd python && for v in `pyversions -vs` ; do \
-	    CFLAGS="$(CFLAGS)" python$$v setup.py build ; \
+	    CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" python$$v setup.py build; \
 	done
 
 override_dh_auto_test:
