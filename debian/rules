@@ -15,7 +15,7 @@ export REMCTL_PERL_FLAGS := INSTALLDIRS=vendor
 # The supported Python versions and the additional Python flags, picked up
 # by the upstream build system.
 export REMCTL_PYTHON_INSTALL  := --install-layout=deb
-export REMCTL_PYTHON_VERSIONS := $(shell pyversions -dv)
+export REMCTL_PYTHON_VERSIONS := $(shell pyversions -s)
 
 %:
 	dh $@ --with python2,autoreconf
