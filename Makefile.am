@@ -7,13 +7,23 @@
 # See LICENSE for licensing terms.
 
 # These variables exist only for the use of the Debian packaging and similar
-# situations and aren't normally set.  PYTHON_INSTALL adds additional flags
-# to the setup.py install command.  PYTHON_VERSION narrows the search for
-# Python build directories during make check to only those matching that
-# version.  RUBY controls which Ruby interpretor is used to do the build.
-PYTHON_INSTALL =
-PYTHON_VERSION =
-RUBY = ruby
+# situations and aren't normally set.  We want to honor them if they're set
+# in the environment, as well as via make arguments.
+#
+# REMCTL_PERL_FLAGS are additional flags to pass to Makefile.PL when
+# building the Makefile.
+#
+# REMCTL_PYTHON_INSTALL adds additional flags to the setup.py install
+# command.  REMCTL_PYTHON_VERSIONS, if set, is a space-separated list of
+# Python interpretors with which to build the Python extension.  The
+# extension will be built, tested, and installed with each one.  If not set,
+# it will only be built with python (without any version extension).
+#
+# REMCTL_RUBY controls which Ruby interpretor is used to do the build.
+REMCTL_PERL_FLAGS      ?=
+REMCTL_PYTHON_INSTALL  ?=
+REMCTL_PYTHON_VERSIONS ?= python
+REMCTL_RUBY            ?= ruby
 
 # These three lists of files are needed for Perl builds, Python builds, and
 # for the test suite and are not generated or touched by configure.  They're
@@ -34,7 +44,7 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
 	docs/api/remctl_output.pod docs/api/remctl_set_ccache.pod	    \
 	docs/api/remctl_set_source_ip.pod docs/design.html docs/extending   \
-	docs/protocol-v4 docs/protocol.txt docs/protocol.html		    \
+	docs/protocol-v3 docs/protocol.txt docs/protocol.html		    \
 	docs/protocol.xml docs/remctl.pod docs/remctld.8.in		    \
 	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
 	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
@@ -371,12 +381,13 @@ tests_util_xwrite_t_SOURCES = tests/util/fakewrite.c tests/util/xwrite.c \
 tests_util_xwrite_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 
+TEST_RPATH = $(abs_top_builddir)/client/.libs
+
 check-local: $(check_PROGRAMS)
 	cd tests && ./runtests $(abs_top_srcdir)/tests/TESTS
 	@set -e; if [ -f perl/Makefile ] ; then \
 	    echo '' ; \
-	    cd perl && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
-		$(MAKE) test ; \
+	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH) $(MAKE) test ; \
 	fi
 	@set -e; if [ -f php/Makefile ] ; then \
 	    echo '' ; \
@@ -386,14 +397,19 @@ check-local: $(check_PROGRAMS)
 	@set -e; if [ -f python/setup.py ] ; then \
 	    echo '' ; \
 	    echo 'Testing Python extension' ; \
-	    cd python && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
-		PYTHONPATH="`ls -d build/lib.*$(PYTHON_VERSION)`" \
-		python test_remctl.py ; \
+	    for python in $(REMCTL_PYTHON_VERSIONS) ; do \
+		v=`echo "$$python" | sed 's/^[^0-9]*//'` ; \
+		cd python ; \
+		LD_LIBRARY_PATH=$(TEST_RPATH) \
+		    PYTHONPATH="`ls -d build/lib.*$$v`" \
+		    "$$python" test_remctl.py ; \
+		cd .. ; \
+	    done ; \
 	fi
 	@set -e; if [ -f ruby/Makefile ] ; then \
 	    echo '' ; \
-	    cd ruby && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
-		$(RUBY) -I. test_remctl.rb ; \
+	    cd ruby && LD_LIBRARY_PATH=$(TEST_RPATH) \
+		$(REMCTL_RUBY) -I. test_remctl.rb ; \
 	fi
 
 # Used for hooking in the build of optional language bindings.
@@ -411,7 +427,7 @@ perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs $(srcdir)/perl/typemap
 	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
 	    done \
 	fi
-	cd perl && perl Makefile.PL
+	cd perl && perl Makefile.PL $(REMCTL_PERL_FLAGS)
 	cd perl && $(MAKE) OPTIMIZE="$(CFLAGS) $(PERL_WARNINGS)"
 
 install-data-local-perl: perl/Remctl.o
@@ -459,17 +475,23 @@ stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
 		cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
 	    done \
 	fi
-	cd python && CFLAGS="$(CFLAGS) $(PYTHON_WARNINGS)" \
-	    python setup.py build
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do \
+	    cd python && CFLAGS="$(CFLAGS) $(PYTHON_WARNINGS)" \
+		"$$python" setup.py build && cd .. ; \
+	done
 	touch stamp-python
 
 install-data-local-python: stamp-python
-	if [ -n "$(DESTDIR)" ] ; then \
-	    cd python && python setup.py install $(PYTHON_INSTALL) \
-		--root $(DESTDIR) ; \
-	else \
-	    cd python && python setup.py install $(PYTHON_INSTALL) ; \
-	fi
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do \
+	    cd python ; \
+	    if [ -n "$(DESTDIR)" ] ; then \
+		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) \
+		    --root $(DESTDIR) ; \
+	    else \
+		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) ; \
+	    fi ; \
+	    cd .. ; \
+	done
 
 # Build and install the Python bindings if desired.
 if BUILD_PYTHON
@@ -481,7 +503,7 @@ endif
 
 # The Ruby build system actually supports VPATH!
 ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c
-	cd ruby && $(RUBY) extconf.rb
+	cd ruby && $(REMCTL_RUBY) extconf.rb
 	cd ruby && $(MAKE) CFLAGS="$(CFLAGS) $(RUBY_WARNINGS)"
 
 install-data-local-ruby: ruby/remctl.so

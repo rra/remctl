@@ -239,6 +239,12 @@ INSTALLATION (UNIX)
   shared library migrations more difficult.  If none of the above made any
   sense to you, don't bother with this flag.
 
+  The remctl build system also supports a few other environment variables
+  that can be set to control aspects of the Perl, Python, and Ruby binding
+  build systems.  These are primarily only of use when packaging the
+  software.  For more information, a list of the variables, and their
+  effects, see the comment at the start of Makefile.am.
+
   The Java client and server aren't integrated with the regular build
   system.  For information on building and installing them, see
   java/README.
