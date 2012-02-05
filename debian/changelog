@@ -10,7 +10,8 @@ remctl (3.0-6) UNRELEASED; urgency=low
     dependencies for the client.  Remove the workaround of relinking the
     binary, which removed the hardening flags.
   * Pass the hardening flags into the Perl and Python module rebuilds.
-  * Depend on debhelper (>= 9) now that V9 is no longer experimental.
+  * Depend on debhelper (>= 9) now that V9 is no longer experimental and
+    remove now-unneeded Lintian override.
   * Remove the special additional test run for kfreebsd-amd64.  The
     problem has been located and corrected upstream.
 
