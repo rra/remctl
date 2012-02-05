@@ -7,7 +7,8 @@
 # See LICENSE for licensing terms.
 
 # These variables exist only for the use of the Debian packaging and similar
-# situations and aren't normally set.
+# situations and aren't normally set.  We want to honor them if they're set
+# in the environment, as well as via make arguments.
 #
 # PERL_FLAGS are additional flags to pass to Makefile.PL when building the
 # Makefile.
@@ -19,10 +20,10 @@
 # with python (without any version extension).
 #
 # RUBY controls which Ruby interpretor is used to do the build.
-PERL_FLAGS =
-PYTHON_INSTALL =
-PYTHON_VERSIONS = python
-RUBY = ruby
+PERL_FLAGS      ?=
+PYTHON_INSTALL  ?=
+PYTHON_VERSIONS ?= python
+RUBY            ?= ruby
 
 # These three lists of files are needed for Perl builds, Python builds, and
 # for the test suite and are not generated or touched by configure.  They're
@@ -397,11 +398,11 @@ check-local: $(check_PROGRAMS)
 	    echo '' ; \
 	    echo 'Testing Python extension' ; \
 	    for python in $(PYTHON_VERSIONS) ; do \
-		v=`echo "$$python" | sed 's/^[^0-9]*//'` \
+		v=`echo "$$python" | sed 's/^[^0-9]*//'` ; \
 		cd python && LD_LIBRARY_PATH=$(TEST_RPATH) \
 		    PYTHONPATH="`ls -d build/lib.*$$v`" \
 		    "$$python" test_remctl.py ; \
-	    done
+	    done ; \
 	fi
 	@set -e; if [ -f ruby/Makefile ] ; then \
 	    echo '' ; \
