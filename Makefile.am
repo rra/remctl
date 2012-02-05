@@ -399,9 +399,11 @@ check-local: $(check_PROGRAMS)
 	    echo 'Testing Python extension' ; \
 	    for python in $(REMCTL_PYTHON_VERSIONS) ; do \
 		v=`echo "$$python" | sed 's/^[^0-9]*//'` ; \
-		cd python && LD_LIBRARY_PATH=$(TEST_RPATH) \
+		cd python ; \
+		LD_LIBRARY_PATH=$(TEST_RPATH) \
 		    PYTHONPATH="`ls -d build/lib.*$$v`" \
 		    "$$python" test_remctl.py ; \
+		cd .. ; \
 	    done ; \
 	fi
 	@set -e; if [ -f ruby/Makefile ] ; then \
@@ -475,19 +477,20 @@ stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
 	fi
 	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do \
 	    cd python && CFLAGS="$(CFLAGS) $(PYTHON_WARNINGS)" \
-		"$$python" setup.py build ; \
+		"$$python" setup.py build && cd .. ; \
 	done
 	touch stamp-python
 
 install-data-local-python: stamp-python
 	set -e; for python in $(PYTHON_VERSIONS) ; do \
+	    cd python ; \
 	    if [ -n "$(DESTDIR)" ] ; then \
-		cd python && "$$python" setup.py install \
-		    $(REMCTL_PYTHON_INSTALL) --root $(DESTDIR) ; \
+		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) \
+		    --root $(DESTDIR) ; \
 	    else \
-		cd python && "$$python" setup.py install \
-		    $(REMCTL_PYTHON_INSTALL) ; \
+		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) ; \
 	    fi ; \
+	    cd .. ; \
 	done
 
 # Build and install the Python bindings if desired.
