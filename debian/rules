@@ -35,8 +35,6 @@ override_dh_auto_build:
 
 override_dh_auto_test:
 	dh_auto_test -- REMCTL_RUBY=ruby1.8
-	echo '=== Special test run for debugging kfreebsd-amd64 ==='
-	tests/runtests -o util/network
 
 # After installing the build for the default version of Ruby, go back and
 # rebuild for the newer version.

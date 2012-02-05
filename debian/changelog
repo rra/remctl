@@ -11,6 +11,8 @@ remctl (3.0-6) UNRELEASED; urgency=low
     binary, which removed the hardening flags.
   * Pass the hardening flags into the Perl and Python module rebuilds.
   * Depend on debhelper (>= 9) now that V9 is no longer experimental.
+  * Remove the special additional test run for kfreebsd-amd64.  The
+    problem has been located and corrected upstream.
 
  -- Russ Allbery <rra@debian.org>  Sat, 04 Feb 2012 18:31:46 -0800
 
