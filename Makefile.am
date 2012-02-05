@@ -482,7 +482,7 @@ stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
 	touch stamp-python
 
 install-data-local-python: stamp-python
-	set -e; for python in $(PYTHON_VERSIONS) ; do \
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do \
 	    cd python ; \
 	    if [ -n "$(DESTDIR)" ] ; then \
 		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) \
