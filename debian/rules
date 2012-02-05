@@ -1,7 +1,8 @@
 #!/usr/bin/make -f
 
-# Add hardening build flags.
-export DEB_BUILD_MAINT_OPTIONS = hardening=+bindnow,+pie
+# Add hardening build flags.  We have to omit PIE because it breaks the Perl
+# module build (and probably the other interpretors as well).
+export DEB_BUILD_MAINT_OPTIONS = hardening=+bindnow
 
 # Link with --as-needed so that the remctl client library doesn't inherit
 # the shared library dependencies of libremctl.
