@@ -10,12 +10,12 @@ export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
 # The additional flags to pass to Makefile.PL, picked up by the upstream
 # build system.
-export PERL_FLAGS := INSTALLDIRS=vendor
+export REMCTL_PERL_FLAGS := INSTALLDIRS=vendor
 
 # The supported Python versions and the additional Python flags, picked up
 # by the upstream build system.
-export PYTHON_INSTALL  := --install-layout=deb
-export PYTHON_VERSIONS := $(shell pyversions -dv)
+export REMCTL_PYTHON_INSTALL  := --install-layout=deb
+export REMCTL_PYTHON_VERSIONS := $(shell pyversions -dv)
 
 %:
 	dh $@ --with python2,autoreconf
@@ -31,10 +31,10 @@ override_dh_auto_configure:
 # For the first pass, build the Ruby 1.8 extension.  We'll go back and build
 # the extension for 1.9.1.
 override_dh_auto_build:
-	dh_auto_build -- RUBY=ruby1.8
+	dh_auto_build -- REMCTL_RUBY=ruby1.8
 
 override_dh_auto_test:
-	dh_auto_test -- RUBY=ruby1.8
+	dh_auto_test -- REMCTL_RUBY=ruby1.8
 	echo '=== Special test run for debugging kfreebsd-amd64 ==='
 	tests/runtests -o util/network
 
@@ -43,7 +43,7 @@ override_dh_auto_test:
 override_dh_auto_install:
 	dh_auto_install -- RUBYARCHDIR='$$(archdir)$$(target_prefix)'
 	cd ruby && $(MAKE) distclean
-	dh_auto_build -- RUBY=ruby1.9.1
+	dh_auto_build -- REMCTL_RUBY=ruby1.9.1
 	cd ruby && $(MAKE) install DESTDIR='$(CURDIR)/debian/tmp' \
 	    RUBYARCHDIR='$$(archdir)$$(target_prefix)'
 
