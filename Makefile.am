@@ -425,7 +425,7 @@ perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs $(srcdir)/perl/typemap
 	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
 	    done \
 	fi
-	cd perl && perl $(REMCTL_PERL_FLAGS) Makefile.PL
+	cd perl && perl Makefile.PL $(REMCTL_PERL_FLAGS)
 	cd perl && $(MAKE) OPTIMIZE="$(CFLAGS) $(PERL_WARNINGS)"
 
 install-data-local-perl: perl/Remctl.o
