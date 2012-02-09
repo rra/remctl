@@ -7,7 +7,7 @@
 #
 # Written by Russ Allbery <rra@stanford.edu>
 # Copyright 2000, 2001, 2006 Russ Allbery <rra@stanford.edu>
-# Copyright 2008, 2009, 2010
+# Copyright 2008, 2009, 2010, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -41,18 +41,16 @@ ok_xmalloc () {
     shift
     w_output="$1"
     shift
-    output=`./xmalloc "$@" 2>&1`
+    output=`strip_colon_error ./xmalloc "$@" 2>&1`
     status=$?
-    if [ "$w_status" -ne 0 ] ; then
-        output=`echo "$output" | sed 's/:.*//'`
-    fi
     if [ $status = $w_status ] && [ x"$output" = x"$w_output" ] ; then
         ok "$desc" true
     elif [ $status = 2 ] ; then
+        diag "$output"
         skip "no data limit support"
     else
-        echo "#  saw: ($status) $output"
-        echo "#  not: ($w_status) $w_output"
+        diag "saw: ($status) $output"
+        diag "not: ($w_status) $w_output"
         ok "$desc" false
     fi
 }

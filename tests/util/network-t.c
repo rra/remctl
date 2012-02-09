@@ -410,7 +410,7 @@ test_timeout_ipv4(void)
         _exit(0);
     } else {
         socket_type block[20];
-        int i;
+        int i, err;
 
         close(fd);
         c = network_connect_host("127.0.0.1", 11119, NULL, 1);
@@ -427,14 +427,22 @@ test_timeout_ipv4(void)
             if (block[i] == INVALID_SOCKET)
                 break;
         }
-        diag("Finally timed out on socket %d", i);
-        ok(block[i] == INVALID_SOCKET, "Timeout: later connection timed out");
-        is_int(ETIMEDOUT, socket_errno, "...with correct error");
+        err = socket_errno;
+        if (i == ARRAY_SIZE(block))
+            skip_block(2, "short listen queue does not prevent connections");
+        else {
+            diag("Finally timed out on socket %d", i);
+            ok(block[i] == INVALID_SOCKET, "Later connection timed out");
+            if (err == ECONNRESET)
+                skip("connections rejected without timeout");
+            else
+                is_int(ETIMEDOUT, err, "...with correct error code");
+        }
         alarm(0);
         kill(child, SIGTERM);
         waitpid(child, NULL, 0);
         close(c);
-        for (; i >= 0; i--)
+        for (i--; i >= 0; i--)
             if (block[i] != INVALID_SOCKET)
                 close(block[i]);
     }

@@ -98,7 +98,8 @@ main(void)
         status = read(data, buffer, sizeof(buffer));
         is_int(-1, status, "got -1 from non-blocking read");
         is_int(EAGAIN, errno, "...with EAGAIN errno");
-        write(data, buffer, sizeof(buffer));
+        if (write(data, buffer, sizeof(buffer)) < (ssize_t) sizeof(buffer))
+            sysbail("write failed");
         close(data);
         testnum += 2;
     } else {
@@ -107,7 +108,8 @@ main(void)
             sysbail("child socket failed");
         if (connect(data, (struct sockaddr *) &sin, sizeof(sin)) < 0)
             sysbail("child connect failed");
-        read(data, buffer, sizeof(buffer));
+        if (read(data, buffer, sizeof(buffer)) < (ssize_t) sizeof(buffer))
+            sysbail("read failed");
         fclose(stderr);
         execlp("sh", "sh", "-c",
                "printf 'not ' >&8; echo ok 7; echo 'ok 8' >&9", (char *) 0);

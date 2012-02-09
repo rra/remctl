@@ -41,6 +41,7 @@
 
 #include <tests/tap/basic.h>
 #include <tests/tap/process.h>
+#include <tests/tap/string.h>
 
 
 /*
@@ -128,8 +129,7 @@ is_function_output(test_function_type function, void *data, int status,
 
     /* Now, check the results against what we expected. */
     va_start(args, format);
-    if (vasprintf(&msg, format, args) < 0)
-        bail("cannot format test description");
+    bvasprintf(&msg, format, args);
     va_end(args);
     ok(WIFEXITED(rval), "%s (exited)", msg);
     is_int(status, WEXITSTATUS(rval), "%s (status)", msg);
@@ -172,4 +172,5 @@ run_setup(const char *const argv[])
             *p = '\0';
         bail("%s", output);
     }
+    free(output);
 }

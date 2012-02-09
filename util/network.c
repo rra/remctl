@@ -445,11 +445,15 @@ network_connect(struct addrinfo *ai, const char *source, time_t timeout)
                 } else if (status > 0 && FD_ISSET(fd, &set)) {
                     len = sizeof(err);
                     status = getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
-                    if (status == 0)
-                        status = err;
+                    if (status == 0) {
+                        status = (err == 0) ? 0 : -1;
+                        socket_set_errno(err);
+                    }
                 }
             }
+            oerrno = socket_errno;
             fdflag_nonblocking(fd, false);
+            socket_set_errno(oerrno);
         }
     }
     if (status == 0)

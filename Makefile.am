@@ -263,7 +263,8 @@ tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests
 tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 	tests/tap/kerberos.h tests/tap/kinit.c tests/tap/messages.c	\
 	tests/tap/messages.h tests/tap/process.c tests/tap/process.h	\
-	tests/tap/remctl.c tests/tap/remctl.h
+	tests/tap/remctl.c tests/tap/remctl.h tests/tap/string.c	\
+	tests/tap/string.h
 
 # Used for server tests.
 SERVER_FILES = server/commands.c server/config.c server/generic.c \

@@ -5,7 +5,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Copyright 2000, 2001, 2006 Russ Allbery <rra@stanford.edu>
- * Copyright 2008
+ * Copyright 2008, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -321,8 +321,8 @@ main(int argc, char *argv[])
         if (size < limit || code == 'r') {
             tmp = malloc(code == 'r' ? 10 : size);
             if (tmp == NULL) {
-                syswarn("Can't allocate initial memory of %lu",
-                        (unsigned long) size);
+                syswarn("Can't allocate initial memory of %lu (limit %lu)",
+                        (unsigned long) size, (unsigned long) limit);
                 exit(2);
             }
             free(tmp);

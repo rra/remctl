@@ -1,5 +1,21 @@
                        User-Visible remctl Changes
 
+remctl 3.1 (unreleased)
+
+    Update to rra-c-util 4.2:
+
+    * Fix error reporting for non-blocking connect.
+    * Fix network test when short listen queues don't cause timeout.
+    * Handle DNS failure in the getaddrinfo test suite.
+    * Ensure config.h is included for portable/stdbool.h.
+    * Fix compiler warnings when built with -D_FORTIFY_SOURCE=2.
+    * Add test wrappers around asprintf and vasprintf.
+
+    Update to C TAP Harness 1.9:
+
+    * Add test_tmpdir and test_tmpdir_free to TAP library.
+    * runtests now frees all allocated resources on exit.
+
 remctl 3.0 (2011-10-31)
 
     New protocol version 3, which introduces a new NOOP message.  When the
