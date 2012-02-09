@@ -13,6 +13,7 @@
 /m4/lt~obsolete.m4
 /perl/Makefile.PL
 /perl/Makefile.old
+/perl/MYMETA.yml
 /perl/Remctl.bs
 /perl/Remctl.c
 /perl/Remctl.pm
