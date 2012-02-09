@@ -49,9 +49,11 @@ main(int argc, char *argv[])
         status = read(0, buffer + status, 1024 * 1024 - status);
         if (status != 0)
             die("didn't get EOF");
-        write(1, buffer, left);
+        if (write(1, buffer, left) < (ssize_t) left)
+            sysdie("write failed");
     } else if (strcmp(argv[2], "write") == 0) {
-        write(1, "Okay", strlen("Okay"));
+        if (write(1, "Okay", strlen("Okay")) < (ssize_t) strlen("Okay"))
+            sysdie("write failed");
         status = read(0, buffer, 1024 * 1024);
         if (status <= 0)
             sysdie("read failed");
@@ -59,10 +61,12 @@ main(int argc, char *argv[])
         if (status != 0)
             die("didn't get EOF");
     } else if (strcmp(argv[2], "exit") == 0) {
-        write(1, "Okay", strlen("Okay"));
+        if (write(1, "Okay", strlen("Okay")) < (ssize_t) strlen("Okay"))
+            sysdie("write failed");
     } else if (strcmp(argv[2], "close") == 0) {
         close(0);
-        write(1, "Okay", strlen("Okay"));
+        if (write(1, "Okay", strlen("Okay")) < (ssize_t) strlen("Okay"))
+            sysdie("write failed");
     } else if (strcmp(argv[2], "nuls") == 0) {
         status = read(0, buffer, 1024 * 1024);
         if (status <= 0)
@@ -73,7 +77,8 @@ main(int argc, char *argv[])
             die("didn't get EOF");
         if (left != 8 || memcmp(buffer, "T\0e\0s\0t\0", 8) != 0)
             die("got incorrect data");
-        write(1, "Okay", strlen("Okay"));
+        if (write(1, "Okay", strlen("Okay")) < (ssize_t) strlen("Okay"))
+            sysdie("write failed");
     } else if (strcmp(argv[2], "large") == 0) {
         left = 1024 * 1024;
         status = 1;
@@ -89,7 +94,8 @@ main(int argc, char *argv[])
         for (i = 0; i < 1024 * 1024; i++)
             if (buffer[i] != 'A')
                 die("invalid character in input");
-        write(1, "Okay", strlen("Okay"));
+        if (write(1, "Okay", strlen("Okay")) < (ssize_t) strlen("Okay"))
+            sysdie("write failed");
     } else if (strcmp(argv[2], "delay") == 0) {
         left = 1024 * 1024;
         status = 1;
@@ -108,7 +114,8 @@ main(int argc, char *argv[])
         for (i = 0; i < 1024 * 1024; i++)
             if (buffer[i] != 'A')
                 die("invalid character in input");
-        write(1, "Okay", strlen("Okay"));
+        if (write(1, "Okay", strlen("Okay")) < (ssize_t) strlen("Okay"))
+            sysdie("write failed");
     }
     return 0;
 }

@@ -480,7 +480,8 @@ main(int argc, char *argv[])
 
     /* Daemonize if told to do so. */
     if (options.standalone && !options.foreground)
-        daemon(0, options.log_stdout);
+        if (daemon(0, options.log_stdout) != 0)
+            sysdie("cannot daemonize");
 
     /*
      * Set up syslog unless stdout/stderr was requested.  Set up debug logging
