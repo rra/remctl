@@ -1,11 +1,17 @@
 /*
- * Utility functions for tests that use Kerberos.
+ * Utility functions for tests that use Kerberos, without Kerberos libraries.
+ *
+ * This is the alternate version of kerberos.c and kerberos.h that does not
+ * rely on Kerberos libraries or a development environment being installed.
+ * Everything is done via executing the Kerberos client binaries.  Because of
+ * this, we can only offer a fraction of the interface and need a separate
+ * header since we can't use Kerberos data types.
  *
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2011
+ * Copyright 2006, 2007, 2009, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -27,8 +33,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TAP_KERBEROS_H
-#define TAP_KERBEROS_H 1
+#ifndef TAP_KINIT_H
+#define TAP_KINIT_H 1
 
 #include <config.h>
 #include <portable/macros.h>
@@ -36,9 +42,11 @@
 BEGIN_DECLS
 
 /*
- * Set up Kerberos, returning the test principal.  If there is no principal in
- * tests/data/test.principal or no keytab in tests/data/test.keytab, return
- * NULL.  Otherwise, on failure, calls bail().
+ * Set up Kerberos, returning the test principal.  This obtains Kerberos
+ * tickets from a keytab and stores them in a Kerberos ticket cache, sets
+ * KRB5_KTNAME and KRB5CCNAME, and returns the Kerberos principal to use for
+ * testing.  If there is no principal in tests/config/principal or no keytab
+ * in tests/config/keytab, return NULL.  Otherwise, on failure, calls bail().
  *
  * kerberos_cleanup will be set up to run from an atexit() handler.  This
  * means that any child processes that should not remove the Kerberos ticket

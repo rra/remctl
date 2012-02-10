@@ -1,7 +1,7 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2008, 2009, 2010, 2011
+# Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -54,7 +54,7 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java portable/winsock.c remctl.spec ruby/README		    \
 	ruby/remctl.c tests/HOWTO tests/TESTS tests/client/remctl-t	    \
-	tests/data/README tests/data/acl-bad-include			    \
+	tests/config/README tests/data/acl-bad-include			    \
 	tests/data/acl-bad-syntax tests/data/acl-nonexistant		    \
 	tests/data/acl-recursive tests/data/acl-simple			    \
 	tests/data/acl-too-long tests/data/acl-valid-3			    \
@@ -264,7 +264,7 @@ tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
 tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests
 tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
-	tests/tap/kerberos.h tests/tap/kinit.c tests/tap/messages.c	\
+	tests/tap/kinit.c tests/tap/kinit.h tests/tap/messages.c	\
 	tests/tap/messages.h tests/tap/process.c tests/tap/process.h	\
 	tests/tap/remctl.c tests/tap/remctl.h tests/tap/string.c	\
 	tests/tap/string.h

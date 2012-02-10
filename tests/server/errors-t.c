@@ -17,7 +17,7 @@
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
-#include <tests/tap/kerberos.h>
+#include <tests/tap/kinit.h>
 #include <tests/tap/remctl.h>
 #include <util/concat.h>
 #include <util/messages.h>

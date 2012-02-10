@@ -170,4 +170,6 @@ AS_IF([test x"$build_ruby" = xyes],
     [AC_CONFIG_FILES([ruby/extconf.rb ruby/test_remctl.rb])])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_COMMANDS([docs], [test -d docs || mkdir docs])
+AC_CONFIG_COMMANDS([tests/config],
+    [test -d tests/config || mkdir tests/config])
 AC_OUTPUT

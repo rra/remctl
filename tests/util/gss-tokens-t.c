@@ -13,7 +13,7 @@
 #include <portable/gssapi.h>
 
 #include <tests/tap/basic.h>
-#include <tests/tap/kerberos.h>
+#include <tests/tap/kinit.h>
 #include <util/gss-tokens.h>
 
 extern char send_buffer[2048];

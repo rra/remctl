@@ -16,7 +16,7 @@ def needs_kerberos(func):
     Ignores failures in the annotated test method.
     """
     def wrapper(*args, **kw):
-        if not os.path.isfile('data/test.principal'):
+        if not os.path.isfile('config/principal'):
             return True
         else:
             return func(*args, **kw)
@@ -26,7 +26,7 @@ def needs_kerberos(func):
 
 class TestRemctl(unittest.TestCase):
     def get_principal(self):
-        file = open('data/test.principal', 'r')
+        file = open('config/principal', 'r')
         principal = file.read().rstrip()
         file.close()
         return principal
@@ -34,27 +34,28 @@ class TestRemctl(unittest.TestCase):
     @needs_kerberos
     def start_remctld(self):
         try:
-            os.remove('data/pid')
+            os.mkdir('tmp')
+            os.remove('tmp/pid')
         except OSError, (error, strerror):
-            if error != errno.ENOENT:
+            if error != errno.ENOENT and error != errno.EEXIST:
                 raise
         principal = self.get_principal()
         child = os.fork()
         if child == 0:
-            output = open('data/test.output', 'w')
+            output = open('tmp/output', 'w')
             os.dup2(output.fileno(), 1)
             os.dup2(output.fileno(), 2)
             os.chdir('@abs_top_srcdir@/tests')
             os.execl('@abs_top_builddir@/server/remctld', 'remctld', '-m',
                      '-p', '14373', '-s', principal, '-f', 'data/conf-simple',
-                     '-P', '@abs_top_builddir@/tests/data/pid', '-d', '-S',
-                     '-F', '-k', '@abs_top_builddir@/tests/data/test.keytab')
-        if not os.path.isfile('data/pid'):
+                     '-P', '@abs_top_builddir@/tests/tmp/pid', '-d', '-S',
+                     '-F', '-k', '@abs_top_builddir@/tests/config/keytab')
+        if not os.path.isfile('tmp/pid'):
             time.sleep(1)
 
     def stop_remctld(self):
         try:
-            file = open('data/pid', 'r')
+            file = open('tmp/pid', 'r')
             pid = file.read().rstrip()
             file.close()
             os.kill(int(pid), signal.SIGTERM)
@@ -65,17 +66,17 @@ class TestRemctl(unittest.TestCase):
 
     @needs_kerberos
     def run_kinit(self):
-        os.environ['KRB5CCNAME'] = 'data/test.cache'
+        os.environ['KRB5CCNAME'] = 'tmp/krb5cc_test'
         self.principal = self.get_principal()
         commands = (
-            'kinit --no-afslog -k -t data/test.keytab ' + self.principal,
-            'kinit -k -t data/test.keytab ' + self.principal,
-            'kinit -t data/test.keytab ' + self.principal,
-            'kinit -k -K data/test.keytab ' + self.principal)
+            'kinit --no-afslog -k -t config/keytab ' + self.principal,
+            'kinit -k -t config/keytab ' + self.principal,
+            'kinit -t config/keytab ' + self.principal,
+            'kinit -k -K config/keytab ' + self.principal)
         for command in commands:
             if os.system(command + ' >/dev/null </dev/null') == 0:
                 return True
-        if not os.path.isfile('data/pid'):
+        if not os.path.isfile('tmp/pid'):
             time.sleep(1)
         stop_remctld()
         return False
@@ -88,9 +89,9 @@ class TestRemctl(unittest.TestCase):
     @needs_kerberos
     def tearDown(self):
         self.stop_remctld()
-        os.remove('data/test.output')
+        os.remove('tmp/output')
         try:
-            os.remove('data/test.cache')
+            os.remove('tmp/krb5cc_test')
         except OSError, (error, strerror):
             if error != errno.ENOENT:
                 raise
@@ -192,7 +193,7 @@ class TestRemctlFull(TestRemctl):
             pass
         okay = False
         try:
-            r.set_ccache('data/test.cache')
+            r.set_ccache('tmp/krb5cc_test')
             okay = True
         except remctl.RemctlError, error:
             pass

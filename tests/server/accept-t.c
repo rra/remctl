@@ -17,7 +17,7 @@
 
 #include <server/internal.h>
 #include <tests/tap/basic.h>
-#include <tests/tap/kerberos.h>
+#include <tests/tap/kinit.h>
 #include <util/messages.h>
 #include <util/tokens.h>
 

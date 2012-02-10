@@ -16,7 +16,7 @@ use Net::Remctl;
 
 # Returns the principal to use for authentication.
 sub get_principal {
-    open (PRINC, 'data/test.principal') or return;
+    open (PRINC, 'config/principal') or return;
     my $princ = <PRINC>;
     close PRINC;
     chomp $princ;
@@ -25,7 +25,8 @@ sub get_principal {
 
 # Do the bizarre dance to start a test version of remctld.
 sub start_remctld {
-    unlink ('data/pid');
+    unlink ('tmp/pid');
+    mkdir 'tmp';
     my $princ = get_principal;
     my $pid = fork;
     if (not defined $pid) {
@@ -35,34 +36,34 @@ sub start_remctld {
             or die "can't chdir to @abs_top_srcdir@: $!\n";
         exec ('@abs_top_builddir@/server/remctld', '-m', '-p', '14373',
               (defined ($princ) ? ('-s', $princ) : ()),
-              '-P', '@abs_top_builddir@/tests/data/pid',
+              '-P', '@abs_top_builddir@/tests/tmp/pid',
               '-f', 'data/conf-simple',
               '-d', '-S', '-F', '-k',
-              '@abs_top_builddir@/tests/data/test.keytab')
+              '@abs_top_builddir@/tests/config/keytab')
             or die "cannot exec @abs_top_builddir@/server/remctld: $!\n";
     }
 }
 
 # Stop the running test remctld.
 sub stop_remctld {
-    if (open (PID, 'data/pid')) {
+    if (open (PID, 'tmp/pid')) {
         my $pid = <PID>;
         chomp $pid;
         kill (15, $pid);
-        unlink ('data/pid');
+        unlink ('tmp/pid');
     }
 }
 
 # Obtain tickets, which requires iterating through several different possible
 # ways of running kinit.
 sub run_kinit {
-    $ENV{KRB5CCNAME} = 'data/test.cache';
+    $ENV{KRB5CCNAME} = 'tmp/krb5cc_test';
     my $princ = get_principal;
     return unless $princ;
-    my @commands = ([ qw(kinit --no-afslog -k -t data/test.keytab), $princ ],
-                    [ qw(kinit -k -t data/test.keytab), $princ ],
-                    [ qw(kinit -t data/test.keytab), $princ ],
-                    [ qw(kinit -k -K data/test.keytab), $princ ]);
+    my @commands = ([ qw(kinit --no-afslog -k -t config/keytab), $princ ],
+                    [ qw(kinit -k -t config/keytab), $princ ],
+                    [ qw(kinit -t config/keytab), $princ ],
+                    [ qw(kinit -k -K config/keytab), $princ ]);
     my $status;
     for (@commands) {
         $status = system "@$_ > /dev/null < /dev/null";
@@ -71,7 +72,7 @@ sub run_kinit {
         }
     }
     warn "Unable to obtain Kerberos tickets\n";
-    unless (-f 'data/pid') {
+    unless (-f 'tmp/pid') {
         sleep 1;
     }
     stop_remctld;
@@ -80,7 +81,7 @@ sub run_kinit {
 
 # Test setup.
 chdir '@abs_top_builddir@/tests';
-my $okay = (-f 'data/test.principal' && -f 'data/test.keytab');
+my $okay = (-f 'config/principal' && -f 'config/keytab');
 if ($okay) {
     start_remctld;
     $okay = run_kinit;
@@ -88,8 +89,8 @@ if ($okay) {
 SKIP: {
     skip "no Kerberos configuration", $total unless $okay;
 
-    sleep 1 unless -f 'data/pid';
-    die "remctld did not start" unless -f 'data/pid';
+    sleep 1 unless -f 'tmp/pid';
+    die "remctld did not start" unless -f 'tmp/pid';
 
     # Now we can finally run our tests.  Basic interface, success.
     my $principal = get_principal;

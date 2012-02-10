@@ -15,7 +15,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010, 2011
+ * Copyright 2006, 2007, 2009, 2010, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -41,9 +41,8 @@
 #include <portable/system.h>
 
 #include <tests/tap/basic.h>
-#include <tests/tap/kerberos.h>
-#include <util/concat.h>
-#include <util/xmalloc.h>
+#include <tests/tap/kinit.h>
+#include <tests/tap/string.h>
 
 /*
  * Disable the requirement that format strings be literals, since it's easier
@@ -61,6 +60,7 @@
 static char *principal = NULL;
 static char *krb5ccname = NULL;
 static char *krb5_ktname = NULL;
+static char *tmpdir_ticket = NULL;
 
 
 /*
@@ -73,9 +73,13 @@ kerberos_cleanup(void)
 {
     char *path;
 
-    path = concatpath(getenv("BUILD"), "data/test.cache");
-    unlink(path);
-    free(path);
+    if (tmpdir_ticket != NULL) {
+        basprintf(&path, "%s/krb5cc_test", tmpdir_ticket);
+        unlink(path);
+        free(path);
+        test_tmpdir_free(tmpdir_ticket);
+        tmpdir_ticket = NULL;
+    }
     if (principal != NULL) {
         free(principal);
         principal = NULL;
@@ -94,11 +98,11 @@ kerberos_cleanup(void)
 
 
 /*
- * Obtain Kerberos tickets for the principal specified in test.principal using
- * the keytab specified in test.keytab, both of which are presumed to be in
- * tests/data in either the build or the source tree.
+ * Obtain Kerberos tickets for the principal specified in principal using the
+ * keytab specified in keytab, both of which are presumed to be in tests/config
+ * in either the build or the source tree.
  *
- * Returns the contents of test.principal in newly allocated memory or NULL if
+ * Returns the contents of principal in newly allocated memory or NULL if
  * Kerberos tests are apparently not configured.  If Kerberos tests are
  * configured but something else fails, calls bail().
  */
@@ -113,13 +117,12 @@ kerberos_setup(void)
     };
     FILE *file;
     char *path;
-    const char *build;
     char buffer[BUFSIZ], *command;
-    size_t length, i;
+    size_t i;
     int status;
 
     /* Read the principal name and find the keytab file. */
-    path = test_file_path("data/test.principal");
+    path = test_file_path("config/principal");
     if (path == NULL)
         return NULL;
     file = fopen(path, "r");
@@ -136,24 +139,20 @@ kerberos_setup(void)
         bail("no newline in %s", path);
     test_file_path_free(path);
     buffer[strlen(buffer) - 1] = '\0';
-    path = test_file_path("data/test.keytab");
+    path = test_file_path("config/keytab");
     if (path == NULL)
         return NULL;
 
     /* Set the KRB5CCNAME and KRB5_KTNAME environment variables. */
-    build = getenv("BUILD");
-    if (build == NULL)
-        build = ".";
-    krb5ccname = concat("KRB5CCNAME=", build, "/data/test.cache", (char *) 0);
-    krb5_ktname = concat("KRB5_KTNAME=", path, (char *) 0);
+    tmpdir_ticket = test_tmpdir();
+    basprintf(&krb5ccname, "KRB5CCNAME=%s/krb5cc_test", tmpdir_ticket);
+    basprintf(&krb5_ktname, "KRB5_KTNAME=%s", path);
     putenv(krb5ccname);
     putenv(krb5_ktname);
 
     /* Now do the Kerberos initialization. */
     for (i = 0; i < ARRAY_SIZE(format); i++) {
-        length = strlen(format[i]) + strlen(path) + strlen(buffer);
-        command = xmalloc(length);
-        snprintf(command, length, format[i], path, buffer);
+        basprintf(&command, format[i], path, buffer);
         status = system(command);
         free(command);
         if (status != -1 && WEXITSTATUS(status) == 0)
