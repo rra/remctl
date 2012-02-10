@@ -2,7 +2,7 @@
  * Test suite for malformed commands.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2009, 2010
+ * Copyright 2007, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -17,7 +17,7 @@
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
-#include <tests/tap/kinit.h>
+#include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
 #include <util/concat.h>
 #include <util/gss-tokens.h>
@@ -29,8 +29,8 @@
  * returns the specified error code and string.
  */
 static void
-test_bad_token(const char *principal, const char *data, size_t length,
-               enum error_codes code, const char *message,
+test_bad_token(const struct kerberos_config *krbconf, const char *data,
+               size_t length, enum error_codes code, const char *message,
                const char *description)
 {
     struct remctl *r;
@@ -45,7 +45,8 @@ test_bad_token(const char *principal, const char *data, size_t length,
      */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
+    ok(remctl_open(r, "localhost", 14373, krbconf->keytab_principal),
+       "remctl_open");
     token.value = (void *) data;
     token.length = length;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
@@ -80,8 +81,8 @@ test_bad_token(const char *principal, const char *data, size_t length,
  * returns a bad command error token.  Returns the next test number.
  */
 static void
-test_bad_command(const char *principal, const char *data, size_t length,
-                 const char *description)
+test_bad_command(const struct kerberos_config *krbconf, const char *data,
+                 size_t length, const char *description)
 {
     char buffer[BUFSIZ];
     size_t buflen;
@@ -90,7 +91,7 @@ test_bad_command(const char *principal, const char *data, size_t length,
     memcpy(buffer, prefix, sizeof(prefix));
     memcpy(buffer + sizeof(prefix), data, length);
     buflen = sizeof(prefix) + length;
-    return test_bad_token(principal, buffer, buflen, ERROR_BAD_COMMAND,
+    return test_bad_token(krbconf, buffer, buflen, ERROR_BAD_COMMAND,
                           "Invalid command token", description);
 }
 
@@ -98,7 +99,7 @@ test_bad_command(const char *principal, const char *data, size_t length,
 int
 main(void)
 {
-    const char *principal;
+    struct kerberos_config *krbconf;
     char *config, *path;
     pid_t remctld;
     static const char token_message[] = {
@@ -159,41 +160,41 @@ main(void)
     /* Unless we have Kerberos available, we can't really do anything. */
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
-    principal = kerberos_setup();
-    if (principal == NULL)
+    krbconf = kerberos_setup();
+    if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(11 * 8);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
+    remctld = remctld_start(path, krbconf, config, NULL);
 
     /* Test basic token errors. */
-    test_bad_token(principal, token_message, sizeof(token_message),
+    test_bad_token(krbconf, token_message, sizeof(token_message),
                    ERROR_UNKNOWN_MESSAGE, "Unknown message",
                    "unknown message");
-    test_bad_token(principal, token_continue, sizeof(token_continue),
+    test_bad_token(krbconf, token_continue, sizeof(token_continue),
                    ERROR_BAD_COMMAND, "Invalid command token",
                    "bad command token");
-    test_bad_token(principal, token_argv0, sizeof(token_argv0),
+    test_bad_token(krbconf, token_argv0, sizeof(token_argv0),
                    ERROR_UNKNOWN_COMMAND, "Unknown command",
                    "empty command");
 
     /* Test a bunch of malformatted commands. */
-    test_bad_command(principal, data_trunc, sizeof(data_trunc),
+    test_bad_command(krbconf, data_trunc, sizeof(data_trunc),
                      "truncated command");
-    test_bad_command(principal, data_trunc_arg, sizeof(data_trunc_arg),
+    test_bad_command(krbconf, data_trunc_arg, sizeof(data_trunc_arg),
                      "truncated argument");
-    test_bad_command(principal, data_short, sizeof(data_short),
+    test_bad_command(krbconf, data_short, sizeof(data_short),
                      "missing argument");
-    test_bad_command(principal, data_long, sizeof(data_long),
+    test_bad_command(krbconf, data_long, sizeof(data_long),
                      "extra argument");
-    test_bad_command(principal, data_extra, sizeof(data_extra),
+    test_bad_command(krbconf, data_extra, sizeof(data_extra),
                      "extra trailing garbage");
-    test_bad_command(principal, data_nul_command, sizeof(data_nul_command),
+    test_bad_command(krbconf, data_nul_command, sizeof(data_nul_command),
                      "nul in command");
-    test_bad_command(principal, data_nul_sub, sizeof(data_nul_sub),
+    test_bad_command(krbconf, data_nul_sub, sizeof(data_nul_sub),
                      "nul in subcommand");
-    test_bad_command(principal, data_nul_argument, sizeof(data_nul_argument),
+    test_bad_command(krbconf, data_nul_argument, sizeof(data_nul_argument),
                      "nul in argument");
 
     remctld_stop(remctld);

@@ -2,7 +2,7 @@
  * Test suite for over-large commands.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2009, 2010
+ * Copyright 2007, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -21,7 +21,7 @@
 
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
-#include <tests/tap/kinit.h>
+#include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
 #include <util/concat.h>
 #include <util/protocol.h>
@@ -31,7 +31,7 @@
 int
 main(void)
 {
-    const char *principal;
+    struct kerberos_config *krbconf;
     char *config, *path;
     pid_t remctld;
     struct remctl *r;
@@ -40,13 +40,13 @@ main(void)
 
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
-    principal = kerberos_setup();
-    if (principal == NULL)
+    krbconf = kerberos_setup();
+    if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(6);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
+    remctld = remctld_start(path, krbconf, config, NULL);
 
     command[0].iov_len = strlen("test");
     command[0].iov_base = (char *) "test";
@@ -68,7 +68,8 @@ main(void)
 
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
+    ok(remctl_open(r, "localhost", 14373, krbconf->keytab_principal),
+       "remctl_open");
     ok(remctl_commandv(r, command, 7), "sending extra large command");
     output = remctl_output(r);
     printf("\n");

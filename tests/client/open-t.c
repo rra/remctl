@@ -23,7 +23,7 @@
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
-#include <tests/tap/kinit.h>
+#include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
 #include <util/messages.h>
 #include <util/tokens.h>
@@ -110,7 +110,7 @@ accept_connection(int protocol)
 int
 main(void)
 {
-    const char *principal;
+    struct kerberos_config *krbconf;
     char *p;
     const char *error;
     struct remctl *r;
@@ -144,8 +144,8 @@ main(void)
     remctl_close(r);
 
     /* Unless we have Kerberos available, we can't really do anything else. */
-    principal = kerberos_setup();
-    if (principal == NULL) {
+    krbconf = kerberos_setup();
+    if (krbconf->keytab_principal == NULL) {
         skip_block(5 * 3, "Kerberos tests not configured");
         return 0;
     }
@@ -170,7 +170,7 @@ main(void)
             select(0, NULL, NULL, NULL, &tv);
         }
         alarm(0);
-        if (!remctl_open(r, "127.0.0.1", 14373, principal)) {
+        if (!remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal)) {
             notice("# open error: %s", remctl_error(r));
             ok_block(5, 0, "protocol %d", protocol);
         } else {
@@ -179,7 +179,8 @@ main(void)
                    "negotiated correct protocol");
             is_string(r->host, "127.0.0.1", "host is correct");
             is_int(r->port, 14373, "port is correct");
-            is_string(r->principal, principal, "principal is correct");
+            is_string(r->principal, krbconf->keytab_principal,
+                      "principal is correct");
         }
         remctl_close(r);
         waitpid(child, NULL, 0);

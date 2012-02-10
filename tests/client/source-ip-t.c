@@ -2,7 +2,7 @@
  * Test suite for setting a source IP for the client.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2011
+ * Copyright 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -13,7 +13,7 @@
 
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
-#include <tests/tap/kinit.h>
+#include <tests/tap/kerberos.h>
 #include <tests/tap/messages.h>
 #include <tests/tap/remctl.h>
 #include <util/concat.h>
@@ -23,7 +23,7 @@
 int
 main(void)
 {
-    const char *principal;
+    struct kerberos_config *krbconf;
     char *config, *path;
     const char *err;
     pid_t remctld;
@@ -33,19 +33,19 @@ main(void)
 
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
-    principal = kerberos_setup();
-    if (principal == NULL)
+    krbconf = kerberos_setup();
+    if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(10);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
+    remctld = remctld_start(path, krbconf, config, NULL);
 
     /* Successful connection to 127.0.0.1. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
     ok(remctl_set_source_ip(r, "127.0.0.1"), "remctl_set_source_ip");
-    ok(remctl_open(r, "127.0.0.1", 14373, principal),
+    ok(remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal),
        "remctl_open to 127.0.0.1");
     ok(remctl_command(r, command), "remctl_command");
     output = remctl_output(r);
@@ -60,7 +60,8 @@ main(void)
     }
 
     /* Failed connection to ::1. */
-    ok(!remctl_open(r, "::1", 14373, principal), "remctl_open to ::1");
+    ok(!remctl_open(r, "::1", 14373, krbconf->keytab_principal),
+       "remctl_open to ::1");
     err = remctl_error(r);
     diag("error: %s", err);
     ok(((strncmp("cannot connect to ::1 (port 14373): ", err,

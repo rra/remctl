@@ -2,7 +2,7 @@
  * Test suite for version negotiation in the server.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Copyright 2006, 2007, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -18,7 +18,7 @@
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
-#include <tests/tap/kinit.h>
+#include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
 #include <util/concat.h>
 #include <util/gss-tokens.h>
@@ -36,7 +36,7 @@ static const char token[] = {
 int
 main(void)
 {
-    const char *principal;
+    struct kerberos_config *krbconf;
     char *config, *path;
     struct remctl *r;
     pid_t remctld;
@@ -48,12 +48,12 @@ main(void)
     /* Unless we have Kerberos available, we can't really do anything. */
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
-    principal = kerberos_setup();
-    if (principal == NULL)
+    krbconf = kerberos_setup();
+    if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
+    remctld = remctld_start(path, krbconf, config, NULL);
 
     plan(10);
 
@@ -66,7 +66,8 @@ main(void)
     /* Open the connection to the site. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
+    ok(remctl_open(r, "localhost", 14373, krbconf->keytab_principal),
+       "remctl_open");
 
     /* Send the command token. */
     tok.length = sizeof(token);

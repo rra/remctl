@@ -2,7 +2,7 @@
  * Test suite for setting a specific Kerberos credential cache.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2011
+ * Copyright 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -13,7 +13,7 @@
 
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
-#include <tests/tap/kinit.h>
+#include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
 #include <util/concat.h>
 #include <util/xmalloc.h>
@@ -22,7 +22,7 @@
 int
 main(void)
 {
-    const char *principal;
+    struct kerberos_config *krbconf;
     char *config, *path;
     const char *cache;
     pid_t remctld;
@@ -33,13 +33,13 @@ main(void)
 
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
-    principal = kerberos_setup();
-    if (principal == NULL)
+    krbconf = kerberos_setup();
+    if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(12);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
+    remctld = remctld_start(path, krbconf, config, NULL);
 
     /* Get the current ticket cache and then change KRB5CCNAME. */
     cache = getenv("KRB5CCNAME");
@@ -50,7 +50,7 @@ main(void)
     /* Connecting without setting the ticket cache should fail. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(!remctl_open(r, "127.0.0.1", 14373, principal),
+    ok(!remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal),
        "remctl_open to 127.0.0.1");
 
     /* Set the ticket cache and connect to 127.0.0.1 and run a command. */
@@ -61,7 +61,7 @@ main(void)
         skip_block(8, "credential cache setting not supported");
     } else {
         ok(remctl_set_ccache(r, cache), "remctl_set_ccache");
-        ok(remctl_open(r, "127.0.0.1", 14373, principal),
+        ok(remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal),
            "remctl_open to 127.0.0.1");
         ok(remctl_command(r, command), "remctl_command");
         output = remctl_output(r);

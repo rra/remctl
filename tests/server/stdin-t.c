@@ -2,7 +2,7 @@
  * Test suite for the server passing data to programs on standard input.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010
+ * Copyright 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -14,7 +14,7 @@
 
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
-#include <tests/tap/kinit.h>
+#include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
 #include <util/concat.h>
 #include <util/messages.h>
@@ -71,33 +71,33 @@ test_stdin(const char *principal, const char *test, const void *data,
 int
 main(void)
 {
-    const char *principal;
+    struct kerberos_config *krbconf;
     char *config, *path, *buffer;
     pid_t remctld;
 
     /* Unless we have Kerberos available, we can't really do anything. */
     if (chdir(getenv("BUILD")) < 0)
         bail("can't chdir to BUILD");
-    principal = kerberos_setup();
-    if (principal == NULL)
+    krbconf = kerberos_setup();
+    if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(9 * 9);
     config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
+    remctld = remctld_start(path, krbconf, config, NULL);
 
     /* Run the tests. */
-    test_stdin(principal, "read", "Okay", 4);
-    test_stdin(principal, "write", "Okay", 4);
-    test_stdin(principal, "exit", "Okay", 4);
+    test_stdin(krbconf->keytab_principal, "read", "Okay", 4);
+    test_stdin(krbconf->keytab_principal, "write", "Okay", 4);
+    test_stdin(krbconf->keytab_principal, "exit", "Okay", 4);
     buffer = xmalloc(1024 * 1024);
     memset(buffer, 'A', 1024 * 1024);
-    test_stdin(principal, "exit", buffer, 1024 * 1024);
-    test_stdin(principal, "close", "Okay", 4);
-    test_stdin(principal, "close", buffer, 1024 * 1024);
-    test_stdin(principal, "nuls", "T\0e\0s\0t\0", 8);
-    test_stdin(principal, "large", buffer, 1024 * 1024);
-    test_stdin(principal, "delay", buffer, 1024 * 1024);
+    test_stdin(krbconf->keytab_principal, "exit", buffer, 1024 * 1024);
+    test_stdin(krbconf->keytab_principal, "close", "Okay", 4);
+    test_stdin(krbconf->keytab_principal, "close", buffer, 1024 * 1024);
+    test_stdin(krbconf->keytab_principal, "nuls", "T\0e\0s\0t\0", 8);
+    test_stdin(krbconf->keytab_principal, "large", buffer, 1024 * 1024);
+    test_stdin(krbconf->keytab_principal, "delay", buffer, 1024 * 1024);
 
     remctld_stop(remctld);
     return 0;

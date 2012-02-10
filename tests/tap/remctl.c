@@ -8,7 +8,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2011
+ * Copyright 2006, 2007, 2009, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -38,24 +38,26 @@
 #include <sys/wait.h>
 
 #include <tests/tap/basic.h>
+#include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
 #include <util/concat.h>
 #include <util/xmalloc.h>
 
 
 /*
- * Start remctld.  Takes the path to remctld, the principal to use as the
- * server principal, the path to the configuration file to use, and then any
- * additional arguments to pass to remctld, ending with a NULL.  Writes the
- * PID file to tests/data/remctl.pid in the BUILD directory and returns the
- * PID file.  If anything fails, calls bail().
+ * Start remctld.  Takes the path to remctld, the Kerberos test configuration
+ * (the keytab principal is used as the server principal), the path to the
+ * configuration file to use, and then any additional arguments to pass to
+ * remctld, ending with a NULL.  Writes the PID file to tests/data/remctl.pid
+ * in the BUILD directory and returns the PID file.  If anything fails, calls
+ * bail.
  *
  * If VALGRIND is set in the environment, starts remctld under the program
  * given in that environment variable, assuming valgrind arguments.
  */
 pid_t
-remctld_start(const char *remctld, const char *principal, const char *config,
-              ...)
+remctld_start(const char *remctld, struct kerberos_config *krbconf,
+              const char *config, ...)
 {
     char *pidfile;
     pid_t child;
@@ -88,7 +90,7 @@ remctld_start(const char *remctld, const char *principal, const char *config,
     argv[i++] = "-p";
     argv[i++] = "14373";
     argv[i++] = "-s";
-    argv[i++] = principal;
+    argv[i++] = krbconf->keytab_principal;
     argv[i++] = "-P";
     argv[i++] = pidfile;
     argv[i++] = "-f";

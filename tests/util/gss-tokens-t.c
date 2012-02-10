@@ -2,7 +2,7 @@
  * gss-tokens test suite.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Copyright 2006, 2007, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -13,7 +13,7 @@
 #include <portable/gssapi.h>
 
 #include <tests/tap/basic.h>
-#include <tests/tap/kinit.h>
+#include <tests/tap/kerberos.h>
 #include <util/gss-tokens.h>
 
 extern char send_buffer[2048];
@@ -27,7 +27,7 @@ extern int recv_flags;
 int
 main(void)
 {
-    const char *principal;
+    struct kerberos_config *krbconf;
     gss_buffer_desc name_buf, server_tok, client_tok, *token_ptr;
     gss_name_t server_name, client_name;
     gss_ctx_id_t server_ctx, client_ctx;
@@ -36,8 +36,8 @@ main(void)
     int status, flags;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    principal = kerberos_setup();
-    if (principal == NULL)
+    krbconf = kerberos_setup();
+    if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(26);
 
@@ -45,8 +45,8 @@ main(void)
      * We have to set up a context first in order to do this test, which is
      * rather annoying.
      */
-    name_buf.value = (char *) principal;
-    name_buf.length = strlen(principal) + 1;
+    name_buf.value = (char *) krbconf->keytab_principal;
+    name_buf.length = strlen(krbconf->keytab_principal) + 1;
     s_stat = gss_import_name(&s_min_stat, &name_buf, GSS_C_NT_USER_NAME,
                              &server_name);
     if (s_stat != GSS_S_COMPLETE)

@@ -2,7 +2,7 @@
  * Test suite for the server connection negotiation code.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Copyright 2006, 2007, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -17,7 +17,7 @@
 
 #include <server/internal.h>
 #include <tests/tap/basic.h>
-#include <tests/tap/kinit.h>
+#include <tests/tap/kerberos.h>
 #include <util/messages.h>
 #include <util/tokens.h>
 
@@ -104,7 +104,7 @@ make_connection(int protocol, const char *principal)
 int
 main(void)
 {
-    const char *principal;
+    struct kerberos_config *krbconf;
     socket_type s, fd;
     int protocol;
     pid_t child;
@@ -114,8 +114,8 @@ main(void)
     const void *onaddr = &on;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    principal = kerberos_setup();
-    if (principal == NULL)
+    krbconf = kerberos_setup();
+    if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(2 * 3);
 
@@ -143,7 +143,7 @@ main(void)
         if (child < 0)
             sysbail("cannot fork");
         else if (child == 0)
-            make_connection(protocol, principal);
+            make_connection(protocol, krbconf->keytab_principal);
         alarm(1);
         fd = accept(s, NULL, 0);
         if (fd == INVALID_SOCKET)
