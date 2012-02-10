@@ -3,7 +3,7 @@
 # Test suite for various server functions.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2009
+# Copyright 2006, 2007, 2009, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -12,6 +12,14 @@
 . "$SOURCE/tap/kerberos.sh"
 . "$SOURCE/tap/remctl.sh"
 cd "$BUILD"
+
+# Temporary workaround so that the test configuration can find commands.
+remove_links=
+if [ ! -x data/cmd-argv ] ; then
+    ln -s "$SOURCE"/data/cmd-argv data/cmd-argv
+    ln -s "$SOURCE"/data/cmd-hello data/cmd-hello
+    remove_links=true
+fi
 
 # Test setup.
 kerberos_setup
@@ -47,3 +55,6 @@ if [ -f "$BUILD/data/cmd-background.pid" ] ; then
 fi
 remctld_stop
 kerberos_cleanup
+if [ -n "$remove_links" ] ; then
+    rm -f data/cmd-argv data/cmd-hello
+fi
