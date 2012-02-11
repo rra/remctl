@@ -25,8 +25,20 @@
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
+#include <tests/tap/string.h>
 #include <util/messages.h>
 #include <util/tokens.h>
+
+
+/*
+ * The die handler function set by accept_connection so that it will exit with
+ * _exit and not exit on errors and not run the cleanup functions.
+ */
+static int
+exit_child(void)
+{
+    _exit(1);
+}
 
 
 /*
@@ -38,7 +50,7 @@
  * version 1 and then goes back to version 2.
  */
 static void
-accept_connection(int protocol)
+accept_connection(char *pidfile, int protocol)
 {
     struct sockaddr_in saddr;
     socket_type s, conn;
@@ -52,6 +64,9 @@ accept_connection(int protocol)
     gss_name_t client;
     gss_OID doid;
 
+    /* Set up the exit handler so that we don't call exit. */
+    message_fatal_cleanup = exit_child;
+
     /* Create the socket and accept the connection. */
     saddr.sin_family = AF_INET;
     saddr.sin_port = htons(14373);
@@ -64,7 +79,7 @@ accept_connection(int protocol)
         sysdie("error binding socket");
     if (listen(s, 1) < 0)
         sysdie("error listening to socket");
-    fd = open("data/pid", O_CREAT | O_TRUNC, 0666);
+    fd = open(pidfile, O_CREAT | O_TRUNC, 0666);
     if (fd < 0)
         sysdie("cannot create sentinal");
     close(fd);
@@ -111,7 +126,7 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *p;
+    char *p, *path, *pidfile;
     const char *error;
     struct remctl *r;
     int protocol;
@@ -156,15 +171,17 @@ main(void)
      * test.  Each time, we're going to check that we got a context and that
      * we negotiated the appropriate protocol.
      */
+    path = test_tmpdir();
+    basprintf(&pidfile, "%s/pid", path);
     for (protocol = 0; protocol <= 2; protocol++) {
         r = remctl_new();
         child = fork();
         if (child < 0)
             sysbail("cannot fork");
         else if (child == 0)
-            accept_connection(protocol);
+            accept_connection(pidfile, protocol);
         alarm(1);
-        while (access("data/pid", F_OK) < 0) {
+        while (access(pidfile, F_OK) < 0) {
             tv.tv_sec = 0;
             tv.tv_usec = 50000;
             select(0, NULL, NULL, NULL, &tv);
@@ -184,8 +201,10 @@ main(void)
         }
         remctl_close(r);
         waitpid(child, NULL, 0);
-        unlink("data/pid");
+        unlink(pidfile);
     }
+    free(pidfile);
+    test_tmpdir_free(path);
 
     return 0;
 }

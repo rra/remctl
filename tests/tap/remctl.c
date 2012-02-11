@@ -40,37 +40,77 @@
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
-#include <util/xmalloc.h>
+#include <tests/tap/string.h>
+
+/*
+ * The PID of the running remctld process and the temporary directory used to
+ * store the PID file, stored in static variables so that we can clean up in
+ * an atexit handler.
+ */
+static pid_t remctld = 0;
+static char *tmpdir_pid = NULL;
+
+
+/*
+ * Stop remctld.  Normally called via an atexit handler.  We give remctld at
+ * most five seconds to exit before we commit suicide with an alarm.
+ */
+void
+remctld_stop(void)
+{
+    char *pidfile;
+
+    if (remctld == 0)
+        return;
+    alarm(5);
+    if (waitpid(remctld, NULL, WNOHANG) == 0) {
+        kill(remctld, SIGTERM);
+        waitpid(remctld, NULL, 0);
+    }
+    alarm(0);
+    remctld = 0;
+    basprintf(&pidfile, "%s/remctld.pid", tmpdir_pid);
+    unlink(pidfile);
+    free(pidfile);
+    test_tmpdir_free(tmpdir_pid);
+    tmpdir_pid = NULL;
+}
 
 
 /*
  * Start remctld.  Takes the path to remctld, the Kerberos test configuration
- * (the keytab principal is used as the server principal), the path to the
- * configuration file to use, and then any additional arguments to pass to
- * remctld, ending with a NULL.  Writes the PID file to tests/data/remctl.pid
- * in the BUILD directory and returns the PID file.  If anything fails, calls
- * bail.
+ * (the keytab principal is used as the server principal), the configuration
+ * file to use (found via test_file_path), and then any additional arguments
+ * to pass to remctld, ending with a NULL.  Returns the PID of the running
+ * remctld process.  If anything fails, calls bail.
  *
  * If VALGRIND is set in the environment, starts remctld under the program
  * given in that environment variable, assuming valgrind arguments.
  */
 pid_t
-remctld_start(const char *remctld, struct kerberos_config *krbconf,
+remctld_start(const char *path, struct kerberos_config *krbconf,
               const char *config, ...)
 {
-    char *pidfile;
-    pid_t child;
+    char *pidfile, *confpath;
     struct timeval tv;
     size_t n, i;
     va_list args;
     const char *arg, **argv;
     size_t length;
 
-    pidfile = concatpath(getenv("BUILD"), "data/remctld.pid");
+    /* Ensure that we're not already running a remctld. */
+    if (remctld != 0)
+        bail("remctld already running (PID %lu)", (unsigned long) remctld);
+
+    /* Set up the arguments and run remctld. */
+    tmpdir_pid = test_tmpdir();
+    basprintf(&pidfile, "%s/remctld.pid", tmpdir_pid);
     if (access(pidfile, F_OK) == 0)
         if (unlink(pidfile) != 0)
             sysbail("cannot delete %s", pidfile);
+    confpath = test_file_path(config);
+    if (confpath == NULL)
+        bail("cannot find remctld config %s", config);
     length = 11;
     if (getenv("VALGRIND") != NULL)
         length += 3;
@@ -78,14 +118,14 @@ remctld_start(const char *remctld, struct kerberos_config *krbconf,
     while ((arg = va_arg(args, const char *)) != NULL)
         length++;
     va_end(args);
-    argv = xmalloc(length * sizeof(const char *));
+    argv = bmalloc(length * sizeof(const char *));
     i = 0;
     if (getenv("VALGRIND") != NULL) {
         argv[i++] = "valgrind";
         argv[i++] = "--log-file=valgrind.%p";
         argv[i++] = "--leak-check=full";
     }
-    argv[i++] = remctld;
+    argv[i++] = path;
     argv[i++] = "-mdSF";
     argv[i++] = "-p";
     argv[i++] = "14373";
@@ -94,55 +134,38 @@ remctld_start(const char *remctld, struct kerberos_config *krbconf,
     argv[i++] = "-P";
     argv[i++] = pidfile;
     argv[i++] = "-f";
-    argv[i++] = config;
+    argv[i++] = confpath;
     va_start(args, config);
     while ((arg = va_arg(args, const char *)) != NULL)
         argv[i++] = arg;
     va_end(args);
     argv[i] = NULL;
-    child = fork();
-    if (child < 0)
+    remctld = fork();
+    if (remctld < 0)
         sysbail("fork failed");
-    else if (child == 0) {
+    else if (remctld == 0) {
         if (getenv("VALGRIND") != NULL)
             execv(getenv("VALGRIND"), (char * const *) argv);
         else
-            execv(remctld, (char * const *) argv);
+            execv(path, (char * const *) argv);
         _exit(1);
     } else {
-        for (n = 0; n < 1000 && access(pidfile, F_OK) != 0; n++) {
-            tv.tv_sec = (getenv("VALGRIND") != NULL) ? 1 : 0;
-            tv.tv_usec = 10000;
+        test_file_path_free(confpath);
+        for (n = 0; n < 100 && access(pidfile, F_OK) != 0; n++) {
+            tv.tv_sec = 0;
+            tv.tv_usec = 100000;
             select(0, NULL, NULL, NULL, &tv);
         }
         if (access(pidfile, F_OK) != 0) {
-            kill(child, SIGTERM);
-            waitpid(child, NULL, 0);
+            kill(remctld, SIGTERM);
+            alarm(5);
+            waitpid(remctld, NULL, 0);
+            alarm(0);
             bail("cannot start remctld");
         }
         free(pidfile);
-        return child;
+        if (atexit(remctld_stop) != 0)
+            sysdiag("cannot register cleanup function");
+        return remctld;
     }
-}
-
-
-/*
- * Stop remctld.  Takes the PID file of the remctld process.
- */
-void
-remctld_stop(pid_t child)
-{
-    char *pidfile;
-    struct timeval tv;
-
-    tv.tv_sec = 0;
-    tv.tv_usec = 10000;
-    select(0, NULL, NULL, NULL, &tv);
-    if (waitpid(child, NULL, WNOHANG) == 0) {
-        kill(child, SIGTERM);
-        waitpid(child, NULL, 0);
-    }
-    pidfile = concatpath(getenv("BUILD"), "data/remctld.pid");
-    unlink(pidfile);
-    free(pidfile);
 }

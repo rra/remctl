@@ -72,8 +72,7 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *config, *path, *buffer;
-    pid_t remctld;
+    char *path, *buffer;
 
     /* Unless we have Kerberos available, we can't really do anything. */
     if (chdir(getenv("BUILD")) < 0)
@@ -82,9 +81,8 @@ main(void)
     if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(9 * 9);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, krbconf, config, NULL);
+    remctld_start(path, krbconf, "data/conf-simple", NULL);
 
     /* Run the tests. */
     test_stdin(krbconf->keytab_principal, "read", "Okay", 4);
@@ -99,6 +97,5 @@ main(void)
     test_stdin(krbconf->keytab_principal, "large", buffer, 1024 * 1024);
     test_stdin(krbconf->keytab_principal, "delay", buffer, 1024 * 1024);
 
-    remctld_stop(remctld);
     return 0;
 }

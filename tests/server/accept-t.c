@@ -23,6 +23,17 @@
 
 
 /*
+ * The die handler function set by make_connection so that it will exit with
+ * _exit and not exit on errors and not run the cleanup functions.
+ */
+static int
+exit_child(void)
+{
+    _exit(1);
+}
+
+
+/*
  * Open a new connection to a server, taking the protocol version and
  * principal to use.  1 indicates protocol version 1 the whole way, 2
  * indicates version 2 from the start, and 0 starts with version 2, goes back
@@ -42,6 +53,9 @@ make_connection(int protocol, const char *principal)
     static const OM_uint32 req_gss_flags
         = (GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_CONF_FLAG
            | GSS_C_INTEG_FLAG);
+
+    /* Set up the exit handler so that we don't call exit. */
+    message_fatal_cleanup = exit_child;
 
     /* Connect. */
     saddr.sin_family = AF_INET;

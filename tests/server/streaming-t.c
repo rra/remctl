@@ -26,10 +26,9 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *config, *path;
+    char *path;
     struct remctl *r;
     struct remctl_output *output;
-    pid_t remctld;
     const char *command[] = { "test", "streaming", NULL };
 
     /* Unless we have Kerberos available, we can't really do anything. */
@@ -39,9 +38,8 @@ main(void)
     if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(32);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, krbconf, config, NULL);
+    remctld_start(path, krbconf, "data/conf-simple", NULL);
 
     /* First, version 2. */
     r = remctl_new();
@@ -109,6 +107,5 @@ main(void)
     is_int(0, output->status, "...and is right status");
     remctl_close(r);
 
-    remctld_stop(remctld);
     return 0;
 }

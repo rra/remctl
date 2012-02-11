@@ -16,16 +16,14 @@
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
 #include <util/concat.h>
-#include <util/xmalloc.h>
 
 
 int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *config, *path;
+    char *path;
     const char *cache;
-    pid_t remctld;
     struct remctl *r;
     struct remctl_output *output;
     int status;
@@ -37,9 +35,8 @@ main(void)
     if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(12);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, krbconf, config, NULL);
+    remctld_start(path, krbconf, "data/conf-simple", (char *) 0);
 
     /* Get the current ticket cache and then change KRB5CCNAME. */
     cache = getenv("KRB5CCNAME");
@@ -86,7 +83,5 @@ main(void)
     }
     remctl_close(r);
 
-    /* Clean up. */
-    remctld_stop(remctld);
     return 0;
 }

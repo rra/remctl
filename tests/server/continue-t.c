@@ -28,10 +28,9 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *config, *path;
+    char *path;
     struct remctl *r;
     struct remctl_output *output;
-    pid_t remctld;
     static const char prefix_first[] = { 2, MESSAGE_COMMAND, 1, 1 };
     static const char prefix_next[] = { 2, MESSAGE_COMMAND, 1, 2 };
     static const char prefix_last[] = { 2, MESSAGE_COMMAND, 1, 3 };
@@ -53,9 +52,8 @@ main(void)
     if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(9);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, krbconf, config, NULL);
+    remctld_start(path, krbconf, "data/conf-simple", NULL);
 
     /* Open a connection. */
     r = remctl_new();
@@ -96,6 +94,5 @@ main(void)
     is_int(2, output->status, "...with correct status");
     remctl_close(r);
 
-    remctld_stop(remctld);
     return 0;
 }

@@ -17,16 +17,14 @@
 #include <tests/tap/messages.h>
 #include <tests/tap/remctl.h>
 #include <util/concat.h>
-#include <util/xmalloc.h>
 
 
 int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *config, *path;
+    char *path;
     const char *err;
-    pid_t remctld;
     struct remctl *r;
     struct remctl_output *output;
     const char *command[] = { "test", "env", "REMOTE_ADDR", NULL };
@@ -37,9 +35,8 @@ main(void)
     if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(10);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, krbconf, config, NULL);
+    remctld_start(path, krbconf, "data/conf-simple", (char *) 0);
 
     /* Successful connection to 127.0.0.1. */
     r = remctl_new();
@@ -70,7 +67,5 @@ main(void)
                     strlen("unknown host ::1: ")) == 0)),
        "failed with correct error");
 
-    /* Clean up. */
-    remctld_stop(remctld);
     return 0;
 }

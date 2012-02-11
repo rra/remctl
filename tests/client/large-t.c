@@ -25,15 +25,13 @@
 #include <tests/tap/remctl.h>
 #include <util/concat.h>
 #include <util/protocol.h>
-#include <util/xmalloc.h>
 
 
 int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *config, *path;
-    pid_t remctld;
+    char *path;
     struct remctl *r;
     struct remctl_output *output;
     struct iovec command[7];
@@ -44,22 +42,21 @@ main(void)
     if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(6);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, krbconf, config, NULL);
+    remctld_start(path, krbconf, "data/conf-simple", (char *) 0);
 
     command[0].iov_len = strlen("test");
     command[0].iov_base = (char *) "test";
     command[1].iov_len = strlen("noauth");
     command[1].iov_base = (char *) "noauth";
     command[2].iov_len = TOKEN_MAX_DATA - 31;
-    command[2].iov_base = xmalloc(command[2].iov_len);
+    command[2].iov_base = bmalloc(command[2].iov_len);
     memset(command[2].iov_base, 'A', command[2].iov_len);
     command[3].iov_len = TOKEN_MAX_DATA;
-    command[3].iov_base = xmalloc(command[3].iov_len);
+    command[3].iov_base = bmalloc(command[3].iov_len);
     memset(command[3].iov_base, 'B', command[3].iov_len);
     command[4].iov_len = TOKEN_MAX_DATA - 20;
-    command[4].iov_base = xmalloc(command[4].iov_len);
+    command[4].iov_base = bmalloc(command[4].iov_len);
     memset(command[4].iov_base, 'C', command[4].iov_len);
     command[5].iov_len = 1;
     command[5].iov_base = (char *) "D";
@@ -83,6 +80,5 @@ main(void)
     }
     remctl_close(r);
 
-    remctld_stop(remctld);
     return 0;
 }

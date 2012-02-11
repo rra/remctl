@@ -164,8 +164,7 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *path, *config;
-    pid_t remctld;
+    char *path;
     struct remctl_result *result;
     const char *test[] = { "test", "test", NULL };
     const char *error[] = { "test", "bad-command", NULL };
@@ -176,9 +175,8 @@ main(void)
     if (krbconf == NULL)
         skip_all("Kerberos tests not configured");
     plan(102);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, krbconf, config, NULL);
+    remctld_start(path, krbconf, "data/conf-simple", (char *) 0);
 
     /* Run the basic protocol tests. */
     do_tests(krbconf->keytab_principal, 1);
@@ -214,6 +212,5 @@ main(void)
                   "...and the right error string");
     remctl_result_free(result);
 
-    remctld_stop(remctld);
     return 0;
 }

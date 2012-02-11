@@ -100,8 +100,7 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *config, *path;
-    pid_t remctld;
+    char *path;
     static const char token_message[] = {
         2, 47
     };
@@ -164,9 +163,8 @@ main(void)
     if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(11 * 8);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, krbconf, config, NULL);
+    remctld_start(path, krbconf, "data/conf-simple", NULL);
 
     /* Test basic token errors. */
     test_bad_token(krbconf, token_message, sizeof(token_message),
@@ -197,6 +195,5 @@ main(void)
     test_bad_command(krbconf, data_nul_argument, sizeof(data_nul_argument),
                      "nul in argument");
 
-    remctld_stop(remctld);
     return 0;
 }

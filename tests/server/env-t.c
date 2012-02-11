@@ -77,9 +77,8 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *config, *path, *expected, *value;
+    char *path, *expected, *value;
     struct remctl *r;
-    pid_t remctld;
 
     /* Unless we have Kerberos available, we can't really do anything. */
     if (chdir(getenv("SOURCE")) < 0)
@@ -88,9 +87,8 @@ main(void)
     if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
     plan(4);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, krbconf, config, NULL);
+    remctld_start(path, krbconf, "data/conf-simple", NULL);
 
     /* Run the tests. */
     r = remctl_new();
@@ -112,6 +110,5 @@ main(void)
     free(value);
     remctl_close(r);
 
-    remctld_stop(remctld);
     return 0;
 }

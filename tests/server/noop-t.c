@@ -32,9 +32,8 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *config, *path;
+    char *path;
     struct remctl *r;
-    pid_t remctld;
     OM_uint32 major, minor;
     int flags, status;
     gss_buffer_desc tok;
@@ -45,9 +44,8 @@ main(void)
     krbconf = kerberos_setup();
     if (krbconf->keytab_principal == NULL)
         skip_all("Kerberos tests not configured");
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
     path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, krbconf, config, NULL);
+    remctld_start(path, krbconf, "data/conf-simple", NULL);
 
     plan(7);
 
@@ -76,7 +74,5 @@ main(void)
 
     /* Close things out. */
     remctl_close(r);
-
-    remctld_stop(remctld);
     return 0;
 }
