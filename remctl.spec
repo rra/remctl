@@ -7,7 +7,11 @@ Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
 Version: 3.0
 Release: 1.EL%{rel}
+%if %( rpmbuild --version | cut -d ' ' -f 3 | cut -d . -f 1 ) >= 4
+License: MIT
+%else
 Copyright: MIT
+%endif
 URL: http://www.eyrie.org/~eagle/software/remctl/
 Source: http://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
