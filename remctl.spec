@@ -5,7 +5,7 @@
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 2.16
+Version: 3.0
 Release: 1.EL%{rel}
 Copyright: MIT
 URL: http://www.eyrie.org/~eagle/software/remctl/
