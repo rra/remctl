@@ -100,7 +100,10 @@ find %{buildroot} -name perllocal.pod -exec rm {} \;
 /usr/include/remctl.h
 %{ldir}/libremctl.a
 %{ldir}/libremctl.la
+%{ldir}/libremctl.so
+%{ldir}/libremctl.so.1
 %{ldir}/libremctl.so.1.0.2
+%{ldir}/pkgconfig/libremctl.pc
 %{_mandir}/*/remctl.*
 %{_mandir}/*/remctl_*
 %if %{buildperl}
