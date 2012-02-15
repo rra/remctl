@@ -76,6 +76,8 @@ options="$options --enable-perl"
 %endif
 %if %{buildpython}
 options="$options --enable-python"
+%define py_site_packages %( python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" )
+%define py_version %( python -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
 echo $RPM_BUILD_ROOT
 %endif
 PATH="/sbin:/bin:/usr/sbin:$PATH" \
@@ -99,6 +101,7 @@ fi
 find %{buildroot} -name perllocal.pod -exec rm {} \;
 %endif
 
+
 %files client
 %defattr(-, root, root, 0755)
 %{_bindir}/*
@@ -116,6 +119,12 @@ find %{buildroot} -name perllocal.pod -exec rm {} \;
 %if %{buildperl}
 %{ldir}/perl5/site_perl/
 %{_mandir}/*/Net::Remctl.3pm*
+%endif
+%if %{buildpython}
+%{py_site_packages}/_remctl.so
+%{py_site_packages}/pyremctl-%{version}-py%{py_version}.egg-info
+%{py_site_packages}/remctl.py
+%{py_site_packages}/remctl.pyc
 %endif
 
 %files server
