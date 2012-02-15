@@ -6,8 +6,9 @@
 # Use rpmbuild option "--define 'buildpython 0'" to not build the Python module.
 %{!?buildpython:%define buildpython 1}
 %if %{buildpython}
-%define py_site_packages %( python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" )
 %define py_version %( python -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
+%define py_libdest %( python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'LIBDEST' ])")
+%define py_binlibdest %( python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'BINLIBDEST' ])")
 %endif
 
 Name: remctl
@@ -87,6 +88,7 @@ with an ACL containing a list of Kerberos principals authorized to run
 that command.
 
 This package contains the python remctl client library.
+%endif
 
 %prep
 %setup -n remctl-%{version}
@@ -158,10 +160,10 @@ find %{buildroot} -name perllocal.pod -exec rm {} \;
 %if %{buildpython}
 %files python
 %defattr(-, root, root, 0755)
-%{py_site_packages}/_remctl.so
-%{py_site_packages}/pyremctl-%{version}-py%{py_version}.egg-info
-%{py_site_packages}/remctl.py
-%{py_site_packages}/remctl.pyc
+%{py_binlibdest}/site-packages/_remctl.so
+%{py_libdest}/site-packages/pyremctl-%{version}-py%{py_version}.egg-info
+%{py_libdest}/site-packages/remctl.py
+%{py_libdest}/site-packages/remctl.pyc
 %endif
 
 %post client
