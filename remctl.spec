@@ -3,6 +3,9 @@
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
 %{!?buildperl:%define buildperl 1}
 
+# Use rpmbuild option "--define 'buildpython 0'" to not build the Python module.
+%{!?buildpython:%define buildpython 1}
+
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
 Version: 3.0
@@ -70,6 +73,10 @@ This package contains the client program (remctl) and the client libraries.
 options="--prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc/remctl"
 %if %{buildperl}
 options="$options --enable-perl"
+%endif
+%if %{buildpython}
+options="$options --enable-python"
+echo $RPM_BUILD_ROOT
 %endif
 PATH="/sbin:/bin:/usr/sbin:$PATH" \
 %configure $options

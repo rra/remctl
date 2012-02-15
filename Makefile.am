@@ -463,10 +463,16 @@ stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
 	    python setup.py build
 	touch stamp-python
 
+
+# If RPM_BUILD_ROOT is set, we're being built by rpm, and make the
+# install root that
 install-data-local-python: stamp-python
 	if [ -n "$(DESTDIR)" ] ; then \
 	    cd python && python setup.py install $(PYTHON_INSTALL) \
 		--root $(DESTDIR) ; \
+	elif [ -n "$(RPM_BUILD_ROOT)" ] ; then \
+	    cd python && python setup.py install $(PYTHON_INSTALL) \
+		--root $(RPM_BUILD_ROOT) ;\
 	else \
 	    cd python && python setup.py install $(PYTHON_INSTALL) ; \
 	fi
