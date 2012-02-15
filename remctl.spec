@@ -5,6 +5,10 @@
 
 # Use rpmbuild option "--define 'buildpython 0'" to not build the Python module.
 %{!?buildpython:%define buildpython 1}
+%if %{buildpython}
+%define py_site_packages %( python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" )
+%define py_version %( python -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
+%endif
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
@@ -22,6 +26,9 @@ Vendor: Stanford University
 Packager: Russ Allbery <rra@stanford.edu>
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: krb5-devel
+%if %{buildpython}
+BuildRequires: python
+%endif
 Distribution: EL
 
 %ifarch x86_64
@@ -66,6 +73,21 @@ that command.
 
 This package contains the client program (remctl) and the client libraries.
 
+%if %{buildpython}
+%package python
+Summary: Python library for Kerberos-authenticated command execution
+Group: Applications/Internet
+
+%description python
+remctl is a client/server protocol for executing specific commands on a
+remote system with Kerberos authentication.  The allowable commands must
+be listed in a server configuration file, and the executable run on the
+server may be mapped to any command name.  Each command is also associated
+with an ACL containing a list of Kerberos principals authorized to run
+that command.
+
+This package contains the python remctl client library.
+
 %prep
 %setup -n remctl-%{version}
 
@@ -76,8 +98,6 @@ options="$options --enable-perl"
 %endif
 %if %{buildpython}
 options="$options --enable-python"
-%define py_site_packages %( python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" )
-%define py_version %( python -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
 %endif
 PATH="/sbin:/bin:/usr/sbin:$PATH" \
 %configure $options
@@ -119,12 +139,6 @@ find %{buildroot} -name perllocal.pod -exec rm {} \;
 %{ldir}/perl5/site_perl/
 %{_mandir}/*/Net::Remctl.3pm*
 %endif
-%if %{buildpython}
-%{py_site_packages}/_remctl.so
-%{py_site_packages}/pyremctl-%{version}-py%{py_version}.egg-info
-%{py_site_packages}/remctl.py
-%{py_site_packages}/remctl.pyc
-%endif
 
 %files server
 %defattr(-, root, root, 0755)
@@ -140,6 +154,14 @@ find %{buildroot} -name perllocal.pod -exec rm {} \;
 %dir /etc/remctl/acl/
 %defattr(0750, root, root)
 %dir /etc/remctl/conf.d/
+
+%if %{buildpython}
+%files python
+%defattr(-, root, root, 0755)
+%{py_site_packages}/_remctl.so
+%{py_site_packages}/pyremctl-%{version}-py%{py_version}.egg-info
+%{py_site_packages}/remctl.py
+%{py_site_packages}/remctl.pyc
 
 %post client
 /sbin/ldconfig
