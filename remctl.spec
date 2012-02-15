@@ -162,6 +162,7 @@ find %{buildroot} -name perllocal.pod -exec rm {} \;
 %{py_site_packages}/pyremctl-%{version}-py%{py_version}.egg-info
 %{py_site_packages}/remctl.py
 %{py_site_packages}/remctl.pyc
+%endif
 
 %post client
 /sbin/ldconfig
