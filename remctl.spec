@@ -78,7 +78,6 @@ options="$options --enable-perl"
 options="$options --enable-python"
 %define py_site_packages %( python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" )
 %define py_version %( python -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
-echo $RPM_BUILD_ROOT
 %endif
 PATH="/sbin:/bin:/usr/sbin:$PATH" \
 %configure $options
