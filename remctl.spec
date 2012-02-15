@@ -202,6 +202,10 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Wed Feb 15 2012 Thomas L. Kula <tlk2126@columbia.edu> 3.0-1
+- Update for 3.0
+- Add support for Python bindings, building as a sub-package
+
 * Sun May 2 2010 Russ Allbery <rra@stanford.edu> 2.16-1
 - Update for 2.16.
 - Ruby bindings also not yet supported.
