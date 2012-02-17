@@ -41,9 +41,7 @@ main(void)
     /* Unless we have Kerberos available, we can't really do anything. */
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
-    krbconf = kerberos_setup();
-    if (krbconf->keytab_principal == NULL)
-        skip_all("Kerberos tests not configured");
+    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     path = concatpath(getenv("BUILD"), "../server/remctld");
     remctld_start(path, krbconf, "data/conf-simple", NULL);
 

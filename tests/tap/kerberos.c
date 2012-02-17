@@ -256,7 +256,7 @@ kerberos_cleanup(void)
  * configured but something else fails, calls bail.
  */
 struct kerberos_config *
-kerberos_setup(void)
+kerberos_setup(enum kerberos_needs needs)
 {
     char *path;
     char buffer[BUFSIZ];
@@ -272,7 +272,10 @@ kerberos_setup(void)
      * environment variables and obtain initial tickets.
      */
     config->keytab = test_file_path("config/keytab");
-    if (config->keytab != NULL) {
+    if (config->keytab == NULL) {
+        if (needs == TAP_KRB_NEEDS_KEYTAB || needs == TAP_KRB_NEEDS_BOTH)
+            skip_all("Kerberos tests not configured");
+    } else {
         tmpdir_ticket = test_tmpdir();
         basprintf(&config->cache, "%s/krb5cc_test", tmpdir_ticket);
         basprintf(&krb5ccname, "KRB5CCNAME=%s/krb5cc_test", tmpdir_ticket);
@@ -289,7 +292,10 @@ kerberos_setup(void)
     path = test_file_path("config/password");
     if (path != NULL)
         file = fopen(path, "r");
-    if (file != NULL) {
+    if (file == NULL) {
+        if (needs == TAP_KRB_NEEDS_PASSWORD || needs == TAP_KRB_NEEDS_BOTH)
+            skip_all("Kerberos tests not configured");
+    } else {
         if (fgets(buffer, sizeof(buffer), file) == NULL)
             bail("cannot read %s", path);
         if (buffer[strlen(buffer) - 1] != '\n')

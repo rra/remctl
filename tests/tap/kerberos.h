@@ -48,6 +48,17 @@ struct kerberos_config {
     char *password;             /* The password. */
 };
 
+/*
+ * Whether to skip all tests (by calling skip_all) in kerberos_setup if
+ * certain configuration information isn't available.
+ */
+enum kerberos_needs {
+    TAP_KRB_NEEDS_NONE,
+    TAP_KRB_NEEDS_KEYTAB,
+    TAP_KRB_NEEDS_PASSWORD,
+    TAP_KRB_NEEDS_BOTH
+};
+
 BEGIN_DECLS
 
 /*
@@ -68,7 +79,7 @@ BEGIN_DECLS
  * freed when kerberos_cleanup is called or if kerberos_setup is called again.
  * The caller doesn't need to worry about it.
  */
-struct kerberos_config *kerberos_setup(void)
+struct kerberos_config *kerberos_setup(enum kerberos_needs)
     __attribute__((__malloc__));
 void kerberos_cleanup(void);
 

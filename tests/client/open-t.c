@@ -159,7 +159,7 @@ main(void)
     remctl_close(r);
 
     /* Unless we have Kerberos available, we can't really do anything else. */
-    krbconf = kerberos_setup();
+    krbconf = kerberos_setup(TAP_KRB_NEEDS_NONE);
     if (krbconf->keytab_principal == NULL) {
         skip_block(5 * 3, "Kerberos tests not configured");
         return 0;

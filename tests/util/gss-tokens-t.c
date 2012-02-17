@@ -36,9 +36,7 @@ main(void)
     int status, flags;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    krbconf = kerberos_setup();
-    if (krbconf->keytab_principal == NULL)
-        skip_all("Kerberos tests not configured");
+    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     plan(26);
 
     /*
