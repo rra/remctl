@@ -60,7 +60,11 @@ class TestRemctl(unittest.TestCase):
             file.close()
             os.kill(int(pid), signal.SIGTERM)
             child, status = os.waitpid(int(pid), 0)
+            os.remove('tmp/pid')
         except IOError, (error, strerror):
+            if error != errno.ENOENT:
+                raise
+        except OSError, (error, strerror):
             if error != errno.ENOENT:
                 raise
 
@@ -92,6 +96,7 @@ class TestRemctl(unittest.TestCase):
         os.remove('tmp/output')
         try:
             os.remove('tmp/krb5cc_test')
+            os.rmdir('tmp')
         except OSError, (error, strerror):
             if error != errno.ENOENT:
                 raise

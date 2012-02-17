@@ -46,6 +46,7 @@ module Helpers
       pid.chomp!
       Process.kill('TERM', pid.to_i)
       Process.waitpid(pid.to_i)
+      FileUtils.rm 'tmp/pid', :force => true
       return
     end
   end
@@ -79,6 +80,11 @@ module Helpers
       stop_remctld
       FileUtils.rm 'tmp/output'
       FileUtils.rm 'tmp/krb5cc_test', :force => true
+      begin
+        FileUtils.rmdir 'tmp'
+      rescue Errno::ENOENT
+        nil
+      end
     end
   end
 end
