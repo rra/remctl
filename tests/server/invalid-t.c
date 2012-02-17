@@ -100,7 +100,6 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *path;
     static const char token_message[] = {
         2, 47
     };
@@ -160,9 +159,9 @@ main(void)
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(krbconf, "data/conf-simple", NULL);
+
     plan(11 * 8);
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld_start(path, krbconf, "data/conf-simple", NULL);
 
     /* Test basic token errors. */
     test_bad_token(krbconf, token_message, sizeof(token_message),

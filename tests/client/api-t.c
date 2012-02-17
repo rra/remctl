@@ -164,17 +164,17 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *path;
     struct remctl_result *result;
     const char *test[] = { "test", "test", NULL };
     const char *error[] = { "test", "bad-command", NULL };
 
+    /* Set up Kerberos and remctld. */
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(krbconf, "data/conf-simple", (char *) 0);
+
     plan(102);
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld_start(path, krbconf, "data/conf-simple", (char *) 0);
 
     /* Run the basic protocol tests. */
     do_tests(krbconf->keytab_principal, 1);

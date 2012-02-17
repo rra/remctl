@@ -23,18 +23,18 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *path;
     const char *err;
     struct remctl *r;
     struct remctl_output *output;
     const char *command[] = { "test", "env", "REMOTE_ADDR", NULL };
 
+    /* Set up Kerberos and remctld. */
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(krbconf, "data/conf-simple", (char *) 0);
+
     plan(10);
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld_start(path, krbconf, "data/conf-simple", (char *) 0);
 
     /* Successful connection to 127.0.0.1. */
     r = remctl_new();

@@ -91,7 +91,6 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *path;
     struct remctl *r;
 #ifdef HAVE_INET6
     bool ipv6 = false;
@@ -101,14 +100,13 @@ main(void)
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    path = concatpath(getenv("BUILD"), "../server/remctld");
 
     /* Initialize our testing. */
     ipv6 = have_ipv6();
     plan(26);
 
     /* Test connecting to IPv4 and IPv6 with default bind. */
-    remctld_start(path, krbconf, "data/conf-simple", NULL);
+    remctld_start(krbconf, "data/conf-simple", NULL);
     r = remctl_new();
     ok(remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal),
        "Connect to 127.0.0.1");
@@ -130,7 +128,7 @@ main(void)
     remctld_stop();
 
     /* Try binding to only IPv4. */
-    remctld_start(path, krbconf, "data/conf-simple", "-b", "127.0.0.1", NULL);
+    remctld_start(krbconf, "data/conf-simple", "-b", "127.0.0.1", NULL);
     r = remctl_new();
     ok(remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal),
        "Connect to 127.0.0.1 when bound to that address");
@@ -153,7 +151,7 @@ main(void)
     /* Try binding to only IPv6. */
 #ifdef HAVE_INET6
     if (ipv6) {
-        remctld_start(path, krbconf, "data/conf-simple", "-b", "::1", NULL);
+        remctld_start(krbconf, "data/conf-simple", "-b", "::1", NULL);
         r = remctl_new();
         ok(!remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal),
            "Cannot connect to 127.0.0.1 when only bound to ::1");
@@ -174,8 +172,8 @@ main(void)
     /* Try binding explicitly to local IPv4 and IPv6 addresses. */
 #ifdef HAVE_INET6
     if (ipv6) {
-        remctld_start(path, krbconf, "data/conf-simple", "-b", "127.0.0.1",
-                                "-b", "::1", NULL);
+        remctld_start(krbconf, "data/conf-simple", "-b", "127.0.0.1", "-b",
+                      "::1", NULL);
         r = remctl_new();
         ok(remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal),
            "Connect to 127.0.0.1 when bound to both local addresses");

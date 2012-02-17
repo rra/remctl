@@ -26,7 +26,6 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *path;
     struct remctl *r;
     struct remctl_output *output;
     const char *command[] = { "test", "streaming", NULL };
@@ -35,9 +34,9 @@ main(void)
     if (chdir(getenv("BUILD")) < 0)
         bail("can't chdir to BUILD");
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(krbconf, "data/conf-simple", NULL);
+
     plan(32);
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld_start(path, krbconf, "data/conf-simple", NULL);
 
     /* First, version 2. */
     r = remctl_new();

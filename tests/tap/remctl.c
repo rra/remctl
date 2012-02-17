@@ -78,18 +78,20 @@ remctld_stop(void)
 
 
 /*
- * Start remctld.  Takes the path to remctld, the Kerberos test configuration
- * (the keytab principal is used as the server principal), the configuration
- * file to use (found via test_file_path), and then any additional arguments
- * to pass to remctld, ending with a NULL.  Returns the PID of the running
- * remctld process.  If anything fails, calls bail.
+ * Start remctld.  Takes the Kerberos test configuration (the keytab principal
+ * is used as the server principal), the configuration file to use (found via
+ * test_file_path), and then any additional arguments to pass to remctld,
+ * ending with a NULL.  Returns the PID of the running remctld process.  If
+ * anything fails, calls bail.
  *
  * If VALGRIND is set in the environment, starts remctld under the program
  * given in that environment variable, assuming valgrind arguments.
+ *
+ * The path to remctld is obtained from the PATH_REMCTLD #define.  If this is
+ * not set, remctld_start calls skip_all.
  */
 pid_t
-remctld_start(const char *path, struct kerberos_config *krbconf,
-              const char *config, ...)
+remctld_start(struct kerberos_config *krbconf, const char *config, ...)
 {
     char *pidfile, *confpath;
     struct timeval tv;
@@ -97,6 +99,10 @@ remctld_start(const char *path, struct kerberos_config *krbconf,
     va_list args;
     const char *arg, **argv;
     size_t length;
+
+#ifndef PATH_REMCTLD
+    skip_all("remctld not found");
+#endif
 
     /* Ensure that we're not already running a remctld. */
     if (remctld != 0)
@@ -125,7 +131,7 @@ remctld_start(const char *path, struct kerberos_config *krbconf,
         argv[i++] = "--log-file=valgrind.%p";
         argv[i++] = "--leak-check=full";
     }
-    argv[i++] = path;
+    argv[i++] = PATH_REMCTLD;
     argv[i++] = "-mdSF";
     argv[i++] = "-p";
     argv[i++] = "14373";
@@ -147,7 +153,7 @@ remctld_start(const char *path, struct kerberos_config *krbconf,
         if (getenv("VALGRIND") != NULL)
             execv(getenv("VALGRIND"), (char * const *) argv);
         else
-            execv(path, (char * const *) argv);
+            execv(PATH_REMCTLD, (char * const *) argv);
         _exit(1);
     } else {
         test_file_path_free(confpath);

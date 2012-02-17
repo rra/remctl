@@ -31,17 +31,17 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *path;
     struct remctl *r;
     struct remctl_output *output;
     struct iovec command[7];
 
+    /* Set up Kerberos and remctld. */
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(krbconf, "data/conf-simple", (char *) 0);
+
     plan(6);
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld_start(path, krbconf, "data/conf-simple", (char *) 0);
 
     command[0].iov_len = strlen("test");
     command[0].iov_base = (char *) "test";

@@ -72,15 +72,15 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *path, *buffer;
+    char *buffer;
 
     /* Unless we have Kerberos available, we can't really do anything. */
     if (chdir(getenv("BUILD")) < 0)
         bail("can't chdir to BUILD");
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(krbconf, "data/conf-simple", NULL);
+
     plan(9 * 9);
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld_start(path, krbconf, "data/conf-simple", NULL);
 
     /* Run the tests. */
     test_stdin(krbconf->keytab_principal, "read", "Okay", 4);

@@ -37,7 +37,6 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *path;
     struct remctl *r;
     OM_uint32 major, minor;
     int flags, status;
@@ -48,8 +47,7 @@ main(void)
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld_start(path, krbconf, "data/conf-simple", NULL);
+    remctld_start(krbconf, "data/conf-simple", NULL);
 
     plan(10);
 

@@ -22,7 +22,6 @@ int
 main(void)
 {
     struct kerberos_config *krbconf;
-    char *path;
     const char *cache;
     struct remctl *r;
     struct remctl_output *output;
@@ -32,9 +31,9 @@ main(void)
     if (chdir(getenv("SOURCE")) < 0)
         bail("can't chdir to SOURCE");
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(krbconf, "data/conf-simple", (char *) 0);
+
     plan(12);
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld_start(path, krbconf, "data/conf-simple", (char *) 0);
 
     /* Get the current ticket cache and then change KRB5CCNAME. */
     cache = getenv("KRB5CCNAME");

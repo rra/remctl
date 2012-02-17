@@ -46,18 +46,20 @@ BEGIN_DECLS
 /*
  * Start and stop remctld for tests that use it.  kerberos_setup should
  * normally be called first to check whether a Kerberos configuration is
- * available and to set KRB5_KTNAME.  Takes the path to remctld, which may be
- * found via configure, the Kerberos configuration, the path to the
- * configuration file, and then any additional arguments to remctld,
- * terminated by NULL.
+ * available and to set KRB5_KTNAME.  Takes the Kerberos configuration, the
+ * path to the configuration file, and then any additional arguments to
+ * remctld, terminated by NULL.
  *
  * remctl_stop can be called explicitly to stop remctld and clean up, but it's
  * also registered as an atexit handler, so tests that only start and stop the
  * server once can just let cleanup happen automatically.
+ *
+ * PATH_REMCTLD must be defined, either with explicit compiler options or in
+ * config.h.  If it's not defined, remctld_start calls skip_all, assuming that
+ * this means that the test case cannot be run.
  */
-pid_t remctld_start(const char *path, struct kerberos_config *,
-                    const char *config, ...)
-    __attribute__((__nonnull__(1, 2, 3)));
+pid_t remctld_start(struct kerberos_config *, const char *config, ...)
+    __attribute__((__nonnull__(1, 2)));
 void remctld_stop(void);
 
 END_DECLS
