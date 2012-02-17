@@ -3,7 +3,7 @@
 # Test suite for the remctl command-line client.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2009, 2011
+# Copyright 2006, 2007, 2009, 2011, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -11,7 +11,6 @@
 . "$SOURCE/tap/libtap.sh"
 . "$SOURCE/tap/kerberos.sh"
 . "$SOURCE/tap/remctl.sh"
-cd "$SOURCE"
 
 # Test setup.
 kerberos_setup
@@ -24,7 +23,7 @@ remctl="$BUILD/../client/remctl"
 if [ ! -x "$remctl" ] ; then
     bail "can't locate remctl client binary"
 fi
-remctld_start "$BUILD/../server/remctld" "$SOURCE/data/conf-simple"
+remctld_start "$BUILD/../server/remctld" "$BUILD/data/conf-simple"
 
 # Now, we can finally run our tests.
 ok_program "basic" 0 "hello world" \
@@ -54,15 +53,16 @@ ok_program "201 arguments" 0 "201" \
     a a a a a a a a a a a a a a a a a a a a a a a a a
 
 # Make sure that error messages end in a newline.
+tmpdir=`test_tmpdir`
 "$remctl" -s "$principal" -p 14373 localhost test noauth \
-    > "$BUILD/data/output" 2>&1
-echo 'foo' >> "$BUILD/data/output"
+    > "$tmpdir/output" 2>&1
+echo 'foo' >> "$tmpdir/output"
 ok "error messages end in a newline" \
-    [ "`wc -l "$BUILD/data/output" | sed 's, /.*,,'`" -eq 2 ]
+    [ "`wc -l "$tmpdir/output" | sed 's, /.*,,'`" -eq 2 ]
 
 # Check refused connections.
-"$remctl" -p 14445 localhost test noauth > "$BUILD/data/output" 2>&1
-output=`sed 's/):.*/)/' "$BUILD/data/output"`
+"$remctl" -p 14445 localhost test noauth > "$tmpdir/output" 2>&1
+output=`sed 's/):.*/)/' "$tmpdir/output"`
 echo "# saw: $output"
 ok "correct connection refused error" \
     [ "$output" = "remctl: cannot connect to localhost (port 14445)" ]
@@ -70,15 +70,16 @@ ok "correct connection refused error" \
 # Check binding to a particular source IP.
 ok_program "source of 127.0.0.1" 0 "hello world" \
     "$remctl" -b 127.0.0.1 -s "$principal" -p 14373 127.0.0.1 test test
-"$remctl" -b ::1 -p 14373 127.0.0.1 test test > "$BUILD/data/output" 2>&1
+"$remctl" -b ::1 -p 14373 127.0.0.1 test test > "$tmpdir/output" 2>&1
 status=$?
 ok "source of ::1 fails" [ "$status" != 0 ]
-output=`sed 's/):.*/)/' "$BUILD/data/output"`
+output=`sed 's/):.*/)/' "$tmpdir/output"`
 echo "# saw: $output"
 ok "correct bind address error" \
     [ "$output" = "remctl: cannot connect to 127.0.0.1 (port 14373)" ]
 
 # Clean up.
-rm -f "$BUILD/data/output"
+rm -f "$tmpdir/output"
 remctld_stop
 kerberos_cleanup
+rmdir "$tmpdir"

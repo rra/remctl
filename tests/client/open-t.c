@@ -134,8 +134,6 @@ main(void)
     struct timeval tv;
 
     plan(5 * 3 + 3);
-    if (chdir(getenv("BUILD")) < 0)
-        sysbail("can't chdir to BUILD");
 
     /*
      * Now, check that the right thing happens when we try to connect to a

@@ -36,8 +36,6 @@ main(void)
     struct iovec command[7];
 
     /* Set up Kerberos and remctld. */
-    if (chdir(getenv("SOURCE")) < 0)
-        bail("can't chdir to SOURCE");
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     remctld_start(krbconf, "data/conf-simple", (char *) 0);
 

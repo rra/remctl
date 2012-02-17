@@ -31,8 +31,6 @@ main(void)
     const char *command[] = { "test", "streaming", NULL };
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    if (chdir(getenv("BUILD")) < 0)
-        bail("can't chdir to BUILD");
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     remctld_start(krbconf, "data/conf-simple", NULL);
 

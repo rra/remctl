@@ -97,8 +97,6 @@ main(void)
 #endif
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    if (chdir(getenv("SOURCE")) < 0)
-        bail("can't chdir to SOURCE");
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
 
     /* Initialize our testing. */

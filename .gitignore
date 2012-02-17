@@ -65,6 +65,7 @@
 /tests/data/cmd-closed
 /tests/data/cmd-stdin
 /tests/data/cmd-streaming
+/tests/data/conf-simple
 /tests/portable/asprintf-t
 /tests/portable/daemon-t
 /tests/portable/getaddrinfo-t

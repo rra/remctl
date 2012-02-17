@@ -276,16 +276,18 @@ SERVER_FILES = server/commands.c server/config.c server/generic.c \
 
 # All of the test programs.
 tests_client_api_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	portable/libportable.la util/libutil.la
+	util/libutil.la portable/libportable.la
 tests_client_ccache_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	portable/libportable.la util/libutil.la
+	util/libutil.la portable/libportable.la
 tests_client_open_t_LDFLAGS = $(GSSAPI_LDFLAGS)
 tests_client_open_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	portable/libportable.la util/libutil.la $(GSSAPI_LIBS)
+	util/libutil.la portable/libportable.la $(GSSAPI_LIBS)
 tests_client_large_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	portable/libportable.la util/libutil.la
+	util/libutil.la portable/libportable.la
 tests_client_source_ip_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	portable/libportable.la util/libutil.la
+	util/libutil.la portable/libportable.la
+tests_data_cmd_background_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la
 tests_data_cmd_stdin_LDADD = util/libutil.la
 tests_portable_asprintf_t_SOURCES = tests/portable/asprintf-t.c \
 	tests/portable/asprintf.c

@@ -11,15 +11,6 @@
 . "$SOURCE/tap/libtap.sh"
 . "$SOURCE/tap/kerberos.sh"
 . "$SOURCE/tap/remctl.sh"
-cd "$BUILD"
-
-# Temporary workaround so that the test configuration can find commands.
-remove_links=
-if [ ! -x data/cmd-argv ] ; then
-    ln -s "$SOURCE"/data/cmd-argv data/cmd-argv
-    ln -s "$SOURCE"/data/cmd-hello data/cmd-hello
-    remove_links=true
-fi
 
 # Test setup.
 kerberos_setup
@@ -32,7 +23,7 @@ remctl="$BUILD/../client/remctl"
 if [ ! -x "$remctl" ] ; then
     bail "can't locate remctl client binary"
 fi
-remctld_start "$BUILD/../server/remctld" "$SOURCE/data/conf-simple"
+remctld_start "$BUILD/../server/remctld" "$BUILD/data/conf-simple"
 
 # Run the tests.
 ok_program "file descriptors closed properly on server" 0 "Okay" \
@@ -49,12 +40,10 @@ ok_program "...but only matches that subcommand" 255 "Unknown command" \
     "$remctl" -s "$principal" -p 14373 localhost foo baz
 
 # Clean up.
-if [ -f "$BUILD/data/cmd-background.pid" ] ; then
-    kill `cat "$BUILD/data/cmd-background.pid"`
-    rm -f "$BUILD/data/cmd-background.pid"
+tmpdir=`test_tmpdir`
+if [ -f "$tmpdir/cmd-background.pid" ] ; then
+    kill `cat "$tmpdir/cmd-background.pid"`
+    rm -f "$tmpdir/cmd-background.pid"
 fi
 remctld_stop
 kerberos_cleanup
-if [ -n "$remove_links" ] ; then
-    rm -f data/cmd-argv data/cmd-hello
-fi

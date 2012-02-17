@@ -28,8 +28,7 @@ main(void)
     int status;
     const char *command[] = { "test", "test", NULL };
 
-    if (chdir(getenv("SOURCE")) < 0)
-        bail("can't chdir to SOURCE");
+    /* Set up Kerberos and remctld. */
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     remctld_start(krbconf, "data/conf-simple", (char *) 0);
 

@@ -1,0 +1,14 @@
+test test @abs_top_srcdir@/tests/data/cmd-hello ANYUSER
+test status @abs_top_srcdir@/tests/data/cmd-status ANYUSER
+test nonexistent /cmd-nonexistent ANYUSER
+test noauth @abs_top_srcdir@/tests/data/cmd-hello data/acl-nonexistent
+test noacl @abs_top_srcdir@/tests/data/cmd-hello data/acl-no-such-file
+test streaming @abs_top_builddir@/tests/data/cmd-streaming ANYUSER
+test env @abs_top_srcdir@/tests/data/cmd-env ANYUSER
+test argv @abs_top_srcdir@/tests/data/cmd-argv ANYUSER
+test closed @abs_top_builddir@/tests/data/cmd-closed ANYUSER
+test background @abs_top_builddir@/tests/data/cmd-background ANYUSER
+test stdin @abs_top_builddir@/tests/data/cmd-stdin stdin=last ANYUSER
+empty EMPTY @abs_top_srcdir@/tests/data/cmd-argv ANYUSER
+all ALL @abs_top_srcdir@/tests/data/cmd-hello ANYUSER
+ALL bar @abs_top_srcdir@/tests/data/cmd-hello ANYUSER
