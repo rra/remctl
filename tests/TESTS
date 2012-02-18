@@ -2,8 +2,8 @@ client/api
 client/ccache
 client/large
 client/open
-client/source-ip
 client/remctl
+client/source-ip
 docs/pod
 docs/pod-spelling
 portable/asprintf
