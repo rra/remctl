@@ -19,6 +19,7 @@
 #include <portable/system.h>
 
 #include <errno.h>
+#include <time.h>
 
 #include <util/messages.h>
 #include <util/network.h>

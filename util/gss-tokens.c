@@ -20,6 +20,8 @@
 #include <portable/socket.h>
 #include <portable/system.h>
 
+#include <time.h>
+
 #include <util/gss-tokens.h>
 #include <util/protocol.h>
 #include <util/tokens.h>
