@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -150,7 +150,7 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
         token.length -= left;
         status = token_send_priv(r->fd, r->context,
                                  TOKEN_DATA | TOKEN_PROTOCOL, &token,
-                                 &major, &minor);
+                                 r->timeout, &major, &minor);
         if (status != TOKEN_OK) {
             internal_token_error(r, "sending token", status, major, minor);
             free(token.value);
@@ -178,7 +178,7 @@ internal_v2_quit(struct remctl *r)
     token.length = 1 + 1;
     token.value = buffer;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
-                             &token, &major, &minor);
+                             &token, r->timeout, &major, &minor);
     if (status != TOKEN_OK) {
         internal_token_error(r, "sending QUIT token", status, major, minor);
         return false;
@@ -199,7 +199,7 @@ internal_v2_read_token(struct remctl *r, gss_buffer_t token)
     char *p;
 
     status = token_recv_priv(r->fd, r->context, &flags, token,
-                             TOKEN_MAX_LENGTH, &major, &minor);
+                             TOKEN_MAX_LENGTH, r->timeout, &major, &minor);
     if (status != TOKEN_OK) {
         internal_token_error(r, "receiving token", status, major, minor);
         if (status == TOKEN_FAIL_EOF) {
@@ -370,7 +370,7 @@ internal_noop(struct remctl *r)
     token.length = 1 + 1;
     token.value = buffer;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
-                             &token, &major, &minor);
+                             &token, r->timeout, &major, &minor);
     if (status != TOKEN_OK) {
         internal_token_error(r, "sending NOOP token", status, major, minor);
         return false;

@@ -2,7 +2,7 @@
  * Test suite for the client connection negotiation code.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Copyright 2006, 2007, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -88,14 +88,14 @@ accept_connection(char *pidfile, int protocol)
         sysdie("error accepting connection");
 
     /* Now do the context negotiation. */
-    if (token_recv(conn, &flags, &recv_tok, 64 * 1024) != TOKEN_OK)
+    if (token_recv(conn, &flags, &recv_tok, 64 * 1024, 0) != TOKEN_OK)
         die("cannot recv initial token");
     if (flags != (TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL))
         die("bad flags on initial token");
     wanted_flags = TOKEN_CONTEXT | TOKEN_PROTOCOL;
     context = GSS_C_NO_CONTEXT;
     do {
-        if (token_recv(conn, &flags, &recv_tok, 64 * 1024) != TOKEN_OK)
+        if (token_recv(conn, &flags, &recv_tok, 64 * 1024, 0) != TOKEN_OK)
             die("cannot recv subsequent token");
         if (flags != wanted_flags)
             die("bad flags on subsequent token");
@@ -111,7 +111,7 @@ accept_connection(char *pidfile, int protocol)
                 flags |= TOKEN_PROTOCOL;
             else if (protocol == 0)
                 protocol = 2;
-            if (token_send(conn, flags, &send_tok) != TOKEN_OK)
+            if (token_send(conn, flags, &send_tok, 0) != TOKEN_OK)
                 die("cannot send subsequent token");
             gss_release_buffer(&minor, &send_tok);
         }

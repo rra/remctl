@@ -50,7 +50,7 @@ test_bad_token(const struct kerberos_config *krbconf, const char *data,
     token.value = (void *) data;
     token.length = length;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
-                             &token, &major, &minor);
+                             &token, 0, &major, &minor);
     is_int(TOKEN_OK, status, "sent token for %s", description);
     if (status != TOKEN_OK) {
         remctl_close(r);

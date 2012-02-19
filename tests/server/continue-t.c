@@ -62,25 +62,25 @@ main(void)
     memcpy(buffer + sizeof(prefix_first), data, 2);
     token.length = sizeof(prefix_first) + 2;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
-                             &token, &major, &minor);
+                             &token, 0, &major, &minor);
     is_int(TOKEN_OK, status, "first token sent okay");
     memcpy(buffer, prefix_next, sizeof(prefix_next));
     memcpy(buffer + sizeof(prefix_next), data + 2, 4);
     token.length = sizeof(prefix_next) + 4;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
-                             &token, &major, &minor);
+                             &token, 0, &major, &minor);
     is_int(TOKEN_OK, status, "second token sent okay");
     memcpy(buffer, prefix_next, sizeof(prefix_next));
     memcpy(buffer + sizeof(prefix_next), data + 6, 13);
     token.length = sizeof(prefix_next) + 13;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
-                             &token, &major, &minor);
+                             &token, 0, &major, &minor);
     is_int(TOKEN_OK, status, "third token sent okay");
     memcpy(buffer, prefix_last, sizeof(prefix_last));
     memcpy(buffer + sizeof(prefix_last), data + 19, sizeof(data) - 19);
     token.length = sizeof(prefix_next) + sizeof(data) - 19;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
-                             &token, &major, &minor);
+                             &token, 0, &major, &minor);
     is_int(TOKEN_OK, status, "fourth token sent okay");
     r->ready = 1;
     output = remctl_output(r);

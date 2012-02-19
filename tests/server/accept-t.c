@@ -78,7 +78,7 @@ make_connection(int protocol, const char *principal)
     flags = TOKEN_NOOP | TOKEN_CONTEXT_NEXT;
     if (protocol == 0 || protocol > 1)
         flags |= TOKEN_PROTOCOL;
-    if (token_send(fd, flags, &empty_token) != TOKEN_OK)
+    if (token_send(fd, flags, &empty_token, 0) != TOKEN_OK)
         sysdie("failure sending token");
 
     /* Perform the context-establishment loop. */
@@ -97,14 +97,14 @@ make_connection(int protocol, const char *principal)
                 flags |= TOKEN_PROTOCOL;
             if (protocol == 0)
                 protocol = 2;
-            if (token_send(fd, flags, &send_tok) != TOKEN_OK)
+            if (token_send(fd, flags, &send_tok, 0) != TOKEN_OK)
                 sysdie("failure sending token");
         }
         gss_release_buffer(&minor, &send_tok);
         if (major != GSS_S_COMPLETE && major != GSS_S_CONTINUE_NEEDED)
             die("failure initializing context");
         if (major == GSS_S_CONTINUE_NEEDED) {
-            if (token_recv(fd, &flags, &recv_tok, 64 * 1024) != TOKEN_OK)
+            if (token_recv(fd, &flags, &recv_tok, 64 * 1024, 0) != TOKEN_OK)
                 sysdie("failure receiving token");
             token_ptr = &recv_tok;
         }

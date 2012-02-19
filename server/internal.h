@@ -2,7 +2,7 @@
  * Internal support functions for the remctld daemon.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2008, 2009, 2010
+ * Copyright 2006, 2007, 2008, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -32,6 +32,12 @@ struct iovec;
  * to protect against memory-based denial of service attacks on the server.
  */
 #define MAXCMDARGS (4 * 1024)
+
+/*
+ * The timeout.  We won't wait for longer than this number of seconds for more
+ * data from the client.  This needs to be configurable.
+ */
+#define TIMEOUT (60 * 60)
 
 /* Holds the information about a client connection. */
 struct client {

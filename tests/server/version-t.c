@@ -65,12 +65,12 @@ main(void)
     tok.length = sizeof(token);
     tok.value = (char *) token;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
-                             &tok, &major, &minor);
+                             &tok, 0, &major, &minor);
     if (status != TOKEN_OK)
         bail("cannot send token");
 
     /* Accept the remote token. */
-    status = token_recv_priv(r->fd, r->context, &flags, &tok, 1024 * 64,
+    status = token_recv_priv(r->fd, r->context, &flags, &tok, 1024 * 64, 0,
                              &major, &minor);
     is_int(TOKEN_OK, status, "received token correctly");
     is_int(TOKEN_DATA | TOKEN_PROTOCOL, flags, "token had correct flags");
@@ -84,11 +84,11 @@ main(void)
      * hadn't closed the connection.
      */
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
-                             &tok, &major, &minor);
+                             &tok, 0, &major, &minor);
     is_int(TOKEN_OK, status, "connection is still open");
     if (status == TOKEN_OK) {
         status = token_recv_priv(r->fd, r->context, &flags, &tok, 1024 * 64,
-                                 &major, &minor);
+                                 0, &major, &minor);
         is_int(TOKEN_OK, status, "received token correctly");
     } else {
         ok(false, "unable to get reply to token");

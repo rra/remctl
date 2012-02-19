@@ -3,7 +3,7 @@
  *
  * Originally written by Anton Ushakov
  * Extensive modifications by Russ Allbery <rra@stanford.edu>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See README for licensing terms.
@@ -31,10 +31,11 @@ BEGIN_DECLS
  * arguments.
  */
 enum token_status token_send_priv(socket_type, gss_ctx_id_t, int flags,
-                                  gss_buffer_t, OM_uint32 *, OM_uint32 *);
-enum token_status token_recv_priv(socket_type, gss_ctx_id_t, int *flags,
-                                  gss_buffer_t, size_t max, OM_uint32 *,
+                                  gss_buffer_t, time_t, OM_uint32 *,
                                   OM_uint32 *);
+enum token_status token_recv_priv(socket_type, gss_ctx_id_t, int *flags,
+                                  gss_buffer_t, size_t max, time_t,
+                                  OM_uint32 *, OM_uint32 *);
 
 /* Undo default visibility change. */
 #pragma GCC visibility pop

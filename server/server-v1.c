@@ -7,7 +7,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -54,7 +54,7 @@ server_v1_send_output(struct client *client, int exit_status)
     
     /* Send the token. */
     status = token_send_priv(client->fd, client->context, TOKEN_DATA, &token,
-                             &major, &minor);
+                             TIMEOUT, &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending output token", status, major, minor);
         free(token.value);
@@ -80,7 +80,7 @@ server_v1_handle_messages(struct client *client, struct config *config)
 
     /* Receive the message. */
     status = token_recv_priv(client->fd, client->context, &flags, &token,
-                             TOKEN_MAX_LENGTH, &major, &minor);
+                             TOKEN_MAX_LENGTH, TIMEOUT, &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("receiving command token", status, major, minor);
         if (status == TOKEN_FAIL_LARGE)

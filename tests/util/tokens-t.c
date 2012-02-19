@@ -2,7 +2,7 @@
  * tokens test suite.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Copyright 2006, 2007, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -122,7 +122,7 @@ send_regular_token(socket_type fd)
     buffer.value = xmalloc(5);
     memcpy(buffer.value, "hello", 5);
     buffer.length = 5;
-    token_send(fd, 3, &buffer);
+    token_send(fd, 3, &buffer, 0);
 }
 
 
@@ -168,7 +168,7 @@ main(void)
         exit(0);
     } else {
         client = create_client();
-        status = token_recv(client, &flags, &result, 5);
+        status = token_recv(client, &flags, &result, 5, 0);
         is_int(TOKEN_OK, status, "received hand-rolled token");
         is_int(3, flags, "...with right flags");
         is_int(5, result.length, "...and right length");
@@ -176,6 +176,7 @@ main(void)
         waitpid(child, NULL, 0);
     }
 
+    /* Send a token with a length of one, but no following data. */
     unlink("server-ready");
     child = fork();
     if (child < 0)
@@ -186,11 +187,12 @@ main(void)
         exit(0);
     } else {
         client = create_client();
-        status = token_recv(client, &flags, &result, 200);
-        is_int(TOKEN_FAIL_INVALID, status, "receive invalid token");
+        status = token_recv(client, &flags, &result, 200, 0);
+        is_int(TOKEN_FAIL_EOF, status, "receive invalid token");
         waitpid(child, NULL, 0);
     }
 
+    /* Send a token larger than our token size limit. */
     unlink("server-ready");
     child = fork();
     if (child < 0)
@@ -201,11 +203,12 @@ main(void)
         exit(0);
     } else {
         client = create_client();
-        status = token_recv(client, &flags, &result, 4);
+        status = token_recv(client, &flags, &result, 4, 0);
         is_int(TOKEN_FAIL_LARGE, status, "receive too-large token");
         waitpid(child, NULL, 0);
     }
 
+    /* Send EOF when we were expecting a token. */
     unlink("server-ready");
     child = fork();
     if (child < 0)
@@ -216,7 +219,7 @@ main(void)
         exit(0);
     } else {
         client = create_client();
-        status = token_recv(client, &flags, &result, 4);
+        status = token_recv(client, &flags, &result, 4, 0);
         is_int(TOKEN_FAIL_EOF, status, "receive end of file");
         waitpid(child, NULL, 0);
     }
@@ -230,7 +233,7 @@ main(void)
         result.value = xmalloc(5);
         memcpy(result.value, "hello", 5);
         result.length = 5;
-        status = token_send(server, 3, &result);
+        status = token_send(server, 3, &result, 0);
         free(result.value);
         is_int(TOKEN_FAIL_SOCKET, status, "can't send due to system error");
         close(server);

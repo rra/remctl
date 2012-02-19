@@ -80,7 +80,7 @@ main(void)
     /* Okay, we should now be able to send and receive a token. */
     server_tok.value = (char *) "hello";
     server_tok.length = 5;
-    status = token_send_priv(0, server_ctx, 3, &server_tok, &s_stat,
+    status = token_send_priv(0, server_ctx, 3, &server_tok, 0, &s_stat,
                              &s_min_stat);
     is_int(TOKEN_OK, status, "sent a token successfully");
     is_int(3, send_flags, "...with the right flags");
@@ -97,13 +97,13 @@ main(void)
     client_tok.value = NULL;
     server_tok.value = (char *) "hello";
     server_tok.length = 5;
-    status = token_send_priv(0, server_ctx, 3, &server_tok, &s_stat,
+    status = token_send_priv(0, server_ctx, 3, &server_tok, 0, &s_stat,
                              &s_min_stat);
     is_int(TOKEN_OK, status, "sent another token");
     memcpy(recv_buffer, send_buffer, send_length);
     recv_length = send_length;
     recv_flags = send_flags;
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024,
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024, 0,
                              &s_stat, &c_min_stat);
     is_int(TOKEN_OK, status, "received the token");
     is_int(5, client_tok.length, "...with the right length");
@@ -112,13 +112,13 @@ main(void)
     gss_release_buffer(&c_min_stat, &client_tok);
 
     /* Test receiving too large of a token. */
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 4, &s_stat,
-                             &s_min_stat);
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 4, 0,
+                             &s_stat, &s_min_stat);
     is_int(TOKEN_FAIL_LARGE, status, "receiving too large of a token");
 
     /* Test receiving a corrupt token. */
     recv_length = 4;
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024,
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024, 0,
                              &s_stat, &s_min_stat);
     is_int(TOKEN_FAIL_GSSAPI, status, "receiving a corrupt token");
 
@@ -135,7 +135,7 @@ main(void)
     recv_length = server_tok.length;
     memcpy(recv_buffer, server_tok.value, server_tok.length);
     gss_release_buffer(&c_min_stat, &server_tok);
-    status = token_recv_priv(0, server_ctx, &flags, &server_tok, 1024,
+    status = token_recv_priv(0, server_ctx, &flags, &server_tok, 1024, 0,
                              &s_stat, &s_min_stat);
     is_int(TOKEN_OK, status, "received a fake token");
     is_int(5, flags, "...with the right flags");
@@ -153,12 +153,12 @@ main(void)
     recv_length = client_tok.length;
     recv_flags = TOKEN_MIC;
     status = token_send_priv(0, server_ctx, TOKEN_DATA | TOKEN_SEND_MIC,
-                             &server_tok, &s_stat, &s_min_stat);
+                             &server_tok, 0, &s_stat, &s_min_stat);
     is_int(TOKEN_OK, status, "sent protocol v1 token with MIC");
     memcpy(recv_buffer, send_buffer, send_length);
     recv_length = send_length;
     recv_flags = send_flags;
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024,
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024,0,
                              &c_stat, &c_min_stat);
     is_int(TOKEN_OK, status, "received protocol v1 token with MIC");
     is_int(TOKEN_DATA, flags, "...with the right flags");
