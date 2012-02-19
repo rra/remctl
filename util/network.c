@@ -20,7 +20,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2011
+ * Copyright 2009, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007, 2008
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -54,11 +54,13 @@
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
+#include <time.h>
 
 #include <util/fdflag.h>
 #include <util/messages.h>
 #include <util/network.h>
 #include <util/xmalloc.h>
+#include <util/xwrite.h>
 
 /* Macros to set the len attribute of sockaddrs. */
 #if HAVE_STRUCT_SOCKADDR_SA_LEN
@@ -72,6 +74,16 @@
 /* If SO_REUSEADDR isn't available, make calls to set_reuseaddr go away. */
 #ifndef SO_REUSEADDR
 # define network_set_reuseaddr(fd)      /* empty */
+#endif
+
+/*
+ * Windows requires a different function when sending to sockets, but can't
+ * return short writes on blocking sockets.
+ */
+#ifdef _WIN32
+# define socket_xwrite(fd, b, s)        send((fd), (b), (s), 0)
+#else
+# define socket_xwrite(fd, b, s)        xwrite((fd), (b), (s))
 #endif
 
 
@@ -521,6 +533,152 @@ network_client_create(int domain, int type, const char *source)
         return INVALID_SOCKET;
     }
     return fd;
+}
+
+
+/*
+ * Equivalent to read, but reads all the available data up to the buffer
+ * length, using multiple reads if needed and handling EINTR and EAGAIN.  If
+ * we get EOF before we get enough data, set the socket errno to EPIPE.
+ */
+static ssize_t
+socket_xread(socket_type fd, void *buffer, size_t size)
+{
+    size_t total;
+    ssize_t status;
+    int count = 0;
+
+    /* Abort the read if we try 100 times with no forward progress. */
+    for (total = 0, status = 0; total < size; total += status) {
+        if (++count > 100)
+            break;
+        status = socket_read(fd, (char *) buffer + total, size - total);
+        if (status > 0)
+            count = 0;
+        else if (status == 0)
+            break;
+        else {
+            if ((socket_errno != EINTR) && (socket_errno != EAGAIN))
+                break;
+            status = 0;
+        }
+    }
+    if (status == 0 && total < size)
+        socket_set_errno(EPIPE);
+    return (total < size) ? -1 : (ssize_t) total;
+}
+
+
+/*
+ * Read the specified number of bytes from the network, enforcing a timeout
+ * (in seconds).  We use select to wait for data to become available and then
+ * keep reading until either we time out or we've gotten all the data we're
+ * looking for.  timeout may be 0 to never time out.  Return true on success
+ * and false (setting socket_errno) on failure.
+ */
+bool
+network_read(socket_type fd, void *buffer, size_t total, time_t timeout)
+{
+    time_t start, now;
+    fd_set set;
+    struct timeval tv;
+    size_t got = 0;
+    ssize_t status;
+
+    /* If there's no timeout, do this the easy way. */
+    if (timeout == 0)
+        return (socket_xread(fd, buffer, total) >= 0);
+
+    /* The hard way.  We try to apply the timeout on the whole read. */
+    start = time(NULL);
+    now = start;
+    do {
+        FD_ZERO(&set);
+        FD_SET(fd, &set);
+        tv.tv_sec = timeout - (now - start);
+        if (tv.tv_sec < 1)
+            tv.tv_sec = 1;
+        tv.tv_usec = 0;
+        status = select(fd + 1, &set, NULL, NULL, &tv);
+        if (status < 0)
+            return false;
+        else if (status == 0) {
+            socket_set_errno(ETIMEDOUT);
+            return false;
+        }
+        status = socket_read(fd, (char *) buffer + got, total - got);
+        if (status < 0)
+            return false;
+        else if (status == 0) {
+            socket_set_errno(EPIPE);
+            return false;
+        }
+        got += status;
+        if (got == total)
+            return true;
+        now = time(NULL);
+    } while (now - start < timeout);
+    socket_set_errno(ETIMEDOUT);
+    return false;
+}
+
+
+/*
+ * Write the specified number of bytes from the network, enforcing a timeout
+ * (in seconds).  We use select to wait for the socket to become available and
+ * then keep reading until either we time out or we've sent all the data.
+ * timeout may be 0 to never time out.  Return true on success and false
+ * (setting socket_errno) on failure.
+ */
+bool
+network_write(socket_type fd, const void *buffer, size_t total, time_t timeout)
+{
+    time_t start, now;
+    fd_set set;
+    struct timeval tv;
+    size_t sent = 0;
+    ssize_t status;
+    int err;
+
+    /* If there's no timeout, do this the easy way. */
+    if (timeout == 0)
+        return (socket_xwrite(fd, buffer, total) >= 0);
+
+    /* The hard way.  We try to apply the timeout on the whole write. */
+    fdflag_nonblocking(fd, true);
+    start = time(NULL);
+    now = start;
+    do {
+        FD_ZERO(&set);
+        FD_SET(fd, &set);
+        tv.tv_sec = timeout - (now - start);
+        if (tv.tv_sec < 1)
+            tv.tv_sec = 1;
+        tv.tv_usec = 0;
+        status = select(fd + 1, NULL, &set, NULL, &tv);
+        if (status < 0)
+            goto fail;
+        else if (status == 0) {
+            socket_set_errno(ETIMEDOUT);
+            goto fail;
+        }
+        status = socket_write(fd, (const char *) buffer + sent, total - sent);
+        if (status < 0)
+            goto fail;
+        sent += status;
+        if (sent == total) {
+            fdflag_nonblocking(fd, false);
+            return true;
+        }
+        now = time(NULL);
+    } while (now - start < timeout);
+    socket_set_errno(ETIMEDOUT);
+
+fail:
+    err = socket_errno;
+    fdflag_nonblocking(fd, false);
+    socket_set_errno(err);
+    return false;
 }
 
 

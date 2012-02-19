@@ -5,7 +5,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010, 2011
+ * Copyright 2009, 2010, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007, 2008, 2010
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -106,6 +106,16 @@ socket_type network_connect_host(const char *host, unsigned short port,
  * that will then go on to do a non-blocking connect.
  */
 socket_type network_client_create(int domain, int type, const char *source);
+
+/*
+ * Read or write the specified number of bytes to the network, enforcing a
+ * timeout.  Both return true on success and false on failure; on failure, the
+ * socket errno is set.
+ */
+bool network_read(socket_type, void *, size_t, time_t)
+    __attribute__((__nonnull__));
+bool network_write(socket_type, const void *, size_t, time_t)
+    __attribute__((__nonnull__));
 
 /*
  * Put an ASCII representation of the address in a sockaddr into the provided
