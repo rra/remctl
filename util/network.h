@@ -111,6 +111,10 @@ socket_type network_client_create(int domain, int type, const char *source);
  * Read or write the specified number of bytes to the network, enforcing a
  * timeout.  Both return true on success and false on failure; on failure, the
  * socket errno is set.
+ *
+ * network_write will set the file descriptor non-blocking and then set it
+ * back to blocking at the conclusion of the write, so don't use this function
+ * with file descriptors that should stay non-blocking.
  */
 bool network_read(socket_type, void *, size_t, time_t)
     __attribute__((__nonnull__));
