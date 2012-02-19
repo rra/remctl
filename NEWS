@@ -6,7 +6,8 @@ remctl 3.1 (unreleased)
     this function after remctl_new and before remctl_open to set a network
     timeout in seconds.  The client must then receive a reply from the
     server in no more than that number of seconds or will abort whatever
-    action is in progress with a timeout error.
+    action is in progress with a timeout error.  The timeout also applies
+    to the initial connection.
 
     The remctld server now imposes a one-hour timeout between messages
     from the client rather than a one-hour timeout for the entire session,
