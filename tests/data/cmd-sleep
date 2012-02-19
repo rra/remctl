@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Sleeps for ten seconds and exits, used to test timeouts.  If given any
+# Sleeps for three seconds and exits, used to test timeouts.  If given any
 # arguments, echos them first so that we can test timeouts after initial
 # output.
 
