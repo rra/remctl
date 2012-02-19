@@ -4,6 +4,7 @@ client/large
 client/open
 client/remctl
 client/source-ip
+client/timeout
 docs/pod
 docs/pod-spelling
 portable/asprintf

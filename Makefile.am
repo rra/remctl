@@ -62,14 +62,15 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/acls/val.id tests/data/acls/valid			    \
 	tests/data/acls/valid-2 tests/data/acls/val~id			    \
 	tests/data/acls2/valid-4 tests/data/cmd-argv tests/data/cmd-env	    \
-	tests/data/cmd-hello tests/data/cmd-status tests/data/conf-simple   \
-	tests/data/conf-test tests/data/configs/bad-logmask-1		    \
-	tests/data/configs/bad-include-1 tests/data/configs/bad-logmask-2   \
-	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4   \
-	tests/data/configs/bad-option-1 tests/data/gput			    \
-	tests/docs/pod-spelling-t tests/docs/pod-t tests/tap/kerberos.sh    \
-	tests/tap/libtap.sh tests/tap/remctl.sh tests/server/misc-t	    \
-	tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES)
+	tests/data/cmd-hello tests/data/cmd-sleep tests/data/cmd-status	    \
+	tests/data/conf-simple tests/data/conf-test			    \
+	tests/data/configs/bad-logmask-1 tests/data/configs/bad-include-1   \
+	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
+	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
+	tests/data/gput tests/docs/pod-spelling-t tests/docs/pod-t	    \
+	tests/tap/kerberos.sh tests/tap/libtap.sh tests/tap/remctl.sh	    \
+	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
+	$(PYTHON_FILES)
 
 # Set this globally, since we have too many header files that include the
 # GSS-API headers even if the code itself doesn't call GSS-API functions.
@@ -243,8 +244,8 @@ warnings:
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
 	tests/client/large-t tests/client/open-t tests/client/source-ip-t   \
-	tests/data/cmd-background tests/data/cmd-closed			    \
-	tests/data/cmd-stdin tests/data/cmd-streaming			    \
+	tests/client/timeout-t tests/data/cmd-background		    \
+	tests/data/cmd-closed tests/data/cmd-stdin tests/data/cmd-streaming \
 	tests/portable/asprintf-t tests/portable/daemon-t		    \
 	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	    \
 	tests/portable/getopt-t tests/portable/inet_aton-t		    \
@@ -285,6 +286,8 @@ tests_client_open_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 tests_client_large_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_client_source_ip_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
+tests_client_timeout_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_data_cmd_background_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la

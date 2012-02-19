@@ -59,6 +59,7 @@
 /tests/client/large-t
 /tests/client/open-t
 /tests/client/source-ip-t
+/tests/client/timeout-t
 /tests/config/keytab
 /tests/config/principal
 /tests/data/cmd-background
