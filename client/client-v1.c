@@ -116,7 +116,7 @@ internal_v1_output(struct remctl *r)
                              TOKEN_MAX_LENGTH, r->timeout, &major, &minor);
     if (status != TOKEN_OK) {
         internal_token_error(r, "receiving token", status, major, minor);
-        if (status == TOKEN_FAIL_EOF) {
+        if (status == TOKEN_FAIL_EOF || status == TOKEN_FAIL_TIMEOUT) {
             socket_close(r->fd);
             r->fd = INVALID_SOCKET;
         }
