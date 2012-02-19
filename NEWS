@@ -2,6 +2,11 @@
 
 remctl 3.1 (unreleased)
 
+    The remctld server now imposes a one-hour timeout between messages
+    from the client rather than a one-hour timeout for the entire session,
+    allowing clients to continue to send commands for as long as they stay
+    connected and not idle.
+
     Update to rra-c-util 4.2:
 
     * Fix error reporting for non-blocking connect.
