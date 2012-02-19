@@ -28,11 +28,25 @@
 
 
 /*
+ * Given a socket errno, map it to one of our error codes.
+ */
+static enum token_status
+map_socket_error(int err)
+{
+    switch (err) {
+    case EPIPE:     return TOKEN_FAIL_EOF;
+    case ETIMEDOUT: return TOKEN_FAIL_TIMEOUT;
+    default:        return TOKEN_FAIL_SOCKET;
+    }
+}
+
+
+/*
  * Send a token to a file descriptor.  Takes the file descriptor, the token,
  * and the flags (a single byte, even though they're passed in as an integer)
  * and writes them to the file descriptor.  Returns TOKEN_OK on success and
- * TOKEN_FAIL_SYSTEM or TOKEN_FAIL_SOCKET on an error (including partial
- * writes).
+ * TOKEN_FAIL_SYSTEM, TOKEN_FAIL_SOCKET, or TOKEN_FAIL_TIMEOUT on an error
+ * (including partial writes).
  */
 enum token_status
 token_send(socket_type fd, int flags, gss_buffer_t tok, time_t timeout)
@@ -53,7 +67,7 @@ token_send(socket_type fd, int flags, gss_buffer_t tok, time_t timeout)
     memcpy(buffer + 1 + sizeof(OM_uint32), tok->value, tok->length);
     okay = network_write(fd, buffer, buflen, timeout);
     free(buffer);
-    return okay ? TOKEN_OK : TOKEN_FAIL_SOCKET;
+    return okay ? TOKEN_OK : map_socket_error(socket_errno);
 }
 
 
@@ -88,11 +102,11 @@ token_recv(socket_type fd, int *flags, gss_buffer_t tok, size_t max,
     int err;
 
     if (!network_read(fd, &char_flags, 1, timeout))
-        return (socket_errno == EPIPE) ? TOKEN_FAIL_EOF : TOKEN_FAIL_SOCKET;
+        return map_socket_error(socket_errno);
     *flags = char_flags;
 
     if (!network_read(fd, &len, sizeof(OM_uint32), timeout))
-        return (socket_errno == EPIPE) ? TOKEN_FAIL_EOF : TOKEN_FAIL_SOCKET;
+        return map_socket_error(socket_errno);
     tok->length = ntohl(len);
     if (tok->length > max)
         return TOKEN_FAIL_LARGE;
@@ -108,7 +122,7 @@ token_recv(socket_type fd, int *flags, gss_buffer_t tok, size_t max,
         err = socket_errno;
         free(tok->value);
         socket_set_errno(err);
-        return (err == EPIPE) ? TOKEN_FAIL_EOF : TOKEN_FAIL_SOCKET;
+        return map_socket_error(err);
     }
     return TOKEN_OK;
 }

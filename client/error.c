@@ -95,6 +95,9 @@ internal_token_error(struct remctl *r, const char *error, int status,
     case TOKEN_FAIL_GSSAPI:
         internal_gssapi_error(r, error, major, minor);
         break;
+    case TOKEN_FAIL_TIMEOUT:
+        internal_set_error(r, "error %s: timed out", error);
+        break;
     default:
         internal_set_error(r, "error %s: unknown error", error);
         break;
