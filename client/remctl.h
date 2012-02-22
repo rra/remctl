@@ -25,6 +25,7 @@
 #define REMCTL_H 1
 
 #include <sys/types.h>          /* size_t */
+#include <time.h>               /* time_t */
 
 /*
  * Normally we treat this as an opaque struct and clients who want to use the
