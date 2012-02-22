@@ -32,6 +32,7 @@
 #include <XSUB.h>
 
 #include <errno.h>
+#include <time.h>
 
 #include <remctl.h>
 
