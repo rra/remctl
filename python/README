@@ -138,6 +138,25 @@ FULL INTERFACE
       Exceptions:
       * RemctlError: a memory allocation failure occurred
 
+  Remctl.set_timeout(timeout)
+      Sets the timeout for connections and commands.  All subsequent
+      operations on this object will be subject to this timeout, including
+      open() if called prior to calling open().  If the timeout is 0, this
+      clears any timeout that was previously set.
+
+      The timeout is a timeout on network activity from the server, not on
+      a complete operation.  So, for example, a timeout of ten seconds
+      just requires that the server send some data every ten seconds.  If
+      the server sends only tiny amounts of data at a time, the complete
+      operation could take much longer than ten seconds without triggering
+      the timeout.
+
+      Arguments:
+      * timeout (required): long, the timeout in seconds or 0
+
+      Exceptions:
+      * RemctlError: the timeout was negative
+
   Remctl.open(host, port, principal)
       Open a connection to a remote server and authenticate.  There is no
       return value; an exception is thrown on any error.
@@ -212,6 +231,9 @@ FULL INTERFACE
       to check when looking for specific errors.  output will contain an
       English text translation of the error code and the exact text may
       change.
+
+      If the server does not return an output token, output() will throw
+      an exception.
 
       Exceptions:
       * RemctlError: a network or authentication error occurred

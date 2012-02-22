@@ -6,7 +6,7 @@
 #
 # Original implementation by Thomas L. Kula <kula@tproa.net>
 # Copyright 2008 Thomas L. Kula <kula@tproa.net>
-# Copyright 2008, 2011
+# Copyright 2008, 2011, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -120,6 +120,10 @@ class Remctl:
         if not _remctl.remctl_set_source_ip(self.r, source):
             raise RemctlError, self.error()
 
+    def set_timeout(self, timeout):
+        if not _remctl.remctl_set_timeout(self.r, timeout):
+            raise RemctlError, self.error()
+
     def open(self, host, port = None, principal = None):
         if port == None:
             port = 0
@@ -156,7 +160,10 @@ class Remctl:
     def output(self):
         if not self.opened:
             raise RemctlNotOpenedError, 'no currently open connection'
-        return _remctl.remctl_output(self.r)
+        output = _remctl.remctl_output(self.r)
+        if len(output) == 0:
+            raise RemctlError, self.error()
+        return output
 
     def noop(self):
         if not self.opened:

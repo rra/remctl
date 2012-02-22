@@ -1,7 +1,7 @@
 # test_remctl.py -- Test suite for remctl Python bindings
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2008, 2011
+# Copyright 2008, 2011, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -217,6 +217,19 @@ class TestRemctlFull(TestRemctl):
             r.open('127.0.0.1', 14373, self.principal)
         except remctl.RemctlError, error:
             self.assert_(re.compile(pattern).match(str(error)))
+
+    @needs_kerberos
+    def test_timeout(self):
+        r = remctl.Remctl();
+        r.set_timeout(1)
+        r.open('127.0.0.1', 14373, self.principal)
+        r.command(['test', 'sleep'])
+        try:
+            type, data, stream, status, error = r.output()
+            assert('output unexpectedly succeeded')
+        except remctl.RemctlError, error:
+            self.assertEqual(r.error(), 'error receiving token: timed out')
+        r.close()
 
     @needs_kerberos
     def test_full_errors(self):
