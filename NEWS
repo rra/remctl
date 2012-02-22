@@ -3,12 +3,13 @@
 remctl 3.1 (unreleased)
 
     Add new remctl_set_timeout function to the remctl library API and the
-    Perl, PHP, and Python bindings.  Call this function any time after
-    remctl_new to set a network timeout in seconds for all subsequent
-    operations.  The client must then receive a reply from the server in
-    no more than that number of seconds or will abort whatever action is
-    in progress with a timeout error.  The timeout also applies to the
-    initial connection if remctl_set_timeout is called before remctl_open.
+    Perl, PHP, Python, and Ruby bindings.  Call this function any time
+    after remctl_new to set a network timeout in seconds for all
+    subsequent operations.  The client must then receive a reply from the
+    server in no more than that number of seconds or will abort whatever
+    action is in progress with a timeout error.  The timeout also applies
+    to the initial connection if remctl_set_timeout is called before
+    remctl_open.
 
     The PHP bindings no longer output a PHP warning if remctl_output
     fails.  This was inconsistent with the other API calls (remctl_open

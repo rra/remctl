@@ -112,6 +112,11 @@ FULL INTERFACE
       the kernel.  To use a specific source IP, assign that IP address (as
       a string) to Remctl.source_ip before calling Remctl.new.
 
+      To set a default timeout for any newly-created Remctl objects,
+      assign the timeout (in seconds) to Remctl.timeout before calling
+      Remctl.new.  See below under r.set_timeout for more information
+      about how the timeout is interpreted.
+
       Exceptions:
 
       * ArgumentError, TypeError: an invalid argument was supplied
@@ -201,6 +206,29 @@ FULL INTERFACE
 
       * Remctl::Error: a network or authentication error occurred
       * Remctl::NotOpen: no connection currently open
+
+  r.set_timeout(timeout)
+      Sets the timeout for connections and commands.  All subsequent
+      operations on this object will be subject to this timeout, including
+      reopen().
+
+      Arguments:
+
+      * timeout (required): long, the timeout in seconds or 0
+
+      If the timeout is 0, this clears any timeout that was previously
+      set.
+
+      The timeout is a timeout on network activity from the server, not on
+      a complete operation.  So, for example, a timeout of ten seconds
+      just requires that the server send some data every ten seconds.  If
+      the server sends only tiny amounts of data at a time, the complete
+      operation could take much longer than ten seconds without triggering
+      the timeout.
+
+      Exceptions:
+
+      * RemctlError: the timeout was negative
 
   r.close()
       Close a connection.  After calling this method, #reopen must be

@@ -1,7 +1,7 @@
-# test_remctl.rb -- Test suite for remctl Ruby bindings
+# Test suite for remctl Ruby bindings.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2010
+# Copyright 2010, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -222,6 +222,38 @@ class TC_RemctlFull < Test::Unit::TestCase
       Remctl.new('127.0.0.1', 14373, @principal)
     end
     Remctl.source_ip = nil
+  end
+
+  def test_full_timeout
+    unless configured? then return end
+
+    # Test the set_timeout method on an existing object.
+    r = Remctl.new('127.0.0.1', 14373, @principal)
+    r.set_timeout(1)
+    r.command('test', 'sleep')
+    assert_raise Remctl::Error do
+      begin
+        output = r.output
+      rescue Remctl::Error
+        assert_equal('error receiving token: timed out', $!.to_s)
+        raise
+      end
+    end
+    r.close
+
+    # Test the default timeout support.
+    Remctl.timeout = 1
+    r = Remctl.new('127.0.0.1', 14373, @principal)
+    r.command('test', 'sleep')
+    assert_raise Remctl::Error do
+      begin
+        output = r.output
+      rescue Remctl::Error
+        assert_equal('error receiving token: timed out', $!.to_s)
+        raise
+      end
+    end
+    r.close
   end
 
   def test_full_errors
