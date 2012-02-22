@@ -511,6 +511,22 @@ server_run_command(struct client *client, struct config *config,
             exit(-1);
         }
 
+	/* drop privileges, if requested */
+	if (cline->user && cline->uid > 0) {
+	    if (initgroups(cline->user, cline->gid) != 0) {
+		syswarn("cannot initgroups for %s\n", cline->user);
+		exit(-1);
+	    }
+	    if (setgid(cline->gid) != 0) {
+		syswarn("cannot setgid to %d\n", cline->gid);
+		exit(-1);
+	    }
+	    if (setuid(cline->uid) != 0) {
+		syswarn("cannot setuid to %d\n", cline->uid);
+		exit(-1);
+	    }
+	}
+
         /* Run the command. */
         execv(path, req_argv);
 

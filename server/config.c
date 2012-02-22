@@ -22,6 +22,7 @@
 #ifdef HAVE_PCRE
 # include <pcre.h>
 #endif
+#include <pwd.h>
 #ifdef HAVE_REGCOMP
 # include <regex.h>
 #endif
@@ -260,6 +261,33 @@ option_stdin(struct confline *confline, char *value, const char *name,
     return CONFIG_SUCCESS;
 }
 
+static enum config_status
+option_user(struct confline *confline, char *value, const char *name,
+	    size_t lineno)
+{
+    struct passwd *pw;
+    char *end;
+
+    errno = 0;
+    confline->uid = (uid_t)strtol(value, &end, 10);
+    if (errno == 0 && *end == '\0') {
+	pw = getpwuid( confline->uid );
+    } else {
+	pw = getpwnam( value );
+    }
+    if (pw) {
+	confline->user = xstrdup(pw->pw_name);
+	confline->uid = pw->pw_uid;
+	confline->gid = pw->pw_gid;
+    } else {
+	warn("%s:%lu: invalid user value %s", name,
+		 (unsigned long) lineno, value);
+	return CONFIG_ERROR;
+    }
+
+    return CONFIG_SUCCESS;
+}
+
 
 /*
  * The table relating configuration option names to functions.
@@ -267,6 +295,7 @@ option_stdin(struct confline *confline, char *value, const char *name,
 static const struct config_option options[] = {
     { "logmask", option_logmask },
     { "stdin",   option_stdin   },
+    { "user",	 option_user	},
     { NULL,      NULL           }
 };
 
@@ -923,6 +952,8 @@ server_config_free(struct config *config)
         rule = config->rules[i];
         if (rule->logmask != NULL)
             free(rule->logmask);
+	if (rule->user != NULL)
+	    free(rule->user);
         if (rule->acls != NULL)
             free(rule->acls);
         if (rule->line != NULL)

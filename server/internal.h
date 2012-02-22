@@ -64,6 +64,9 @@ struct confline {
     char *program;              /* Full file name of executable. */
     unsigned int *logmask;      /* Zero-terminated list of args to mask. */
     long stdin_arg;             /* Arg to pass on stdin, -1 for last. */
+    char *user;			/* Run executable as user. */
+    uid_t uid;			/* Run executable as uid. */
+    gid_t gid;			/* Primary gid for executable. */
     char **acls;                /* Full file names of ACL files. */
 };
 
