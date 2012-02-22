@@ -418,8 +418,8 @@ test_timeout_ipv4(void)
 
         /*
          * For some reason, despite a listening queue of only 1, it can take
-         * up to seven connections on Linux before connections start actually
-         * timing out.
+         * up to fifteen connections on Linux before connections start
+         * actually timing out.
          */
         alarm(10);
         for (i = 0; i < (int) ARRAY_SIZE(block); i++) {
@@ -433,7 +433,7 @@ test_timeout_ipv4(void)
         else {
             diag("Finally timed out on socket %d", i);
             ok(block[i] == INVALID_SOCKET, "Later connection timed out");
-            if (err == ECONNRESET)
+            if (err == ECONNRESET || err == ECONNREFUSED)
                 skip("connections rejected without timeout");
             else
                 is_int(ETIMEDOUT, err, "...with correct error code");
