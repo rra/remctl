@@ -43,13 +43,14 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
 	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
 	docs/api/remctl_output.pod docs/api/remctl_set_ccache.pod	    \
-	docs/api/remctl_set_source_ip.pod docs/design.html docs/extending   \
-	docs/protocol-v3 docs/protocol.txt docs/protocol.html		    \
-	docs/protocol.xml docs/remctl.pod docs/remctld.8.in		    \
-	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
-	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
-	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf    \
-	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java   \
+	docs/api/remctl_set_source_ip.pod docs/api/remctl_set_timeout.pod   \
+	docs/design.html docs/extending docs/protocol-v3 docs/protocol.txt  \
+	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
+	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
+	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
+	java/.classpath java/.project java/Makefile java/README		    \
+	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
+	java/org/eyrie/eagle/remctl/Remctl.java				    \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java portable/winsock.c remctl.spec ruby/README		    \
@@ -123,7 +124,8 @@ dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3		    \
 	docs/api/remctl_command.3 docs/api/remctl_error.3		    \
 	docs/api/remctl_new.3 docs/api/remctl_noop.3 docs/api/remctl_open.3 \
 	docs/api/remctl_output.3 docs/api/remctl_set_ccache.3		    \
-	docs/api/remctl_set_source_ip.3 docs/remctl.1
+	docs/api/remctl_set_source_ip.3 docs/api/remctl_set_timeout.3	    \
+	docs/remctl.1
 man_MANS = docs/remctld.8
 
 pkgconfigdir = $(libdir)/pkgconfig
