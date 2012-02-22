@@ -16,12 +16,14 @@
 #include <tests/tap/kerberos.h>
 #include <util/gss-tokens.h>
 
+/* From faketoken.c. */
 extern char send_buffer[2048];
 extern char recv_buffer[2048];
 extern size_t send_length;
 extern size_t recv_length;
 extern int send_flags;
 extern int recv_flags;
+extern bool fail_timeout;
 
 
 int
@@ -37,7 +39,7 @@ main(void)
 
     /* Unless we have Kerberos available, we can't really do anything. */
     krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    plan(26);
+    plan(28);
 
     /*
      * We have to set up a context first in order to do this test, which is
@@ -110,6 +112,16 @@ main(void)
     ok(memcmp(client_tok.value, "hello", 5) == 0, "...and the right data");
     is_int(3, flags, "...and the right flags");
     gss_release_buffer(&c_min_stat, &client_tok);
+
+    /* Test sending and receiving a token with a timeout. */
+    fail_timeout = true;
+    status = token_send_priv(0, client_ctx, 3, &server_tok, 1, &s_stat,
+                             &c_min_stat);
+    is_int(TOKEN_FAIL_TIMEOUT, status, "sending a token with timeout");
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024, 1,
+                             &s_stat, &c_min_stat);
+    is_int(TOKEN_FAIL_TIMEOUT, status, "receiving a token with timeout");
+    fail_timeout = false;
 
     /* Test receiving too large of a token. */
     status = token_recv_priv(0, client_ctx, &flags, &client_tok, 4, 0,
