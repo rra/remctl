@@ -51,7 +51,7 @@ BEGIN_DECLS
  * token returned by token_recv; this will cause crashes on Windows.  Call
  * free on the value member instead.
  */
-enum token_status token_send(socket_type, int flags,  gss_buffer_t,
+enum token_status token_send(socket_type, int flags, gss_buffer_t,
                              time_t timeout);
 enum token_status token_recv(socket_type, int *flags, gss_buffer_t,
                              size_t max, time_t timeout);

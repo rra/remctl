@@ -136,9 +136,9 @@ main(void)
     ssize_t length;
     gss_buffer_desc result;
 
-    alarm(2);
+    alarm(20);
 
-    plan(10);
+    plan(12);
     if (chdir(getenv("BUILD")) < 0)
         sysbail("can't chdir to BUILD");
 
@@ -223,7 +223,47 @@ main(void)
         is_int(TOKEN_FAIL_EOF, status, "receive end of file");
         waitpid(child, NULL, 0);
     }
+
+    /*
+     * Test a timeout on sending a token.  We have to send a large enough
+     * token that the network layer doesn't just buffer it.
+     */
     unlink("server-ready");
+    child = fork();
+    if (child < 0)
+        sysbail("cannot fork");
+    else if (child == 0) {
+        server = create_server();
+        sleep(3);
+        exit(0);
+    } else {
+        result.value = xmalloc(512 * 1024);
+        memset(result.value, 'a', 512 * 1024);
+        result.length = 512 * 1024;
+        client = create_client();
+        status = token_send(client, 3, &result, 1);
+        free(result.value);
+        is_int(TOKEN_FAIL_TIMEOUT, status, "can't send due to timeout");
+        close(client);
+        waitpid(child, NULL, 0);
+    }
+
+    /* Test a timeout on receiving a token. */
+    unlink("server-ready");
+    child = fork();
+    if (child < 0)
+        sysbail("cannot fork");
+    else if (child == 0) {
+        server = create_server();
+        sleep(3);
+        exit(0);
+    } else {
+        client = create_client();
+        status = token_recv(client, &flags, &result, 200, 1);
+        is_int(TOKEN_FAIL_TIMEOUT, status, "can't receive due to timeout");
+        close(client);
+        waitpid(child, NULL, 0);
+    }
 
     /* Special test for error handling when sending tokens. */
     server = open("/dev/full", O_RDWR);
@@ -239,5 +279,6 @@ main(void)
         close(server);
     }
 
+    unlink("server-ready");
     return 0;
 }
