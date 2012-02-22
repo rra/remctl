@@ -209,7 +209,7 @@ The timeout is a timeout on network activity from the server, not on a
 complete operation.  So, for example, a timeout of ten seconds just
 requires that the server send some data every ten seconds.  If the server
 sends only tiny amounts of data at a time, the complete operation could
-take much longer than ten minutes without triggering the timeout.
+take much longer than ten seconds without triggering the timeout.
 
 =item open(HOSTNAME[, PORT[, PRINCIPAL]])
 
