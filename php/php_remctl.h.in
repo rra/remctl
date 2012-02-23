@@ -22,6 +22,7 @@ PHP_FUNCTION(remctl);
 PHP_FUNCTION(remctl_new);
 PHP_FUNCTION(remctl_set_ccache);
 PHP_FUNCTION(remctl_set_source_ip);
+PHP_FUNCTION(remctl_set_timeout);
 PHP_FUNCTION(remctl_open);
 PHP_FUNCTION(remctl_command);
 PHP_FUNCTION(remctl_output);
