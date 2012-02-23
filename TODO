@@ -36,12 +36,6 @@ Server:
    first case and "<arg> subcommand" as the arguments for the second
    case.
 
- * Allow a more expressive configuration syntax that can set more options
-   per command.  Among the things we want to configure (besides the
-   logmask configuration we already have) are changing users before
-   running the command, specifying an argument to pass on standard input
-   (see below), or supporting things like LDAP ACLs.
-
  * Add a way of explicitly specifying the null command or subcommand in
    the remctl configuration.
 
