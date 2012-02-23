@@ -15,7 +15,8 @@ remctl 3.1 (unreleased)
     user, which sets the user as which to run a command.  If this option
     is set for a command configuration, remctld will run the command as
     that user (including their primary and supplemental groups).  The user
-    may be specified as either a username or a UID.
+    may be specified as either a username or a UID.  Patch from Andrew
+    Mortensen.
 
     The remctld server now imposes a one-hour timeout between messages
     from the client rather than a one-hour timeout for the entire session,
