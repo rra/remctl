@@ -14,6 +14,9 @@
 #include <portable/socket.h>
 
 #include <fcntl.h>
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>

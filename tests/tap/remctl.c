@@ -34,6 +34,9 @@
 #include <portable/system.h>
 
 #include <signal.h>
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
 #include <sys/time.h>
 #include <sys/wait.h>
 
