@@ -68,10 +68,10 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/configs/bad-logmask-1 tests/data/configs/bad-include-1   \
 	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
 	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
-	tests/data/gput tests/docs/pod-spelling-t tests/docs/pod-t	    \
-	tests/tap/kerberos.sh tests/tap/libtap.sh tests/tap/remctl.sh	    \
-	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
-	$(PYTHON_FILES)
+	tests/data/configs/bad-user-1 tests/data/gput			    \
+	tests/docs/pod-spelling-t tests/docs/pod-t tests/tap/kerberos.sh    \
+	tests/tap/libtap.sh tests/tap/remctl.sh tests/server/misc-t	    \
+	tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES)
 
 # Set this globally, since we have too many header files that include the
 # GSS-API headers even if the code itself doesn't call GSS-API functions.
@@ -248,24 +248,25 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
 	tests/client/large-t tests/client/open-t tests/client/source-ip-t   \
 	tests/client/timeout-t tests/data/cmd-background		    \
 	tests/data/cmd-closed tests/data/cmd-stdin tests/data/cmd-streaming \
-	tests/portable/asprintf-t tests/portable/daemon-t		    \
-	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	    \
-	tests/portable/getopt-t tests/portable/inet_aton-t		    \
-	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		    \
-	tests/portable/setenv-t tests/portable/snprintf-t		    \
-	tests/portable/strlcat-t tests/portable/strlcpy-t		    \
-	tests/server/accept-t tests/server/acl-t tests/server/bind-t	    \
-	tests/server/config-t tests/server/continue-t tests/server/env-t    \
-	tests/server/errors-t tests/server/invalid-t tests/server/logging-t \
-	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t   \
-	tests/server/version-t tests/util/concat-t tests/util/fdflag-t	    \
-	tests/util/gss-tokens-t tests/util/messages-t tests/util/network-t  \
-	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	    \
-	tests/util/xwrite-t
+	tests/data/cmd-user tests/portable/asprintf-t			    \
+	tests/portable/daemon-t tests/portable/getaddrinfo-t		    \
+	tests/portable/getnameinfo-t tests/portable/getopt-t		    \
+	tests/portable/inet_aton-t tests/portable/inet_ntoa-t		    \
+	tests/portable/inet_ntop-t tests/portable/setenv-t		    \
+	tests/portable/snprintf-t tests/portable/strlcat-t		    \
+	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t   \
+	tests/server/bind-t tests/server/config-t tests/server/continue-t   \
+	tests/server/env-t tests/server/errors-t tests/server/invalid-t	    \
+	tests/server/logging-t tests/server/noop-t tests/server/stdin-t	    \
+	tests/server/streaming-t tests/server/user-t tests/server/version-t \
+	tests/util/concat-t tests/util/fdflag-t tests/util/gss-tokens-t	    \
+	tests/util/messages-t tests/util/network-t tests/util/tokens-t	    \
+	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
-tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests \
+tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests		\
+	-DPATH_FAKEROOT='"$(PATH_FAKEROOT)"'			\
 	-DPATH_REMCTLD='"$(abs_top_builddir)/server/remctld"'
 tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 	tests/tap/kerberos.c tests/tap/kerberos.h tests/tap/messages.c	\
@@ -365,6 +366,8 @@ tests_server_noop_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
+tests_server_user_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_version_t_LDADD = client/libremctl.la tests/tap/libtap.a \

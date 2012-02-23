@@ -66,6 +66,7 @@
 /tests/data/cmd-closed
 /tests/data/cmd-stdin
 /tests/data/cmd-streaming
+/tests/data/cmd-user
 /tests/data/conf-simple
 /tests/portable/asprintf-t
 /tests/portable/daemon-t
@@ -93,6 +94,7 @@
 /tests/server/noop-t
 /tests/server/stdin-t
 /tests/server/streaming-t
+/tests/server/user-t
 /tests/server/version-t
 /tests/util/concat-t
 /tests/util/fdflag-t

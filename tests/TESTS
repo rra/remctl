@@ -31,6 +31,7 @@ server/logging
 server/misc
 server/stdin
 server/streaming
+server/user
 server/version
 util/concat
 util/gss-tokens
