@@ -6,8 +6,8 @@
  * number and some number of appropriate arguments, check to be sure the
  * results match the expected output using the arguments, and print out
  * something appropriate for that test number.  Other utility routines help in
- * constructing more complex tests, skipping tests, or setting up the TAP
- * output format.
+ * constructing more complex tests, skipping tests, reporting errors, setting
+ * up the TAP output format, or finding things in the test environment.
  *
  * This file is part of C TAP Harness.  The current version plus supporting
  * documentation is at <http://www.eyrie.org/~eagle/software/c-tap-harness/>.
@@ -552,20 +552,20 @@ bstrdup(const char *s)
 char *
 bstrndup(const char *s, size_t n)
 {
-    const char *src;
-    char *p;
-    size_t i, len;
+    const char *p;
+    char *copy;
+    size_t length;
 
-    for (src = s; (size_t) (src - s) < n && *src != '\0'; src++)
+    /* Don't assume that the source string is nul-terminated. */
+    for (p = s; (size_t) (p - s) < n && *p != '\0'; p++)
         ;
-    len = src - s;
-    p = malloc(len + 1);
+    length = p - s;
+    copy = malloc(length + 1);
     if (p == NULL)
-        sysbail("failed to strndup %lu bytes", (unsigned long) len);
-    for (i = 0; i < len; i++)
-        p[i] = s[i];
-    p[len] = '\0';
-    return p;
+        sysbail("failed to strndup %lu bytes", (unsigned long) length);
+    memcpy(copy, s, length);
+    copy[length] = '\0';
+    return copy;
 }
 
 
