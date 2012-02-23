@@ -103,6 +103,10 @@ REQUIREMENTS
   principal in your local realm; see tests/data/README for more
   information.
 
+  To test user handling in remctld, you will need the fakeroot command
+  (available in the fakeroot package in Debian and Ubuntu).  This test
+  will be skipped if fakeroot isn't available.
+
   To check spelling in the POD documentation, Pod::Spell (available from
   CPAN) and either aspell or ispell with the american dictionary are also
   required.  The user's path is searched for aspell or ispell and aspell

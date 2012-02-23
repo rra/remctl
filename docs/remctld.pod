@@ -238,6 +238,14 @@ to the command.  Be aware that even if the I<subcommand> is the designated
 argument to pass on standard input (C<stdin=1>), the I<subcommand> may not
 contain NUL characters.
 
+=item I<user>=(I<username> | I<uid>)
+
+Run this command as the specified user, which can be given as either a
+username or as a UID.  Even if given as a UID, the user must be found in
+the user database (searched via getpwuid(3)).  B<remctld> will run the
+command as the specified user, including that user's primary and
+supplemental groups.
+
 =back
 
 =item I<acl>

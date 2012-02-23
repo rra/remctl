@@ -11,6 +11,12 @@ remctl 3.1 (unreleased)
     to the initial connection if remctl_set_timeout is called before
     remctl_open.
 
+    The remctld server now supports an additional configuration option,
+    user, which sets the user as which to run a command.  If this option
+    is set for a command configuration, remctld will run the command as
+    that user (including their primary and supplemental groups).  The user
+    may be specified as either a username or a UID.
+
     The PHP bindings no longer output a PHP warning if remctl_output
     fails.  This was inconsistent with the other API calls (remctl_open
     and remctl_command can also fail but didn't result in warnings), may
