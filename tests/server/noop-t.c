@@ -12,15 +12,11 @@
 #include <portable/system.h>
 #include <portable/gssapi.h>
 
-#include <signal.h>
-#include <sys/wait.h>
-
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
 #include <util/gss-tokens.h>
 #include <util/protocol.h>
 

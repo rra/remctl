@@ -11,17 +11,11 @@
 #include <config.h>
 #include <portable/system.h>
 
-#include <signal.h>
-#include <sys/wait.h>
-
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
-#include <util/messages.h>
 #include <util/network.h>
-#include <util/xmalloc.h>
 
 
 /*
@@ -56,7 +50,7 @@ test_command(struct remctl *r, const char *addr)
     const char *command[] = { "test", "env", "REMOTE_ADDR", NULL };
 
     if (!remctl_command(r, command)) {
-        notice("# remctl error %s", remctl_error(r));
+        diag("remctl error %s", remctl_error(r));
         ok_block(0, 3, "... command failed");
         return;
     }
@@ -65,9 +59,7 @@ test_command(struct remctl *r, const char *addr)
         switch (output->type) {
         case REMCTL_OUT_OUTPUT:
             is_int(strlen(addr) + 1, output->length, "... length ok");
-            seen = xmalloc(output->length);
-            memcpy(seen, output->data, output->length);
-            seen[output->length - 1] = '\0';
+            seen = bstrndup(output->data, output->length - 1);
             is_string(addr, seen, "... REMOTE_ADDR correct");
             free(seen);
             break;
@@ -75,12 +67,12 @@ test_command(struct remctl *r, const char *addr)
             is_int(0, output->status, "... status ok");
             break;
         case REMCTL_OUT_ERROR:
-            notice("# test env returned error: %.*s", (int) output->length,
-                   output->data);
+            diag("test env returned error: %.*s", (int) output->length,
+                 output->data);
             ok_block(0, 3, "... error received");
             break;
         case REMCTL_OUT_DONE:
-            notice("# unexpected done token");
+            diag("unexpected done token");
             break;
         }
     } while (output->type == REMCTL_OUT_OUTPUT);

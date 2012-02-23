@@ -11,22 +11,14 @@
 #include <config.h>
 #include <portable/system.h>
 
-#include <signal.h>
-#ifdef HAVE_SYS_SELECT_H
-# include <sys/select.h>
-#endif
-#include <sys/time.h>
 #include <sys/uio.h>
-#include <sys/wait.h>
 
 #include <client/remctl.h>
 #include <client/internal.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
 #include <util/protocol.h>
-#include <util/xmalloc.h>
 
 
 /*
@@ -84,7 +76,7 @@ do_tests(const char *principal, int protocol)
     ok(output != NULL, "second output token is not null");
     is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
     is_int(0, output->status, "...and is right status");
-    command = xcalloc(2, sizeof(struct iovec));
+    command = bcalloc(2, sizeof(struct iovec));
     command[0].iov_base = (char *) "test";
     command[0].iov_len = 4;
     command[1].iov_base = (char *) "test";

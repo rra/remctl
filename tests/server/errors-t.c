@@ -11,18 +11,12 @@
 #include <config.h>
 #include <portable/system.h>
 
-#include <signal.h>
-#include <sys/wait.h>
-
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
-#include <util/messages.h>
 #include <util/protocol.h>
-#include <util/xmalloc.h>
 
 
 /*
@@ -40,23 +34,23 @@ test_error(struct remctl *r, const char *arg)
     if (arg == NULL)
         arg = "(null)";
     if (!remctl_command(r, command)) {
-        notice("# remctl error %s", remctl_error(r));
+        diag("remctl error %s", remctl_error(r));
         return ERROR_INTERNAL;
     }
     do {
         output = remctl_output(r);
         switch (output->type) {
         case REMCTL_OUT_OUTPUT:
-            notice("# test %s returned output: %.*s", arg,
-                   (int) output->length, output->data);
+            diag("test %s returned output: %.*s", arg, (int) output->length,
+                 output->data);
             break;
         case REMCTL_OUT_STATUS:
-            notice("# test %s returned status %d", arg, output->status);
+            diag("test %s returned status %d", arg, output->status);
             return ERROR_INTERNAL;
         case REMCTL_OUT_ERROR:
             return output->error;
         case REMCTL_OUT_DONE:
-            notice("# unexpected done token");
+            diag("unexpected done token");
             return ERROR_INTERNAL;
         }
     } while (output->type == REMCTL_OUT_OUTPUT);
@@ -75,14 +69,14 @@ test_excess_args(struct remctl *r)
     const char **command;
     size_t i;
 
-    command = xmalloc((10 * 1024 + 3) * sizeof(const char *));
+    command = bmalloc((10 * 1024 + 3) * sizeof(const char *));
     command[0] = "test";
     command[1] = "echo";
     for (i = 2; i < (10 * 1024) + 2; i++)
         command[i] = "a";
     command[10 * 1024 + 2] = NULL;
     if (!remctl_command(r, command)) {
-        notice("# remctl error %s", remctl_error(r));
+        diag("remctl error %s", remctl_error(r));
         return ERROR_INTERNAL;
     }
     free(command);
@@ -90,16 +84,16 @@ test_excess_args(struct remctl *r)
         output = remctl_output(r);
         switch (output->type) {
         case REMCTL_OUT_OUTPUT:
-            notice("# test echo returned output: %.*s", (int) output->length,
-                   output->data);
+            diag("test echo returned output: %.*s", (int) output->length,
+                 output->data);
             break;
         case REMCTL_OUT_STATUS:
-            notice("# test echo returned status %d", output->status);
+            diag("test echo returned status %d", output->status);
             return ERROR_INTERNAL;
         case REMCTL_OUT_ERROR:
             return output->error;
         case REMCTL_OUT_DONE:
-            notice("# unexpected done token");
+            diag("unexpected done token");
             return ERROR_INTERNAL;
         }
     } while (output->type == REMCTL_OUT_OUTPUT);

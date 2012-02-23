@@ -11,17 +11,12 @@
 #include <config.h>
 #include <portable/system.h>
 
-#include <signal.h>
-#include <sys/wait.h>
-
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
-#include <util/messages.h>
-#include <util/xmalloc.h>
+#include <tests/tap/string.h>
 
 
 /*
@@ -37,35 +32,35 @@ test_env(struct remctl *r, const char *variable)
 
     command[2] = variable;
     if (!remctl_command(r, command)) {
-        notice("# remctl error %s", remctl_error(r));
+        diag("remctl error %s", remctl_error(r));
         return NULL;
     }
     do {
         output = remctl_output(r);
         switch (output->type) {
         case REMCTL_OUT_OUTPUT:
-            value = xstrndup(output->data, output->length);
+            value = bstrndup(output->data, output->length);
             break;
         case REMCTL_OUT_STATUS:
             if (output->status != 0) {
                 if (value != NULL)
                     free(value);
-                notice("# test env returned status %d", output->status);
+                diag("test env returned status %d", output->status);
                 return NULL;
             }
             if (value == NULL)
-                value = xstrdup("");
+                value = bstrdup("");
             return value;
         case REMCTL_OUT_ERROR:
             if (value != NULL)
                 free(value);
-            notice("# test env returned error: %.*s", (int) output->length,
-                   output->data);
+            diag("test env returned error: %.*s", (int) output->length,
+                 output->data);
             return NULL;
         case REMCTL_OUT_DONE:
             if (value != NULL)
                 free(value);
-            notice("# unexpected done token");
+            diag("unexpected done token");
             return NULL;
         }
     } while (output->type == REMCTL_OUT_OUTPUT);
@@ -90,7 +85,7 @@ main(void)
     r = remctl_new();
     if (!remctl_open(r, "localhost", 14373, krbconf->keytab_principal))
         bail("cannot contact remctld");
-    expected = concat(krbconf->keytab_principal, "\n", NULL);
+    basprintf(&expected, "%s\n", krbconf->keytab_principal);
     value = test_env(r, "REMUSER");
     is_string(expected, value, "value for REMUSER");
     free(value);

@@ -16,9 +16,6 @@
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
-#include <util/messages.h>
-#include <util/xmalloc.h>
 
 
 /*
@@ -34,7 +31,7 @@ test_stdin(const char *principal, const char *test, const void *data,
     struct iovec *command;
     struct remctl_output *output;
 
-    command = xcalloc(4, sizeof(struct iovec));
+    command = bcalloc(4, sizeof(struct iovec));
     command[0].iov_base = (char *) "test";
     command[0].iov_len = strlen("test");
     command[1].iov_base = (char *) "stdin";
@@ -56,7 +53,7 @@ test_stdin(const char *principal, const char *test, const void *data,
     if (output->data == NULL)
         ok(0, "...and is right data");
     else {
-        notice("# data: %.*s", (int) output->length, output->data);
+        diag("data: %.*s", (int) output->length, output->data);
         ok(memcmp("Okay", output->data, 4) == 0, "...and is right data");
     }
     is_int(1, output->stream, "...and is right stream");
@@ -84,7 +81,7 @@ main(void)
     test_stdin(krbconf->keytab_principal, "read", "Okay", 4);
     test_stdin(krbconf->keytab_principal, "write", "Okay", 4);
     test_stdin(krbconf->keytab_principal, "exit", "Okay", 4);
-    buffer = xmalloc(1024 * 1024);
+    buffer = bmalloc(1024 * 1024);
     memset(buffer, 'A', 1024 * 1024);
     test_stdin(krbconf->keytab_principal, "exit", buffer, 1024 * 1024);
     test_stdin(krbconf->keytab_principal, "close", "Okay", 4);

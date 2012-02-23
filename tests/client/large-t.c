@@ -11,19 +11,12 @@
 #include <config.h>
 #include <portable/system.h>
 
-#include <signal.h>
-#ifdef HAVE_SYS_SELECT_H
-# include <sys/select.h>
-#endif
-#include <sys/time.h>
 #include <sys/uio.h>
-#include <sys/wait.h>
 
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
 #include <util/protocol.h>
 
 

@@ -20,7 +20,6 @@
 
 #include <tests/tap/basic.h>
 #include <util/tokens.h>
-#include <util/xmalloc.h>
 #include <util/xwrite.h>
 
 /*
@@ -119,7 +118,7 @@ send_regular_token(socket_type fd)
 {
     gss_buffer_desc buffer;
 
-    buffer.value = xmalloc(5);
+    buffer.value = bmalloc(5);
     memcpy(buffer.value, "hello", 5);
     buffer.length = 5;
     token_send(fd, 3, &buffer, 0);
@@ -237,7 +236,7 @@ main(void)
         sleep(3);
         exit(0);
     } else {
-        result.value = xmalloc(512 * 1024);
+        result.value = bmalloc(512 * 1024);
         memset(result.value, 'a', 512 * 1024);
         result.length = 512 * 1024;
         client = create_client();
@@ -270,7 +269,7 @@ main(void)
     if (server < 0)
         skip("/dev/full not available");
     else {
-        result.value = xmalloc(5);
+        result.value = bmalloc(5);
         memcpy(result.value, "hello", 5);
         result.length = 5;
         status = token_send(server, 3, &result, 0);
