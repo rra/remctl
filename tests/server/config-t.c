@@ -2,7 +2,7 @@
  * Test suite for the server configuration parsing.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2009, 2010, 2011
+ * Copyright 2007, 2009, 2010, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -45,7 +45,7 @@ main(void)
 {
     struct config *config;
 
-    plan(45);
+    plan(47);
     if (chdir(getenv("SOURCE")) < 0)
         sysbail("can't chdir to SOURCE");
 
@@ -104,6 +104,8 @@ main(void)
     test_error("data/configs/bad-include-1",
                "data/configs/bad-include-1:1: included file /no/th/ing not"
                " found\n");
+    test_error("data/configs/bad-user-1",
+               "data/configs/bad-user-1:1: invalid user value nonexistent\n");
 
     return 0;
 }
