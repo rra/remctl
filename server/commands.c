@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -18,6 +18,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <grp.h>
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 #endif
@@ -416,7 +417,7 @@ server_run_command(struct client *client, struct config *config,
     req_argv[j] = NULL;
 
     /*
-     * These pipes are used for communication with the child process that 
+     * These pipes are used for communication with the child process that
      * actually runs the command.
      */
     if (pipe(stdout_pipe) != 0 || pipe(stderr_pipe) != 0) {
@@ -511,21 +512,21 @@ server_run_command(struct client *client, struct config *config,
             exit(-1);
         }
 
-	/* drop privileges, if requested */
-	if (cline->user && cline->uid > 0) {
-	    if (initgroups(cline->user, cline->gid) != 0) {
-		syswarn("cannot initgroups for %s\n", cline->user);
-		exit(-1);
-	    }
-	    if (setgid(cline->gid) != 0) {
-		syswarn("cannot setgid to %d\n", cline->gid);
-		exit(-1);
-	    }
-	    if (setuid(cline->uid) != 0) {
-		syswarn("cannot setuid to %d\n", cline->uid);
-		exit(-1);
-	    }
-	}
+        /* Drop privileges if requested. */
+        if (cline->user != NULL && cline->uid > 0) {
+            if (initgroups(cline->user, cline->gid) != 0) {
+                syswarn("cannot initgroups for %s\n", cline->user);
+                exit(-1);
+            }
+            if (setgid(cline->gid) != 0) {
+                syswarn("cannot setgid to %d\n", cline->gid);
+                exit(-1);
+            }
+            if (setuid(cline->uid) != 0) {
+                syswarn("cannot setuid to %d\n", cline->uid);
+                exit(-1);
+            }
+        }
 
         /* Run the command. */
         execv(path, req_argv);

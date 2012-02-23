@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
  *
@@ -199,6 +199,25 @@ is_option(const char *option)
 
 
 /*
+ * Convert a string to a long, validating that the number converts properly.
+ * Returns true on success and false on failure.
+ */
+static bool
+convert_number(const char *string, long *result)
+{
+    char *end;
+    long arg;
+
+    errno = 0;
+    arg = strtol(string, &end, 10);
+    if (errno != 0 || *end != '\0' || arg <= 0)
+        return false;
+    *result = arg;
+    return true;
+}
+
+
+/*
  * Parse the logmask configuration option.  Verifies the listed argument
  * numbers, stores them in the configuration line struct, and returns
  * CONFIG_SUCCESS on success and CONFIG_ERROR on error.
@@ -209,24 +228,22 @@ option_logmask(struct confline *confline, char *value, const char *name,
 {
     struct cvector *logmask;
     size_t i;
-    long arg;
-    char *end;
+    long mask;
 
     logmask = cvector_split(value, ',', NULL);
     if (confline->logmask != NULL)
         free(confline->logmask);
     confline->logmask = xcalloc(logmask->count + 1, sizeof(unsigned int));
     for (i = 0; i < logmask->count; i++) {
-        errno = 0;
-        arg = strtol(logmask->strings[i], &end, 10);
-        if (errno != 0 || *end != '\0' || arg <= 0) {
+        if (!convert_number(logmask->strings[i], &mask)) {
             warn("%s:%lu: invalid logmask parameter %s", name,
                  (unsigned long) lineno, logmask->strings[i]);
+            cvector_free(logmask);
             free(confline->logmask);
             confline->logmask = NULL;
             return CONFIG_ERROR;
         }
-        confline->logmask[i] = arg;
+        confline->logmask[i] = mask;
     }
     confline->logmask[i] = 0;
     cvector_free(logmask);
@@ -243,48 +260,43 @@ static enum config_status
 option_stdin(struct confline *confline, char *value, const char *name,
              size_t lineno)
 {
-    long arg;
-    char *end;
-
     if (strcmp(value, "last") == 0)
         confline->stdin_arg = -1;
-    else {
-        errno = 0;
-        arg = strtol(value, &end, 10);
-        if (errno != 0 || *end != '\0' || arg < 2) {
-            warn("%s:%lu: invalid stdin value %s", name,
-                 (unsigned long) lineno, value);
-            return CONFIG_ERROR;
-        }
-        confline->stdin_arg = arg;
+    else if (!convert_number(value, &confline->stdin_arg)) {
+        warn("%s:%lu: invalid stdin value %s", name,
+             (unsigned long) lineno, value);
+        return CONFIG_ERROR;
     }
     return CONFIG_SUCCESS;
 }
 
+
+/*
+ * Parse the user configuration option.  Verifies that the value is either a
+ * UID or a username, stores the user in the configuration line struct, and
+ * looks up the UID and primary GID and stores that in the configuration
+ * struct as well.  Returns CONFIG_SUCCESS on success and CONFIG_ERROR on
+ * error.
+ */
 static enum config_status
 option_user(struct confline *confline, char *value, const char *name,
-	    size_t lineno)
+            size_t lineno)
 {
     struct passwd *pw;
-    char *end;
+    long uid;
 
-    errno = 0;
-    confline->uid = (uid_t)strtol(value, &end, 10);
-    if (errno == 0 && *end == '\0') {
-	pw = getpwuid( confline->uid );
-    } else {
-	pw = getpwnam( value );
+    if (convert_number(value, &uid))
+        pw = getpwuid(uid);
+    else
+        pw = getpwnam(value);
+    if (pw == NULL) {
+        warn("%s:%lu: invalid user value %s", name, (unsigned long) lineno,
+             value);
+        return CONFIG_ERROR;
     }
-    if (pw) {
-	confline->user = xstrdup(pw->pw_name);
-	confline->uid = pw->pw_uid;
-	confline->gid = pw->pw_gid;
-    } else {
-	warn("%s:%lu: invalid user value %s", name,
-		 (unsigned long) lineno, value);
-	return CONFIG_ERROR;
-    }
-
+    confline->user = xstrdup(pw->pw_name);
+    confline->uid = pw->pw_uid;
+    confline->gid = pw->pw_gid;
     return CONFIG_SUCCESS;
 }
 
@@ -295,7 +307,7 @@ option_user(struct confline *confline, char *value, const char *name,
 static const struct config_option options[] = {
     { "logmask", option_logmask },
     { "stdin",   option_stdin   },
-    { "user",	 option_user	},
+    { "user",    option_user    },
     { NULL,      NULL           }
 };
 
@@ -952,8 +964,8 @@ server_config_free(struct config *config)
         rule = config->rules[i];
         if (rule->logmask != NULL)
             free(rule->logmask);
-	if (rule->user != NULL)
-	    free(rule->user);
+        if (rule->user != NULL)
+            free(rule->user);
         if (rule->acls != NULL)
             free(rule->acls);
         if (rule->line != NULL)

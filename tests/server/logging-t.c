@@ -2,7 +2,7 @@
  * Test suite for server command logging.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010
+ * Copyright 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -22,7 +22,7 @@ int
 main(void)
 {
     struct confline confline = {
-        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL
+        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL
     };
     struct iovec **command;
     int i;
