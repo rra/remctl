@@ -13,7 +13,7 @@
  * documentation is at <http://www.eyrie.org/~eagle/software/c-tap-harness/>.
  *
  * Copyright 2009, 2010, 2011 Russ Allbery <rra@stanford.edu>
- * Copyright 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2011
+ * Copyright 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -540,6 +540,31 @@ bstrdup(const char *s)
     if (p == NULL)
         sysbail("failed to strdup %lu bytes", (unsigned long) len);
     memcpy(p, s, len);
+    return p;
+}
+
+
+/*
+ * Copy up to n characters of a string, reporting a fatal error with bail on
+ * failure.  Don't use the system strndup function, since it may not exist and
+ * the TAP library doesn't assume any portability support.
+ */
+char *
+bstrndup(const char *s, size_t n)
+{
+    const char *src;
+    char *p;
+    size_t i, len;
+
+    for (src = s; (size_t) (src - s) < n && *src != '\0'; src++)
+        ;
+    len = src - s;
+    p = malloc(len + 1);
+    if (p == NULL)
+        sysbail("failed to strndup %lu bytes", (unsigned long) len);
+    for (i = 0; i < len; i++)
+        p[i] = s[i];
+    p[len] = '\0';
     return p;
 }
 
