@@ -42,13 +42,23 @@
 #include <tests/tap/remctl.h>
 #include <tests/tap/string.h>
 
+/* May be defined by the build system. */
+#ifndef PATH_FAKEROOT
+# define PATH_FAKEROOT ""
+#endif
+#ifndef PATH_REMCTLD
+# define PATH_REMCTLD ""
+#endif
+
 /*
  * The PID of the running remctld process and the temporary directory used to
  * store the PID file, stored in static variables so that we can clean up in
- * an atexit handler.
+ * an atexit handler.  If is_child is false, we can't use waitpid to tell if
+ * the child is still running and will just have to kill and hope.
  */
 static pid_t remctld = 0;
 static char *tmpdir_pid = NULL;
+static bool is_child = true;
 
 
 /*
@@ -60,14 +70,19 @@ remctld_stop(void)
 {
     char *pidfile;
 
+    diag("remctld_stop called with pid %lu", (unsigned long) remctld);
     if (remctld == 0)
         return;
-    alarm(5);
-    if (waitpid(remctld, NULL, WNOHANG) == 0) {
+    if (!is_child)
         kill(remctld, SIGTERM);
-        waitpid(remctld, NULL, 0);
+    else {
+        alarm(5);
+        if (waitpid(remctld, NULL, WNOHANG) == 0) {
+            kill(remctld, SIGTERM);
+            waitpid(remctld, NULL, 0);
+        }
+        alarm(0);
     }
-    alarm(0);
     remctld = 0;
     basprintf(&pidfile, "%s/remctld.pid", tmpdir_pid);
     unlink(pidfile);
@@ -78,8 +93,34 @@ remctld_stop(void)
 
 
 /*
- * Start remctld.  Takes the Kerberos test configuration (the keytab principal
- * is used as the server principal), the configuration file to use (found via
+ * Read the PID of remctld from a file.  This is necessary when running under
+ * fakeroot or valgrind to get the actual PID of the remctld process.
+ */
+static long
+read_pidfile(const char *path)
+{
+    FILE *file;
+    char buffer[BUFSIZ];
+    long pid;
+
+    file = fopen(path, "r");
+    if (file == NULL)
+        sysbail("cannot open %s", path);
+    if (fgets(buffer, sizeof(buffer), file) == NULL)
+        sysbail("cannot read from %s", path);
+    fclose(file);
+    pid = strtol(buffer, NULL, 10);
+    if (pid == 0)
+        bail("cannot read PID from %s", path);
+    return pid;
+}
+
+
+/*
+ * Internal helper function for remctld_start and remctld_start_fakeroot.
+ *
+ * Takes the Kerberos test configuration (the keytab principal is used as the
+ * server principal), the configuration file to use (found via
  * test_file_path), and then any additional arguments to pass to remctld,
  * ending with a NULL.  Returns the PID of the running remctld process.  If
  * anything fails, calls bail.
@@ -88,21 +129,29 @@ remctld_stop(void)
  * given in that environment variable, assuming valgrind arguments.
  *
  * The path to remctld is obtained from the PATH_REMCTLD #define.  If this is
- * not set, remctld_start calls skip_all.
+ * not set, remctld_start_internal calls skip_all.
+ *
+ * If the last argument is true, remctld is started under fakeroot.  If
+ * PATH_FAKEROOT is not defined, remctld_start_internal calls skip_all.
  */
-pid_t
-remctld_start(struct kerberos_config *krbconf, const char *config, ...)
+static pid_t
+remctld_start_internal(struct kerberos_config *krbconf, const char *config,
+                       va_list args, bool fakeroot)
 {
+    va_list args_copy;
     char *pidfile, *confpath;
     struct timeval tv;
     size_t n, i;
-    va_list args;
     const char *arg, **argv;
     size_t length;
+    const char *path_fakeroot = PATH_FAKEROOT;
+    const char *path_remctld = PATH_REMCTLD;
 
-#ifndef PATH_REMCTLD
-    skip_all("remctld not found");
-#endif
+    /* Check prerequisites. */
+    if (path_remctld[0] == '\0')
+        skip_all("remctld not found");
+    if (fakeroot && path_fakeroot[0] == '\0')
+        skip_all("fakeroot not found");
 
     /* Ensure that we're not already running a remctld. */
     if (remctld != 0)
@@ -120,10 +169,12 @@ remctld_start(struct kerberos_config *krbconf, const char *config, ...)
     length = 11;
     if (getenv("VALGRIND") != NULL)
         length += 3;
-    va_start(args, config);
-    while ((arg = va_arg(args, const char *)) != NULL)
+    if (fakeroot)
+        length += 2;
+    va_copy(args_copy, args);
+    while ((arg = va_arg(args_copy, const char *)) != NULL)
         length++;
-    va_end(args);
+    va_end(args_copy);
     argv = bmalloc(length * sizeof(const char *));
     i = 0;
     if (getenv("VALGRIND") != NULL) {
@@ -131,7 +182,11 @@ remctld_start(struct kerberos_config *krbconf, const char *config, ...)
         argv[i++] = "--log-file=valgrind.%p";
         argv[i++] = "--leak-check=full";
     }
-    argv[i++] = PATH_REMCTLD;
+    if (fakeroot) {
+        argv[i++] = path_fakeroot;
+        argv[i++] = "--";
+    }
+    argv[i++] = path_remctld;
     argv[i++] = "-mdSF";
     argv[i++] = "-p";
     argv[i++] = "14373";
@@ -141,10 +196,8 @@ remctld_start(struct kerberos_config *krbconf, const char *config, ...)
     argv[i++] = pidfile;
     argv[i++] = "-f";
     argv[i++] = confpath;
-    va_start(args, config);
     while ((arg = va_arg(args, const char *)) != NULL)
         argv[i++] = arg;
-    va_end(args);
     argv[i] = NULL;
     remctld = fork();
     if (remctld < 0)
@@ -152,9 +205,11 @@ remctld_start(struct kerberos_config *krbconf, const char *config, ...)
     else if (remctld == 0) {
         if (getenv("VALGRIND") != NULL)
             execv(getenv("VALGRIND"), (char * const *) argv);
+        else if (fakeroot)
+            execv(path_fakeroot, (char * const *) argv);
         else
-            execv(PATH_REMCTLD, (char * const *) argv);
-        _exit(1);
+            execv(path_remctld, (char * const *) argv);
+        sysbail("exec failed");
     } else {
         test_file_path_free(confpath);
         for (n = 0; n < 100 && access(pidfile, F_OK) != 0; n++) {
@@ -169,9 +224,52 @@ remctld_start(struct kerberos_config *krbconf, const char *config, ...)
             alarm(0);
             bail("cannot start remctld");
         }
+
+        /*
+         * When running under fakeroot, there may be internal forks that
+         * change the PID of the final running process, and when running under
+         * valgrind, we want to grab the final PID.
+         */
+        if (fakeroot || getenv("VALGRIND") != NULL) {
+            remctld = read_pidfile(pidfile);
+            is_child = false;
+        }
         free(pidfile);
         if (atexit(remctld_stop) != 0)
             sysdiag("cannot register cleanup function");
         return remctld;
     }
+}
+
+
+/*
+ * Just calls remctld_start_internal without enabling fakeroot support.
+ */
+pid_t
+remctld_start(struct kerberos_config *krbconf, const char *config, ...)
+{
+    va_list args;
+    pid_t child;
+
+    va_start(args, config);
+    child = remctld_start_internal(krbconf, config, args, false);
+    va_end(args);
+    return child;
+}
+
+
+/*
+ * Just calls remctld_start_internal with fakeroot enabled.
+ */
+pid_t
+remctld_start_fakeroot(struct kerberos_config *krbconf, const char *config,
+                       ...)
+{
+    va_list args;
+    pid_t child;
+
+    va_start(args, config);
+    child = remctld_start_internal(krbconf, config, args, true);
+    va_end(args);
+    return child;
 }

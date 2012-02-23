@@ -62,6 +62,14 @@ pid_t remctld_start(struct kerberos_config *, const char *config, ...)
     __attribute__((__nonnull__(1, 2)));
 void remctld_stop(void);
 
+/*
+ * Like remctld_start, but run remctld under fakeroot.  Calls skip_all if
+ * PATH_FAKEROOT is not dfeined, either with explicit compiler options or in
+ * config.h.
+ */
+pid_t remctld_start_fakeroot(struct kerberos_config *, const char *, ...)
+    __attribute__((__nonnull__(1, 2)));
+
 END_DECLS
 
 #endif /* !TAP_REMCTL_H */
