@@ -136,15 +136,34 @@ test_strdup(size_t size)
 
 /*
  * Generate a string of the size indicated plus some, call xstrndup on it, and
- * then ensure the result matches.  Returns true on success, false on any
- * failure.
+ * then ensure the result matches.  Also test xstrdup on a string that's
+ * shorter than the specified size and ensure that we don't copy too much, and
+ * on a string that's not nul-terminated.  Returns true on success, false on
+ * any failure.
  */
 static int
 test_strndup(size_t size)
 {
     char *string, *copy;
-    int match, toomuch;
+    int shortmatch, nonulmatch, match, toomuch;
 
+    /* Copy a short string. */
+    string = xmalloc(5);
+    memcpy(string, "test", 5);
+    copy = xstrndup(string, size);
+    shortmatch = strcmp(string, copy);
+    free(string);
+    free(copy);
+
+    /* Copy a string that's not nul-terminated. */
+    string = xmalloc(4);
+    memcpy(string, "test", 4);
+    copy = xstrndup(string, 4);
+    nonulmatch = strcmp(copy, "test");
+    free(string);
+    free(copy);
+
+    /* Now the test of running out of memory. */
     string = xmalloc(size + 1);
     if (string == NULL)
         return 0;
@@ -158,7 +177,7 @@ test_strndup(size_t size)
     toomuch = strcmp(string, copy);
     free(string);
     free(copy);
-    return (match == 0 && toomuch != 0);
+    return (shortmatch == 0 && nonulmatch == 0 && match == 0 && toomuch != 0);
 }
 
 
