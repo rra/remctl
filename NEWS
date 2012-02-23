@@ -17,6 +17,11 @@ remctl 3.1 (unreleased)
     that user (including their primary and supplemental groups).  The user
     may be specified as either a username or a UID.
 
+    The remctld server now imposes a one-hour timeout between messages
+    from the client rather than a one-hour timeout for the entire session,
+    allowing clients to continue to send commands for as long as they stay
+    connected and not idle.
+
     The PHP bindings no longer output a PHP warning if remctl_output
     fails.  This was inconsistent with the other API calls (remctl_open
     and remctl_command can also fail but didn't result in warnings), may
@@ -26,11 +31,6 @@ remctl 3.1 (unreleased)
     returns an empty tuple on error instead of a bool.  This change will
     not affect callers that only use the recommended public remctl
     interface.
-
-    The remctld server now imposes a one-hour timeout between messages
-    from the client rather than a one-hour timeout for the entire session,
-    allowing clients to continue to send commands for as long as they stay
-    connected and not idle.
 
     Update to rra-c-util 4.2:
 
