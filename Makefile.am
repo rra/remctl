@@ -132,13 +132,13 @@ pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = client/libremctl.pc
 
 client/libremctl.pc: $(srcdir)/client/libremctl.pc.in
-	sed -e 's![@]prefix[@]!$(prefix)!g' \
-	    -e 's![@]exec_prefix[@]!$(exec_prefix)!g' \
-	    -e 's![@]includedir[@]!$(includedir)!g' \
-	    -e 's![@]libdir[@]!$(libdir)!g' \
-	    -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g' \
-	    -e 's![@]GSSAPI_LDFLAGS[@]!$(GSSAPI_LDFLAGS)!g' \
-	    -e 's![@]GSSAPI_LIBS[@]!$(GSSAPI_LIBS)!g' \
+	sed -e 's![@]prefix[@]!$(prefix)!g'			\
+	    -e 's![@]exec_prefix[@]!$(exec_prefix)!g'		\
+	    -e 's![@]includedir[@]!$(includedir)!g'		\
+	    -e 's![@]libdir[@]!$(libdir)!g'			\
+	    -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g'	\
+	    -e 's![@]GSSAPI_LDFLAGS[@]!$(GSSAPI_LDFLAGS)!g'	\
+	    -e 's![@]GSSAPI_LIBS[@]!$(GSSAPI_LIBS)!g'		\
 	    $(srcdir)/client/libremctl.pc.in > $@
 
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
@@ -169,15 +169,15 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
 clean-local:
 	-rm -rf server/.libs tests/.libs tests/client/.libs tests/data/.libs \
 	    tests/portable/.libs tests/server/.libs tests/util/.libs
-	set -e; if [ -f "perl/Makefile" ] ; then \
-	    cd perl && $(MAKE) clean ; \
+	set -e; if [ -f "perl/Makefile" ] ; then			   \
+	    cd perl && $(MAKE) clean ;					   \
 	    cd perl && [ ! -f Makefile.old ] || mv Makefile.old Makefile ; \
 	fi
-	set -e; if [ -f "php/Makefile" ] ; then \
-	    cd php && $(MAKE) clean ; \
+	set -e; if [ -f "php/Makefile" ] ; then	\
+	    cd php && $(MAKE) clean ;		\
 	fi
-	set -e; if [ -f "ruby/Makefile" ] ; then \
-	    cd ruby && $(MAKE) distclean ; \
+	set -e; if [ -f "ruby/Makefile" ] ; then	\
+	    cd ruby && $(MAKE) distclean ;		\
 	fi
 	rm -rf php/tmp-php.ini python/build python/dist python/*.pyc
 
@@ -187,23 +187,23 @@ clean-local:
 # phpize --clean is stupid and requires that config.m4 exist, but it was
 # already deleted by the regular distclean target.  Hack around that.
 distclean-local:
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
-	    rm -rf php ; \
-	    for f in $(PERL_FILES) ; do \
-	        rm -f "$(builddir)/$$f" ; \
-	    done ; \
-	    rmdir perl/t 2>/dev/null || true ; \
-	    for f in $(PYTHON_FILES) ; do \
-		rm -f "$(builddir)/$$f" ; \
-	    done \
-	else \
-	    if [ -n "$(PHPIZE)" ] ; then \
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then		  \
+	    rm -rf php ;						  \
+	    for f in $(PERL_FILES) ; do					  \
+	        rm -f "$(builddir)/$$f" ;				  \
+	    done ;							  \
+	    rmdir perl/t 2>/dev/null || true ;				  \
+	    for f in $(PYTHON_FILES) ; do				  \
+		rm -f "$(builddir)/$$f" ;				  \
+	    done							  \
+	else								  \
+	    if [ -n "$(PHPIZE)" ] ; then				  \
 		cd php && touch config.m4 && $(PHPIZE) --clean && cd .. ; \
-	    fi ; \
-	    rm -f php/config.h.in~ php/config.m4 ; \
+	    fi ;							  \
+	    rm -f php/config.h.in~ php/config.m4 ;			  \
 	fi
-	set -e; if [ -f "ruby/Makefile" ] ; then \
-	    cd ruby && $(MAKE) distclean ; \
+	set -e; if [ -f "ruby/Makefile" ] ; then	\
+	    cd ruby && $(MAKE) distclean ;		\
 	fi
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
@@ -227,8 +227,8 @@ WARNINGS = -g -O -D_FORTIFY_SOURCE=2 -Wall -Wextra -Wendif-labels	    \
 if GCC
     PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs \
 	-Wno-strict-prototypes -Wno-redundant-decls -Wno-shadow
-    PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
-	-Wno-missing-prototypes -Wno-unused-parameter \
+    PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings	\
+	-Wno-missing-prototypes -Wno-unused-parameter		\
 	-Wno-redundant-decls -Wno-sign-compare
     PYTHON_WARNINGS = -Wno-unused-parameter
     RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
@@ -400,31 +400,31 @@ TEST_RPATH = $(abs_top_builddir)/client/.libs
 
 check-local: $(check_PROGRAMS)
 	cd tests && ./runtests $(abs_top_srcdir)/tests/TESTS
-	@set -e; if [ -f perl/Makefile ] ; then \
-	    echo '' ; \
-	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH) $(MAKE) test ; \
+	@set -e; if [ -f perl/Makefile ] ; then				\
+	    echo '' ;							\
+	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH) $(MAKE) test ;	\
 	fi
-	@set -e; if [ -f php/Makefile ] ; then \
-	    echo '' ; \
+	@set -e; if [ -f php/Makefile ] ; then				    \
+	    echo '' ;							    \
 	    cd php && NO_INTERACTION=1 ./test-wrapper "$(abs_top_builddir)" \
-		"$(abs_top_srcdir)" ; \
+		"$(abs_top_srcdir)" ;					    \
 	fi
-	@set -e; if [ -f python/setup.py ] ; then \
-	    echo '' ; \
-	    echo 'Testing Python extension' ; \
-	    for python in $(REMCTL_PYTHON_VERSIONS) ; do \
-		v=`echo "$$python" | sed 's/^[^0-9]*//'` ; \
-		cd python ; \
-		LD_LIBRARY_PATH=$(TEST_RPATH) \
-		    PYTHONPATH="`ls -d build/lib.*$$v`" \
-		    "$$python" test_remctl.py ; \
-		cd .. ; \
-	    done ; \
+	@set -e; if [ -f python/setup.py ] ; then		\
+	    echo '' ;						\
+	    echo 'Testing Python extension' ;			\
+	    for python in $(REMCTL_PYTHON_VERSIONS) ; do	\
+		v=`echo "$$python" | sed 's/^[^0-9]*//'` ;	\
+		cd python ;					\
+		LD_LIBRARY_PATH=$(TEST_RPATH)			\
+		    PYTHONPATH="`ls -d build/lib.*$$v`"		\
+		    "$$python" test_remctl.py ;			\
+		cd .. ;						\
+	    done ;						\
 	fi
-	@set -e; if [ -f ruby/Makefile ] ; then \
-	    echo '' ; \
-	    cd ruby && LD_LIBRARY_PATH=$(TEST_RPATH) \
-		$(REMCTL_RUBY) -I. test_remctl.rb ; \
+	@set -e; if [ -f ruby/Makefile ] ; then		\
+	    echo '' ;					\
+	    cd ruby && LD_LIBRARY_PATH=$(TEST_RPATH)	\
+		$(REMCTL_RUBY) -I. test_remctl.rb ;	\
 	fi
 
 # Used for hooking in the build of optional language bindings.
@@ -437,10 +437,10 @@ BINDINGS_INSTALL =
 # sure they're up to date since Perl can't handle VPATH builds.
 
 perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs $(srcdir)/perl/typemap
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
-	    for f in $(PERL_FILES) ; do \
-	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
-	    done \
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
+	    for f in $(PERL_FILES) ; do				\
+	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
+	    done						\
 	fi
 	cd perl && perl Makefile.PL $(REMCTL_PERL_FLAGS)
 	cd perl && $(MAKE) OPTIMIZE="$(CFLAGS) $(PERL_WARNINGS)"
@@ -458,11 +458,11 @@ endif
 
 php/modules/remctl.so: php/config.m4 php/php_remctl.h \
 		$(srcdir)/php/php_remctl.c
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
-	    mkdir php/tests 2>/dev/null || true ; \
-	    for f in $(PHP_FILES) ; do \
-	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
-	    done \
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
+	    mkdir php/tests 2>/dev/null || true ;		\
+	    for f in $(PHP_FILES) ; do				\
+	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
+	    done						\
 	fi
 	cd php && $(PHPIZE) --clean && $(PHPIZE)
 	cd php && ./configure CPPFLAGS="$(CPPFLAGS)" \
@@ -485,32 +485,32 @@ endif
 # make sure they're up to date.
 
 stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
-	    for f in $(PYTHON_FILES) ; do \
-		cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
-	    done \
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
+	    for f in $(PYTHON_FILES) ; do			\
+		cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
+	    done						\
 	fi
-	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do \
-	    cd python && CFLAGS="$(CFLAGS) $(PYTHON_WARNINGS)" \
-		"$$python" setup.py build && cd .. ; \
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do	\
+	    cd python && CFLAGS="$(CFLAGS) $(PYTHON_WARNINGS)"	\
+		"$$python" setup.py build && cd .. ;		\
 	done
 	touch stamp-python
 
 
 # If RPM_BUILD_ROOT is set, we're being built by RPM.  Use that as DESTDIR.
 install-data-local-python: stamp-python
-	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do \
-	    cd python ; \
-	    if [ -n "$(DESTDIR)" ] ; then \
-		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) \
-		    --root $(DESTDIR) ; \
-	    elif [ -n "$(RPM_BUILD_ROOT)" ] ; then \
-		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) \
-		    --root $(RPM_BUILD_ROOT) ; \
-	    else \
-		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) ; \
-	    fi ; \
-	    cd .. ; \
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		\
+	    cd python ;							\
+	    if [ -n "$(DESTDIR)" ] ; then				\
+		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL)	\
+		    --root $(DESTDIR) ;					\
+	    elif [ -n "$(RPM_BUILD_ROOT)" ] ; then			\
+		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL)	\
+		    --root $(RPM_BUILD_ROOT) ;				\
+	    else							\
+		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) ;	\
+	    fi ;							\
+	    cd .. ;							\
 	done
 
 # Build and install the Python bindings if desired.
