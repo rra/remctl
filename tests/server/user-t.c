@@ -96,7 +96,7 @@ test_user(struct remctl *r, const char *subcommand, uid_t *uid, gid_t *gid)
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     uid_t uid, gid;
     struct passwd *pw;
     struct remctl *r;
@@ -104,7 +104,7 @@ main(void)
     FILE *conf;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
 
     /* Determine the UID and GID of the current user. */
     pw = getpwuid(getuid());
@@ -131,13 +131,13 @@ main(void)
      * to start remctld under fakeroot so that it can change users.  This may
      * call skip_all if fakeroot wasn't found during configure.
      */
-    remctld_start_fakeroot(krbconf, "tmp/conf-user", NULL);
+    remctld_start_fakeroot(config, "tmp/conf-user", NULL);
 
     plan(6);
 
     /* Finally, we can actually do some testing. */
     r = remctl_new();
-    if (!remctl_open(r, "localhost", 14373, krbconf->principal))
+    if (!remctl_open(r, "localhost", 14373, config->principal))
         bail("cannot contact remctld");
     ok(test_user(r, "root", &uid, &gid), "test root command");
     is_int(0, uid, "remctld thinks it's running UID 0");

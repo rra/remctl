@@ -21,15 +21,15 @@
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     const char *err;
     struct remctl *r;
     struct remctl_output *output;
     const char *command[] = { "test", "env", "REMOTE_ADDR", NULL };
 
     /* Set up Kerberos and remctld. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    remctld_start(krbconf, "data/conf-simple", (char *) 0);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", (char *) 0);
 
     plan(10);
 
@@ -37,7 +37,7 @@ main(void)
     r = remctl_new();
     ok(r != NULL, "remctl_new");
     ok(remctl_set_source_ip(r, "127.0.0.1"), "remctl_set_source_ip");
-    ok(remctl_open(r, "127.0.0.1", 14373, krbconf->principal),
+    ok(remctl_open(r, "127.0.0.1", 14373, config->principal),
        "remctl_open to 127.0.0.1");
     ok(remctl_command(r, command), "remctl_command");
     output = remctl_output(r);
@@ -52,8 +52,7 @@ main(void)
     }
 
     /* Failed connection to ::1. */
-    ok(!remctl_open(r, "::1", 14373, krbconf->principal),
-       "remctl_open to ::1");
+    ok(!remctl_open(r, "::1", 14373, config->principal), "remctl_open to ::1");
     err = remctl_error(r);
     diag("error: %s", err);
     ok(((strncmp("cannot connect to ::1 (port 14373): ", err,

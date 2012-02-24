@@ -155,20 +155,20 @@ do_tests(const char *principal, int protocol)
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     struct remctl_result *result;
     const char *test[] = { "test", "test", NULL };
     const char *error[] = { "test", "bad-command", NULL };
 
     /* Set up Kerberos and remctld. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    remctld_start(krbconf, "data/conf-simple", (char *) 0);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", (char *) 0);
 
     plan(102);
 
     /* Run the basic protocol tests. */
-    do_tests(krbconf->principal, 1);
-    do_tests(krbconf->principal, 2);
+    do_tests(config->principal, 1);
+    do_tests(config->principal, 2);
 
     /*
      * We don't have a way of forcing the simple protocol to use a particular
@@ -176,7 +176,7 @@ main(void)
      * with protocol v1, and this wrapper works with v2, everything should
      * have gotten tested.
      */
-    result = remctl("localhost", 14373, krbconf->principal, test);
+    result = remctl("localhost", 14373, config->principal, test);
     ok(result != NULL, "basic remctl API works");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
@@ -188,7 +188,7 @@ main(void)
            "...and correct data");
     ok(result->error == NULL, "...and no error");
     remctl_result_free(result);
-    result = remctl("localhost", 14373, krbconf->principal, error);
+    result = remctl("localhost", 14373, config->principal, error);
     ok(result != NULL, "remctl API with error works");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stdout_len, "...and no stdout");

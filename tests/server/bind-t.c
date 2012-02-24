@@ -82,31 +82,30 @@ test_command(struct remctl *r, const char *addr)
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     struct remctl *r;
 #ifdef HAVE_INET6
     bool ipv6 = false;
 #endif
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
 
     /* Initialize our testing. */
     ipv6 = have_ipv6();
     plan(26);
 
     /* Test connecting to IPv4 and IPv6 with default bind. */
-    remctld_start(krbconf, "data/conf-simple", NULL);
+    remctld_start(config, "data/conf-simple", NULL);
     r = remctl_new();
-    ok(remctl_open(r, "127.0.0.1", 14373, krbconf->principal),
+    ok(remctl_open(r, "127.0.0.1", 14373, config->principal),
        "Connect to 127.0.0.1");
     test_command(r, "127.0.0.1");
     remctl_close(r);
 #ifdef HAVE_INET6
     if (ipv6) {
         r = remctl_new();
-        ok(remctl_open(r, "::1", 14373, krbconf->principal),
-           "Connect to ::1");
+        ok(remctl_open(r, "::1", 14373, config->principal), "Connect to ::1");
         test_command(r, "::1");
         remctl_close(r);
     } else {
@@ -118,16 +117,16 @@ main(void)
     remctld_stop();
 
     /* Try binding to only IPv4. */
-    remctld_start(krbconf, "data/conf-simple", "-b", "127.0.0.1", NULL);
+    remctld_start(config, "data/conf-simple", "-b", "127.0.0.1", NULL);
     r = remctl_new();
-    ok(remctl_open(r, "127.0.0.1", 14373, krbconf->principal),
+    ok(remctl_open(r, "127.0.0.1", 14373, config->principal),
        "Connect to 127.0.0.1 when bound to that address");
     test_command(r, "127.0.0.1");
     remctl_close(r);
 #ifdef HAVE_INET6
     if (ipv6) {
         r = remctl_new();
-        ok(!remctl_open(r, "::1", 14373, krbconf->principal),
+        ok(!remctl_open(r, "::1", 14373, config->principal),
            "Cannot connect to ::1 when only bound to 127.0.0.1");
         remctl_close(r);
     } else {
@@ -141,13 +140,13 @@ main(void)
     /* Try binding to only IPv6. */
 #ifdef HAVE_INET6
     if (ipv6) {
-        remctld_start(krbconf, "data/conf-simple", "-b", "::1", NULL);
+        remctld_start(config, "data/conf-simple", "-b", "::1", NULL);
         r = remctl_new();
-        ok(!remctl_open(r, "127.0.0.1", 14373, krbconf->principal),
+        ok(!remctl_open(r, "127.0.0.1", 14373, config->principal),
            "Cannot connect to 127.0.0.1 when only bound to ::1");
         remctl_close(r);
         r = remctl_new();
-        ok(remctl_open(r, "::1", 14373, krbconf->principal),
+        ok(remctl_open(r, "::1", 14373, config->principal),
            "Connect to ::1 when bound only to it");
         test_command(r, "::1");
         remctl_close(r);
@@ -162,15 +161,15 @@ main(void)
     /* Try binding explicitly to local IPv4 and IPv6 addresses. */
 #ifdef HAVE_INET6
     if (ipv6) {
-        remctld_start(krbconf, "data/conf-simple", "-b", "127.0.0.1", "-b",
+        remctld_start(config, "data/conf-simple", "-b", "127.0.0.1", "-b",
                       "::1", NULL);
         r = remctl_new();
-        ok(remctl_open(r, "127.0.0.1", 14373, krbconf->principal),
+        ok(remctl_open(r, "127.0.0.1", 14373, config->principal),
            "Connect to 127.0.0.1 when bound to both local addresses");
         test_command(r, "127.0.0.1");
         remctl_close(r);
         r = remctl_new();
-        ok(remctl_open(r, "::1", 14373, krbconf->principal),
+        ok(remctl_open(r, "::1", 14373, config->principal),
            "Connect to ::1 when bound to both local addresses");
         test_command(r, "::1");
         remctl_close(r);

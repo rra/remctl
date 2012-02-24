@@ -118,7 +118,7 @@ make_connection(int protocol, const char *principal)
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     socket_type s, fd;
     int protocol;
     pid_t child;
@@ -128,7 +128,7 @@ main(void)
     const void *onaddr = &on;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     plan(2 * 3);
 
     /* Set up address to which we're going to bind and start listening.. */
@@ -155,7 +155,7 @@ main(void)
         if (child < 0)
             sysbail("cannot fork");
         else if (child == 0)
-            make_connection(protocol, krbconf->principal);
+            make_connection(protocol, config->principal);
         alarm(1);
         fd = accept(s, NULL, 0);
         if (fd == INVALID_SOCKET)

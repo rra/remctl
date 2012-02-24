@@ -26,7 +26,7 @@
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     struct remctl *r;
     struct remctl_output *output;
     static const char prefix_first[] = { 2, MESSAGE_COMMAND, 1, 1 };
@@ -44,16 +44,15 @@ main(void)
     int status;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    remctld_start(krbconf, "data/conf-simple", NULL);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", NULL);
 
     plan(9);
 
     /* Open a connection. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(remctl_open(r, "localhost", 14373, krbconf->principal),
-       "remctl_open");
+    ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
 
     /* Send the command broken in the middle of protocol elements. */
     token.value = buffer;

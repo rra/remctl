@@ -34,7 +34,7 @@ static const char token[] = {
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     struct remctl *r;
     OM_uint32 major, minor;
     int flags, status;
@@ -42,8 +42,8 @@ main(void)
     struct sigaction sa;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    remctld_start(krbconf, "data/conf-simple", NULL);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", NULL);
 
     plan(10);
 
@@ -56,8 +56,7 @@ main(void)
     /* Open the connection to the site. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(remctl_open(r, "localhost", 14373, krbconf->principal),
-       "remctl_open");
+    ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
 
     /* Send the command token. */
     tok.length = sizeof(token);

@@ -20,7 +20,7 @@
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     const char *cache;
     struct remctl *r;
     struct remctl_output *output;
@@ -28,8 +28,8 @@ main(void)
     const char *command[] = { "test", "test", NULL };
 
     /* Set up Kerberos and remctld. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    remctld_start(krbconf, "data/conf-simple", (char *) 0);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", (char *) 0);
 
     plan(12);
 
@@ -42,7 +42,7 @@ main(void)
     /* Connecting without setting the ticket cache should fail. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(!remctl_open(r, "127.0.0.1", 14373, krbconf->principal),
+    ok(!remctl_open(r, "127.0.0.1", 14373, config->principal),
        "remctl_open to 127.0.0.1");
 
     /* Set the ticket cache and connect to 127.0.0.1 and run a command. */
@@ -53,7 +53,7 @@ main(void)
         skip_block(8, "credential cache setting not supported");
     } else {
         ok(remctl_set_ccache(r, cache), "remctl_set_ccache");
-        ok(remctl_open(r, "127.0.0.1", 14373, krbconf->principal),
+        ok(remctl_open(r, "127.0.0.1", 14373, config->principal),
            "remctl_open to 127.0.0.1");
         ok(remctl_command(r, command), "remctl_command");
         output = remctl_output(r);

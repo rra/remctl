@@ -71,21 +71,21 @@ test_env(struct remctl *r, const char *variable)
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     char *expected, *value;
     struct remctl *r;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    remctld_start(krbconf, "data/conf-simple", NULL);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", NULL);
 
     plan(4);
 
     /* Run the tests. */
     r = remctl_new();
-    if (!remctl_open(r, "localhost", 14373, krbconf->principal))
+    if (!remctl_open(r, "localhost", 14373, config->principal))
         bail("cannot contact remctld");
-    basprintf(&expected, "%s\n", krbconf->principal);
+    basprintf(&expected, "%s\n", config->principal);
     value = test_env(r, "REMUSER");
     is_string(expected, value, "value for REMUSER");
     free(value);

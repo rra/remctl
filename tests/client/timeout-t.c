@@ -20,14 +20,14 @@
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     struct remctl *r;
     struct remctl_output *output;
     const char *command[] = { "test", "sleep", NULL, NULL };
 
     /* Set up Kerberos and remctld. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    remctld_start(krbconf, "data/conf-simple", (char *) 0);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", (char *) 0);
 
     plan(11);
 
@@ -37,7 +37,7 @@ main(void)
      */
     r = remctl_new();
     ok(remctl_set_timeout(r, 1), "set timeout");
-    ok(remctl_open(r, "127.0.0.1", 14373, krbconf->principal), "open");
+    ok(remctl_open(r, "127.0.0.1", 14373, config->principal), "open");
     ok(remctl_command(r, command), "sent test sleep command");
     output = remctl_output(r);
     ok(output == NULL, "output is NULL");

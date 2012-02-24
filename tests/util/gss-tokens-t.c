@@ -29,7 +29,7 @@ extern bool fail_timeout;
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     gss_buffer_desc name_buf, server_tok, client_tok, *token_ptr;
     gss_name_t server_name, client_name;
     gss_ctx_id_t server_ctx, client_ctx;
@@ -38,15 +38,15 @@ main(void)
     int status, flags;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     plan(28);
 
     /*
      * We have to set up a context first in order to do this test, which is
      * rather annoying.
      */
-    name_buf.value = (char *) krbconf->principal;
-    name_buf.length = strlen(krbconf->principal) + 1;
+    name_buf.value = (char *) config->principal;
+    name_buf.length = strlen(config->principal) + 1;
     s_stat = gss_import_name(&s_min_stat, &name_buf, GSS_C_NT_USER_NAME,
                              &server_name);
     if (s_stat != GSS_S_COMPLETE)

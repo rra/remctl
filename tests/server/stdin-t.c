@@ -68,27 +68,27 @@ test_stdin(const char *principal, const char *test, const void *data,
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     char *buffer;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    remctld_start(krbconf, "data/conf-simple", NULL);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", NULL);
 
     plan(9 * 9);
 
     /* Run the tests. */
-    test_stdin(krbconf->principal, "read", "Okay", 4);
-    test_stdin(krbconf->principal, "write", "Okay", 4);
-    test_stdin(krbconf->principal, "exit", "Okay", 4);
+    test_stdin(config->principal, "read", "Okay", 4);
+    test_stdin(config->principal, "write", "Okay", 4);
+    test_stdin(config->principal, "exit", "Okay", 4);
     buffer = bmalloc(1024 * 1024);
     memset(buffer, 'A', 1024 * 1024);
-    test_stdin(krbconf->principal, "exit", buffer, 1024 * 1024);
-    test_stdin(krbconf->principal, "close", "Okay", 4);
-    test_stdin(krbconf->principal, "close", buffer, 1024 * 1024);
-    test_stdin(krbconf->principal, "nuls", "T\0e\0s\0t\0", 8);
-    test_stdin(krbconf->principal, "large", buffer, 1024 * 1024);
-    test_stdin(krbconf->principal, "delay", buffer, 1024 * 1024);
+    test_stdin(config->principal, "exit", buffer, 1024 * 1024);
+    test_stdin(config->principal, "close", "Okay", 4);
+    test_stdin(config->principal, "close", buffer, 1024 * 1024);
+    test_stdin(config->principal, "nuls", "T\0e\0s\0t\0", 8);
+    test_stdin(config->principal, "large", buffer, 1024 * 1024);
+    test_stdin(config->principal, "delay", buffer, 1024 * 1024);
 
     return 0;
 }

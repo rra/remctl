@@ -104,19 +104,19 @@ test_excess_args(struct remctl *r)
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     struct remctl *r;
     int status;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    remctld_start(krbconf, "data/conf-simple", NULL);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", NULL);
 
     plan(4);
 
     /* Run the tests. */
     r = remctl_new();
-    if (!remctl_open(r, "localhost", 14373, krbconf->principal))
+    if (!remctl_open(r, "localhost", 14373, config->principal))
         bail("cannot contact remctld");
     status = test_error(r, "bad-command");
     is_int(ERROR_UNKNOWN_COMMAND, status, "unknown command");

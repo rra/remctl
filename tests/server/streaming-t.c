@@ -21,22 +21,21 @@
 int
 main(void)
 {
-    struct kerberos_config *krbconf;
+    struct kerberos_config *config;
     struct remctl *r;
     struct remctl_output *output;
     const char *command[] = { "test", "streaming", NULL };
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    krbconf = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    remctld_start(krbconf, "data/conf-simple", NULL);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", NULL);
 
     plan(32);
 
     /* First, version 2. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(remctl_open(r, "localhost", 14373, krbconf->principal),
-       "remctl_open");
+    ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
     ok(remctl_command(r, command), "remctl_command");
     output = remctl_output(r);
     ok(output != NULL, "output is not null");
@@ -78,8 +77,7 @@ main(void)
     r = remctl_new();
     r->protocol = 1;
     ok(r != NULL, "remctl_new protocol version 1");
-    ok(remctl_open(r, "localhost", 14373, krbconf->principal),
-       "remctl_open");
+    ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
     ok(remctl_command(r, command), "remctl_command");
     output = remctl_output(r);
     ok(output != NULL, "output is not null");
