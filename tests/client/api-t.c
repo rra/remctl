@@ -167,8 +167,8 @@ main(void)
     plan(102);
 
     /* Run the basic protocol tests. */
-    do_tests(krbconf->keytab_principal, 1);
-    do_tests(krbconf->keytab_principal, 2);
+    do_tests(krbconf->principal, 1);
+    do_tests(krbconf->principal, 2);
 
     /*
      * We don't have a way of forcing the simple protocol to use a particular
@@ -176,7 +176,7 @@ main(void)
      * with protocol v1, and this wrapper works with v2, everything should
      * have gotten tested.
      */
-    result = remctl("localhost", 14373, krbconf->keytab_principal, test);
+    result = remctl("localhost", 14373, krbconf->principal, test);
     ok(result != NULL, "basic remctl API works");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
@@ -188,7 +188,7 @@ main(void)
            "...and correct data");
     ok(result->error == NULL, "...and no error");
     remctl_result_free(result);
-    result = remctl("localhost", 14373, krbconf->keytab_principal, error);
+    result = remctl("localhost", 14373, krbconf->principal, error);
     ok(result != NULL, "remctl API with error works");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stdout_len, "...and no stdout");

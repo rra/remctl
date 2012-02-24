@@ -37,7 +37,7 @@ main(void)
     r = remctl_new();
     ok(r != NULL, "remctl_new");
     ok(remctl_set_source_ip(r, "127.0.0.1"), "remctl_set_source_ip");
-    ok(remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal),
+    ok(remctl_open(r, "127.0.0.1", 14373, krbconf->principal),
        "remctl_open to 127.0.0.1");
     ok(remctl_command(r, command), "remctl_command");
     output = remctl_output(r);
@@ -52,7 +52,7 @@ main(void)
     }
 
     /* Failed connection to ::1. */
-    ok(!remctl_open(r, "::1", 14373, krbconf->keytab_principal),
+    ok(!remctl_open(r, "::1", 14373, krbconf->principal),
        "remctl_open to ::1");
     err = remctl_error(r);
     diag("error: %s", err);

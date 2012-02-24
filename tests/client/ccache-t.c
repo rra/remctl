@@ -42,7 +42,7 @@ main(void)
     /* Connecting without setting the ticket cache should fail. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(!remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal),
+    ok(!remctl_open(r, "127.0.0.1", 14373, krbconf->principal),
        "remctl_open to 127.0.0.1");
 
     /* Set the ticket cache and connect to 127.0.0.1 and run a command. */
@@ -53,7 +53,7 @@ main(void)
         skip_block(8, "credential cache setting not supported");
     } else {
         ok(remctl_set_ccache(r, cache), "remctl_set_ccache");
-        ok(remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal),
+        ok(remctl_open(r, "127.0.0.1", 14373, krbconf->principal),
            "remctl_open to 127.0.0.1");
         ok(remctl_command(r, command), "remctl_command");
         output = remctl_output(r);

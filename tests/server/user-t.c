@@ -137,7 +137,7 @@ main(void)
 
     /* Finally, we can actually do some testing. */
     r = remctl_new();
-    if (!remctl_open(r, "localhost", 14373, krbconf->keytab_principal))
+    if (!remctl_open(r, "localhost", 14373, krbconf->principal))
         bail("cannot contact remctld");
     ok(test_user(r, "root", &uid, &gid), "test root command");
     is_int(0, uid, "remctld thinks it's running UID 0");

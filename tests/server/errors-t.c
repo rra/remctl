@@ -116,7 +116,7 @@ main(void)
 
     /* Run the tests. */
     r = remctl_new();
-    if (!remctl_open(r, "localhost", 14373, krbconf->keytab_principal))
+    if (!remctl_open(r, "localhost", 14373, krbconf->principal))
         bail("cannot contact remctld");
     status = test_error(r, "bad-command");
     is_int(ERROR_UNKNOWN_COMMAND, status, "unknown command");

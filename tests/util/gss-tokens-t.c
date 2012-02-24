@@ -45,8 +45,8 @@ main(void)
      * We have to set up a context first in order to do this test, which is
      * rather annoying.
      */
-    name_buf.value = (char *) krbconf->keytab_principal;
-    name_buf.length = strlen(krbconf->keytab_principal) + 1;
+    name_buf.value = (char *) krbconf->principal;
+    name_buf.length = strlen(krbconf->principal) + 1;
     s_stat = gss_import_name(&s_min_stat, &name_buf, GSS_C_NT_USER_NAME,
                              &server_name);
     if (s_stat != GSS_S_COMPLETE)

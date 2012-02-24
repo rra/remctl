@@ -158,7 +158,7 @@ main(void)
 
     /* Unless we have Kerberos available, we can't really do anything else. */
     krbconf = kerberos_setup(TAP_KRB_NEEDS_NONE);
-    if (krbconf->keytab_principal == NULL) {
+    if (krbconf->principal == NULL) {
         skip_block(5 * 3, "Kerberos tests not configured");
         return 0;
     }
@@ -185,7 +185,7 @@ main(void)
             select(0, NULL, NULL, NULL, &tv);
         }
         alarm(0);
-        if (!remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal)) {
+        if (!remctl_open(r, "127.0.0.1", 14373, krbconf->principal)) {
             notice("# open error: %s", remctl_error(r));
             ok_block(5, 0, "protocol %d", protocol);
         } else {
@@ -194,7 +194,7 @@ main(void)
                    "negotiated correct protocol");
             is_string(r->host, "127.0.0.1", "host is correct");
             is_int(r->port, 14373, "port is correct");
-            is_string(r->principal, krbconf->keytab_principal,
+            is_string(r->principal, krbconf->principal,
                       "principal is correct");
         }
         remctl_close(r);

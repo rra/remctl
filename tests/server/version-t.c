@@ -56,7 +56,7 @@ main(void)
     /* Open the connection to the site. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(remctl_open(r, "localhost", 14373, krbconf->keytab_principal),
+    ok(remctl_open(r, "localhost", 14373, krbconf->principal),
        "remctl_open");
 
     /* Send the command token. */

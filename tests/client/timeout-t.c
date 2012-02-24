@@ -37,7 +37,7 @@ main(void)
      */
     r = remctl_new();
     ok(remctl_set_timeout(r, 1), "set timeout");
-    ok(remctl_open(r, "127.0.0.1", 14373, krbconf->keytab_principal), "open");
+    ok(remctl_open(r, "127.0.0.1", 14373, krbconf->principal), "open");
     ok(remctl_command(r, command), "sent test sleep command");
     output = remctl_output(r);
     ok(output == NULL, "output is NULL");

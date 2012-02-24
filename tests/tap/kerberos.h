@@ -40,9 +40,9 @@
 /* Holds the information parsed from the Kerberos test configuration. */
 struct kerberos_config {
     char *keytab;               /* Path to the keytab. */
-    char *keytab_principal;     /* Principal whose keys are in the keytab. */
+    char *principal;            /* Principal whose keys are in the keytab. */
     char *cache;                /* Path to the Kerberos ticket cache. */
-    char *principal;            /* The fully-qualified principal. */
+    char *userprinc;            /* The fully-qualified principal. */
     char *username;             /* The local (non-realm) part of principal. */
     char *realm;                /* The realm part of the principal. */
     char *password;             /* The password. */

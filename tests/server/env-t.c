@@ -83,9 +83,9 @@ main(void)
 
     /* Run the tests. */
     r = remctl_new();
-    if (!remctl_open(r, "localhost", 14373, krbconf->keytab_principal))
+    if (!remctl_open(r, "localhost", 14373, krbconf->principal))
         bail("cannot contact remctld");
-    basprintf(&expected, "%s\n", krbconf->keytab_principal);
+    basprintf(&expected, "%s\n", krbconf->principal);
     value = test_env(r, "REMUSER");
     is_string(expected, value, "value for REMUSER");
     free(value);

@@ -35,7 +35,7 @@ main(void)
     /* First, version 2. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(remctl_open(r, "localhost", 14373, krbconf->keytab_principal),
+    ok(remctl_open(r, "localhost", 14373, krbconf->principal),
        "remctl_open");
     ok(remctl_command(r, command), "remctl_command");
     output = remctl_output(r);
@@ -78,7 +78,7 @@ main(void)
     r = remctl_new();
     r->protocol = 1;
     ok(r != NULL, "remctl_new protocol version 1");
-    ok(remctl_open(r, "localhost", 14373, krbconf->keytab_principal),
+    ok(remctl_open(r, "localhost", 14373, krbconf->principal),
        "remctl_open");
     ok(remctl_command(r, command), "remctl_command");
     output = remctl_output(r);

@@ -73,7 +73,7 @@ static char *tmpdir_conf = NULL;
 
 
 /*
- * Obtain Kerberos tickets and fill in the keytab_principal config entry.
+ * Obtain Kerberos tickets and fill in the principal config entry.
  *
  * There are two implementations of this function, one if we have native
  * Kerberos libraries available and one if we don't.  Uses keytab to obtain
@@ -107,17 +107,16 @@ kerberos_kinit(void)
     if (code != 0)
         bail_krb5(ctx, code, "error unparsing name");
     krb5_free_principal(ctx, kprinc);
-    config->keytab_principal = bstrdup(name);
+    config->principal = bstrdup(name);
     krb5_free_unparsed_name(ctx, name);
 
     /* Now do the Kerberos initialization. */
     code = krb5_cc_default(ctx, &ccache);
     if (code != 0)
         bail_krb5(ctx, code, "error setting ticket cache");
-    code = krb5_parse_name(ctx, config->keytab_principal, &kprinc);
+    code = krb5_parse_name(ctx, config->principal, &kprinc);
     if (code != 0)
-        bail_krb5(ctx, code, "error parsing principal %s",
-                  config->keytab_principal);
+        bail_krb5(ctx, code, "error parsing principal %s", config->principal);
     realm = krb5_principal_get_realm(ctx, kprinc);
     basprintf(&krbtgt, "krbtgt/%s@%s", realm, realm);
     code = krb5_kt_resolve(ctx, config->keytab, &keytab);
@@ -184,7 +183,7 @@ kerberos_kinit(void)
     if (principal[strlen(principal) - 1] != '\n')
         bail("no newline in %s", path);
     principal[strlen(principal) - 1] = '\0';
-    config->keytab_principal = bstrdup(principal);
+    config->principal = bstrdup(principal);
 
     /* Now do the Kerberos initialization. */
     for (i = 0; i < ARRAY_SIZE(format); i++) {
@@ -221,11 +220,11 @@ kerberos_cleanup(void)
     if (config != NULL) {
         if (config->keytab != NULL) {
             test_file_path_free(config->keytab);
-            free(config->keytab_principal);
+            free(config->principal);
             free(config->cache);
         }
         if (config->principal != NULL) {
-            free(config->principal);
+            free(config->userprinc);
             free(config->username);
             free(config->password);
         }
@@ -301,7 +300,7 @@ kerberos_setup(enum kerberos_needs needs)
         if (buffer[strlen(buffer) - 1] != '\n')
             bail("no newline in %s", path);
         buffer[strlen(buffer) - 1] = '\0';
-        config->principal = bstrdup(buffer);
+        config->userprinc = bstrdup(buffer);
         if (fgets(buffer, sizeof(buffer), file) == NULL)
             bail("cannot read password from %s", path);
         fclose(file);
@@ -315,7 +314,7 @@ kerberos_setup(enum kerberos_needs needs)
          * This is not strictly correct; it doesn't cope with escaped @-signs
          * or enterprise names.
          */
-        config->username = bstrdup(config->principal);
+        config->username = bstrdup(config->userprinc);
         config->realm = strchr(config->username, '@');
         if (config->realm == NULL)
             bail("test principal has no realm");

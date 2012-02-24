@@ -41,7 +41,7 @@ test_bad_token(const struct kerberos_config *krbconf, const char *data,
      */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(remctl_open(r, "localhost", 14373, krbconf->keytab_principal),
+    ok(remctl_open(r, "localhost", 14373, krbconf->principal),
        "remctl_open");
     token.value = (void *) data;
     token.length = length;

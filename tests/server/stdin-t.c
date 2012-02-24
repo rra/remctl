@@ -78,17 +78,17 @@ main(void)
     plan(9 * 9);
 
     /* Run the tests. */
-    test_stdin(krbconf->keytab_principal, "read", "Okay", 4);
-    test_stdin(krbconf->keytab_principal, "write", "Okay", 4);
-    test_stdin(krbconf->keytab_principal, "exit", "Okay", 4);
+    test_stdin(krbconf->principal, "read", "Okay", 4);
+    test_stdin(krbconf->principal, "write", "Okay", 4);
+    test_stdin(krbconf->principal, "exit", "Okay", 4);
     buffer = bmalloc(1024 * 1024);
     memset(buffer, 'A', 1024 * 1024);
-    test_stdin(krbconf->keytab_principal, "exit", buffer, 1024 * 1024);
-    test_stdin(krbconf->keytab_principal, "close", "Okay", 4);
-    test_stdin(krbconf->keytab_principal, "close", buffer, 1024 * 1024);
-    test_stdin(krbconf->keytab_principal, "nuls", "T\0e\0s\0t\0", 8);
-    test_stdin(krbconf->keytab_principal, "large", buffer, 1024 * 1024);
-    test_stdin(krbconf->keytab_principal, "delay", buffer, 1024 * 1024);
+    test_stdin(krbconf->principal, "exit", buffer, 1024 * 1024);
+    test_stdin(krbconf->principal, "close", "Okay", 4);
+    test_stdin(krbconf->principal, "close", buffer, 1024 * 1024);
+    test_stdin(krbconf->principal, "nuls", "T\0e\0s\0t\0", 8);
+    test_stdin(krbconf->principal, "large", buffer, 1024 * 1024);
+    test_stdin(krbconf->principal, "delay", buffer, 1024 * 1024);
 
     return 0;
 }

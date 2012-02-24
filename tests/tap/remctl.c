@@ -194,7 +194,7 @@ remctld_start_internal(struct kerberos_config *krbconf, const char *config,
     argv[i++] = "-p";
     argv[i++] = "14373";
     argv[i++] = "-s";
-    argv[i++] = krbconf->keytab_principal;
+    argv[i++] = krbconf->principal;
     argv[i++] = "-P";
     argv[i++] = pidfile;
     argv[i++] = "-f";

@@ -155,7 +155,7 @@ main(void)
         if (child < 0)
             sysbail("cannot fork");
         else if (child == 0)
-            make_connection(protocol, krbconf->keytab_principal);
+            make_connection(protocol, krbconf->principal);
         alarm(1);
         fd = accept(s, NULL, 0);
         if (fd == INVALID_SOCKET)
