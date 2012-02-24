@@ -13,7 +13,7 @@
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 3.0
+Version: 3.1
 Release: 1.EL%{rel}
 %if %( rpmbuild --version | cut -d ' ' -f 3 | cut -d . -f 1 ) >= 4
 License: MIT
@@ -87,7 +87,7 @@ server may be mapped to any command name.  Each command is also associated
 with an ACL containing a list of Kerberos principals authorized to run
 that command.
 
-This package contains the python remctl client library.
+This package contains the Python remctl client library.
 %endif
 
 %prep
@@ -114,8 +114,8 @@ mkdir -p %{buildroot}/etc/remctl/acl
 mkdir -p %{buildroot}/etc/remctl/conf.d
 install -c -m 0644 examples/remctl.conf %{buildroot}/etc/remctl/remctl.conf
 %ifarch x86_64
-if [ -d %{buildroot}/usr/lib/ ]; then
-    mv %{buildroot}/usr/lib/ %{buildroot}/%{ldir}
+if [ -d %{buildroot}/usr/lib ]; then
+    mv %{buildroot}/usr/lib %{buildroot}/%{ldir}
 fi
 %endif
 %if %{buildperl}
@@ -132,8 +132,7 @@ find %{buildroot} -name perllocal.pod -exec rm {} \;
 %{ldir}/libremctl.a
 %{ldir}/libremctl.la
 %{ldir}/libremctl.so
-%{ldir}/libremctl.so.1
-%{ldir}/libremctl.so.1.0.2
+%{ldir}/libremctl.so.*
 %{ldir}/pkgconfig/libremctl.pc
 %{_mandir}/*/remctl.*
 %{_mandir}/*/remctl_*
@@ -205,6 +204,9 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Thu Feb 23 2012 Russ Allbery <rra@stanford.edu> 3.1-1
+- Update for 3.1.
+
 * Wed Feb 15 2012 Thomas L. Kula <tlk2126@columbia.edu> 3.0-1
 - Update for 3.0
 - Add support for Python bindings, building as a sub-package
