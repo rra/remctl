@@ -496,12 +496,17 @@ stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
 	done
 	touch stamp-python
 
+
+# If RPM_BUILD_ROOT is set, we're being built by RPM.  Use that as DESTDIR.
 install-data-local-python: stamp-python
 	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do \
 	    cd python ; \
 	    if [ -n "$(DESTDIR)" ] ; then \
 		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) \
 		    --root $(DESTDIR) ; \
+	    elif [ -n "$(RPM_BUILD_ROOT)" ] ; then \
+		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) \
+		    --root $(RPM_BUILD_ROOT) ; \
 	    else \
 		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) ; \
 	    fi ; \
