@@ -32,7 +32,7 @@ REMCTL_RUBY            ?= ruby
 PERL_FILES = perl/Remctl.xs perl/typemap perl/t/pod.t perl/t/stanford-netdb.t
 PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
 	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
-	php/tests/005.phpt
+	php/tests/005.phpt php/tests/006.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 
 ACLOCAL_AMFLAGS = -I m4
