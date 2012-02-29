@@ -42,9 +42,10 @@ remctl 3.1 (unreleased)
     * Fix compiler warnings when built with -D_FORTIFY_SOURCE=2.
     * Add test wrappers around asprintf and vasprintf.
 
-    Update to C TAP Harness 1.9:
+    Update to C TAP Harness 1.10:
 
     * Add test_tmpdir and test_tmpdir_free to TAP library.
+    * Add bstrndup function to the C TAP library.
     * runtests now frees all allocated resources on exit.
 
 remctl 3.0 (2011-10-31)
