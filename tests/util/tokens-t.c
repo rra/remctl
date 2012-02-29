@@ -2,7 +2,7 @@
  * tokens test suite.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Copyright 2006, 2007, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -14,13 +14,15 @@
 #include <portable/socket.h>
 
 #include <fcntl.h>
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 
 #include <tests/tap/basic.h>
 #include <util/tokens.h>
-#include <util/xmalloc.h>
 #include <util/xwrite.h>
 
 /*
@@ -119,10 +121,10 @@ send_regular_token(socket_type fd)
 {
     gss_buffer_desc buffer;
 
-    buffer.value = xmalloc(5);
+    buffer.value = bmalloc(5);
     memcpy(buffer.value, "hello", 5);
     buffer.length = 5;
-    token_send(fd, 3, &buffer);
+    token_send(fd, 3, &buffer, 0);
 }
 
 
@@ -136,9 +138,9 @@ main(void)
     ssize_t length;
     gss_buffer_desc result;
 
-    alarm(2);
+    alarm(20);
 
-    plan(10);
+    plan(12);
     if (chdir(getenv("BUILD")) < 0)
         sysbail("can't chdir to BUILD");
 
@@ -168,7 +170,7 @@ main(void)
         exit(0);
     } else {
         client = create_client();
-        status = token_recv(client, &flags, &result, 5);
+        status = token_recv(client, &flags, &result, 5, 0);
         is_int(TOKEN_OK, status, "received hand-rolled token");
         is_int(3, flags, "...with right flags");
         is_int(5, result.length, "...and right length");
@@ -176,6 +178,7 @@ main(void)
         waitpid(child, NULL, 0);
     }
 
+    /* Send a token with a length of one, but no following data. */
     unlink("server-ready");
     child = fork();
     if (child < 0)
@@ -186,11 +189,12 @@ main(void)
         exit(0);
     } else {
         client = create_client();
-        status = token_recv(client, &flags, &result, 200);
-        is_int(TOKEN_FAIL_INVALID, status, "receive invalid token");
+        status = token_recv(client, &flags, &result, 200, 0);
+        is_int(TOKEN_FAIL_EOF, status, "receive invalid token");
         waitpid(child, NULL, 0);
     }
 
+    /* Send a token larger than our token size limit. */
     unlink("server-ready");
     child = fork();
     if (child < 0)
@@ -201,11 +205,12 @@ main(void)
         exit(0);
     } else {
         client = create_client();
-        status = token_recv(client, &flags, &result, 4);
+        status = token_recv(client, &flags, &result, 4, 0);
         is_int(TOKEN_FAIL_LARGE, status, "receive too-large token");
         waitpid(child, NULL, 0);
     }
 
+    /* Send EOF when we were expecting a token. */
     unlink("server-ready");
     child = fork();
     if (child < 0)
@@ -216,25 +221,66 @@ main(void)
         exit(0);
     } else {
         client = create_client();
-        status = token_recv(client, &flags, &result, 4);
+        status = token_recv(client, &flags, &result, 4, 0);
         is_int(TOKEN_FAIL_EOF, status, "receive end of file");
         waitpid(child, NULL, 0);
     }
+
+    /*
+     * Test a timeout on sending a token.  We have to send a large enough
+     * token that the network layer doesn't just buffer it.
+     */
     unlink("server-ready");
+    child = fork();
+    if (child < 0)
+        sysbail("cannot fork");
+    else if (child == 0) {
+        server = create_server();
+        sleep(3);
+        exit(0);
+    } else {
+        result.value = bmalloc(512 * 1024);
+        memset(result.value, 'a', 512 * 1024);
+        result.length = 512 * 1024;
+        client = create_client();
+        status = token_send(client, 3, &result, 1);
+        free(result.value);
+        is_int(TOKEN_FAIL_TIMEOUT, status, "can't send due to timeout");
+        close(client);
+        waitpid(child, NULL, 0);
+    }
+
+    /* Test a timeout on receiving a token. */
+    unlink("server-ready");
+    child = fork();
+    if (child < 0)
+        sysbail("cannot fork");
+    else if (child == 0) {
+        server = create_server();
+        sleep(3);
+        exit(0);
+    } else {
+        client = create_client();
+        status = token_recv(client, &flags, &result, 200, 1);
+        is_int(TOKEN_FAIL_TIMEOUT, status, "can't receive due to timeout");
+        close(client);
+        waitpid(child, NULL, 0);
+    }
 
     /* Special test for error handling when sending tokens. */
     server = open("/dev/full", O_RDWR);
     if (server < 0)
         skip("/dev/full not available");
     else {
-        result.value = xmalloc(5);
+        result.value = bmalloc(5);
         memcpy(result.value, "hello", 5);
         result.length = 5;
-        status = token_send(server, 3, &result);
+        status = token_send(server, 3, &result, 0);
         free(result.value);
         is_int(TOKEN_FAIL_SOCKET, status, "can't send due to system error");
         close(server);
     }
 
+    unlink("server-ready");
     return 0;
 }

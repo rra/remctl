@@ -4,8 +4,8 @@
  * This file is part of C TAP Harness.  The current version plus supporting
  * documentation is at <http://www.eyrie.org/~eagle/software/c-tap-harness/>.
  *
- * Copyright 2009, 2010 Russ Allbery <rra@stanford.edu>
- * Copyright 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2011
+ * Copyright 2009, 2010, 2011 Russ Allbery <rra@stanford.edu>
+ * Copyright 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -137,6 +137,8 @@ void *brealloc(void *, size_t)
     __attribute__((__alloc_size__(2), __malloc__));
 char *bstrdup(const char *)
     __attribute__((__malloc__, __nonnull__));
+char *bstrndup(const char *, size_t)
+    __attribute__((__malloc__, __nonnull__));
 
 /*
  * Find a test file under BUILD or SOURCE, returning the full path.  The
@@ -145,6 +147,14 @@ char *bstrdup(const char *)
 char *test_file_path(const char *file)
     __attribute__((__malloc__, __nonnull__));
 void test_file_path_free(char *path);
+
+/*
+ * Create a temporary directory relative to BUILD and return the path.  The
+ * returned path should be freed with test_tmpdir_free.
+ */
+char *test_tmpdir(void)
+    __attribute__((__malloc__));
+void test_tmpdir_free(char *path);
 
 END_DECLS
 

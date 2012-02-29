@@ -1,19 +1,29 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2008, 2009, 2010, 2011
+# Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
 
 # These variables exist only for the use of the Debian packaging and similar
-# situations and aren't normally set.  PYTHON_INSTALL adds additional flags
-# to the setup.py install command.  PYTHON_VERSION narrows the search for
-# Python build directories during make check to only those matching that
-# version.  RUBY controls which Ruby interpretor is used to do the build.
-PYTHON_INSTALL =
-PYTHON_VERSION =
-RUBY = ruby
+# situations and aren't normally set.  We want to honor them if they're set
+# in the environment, as well as via make arguments.
+#
+# REMCTL_PERL_FLAGS are additional flags to pass to Makefile.PL when
+# building the Makefile.
+#
+# REMCTL_PYTHON_INSTALL adds additional flags to the setup.py install
+# command.  REMCTL_PYTHON_VERSIONS, if set, is a space-separated list of
+# Python interpretors with which to build the Python extension.  The
+# extension will be built, tested, and installed with each one.  If not set,
+# it will only be built with python (without any version extension).
+#
+# REMCTL_RUBY controls which Ruby interpretor is used to do the build.
+REMCTL_PERL_FLAGS      ?=
+REMCTL_PYTHON_INSTALL  ?=
+REMCTL_PYTHON_VERSIONS ?= python
+REMCTL_RUBY            ?= ruby
 
 # These three lists of files are needed for Perl builds, Python builds, and
 # for the test suite and are not generated or touched by configure.  They're
@@ -22,7 +32,7 @@ RUBY = ruby
 PERL_FILES = perl/Remctl.xs perl/typemap perl/t/pod.t perl/t/stanford-netdb.t
 PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
 	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
-	php/tests/005.phpt
+	php/tests/005.phpt php/tests/006.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 
 ACLOCAL_AMFLAGS = -I m4
@@ -33,18 +43,19 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
 	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
 	docs/api/remctl_output.pod docs/api/remctl_set_ccache.pod	    \
-	docs/api/remctl_set_source_ip.pod docs/design.html docs/extending   \
-	docs/protocol-v3 docs/protocol.txt docs/protocol.html		    \
-	docs/protocol.xml docs/remctl.pod docs/remctld.8.in		    \
-	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
-	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
-	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf    \
-	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java   \
+	docs/api/remctl_set_source_ip.pod docs/api/remctl_set_timeout.pod   \
+	docs/design.html docs/extending docs/protocol-v4 docs/protocol.txt  \
+	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
+	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
+	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
+	java/.classpath java/.project java/Makefile java/README		    \
+	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
+	java/org/eyrie/eagle/remctl/Remctl.java				    \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java portable/winsock.c remctl.spec ruby/README		    \
 	ruby/remctl.c tests/HOWTO tests/TESTS tests/client/remctl-t	    \
-	tests/data/README tests/data/acl-bad-include			    \
+	tests/config/README tests/data/acl-bad-include			    \
 	tests/data/acl-bad-syntax tests/data/acl-nonexistant		    \
 	tests/data/acl-recursive tests/data/acl-simple			    \
 	tests/data/acl-too-long tests/data/acl-valid-3			    \
@@ -52,11 +63,12 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/acls/val.id tests/data/acls/valid			    \
 	tests/data/acls/valid-2 tests/data/acls/val~id			    \
 	tests/data/acls2/valid-4 tests/data/cmd-argv tests/data/cmd-env	    \
-	tests/data/cmd-hello tests/data/cmd-status tests/data/conf-simple   \
-	tests/data/conf-test tests/data/configs/bad-logmask-1		    \
-	tests/data/configs/bad-include-1 tests/data/configs/bad-logmask-2   \
-	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4   \
-	tests/data/configs/bad-option-1 tests/data/gput			    \
+	tests/data/cmd-hello tests/data/cmd-sleep tests/data/cmd-status	    \
+	tests/data/conf-simple tests/data/conf-test			    \
+	tests/data/configs/bad-logmask-1 tests/data/configs/bad-include-1   \
+	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
+	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
+	tests/data/configs/bad-user-1 tests/data/gput			    \
 	tests/docs/pod-spelling-t tests/docs/pod-t tests/tap/kerberos.sh    \
 	tests/tap/libtap.sh tests/tap/remctl.sh tests/server/misc-t	    \
 	tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES)
@@ -74,7 +86,7 @@ endif
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
 	client/client-v2.c client/error.c client/internal.h client/open.c
-client_libremctl_la_LDFLAGS = -version-info 1:2:0 $(VERSION_LDFLAGS) \
+client_libremctl_la_LDFLAGS = -version-info 2:0:1 $(VERSION_LDFLAGS) \
 	$(GSSAPI_LDFLAGS)
 client_libremctl_la_LIBADD = util/libutil.la $(GSSAPI_LIBS)
 include_HEADERS = client/remctl.h
@@ -112,20 +124,21 @@ dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3		    \
 	docs/api/remctl_command.3 docs/api/remctl_error.3		    \
 	docs/api/remctl_new.3 docs/api/remctl_noop.3 docs/api/remctl_open.3 \
 	docs/api/remctl_output.3 docs/api/remctl_set_ccache.3		    \
-	docs/api/remctl_set_source_ip.3 docs/remctl.1
+	docs/api/remctl_set_source_ip.3 docs/api/remctl_set_timeout.3	    \
+	docs/remctl.1
 man_MANS = docs/remctld.8
 
 pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = client/libremctl.pc
 
 client/libremctl.pc: $(srcdir)/client/libremctl.pc.in
-	sed -e 's![@]prefix[@]!$(prefix)!g' \
-	    -e 's![@]exec_prefix[@]!$(exec_prefix)!g' \
-	    -e 's![@]includedir[@]!$(includedir)!g' \
-	    -e 's![@]libdir[@]!$(libdir)!g' \
-	    -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g' \
-	    -e 's![@]GSSAPI_LDFLAGS[@]!$(GSSAPI_LDFLAGS)!g' \
-	    -e 's![@]GSSAPI_LIBS[@]!$(GSSAPI_LIBS)!g' \
+	sed -e 's![@]prefix[@]!$(prefix)!g'			\
+	    -e 's![@]exec_prefix[@]!$(exec_prefix)!g'		\
+	    -e 's![@]includedir[@]!$(includedir)!g'		\
+	    -e 's![@]libdir[@]!$(libdir)!g'			\
+	    -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g'	\
+	    -e 's![@]GSSAPI_LDFLAGS[@]!$(GSSAPI_LDFLAGS)!g'	\
+	    -e 's![@]GSSAPI_LIBS[@]!$(GSSAPI_LIBS)!g'		\
 	    $(srcdir)/client/libremctl.pc.in > $@
 
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
@@ -156,15 +169,15 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
 clean-local:
 	-rm -rf server/.libs tests/.libs tests/client/.libs tests/data/.libs \
 	    tests/portable/.libs tests/server/.libs tests/util/.libs
-	set -e; if [ -f "perl/Makefile" ] ; then \
-	    cd perl && $(MAKE) clean ; \
+	set -e; if [ -f "perl/Makefile" ] ; then			   \
+	    cd perl && $(MAKE) clean ;					   \
 	    cd perl && [ ! -f Makefile.old ] || mv Makefile.old Makefile ; \
 	fi
-	set -e; if [ -f "php/Makefile" ] ; then \
-	    cd php && $(MAKE) clean ; \
+	set -e; if [ -f "php/Makefile" ] ; then	\
+	    cd php && $(MAKE) clean ;		\
 	fi
-	set -e; if [ -f "ruby/Makefile" ] ; then \
-	    cd ruby && $(MAKE) distclean ; \
+	set -e; if [ -f "ruby/Makefile" ] ; then	\
+	    cd ruby && $(MAKE) distclean ;		\
 	fi
 	rm -rf php/tmp-php.ini python/build python/dist python/*.pyc
 
@@ -174,23 +187,23 @@ clean-local:
 # phpize --clean is stupid and requires that config.m4 exist, but it was
 # already deleted by the regular distclean target.  Hack around that.
 distclean-local:
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
-	    rm -rf php ; \
-	    for f in $(PERL_FILES) ; do \
-	        rm -f "$(builddir)/$$f" ; \
-	    done ; \
-	    rmdir perl/t 2>/dev/null || true ; \
-	    for f in $(PYTHON_FILES) ; do \
-		rm -f "$(builddir)/$$f" ; \
-	    done \
-	else \
-	    if [ -n "$(PHPIZE)" ] ; then \
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then		  \
+	    rm -rf php ;						  \
+	    for f in $(PERL_FILES) ; do					  \
+	        rm -f "$(builddir)/$$f" ;				  \
+	    done ;							  \
+	    rmdir perl/t 2>/dev/null || true ;				  \
+	    for f in $(PYTHON_FILES) ; do				  \
+		rm -f "$(builddir)/$$f" ;				  \
+	    done							  \
+	else								  \
+	    if [ -n "$(PHPIZE)" ] ; then				  \
 		cd php && touch config.m4 && $(PHPIZE) --clean && cd .. ; \
-	    fi ; \
-	    rm -f php/config.h.in~ php/config.m4 ; \
+	    fi ;							  \
+	    rm -f php/config.h.in~ php/config.m4 ;			  \
 	fi
-	set -e; if [ -f "ruby/Makefile" ] ; then \
-	    cd ruby && $(MAKE) distclean ; \
+	set -e; if [ -f "ruby/Makefile" ] ; then	\
+	    cd ruby && $(MAKE) distclean ;		\
 	fi
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
@@ -199,20 +212,23 @@ distclean-local:
 #
 #     -Wconversion      http://bugs.debian.org/488884 (htons warnings)
 #
-# Last checked against gcc 4.6.1 (2011-05-04).
-WARNINGS = -g -O -Wall -Wextra -Wendif-labels -Wformat=2 -Winit-self	\
-	-Wswitch-enum -Wdeclaration-after-statement -Wshadow		\
-	-Wpointer-arith -Wbad-function-cast -Wwrite-strings		\
-	-Wjump-misses-init -Wlogical-op -Wstrict-prototypes		\
-	-Wmissing-prototypes -Wredundant-decls -Wnested-externs -Werror
+# Last checked against gcc 4.6.1 (2011-05-04).  -D_FORTIFY_SOURCE=2 enables
+# warn_unused_result attribute markings on glibc functions on Linux, which
+# catches a few more issues.
+WARNINGS = -g -O -D_FORTIFY_SOURCE=2 -Wall -Wextra -Wendif-labels	    \
+	-Wformat=2 -Winit-self -Wswitch-enum -Wdeclaration-after-statement  \
+	-Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align	    \
+	-Wwrite-strings -Wjump-misses-init -Wlogical-op			    \
+	-Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls	    \
+	-Wnested-externs -Werror
 
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code doesn't pass them.
 if GCC
     PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs \
 	-Wno-strict-prototypes -Wno-redundant-decls -Wno-shadow
-    PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings \
-	-Wno-missing-prototypes -Wno-unused-parameter \
+    PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings	\
+	-Wno-missing-prototypes -Wno-unused-parameter		\
 	-Wno-redundant-decls -Wno-sign-compare
     PYTHON_WARNINGS = -Wno-unused-parameter
     RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
@@ -230,30 +246,33 @@ warnings:
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
 	tests/client/large-t tests/client/open-t tests/client/source-ip-t   \
-	tests/data/cmd-background tests/data/cmd-closed			    \
-	tests/data/cmd-stdin tests/data/cmd-streaming			    \
-	tests/portable/asprintf-t tests/portable/daemon-t		    \
-	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	    \
-	tests/portable/getopt-t tests/portable/inet_aton-t		    \
-	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		    \
-	tests/portable/setenv-t tests/portable/snprintf-t		    \
-	tests/portable/strlcat-t tests/portable/strlcpy-t		    \
-	tests/server/accept-t tests/server/acl-t tests/server/bind-t	    \
-	tests/server/config-t tests/server/continue-t tests/server/env-t    \
-	tests/server/errors-t tests/server/invalid-t tests/server/logging-t \
-	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t   \
-	tests/server/version-t tests/util/concat-t tests/util/fdflag-t	    \
-	tests/util/gss-tokens-t tests/util/messages-t tests/util/network-t  \
-	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	    \
-	tests/util/xwrite-t
+	tests/client/timeout-t tests/data/cmd-background		    \
+	tests/data/cmd-closed tests/data/cmd-stdin tests/data/cmd-streaming \
+	tests/data/cmd-user tests/portable/asprintf-t			    \
+	tests/portable/daemon-t tests/portable/getaddrinfo-t		    \
+	tests/portable/getnameinfo-t tests/portable/getopt-t		    \
+	tests/portable/inet_aton-t tests/portable/inet_ntoa-t		    \
+	tests/portable/inet_ntop-t tests/portable/setenv-t		    \
+	tests/portable/snprintf-t tests/portable/strlcat-t		    \
+	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t   \
+	tests/server/bind-t tests/server/config-t tests/server/continue-t   \
+	tests/server/env-t tests/server/errors-t tests/server/invalid-t	    \
+	tests/server/logging-t tests/server/noop-t tests/server/stdin-t	    \
+	tests/server/streaming-t tests/server/user-t tests/server/version-t \
+	tests/util/concat-t tests/util/fdflag-t tests/util/gss-tokens-t	    \
+	tests/util/messages-t tests/util/network-t tests/util/tokens-t	    \
+	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
-tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests
+tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests		\
+	-DPATH_FAKEROOT='"$(PATH_FAKEROOT)"'			\
+	-DPATH_REMCTLD='"$(abs_top_builddir)/server/remctld"'
 tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
-	tests/tap/kerberos.h tests/tap/kinit.c tests/tap/messages.c	\
+	tests/tap/kerberos.c tests/tap/kerberos.h tests/tap/messages.c	\
 	tests/tap/messages.h tests/tap/process.c tests/tap/process.h	\
-	tests/tap/remctl.c tests/tap/remctl.h
+	tests/tap/remctl.c tests/tap/remctl.h tests/tap/string.c	\
+	tests/tap/string.h
 
 # Used for server tests.
 SERVER_FILES = server/commands.c server/config.c server/generic.c \
@@ -261,16 +280,20 @@ SERVER_FILES = server/commands.c server/config.c server/generic.c \
 
 # All of the test programs.
 tests_client_api_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	portable/libportable.la util/libutil.la
+	util/libutil.la portable/libportable.la
 tests_client_ccache_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	portable/libportable.la util/libutil.la
+	util/libutil.la portable/libportable.la
 tests_client_open_t_LDFLAGS = $(GSSAPI_LDFLAGS)
 tests_client_open_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	portable/libportable.la util/libutil.la $(GSSAPI_LIBS)
+	util/libutil.la portable/libportable.la $(GSSAPI_LIBS)
 tests_client_large_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	portable/libportable.la util/libutil.la
+	util/libutil.la portable/libportable.la
 tests_client_source_ip_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	portable/libportable.la util/libutil.la
+	util/libutil.la portable/libportable.la
+tests_client_timeout_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
+tests_data_cmd_background_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la
 tests_data_cmd_stdin_LDADD = util/libutil.la
 tests_portable_asprintf_t_SOURCES = tests/portable/asprintf-t.c \
 	tests/portable/asprintf.c
@@ -344,6 +367,8 @@ tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
+tests_server_user_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
 tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_version_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(PCRE_LIBS)
@@ -371,29 +396,35 @@ tests_util_xwrite_t_SOURCES = tests/util/fakewrite.c tests/util/xwrite.c \
 tests_util_xwrite_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 
+TEST_RPATH = $(abs_top_builddir)/client/.libs
+
 check-local: $(check_PROGRAMS)
 	cd tests && ./runtests $(abs_top_srcdir)/tests/TESTS
-	@set -e; if [ -f perl/Makefile ] ; then \
-	    echo '' ; \
-	    cd perl && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
-		$(MAKE) test ; \
+	@set -e; if [ -f perl/Makefile ] ; then				\
+	    echo '' ;							\
+	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH) $(MAKE) test ;	\
 	fi
-	@set -e; if [ -f php/Makefile ] ; then \
-	    echo '' ; \
+	@set -e; if [ -f php/Makefile ] ; then				    \
+	    echo '' ;							    \
 	    cd php && NO_INTERACTION=1 ./test-wrapper "$(abs_top_builddir)" \
-		"$(abs_top_srcdir)" ; \
+		"$(abs_top_srcdir)" ;					    \
 	fi
-	@set -e; if [ -f python/setup.py ] ; then \
-	    echo '' ; \
-	    echo 'Testing Python extension' ; \
-	    cd python && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
-		PYTHONPATH="`ls -d build/lib.*$(PYTHON_VERSION)`" \
-		python test_remctl.py ; \
+	@set -e; if [ -f python/setup.py ] ; then		\
+	    echo '' ;						\
+	    echo 'Testing Python extension' ;			\
+	    for python in $(REMCTL_PYTHON_VERSIONS) ; do	\
+		v=`echo "$$python" | sed 's/^[^0-9]*//'` ;	\
+		cd python ;					\
+		LD_LIBRARY_PATH=$(TEST_RPATH)			\
+		    PYTHONPATH="`ls -d build/lib.*$$v`"		\
+		    "$$python" test_remctl.py ;			\
+		cd .. ;						\
+	    done ;						\
 	fi
-	@set -e; if [ -f ruby/Makefile ] ; then \
-	    echo '' ; \
-	    cd ruby && LD_LIBRARY_PATH=$(abs_top_builddir)/client/.libs \
-		$(RUBY) -I. test_remctl.rb ; \
+	@set -e; if [ -f ruby/Makefile ] ; then		\
+	    echo '' ;					\
+	    cd ruby && LD_LIBRARY_PATH=$(TEST_RPATH)	\
+		$(REMCTL_RUBY) -I. test_remctl.rb ;	\
 	fi
 
 # Used for hooking in the build of optional language bindings.
@@ -406,12 +437,12 @@ BINDINGS_INSTALL =
 # sure they're up to date since Perl can't handle VPATH builds.
 
 perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs $(srcdir)/perl/typemap
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
-	    for f in $(PERL_FILES) ; do \
-	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
-	    done \
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
+	    for f in $(PERL_FILES) ; do				\
+	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
+	    done						\
 	fi
-	cd perl && perl Makefile.PL
+	cd perl && perl Makefile.PL $(REMCTL_PERL_FLAGS)
 	cd perl && $(MAKE) OPTIMIZE="$(CFLAGS) $(PERL_WARNINGS)"
 
 install-data-local-perl: perl/Remctl.o
@@ -427,11 +458,11 @@ endif
 
 php/modules/remctl.so: php/config.m4 php/php_remctl.h \
 		$(srcdir)/php/php_remctl.c
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
-	    mkdir php/tests 2>/dev/null || true ; \
-	    for f in $(PHP_FILES) ; do \
-	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
-	    done \
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
+	    mkdir php/tests 2>/dev/null || true ;		\
+	    for f in $(PHP_FILES) ; do				\
+	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
+	    done						\
 	fi
 	cd php && $(PHPIZE) --clean && $(PHPIZE)
 	cd php && ./configure CPPFLAGS="$(CPPFLAGS)" \
@@ -454,22 +485,33 @@ endif
 # make sure they're up to date.
 
 stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then \
-	    for f in $(PYTHON_FILES) ; do \
-		cp "$(srcdir)/$$f" "$(builddir)/$$f" ; \
-	    done \
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
+	    for f in $(PYTHON_FILES) ; do			\
+		cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
+	    done						\
 	fi
-	cd python && CFLAGS="$(CFLAGS) $(PYTHON_WARNINGS)" \
-	    python setup.py build
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do	\
+	    cd python && CFLAGS="$(CFLAGS) $(PYTHON_WARNINGS)"	\
+		"$$python" setup.py build && cd .. ;		\
+	done
 	touch stamp-python
 
+
+# If RPM_BUILD_ROOT is set, we're being built by RPM.  Use that as DESTDIR.
 install-data-local-python: stamp-python
-	if [ -n "$(DESTDIR)" ] ; then \
-	    cd python && python setup.py install $(PYTHON_INSTALL) \
-		--root $(DESTDIR) ; \
-	else \
-	    cd python && python setup.py install $(PYTHON_INSTALL) ; \
-	fi
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		\
+	    cd python ;							\
+	    if [ -n "$(DESTDIR)" ] ; then				\
+		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL)	\
+		    --root $(DESTDIR) ;					\
+	    elif [ -n "$(RPM_BUILD_ROOT)" ] ; then			\
+		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL)	\
+		    --root $(RPM_BUILD_ROOT) ;				\
+	    else							\
+		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) ;	\
+	    fi ;							\
+	    cd .. ;							\
+	done
 
 # Build and install the Python bindings if desired.
 if BUILD_PYTHON
@@ -481,7 +523,7 @@ endif
 
 # The Ruby build system actually supports VPATH!
 ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c
-	cd ruby && $(RUBY) extconf.rb
+	cd ruby && $(REMCTL_RUBY) extconf.rb
 	cd ruby && $(MAKE) CFLAGS="$(CFLAGS) $(RUBY_WARNINGS)"
 
 install-data-local-ruby: ruby/remctl.so

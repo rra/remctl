@@ -11,7 +11,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -24,6 +24,7 @@
 #include <portable/uio.h>
 
 #include <errno.h>
+#include <time.h>
 
 #include <client/internal.h>
 #include <client/remctl.h>
@@ -283,6 +284,23 @@ remctl_set_source_ip(struct remctl *r, const char *source)
     if (r->source != NULL)
         free(r->source);
     r->source = copy;
+    return 1;
+}
+
+
+/*
+ * Set the network timeout in seconds, which may be 0 to not use any timeout
+ * (the default).  Returns true on success, false on an invalid timeout, such
+ * as a negative value.
+ */
+int
+remctl_set_timeout(struct remctl *r, time_t timeout)
+{
+    if (timeout < 0) {
+        internal_set_error(r, "invalid timeout %ld", (long) timeout);
+        return 0;
+    }
+    r->timeout = timeout;
     return 1;
 }
 

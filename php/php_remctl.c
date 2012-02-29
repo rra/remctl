@@ -6,7 +6,7 @@
  *
  * Originally written by Andrew Mortensen <admorten@umich.edu>, 2008
  * Copyright 2008 Andrew Mortensen <admorten@umich.edu>
- * Copyright 2008, 2011
+ * Copyright 2008, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #include <client/remctl.h>
 
@@ -33,6 +34,7 @@ static zend_function_entry remctl_functions[] = {
     ZEND_FE(remctl_new,           NULL)
     ZEND_FE(remctl_set_ccache,    NULL)
     ZEND_FE(remctl_set_source_ip, NULL)
+    ZEND_FE(remctl_set_timeout,   NULL)
     ZEND_FE(remctl_open,          NULL)
     ZEND_FE(remctl_close,         NULL)
     ZEND_FE(remctl_command,       NULL)
@@ -265,6 +267,30 @@ ZEND_FUNCTION(remctl_set_source_ip)
 
 
 /*
+ * Set the timeout for subsequent operations.
+ */
+ZEND_FUNCTION(remctl_set_timeout)
+{
+    struct remctl *r;
+    zval *zrem;
+    long timeout;
+    int status;
+
+    status = zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zrem,
+                 &timeout);
+    if (status == FAILURE) {
+        zend_error(E_WARNING, "remctl_set_timeout: invalid parameters\n");
+        RETURN_FALSE;
+    }
+    ZEND_FETCH_RESOURCE(r, struct remctl *, &zrem, -1, PHP_REMCTL_RES_NAME,
+        le_remctl_internal);
+    if (!remctl_set_timeout(r, timeout))
+        RETURN_FALSE;
+    RETURN_TRUE;
+}
+
+
+/*
  * Open a connection to the remote host.  Only the host parameter is required;
  * the rest are optional.  PHP may require something be passed in for
  * principal, but the empty string is taken to mean "use the library default."
@@ -401,11 +427,8 @@ ZEND_FUNCTION(remctl_output)
 
     /* Get the output token. */
     output = remctl_output(r);
-    if (output == NULL) {
-        zend_error(E_WARNING, "remctl_output: error reading from server: %s",
-            remctl_error(r));
+    if (output == NULL)
         RETURN_NULL();
-    }
 
     /*
      * Populate an object with the output results.  return_value is defined

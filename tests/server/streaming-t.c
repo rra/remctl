@@ -2,7 +2,7 @@
  * Test suite for streaming data from the server.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2009, 2010
+ * Copyright 2006, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -11,42 +11,31 @@
 #include <config.h>
 #include <portable/system.h>
 
-#include <signal.h>
-#include <sys/wait.h>
-
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
 
 
 int
 main(void)
 {
-    const char *principal;
-    char *config, *path;
+    struct kerberos_config *config;
     struct remctl *r;
     struct remctl_output *output;
-    pid_t remctld;
     const char *command[] = { "test", "streaming", NULL };
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    if (chdir(getenv("BUILD")) < 0)
-        bail("can't chdir to BUILD");
-    principal = kerberos_setup();
-    if (principal == NULL)
-        skip_all("Kerberos tests not configured");
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", NULL);
+
     plan(32);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
 
     /* First, version 2. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
+    ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
     ok(remctl_command(r, command), "remctl_command");
     output = remctl_output(r);
     ok(output != NULL, "output is not null");
@@ -88,7 +77,7 @@ main(void)
     r = remctl_new();
     r->protocol = 1;
     ok(r != NULL, "remctl_new protocol version 1");
-    ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
+    ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
     ok(remctl_command(r, command), "remctl_command");
     output = remctl_output(r);
     ok(output != NULL, "output is not null");
@@ -107,6 +96,5 @@ main(void)
     is_int(0, output->status, "...and is right status");
     remctl_close(r);
 
-    remctld_stop(remctld);
     return 0;
 }

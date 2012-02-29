@@ -128,7 +128,8 @@ main(void)
     if (child < 0)
         sysbail("cannot fork");
     else if (child == 0) {
-        daemon(0, 0);
+        if (daemon(0, 0) != 0)
+            sysbail("daemon failed");
         if (chdir(start) != 0)
             sysbail("cannot chdir to %s", start);
         ok(0, "output from child that should be hidden");

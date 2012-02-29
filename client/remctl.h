@@ -3,7 +3,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on prior work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2011
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -25,6 +25,7 @@
 #define REMCTL_H 1
 
 #include <sys/types.h>          /* size_t */
+#include <time.h>               /* time_t */
 
 /*
  * Normally we treat this as an opaque struct and clients who want to use the
@@ -143,6 +144,16 @@ int remctl_set_ccache(struct remctl *, const char *);
  * get the error.
  */
 int remctl_set_source_ip(struct remctl *, const char *);
+
+/*
+ * Set the network timeout, which may be 0 to not use any timeout (the
+ * default).  If remctl_set_timeout is called before remctl_open, that timeout
+ * (in seconds) will be used for each network action, both connect and packet
+ * reads and writes.  Returns true on success, false on failure (only possible
+ * with an invalid timeout, such as a negative value).  On failure, use
+ * remctl_error to get the error.
+ */
+int remctl_set_timeout(struct remctl *, time_t);
 
 /*
  * Send a complete remote command.  Returns true on success, false on failure.

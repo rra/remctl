@@ -236,7 +236,10 @@ main(void)
         skip("lookup of addrinfo-test.invalid succeeded");
     else {
         result = test_getaddrinfo("addrinfo-test.invalid", NULL, NULL, &ai);
-        is_int(EAI_NONAME, result, "lookup of invalid address");
+        if (result == EAI_AGAIN || result == EAI_FAIL)
+            skip("lookup of invalid address returns DNS failure");
+        else
+            is_int(EAI_NONAME, result, "lookup of invalid address");
     }
 
     host = gethostbyname("cnn.com");

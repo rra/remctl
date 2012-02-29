@@ -13,6 +13,7 @@
 /m4/lt~obsolete.m4
 /perl/Makefile.PL
 /perl/Makefile.old
+/perl/MYMETA.yml
 /perl/Remctl.bs
 /perl/Remctl.c
 /perl/Remctl.pm
@@ -58,13 +59,15 @@
 /tests/client/large-t
 /tests/client/open-t
 /tests/client/source-ip-t
+/tests/client/timeout-t
+/tests/config/keytab
+/tests/config/principal
 /tests/data/cmd-background
 /tests/data/cmd-closed
 /tests/data/cmd-stdin
 /tests/data/cmd-streaming
-/tests/data/test.cache
-/tests/data/test.keytab
-/tests/data/test.principal
+/tests/data/cmd-user
+/tests/data/conf-simple
 /tests/portable/asprintf-t
 /tests/portable/daemon-t
 /tests/portable/getaddrinfo-t
@@ -91,6 +94,7 @@
 /tests/server/noop-t
 /tests/server/stdin-t
 /tests/server/streaming-t
+/tests/server/user-t
 /tests/server/version-t
 /tests/util/concat-t
 /tests/util/fdflag-t

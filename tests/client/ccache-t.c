@@ -2,7 +2,7 @@
  * Test suite for setting a specific Kerberos credential cache.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2011
+ * Copyright 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -15,31 +15,23 @@
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
-#include <util/xmalloc.h>
 
 
 int
 main(void)
 {
-    const char *principal;
-    char *config, *path;
+    struct kerberos_config *config;
     const char *cache;
-    pid_t remctld;
     struct remctl *r;
     struct remctl_output *output;
     int status;
     const char *command[] = { "test", "test", NULL };
 
-    if (chdir(getenv("SOURCE")) < 0)
-        bail("can't chdir to SOURCE");
-    principal = kerberos_setup();
-    if (principal == NULL)
-        skip_all("Kerberos tests not configured");
+    /* Set up Kerberos and remctld. */
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", (char *) 0);
+
     plan(12);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
 
     /* Get the current ticket cache and then change KRB5CCNAME. */
     cache = getenv("KRB5CCNAME");
@@ -50,7 +42,7 @@ main(void)
     /* Connecting without setting the ticket cache should fail. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(!remctl_open(r, "127.0.0.1", 14373, principal),
+    ok(!remctl_open(r, "127.0.0.1", 14373, config->principal),
        "remctl_open to 127.0.0.1");
 
     /* Set the ticket cache and connect to 127.0.0.1 and run a command. */
@@ -61,7 +53,7 @@ main(void)
         skip_block(8, "credential cache setting not supported");
     } else {
         ok(remctl_set_ccache(r, cache), "remctl_set_ccache");
-        ok(remctl_open(r, "127.0.0.1", 14373, principal),
+        ok(remctl_open(r, "127.0.0.1", 14373, config->principal),
            "remctl_open to 127.0.0.1");
         ok(remctl_command(r, command), "remctl_command");
         output = remctl_output(r);
@@ -86,7 +78,5 @@ main(void)
     }
     remctl_close(r);
 
-    /* Clean up. */
-    remctld_stop(remctld);
     return 0;
 }

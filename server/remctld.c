@@ -7,7 +7,7 @@
  *
  * Written by Anton Ushakov
  * Extensive modifications by Russ Allbery <rra@stanford.edu>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -277,9 +277,6 @@ server_daemon(struct options *options, struct config *config,
     socklen_t sslen;
     char ip[INET6_ADDRSTRLEN];
 
-    /* We're running as a daemon, so don't self-destruct. */
-    alarm(0);
-
     /* Set up a SIGCHLD handler so that we know when to reap children. */
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = child_handler;
@@ -404,12 +401,6 @@ main(int argc, char *argv[])
     OM_uint32 minor;
     struct config *config;
 
-    /*
-     * Since we are normally called from tcpserver or inetd, prevent clients
-     * from holding on to us forever by dying after an hour.
-     */
-    alarm(60 * 60);
-
     /* Ignore SIGPIPE errors from our children. */
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = SIG_IGN;
@@ -480,7 +471,8 @@ main(int argc, char *argv[])
 
     /* Daemonize if told to do so. */
     if (options.standalone && !options.foreground)
-        daemon(0, options.log_stdout);
+        if (daemon(0, options.log_stdout) != 0)
+            sysdie("cannot daemonize");
 
     /*
      * Set up syslog unless stdout/stderr was requested.  Set up debug logging

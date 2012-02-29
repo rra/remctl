@@ -2,7 +2,7 @@
  * Test suite for the server connection negotiation code.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Copyright 2006, 2007, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -20,6 +20,17 @@
 #include <tests/tap/kerberos.h>
 #include <util/messages.h>
 #include <util/tokens.h>
+
+
+/*
+ * The die handler function set by make_connection so that it will exit with
+ * _exit and not exit on errors and not run the cleanup functions.
+ */
+static int
+exit_child(void)
+{
+    _exit(1);
+}
 
 
 /*
@@ -43,6 +54,9 @@ make_connection(int protocol, const char *principal)
         = (GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_CONF_FLAG
            | GSS_C_INTEG_FLAG);
 
+    /* Set up the exit handler so that we don't call exit. */
+    message_fatal_cleanup = exit_child;
+
     /* Connect. */
     saddr.sin_family = AF_INET;
     saddr.sin_port = htons(14373);
@@ -64,7 +78,7 @@ make_connection(int protocol, const char *principal)
     flags = TOKEN_NOOP | TOKEN_CONTEXT_NEXT;
     if (protocol == 0 || protocol > 1)
         flags |= TOKEN_PROTOCOL;
-    if (token_send(fd, flags, &empty_token) != TOKEN_OK)
+    if (token_send(fd, flags, &empty_token, 0) != TOKEN_OK)
         sysdie("failure sending token");
 
     /* Perform the context-establishment loop. */
@@ -83,14 +97,14 @@ make_connection(int protocol, const char *principal)
                 flags |= TOKEN_PROTOCOL;
             if (protocol == 0)
                 protocol = 2;
-            if (token_send(fd, flags, &send_tok) != TOKEN_OK)
+            if (token_send(fd, flags, &send_tok, 0) != TOKEN_OK)
                 sysdie("failure sending token");
         }
         gss_release_buffer(&minor, &send_tok);
         if (major != GSS_S_COMPLETE && major != GSS_S_CONTINUE_NEEDED)
             die("failure initializing context");
         if (major == GSS_S_CONTINUE_NEEDED) {
-            if (token_recv(fd, &flags, &recv_tok, 64 * 1024) != TOKEN_OK)
+            if (token_recv(fd, &flags, &recv_tok, 64 * 1024, 0) != TOKEN_OK)
                 sysdie("failure receiving token");
             token_ptr = &recv_tok;
         }
@@ -104,7 +118,7 @@ make_connection(int protocol, const char *principal)
 int
 main(void)
 {
-    const char *principal;
+    struct kerberos_config *config;
     socket_type s, fd;
     int protocol;
     pid_t child;
@@ -114,9 +128,7 @@ main(void)
     const void *onaddr = &on;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    principal = kerberos_setup();
-    if (principal == NULL)
-        skip_all("Kerberos tests not configured");
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     plan(2 * 3);
 
     /* Set up address to which we're going to bind and start listening.. */
@@ -143,7 +155,7 @@ main(void)
         if (child < 0)
             sysbail("cannot fork");
         else if (child == 0)
-            make_connection(protocol, principal);
+            make_connection(protocol, config->principal);
         alarm(1);
         fd = accept(s, NULL, 0);
         if (fd == INVALID_SOCKET)

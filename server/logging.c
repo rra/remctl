@@ -68,6 +68,9 @@ warn_token(const char *error, int status, OM_uint32 major, OM_uint32 minor)
     case TOKEN_FAIL_GSSAPI:
         warn_gssapi(error, major, minor);
         break;
+    case TOKEN_FAIL_TIMEOUT:
+        warn("error %s: timed out", error);
+        break;
     default:
         warn("error %s: unknown error", error);
         break;

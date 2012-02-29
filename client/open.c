@@ -8,7 +8,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -56,7 +56,7 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
                            gai_strerror(status));
         return INVALID_SOCKET;
     }
-    fd = network_connect(ai, r->source, 0);
+    fd = network_connect(ai, r->source, r->timeout);
     freeaddrinfo(ai);
     if (fd == INVALID_SOCKET) {
         internal_set_error(r, "cannot connect to %s (port %hu): %s", host,
@@ -179,7 +179,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
 
     /* Send the initial negotiation token. */
     status = token_send(fd, TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL,
-                        &empty_token);
+                        &empty_token, r->timeout);
     if (status != TOKEN_OK) {
         internal_token_error(r, "sending initial token", status, 0, 0);
         goto fail;
@@ -216,7 +216,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
             flags = TOKEN_CONTEXT;
             if (r->protocol > 1)
                 flags |= TOKEN_PROTOCOL;
-            status = token_send(fd, flags, &send_tok);
+            status = token_send(fd, flags, &send_tok, r->timeout);
             if (status != TOKEN_OK) {
                 internal_token_error(r, "sending token", status, major, minor);
                 gss_release_buffer(&minor, &send_tok);
@@ -234,7 +234,8 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
 
         /* If we're still expecting more, retrieve it. */
         if (major == GSS_S_CONTINUE_NEEDED) {
-            status = token_recv(fd, &flags, &recv_tok, TOKEN_MAX_LENGTH);
+            status = token_recv(fd, &flags, &recv_tok, TOKEN_MAX_LENGTH,
+                                r->timeout);
             if (status != TOKEN_OK) {
                 internal_token_error(r, "receiving token", status, major,
                                      minor);

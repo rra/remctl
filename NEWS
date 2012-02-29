@@ -1,5 +1,53 @@
                        User-Visible remctl Changes
 
+remctl 3.1 (2012-02-29)
+
+    Add new remctl_set_timeout function to the remctl library API and the
+    Perl, PHP, Python, and Ruby bindings.  Call this function any time
+    after remctl_new to set a network timeout in seconds for all
+    subsequent operations.  The client must then receive a reply from the
+    server in no more than that number of seconds or will abort whatever
+    action is in progress with a timeout error.  The timeout also applies
+    to the initial connection if remctl_set_timeout is called before
+    remctl_open.
+
+    The remctld server now supports an additional configuration option,
+    user, which sets the user as which to run a command.  If this option
+    is set for a command configuration, remctld will run the command as
+    that user (including their primary and supplemental groups).  The user
+    may be specified as either a username or a UID.  Patch from Andrew
+    Mortensen.
+
+    The remctld server now imposes a one-hour timeout between messages
+    from the client rather than a one-hour limit on the entire session,
+    allowing clients to continue to send commands for as long as they stay
+    connected and not idle.
+
+    The PHP bindings no longer output a PHP warning if remctl_output
+    fails.  This was inconsistent with the other API calls (remctl_open
+    and remctl_command can also fail but didn't result in warnings), may
+    be expected and handled by the caller, and made testing difficult.
+
+    The internal _remctl.remctl_output function in the Python bindings now
+    returns an empty tuple on error instead of a bool.  This change will
+    not affect callers that only use the recommended public remctl
+    interface.
+
+    Update to rra-c-util 4.2:
+
+    * Fix error reporting for non-blocking connect.
+    * Fix network test when short listen queues don't cause timeout.
+    * Handle DNS failure in the getaddrinfo test suite.
+    * Ensure config.h is included for portable/stdbool.h.
+    * Fix compiler warnings when built with -D_FORTIFY_SOURCE=2.
+    * Add test wrappers around asprintf and vasprintf.
+
+    Update to C TAP Harness 1.10:
+
+    * Add test_tmpdir and test_tmpdir_free to TAP library.
+    * Add bstrndup function to the C TAP library.
+    * runtests now frees all allocated resources on exit.
+
 remctl 3.0 (2011-10-31)
 
     New protocol version 3, which introduces a new NOOP message.  When the

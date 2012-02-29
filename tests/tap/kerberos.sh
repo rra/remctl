@@ -4,7 +4,7 @@
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2009, 2010, 2011
+# Copyright 2009, 2010, 2011, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -25,18 +25,21 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+# We use test_tmpdir.
+. "${SOURCE}/tap/libtap.sh"
+
 # Set up Kerberos, including the ticket cache environment variable.  Bail out
 # if not successful, return 0 if successful, and return 1 if Kerberos is not
 # configured.  Sets the global principal variable to the principal to use.
 kerberos_setup () {
     local keytab
-    keytab=`test_file_path data/test.keytab`
-    principal=`test_file_path data/test.principal`
+    keytab=`test_file_path config/keytab`
+    principal=`test_file_path config/principal`
     principal=`cat "$principal" 2>/dev/null`
     if [ -z "$keytab" ] || [ -z "$principal" ] ; then
         return 1
     fi
-    KRB5CCNAME="$BUILD/data/test.cache"; export KRB5CCNAME
+    KRB5CCNAME="`test_tmpdir`/krb5cc_test"; export KRB5CCNAME
     kinit --no-afslog -k -t "$keytab" "$principal" >/dev/null </dev/null
     status=$?
     if [ $status != 0 ] ; then
@@ -59,7 +62,7 @@ kerberos_setup () {
 
 # Clean up at the end of a test.  Currently only removes the ticket cache.
 kerberos_cleanup () {
-    rm -f "$BUILD/data/test.cache"
+    rm -f "`test_tmpdir`/krb5cc_test"
 }
 
 # List the contents of a keytab with enctypes and keys.  This adjusts for the
@@ -68,11 +71,13 @@ kerberos_cleanup () {
 # may just hang.  Takes the keytab to list and the file into which to save the
 # output, and strips off the header containing the file name.
 ktutil_list () {
-    if klist -keK "$1" > ktutil-tmp 2>/dev/null ; then
+    local tmp
+    tmp=`test_tmpdir`
+    if klist -keK "$1" > "$tmp"/ktutil-tmp 2>/dev/null ; then
         :
     else
-        ktutil -k "$1" list --keys > ktutil-tmp < /dev/null 2>/dev/null
+        ktutil -k "$1" list --keys > "$tmp"/ktutil-tmp </dev/null 2>/dev/null
     fi
-    sed -e '/Keytab name:/d' -e "/^[^ ]*:/d" ktutil-tmp > "$2"
-    rm -f ktutil-tmp
+    sed -e '/Keytab name:/d' -e "/^[^ ]*:/d" "$tmp"/ktutil-tmp > "$2"
+    rm -f "$tmp"/ktutil-tmp
 }

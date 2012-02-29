@@ -21,7 +21,7 @@
  * members of the struct.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2008, 2011
+ * Copyright 2007, 2008, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -32,6 +32,7 @@
 #include <XSUB.h>
 
 #include <errno.h>
+#include <time.h>
 
 #include <remctl.h>
 
@@ -123,6 +124,16 @@ remctl_set_source_ip(self, source)
     const char *source
   PPCODE:
     if (remctl_set_source_ip(self, source))
+        XSRETURN_YES;
+    else
+        XSRETURN_UNDEF;
+
+void
+remctl_set_timeout(self, timeout)
+    Net::Remctl self
+    time_t timeout
+  PPCODE:
+    if (remctl_set_timeout(self, timeout))
         XSRETURN_YES;
     else
         XSRETURN_UNDEF;

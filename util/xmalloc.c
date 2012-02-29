@@ -165,19 +165,30 @@ x_strdup(const char *s, const char *file, int line)
 }
 
 
+/*
+ * Avoid using the system strndup function since it may not exist (on Mac OS
+ * X, for example), and there's no need to introduce another portability
+ * requirement.
+ */
 char *
 x_strndup(const char *s, size_t size, const char *file, int line)
 {
-    char *p;
+    const char *p;
+    size_t length;
+    char *copy;
 
-    p = malloc(size + 1);
-    while (p == NULL) {
-        (*xmalloc_error_handler)("strndup", size + 1, file, line);
-        p = malloc(size + 1);
+    /* Don't assume that the source string is nul-terminated. */
+    for (p = s; (size_t) (p - s) < size && *p != '\0'; p++)
+        ;
+    length = p - s;
+    copy = malloc(length + 1);
+    while (copy == NULL) {
+        (*xmalloc_error_handler)("strndup", length + 1, file, line);
+        copy = malloc(length + 1);
     }
-    memcpy(p, s, size);
-    p[size] = '\0';
-    return p;
+    memcpy(copy, s, length);
+    copy[length] = '\0';
+    return copy;
 }
 
 
