@@ -53,7 +53,7 @@ override_dh_installchangelogs:
 	dh_installchangelogs NEWS
 
 override_dh_makeshlibs:
-	dh_makeshlibs -V 'libremctl1 (>= 3.0)'
+	dh_makeshlibs -V 'libremctl1 (>= 3.1)'
 
 override_dh_gencontrol:
 	dh_gencontrol -- -V"php:Depends=phpapi-`php-config5 --phpapi`"
