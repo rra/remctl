@@ -5,7 +5,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -59,7 +59,8 @@ server_v2_send_output(struct client *client, int stream)
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
-                 TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
+                             TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
+                             &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending output token", status, major, minor);
         free(token.value);
@@ -93,7 +94,8 @@ server_v2_send_status(struct client *client, int exit_status)
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
-                 TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
+                             TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
+                             &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending status token", status, major, minor);
         client->fatal = true;
@@ -135,7 +137,8 @@ server_v2_send_error(struct client *client, enum error_codes code,
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
-                 TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
+                             TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
+                             &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending error token", status, major, minor);
         free(token.value);
@@ -169,7 +172,8 @@ server_v2_send_version(struct client *client)
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
-                 TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
+                             TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
+                             &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending version token", status, major, minor);
         client->fatal = true;
@@ -200,7 +204,8 @@ server_v3_send_noop(struct client *client)
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
-                 TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
+                             TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
+                             &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending no-op token", status, major, minor);
         client->fatal = true;
@@ -223,7 +228,7 @@ server_v2_read_token(struct client *client, gss_buffer_t token)
     int status, flags;
     
     status = token_recv_priv(client->fd, client->context, &flags, token,
-                             TOKEN_MAX_LENGTH, &major, &minor);
+                             TOKEN_MAX_LENGTH, TIMEOUT, &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("receiving token", status, major, minor);
         if (status != TOKEN_FAIL_EOF)

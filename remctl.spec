@@ -3,11 +3,23 @@
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
 %{!?buildperl:%define buildperl 1}
 
+# Use rpmbuild option "--define 'buildpython 0'" to not build the Python module.
+%{!?buildpython:%define buildpython 1}
+%if %{buildpython}
+%define py_version %( python -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
+%define py_libdest %( python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'LIBDEST' ])")
+%define py_binlibdest %( python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'BINLIBDEST' ])")
+%endif
+
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 2.16
+Version: 3.1
 Release: 1.EL%{rel}
+%if %( rpmbuild --version | cut -d ' ' -f 3 | cut -d . -f 1 ) >= 4
+License: MIT
+%else
 Copyright: MIT
+%endif
 URL: http://www.eyrie.org/~eagle/software/remctl/
 Source: http://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
@@ -15,6 +27,9 @@ Vendor: Stanford University
 Packager: Russ Allbery <rra@stanford.edu>
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: krb5-devel
+%if %{buildpython}
+BuildRequires: python
+%endif
 Distribution: EL
 
 %ifarch x86_64
@@ -59,6 +74,22 @@ that command.
 
 This package contains the client program (remctl) and the client libraries.
 
+%if %{buildpython}
+%package python
+Summary: Python library for Kerberos-authenticated command execution
+Group: Applications/Internet
+
+%description python
+remctl is a client/server protocol for executing specific commands on a
+remote system with Kerberos authentication.  The allowable commands must
+be listed in a server configuration file, and the executable run on the
+server may be mapped to any command name.  Each command is also associated
+with an ACL containing a list of Kerberos principals authorized to run
+that command.
+
+This package contains the Python remctl client library.
+%endif
+
 %prep
 %setup -n remctl-%{version}
 
@@ -66,6 +97,9 @@ This package contains the client program (remctl) and the client libraries.
 options="--prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc/remctl"
 %if %{buildperl}
 options="$options --enable-perl"
+%endif
+%if %{buildpython}
+options="$options --enable-python"
 %endif
 PATH="/sbin:/bin:/usr/sbin:$PATH" \
 %configure $options
@@ -80,13 +114,14 @@ mkdir -p %{buildroot}/etc/remctl/acl
 mkdir -p %{buildroot}/etc/remctl/conf.d
 install -c -m 0644 examples/remctl.conf %{buildroot}/etc/remctl/remctl.conf
 %ifarch x86_64
-if [ -d %{buildroot}/usr/lib/ ]; then
-    mv %{buildroot}/usr/lib/ %{buildroot}/%{ldir}
+if [ -d %{buildroot}/usr/lib ]; then
+    mv %{buildroot}/usr/lib %{buildroot}/%{ldir}
 fi
 %endif
 %if %{buildperl}
 find %{buildroot} -name perllocal.pod -exec rm {} \;
 %endif
+
 
 %files client
 %defattr(-, root, root, 0755)
@@ -96,7 +131,9 @@ find %{buildroot} -name perllocal.pod -exec rm {} \;
 /usr/include/remctl.h
 %{ldir}/libremctl.a
 %{ldir}/libremctl.la
-%{ldir}/libremctl.so.1.0.2
+%{ldir}/libremctl.so
+%{ldir}/libremctl.so.*
+%{ldir}/pkgconfig/libremctl.pc
 %{_mandir}/*/remctl.*
 %{_mandir}/*/remctl_*
 %if %{buildperl}
@@ -118,6 +155,15 @@ find %{buildroot} -name perllocal.pod -exec rm {} \;
 %dir /etc/remctl/acl/
 %defattr(0750, root, root)
 %dir /etc/remctl/conf.d/
+
+%if %{buildpython}
+%files python
+%defattr(-, root, root, 0755)
+%{py_binlibdest}/site-packages/_remctl.so
+%{py_libdest}/site-packages/pyremctl-%{version}-py%{py_version}.egg-info
+%{py_libdest}/site-packages/remctl.py
+%{py_libdest}/site-packages/remctl.pyc
+%endif
 
 %post client
 /sbin/ldconfig
@@ -158,6 +204,13 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Thu Feb 23 2012 Russ Allbery <rra@stanford.edu> 3.1-1
+- Update for 3.1.
+
+* Wed Feb 15 2012 Thomas L. Kula <tlk2126@columbia.edu> 3.0-1
+- Update for 3.0
+- Add support for Python bindings, building as a sub-package
+
 * Sun May 2 2010 Russ Allbery <rra@stanford.edu> 2.16-1
 - Update for 2.16.
 - Ruby bindings also not yet supported.

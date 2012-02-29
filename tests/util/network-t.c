@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Copyright 2005 Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010, 2011
+ * Copyright 2009, 2010, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -83,7 +83,7 @@ listener(socket_type fd)
 
     client = accept(fd, NULL, NULL);
     listener_handler(client);
-    close(fd);
+    socket_close(fd);
 }
 
 
@@ -114,7 +114,7 @@ listener_any(socket_type fds[], unsigned int count)
            "...and client address is 127.0.0.1");
     free(saddr);
     for (i = 0; i < count; i++)
-        close(fds[i]);
+        socket_close(fds[i]);
 }
 
 
@@ -170,7 +170,7 @@ test_ipv4(const char *source)
         if (child < 0)
             sysbail("cannot fork");
         else if (child == 0) {
-            close(fd);
+            socket_close(fd);
             client("127.0.0.1", source, true);
         } else {
             listener(fd);
@@ -212,7 +212,7 @@ test_ipv6(const char *source)
         if (child < 0)
             sysbail("cannot fork");
         else if (child == 0) {
-            close(fd);
+            socket_close(fd);
 #ifdef IPV6_V6ONLY
             client("127.0.0.1", NULL, false);
 #endif
@@ -392,7 +392,7 @@ test_timeout_ipv4(void)
     if (listen(fd, 1) < 0) {
         sysdiag("cannot listen to socket");
         ok_block(3, 0, "IPv4 network client with timeout");
-        close(fd);
+        socket_close(fd);
         return;
     }
     child = fork();
@@ -412,14 +412,14 @@ test_timeout_ipv4(void)
         socket_type block[20];
         int i, err;
 
-        close(fd);
+        socket_close(fd);
         c = network_connect_host("127.0.0.1", 11119, NULL, 1);
         ok(c != INVALID_SOCKET, "Timeout: first connection worked");
 
         /*
          * For some reason, despite a listening queue of only 1, it can take
-         * up to seven connections on Linux before connections start actually
-         * timing out.
+         * up to fifteen connections on Linux before connections start
+         * actually timing out.
          */
         alarm(10);
         for (i = 0; i < (int) ARRAY_SIZE(block); i++) {
@@ -433,21 +433,181 @@ test_timeout_ipv4(void)
         else {
             diag("Finally timed out on socket %d", i);
             ok(block[i] == INVALID_SOCKET, "Later connection timed out");
-            if (err == ECONNRESET)
+            if (err == ECONNRESET || err == ECONNREFUSED)
                 skip("connections rejected without timeout");
             else
-                skip("error code would have been %d (ETIMEDOUT: %d)", err,
-                     ETIMEDOUT);
+                is_int(ETIMEDOUT, err, "...with correct error code");
         }
         alarm(0);
         kill(child, SIGTERM);
         waitpid(child, NULL, 0);
-        close(c);
+        socket_close(c);
         for (i--; i >= 0; i--)
             if (block[i] != INVALID_SOCKET)
-                close(block[i]);
+                socket_close(block[i]);
     }
-    close(fd);
+    socket_close(fd);
+}
+
+
+/*
+ * Used to test network_read.  Sends a string, then sleeps for 10 seconds
+ * before sending another string so that timeouts can be tested.  Meant to be
+ * run in a child process.
+ */
+static void
+delay_writer(socket_type fd)
+{
+    if (socket_write(fd, "one\n", 4) != 4)
+        _exit(1);
+    if (socket_write(fd, "two\n", 4) != 4)
+        _exit(1);
+    sleep(10);
+    if (socket_write(fd, "three\n", 6) != 6)
+        _exit(1);
+    _exit(0);
+}
+
+
+/*
+ * Used to test network_write.  Reads 64KB from the network, then sleeps
+ * before reading another 64KB.  Meant to be run in a child process.
+ */
+static void
+delay_reader(socket_type fd)
+{
+    char *buffer;
+
+    buffer = malloc(64 * 1024);
+    if (buffer == NULL)
+        _exit(1);
+    if (!network_read(fd, buffer, 64 * 1024, 0))
+        _exit(1);
+    sleep(10);
+    if (!network_read(fd, buffer, 64 * 1024, 0))
+        _exit(1);
+    _exit(0);
+}
+
+
+/*
+ * Test the network read function with a timeout.  We fork off a child process
+ * that runs delay_writer, and then we read from the network twice, once with
+ * a timeout and once without, and then try a third time when we should time
+ * out.
+ */
+static void
+test_network_read(void)
+{
+    socket_type fd, c;
+    pid_t child;
+    struct sockaddr_in sin;
+    socklen_t slen;
+    char buffer[4];
+
+    fd = network_bind_ipv4("127.0.0.1", 11119);
+    if (fd == INVALID_SOCKET)
+        sysbail("cannot create or bind socket");
+    if (listen(fd, 1) < 0) {
+        sysdiag("cannot listen to socket");
+        ok_block(7, 0, "network_read");
+        socket_close(fd);
+        return;
+    }
+    child = fork();
+    if (child < 0)
+        sysbail("cannot fork");
+    else if (child == 0) {
+        socket_close(fd);
+        c = network_connect_host("127.0.0.1", 11119, NULL, 0);
+        if (c == INVALID_SOCKET)
+            _exit(1);
+        delay_writer(c);
+    } else {
+        alarm(10);
+        c = accept(fd, &sin, &slen);
+        if (c == INVALID_SOCKET) {
+            sysdiag("cannot accept on socket");
+            ok_block(7, 0, "network_read");
+            socket_close(fd);
+            return;
+        }
+        ok(network_read(c, buffer, sizeof(buffer), 0), "network_read");
+        ok(memcmp("one\n", buffer, sizeof(buffer)) == 0, "...with good data");
+        ok(network_read(c, buffer, sizeof(buffer), 1),
+           "network_read with timeout");
+        ok(memcmp("two\n", buffer, sizeof(buffer)) == 0, "...with good data");
+        ok(!network_read(c, buffer, sizeof(buffer), 1),
+           "network_read aborted with timeout");
+        is_int(ETIMEDOUT, socket_errno, "...with correct error");
+        ok(memcmp("two\n", buffer, sizeof(buffer)) == 0,
+           "...and data unchanged");
+        socket_close(c);
+        kill(child, SIGTERM);
+        waitpid(child, NULL, 0);
+        alarm(0);
+    }
+    socket_close(fd);
+}
+
+
+/*
+ * Test the network write function with a timeout.  We fork off a child
+ * process that runs delay_reader, and then we write 64KB to the network in
+ * two chunks, once with a timeout and once without, and then try a third time
+ * when we should time out.
+ */
+static void
+test_network_write(void)
+{
+    socket_type fd, c;
+    pid_t child;
+    struct sockaddr_in sin;
+    socklen_t slen;
+    char *buffer;
+
+    buffer = bmalloc(512 * 1024);
+    memset(buffer, 'a', 512 * 1024);
+    fd = network_bind_ipv4("127.0.0.1", 11119);
+    if (fd == INVALID_SOCKET)
+        sysbail("cannot create or bind socket");
+    if (listen(fd, 1) < 0) {
+        sysdiag("cannot listen to socket");
+        ok_block(4, 0, "network_write");
+        socket_close(fd);
+        return;
+    }
+    child = fork();
+    if (child < 0)
+        sysbail("cannot fork");
+    else if (child == 0) {
+        socket_close(fd);
+        c = network_connect_host("127.0.0.1", 11119, NULL, 0);
+        if (c == INVALID_SOCKET)
+            _exit(1);
+        delay_reader(c);
+    } else {
+        alarm(10);
+        c = accept(fd, &sin, &slen);
+        if (c == INVALID_SOCKET) {
+            sysdiag("cannot accept on socket");
+            ok_block(4, 0, "network_write");
+            socket_close(fd);
+            return;
+        }
+        socket_set_errno(0);
+        ok(network_write(c, buffer, 32 * 1024, 0), "network_write");
+        ok(network_write(c, buffer, 32 * 1024, 1),
+           "network_write with timeout");
+        ok(!network_write(c, buffer, 512 * 1024, 1),
+           "network_write aborted with timeout");
+        is_int(ETIMEDOUT, socket_errno, "...with correct error");
+        socket_close(c);
+        kill(child, SIGTERM);
+        waitpid(child, NULL, 0);
+        alarm(0);
+    }
+    socket_close(fd);
 }
 
 
@@ -480,7 +640,7 @@ main(void)
     static const char *ipv6_addr = "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210";
 #endif
 
-    plan(100);
+    plan(111);
 
     /*
      * If IPv6 support appears to be available but doesn't work, we have to
@@ -510,6 +670,10 @@ main(void)
 
     /* Test network_connect with a timeout. */
     test_timeout_ipv4();
+
+    /* Test network_read and network_write. */
+    test_network_read();
+    test_network_write();
 
     /*
      * Now, test network_sockaddr_sprint, network_sockaddr_equal, and

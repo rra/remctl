@@ -6,7 +6,7 @@
  *
  * Original implementation by Anthony M. Martinez <twopir@nmt.edu>
  * Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
- * Copyright 2010, 2011
+ * Copyright 2010, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -61,7 +61,8 @@ void Init_remctl(void);
 static VALUE cRemctl, cRemctlResult, eRemctlError, eRemctlNotOpen;
 
 /* Since we can't have @ in our names here... */
-static ID AAdefault_port, AAdefault_principal, AAccache, AAsource_ip;
+static ID AAdefault_port, AAdefault_principal;
+static ID AAccache, AAsource_ip, AAtimeout;
 static ID Ahost, Aport, Aprincipal;
 
 /* Map the remctl_output type constants to strings. */
@@ -295,6 +296,36 @@ rb_remctl_source_ip_set(VALUE self UNUSED, VALUE new)
 }
 
 
+/* call-seq:
+ * Remctl.timeout  -> 0
+ *
+ * Return the default timeout used for a Remctl complex connection.  A value
+ * of 0 says to use the default of no timeout.
+ */
+static VALUE
+rb_remctl_timeout_get(VALUE self UNUSED)
+{
+    return rb_cvar_get(cRemctl, AAtimeout);
+}
+
+
+/* call-seq:
+ * Remctl.timeout = 10  -> 10
+ *
+ * Change the timeout used for a new instance of a complex connection.  A
+ * value of 0 indicates the default of no timeout.
+ */
+static VALUE
+rb_remctl_timeout_set(VALUE self UNUSED, VALUE new)
+{
+    if (NIL_P(new))
+        rb_cvar_set(cRemctl, AAtimeout, UINT2NUM(0));
+    else
+        rb_cvar_set(cRemctl, AAtimeout, new);
+    return rb_cvar_get(cRemctl, AAtimeout);
+}
+
+
 /*
  * Destructor for a Remctl object.  Closes the connection and frees the
  * underlying memory.
@@ -348,7 +379,7 @@ static VALUE
 rb_remctl_reopen(VALUE self)
 {
     struct remctl *r;
-    VALUE vhost, vport, vprinc, vdefccache, vdefsource;
+    VALUE vhost, vport, vprinc, vdefccache, vdefsource, vdeftimeout;
     char *host, *princ;
     unsigned int port;
 
@@ -371,6 +402,12 @@ rb_remctl_reopen(VALUE self)
         if (!remctl_set_source_ip(r, StringValuePtr(vdefsource)))
             rb_raise(eRemctlError, "%s", remctl_error(r));
 
+    /* Set the timeout if needed. */
+    vdeftimeout = rb_cvar_get(cRemctl, AAtimeout);
+    if (!NIL_P(vdeftimeout))
+        if (!remctl_set_timeout(r, FIX2UINT(vdeftimeout)))
+            rb_raise(eRemctlError, "%s", remctl_error(r));
+
     /* Retrieve the stored host, port, and principal values. */
     vhost  = rb_ivar_get(self, Ahost);
     vport  = rb_ivar_get(self, Aport);
@@ -384,6 +421,28 @@ rb_remctl_reopen(VALUE self)
         rb_raise(eRemctlError, "%s", remctl_error(r));
     DATA_PTR(self) = r;
     return self;
+}
+
+
+/* call-seq:
+ * r.set_timeout(10)  -> nil
+ *
+ * Set the timeout on an existing Remctl connection.  This affects any further
+ * commands on that connection.  The timeout may be 0 to disable timeouts.
+ * Raises Remctl::Error if changing the timeout fails.
+ */
+static VALUE
+rb_remctl_set_timeout(VALUE self, VALUE vtimeout)
+{
+    struct remctl *r;
+    long timeout;
+
+    GET_REMCTL_OR_RAISE(self, r);
+    Check_Type(vtimeout, T_FIXNUM);
+    timeout = NIL_P(vtimeout) ? 0 : FIX2LONG(vtimeout);
+    if (!remctl_set_timeout(r, timeout))
+        rb_raise(eRemctlError, "%s", remctl_error(r));
+    return Qnil;
 }
 
 
@@ -537,6 +596,7 @@ Init_remctl(void)
     AAdefault_principal = rb_intern("@@default_principal");
     AAccache            = rb_intern("@@ccache");
     AAsource_ip         = rb_intern("@@source_ip");
+    AAtimeout           = rb_intern("@@timeout");
     Ahost               = rb_intern("@host");
     Aport               = rb_intern("@port");
     Aprincipal          = rb_intern("@principal");
@@ -546,6 +606,7 @@ Init_remctl(void)
     rb_cvar_set(cRemctl, AAdefault_principal, Qnil);
     rb_cvar_set(cRemctl, AAccache, Qnil);
     rb_cvar_set(cRemctl, AAsource_ip, Qnil);
+    rb_cvar_set(cRemctl, AAtimeout, UINT2NUM(0));
 
     /* Getter and setter methods for class variables. */
     rb_define_singleton_method(cRemctl, "default_port",
@@ -564,6 +625,10 @@ Init_remctl(void)
                                rb_remctl_source_ip_get, 0);
     rb_define_singleton_method(cRemctl, "source_ip=",
                                rb_remctl_source_ip_set, 1);
+    rb_define_singleton_method(cRemctl, "timeout",
+                               rb_remctl_timeout_get, 0);
+    rb_define_singleton_method(cRemctl, "timeout=",
+                               rb_remctl_timeout_set, 1);
 
     /* Create the Remctl class. */
     rb_define_alloc_func(cRemctl, rb_remctl_alloc);
@@ -573,6 +638,7 @@ Init_remctl(void)
     rb_define_method(cRemctl, "command", rb_remctl_command, -1);
     rb_define_method(cRemctl, "output", rb_remctl_output, 0);
     rb_define_method(cRemctl, "noop", rb_remctl_noop, 0);
+    rb_define_method(cRemctl, "set_timeout", rb_remctl_set_timeout, 1);
 
     /* Document-class: Remctl::Result
      *

@@ -10,3 +10,4 @@ remctl_output
 remctl_result_free
 remctl_set_ccache
 remctl_set_source_ip
+remctl_set_timeout

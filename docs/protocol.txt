@@ -3,7 +3,7 @@
 
 remctl Protocol                                               R. Allbery
                                                      Stanford University
-                                                        October 31, 2011
+                                                            October 2011
 
 
               remctl: Remote Authenticated Command Service

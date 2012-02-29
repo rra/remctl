@@ -2,7 +2,7 @@
  * Test suite for the server passing data to programs on standard input.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010
+ * Copyright 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -16,9 +16,6 @@
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
-#include <util/messages.h>
-#include <util/xmalloc.h>
 
 
 /*
@@ -34,7 +31,7 @@ test_stdin(const char *principal, const char *test, const void *data,
     struct iovec *command;
     struct remctl_output *output;
 
-    command = xcalloc(4, sizeof(struct iovec));
+    command = bcalloc(4, sizeof(struct iovec));
     command[0].iov_base = (char *) "test";
     command[0].iov_len = strlen("test");
     command[1].iov_base = (char *) "stdin";
@@ -56,7 +53,7 @@ test_stdin(const char *principal, const char *test, const void *data,
     if (output->data == NULL)
         ok(0, "...and is right data");
     else {
-        notice("# data: %.*s", (int) output->length, output->data);
+        diag("data: %.*s", (int) output->length, output->data);
         ok(memcmp("Okay", output->data, 4) == 0, "...and is right data");
     }
     is_int(1, output->stream, "...and is right stream");
@@ -71,34 +68,27 @@ test_stdin(const char *principal, const char *test, const void *data,
 int
 main(void)
 {
-    const char *principal;
-    char *config, *path, *buffer;
-    pid_t remctld;
+    struct kerberos_config *config;
+    char *buffer;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    if (chdir(getenv("BUILD")) < 0)
-        bail("can't chdir to BUILD");
-    principal = kerberos_setup();
-    if (principal == NULL)
-        skip_all("Kerberos tests not configured");
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", NULL);
+
     plan(9 * 9);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
 
     /* Run the tests. */
-    test_stdin(principal, "read", "Okay", 4);
-    test_stdin(principal, "write", "Okay", 4);
-    test_stdin(principal, "exit", "Okay", 4);
-    buffer = xmalloc(1024 * 1024);
+    test_stdin(config->principal, "read", "Okay", 4);
+    test_stdin(config->principal, "write", "Okay", 4);
+    test_stdin(config->principal, "exit", "Okay", 4);
+    buffer = bmalloc(1024 * 1024);
     memset(buffer, 'A', 1024 * 1024);
-    test_stdin(principal, "exit", buffer, 1024 * 1024);
-    test_stdin(principal, "close", "Okay", 4);
-    test_stdin(principal, "close", buffer, 1024 * 1024);
-    test_stdin(principal, "nuls", "T\0e\0s\0t\0", 8);
-    test_stdin(principal, "large", buffer, 1024 * 1024);
-    test_stdin(principal, "delay", buffer, 1024 * 1024);
+    test_stdin(config->principal, "exit", buffer, 1024 * 1024);
+    test_stdin(config->principal, "close", "Okay", 4);
+    test_stdin(config->principal, "close", buffer, 1024 * 1024);
+    test_stdin(config->principal, "nuls", "T\0e\0s\0t\0", 8);
+    test_stdin(config->principal, "large", buffer, 1024 * 1024);
+    test_stdin(config->principal, "delay", buffer, 1024 * 1024);
 
-    remctld_stop(remctld);
     return 0;
 }

@@ -2,7 +2,7 @@
  * Test suite for the high-level remctl library API.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010, 2011
+ * Copyright 2006, 2007, 2009, 2010, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -11,22 +11,14 @@
 #include <config.h>
 #include <portable/system.h>
 
-#include <signal.h>
-#ifdef HAVE_SYS_SELECT_H
-# include <sys/select.h>
-#endif
-#include <sys/time.h>
 #include <sys/uio.h>
-#include <sys/wait.h>
 
 #include <client/remctl.h>
 #include <client/internal.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
 #include <util/protocol.h>
-#include <util/xmalloc.h>
 
 
 /*
@@ -84,7 +76,7 @@ do_tests(const char *principal, int protocol)
     ok(output != NULL, "second output token is not null");
     is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
     is_int(0, output->status, "...and is right status");
-    command = xcalloc(2, sizeof(struct iovec));
+    command = bcalloc(2, sizeof(struct iovec));
     command[0].iov_base = (char *) "test";
     command[0].iov_len = 4;
     command[1].iov_base = (char *) "test";
@@ -163,26 +155,20 @@ do_tests(const char *principal, int protocol)
 int
 main(void)
 {
-    const char *principal;
-    char *path, *config;
-    pid_t remctld;
+    struct kerberos_config *config;
     struct remctl_result *result;
     const char *test[] = { "test", "test", NULL };
     const char *error[] = { "test", "bad-command", NULL };
 
-    if (chdir(getenv("SOURCE")) < 0)
-        bail("can't chdir to SOURCE");
-    principal = kerberos_setup();
-    if (principal == NULL)
-        skip_all("Kerberos tests not configured");
+    /* Set up Kerberos and remctld. */
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", (char *) 0);
+
     plan(102);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
 
     /* Run the basic protocol tests. */
-    do_tests(principal, 1);
-    do_tests(principal, 2);
+    do_tests(config->principal, 1);
+    do_tests(config->principal, 2);
 
     /*
      * We don't have a way of forcing the simple protocol to use a particular
@@ -190,7 +176,7 @@ main(void)
      * with protocol v1, and this wrapper works with v2, everything should
      * have gotten tested.
      */
-    result = remctl("localhost", 14373, principal, test);
+    result = remctl("localhost", 14373, config->principal, test);
     ok(result != NULL, "basic remctl API works");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
@@ -202,7 +188,7 @@ main(void)
            "...and correct data");
     ok(result->error == NULL, "...and no error");
     remctl_result_free(result);
-    result = remctl("localhost", 14373, principal, error);
+    result = remctl("localhost", 14373, config->principal, error);
     ok(result != NULL, "remctl API with error works");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stdout_len, "...and no stdout");
@@ -214,6 +200,5 @@ main(void)
                   "...and the right error string");
     remctl_result_free(result);
 
-    remctld_stop(remctld);
     return 0;
 }

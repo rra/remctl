@@ -152,8 +152,8 @@ Protocol
     with a version error, protocol commands with too high of a version.
     The client can also ask the server what version it supports.
 
-    Currently, the protocol version is two.  An initial draft of the
-    changes for protocol version three is available in docs/protocol-v3,
+    Currently, the protocol version is three.  An initial draft of the
+    changes for protocol version four is available in docs/protocol-v4,
     but may change prior to implementation.
 
     The remctl protocol is defined by docs/protocol.xml, which is

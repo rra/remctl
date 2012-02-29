@@ -137,6 +137,21 @@ FULL INTERFACE
       remctl_open() calls on the same object.  Returns true on success,
       false on failure.
 
+  remctl_set_timeout(TIMEOUT)
+      Sets the timeout for connections and commands to TIMEOUT, which
+      should be an integer number of seconds.  TIMEOUT may be 0 to clear a
+      timeout that was previously set.  All subsequent operations on this
+      object will be subject to this timeout, including open() if called
+      prior to calling open().  Returns true on success and false on
+      failure.  Failure is only possible if TIMEOUT is malformed.
+
+      The timeout is a timeout on network activity from the server, not on
+      a complete operation.  So, for example, a timeout of ten seconds
+      just requires that the server send some data every ten seconds.  If
+      the server sends only tiny amounts of data at a time, the complete
+      operation could take much longer than ten seconds without triggering
+      the timeout.
+
   remctl_open(CONNECTION, HOSTNAME[, PORT[, PRINCIPAL]])
       Connect to HOSTNAME on port PORT using PRINCIPAL as the remote
       server's principal for authentication.  If PORT is omitted or 0, use

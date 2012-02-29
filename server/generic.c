@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -83,7 +83,8 @@ server_new_client(int fd, gss_cred_id_t creds)
         free(buffer);
 
     /* Accept the initial (worthless) token. */
-    status = token_recv(client->fd, &flags, &recv_tok, TOKEN_MAX_LENGTH);
+    status = token_recv(client->fd, &flags, &recv_tok, TOKEN_MAX_LENGTH,
+                        TIMEOUT);
     if (status != TOKEN_OK) {
         warn_token("receiving initial token", status, major, minor);
         goto fail;
@@ -100,7 +101,8 @@ server_new_client(int fd, gss_cred_id_t creds)
 
     /* Now, do the real work of negotiating the context. */
     do {
-        status = token_recv(client->fd, &flags, &recv_tok, TOKEN_MAX_LENGTH);
+        status = token_recv(client->fd, &flags, &recv_tok, TOKEN_MAX_LENGTH,
+                            TIMEOUT);
         if (status != TOKEN_OK) {
             warn_token("receiving context token", status, major, minor);
             goto fail;
@@ -126,7 +128,7 @@ server_new_client(int fd, gss_cred_id_t creds)
             flags = TOKEN_CONTEXT;
             if (client->protocol > 1)
                 flags |= TOKEN_PROTOCOL;
-            status = token_send(client->fd, flags, &send_tok);
+            status = token_send(client->fd, flags, &send_tok, TIMEOUT);
             if (status != TOKEN_OK) {
                 warn_token("sending context token", status, major, minor);
                 gss_release_buffer(&minor, &send_tok);

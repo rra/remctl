@@ -2,8 +2,9 @@ client/api
 client/ccache
 client/large
 client/open
-client/source-ip
 client/remctl
+client/source-ip
+client/timeout
 docs/pod
 docs/pod-spelling
 portable/asprintf
@@ -30,6 +31,7 @@ server/logging
 server/misc
 server/stdin
 server/streaming
+server/user
 server/version
 util/concat
 util/gss-tokens

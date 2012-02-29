@@ -7,7 +7,7 @@ Protocol:
    re-engineering of the client loop and should wait for better
    configuration since we don't want to do this with every command.  It
    also introduces out-of-order responses and possible deadlocks to the
-   protocol.  docs/protocol-v3 has an initial draft.
+   protocol.  docs/protocol-v4 has an initial draft.
 
  * Support authentication via anonymous PKINIT.  This may already work,
    but the asserted identity should be documented and it's not clear
@@ -35,12 +35,6 @@ Server:
    help, and then run the command with "<arg>" as the arguments for the
    first case and "<arg> subcommand" as the arguments for the second
    case.
-
- * Allow a more expressive configuration syntax that can set more options
-   per command.  Among the things we want to configure (besides the
-   logmask configuration we already have) are changing users before
-   running the command, specifying an argument to pass on standard input
-   (see below), or supporting things like LDAP ACLs.
 
  * Add a way of explicitly specifying the null command or subcommand in
    the remctl configuration.
@@ -85,15 +79,14 @@ Server:
  * Support binding to a specified address or addresses given as
    command-line options.
 
+ * Add option to mask all arguments.
+
 Client:
 
  * Implement file upload in the remctl client.
 
  * Add readline support to the remctl client for multiple commands to the
    same server in the same authenticated session.
-
- * Support setting a timeout and failing the remctl call if the server
-   takes too long to connect or send back data.
 
  * Add an option that prompts the user, with echo disabled, for a piece of
    secure data, prompting twice to ensure both times match, and then sends
@@ -103,20 +96,18 @@ Client:
  * Allow sending the empty command in the command-line client once the
    server supports it.
 
- * Add support for specifying the bind address for client connections once
-   the library supports it.
-
 Client library:
 
  * Add a varient of open that takes a timeout.
-
- * Add support for specifying the bind address for client connections.
 
  * The client should ideally not specify an OID for the authentication
    mechanism and instead permit GSS-API to negotiate an appropriate
    mechanism.  It should then call gss_inquire_context to retrieve the
    mechanism OID and then pass that in to calls to gssapi_error_string
    rather than hard-coding the Kerberos v5 OID.
+
+ * Support setting a timeout and failing the remctl call if the server
+   takes too long to connect or send back data.  (REMCTL-2)
 
 Build system:
 
@@ -140,14 +131,10 @@ Windows port:
 
 Java implementation:
 
+ * Integrate the new Java client implementation.  (REMCTL-1)
+
  * Fix the coding style of the Java implementation to match the coding
    style of the rest of remctl.
-
- * Consider reorganizing the java directory so that it already matches the
-   layout of an Apache Jakarta project rather than having ant tar shuffle
-   everything around.
-
- * Add a JUnit test suite for the Java implementation.
 
  * Integrate the Java build into the rest of the build system so that it
    is enabled using an --enable-java flag similar to the bindings, finds

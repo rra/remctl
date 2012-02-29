@@ -1,6 +1,12 @@
 #!/bin/sh
 #
 # Run this shell script to bootstrap as necessary after a fresh checkout.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2005, 2006, 2008, 2009, 2011, 2012
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
 
 set -e
 
@@ -14,7 +20,7 @@ pod2man --release="$version" --center="remctl" --section=8 docs/remctld.pod \
     > docs/remctld.8.in
 for doc in remctl remctl_close remctl_command remctl_error remctl_new \
            remctl_noop remctl_open remctl_output remctl_set_ccache \
-           remctl_set_source_ip ; do
+           remctl_set_source_ip remctl_set_timeout ; do
     pod2man --release="$version" --center="remctl Library Reference" \
         --section=3 --name=`echo "$doc" | tr a-z A-Z` docs/api/"$doc".pod \
         > docs/api/"$doc".3

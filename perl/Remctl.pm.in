@@ -5,7 +5,7 @@
 # file contains the bootstrap and export code and the documentation.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2007, 2008, 2011
+# Copyright 2007, 2008, 2011, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -195,6 +195,21 @@ an IPv4 or an IPv6 address (if IPv6 is supported).  It must be an IP
 address, not a host name.  This method must be called prior to calling
 open() and will affect all subsequent open() calls on the same object.
 Returns true on success and false on failure.
+
+=item set_timeout(TIMEOUT)
+
+Sets the timeout for connections and commands to TIMEOUT, which should be
+an integer number of seconds.  TIMEOUT may be 0 to clear a timeout that
+was previously set.  All subsequent operations on this Net::Remctl object
+will be subject to this timeout, including open() if called prior to
+calling open().  Returns true on success and false on failure.  Failure is
+only possible if TIMEOUT is malformed.
+
+The timeout is a timeout on network activity from the server, not on a
+complete operation.  So, for example, a timeout of ten seconds just
+requires that the server send some data every ten seconds.  If the server
+sends only tiny amounts of data at a time, the complete operation could
+take much longer than ten seconds without triggering the timeout.
 
 =item open(HOSTNAME[, PORT[, PRINCIPAL]])
 

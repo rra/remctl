@@ -2,7 +2,7 @@
  * Test suite for server command logging.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010
+ * Copyright 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -15,14 +15,13 @@
 #include <server/internal.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/messages.h>
-#include <util/xmalloc.h>
 
 
 int
 main(void)
 {
     struct confline confline = {
-        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL
+        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL
     };
     struct iovec **command;
     int i;
@@ -30,9 +29,9 @@ main(void)
     plan(8);
 
     /* Command without subcommand. */
-    command = xcalloc(5, sizeof(struct iovec *));
-    command[0] = xmalloc(sizeof(struct iovec));
-    command[0]->iov_base = xstrdup("foo");
+    command = bcalloc(5, sizeof(struct iovec *));
+    command[0] = bmalloc(sizeof(struct iovec));
+    command[0]->iov_base = bstrdup("foo");
     command[0]->iov_len = strlen("foo");
     command[1] = NULL;
     errors_capture();
@@ -41,8 +40,8 @@ main(void)
               "command without subcommand logging");
 
     /* Filtering of non-printable characters. */
-    command[1] = xmalloc(sizeof(struct iovec));
-    command[1]->iov_base = xstrdup("f\1o\33o\37o\177");
+    command[1] = bmalloc(sizeof(struct iovec));
+    command[1]->iov_base = bstrdup("f\1o\33o\37o\177");
     command[1]->iov_len = strlen("f\1o\33o\37o\177");
     command[2] = NULL;
     errors_capture();
@@ -52,13 +51,13 @@ main(void)
 
     /* Simple command. */
     for (i = 2; i < 5; i++)
-        command[i] = xmalloc(sizeof(struct iovec));
+        command[i] = bmalloc(sizeof(struct iovec));
     free(command[1]->iov_base);
-    command[1]->iov_base = xstrdup("bar");
+    command[1]->iov_base = bstrdup("bar");
     command[1]->iov_len = strlen("bar");
-    command[2]->iov_base = xstrdup("arg1");
+    command[2]->iov_base = bstrdup("arg1");
     command[2]->iov_len = strlen("arg1");
-    command[3]->iov_base = xstrdup("arg2");
+    command[3]->iov_base = bstrdup("arg2");
     command[3]->iov_len = strlen("arg2");
     command[4] = NULL;
     errors_capture();
@@ -82,7 +81,7 @@ main(void)
 
     /* Logmask of a single argument. */
     confline.stdin_arg = 0;
-    confline.logmask = xmalloc(2 * sizeof(unsigned int));
+    confline.logmask = bmalloc(2 * sizeof(unsigned int));
     confline.logmask[0] = 2;
     confline.logmask[1] = 0;
     errors_capture();
@@ -99,7 +98,7 @@ main(void)
 
     /* Logmask of the subcommand and multiple masks. */
     free(confline.logmask);
-    confline.logmask = xmalloc(4 * sizeof(unsigned int));
+    confline.logmask = bmalloc(4 * sizeof(unsigned int));
     confline.logmask[0] = 4;
     confline.logmask[1] = 1;
     confline.logmask[2] = 3;
