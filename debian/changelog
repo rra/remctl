@@ -1,3 +1,19 @@
+remctl (3.1-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    - New remctl_set_timeout function and corresponding API in all the
+      language bindings to set a timeout on all further network operations
+      on that client connection.
+    - remctld supports a user configuration option to run a program as a
+      specific user (with supplemental groups).
+    - remctld's timeout is now one hour between messages instead of a
+      total limit of one hour for the connection.
+    - PHP's remctl_output no longer warns on failure.
+    - Python's _remctl.remctl_output returns an empty tuple on error.
+    - Fix error reporting for non-blocking connect.
+
+ -- Russ Allbery <rra@debian.org>  Wed, 29 Feb 2012 12:57:17 -0800
+
 remctl (3.0-6) unstable; urgency=low
 
   * Patch the upstream build system to provide more hooks for Perl and
