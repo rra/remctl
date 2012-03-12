@@ -1,0 +1,14 @@
+#!/bin/sh
+case "$1" in
+help)
+    case "$2" in
+    subhelp)    echo "subhelp text" ;;
+    *)          echo "help text" ;;
+    esac ;;
+summary)    echo "summary text" ;;
+*)
+    echo "requested $1 for help"
+    exit 1
+    ;;
+esac
+exit 0

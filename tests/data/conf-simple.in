@@ -10,6 +10,9 @@ test closed @abs_top_builddir@/tests/data/cmd-closed ANYUSER
 test background @abs_top_builddir@/tests/data/cmd-background ANYUSER
 test stdin @abs_top_builddir@/tests/data/cmd-stdin stdin=last ANYUSER
 test sleep @abs_top_srcdir@/tests/data/cmd-sleep ANYUSER
+test-summary ALL @abs_top_srcdir@/tests/data/cmd-help \
+    summary=summary \
+    help=help ANYUSER
 empty EMPTY @abs_top_srcdir@/tests/data/cmd-argv ANYUSER
 all ALL @abs_top_srcdir@/tests/data/cmd-hello ANYUSER
 ALL bar @abs_top_srcdir@/tests/data/cmd-hello ANYUSER
