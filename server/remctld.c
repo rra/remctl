@@ -476,7 +476,7 @@ main(int argc, char *argv[])
 
     /*
      * Set up syslog unless stdout/stderr was requested.  Set up debug logging
-     * if requestsed.
+     * if requested.
      */
     if (options.log_stdout) {
         if (options.debug)
