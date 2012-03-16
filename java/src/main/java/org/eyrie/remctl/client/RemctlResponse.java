@@ -38,18 +38,23 @@ public class RemctlResponse {
     private final Integer returnStatus;
 
     /**
-     * Use factory method.
+     * Generally the factory method should be used to construct a response.
+     * 
      * 
      * @param stdOut
      *            stdOut string
      * @param stdErr
      *            stdErr string
      * @param returnStatus
-     *            The return status (maybe null)
+     *            The return status (may be null)
      */
-    RemctlResponse(final String stdOut, final String stdErr, final Integer returnStatus) {
+    public RemctlResponse(final String stdOut, final String stdErr, final Integer returnStatus) {
         super();
-        // TODO: assert stdout and stderr are not null
+        if (stdOut == null)
+            throw new IllegalArgumentException("stdOut cannot be null");
+        if (stdErr == null)
+            throw new IllegalArgumentException("stdErr cannot be null");
+
         this.stdOut = stdOut;
         this.stdErr = stdErr;
         this.returnStatus = returnStatus;
