@@ -2,6 +2,7 @@ package org.eyrie.remctl.client;
 
 import org.eyrie.remctl.core.RemctlErrorException;
 import org.eyrie.remctl.core.RemctlException;
+import org.eyrie.remctl.core.Utils;
 
 /**
  * A client for a remctl server.
@@ -44,5 +45,13 @@ public interface RemctlClient {
      *             if error token encountered during processing.
      */
     RemctlResponse executeAllowAnyStatus(String... arguments);
+
+    /**
+     * Return the port that the connection is on, or would be on when execute is called.
+     * 
+     * @return the port to connect on, 0 if not specified ( the default ({@link Utils#DEFAULT_PORT}) port would be used)
+     *         or -1 if it can't be determined.
+     */
+    int getPort();
 
 }

@@ -98,4 +98,9 @@ public class SimpleRemctlClient implements RemctlClient {
         return RemctlResponse.buildFromTokens(remctlConnection.readAllTokens());
     }
 
+    @Override
+    public int getPort() {
+        return port;
+    }
+
 }

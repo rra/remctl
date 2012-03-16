@@ -75,4 +75,13 @@ public class PooledRemctlClient implements RemctlClient {
             }
         }
     }
+
+    @Override
+    public int getPort() {
+        try {
+            return this.pool.borrowObject().getPort();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
 }

@@ -112,6 +112,15 @@ public class RemctlConnection {
     }
 
     /**
+     * Return the port to connect on.
+     * 
+     * @return The port
+     */
+    public int getPort() {
+        return port;
+    }
+
+    /**
      * Send the token to the server
      * 
      * <p>

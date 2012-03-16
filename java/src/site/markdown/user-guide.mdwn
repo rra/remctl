@@ -15,7 +15,8 @@ The `.jar` file can also be download
 
 ## Running Commands
 
-The `RemctlClient` interface allows you to make remctl calls.
+The `RemctlClient` interface allows you to make remctl calls. All
+implementations must be thread safe.
 
 Example
 
@@ -43,7 +44,15 @@ principal and it will create a new connection for every `execute()` call.
 
 Example
 
-    RemctlClient client = SimpleRemctlClient("lsdb-dev.stanford.edu"); 
+    RemctlClient client = new SimpleRemctlClient("lsdb-dev.stanford.edu"); 
+
+### RemctlClientFactory
+
+The `RemctlClientFactory` can create `RemctlClient`s (currently
+`SimpleRemctlClient`) for you.  This can simplify your code and aid in
+testability.
+
+    remctlClientFactory.createClient("hostname.exampled.com").execute(...);
 
 ### PooledRemctlClient
 
