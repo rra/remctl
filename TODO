@@ -39,9 +39,9 @@ Server:
  * Add a way of explicitly specifying the null command or subcommand in
    the remctl configuration.
 
- * Maximum argument count and maximum data size in MESSAGE_COMMAND should
-   be configurable parameters of the server rather than hard-coded
-   values.  This may need to wait for better configuration parsing.
+ * Maximum argument count, maximum data size in MESSAGE_COMMAND, and
+   inactivity timeouts for commands should be configurable parameters of
+   the server rather than hard-coded values.
 
  * Support LDAP-based ACLs in addition to file system ACLs.
 
@@ -55,10 +55,6 @@ Server:
    arguments.  However, it would also be good to support passing other
    arguments into the program as specified in the ACL file.
 
- * Possibly support binding to both the new and the old port in the
-   standalone server for backward compatibility (only if requested by
-   another flag).
-
  * Sort the files in a directory before processing them so that the order
    is deterministic.  Affects both configuration (earlier entries
    override later ones) and ACL rules in the presence of deny ACLs.
@@ -67,10 +63,6 @@ Server:
    it rather than returning a syntax error.
 
  * Add a timeout for commands after which the server kills the command.
-
- * Replace the global hour timeout with something based on idle time
-   between commands.  It's entirely reasonable for a protocol 2 client
-   to hold a connection open for hours.
 
  * The server should call gss_inquire_context to retrieve the mechanism
    OID and then pass that in to calls to gssapi_error_string rather than
@@ -98,16 +90,11 @@ Client:
 
 Client library:
 
- * Add a varient of open that takes a timeout.
-
  * The client should ideally not specify an OID for the authentication
    mechanism and instead permit GSS-API to negotiate an appropriate
    mechanism.  It should then call gss_inquire_context to retrieve the
    mechanism OID and then pass that in to calls to gssapi_error_string
    rather than hard-coding the Kerberos v5 OID.
-
- * Support setting a timeout and failing the remctl call if the server
-   takes too long to connect or send back data.  (REMCTL-2)
 
 Build system:
 
