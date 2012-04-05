@@ -1,5 +1,10 @@
 # Shell function library to initialize Kerberos credentials
 #
+# Note that while many of the functions in this library could benefit from
+# using "local" to avoid possibly hammering global variables, Solaris /bin/sh
+# doesn't support local and this library aspires to be portable to Solaris
+# Bourne shell.  Instead, all private variables are prefixed with "tap_".
+#
 # The canonical version of this file is maintained in the rra-c-util package,
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
@@ -32,26 +37,25 @@
 # if not successful, return 0 if successful, and return 1 if Kerberos is not
 # configured.  Sets the global principal variable to the principal to use.
 kerberos_setup () {
-    local keytab
-    keytab=`test_file_path config/keytab`
+    tap_keytab=`test_file_path config/keytab`
     principal=`test_file_path config/principal`
     principal=`cat "$principal" 2>/dev/null`
-    if [ -z "$keytab" ] || [ -z "$principal" ] ; then
+    if [ -z "$tap_keytab" ] || [ -z "$principal" ] ; then
         return 1
     fi
     KRB5CCNAME="`test_tmpdir`/krb5cc_test"; export KRB5CCNAME
-    kinit --no-afslog -k -t "$keytab" "$principal" >/dev/null </dev/null
+    kinit --no-afslog -k -t "$tap_keytab" "$principal" >/dev/null </dev/null
     status=$?
     if [ $status != 0 ] ; then
-        kinit -k -t "$keytab" "$principal" >/dev/null </dev/null
+        kinit -k -t "$tap_keytab" "$principal" >/dev/null </dev/null
         status=$?
     fi
     if [ $status != 0 ] ; then
-        kinit -t "$keytab" "$principal" >/dev/null </dev/null
+        kinit -t "$tap_keytab" "$principal" >/dev/null </dev/null
         status=$?
     fi
     if [ $status != 0 ] ; then
-        kinit -k -K "$keytab" "$principal" >/dev/null </dev/null
+        kinit -k -K "$tap_keytab" "$principal" >/dev/null </dev/null
         status=$?
     fi
     if [ $status != 0 ] ; then
@@ -71,13 +75,13 @@ kerberos_cleanup () {
 # may just hang.  Takes the keytab to list and the file into which to save the
 # output, and strips off the header containing the file name.
 ktutil_list () {
-    local tmp
-    tmp=`test_tmpdir`
-    if klist -keK "$1" > "$tmp"/ktutil-tmp 2>/dev/null ; then
+    tap_tmp=`test_tmpdir`
+    if klist -keK "$1" > "$tap_tmp"/ktutil-tmp 2>/dev/null ; then
         :
     else
-        ktutil -k "$1" list --keys > "$tmp"/ktutil-tmp </dev/null 2>/dev/null
+        ktutil -k "$1" list --keys > "$tap_tmp"/ktutil-tmp </dev/null \
+            2>/dev/null
     fi
-    sed -e '/Keytab name:/d' -e "/^[^ ]*:/d" "$tmp"/ktutil-tmp > "$2"
-    rm -f "$tmp"/ktutil-tmp
+    sed -e '/Keytab name:/d' -e "/^[^ ]*:/d" "$tap_tmp"/ktutil-tmp > "$2"
+    rm -f "$tap_tmp"/ktutil-tmp
 }
