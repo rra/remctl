@@ -525,6 +525,7 @@ test_network_read(void)
         delay_writer(c);
     } else {
         alarm(10);
+        slen = sizeof(sin);
         c = accept(fd, &sin, &slen);
         if (c == INVALID_SOCKET) {
             sysdiag("cannot accept on socket");
