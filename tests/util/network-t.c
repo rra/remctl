@@ -589,6 +589,7 @@ test_network_write(void)
         delay_reader(c);
     } else {
         alarm(10);
+        slen = sizeof(struct sockaddr_in);
         c = accept(fd, &sin, &slen);
         if (c == INVALID_SOCKET) {
             sysdiag("cannot accept on socket");
