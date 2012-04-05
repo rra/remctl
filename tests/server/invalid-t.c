@@ -73,7 +73,7 @@ test_bad_token(const struct kerberos_config *config, const char *data,
 
 /*
  * Send a chunk of data to the given remctl connection and verify that it
- * returns a bad command error token.  Returns the next test number.
+ * returns a bad command error token.
  */
 static void
 test_bad_command(const struct kerberos_config *config, const char *data,
@@ -86,8 +86,8 @@ test_bad_command(const struct kerberos_config *config, const char *data,
     memcpy(buffer, prefix, sizeof(prefix));
     memcpy(buffer + sizeof(prefix), data, length);
     buflen = sizeof(prefix) + length;
-    return test_bad_token(config, buffer, buflen, ERROR_BAD_COMMAND,
-                          "Invalid command token", description);
+    test_bad_token(config, buffer, buflen, ERROR_BAD_COMMAND,
+                   "Invalid command token", description);
 }
 
 
