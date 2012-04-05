@@ -1,5 +1,13 @@
                        User-Visible remctl Changes
 
+remctl 3.2 (unreleased)
+
+    Fix GSS-API header probes when configure was told to build with a
+    specific GSS-API library in a non-default path.  Previously, configure
+    still used the compiler to probe for the correct header names, which
+    could pick up incorrect headers from the default include path.  Thanks
+    to Jeffrey Hutzelman for the suggested solution.
+
 remctl 3.1 (2012-02-29)
 
     Add new remctl_set_timeout function to the remctl library API and the

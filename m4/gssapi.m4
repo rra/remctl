@@ -12,6 +12,9 @@ dnl RRA_LIB_GSSAPI_SWITCH to set CPPFLAGS, LDFLAGS, and LIBS to include the
 dnl GSS-API libraries, saving the ecurrent values, and RRA_LIB_GSSAPI_RESTORE
 dnl to restore those settings to before the last RRA_LIB_GSSAPI_SWITCH.
 dnl
+dnl Also provides RRA_INCLUDES_KRB5, which are the headers to include when
+dnl probing the Kerberos library properties.
+dnl
 dnl Depends on RRA_ENABLE_REDUCED_DEPENDS and RRA_SET_LDFLAGS.
 dnl
 dnl The canonical version of this file is maintained in the rra-c-util
@@ -24,6 +27,18 @@ dnl
 dnl This file is free software; the authors give unlimited permission to copy
 dnl and/or distribute it, with or without modifications, as long as this
 dnl notice is preserved.
+
+dnl Headers to include when probing for Kerberos library properties.
+AC_DEFUN([RRA_INCLUDES_GSSAPI], [[
+#ifdef HAVE_GSSAPI_GSSAPI_H
+# include <gssapi/gssapi.h>
+#else
+# include <gssapi.h>
+#endif
+#ifdef HAVE_GSSAPI_GSSAPI_KRB5_H
+# include <gssapi/gssapi_krb5.h>
+#endif
+]])
 
 dnl Save the current CPPFLAGS, LDFLAGS, and LIBS settings and switch to
 dnl versions that include the GSS-API flags.  Used as a wrapper, with
@@ -147,6 +162,37 @@ AC_DEFUN([_RRA_LIB_GSSAPI_CONFIG],
      [_RRA_LIB_GSSAPI_PATHS
       _RRA_LIB_GSSAPI_MANUAL])])
 
+dnl Check for a header using a file existence check rather than using
+dnl AC_CHECK_HEADERS.  This is used if there were arguments to configure
+dnl specifying the GSS-API library path, since we may have one header in the
+dnl default include path and another under our explicitly-configured GSS-API
+dnl location.
+AC_DEFUN([_RRA_LIB_GSSAPI_CHECK_HEADER],
+[AC_MSG_CHECKING([for $1])
+ AS_IF([test -f "${rra_gssapi_incroot}/$1"],
+    [AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_$1]), [1],
+        [Define to 1 if you have the <$1> header file.])
+     AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])])])
+
+dnl Determine the GSS-API header location and probe for some other
+dnl characteristics of the libraries.  We use a file existence check rather
+dnl than letting the compiler probe for the right header location
+AC_DEFUN([_RRA_LIB_GSSAPI_EXTRA],
+[rra_gssapi_incroot=
+ AS_IF([test x"$rra_gssapi_includedir" != x],
+    [rra_gssapi_incroot="$rra_gssapi_includedir"],
+    [AS_IF([test x"$rra_gssapi_root" != x],
+        [rra_gssapi_incroot="${rra_gssapi_root}/include"])])
+ AS_IF([test x"$rra_gssapi_incroot" = x],
+    [AC_CHECK_HEADERS([gssapi/gssapi.h gssapi/gssapi_krb5.h])],
+    [_RRA_LIB_GSSAPI_CHECK_HEADER([gssapi/gssapi.h])
+     _RRA_LIB_GSSAPI_CHECK_HEADER([gssapi/gssapi_krb5.h])])
+ AC_CHECK_DECL([GSS_C_NT_USER_NAME],
+    [AC_DEFINE([HAVE_GSS_RFC_OIDS], 1,
+       [Define to 1 if the GSS-API library uses RFC-compliant OIDs.])], [],
+    [RRA_INCLUDES_GSSAPI])])
+
 dnl The main macro.
 AC_DEFUN([RRA_LIB_GSSAPI],
 [AC_REQUIRE([RRA_ENABLE_REDUCED_DEPENDS])
@@ -183,4 +229,8 @@ AC_DEFUN([RRA_LIB_GSSAPI],
             && test x"$rra_gssapi_libdir" = x],
         [_RRA_LIB_GSSAPI_CONFIG],
         [_RRA_LIB_GSSAPI_PATHS
-         _RRA_LIB_GSSAPI_MANUAL])])])
+         _RRA_LIB_GSSAPI_MANUAL])])
+
+ RRA_LIB_GSSAPI_SWITCH
+ _RRA_LIB_GSSAPI_EXTRA
+ RRA_LIB_GSSAPI_RESTORE])
