@@ -67,12 +67,11 @@ finish () {
                     "$tap_highest"
             fi
         elif [ "$planned" -lt "$tap_highest" ] ; then
-            local extra
-            extra=`expr "$tap_highest" - "$planned"`
+            tap_extra=`expr "$tap_highest" - "$planned"`
             if [ "$planned" -gt 1 ] ; then
-                echo "$tap_looks planned $planned tests but ran $extra extra"
+                echo "$tap_looks planned $planned tests but ran $tap_extra extra"
             else
-                echo "$tap_looks planned $planned test but ran $extra extra"
+                echo "$tap_looks planned $planned test but ran $tap_extra extra"
             fi
         elif [ "$failed" -gt 0 ] ; then
             if [ "$failed" -gt 1 ] ; then
@@ -165,7 +164,6 @@ EOH
 # If the command may contain system-specific error messages in its output,
 # add strip_colon_error before the command to post-process its output.
 ok_program () {
-    local desc w_status w_output output status
     tap_desc="$1"
     shift
     tap_w_status="$1"

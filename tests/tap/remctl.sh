@@ -33,7 +33,6 @@
 # Start remctld.  Takes the path to remctld, which may be found via configure,
 # and the path to the configuration file.
 remctld_start () {
-    local keytab tap_principal pidfile
     tap_pidfile=`test_tmpdir`/remctld.pid
     rm -f "$tap_pidfile"
     tap_keytab=`test_file_path config/keytab`
@@ -59,7 +58,6 @@ remctld_start () {
 
 # Stop remctld and clean up.
 remctld_stop () {
-    local tap_pidfile
     tap_pidfile=`test_tmpdir`/remctld.pid
     if [ -f "$tap_pidfile" ] ; then
         kill -TERM `cat "$tap_pidfile"`
