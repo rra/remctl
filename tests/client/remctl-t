@@ -82,4 +82,4 @@ ok "correct bind address error" \
 rm -f "$tmpdir/output"
 remctld_stop
 kerberos_cleanup
-rmdir "$tmpdir"
+rmdir "$tmpdir" || true
