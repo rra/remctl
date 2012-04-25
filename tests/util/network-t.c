@@ -35,6 +35,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #include <tests/tap/basic.h>
 #include <util/macros.h>
