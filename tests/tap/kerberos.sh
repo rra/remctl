@@ -43,7 +43,7 @@ kerberos_setup () {
     if [ -z "$tap_keytab" ] || [ -z "$principal" ] ; then
         return 1
     fi
-    KRB5CCNAME="`test_tmpdir`/krb5cc_test"; export KRB5CCNAME
+    KRB5CCNAME=`test_tmpdir`/krb5cc_test; export KRB5CCNAME
     kinit --no-afslog -k -t "$tap_keytab" "$principal" >/dev/null </dev/null
     status=$?
     if [ $status != 0 ] ; then
@@ -66,7 +66,7 @@ kerberos_setup () {
 
 # Clean up at the end of a test.  Currently only removes the ticket cache.
 kerberos_cleanup () {
-    rm -f "`test_tmpdir`/krb5cc_test"
+    rm -f `test_tmpdir`/krb5cc_test
 }
 
 # List the contents of a keytab with enctypes and keys.  This adjusts for the
