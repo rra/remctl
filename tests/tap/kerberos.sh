@@ -66,7 +66,8 @@ kerberos_setup () {
 
 # Clean up at the end of a test.  Currently only removes the ticket cache.
 kerberos_cleanup () {
-    rm -f `test_tmpdir`/krb5cc_test
+    tap_tmp=`test_tmpdir`
+    rm -f "$tap_tmp"/krb5cc_test
 }
 
 # List the contents of a keytab with enctypes and keys.  This adjusts for the
