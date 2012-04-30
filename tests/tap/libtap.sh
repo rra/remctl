@@ -69,9 +69,11 @@ finish () {
         elif [ "$planned" -lt "$tap_highest" ] ; then
             tap_extra=`expr "$tap_highest" - "$planned"`
             if [ "$planned" -gt 1 ] ; then
-                echo "$tap_looks planned $planned tests but ran $tap_extra extra"
+                echo "$tap_looks planned $planned tests but ran" \
+                    "$tap_extra extra"
             else
-                echo "$tap_looks planned $planned test but ran $tap_extra extra"
+                echo "$tap_looks planned $planned test but ran" \
+                    "$tap_extra extra"
             fi
         elif [ "$failed" -gt 0 ] ; then
             if [ "$failed" -gt 1 ] ; then
@@ -149,6 +151,10 @@ skip_block () {
 # Portable variant of printf '%s\n' "$*".  In the majority of cases, this
 # function is slower than printf, because the latter is often implemented
 # as a builtin command.  The value of the variable IFS is ignored.
+#
+# This macro must not be called via backticks inside double quotes, since this
+# will result in bizarre escaping behavior and lots of extra backslashes on
+# Solaris.
 puts () {
     cat << EOH
 $@
@@ -209,6 +215,9 @@ diag () {
 # Search for the given file first in $BUILD and then in $SOURCE and echo the
 # path where the file was found, or the empty string if the file wasn't
 # found.
+#
+# This macro uses puts, so don't run it using backticks inside double quotes
+# or bizarre quoting behavior will happen with Solaris sh.
 test_file_path () {
     if [ -n "$BUILD" ] && [ -f "$BUILD/$1" ] ; then
         puts "$BUILD/$1"
@@ -221,6 +230,9 @@ test_file_path () {
 
 # Create $BUILD/tmp for use by tests for storing temporary files and return
 # the path (via standard output).
+#
+# This macro uses puts, so don't run it using backticks inside double quotes
+# or bizarre quoting behavior will happen with Solaris sh.
 test_tmpdir () {
     if [ -z "$BUILD" ] ; then
         tap_tmpdir="./tmp"
