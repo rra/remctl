@@ -162,7 +162,13 @@ main(void)
                             NULL);
     is_int(GSS_S_COMPLETE, s_stat, "...and would send correct MIC");
 
-    /* Test sending and receiving a token with a timeout. */
+    /*
+     * Test sending and receiving a token with a timeout.  This and the tests
+     * below must come last, and after any successful token test, because
+     * they will break the sequence numbers between the client and server and
+     * some older versions of Heimdal impose ordering regardless of the
+     * negotiation flags.
+     */
     fail_timeout = true;
     status = token_send_priv(0, client_ctx, 3, &server_tok, 1, &s_stat,
                              &c_min_stat);
