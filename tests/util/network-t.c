@@ -621,7 +621,8 @@ test_network_write(void)
 static void
 ok_addr(int expected, const char *a, const char *b, const char *mask)
 {
-    char *smask = (mask == NULL) ? "NULL" : mask;
+    const char *smask = (mask == NULL) ? "(null)" : mask;
+
     if (expected)
         ok(network_addr_match(a, b, mask), "compare %s %s %s", a, b, smask);
     else
