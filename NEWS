@@ -8,6 +8,10 @@ remctl 3.2 (unreleased)
     could pick up incorrect headers from the default include path.  Thanks
     to Jeffrey Hutzelman for the suggested solution.
 
+    Fix multiple portability issues in the test suite on Solaris and old
+    versions of Heimdal.  Thanks to Jeffrey Hutzelman for the series of
+    patches.
+
 remctl 3.1 (2012-02-29)
 
     Add new remctl_set_timeout function to the remctl library API and the

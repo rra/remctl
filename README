@@ -368,7 +368,7 @@ THANKS
 
   To Jeffrey Hutzelman for adding the framework for ACL method support and
   implementing the file, princ, deny, and gput schemes, as well as lots of
-  testing and portability bug reports.
+  testing and portability bug reports and patches.
 
   To Timothy G. Abbott for suggesting additional restrictions on the names
   of files read when processing an include of a directory.
