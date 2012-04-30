@@ -12,6 +12,12 @@ remctl 3.2 (unreleased)
     versions of Heimdal.  Thanks to Jeffrey Hutzelman for the series of
     patches.
 
+    Update to C TAP Harness 1.12:
+
+    * Only use feature-test macros when requested or built with gcc -ansi.
+    * Drop is_double from the C TAP library to avoid requiring -lm.
+    * Avoid using local in the shell libtap.sh library.
+
 remctl 3.1 (2012-02-29)
 
     Add new remctl_set_timeout function to the remctl library API and the

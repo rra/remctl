@@ -34,7 +34,7 @@
 #define TAP_REMCTL_H 1
 
 #include <config.h>
-#include <portable/macros.h>
+#include <tests/tap/macros.h>
 
 #include <sys/types.h>          /* pid_t */
 

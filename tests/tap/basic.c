@@ -12,7 +12,7 @@
  * This file is part of C TAP Harness.  The current version plus supporting
  * documentation is at <http://www.eyrie.org/~eagle/software/c-tap-harness/>.
  *
- * Copyright 2009, 2010, 2011 Russ Allbery <rra@stanford.edu>
+ * Copyright 2009, 2010, 2011, 2012 Russ Allbery <rra@stanford.edu>
  * Copyright 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -35,15 +35,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/* Required for isnan() and isinf(). */
-#if defined(__STRICT_ANSI__) || defined(PEDANTIC)
-# ifndef _XOPEN_SOURCE
-#  define _XOPEN_SOURCE 600
-# endif
-#endif
-
 #include <errno.h>
-#include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,7 +48,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <tap/basic.h>
+#include <tests/tap/basic.h>
 
 /* Windows provides mkdir and rmdir under different names. */
 #ifdef _WIN32
@@ -90,7 +82,9 @@ static int _lazy = 0;
 
 /*
  * Our exit handler.  Called on completion of the test to report a summary of
- * results provided we're still in the original process.
+ * results provided we're still in the original process.  This also handles
+ * printing out the plan if we used plan_lazy(), although that's suppressed if
+ * we never ran a test (due to an early bail, for example).
  */
 static void
 finish(void)
@@ -101,7 +95,7 @@ finish(void)
         return;
     fflush(stderr);
     if (_process != 0 && getpid() == _process) {
-        if (_lazy) {
+        if (_lazy && highest > 0) {
             printf("1..%lu\n", highest);
             _planned = highest;
         }
@@ -340,34 +334,6 @@ is_string(const char *wanted, const char *seen, const char *format, ...)
         printf("ok %lu", testnum++);
     else {
         printf("# wanted: %s\n#   seen: %s\n", wanted, seen);
-        printf("not ok %lu", testnum++);
-        _failed++;
-    }
-    if (format != NULL) {
-        va_list args;
-
-        va_start(args, format);
-        print_desc(format, args);
-        va_end(args);
-    }
-    putchar('\n');
-}
-
-
-/*
- * Takes an expected double and a seen double and assumes the test passes if
- * those two numbers are within delta of each other.
- */
-void
-is_double(double wanted, double seen, double epsilon, const char *format, ...)
-{
-    fflush(stderr);
-    if ((isnan(wanted) && isnan(seen))
-        || (isinf(wanted) && isinf(seen) && wanted == seen)
-        || fabs(wanted - seen) <= epsilon)
-        printf("ok %lu", testnum++);
-    else {
-        printf("# wanted: %g\n#   seen: %g\n", wanted, seen);
         printf("not ok %lu", testnum++);
         _failed++;
     }
