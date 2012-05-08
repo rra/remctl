@@ -2,6 +2,27 @@
 
 remctl 3.2 (unreleased)
 
+    Add new summary option to the remctld configuration.  If remctld
+    receives a command of "help" with no arguments and no command by that
+    name has been defined, the server will look through the configuration
+    for any command with a summary option set, a subcommand of ALL, and
+    which the user would have been allowed to run.  If any such commands
+    are found, the server will run each with the subcommand specified by
+    the summary option, sending the results to the user.  This allows
+    display of a command summary to the user based on which commands that
+    user is authorized to run.  Written by Jon Robertson.
+
+    Add new help option to the remctld configuration.  If remctld receives
+    a command of "help" with either one or two arguments and no command by
+    that name has been defined, it takes the arguments to the command as a
+    command and subcommand and checks for an entry in the configuration
+    file that matches.  If such an entry is found, the help option is set
+    for that command, and the user is authorized to run it, remctld runs
+    the command, passing the value of the help option as the subcommand
+    and the arguments to help as additional arguments.  This permits a
+    standard interface to get additional help for a particular remctl
+    command.  Written by Jon Robertson.
+
     Fix GSS-API header probes when configure was told to build with a
     specific GSS-API library in a non-default path.  Previously, configure
     still used the compiler to probe for the correct header names, which

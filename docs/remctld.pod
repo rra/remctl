@@ -2,7 +2,7 @@
 remctld remctl -dFhmSv keytab GSS-API tcpserver inetd subcommand AFS
 backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
 IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
-subcommands REMUSER pcre PCRE triple-DES MERCHANTABILITY username
+subcommands REMUSER pcre PCRE triple-DES MERCHANTABILITY username arg
 
 =head1 NAME
 
@@ -172,6 +172,10 @@ between different commands.  From remctl 2.16 on, the environment variable
 REMCTL_COMMAND will contain the command.  (See the ENVIRONMENT section
 below.)
 
+The command C<help> is handled specially if no such command is defined in
+the configuration file.  See below under the C<help> and C<summary>
+options.
+
 =item I<subcommand>
 
 The subcommand within the command being requested, such as C<release> for
@@ -202,7 +206,25 @@ are:
 
 =over 4
 
-=item I<logmask>=I<n>[,...]
+=item help=I<arg>
+
+Specifies the argument for this command that will print help for a
+particular subcommand to standard output.
+
+If remctld receives the command C<help> with one or two arguments, and no
+C<help> command is defined in the configuration file, the server will take
+the command arguments as a command and subcommand.  It will then look
+through the configuration for a configuration line matching that command
+and subcommand with a C<help> option set.  If one is found and the user is
+authorized to run that command, the server will run the specified
+I<executable> with the argument I<arg> and second and optional third
+arguments taken from the arguments to the C<help> command, sending the
+output back to the user.
+
+This permits a standard interface to get additional help for a particular
+remctl command.  Also see the C<summary> option.
+
+=item logmask=I<n>[,...]
 
 Limit logging of command arguments.  Any argument listed in the logmask
 list will have its value logged as "**MASKED**".  This is to avoid logging
@@ -216,7 +238,7 @@ then you'd want to set logmask to C<3>, so the password argument gets
 logged as C<**MASKED**>.  If the command is C<user passwd I<username>
 I<old-password> I<new-password>>, you'd want to set logmask to C<3,4>.
 
-=item I<stdin>=(I<n> | C<last>)
+=item stdin=(I<n> | C<last>)
 
 Specifies that the I<n>th or last argument to the command be passed on
 standard input instead of on the command line.  The value of this option
@@ -238,7 +260,27 @@ to the command.  Be aware that even if the I<subcommand> is the designated
 argument to pass on standard input (C<stdin=1>), the I<subcommand> may not
 contain NUL characters.
 
-=item I<user>=(I<username> | I<uid>)
+=item summary=I<arg>
+
+Specifies the argument for this command that will print a usage summary
+to standard output.
+
+If remctld receives the command C<help> with no arguments, and no C<help>
+command is defined in the configuration file, the server will look through
+the configuration for any command with a C<summary> option set.  If this
+option is set, the I<subcommand> is C<ALL>, and the user is authorized to
+run the command, the server will run the specified I<executable> with the
+argument I<arg>, sending the output back to the user.  It will do this for
+every command in the configuration that meets the above criteria.
+
+This allows display of a summary of available commands to the user based
+on which commands that user is authorized to run.  It's a lightweight form
+of service discovery.  Also see the C<help> option.
+
+As mentioned above, this option is only meaningful on configuration lines
+with a I<subcommand> of C<ALL>.
+
+=item user=(I<username> | I<uid>)
 
 Run this command as the specified user, which can be given as either a
 username or as a UID.  Even if given as a UID, the user must be found in
