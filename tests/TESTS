@@ -26,11 +26,13 @@ server/config
 server/continue
 server/env
 server/errors
+server/help
 server/invalid
 server/logging
 server/misc
 server/stdin
 server/streaming
+server/summary
 server/user
 server/version
 util/concat
