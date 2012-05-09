@@ -264,43 +264,36 @@ line_matches(struct confline *cline, const char *command,
     return false;
 }
 
+
 /*
- * Look up the command and the ACL file from the conf file structure in
- * memory.  Commands with no subcommand argument will only match lines
- * with the ALL wildcard.
- *
- * Takes a config object, a command and optional subcommand to match
- * against, and a the program path to set if found.  Returns a matching
- * config line, or the last if none matches, with path still set to null.
+ * Look up the matching configuration line for a command and subcommand.
+ * Takes the configuration, a command, and a subcommand to match against
+ * Returns the matching config line or NULL if none match.
  */
-static char *
-find_config_line(struct config *config, char *command, char *subcommand,
-                 struct confline **cline)
+static struct confline *
+find_config_line(struct config *config, char *command, char *subcommand)
 {
     size_t i;
 
-    for (i = 0; i < config->count; i++) {
-        *cline = config->rules[i];
-        if (line_matches(*cline, command, subcommand)) {
-            return (*cline)->program;
-        }
-    }
-
+    for (i = 0; i < config->count; i++)
+        if (line_matches(config->rules[i], command, subcommand))
+            return config->rules[i];
     return NULL;
 }
+
 
 /*
  * Runs a given command via exec.  This forks a child process, sets
  * environment and changes ownership if needed, then runs the command and
  * sends the output back to the remctl client.
  *
- * Takes a client object, the full command with path, the shorter name
- * for the command, an argument list, the configuration line for that
- * program, and a process object.
+ * Takes the client, the short name for the command, an argument list, the
+ * configuration line for that command, and the process.  Returns true on
+ * success and false on failure.
  */
 static bool
-server_exec(struct client *client, char *path, char *command,
-            char **req_argv, struct confline *cline, struct process *process)
+server_exec(struct client *client, char *command, char **req_argv,
+            struct confline *cline, struct process *process)
 {
     int stdin_pipe[2] = { -1, -1 };
     int stdout_pipe[2] = { -1, -1 };
@@ -427,7 +420,7 @@ server_exec(struct client *client, char *path, char *command,
         }
 
         /* Run the command. */
-        execv(path, req_argv);
+        execv(cline->program, req_argv);
 
         /*
          * This happens only if the exec fails.  Print out an error message to
@@ -552,8 +545,7 @@ server_send_summary(struct client *client, const char *user,
         req_argv[0] = program;
         req_argv[1] = cline->summary;
         req_argv[2] = NULL;
-        ok = server_exec(client, path, cline->summary, req_argv, cline,
-                         &process);
+        ok = server_exec(client, cline->summary, req_argv, cline, &process);
         if (ok && process.status != 0)
             status_all = process.status;
     }
@@ -580,18 +572,17 @@ server_send_summary(struct client *client, const char *user,
  * request.  This will be created from the full command and arguments given
  * via the remctl client.
  *
- * Takes an array to hold the argv, the path of the program to run, the
- * command and optional sub-command to run, the config line for this program,
- * the process object, and the existing argv from remctl client.  Saves
- * everything to the given new argv array.
+ * Takes the command and optional sub-command to run, the config line for this
+ * command, the process, and the existing argv from remctl client.  Returns
+ * a newly-allocated argv array that the caller is responsible for freeing.
  */
 static char **
-create_argv_command(char *path, struct confline *cline,
-                    struct process *process, struct iovec **argv)
+create_argv_command(struct confline *cline, struct process *process,
+                    struct iovec **argv)
 {
     size_t count, i, j, stdin_arg;
     char **req_argv = NULL;
-    char *program;
+    const char *program;
 
     /* Get ready to assemble the argv of the command. */
     for (count = 0; argv[count] != NULL; count++)
@@ -603,12 +594,12 @@ create_argv_command(char *path, struct confline *cline,
      * passed to the command.  Then build the rest of the argv for the
      * command, splicing out the argument we're passing on stdin (if any).
      */
-    program = strrchr(path, '/');
+    program = strrchr(cline->program, '/');
     if (program == NULL)
-        program = path;
+        program = cline->program;
     else
         program++;
-    req_argv[0] = program;
+    req_argv[0] = xstrdup(program);
     if (cline->stdin_arg == -1)
         stdin_arg = count - 1;
     else
@@ -628,20 +619,21 @@ create_argv_command(char *path, struct confline *cline,
     return req_argv;
 }
 
+
 /*
  * Create the argv we will pass along to a program in response to a help
  * request.  This is fairly simple, created off of the specific command
  * we want help with, along with any sub-command given for specific help.
  *
- * Takes an array to hold the argv, the path of the program to run, and
- * the command and optional sub-command to run.  Saves everything to the
- * given argv array.
+ * Takes the path of the program to run and the command and optional
+ * sub-command to run.  Returns a newly allocated argv array that the caller
+ * is responsible for freeing.
  */
 static char **
-create_argv_help(char *path, char *command, char *subcommand)
+create_argv_help(const char *path, const char *command, const char *subcommand)
 {
     char **req_argv = NULL;
-    char *program;
+    const char *program;
 
     if (subcommand == NULL)
         req_argv = xmalloc(3 * sizeof(char *));
@@ -654,16 +646,17 @@ create_argv_help(char *path, char *command, char *subcommand)
         program = path;
     else
         program++;
-    req_argv[0] = program;
+    req_argv[0] = xstrdup(program);
     req_argv[1] = xstrdup(command);
-    if (subcommand != NULL) {
+    if (subcommand == NULL)
+        req_argv[2] = NULL;
+    else {
         req_argv[2] = xstrdup(subcommand);
         req_argv[3] = NULL;
-    } else {
-        req_argv[2] = NULL;
     }
     return req_argv;
 }
+
 
 /*
  * Process an incoming command.  Check the configuration files and the ACL
@@ -687,7 +680,6 @@ void
 server_run_command(struct client *client, struct config *config,
                    struct iovec **argv)
 {
-    char *path = NULL;
     char *command = NULL;
     char *subcommand = NULL;
     char *helpsubcommand = NULL;
@@ -709,9 +701,7 @@ server_run_command(struct client *client, struct config *config,
         goto done;
     }
 
-    /*
-     * Neither the command nor the subcommand may ever contain nuls.
-     */
+    /* Neither the command nor the subcommand may ever contain nuls. */
     for (i = 0; argv[i] != NULL && i < 2; i++) {
         if (memchr(argv[i]->iov_base, '\0', argv[i]->iov_len)) {
             notice("%s from user %s contains nul octet",
@@ -727,14 +717,15 @@ server_run_command(struct client *client, struct config *config,
     if (argv[1] != NULL)
         subcommand = xstrndup(argv[1]->iov_base, argv[1]->iov_len);
 
-    /* Find the program path we need to run.  If we find no matching command
+    /*
+     * Find the program path we need to run.  If we find no matching command
      * at first and the command is a help command, then we either dispatch
      * to the summary command if no specific help was requested, or if a
      * specific help command was listed, check for that in the configuration
      * instead.
      */
-    path = find_config_line(config, command, subcommand, &cline);
-    if (path == NULL && strcmp(command, "help") == 0) {
+    cline = find_config_line(config, command, subcommand);
+    if (cline == NULL && strcmp(command, "help") == 0) {
 
         /* Error if we have more than a command and possible subcommand. */
         if (argv[2] != NULL && argv[3] != NULL) {
@@ -752,8 +743,7 @@ server_run_command(struct client *client, struct config *config,
             if (argv[2] != NULL)
                 helpsubcommand = xstrndup(argv[2]->iov_base,
                                           argv[2]->iov_len);
-            path = find_config_line(config, subcommand, helpsubcommand,
-                                    &cline);
+            cline = find_config_line(config, subcommand, helpsubcommand);
         }
     }
 
@@ -762,10 +752,12 @@ server_run_command(struct client *client, struct config *config,
      * standard input.
      */
     for (i = 1; argv[i] != NULL; i++) {
-        if (help == false && (long) i == cline->stdin_arg)
-            continue;
-        if (argv[i + 1] == NULL && cline->stdin_arg == -1)
-            continue;
+        if (cline != NULL) {
+            if (help == false && (long) i == cline->stdin_arg)
+                continue;
+            if (argv[i + 1] == NULL && cline->stdin_arg == -1)
+                continue;
+        }
         if (memchr(argv[i]->iov_base, '\0', argv[i]->iov_len)) {
             notice("argument %lu from user %s contains nul octet",
                    (unsigned long) i, user);
@@ -776,7 +768,26 @@ server_run_command(struct client *client, struct config *config,
     }
 
     /* Log after we look for command so we can get potentially get logmask. */
-    server_log_command(argv, path == NULL ? NULL : cline, user);
+    server_log_command(argv, cline, user);
+
+    /*
+     * Check the command, aclfile, and the authorization of this client to
+     * run this command.
+     */
+    if (cline == NULL) {
+        notice("unknown command %s%s%s from user %s", command,
+               (subcommand == NULL) ? "" : " ",
+               (subcommand == NULL) ? "" : subcommand, user);
+        server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
+        goto done;
+    }
+    if (!server_config_acl_permit(cline, user)) {
+        notice("access denied: user %s, command %s%s%s", user, command,
+               (subcommand == NULL) ? "" : " ",
+               (subcommand == NULL) ? "" : subcommand);
+        server_send_error(client, ERROR_ACCESS, "Access denied");
+        goto done;
+    }
 
     /*
      * Check for a specific command help request with the cline and do error
@@ -794,33 +805,14 @@ server_run_command(struct client *client, struct config *config,
         }
     }
 
-    /*
-     * Check the command, aclfile, and the authorization of this client to
-     * run this command.
-     */
-    if (path == NULL) {
-        notice("unknown command %s%s%s from user %s", command,
-               (subcommand == NULL) ? "" : " ",
-               (subcommand == NULL) ? "" : subcommand, user);
-        server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
-        goto done;
-    }
-    if (!server_config_acl_permit(cline, user)) {
-        notice("access denied: user %s, command %s%s%s", user, command,
-               (subcommand == NULL) ? "" : " ",
-               (subcommand == NULL) ? "" : subcommand);
-        server_send_error(client, ERROR_ACCESS, "Access denied");
-        goto done;
-    }
-
     /* Assemble the argv for the command we're about to run. */
     if (help)
-        req_argv = create_argv_help(path, subcommand, helpsubcommand);
+        req_argv = create_argv_help(cline->program, subcommand, helpsubcommand);
     else
-        req_argv = create_argv_command(path, cline, &process, argv);
+        req_argv = create_argv_command(cline, &process, argv);
 
     /* Now actually execute the program. */
-    ok = server_exec(client, path, command, req_argv, cline, &process);
+    ok = server_exec(client, command, req_argv, cline, &process);
     if (ok) {
         if (client->protocol == 1)
             server_v1_send_output(client, process.status);
@@ -836,11 +828,8 @@ server_run_command(struct client *client, struct config *config,
     if (helpsubcommand != NULL)
         free(helpsubcommand);
     if (req_argv != NULL) {
-        i = 1;
-        while (req_argv[i] != NULL) {
+        for (i = 0; req_argv[i] != NULL; i++)
             free(req_argv[i]);
-            i++;
-        }
         free(req_argv);
     }
 }

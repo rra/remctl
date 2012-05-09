@@ -25,13 +25,15 @@ main(void)
     struct remctl_result *result;
     const char *helptest[]    = { "help", "test-summary", NULL };
     const char *subhelptest[] = { "help", "test-summary", "subhelp", NULL };
-    const char *nohelptest[]  = { "help", "test", NULL };
+    const char *nohelptest[]  = { "help", "test", "test", NULL };
+    const char *badcommand1[] = { "help", "test", NULL };
+    const char *badcommand2[] = { "help", "invalid", "invalid", NULL };
 
     /* Unless we have Kerberos available, we can't really do anything. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     remctld_start(config, "data/conf-simple", NULL);
 
-    plan(18);
+    plan(30);
 
     /* Run the tests. */
     result = remctl("localhost", 14373, config->principal, helptest);
@@ -60,8 +62,26 @@ main(void)
     is_int(0, result->stderr_len, "...and no stderr");
     is_int(0, result->stdout_len, "...and no stdout");
     ok(result->error != NULL, "...and error");
-    is_int(0, strcmp(result->error, "No help defined for command"),
-       "...and correct error text");
+    is_string("No help defined for command", result->error,
+              "...and correct error text");
+    remctl_result_free(result);
+
+    result = remctl("localhost", 14373, config->principal, badcommand1);
+    ok(result != NULL, "help for command with non-matching subcommand");
+    is_int(0, result->status, "...with correct status");
+    is_int(0, result->stderr_len, "...and no stderr");
+    is_int(0, result->stdout_len, "...and no stdout");
+    ok(result->error != NULL, "...and error");
+    is_string("Unknown command", result->error, "...and correct error text");
+    remctl_result_free(result);
+
+    result = remctl("localhost", 14373, config->principal, badcommand2);
+    ok(result != NULL, "help for unknown command");
+    is_int(0, result->status, "...with correct status");
+    is_int(0, result->stderr_len, "...and no stderr");
+    is_int(0, result->stdout_len, "...and no stdout");
+    ok(result->error != NULL, "...and error");
+    is_string("Unknown command", result->error, "...and correct error text");
     remctl_result_free(result);
 
     return 0;
