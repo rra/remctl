@@ -15,27 +15,6 @@ Protocol:
 
 Server:
 
- * Add support for built-in command summaries.  A command of help with no
-   subcommand would provide a list of all commands that the authenticated
-   user is permitted to run.  To do this, add a configuration option of
-   summary=<arg> to the config syntax for commands that will display a
-   summary of their supported subcommands if given <arg>.  Then, for any
-   "<command> ANY" lines the user is authorized to run, run the binary
-   with "<arg>" as the arguments, and for any "<command> <subcommand>"
-   lines, run the binary with "<arg> <subcommand>" as the arguments,
-   returning the output.
-
- * Add support for in-depth help for a particular command.  A command of
-   "help <command>" would provide help for that command if the user was
-   authorized to run that command with its help subcommand, and a command
-   of "help <command> <subcommand>" would provide help for that command
-   and subcommand if the user is authorized to run both the help
-   subcommand and the specified one.  To implement, add a configuration
-   option of help=<arg> to the config syntax for commands that support
-   help, and then run the command with "<arg>" as the arguments for the
-   first case and "<arg> subcommand" as the arguments for the second
-   case.
-
  * Add a way of explicitly specifying the null command or subcommand in
    the remctl configuration.
 
