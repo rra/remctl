@@ -29,6 +29,10 @@ remctl 3.2 (unreleased)
     could pick up incorrect headers from the default include path.  Thanks
     to Jeffrey Hutzelman for the suggested solution.
 
+    Solaris can return ECONNRESET instead of EPIPE on write when the other
+    end of the network connection closes it.  Handle that error properly
+    in the remctld server.  Patch from Jeffrey Hutzelman.
+
     Fix multiple portability issues in the test suite on Solaris and old
     versions of Heimdal.  Thanks to Jeffrey Hutzelman for the series of
     patches.
