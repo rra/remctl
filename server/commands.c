@@ -548,6 +548,7 @@ server_send_summary(struct client *client, const char *user,
         ok = server_exec(client, cline->summary, req_argv, cline, &process);
         if (ok && process.status != 0)
             status_all = process.status;
+        free(req_argv);
     }
 
     /*
