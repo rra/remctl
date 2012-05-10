@@ -52,6 +52,12 @@ Server:
 
  * Add option to mask all arguments.
 
+ * Track all the children spawned by remctld in stand-alone mode.  On
+   receipt of SIGTERM or SIGINT, send SIGUSR1 to all children.  In the
+   children, on receipt of SIGUSR1, exit as soon as the current command in
+   progress (if any) stops running.  (SIGTERM or SIGINT directly to a
+   child should kill it outright.)
+
 Client:
 
  * Implement file upload in the remctl client.
@@ -75,6 +81,12 @@ Client library:
    mechanism OID and then pass that in to calls to gssapi_error_string
    rather than hard-coding the Kerberos v5 OID.
 
+Perl library:
+
+ * Add a Perl module to make it easier to write remctl backends that
+   produce useful output for help and summary subcommands, for integration
+   with the new remctld support for service discovery.
+
 Build system:
 
  * Incorporate a program that can generate a Kerberos ticket cache from
@@ -84,6 +96,13 @@ Build system:
 Portability layer:
 
  * Refactor getopt to be easier to understand and less deeply nested.
+
+Test suite:
+
+ * Add tests to ensure that no child processes of the remctld server are
+   still running when the test command finishes for cases like
+   server/timeout or server/invalid where we've previously stranded child
+   processes for long periods.
 
 Windows port:
 
