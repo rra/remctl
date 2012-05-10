@@ -37,9 +37,12 @@ main(void)
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
     is_int(13, result->stdout_len, "...and correct stdout_len");
-    ok(memcmp("summary text\n", result->stdout_buf, 13) == 0,
-       "...and correct data");
-    ok(result->error == NULL, "...and no error");
+    if (result->stdout_buf == NULL)
+        ok(0, "...and correct data");
+    else
+        ok(memcmp("summary text\n", result->stdout_buf, 13) == 0,
+           "...and correct data");
+    is_string(NULL, result->error, "...and no error");
     remctl_result_free(result);
     remctld_stop();
 
@@ -51,8 +54,7 @@ main(void)
     is_int(0, result->stderr_len, "...and no stderr");
     is_int(0, result->stdout_len, "...and no stdout");
     ok(result->error != NULL, "...and error");
-    is_int(0, strcmp(result->error, "Unknown command"),
-       "...and correct error text");
+    is_string("Unknown command", result->error, "...and correct error text");
     remctl_result_free(result);
 
     return 0;
