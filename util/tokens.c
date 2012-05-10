@@ -34,12 +34,12 @@ static enum token_status
 map_socket_error(int err)
 {
     switch (err) {
-    case EPIPE:     return TOKEN_FAIL_EOF;
+    case EPIPE:      return TOKEN_FAIL_EOF;
 #ifdef ECONNRESET
-    case ECONNRESET:return TOKEN_FAIL_EOF;
+    case ECONNRESET: return TOKEN_FAIL_EOF;
 #endif
-    case ETIMEDOUT: return TOKEN_FAIL_TIMEOUT;
-    default:        return TOKEN_FAIL_SOCKET;
+    case ETIMEDOUT:  return TOKEN_FAIL_TIMEOUT;
+    default:         return TOKEN_FAIL_SOCKET;
     }
 }
 
