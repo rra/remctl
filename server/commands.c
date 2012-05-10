@@ -536,7 +536,7 @@ server_send_summary(struct client *client, const char *user,
          * argv and pass off to be executed.
          */
         path = cline->program;
-        req_argv = xmalloc(2 * sizeof(char *));
+        req_argv = xmalloc(3 * sizeof(char *));
         program = strrchr(path, '/');
         if (program == NULL)
             program = path;
@@ -728,7 +728,7 @@ server_run_command(struct client *client, struct config *config,
     if (cline == NULL && strcmp(command, "help") == 0) {
 
         /* Error if we have more than a command and possible subcommand. */
-        if (argv[2] != NULL && argv[3] != NULL) {
+        if (argv[1] != NULL && argv[2] != NULL && argv[3] != NULL) {
             notice("help command from user %s has more than three arguments",
                    user);
             server_send_error(client, ERROR_TOOMANY_ARGS,
