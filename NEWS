@@ -23,6 +23,11 @@ remctl 3.2 (unreleased)
     standard interface to get additional help for a particular remctl
     command.  Written by Jon Robertson.
 
+    remctld now always closes the client connection after low-level errors
+    reading or sending tokens.  Previously, it would attempt to continue
+    after some socket or GSS-API errors, which may have caused hanging
+    remctld processes in some circumstances.
+
     Fix GSS-API header probes when configure was told to build with a
     specific GSS-API library in a non-default path.  Previously, configure
     still used the compiler to probe for the correct header names, which
