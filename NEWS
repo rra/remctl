@@ -42,11 +42,17 @@ remctl 3.2 (unreleased)
     versions of Heimdal.  Thanks to Jeffrey Hutzelman for the series of
     patches.
 
+    Update to rra-c-util 4.4:
+
+    * Pass --deps to krb5-config in the non-reduced-dependencies case.
+    * Silence __attribute__ warnings on more compilers.
+
     Update to C TAP Harness 1.12:
 
     * Only use feature-test macros when requested or built with gcc -ansi.
     * Drop is_double from the C TAP library to avoid requiring -lm.
     * Avoid using local in the shell libtap.sh library.
+    * Silence __attribute__ warnings on more compilers.
 
 remctl 3.1 (2012-02-29)
 

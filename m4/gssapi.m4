@@ -15,13 +15,14 @@ dnl
 dnl Also provides RRA_INCLUDES_KRB5, which are the headers to include when
 dnl probing the Kerberos library properties.
 dnl
-dnl Depends on RRA_ENABLE_REDUCED_DEPENDS and RRA_SET_LDFLAGS.
+dnl Depends on RRA_KRB5_CONFIG, RRA_ENABLE_REDUCED_DEPENDS, and
+dnl RRA_SET_LDFLAGS.
 dnl
 dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2005, 2006, 2007, 2008, 2009, 2011
+dnl Copyright 2005, 2006, 2007, 2008, 2009, 2011, 2012
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl This file is free software; the authors give unlimited permission to copy
@@ -139,28 +140,10 @@ AC_DEFUN([_RRA_LIB_GSSAPI_CHECK],
 
 dnl Determine GSS-API compiler and linker flags from krb5-config.
 AC_DEFUN([_RRA_LIB_GSSAPI_CONFIG],
-[AC_ARG_VAR([PATH_KRB5_CONFIG], [Path to krb5-config])
- AS_IF([test x"$rra_gssapi_root" != x && test -z "$PATH_KRB5_CONFIG"],
-     [AS_IF([test -x "${rra_gssapi_root}/bin/krb5-config"],
-         [PATH_KRB5_CONFIG="${rra_gssapi_root}/bin/krb5-config"])],
-     [AC_PATH_PROG([PATH_KRB5_CONFIG], [krb5-config], [],
-         [${PATH}:/usr/kerberos/bin])])
- AS_IF([test x"$PATH_KRB5_CONFIG" != x && test -x "$PATH_KRB5_CONFIG"],
-     [AC_CACHE_CHECK([for gssapi support in krb5-config],
-         [rra_cv_lib_gssapi_config],
-         [AS_IF(["$PATH_KRB5_CONFIG" 2>&1 | grep gssapi >/dev/null 2>&1],
-             [rra_cv_lib_gssapi_config=yes],
-             [rra_cv_lib_gssapi_config=no])])
-      AS_IF([test "$rra_cv_lib_gssapi_config" = yes],
-          [GSSAPI_CPPFLAGS=`"$PATH_KRB5_CONFIG" --cflags gssapi 2>/dev/null`
-           GSSAPI_LIBS=`"$PATH_KRB5_CONFIG" --libs gssapi 2>/dev/null`],
-          [GSSAPI_CPPFLAGS=`"$PATH_KRB5_CONFIG" --cflags 2>/dev/null`
-           GSSAPI_LIBS=`"$PATH_KRB5_CONFIG" --libs 2>/dev/null`])
-      GSSAPI_CPPFLAGS=`echo "$GSSAPI_CPPFLAGS" | sed 's%-I/usr/include %%'`
-      GSSAPI_CPPFLAGS=`echo "$GSSAPI_CPPFLAGS" | sed 's%-I/usr/include$%%'`
-      _RRA_LIB_GSSAPI_CHECK],
-     [_RRA_LIB_GSSAPI_PATHS
-      _RRA_LIB_GSSAPI_MANUAL])])
+[RRA_KRB5_CONFIG([${rra_gssapi_root}], [gssapi], [GSSAPI],
+    [_RRA_LIB_GSSAPI_CHECK],
+    [_RRA_LIB_GSSAPI_PATHS
+     _RRA_LIB_GSSAPI_MANUAL])])
 
 dnl Check for a header using a file existence check rather than using
 dnl AC_CHECK_HEADERS.  This is used if there were arguments to configure
