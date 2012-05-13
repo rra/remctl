@@ -87,6 +87,7 @@
 /tests/server/bind-t
 /tests/server/config-t
 /tests/server/continue-t
+/tests/server/empty-t
 /tests/server/env-t
 /tests/server/errors-t
 /tests/server/help-t

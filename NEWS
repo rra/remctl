@@ -28,6 +28,9 @@ remctl 3.2 (unreleased)
     after some socket or GSS-API errors, which may have caused hanging
     remctld processes in some circumstances.
 
+    Fix remctld segfault when the configuration does not define any
+    commands.  Thanks to Andrew Mortensen for the report.
+
     Fix GSS-API header probes when configure was told to build with a
     specific GSS-API library in a non-default path.  Previously, configure
     still used the compiler to probe for the correct header names, which

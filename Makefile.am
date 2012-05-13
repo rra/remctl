@@ -256,9 +256,9 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
 	tests/portable/snprintf-t tests/portable/strlcat-t		    \
 	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t   \
 	tests/server/bind-t tests/server/config-t tests/server/continue-t   \
-	tests/server/env-t tests/server/errors-t tests/server/help-t        \
-	tests/server/invalid-t tests/server/logging-t tests/server/noop-t   \
-	tests/server/stdin-t tests/server/streaming-t                       \
+	tests/server/empty-t tests/server/env-t tests/server/errors-t	    \
+	tests/server/help-t tests/server/invalid-t tests/server/logging-t   \
+	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t   \
 	tests/server/summary-t tests/server/user-t tests/server/version-t   \
 	tests/util/concat-t tests/util/fdflag-t tests/util/gss-tokens-t	    \
 	tests/util/messages-t tests/util/network-t tests/util/tokens-t	    \
@@ -350,6 +350,8 @@ tests_server_config_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_config_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS)
 tests_server_continue_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
+tests_server_empty_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_env_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
