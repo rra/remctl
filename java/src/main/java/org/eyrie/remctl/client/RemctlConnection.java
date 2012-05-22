@@ -239,7 +239,7 @@ public class RemctlConnection {
         this.inStream = new DataInputStream(socket.getInputStream());
         this.outStream = new DataOutputStream(socket.getOutputStream());
 
-        logger.info("Connected to server {} ", socket.getInetAddress());
+        logger.debug("Connected to server {} ", socket.getInetAddress());
 
         if (this.serverPrincipal == null) {
             String cannonicalName = socket.getInetAddress().getCanonicalHostName().toLowerCase();
@@ -320,7 +320,7 @@ public class RemctlConnection {
             }
         }
 
-        logger.info("Context Established! ");
+        logger.debug("Context Established");
         logger.debug("Client is {}", this.gssContext.getSrcName());
         logger.debug("Server is {}", this.gssContext.getTargName());
 
@@ -329,7 +329,7 @@ public class RemctlConnection {
          * both client and server were authenticated to each other.
          */
         if (this.gssContext.getMutualAuthState()) {
-            logger.info("Mutual authentication took place!");
+            logger.debug("Mutual authentication took place!");
         }
     }
 
