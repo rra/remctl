@@ -2,134 +2,130 @@
 
 Protocol:
 
- * Add support for running commands as filters, passing standard input
-   asynchronously from the client.  This requires significant
+ * REMCTL-3: Add support for running commands as filters, passing standard
+   input asynchronously from the client.  This requires significant
    re-engineering of the client loop and should wait for better
    configuration since we don't want to do this with every command.  It
    also introduces out-of-order responses and possible deadlocks to the
    protocol.  docs/protocol-v4 has an initial draft.
 
- * Support authentication via anonymous PKINIT.  This may already work,
-   but the asserted identity should be documented and it's not clear
-   whether this should match an ANYUSER ACL.
+ * REMCTL-4: Support authentication via anonymous PKINIT.  This may
+   already work, but the asserted identity should be documented and it's
+   not clear whether this should match an ANYUSER ACL.
 
 Server:
 
- * Add a way of explicitly specifying the null command or subcommand in
-   the remctl configuration.
+ * REMCTL-5: Add a way of explicitly specifying the null command or
+   subcommand in the remctl configuration annd then permit it rather than
+   returning a syntax error.
 
- * Maximum argument count, maximum data size in MESSAGE_COMMAND, and
-   inactivity timeouts for commands should be configurable parameters of
-   the server rather than hard-coded values.
+ * REMCTL-6: Maximum argument count, maximum data size in MESSAGE_COMMAND,
+   and inactivity timeouts for commands should be configurable parameters
+   of the server rather than hard-coded values.
 
- * Support LDAP-based ACLs in addition to file system ACLs.
+ * REMCTL-7: Support LDAP-based ACLs in addition to file system ACLs.
+   Probably need to support both entitlement and group-based ACLs.
 
- * Add support for external ACL checking programs.  If the program exits
-   with a zero status, access is granted.  If it exits 1, access is not
-   granted but checking continues.  If it exits with any other exit
-   status, access is not granted and checking aborts.
+ * REMCTL-8: Add support for external ACL checking programs.  If the
+   program exits with a zero status, access is granted.  If it exits 1,
+   access is not granted but checking continues.  If it exits with any
+   other exit status, access is not granted and checking aborts.
 
    Ideally, for writing generic ACL checking programs, the program should
    get the type and service of the remctl command as well as any
    arguments.  However, it would also be good to support passing other
    arguments into the program as specified in the ACL file.
 
- * Sort the files in a directory before processing them so that the order
-   is deterministic.  Affects both configuration (earlier entries
-   override later ones) and ACL rules in the presence of deny ACLs.
+ * REMCTL-9: Sort the files in a directory before processing them so that
+   the order is deterministic.  Affects both configuration (earlier
+   entries override later ones) and ACL rules in the presence of deny
+   ACLs.
 
- * Provide a way to specify handling of the empty command and then permit
-   it rather than returning a syntax error.
+ * REMCTL-10: Add a timeout for commands after which the server kills the
+   command.
 
- * Add a timeout for commands after which the server kills the command.
-
- * The server should call gss_inquire_context to retrieve the mechanism
-   OID and then pass that in to calls to gssapi_error_string rather than
-   hard-coding the Kerberos v5 OID.
-
- * Support binding to a specified address or addresses given as
-   command-line options.
-
- * Add option to mask all arguments.
-
- * Track all the children spawned by remctld in stand-alone mode.  On
-   receipt of SIGTERM or SIGINT, send SIGUSR1 to all children.  In the
-   children, on receipt of SIGUSR1, exit as soon as the current command in
-   progress (if any) stops running.  (SIGTERM or SIGINT directly to a
-   child should kill it outright.)
-
-Client:
-
- * Implement file upload in the remctl client.
-
- * Add readline support to the remctl client for multiple commands to the
-   same server in the same authenticated session.
-
- * Add an option that prompts the user, with echo disabled, for a piece of
-   secure data, prompting twice to ensure both times match, and then sends
-   that as the last argument to the command.  This would be useful for
-   remctl interfaces to change passwords.
-
- * Allow sending the empty command in the command-line client once the
-   server supports it.
-
-Client library:
-
- * The client should ideally not specify an OID for the authentication
-   mechanism and instead permit GSS-API to negotiate an appropriate
-   mechanism.  It should then call gss_inquire_context to retrieve the
+ * REMCTL-11: The server should call gss_inquire_context to retrieve the
    mechanism OID and then pass that in to calls to gssapi_error_string
    rather than hard-coding the Kerberos v5 OID.
 
+ * REMCTL-12: Add option to mask all arguments.
+
+ * REMCTL-13: Track all the children spawned by remctld in stand-alone
+   mode.  On receipt of SIGTERM or SIGINT, send SIGUSR1 to all children.
+   In the children, on receipt of SIGUSR1, exit as soon as the current
+   command in progress (if any) stops running.  (SIGTERM or SIGINT
+   directly to a child should kill it outright.)
+
+Client:
+
+ * REMCTL-14: Implement file upload in the remctl client.
+
+ * REMCTL-15: Add readline support to the remctl client for multiple
+   commands to the same server in the same authenticated session.
+
+ * REMCTL-16: Add an option that prompts the user, with echo disabled, for
+   a piece of secure data, prompting twice to ensure both times match, and
+   then sends that as the last argument to the command.  This would be
+   useful for remctl interfaces to change passwords.
+
+ * REMCTL-17: Allow sending the empty command in the command-line client
+   once the server supports it.
+
+Client library:
+
+ * REMCTL-18: The client should ideally not specify an OID for the
+   authentication mechanism and instead permit GSS-API to negotiate an
+   appropriate mechanism.  It should then call gss_inquire_context to
+   retrieve the mechanism OID and then pass that in to calls to
+   gssapi_error_string rather than hard-coding the Kerberos v5 OID.
+
 Perl library:
 
- * Add a Perl module to make it easier to write remctl backends that
-   produce useful output for help and summary subcommands, for integration
-   with the new remctld support for service discovery.
+ * REMCTL-19: Add a Perl module to make it easier to write remctl backends
+   that produce useful output for help and summary subcommands, for
+   integration with the new remctld support for service discovery.
 
 Build system:
 
- * Incorporate a program that can generate a Kerberos ticket cache from
-   a keytab and use that for running the Kerberos tests instead of
-   requiring the user to generate a keytab.
+ * REMCTL-20: Incorporate a program that can generate a Kerberos ticket
+   cache from a keytab and use that for running the Kerberos tests instead
+   of requiring the user to generate a keytab.
 
 Portability layer:
 
- * Refactor getopt to be easier to understand and less deeply nested.
+ * REMCTL-21: Refactor getopt to be easier to understand and less deeply
+   nested.
 
 Test suite:
 
- * Add tests to ensure that no child processes of the remctld server are
-   still running when the test command finishes for cases like
+ * REMCTL-22: Add tests to ensure that no child processes of the remctld
+   server are still running when the test command finishes for cases like
    server/timeout or server/invalid where we've previously stranded child
    processes for long periods.
 
 Windows port:
 
- * With more modifications, it should be possible to build remctl against
-   SSPI, the GSS-API-like interface built into Windows, and remove the
-   dependency on MIT Kerberos for Windows.  However, limitations
-   surrounding realm trusts in the Kerberos implementation in versions of
-   Windows prior to Vista would make this a less general solution.
+ * REMCTL-23: With more modifications, it should be possible to build
+   remctl against SSPI, the GSS-API-like interface built into Windows, and
+   remove the dependency on MIT Kerberos for Windows.  However,
+   limitations surrounding realm trusts in the Kerberos implementation in
+   versions of Windows prior to Vista would make this a less general
+   solution.  Alternately, a separate client protocol implementation in
+   .NET (either C# or C++) may be easier than trying to build the current
+   source base on Windows with SSPI.
 
- * Support the remctl server.
+ * REMCTL-24: Support the remctl server.
 
 Java implementation:
 
- * Integrate the new Java client implementation.  (REMCTL-1)
+ * REMCTL-1: Integrate the new Java client implementation.
 
- * Fix the coding style of the Java implementation to match the coding
-   style of the rest of remctl.
+ * REMCTL-25: Integrate the Java build into the rest of the build system
+   so that it is enabled using an --enable-java flag similar to the
+   bindings, finds maven and a JAVA_HOME in configure, and does the JAR
+   build in the main Makefile using maven.
 
- * Integrate the Java build into the rest of the build system so that it
-   is enabled using an --enable-java flag similar to the bindings, finds
-   ant and a JAVA_HOME in configure, and does the JAR build in the main
-   Makefile using ant.
-
- * Consider eliminating the simple Makefile in the java directory and
-   requiring ant.
-
- * Java cannot obtain tickets from a ticket cache created using the
-   k5.conf file included in the java directory using the current MIT
+ * REMCTL-26: Java cannot obtain tickets from a ticket cache created using
+   the k5.conf file included in the java directory using the current MIT
    Kerberos on Debian.  It has to prompt for a password and get tickets
    itself.  Figure out why and fix it.
