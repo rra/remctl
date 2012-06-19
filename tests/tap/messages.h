@@ -31,7 +31,7 @@
 #define TAP_MESSAGES_H 1
 
 #include <config.h>
-#include <portable/macros.h>
+#include <tests/tap/macros.h>
 
 /* A global buffer into which errors_capture stores errors. */
 extern char *errors;

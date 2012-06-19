@@ -50,7 +50,7 @@ main(void)
     if (!status) {
         is_string("setting credential cache not supported", remctl_error(r),
                   "remctl_set_ccache failed with correct error");
-        skip_block(8, "credential cache setting not supported");
+        skip_block(9, "credential cache setting not supported");
     } else {
         ok(remctl_set_ccache(r, cache), "remctl_set_ccache");
         ok(remctl_open(r, "127.0.0.1", 14373, config->principal),

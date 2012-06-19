@@ -231,9 +231,8 @@ server_v2_read_token(struct client *client, gss_buffer_t token)
                              TOKEN_MAX_LENGTH, TIMEOUT, &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("receiving token", status, major, minor);
-        if (status != TOKEN_FAIL_EOF)
-            if (!server_send_error(client, ERROR_BAD_TOKEN, "Invalid token"))
-                return TOKEN_FAIL_EOF;
+        if (status != TOKEN_FAIL_EOF && status != TOKEN_FAIL_SOCKET)
+            server_send_error(client, ERROR_BAD_TOKEN, "Invalid token");
     }
     return status;
 }
@@ -256,8 +255,10 @@ server_v2_read_continuation(struct client *client, gss_buffer_t token)
     char *p;
 
     status = server_v2_read_token(client, token);
-    if (status != TOKEN_OK)
+    if (status != TOKEN_OK) {
+        client->fatal = true;
         return false;
+    }
     p = token->value;
     if (p[0] != 2 && p[0] != 3) {
         server_v2_send_version(client);
@@ -374,7 +375,7 @@ server_v2_handle_command(struct client *client, struct config *config,
 fail:
     if (allocated)
         free(buffer);
-    return result;
+    return client->fatal ? false : result;
 }
 
 
@@ -435,10 +436,8 @@ server_v2_handle_messages(struct client *client, struct config *config)
     client->keepalive = true;
     do {
         status = server_v2_read_token(client, &token);
-        if (status == TOKEN_FAIL_EOF)
+        if (status != TOKEN_OK)
             break;
-        else if (status != TOKEN_OK)
-            continue;
         if (!server_v2_handle_token(client, config, &token)) {
             gss_release_buffer(&minor, &token);
             break;

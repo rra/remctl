@@ -21,7 +21,7 @@ int
 main(void)
 {
     struct confline confline = {
-        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL
+        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, NULL, NULL
     };
     const char *acls[5];
 
@@ -205,7 +205,7 @@ main(void)
     errors_uncapture();
     skip_block(4, "GPUT support not configured");
 #endif
-	
+
     /*
      * Check PCRE ACLs, or make sure they behave as they should when not
      * supported.

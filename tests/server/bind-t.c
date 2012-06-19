@@ -37,6 +37,35 @@ have_ipv6(void)
     return true;
 }
 
+/*
+ * Test whether we have any IPv6 addresses.  This is used to decide
+ * whether to expect the server to bind IPv6 addresses by default.
+ */
+static bool
+have_ipv6_addr(void)
+{
+    struct addrinfo hints, *addrs, *addr;
+    int error;
+    char service[16];
+    bool result = false;
+
+    /* Do the query to find all the available addresses. */
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    snprintf(service, sizeof(service), "%hu", 14373);
+    error = getaddrinfo(NULL, service, &hints, &addrs);
+    if (error < 0)
+        return false;
+    for (addr = addrs; addr != NULL; addr = addr->ai_next) {
+        if (addr->ai_family == AF_INET6)
+            result = true;
+    }
+    freeaddrinfo(addrs);
+    return result;
+}
+
 
 /*
  * Run the remote test command and confirm the output is correct.  Takes the
@@ -103,7 +132,7 @@ main(void)
     test_command(r, "127.0.0.1");
     remctl_close(r);
 #ifdef HAVE_INET6
-    if (ipv6) {
+    if (ipv6 && have_ipv6_addr()) {
         r = remctl_new();
         ok(remctl_open(r, "::1", 14373, config->principal), "Connect to ::1");
         test_command(r, "::1");

@@ -21,7 +21,7 @@ int
 main(void)
 {
     struct confline confline = {
-        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL
+        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, NULL, NULL
     };
     struct iovec **command;
     int i;

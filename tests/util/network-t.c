@@ -35,6 +35,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #include <tests/tap/basic.h>
 #include <util/macros.h>
@@ -525,6 +526,7 @@ test_network_read(void)
         delay_writer(c);
     } else {
         alarm(10);
+        slen = sizeof(sin);
         c = accept(fd, &sin, &slen);
         if (c == INVALID_SOCKET) {
             sysdiag("cannot accept on socket");
@@ -588,6 +590,7 @@ test_network_write(void)
         delay_reader(c);
     } else {
         alarm(10);
+        slen = sizeof(struct sockaddr_in);
         c = accept(fd, &sin, &slen);
         if (c == INVALID_SOCKET) {
             sysdiag("cannot accept on socket");
@@ -618,10 +621,12 @@ test_network_write(void)
 static void
 ok_addr(int expected, const char *a, const char *b, const char *mask)
 {
+    const char *smask = (mask == NULL) ? "(null)" : mask;
+
     if (expected)
-        ok(network_addr_match(a, b, mask), "compare %s %s %s", a, b, mask);
+        ok(network_addr_match(a, b, mask), "compare %s %s %s", a, b, smask);
     else
-        ok(!network_addr_match(a, b, mask), "compare %s %s %s", a, b, mask);
+        ok(!network_addr_match(a, b, mask), "compare %s %s %s", a, b, smask);
 }
 
 

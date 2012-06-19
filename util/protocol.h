@@ -45,7 +45,8 @@ enum error_codes {
     ERROR_ACCESS             = 6,  /* Access denied. */
     ERROR_TOOMANY_ARGS       = 7,  /* Argument count exceeds server limit. */
     ERROR_TOOMUCH_DATA       = 8,  /* Argument size exceeds server limit. */
-    ERROR_UNEXPECTED_MESSAGE = 9   /* Message type not valid now. */
+    ERROR_UNEXPECTED_MESSAGE = 9,  /* Message type not valid now. */
+    ERROR_NO_HELP            = 10  /* No help defined for this command. */
 };
 
 #endif /* UTIL_PROTOCOL_H */

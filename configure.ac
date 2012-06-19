@@ -7,11 +7,11 @@ dnl
 dnl See LICENSE for licensing terms.
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [3.1], [rra@stanford.edu])
+AC_INIT([remctl], [3.2], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([1.11 check-news foreign silent-rules subdir-objects
+AM_INIT_AUTOMAKE([1.11 check-news dist-xz foreign silent-rules subdir-objects
     -Wall -Werror])
 AM_MAINTAINER_MODE
 
@@ -26,11 +26,20 @@ dnl Only used for the test suite.
 AC_ARG_VAR([PATH_FAKEROOT], [Path to fakeroot for the test suite])
 AC_PATH_PROG([PATH_FAKEROOT], [fakeroot])
 
+dnl GSS-API portability checks.
+RRA_LIB_GSSAPI
+RRA_LIB_GSSAPI_SWITCH
+AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
+   [AC_CHECK_DECLS([gss_mech_krb5], [],
+       [AC_LIBOBJ([gssapi-mech])], [RRA_INCLUDES_GSSAPI])],
+   [RRA_INCLUDES_GSSAPI])
+AC_CHECK_FUNCS([gss_krb5_ccache_name])
+RRA_LIB_GSSAPI_RESTORE
+
 AC_SEARCH_LIBS([gethostbyname], [nsl])
 AC_SEARCH_LIBS([socket], [socket], ,
     [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], [],
         [-lsocket])])
-RRA_LIB_GSSAPI
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/uio.h syslog.h])
 AC_CHECK_DECLS([snprintf, vsnprintf])
@@ -75,45 +84,6 @@ AC_CHECK_FUNCS([setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
                   setenv strlcat strlcpy])
 AC_TYPE_SIGNAL
-
-dnl Additional GSS-API portability checks.
-RRA_LIB_GSSAPI_SWITCH
-AC_CHECK_HEADERS([gssapi/gssapi.h gssapi/gssapi_krb5.h])
-AC_CHECK_DECL([GSS_C_NT_USER_NAME],
-    [AC_DEFINE([HAVE_GSS_RFC_OIDS], 1,
-       [Define to 1 if the GSS-API library uses RFC-compliant OIDs.])], [],
-[[
-#ifdef HAVE_GSSAPI_GSSAPI_H
-# include <gssapi/gssapi.h>
-#else
-# include <gssapi.h>
-#endif
-]])
-AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
-    [AC_CHECK_DECLS([gss_mech_krb5], [],
-        [AC_LIBOBJ([gssapi-mech])],
-[[
-#ifdef HAVE_GSSAPI_GSSAPI_H
-# include <gssapi/gssapi.h>
-#else
-# include <gssapi.h>
-#endif
-#ifdef HAVE_GSSAPI_GSSAPI_KRB5_H
-# include <gssapi/gssapi_krb5.h>
-#endif
-]])],
-[[
-#ifdef HAVE_GSSAPI_GSSAPI_H
-# include <gssapi/gssapi.h>
-#else
-# include <gssapi.h>
-#endif
-#ifdef HAVE_GSSAPI_GSSAPI_KRB5_H
-# include <gssapi/gssapi_krb5.h>
-#endif
-]])
-AC_CHECK_FUNCS([gss_krb5_ccache_name])
-RRA_LIB_GSSAPI_RESTORE
 
 dnl Check for the CMU GPUT library.
 RRA_LIB_GPUT

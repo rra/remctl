@@ -30,6 +30,29 @@
 #endif
 
 /*
+ * We use __alloc_size__, but it was only available in fairly recent versions
+ * of GCC.  Suppress warnings about the unknown attribute if GCC is too old.
+ * We know that we're GCC at this point, so we can use the GCC variadic macro
+ * extension, which will still work with versions of GCC too old to have C99
+ * variadic macro support.
+ */
+#if !defined(__attribute__) && !defined(__alloc_size__)
+# if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 3)
+#  define __alloc_size__(spec, args...) /* empty */
+# endif
+#endif
+
+/*
+ * LLVM and Clang pretend to be GCC but don't support all of the __attribute__
+ * settings that GCC does.  For them, suppress warnings about unknown
+ * attributes on declarations.  This unfortunately will affect the entire
+ * compilation context, but there's no push and pop available.
+ */
+#if !defined(__attribute__) && (defined(__llvm__) || defined(__clang__))
+# pragma GCC diagnostic ignored "-Wattributes"
+#endif
+
+/*
  * BEGIN_DECLS is used at the beginning of declarations so that C++
  * compilers don't mangle their names.  END_DECLS is used at the end.
  */

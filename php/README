@@ -274,3 +274,13 @@ HISTORY
   This binding was originally written by Andrew Mortensen. part of the
   stock remctl distribution and ongoing maintenance is done by Russ
   Allbery.
+
+LICENSE
+
+  Copyright 2008, 2009, 2011, 2012 The Board of Trustees of the Leland
+  Stanford Junior University
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.  This file is offered as-is,
+  without any warranty.
