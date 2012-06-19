@@ -1,3 +1,12 @@
+# RPM spec file for remctl.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Improvements by Thomas Kula
+# Copyright 2006, 2007, 2012
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
+
 %define rel %(cat /etc/redhat-release | cut -d' ' -f7)
 
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.

@@ -250,3 +250,13 @@ HISTORY
   The original implementation was written by Anthony Martinez
   <twopir@nmt.edu> in 2010.  As of remctl 2.16 it is part of the stock
   remctl distribution.
+
+LICENSE
+
+  Copyright 2010, 2011, 2012 The Board of Trustees of the Leland Stanford
+  Junior University
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.  This file is offered as-is,
+  without any warranty.

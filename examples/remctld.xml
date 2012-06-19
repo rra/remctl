@@ -15,7 +15,7 @@
 
 		svcadm enable /site/remctld
 
-	Author 2009-05-08 Peter Eriksson <peter@ifm.liu.se>
+	Copyright 2009 Peter Eriksson <peter@ifm.liu.se>
 
 	See LICENSE for licensing terms.
 -->

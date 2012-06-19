@@ -1,5 +1,11 @@
 --TEST--
 Check setting source IP
+--CREDIT--
+Russ Allbery
+# Copyright 2011
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
 --ENV--
 KRB5CCNAME=remctl-test.cache
 LD_LIBRARY_PATH=../client/.libs

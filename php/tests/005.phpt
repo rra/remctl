@@ -1,5 +1,11 @@
 --TEST--
 Check setting credential cache
+--CREDIT--
+Russ Allbery
+# Copyright 2011
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
 --ENV--
 KRB5CCNAME=nonexistent-file
 LD_LIBRARY_PATH=../client/.libs

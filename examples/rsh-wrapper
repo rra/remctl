@@ -30,6 +30,15 @@
 # an account on the remote system.
 #
 # This idea and sample script are from Romain LENGLET.
+#
+# Copyright 2006 Romain LENGLET
+# Copyright 2007
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved.  This file is offered as-is, without any
+# warranty.
 
 if [ $# -lt 2 ] ; then
     echo "Invalid number of parameters"
