@@ -29,8 +29,8 @@ bootstrap Net::Remctl;
 
 =for stopwords
 remctl libremctl GSS-API HOSTNAME remctld IPv4 IPv6 NUL CNAME DNS Allbery
-MERCHANTABILITY libdefaults CCACHE IP DNS-based unencoded lookups
-canonicalization
+MERCHANTABILITY sublicense NONINFRINGEMENT libdefaults CCACHE IP DNS-based
+unencoded lookups canonicalization
 
 =head1 NAME
 
