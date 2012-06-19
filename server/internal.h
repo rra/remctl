@@ -67,6 +67,8 @@ struct confline {
     char *user;                 /* Run executable as user. */
     uid_t uid;                  /* Run executable with this UID. */
     gid_t gid;                  /* Run executable with this GID. */
+    char *summary;              /* Argument that gives a command summary. */
+    char *help;                 /* Argument that gives help for a command. */
     char **acls;                /* Full file names of ACL files. */
 };
 

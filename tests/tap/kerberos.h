@@ -31,7 +31,7 @@
 #define TAP_KERBEROS_H 1
 
 #include <config.h>
-#include <portable/macros.h>
+#include <tests/tap/macros.h>
 
 #ifdef HAVE_KERBEROS
 # include <portable/krb5.h>

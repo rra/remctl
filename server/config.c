@@ -302,11 +302,41 @@ option_user(struct confline *confline, char *value, const char *name,
 
 
 /*
+ * Parse the summary configuration option.  Stores the summary option in the
+ * configuration line struct.  Returns CONFIG_SUCCESS on success and
+ * CONFIG_ERROR on error.
+ */
+static enum config_status
+option_summary(struct confline *confline, char *value,
+               const char *name UNUSED, size_t lineno UNUSED)
+{
+    confline->summary = value;
+    return CONFIG_SUCCESS;
+}
+
+
+/*
+ * Parse the help configuration option.  Stores the help option in the
+ * configuration line struct.  Returns CONFIG_SUCCESS on success and
+ * CONFIG_ERROR on error.
+ */
+static enum config_status
+option_help(struct confline *confline, char *value,
+            const char *name UNUSED, size_t lineno UNUSED)
+{
+    confline->help = value;
+    return CONFIG_SUCCESS;
+}
+
+
+/*
  * The table relating configuration option names to functions.
  */
 static const struct config_option options[] = {
+    { "help",    option_help    },
     { "logmask", option_logmask },
     { "stdin",   option_stdin   },
+    { "summary", option_summary },
     { "user",    option_user    },
     { NULL,      NULL           }
 };

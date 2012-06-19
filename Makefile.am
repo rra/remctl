@@ -63,7 +63,8 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/acls/val.id tests/data/acls/valid			    \
 	tests/data/acls/valid-2 tests/data/acls/val~id			    \
 	tests/data/acls2/valid-4 tests/data/cmd-argv tests/data/cmd-env	    \
-	tests/data/cmd-hello tests/data/cmd-sleep tests/data/cmd-status	    \
+	tests/data/cmd-hello tests/data/cmd-help tests/data/cmd-sleep	    \
+	tests/data/cmd-status tests/data/conf-nosummary			    \
 	tests/data/conf-simple tests/data/conf-test			    \
 	tests/data/configs/bad-logmask-1 tests/data/configs/bad-include-1   \
 	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
@@ -256,9 +257,10 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
 	tests/portable/snprintf-t tests/portable/strlcat-t		    \
 	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t   \
 	tests/server/bind-t tests/server/config-t tests/server/continue-t   \
-	tests/server/env-t tests/server/errors-t tests/server/invalid-t	    \
-	tests/server/logging-t tests/server/noop-t tests/server/stdin-t	    \
-	tests/server/streaming-t tests/server/user-t tests/server/version-t \
+	tests/server/empty-t tests/server/env-t tests/server/errors-t	    \
+	tests/server/help-t tests/server/invalid-t tests/server/logging-t   \
+	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t   \
+	tests/server/summary-t tests/server/user-t tests/server/version-t   \
 	tests/util/concat-t tests/util/fdflag-t tests/util/gss-tokens-t	    \
 	tests/util/messages-t tests/util/network-t tests/util/tokens-t	    \
 	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
@@ -270,9 +272,9 @@ tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests		\
 	-DPATH_REMCTLD='"$(abs_top_builddir)/server/remctld"'
 tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 	tests/tap/kerberos.c tests/tap/kerberos.h tests/tap/messages.c	\
-	tests/tap/messages.h tests/tap/process.c tests/tap/process.h	\
-	tests/tap/remctl.c tests/tap/remctl.h tests/tap/string.c	\
-	tests/tap/string.h
+	tests/tap/messages.h tests/tap/macros.h tests/tap/process.c	\
+	tests/tap/process.h tests/tap/remctl.c tests/tap/remctl.h	\
+	tests/tap/string.c tests/tap/string.h
 
 # Used for server tests.
 SERVER_FILES = server/commands.c server/config.c server/generic.c \
@@ -350,9 +352,13 @@ tests_server_config_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS)
 tests_server_continue_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
+tests_server_empty_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
 tests_server_env_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_errors_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
+tests_server_help_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_invalid_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
@@ -366,6 +372,8 @@ tests_server_noop_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
+tests_server_summary_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_user_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la

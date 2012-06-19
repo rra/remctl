@@ -10,8 +10,9 @@
 **  capturing and parsing the output from a remctl command,
 **  meanwhile passing error output straight on to stderr.
 **
-**  Written by Marcus Watts <mdw@umich.edu>
-**  July, 2007
+**  Copyright 2007 Marcus Watts <mdw@umich.edu>
+**
+**  See LICENSE for licensing terms.
 */
 
 import javax.security.auth.callback.*;

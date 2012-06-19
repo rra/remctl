@@ -1,4 +1,4 @@
-                            remctl release 3.1
+                            remctl release 3.2
             (remote authenticated command execution with ACLs)
 
                    Originally written by Anton Ushakov
@@ -7,9 +7,7 @@
   Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
   2012 The Board of Trustees of the Leland Stanford Junior University.
   This software is distributed under a BSD-style license.  Please see the
-  file LICENSE in the distribution for terms of use and redistribution.
-
-  For release history and user-visible changes, see the file NEWS.
+  section LICENSE below for more information.
 
 BLURB
 
@@ -49,6 +47,8 @@ DESCRIPTION
   Complete protocol documentation is available in docs/protocol.html.
   Also present, as docs/design.html, is the original design document (now
   somewhat out of date).
+
+  For release history and user-visible changes, see the file NEWS.
 
 REQUIREMENTS
 
@@ -97,10 +97,10 @@ REQUIREMENTS
   OpenJDK 6 or later.
 
   To run the test suite, you will need Test::Pod as described above.  The
-  test suite will also need to be able to build to 127.0.0.1 on port 11119
+  test suite will also need to be able to bind to 127.0.0.1 on port 11119
   and 14373 to run test network server programs.  In order to fully test
   remctl, you will also need to create a keytab for a valid Kerberos
-  principal in your local realm; see tests/data/README for more
+  principal in your local realm; see tests/config/README for more
   information.
 
   To test user handling in remctld, you will need the fakeroot command
@@ -290,7 +290,7 @@ TESTING
 
   In order to do more than limited tests of the low-level routines, you
   should first create a keytab for testing use containing the key for a
-  principal in your local realm.  See tests/data/README for instructions
+  principal in your local realm.  See tests/config/README for instructions
   on what to create and where to place the files.
 
   If a test case fails, please run the that individual test case with
@@ -368,7 +368,7 @@ THANKS
 
   To Jeffrey Hutzelman for adding the framework for ACL method support and
   implementing the file, princ, deny, and gput schemes, as well as lots of
-  testing and portability bug reports.
+  testing and portability bug reports and patches.
 
   To Timothy G. Abbott for suggesting additional restrictions on the names
   of files read when processing an include of a directory.
@@ -386,3 +386,41 @@ THANKS
 
   To Tollef Fog Heen for assistance in writing the pkg-config
   configuration file for libremctl.
+
+LICENSE
+
+  The remctl package as a whole covered by the following copyright
+  statement and license:
+
+    Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
+        2012 The Board of Trustees of the Leland Stanford Junior
+        University
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+  All individual files without an explicit exception below are released
+  under this license.  Some files may have additional copyright holders as
+  noted in those files.  There is detailed information about the licensing
+  of each file in the LICENSE file in this distribution.
+
+  Some files in this distribution are individually released under
+  different licenses, all of which are compatible with the above general
+  package license but which may require preservation of additional
+  notices.  All required notices are preserved in the LICENSE file.

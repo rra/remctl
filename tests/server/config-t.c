@@ -45,7 +45,7 @@ main(void)
 {
     struct config *config;
 
-    plan(47);
+    plan(49);
     if (chdir(getenv("SOURCE")) < 0)
         sysbail("can't chdir to SOURCE");
 
@@ -78,6 +78,8 @@ main(void)
     is_int(0, config->rules[2]->logmask[3], "...and three logmask values");
     is_string("ANYUSER", config->rules[2]->acls[0], "acl 3");
     ok(config->rules[2]->acls[1] == NULL, "...and only one acl");
+    is_string("data/cmd-hello", config->rules[2]->summary, "summary 3");
+    is_string("data/command-hello", config->rules[2]->help, "help 3");
 
     is_string("foo", config->rules[3]->command, "command 4");
     is_string("ALL", config->rules[3]->subcommand, "subcommand 4");

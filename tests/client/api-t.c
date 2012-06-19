@@ -61,7 +61,7 @@ do_tests(const char *principal, int protocol)
     output = remctl_output(r);
     ok(output != NULL, "first output token is not null");
     if (output == NULL)
-        ok(0, "...and has correct content");
+        ok_block(4, 0, "...and has correct content");
     else {
         is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
         is_int(12, output->length, "...and is right length");

@@ -113,27 +113,6 @@ main(void)
     is_int(3, flags, "...and the right flags");
     gss_release_buffer(&c_min_stat, &client_tok);
 
-    /* Test sending and receiving a token with a timeout. */
-    fail_timeout = true;
-    status = token_send_priv(0, client_ctx, 3, &server_tok, 1, &s_stat,
-                             &c_min_stat);
-    is_int(TOKEN_FAIL_TIMEOUT, status, "sending a token with timeout");
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024, 1,
-                             &s_stat, &c_min_stat);
-    is_int(TOKEN_FAIL_TIMEOUT, status, "receiving a token with timeout");
-    fail_timeout = false;
-
-    /* Test receiving too large of a token. */
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 4, 0,
-                             &s_stat, &s_min_stat);
-    is_int(TOKEN_FAIL_LARGE, status, "receiving too large of a token");
-
-    /* Test receiving a corrupt token. */
-    recv_length = 4;
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024, 0,
-                             &s_stat, &s_min_stat);
-    is_int(TOKEN_FAIL_GSSAPI, status, "receiving a corrupt token");
-
     /*
      * Now, fake up a token to make sure that token_recv_priv is doing the
      * right thing.
@@ -182,6 +161,33 @@ main(void)
     s_stat = gss_verify_mic(&s_min_stat, server_ctx, &client_tok, &server_tok,
                             NULL);
     is_int(GSS_S_COMPLETE, s_stat, "...and would send correct MIC");
+
+    /*
+     * Test sending and receiving a token with a timeout.  This and the tests
+     * below must come last, and after any successful token test, because
+     * they will break the sequence numbers between the client and server and
+     * some older versions of Heimdal impose ordering regardless of the
+     * negotiation flags.
+     */
+    fail_timeout = true;
+    status = token_send_priv(0, client_ctx, 3, &server_tok, 1, &s_stat,
+                             &c_min_stat);
+    is_int(TOKEN_FAIL_TIMEOUT, status, "sending a token with timeout");
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024, 1,
+                             &s_stat, &c_min_stat);
+    is_int(TOKEN_FAIL_TIMEOUT, status, "receiving a token with timeout");
+    fail_timeout = false;
+
+    /* Test receiving too large of a token. */
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 4, 0,
+                             &s_stat, &s_min_stat);
+    is_int(TOKEN_FAIL_LARGE, status, "receiving too large of a token");
+
+    /* Test receiving a corrupt token. */
+    recv_length = 4;
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024, 0,
+                             &s_stat, &s_min_stat);
+    is_int(TOKEN_FAIL_GSSAPI, status, "receiving a corrupt token");
 
     return 0;
 }

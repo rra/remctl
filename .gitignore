@@ -87,13 +87,16 @@
 /tests/server/bind-t
 /tests/server/config-t
 /tests/server/continue-t
+/tests/server/empty-t
 /tests/server/env-t
 /tests/server/errors-t
+/tests/server/help-t
 /tests/server/invalid-t
 /tests/server/logging-t
 /tests/server/noop-t
 /tests/server/stdin-t
 /tests/server/streaming-t
+/tests/server/summary-t
 /tests/server/user-t
 /tests/server/version-t
 /tests/util/concat-t

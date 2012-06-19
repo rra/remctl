@@ -1,3 +1,12 @@
+# RPM spec file for remctl.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Improvements by Thomas Kula
+# Copyright 2006, 2007, 2012
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
+
 %define rel %(cat /etc/redhat-release | cut -d' ' -f7)
 
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
@@ -13,7 +22,7 @@
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 3.1
+Version: 3.2
 Release: 1.EL%{rel}
 %if %( rpmbuild --version | cut -d ' ' -f 3 | cut -d . -f 1 ) >= 4
 License: MIT
@@ -204,6 +213,9 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Tue Jun 19 2012 Russ Allbery <rra@stanford.edu> 3.2-1
+* Update for 3.2.
+
 * Thu Feb 23 2012 Russ Allbery <rra@stanford.edu> 3.1-1
 - Update for 3.1.
 
