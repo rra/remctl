@@ -63,7 +63,8 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/acls/val.id tests/data/acls/valid			    \
 	tests/data/acls/valid-2 tests/data/acls/val~id			    \
 	tests/data/acls2/valid-4 tests/data/cmd-argv tests/data/cmd-env	    \
-	tests/data/cmd-hello tests/data/cmd-sleep tests/data/cmd-status	    \
+	tests/data/cmd-hello tests/data/cmd-help tests/data/cmd-sleep	    \
+	tests/data/cmd-status tests/data/conf-nosummary			    \
 	tests/data/conf-simple tests/data/conf-test			    \
 	tests/data/configs/bad-logmask-1 tests/data/configs/bad-include-1   \
 	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
