@@ -22,7 +22,7 @@
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 3.1
+Version: 3.2
 Release: 1.EL%{rel}
 %if %( rpmbuild --version | cut -d ' ' -f 3 | cut -d . -f 1 ) >= 4
 License: MIT
@@ -213,6 +213,9 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Tue Jun 19 2012 Russ Allbery <rra@stanford.edu> 3.2-1
+* Update for 3.2.
+
 * Thu Feb 23 2012 Russ Allbery <rra@stanford.edu> 3.1-1
 - Update for 3.1.
 

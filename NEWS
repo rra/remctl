@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.2 (unreleased)
+remctl 3.2 (2012-06-19)
 
     Add new summary option to the remctld configuration.  If remctld
     receives a command of "help" with no arguments and no command by that
