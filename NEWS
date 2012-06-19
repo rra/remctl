@@ -45,7 +45,7 @@ remctl 3.2 (unreleased)
     versions of Heimdal.  Thanks to Jeffrey Hutzelman for the series of
     patches.
 
-    Update to rra-c-util 4.4:
+    Update to rra-c-util 4.5:
 
     * Pass --deps to krb5-config in the non-reduced-dependencies case.
     * Silence __attribute__ warnings on more compilers.
