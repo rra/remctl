@@ -23,6 +23,7 @@ remctl (3.2-1) UNRELEASED; urgency=low
   * Move single-debian-patch to local-options and patch-header to
     local-patch-header so that they only apply to the packages I build and
     NMUs get regular version-numbered patches.
+  * Enable parallel builds.
   * Update standards version to 3.9.3 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Tue, 19 Jun 2012 17:02:58 -0700

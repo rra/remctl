@@ -18,30 +18,30 @@ export REMCTL_PYTHON_INSTALL  := --install-layout=deb
 export REMCTL_PYTHON_VERSIONS := $(shell pyversions -s)
 
 %:
-	dh $@ --with python2,autoreconf
+	dh $@ --parallel --with python2,autoreconf
 
 override_dh_autoreconf:
 	dh_autoreconf --as-needed
 
 override_dh_auto_configure:
-	dh_auto_configure -- --sysconfdir=/etc/remctl \
+	dh_auto_configure --parallel -- --sysconfdir=/etc/remctl \
 	    --enable-reduced-depends --enable-perl --enable-php \
 	    --enable-python --enable-ruby
 
 # For the first pass, build the Ruby 1.8 extension.  We'll go back and build
 # the extension for 1.9.1.
 override_dh_auto_build:
-	dh_auto_build -- REMCTL_RUBY=ruby1.8
+	dh_auto_build --parallel -- REMCTL_RUBY=ruby1.8
 
 override_dh_auto_test:
-	dh_auto_test -- REMCTL_RUBY=ruby1.8
+	dh_auto_test --parallel -- REMCTL_RUBY=ruby1.8
 
 # After installing the build for the default version of Ruby, go back and
 # rebuild for the newer version.
 override_dh_auto_install:
 	dh_auto_install -- RUBYARCHDIR='$$(vendorarchdir)$$(target_prefix)'
 	cd ruby && $(MAKE) distclean
-	dh_auto_build -- REMCTL_RUBY=ruby1.9.1
+	dh_auto_build --parallel -- REMCTL_RUBY=ruby1.9.1
 	cd ruby && $(MAKE) install DESTDIR='$(CURDIR)/debian/tmp' \
 	    RUBYARCHDIR='$$(vendorarchdir)$$(target_prefix)'
 
