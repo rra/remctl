@@ -14,6 +14,7 @@ remctl (3.2-1) UNRELEASED; urgency=low
       network and GSS-API errors.
     - Fix remctld segfault when the configuration does not define any
       commands.
+  * Update standards version to 3.9.3 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Tue, 19 Jun 2012 17:02:58 -0700
 
