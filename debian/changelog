@@ -1,4 +1,4 @@
-remctl (3.2-1) UNRELEASED; urgency=low
+remctl (3.2-1) unstable; urgency=low
 
   * New upstream release.
     - If remctld receives a help command with no arguments and no help
@@ -29,7 +29,7 @@ remctl (3.2-1) UNRELEASED; urgency=low
   * Convert debian/copyright to copyright-format 1.0.
   * Update standards version to 3.9.3 (no changes required).
 
- -- Russ Allbery <rra@debian.org>  Tue, 19 Jun 2012 17:02:58 -0700
+ -- Russ Allbery <rra@debian.org>  Tue, 19 Jun 2012 20:19:03 -0700
 
 remctl (3.1-1) unstable; urgency=low
 
