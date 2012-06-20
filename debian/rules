@@ -39,11 +39,11 @@ override_dh_auto_test:
 # After installing the build for the default version of Ruby, go back and
 # rebuild for the newer version.
 override_dh_auto_install:
-	dh_auto_install -- RUBYARCHDIR='$$(archdir)$$(target_prefix)'
+	dh_auto_install -- RUBYARCHDIR='$$(vendorarchdir)$$(target_prefix)'
 	cd ruby && $(MAKE) distclean
 	dh_auto_build -- REMCTL_RUBY=ruby1.9.1
 	cd ruby && $(MAKE) install DESTDIR='$(CURDIR)/debian/tmp' \
-	    RUBYARCHDIR='$$(archdir)$$(target_prefix)'
+	    RUBYARCHDIR='$$(vendorarchdir)$$(target_prefix)'
 
 # Override install to check for missing installed files.
 override_dh_install:
