@@ -120,7 +120,7 @@ Description: Python extension for Kerberos-authenticated command execution
 
 Package: ruby-remctl
 Section: ruby
-Architecture: all
+Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Replaces: libremctl-ruby1.8 (<< 3.2), libremctl-ruby1.9 (<< 3.2)
 Breaks: libremctl-ruby1.8 (<< 3.2), libremctl-ruby1.9 (<< 3.2)
