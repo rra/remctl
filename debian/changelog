@@ -19,6 +19,7 @@ remctl (3.2-1) UNRELEASED; urgency=low
     now transitional packages to ease the upgrade.  The Ruby extension is
     now installed in the vendor_ruby directory and the modules for all
     supported Ruby versions are included in the same package.
+  * Switch to xz compression for the upstream and Debian tarballs.
   * Move single-debian-patch to local-options and patch-header to
     local-patch-header so that they only apply to the packages I build and
     NMUs get regular version-numbered patches.
