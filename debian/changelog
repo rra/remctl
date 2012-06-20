@@ -1,3 +1,22 @@
+remctl (3.2-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    - If remctld receives a help command with no arguments and no help
+      command is explicitly defined, it will look for commands to which
+      the current user has access and for which the summary option is set
+      and run them with the argument given by the summary option,
+      collecting the output and sending it back to the client.
+    - If remctld receives a help command with one or two arguments and a
+      command entry exists matching those arguments, the user has access
+      to run it, and the help option is set, the command is run with the
+      help option as the subcommand.
+    - Always close the server's connection to the client on low-level
+      network and GSS-API errors.
+    - Fix remctld segfault when the configuration does not define any
+      commands.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 19 Jun 2012 17:02:58 -0700
+
 remctl (3.1-1) unstable; urgency=low
 
   * New upstream release.
