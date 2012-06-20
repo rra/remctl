@@ -24,6 +24,8 @@ remctl (3.2-1) UNRELEASED; urgency=low
     local-patch-header so that they only apply to the packages I build and
     NMUs get regular version-numbered patches.
   * Enable parallel builds.
+  * Mark libremctl-dev Multi-Arch: same and remctl-client and
+    remctl-server Multi-Arch: foreign.
   * Update standards version to 3.9.3 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Tue, 19 Jun 2012 17:02:58 -0700

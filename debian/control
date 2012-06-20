@@ -31,6 +31,7 @@ Package: libremctl-dev
 Section: libdevel
 Priority: extra
 Architecture: any
+Multi-Arch: same
 Depends: ${misc:Depends}, libremctl1 (= ${binary:Version})
 Suggests: libkrb5-dev
 Description: Development files for Kerberos-authenticated command execution
@@ -46,6 +47,7 @@ Description: Development files for Kerberos-authenticated command execution
 
 Package: remctl-client
 Architecture: any
+Multi-Arch: foreign
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Client for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
@@ -59,6 +61,7 @@ Description: Client for Kerberos-authenticated command execution
 
 Package: remctl-server
 Architecture: any
+Multi-Arch: foreign
 Depends: ${shlibs:Depends}, ${misc:Depends}, update-inetd | inet-superserver,
  netbase (>= 4.31)
 Recommends: openbsd-inetd | inet-superserver, tcpd
