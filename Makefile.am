@@ -444,7 +444,8 @@ BINDINGS_INSTALL =
 # which case we need to copy various files from the source directory and make
 # sure they're up to date since Perl can't handle VPATH builds.
 
-perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs $(srcdir)/perl/typemap
+perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs	\
+		$(srcdir)/perl/typemap client/libremctl.la
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
 	    for f in $(PERL_FILES) ; do				\
 	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
@@ -465,7 +466,7 @@ endif
 # The following section sets up the PECL extension for PHP.
 
 php/modules/remctl.so: php/config.m4 php/php_remctl.h \
-		$(srcdir)/php/php_remctl.c
+		$(srcdir)/php/php_remctl.c client/libremctl.la
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
 	    mkdir php/tests 2>/dev/null || true ;		\
 	    for f in $(PHP_FILES) ; do				\
@@ -492,7 +493,8 @@ endif
 # in which case we need to copy various files from the source directory and
 # make sure they're up to date.
 
-stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
+stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py	\
+		client/libremctl.la
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
 	    for f in $(PYTHON_FILES) ; do			\
 		cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
@@ -530,7 +532,7 @@ endif
 # The following section sets up the Ruby bindings for remctl.
 
 # The Ruby build system actually supports VPATH!
-ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c
+ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c client/libremctl.la
 	cd ruby && $(REMCTL_RUBY) extconf.rb
 	cd ruby && $(MAKE) CFLAGS="$(CFLAGS) $(RUBY_WARNINGS)"
 
