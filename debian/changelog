@@ -1,3 +1,12 @@
+remctl (3.2-2) unstable; urgency=low
+
+  * Cherry-pick upstream fix to add proper dependencies on libremctl.la to
+    the build rules for other language bindings.  This should fix
+    occasional FTBFS problems with parallel builds.  Thanks, Aaron
+    M. Ucko.  (Closes: #679307)
+
+ -- Russ Allbery <rra@debian.org>  Wed, 27 Jun 2012 16:32:57 -0700
+
 remctl (3.2-1) unstable; urgency=low
 
   * New upstream release.
