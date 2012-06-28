@@ -452,7 +452,7 @@ perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs	\
 	    done						\
 	fi
 	cd perl && perl Makefile.PL $(REMCTL_PERL_FLAGS)
-	cd perl && $(MAKE) OPTIMIZE="$(CFLAGS) $(PERL_WARNINGS)"
+	cd perl && $(MAKE) OPTIMIZE="$(CPPFLAGS) $(CFLAGS) $(PERL_WARNINGS)"
 
 install-data-local-perl: perl/Remctl.o
 	cd perl && $(MAKE) install DESTDIR=$(DESTDIR)
@@ -500,9 +500,9 @@ stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py	\
 		cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
 	    done						\
 	fi
-	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do	\
-	    cd python && CFLAGS="$(CFLAGS) $(PYTHON_WARNINGS)"	\
-		"$$python" setup.py build && cd .. ;		\
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		   \
+	    cd python && CFLAGS="$(CPPFLAGS) $(CFLAGS) $(PYTHON_WARNINGS)" \
+		"$$python" setup.py build && cd .. ;			   \
 	done
 	touch stamp-python
 
@@ -534,7 +534,7 @@ endif
 # The Ruby build system actually supports VPATH!
 ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c client/libremctl.la
 	cd ruby && $(REMCTL_RUBY) extconf.rb
-	cd ruby && $(MAKE) CFLAGS="$(CFLAGS) $(RUBY_WARNINGS)"
+	cd ruby && $(MAKE) CFLAGS="$(CPPFLAGS) $(CFLAGS) $(RUBY_WARNINGS)"
 
 install-data-local-ruby: ruby/remctl.so
 	cd ruby && $(MAKE) install DESTDIR=$(DESTDIR)
