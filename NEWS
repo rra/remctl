@@ -1,5 +1,10 @@
                        User-Visible remctl Changes
 
+remctl 3.3 (unreleased)
+
+    Fix build dependencies for language bindings to work with parallel
+    builds and pass CPPFLAGS down to the language binding build systems.
+
 remctl 3.2 (2012-06-19)
 
     Add new summary option to the remctld configuration.  If remctld
