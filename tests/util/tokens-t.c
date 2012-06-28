@@ -63,7 +63,7 @@ create_server(void)
         sysbail("error binding socket");
     if (listen(fd, 1) < 0)
         sysbail("error listening on socket");
-    marker = open("server-ready", O_CREAT | O_TRUNC, 0666);
+    marker = open("server-ready", O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (marker < 0)
         sysbail("cannot create marker file");
     conn = accept(fd, NULL, 0);
