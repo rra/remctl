@@ -1,3 +1,10 @@
+remctl (3.2-3) unstable; urgency=low
+
+  * Cherry-pick upstream fix to flags passed to open() when creating
+    sentinel files in the test suite.  Hopefully fixes FTBFS on Hurd.
+
+ -- Russ Allbery <rra@debian.org>  Thu, 28 Jun 2012 13:57:28 -0700
+
 remctl (3.2-2) unstable; urgency=low
 
   * Cherry-pick upstream fix to add proper dependencies on libremctl.la to
