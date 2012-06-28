@@ -79,7 +79,7 @@ accept_connection(char *pidfile, int protocol)
         sysdie("error binding socket");
     if (listen(s, 1) < 0)
         sysdie("error listening to socket");
-    fd = open(pidfile, O_CREAT | O_TRUNC, 0666);
+    fd = open(pidfile, O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd < 0)
         sysdie("cannot create sentinal");
     close(fd);
