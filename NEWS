@@ -2,6 +2,10 @@
 
 remctl 3.3 (unreleased)
 
+    Remove prototypes from the Perl remctl() function.  With prototypes,
+    the connection and command information could not be provided via an
+    array, since the prototype forces it into scalar context.
+
     Fix build dependencies for language bindings to work with parallel
     builds and pass CPPFLAGS down to the language binding build systems.
 
