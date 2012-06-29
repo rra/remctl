@@ -67,6 +67,7 @@ remctl(host, port, principal, ...)
     const char *host
     unsigned short port
     const char *principal
+  PROTOTYPE: DISABLE
   PREINIT:
     size_t count = items - 3;
     size_t i;

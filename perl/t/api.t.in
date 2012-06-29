@@ -9,7 +9,10 @@
 #
 # See LICENSE for licensing terms.
 
-BEGIN { our $total = 55 }
+use strict;
+
+our $total;
+BEGIN { $total = 59 }
 use Test::More tests => $total;
 
 use Net::Remctl;
@@ -97,6 +100,15 @@ SKIP: {
     my $principal = get_principal;
     my $result = remctl ('localhost', 14373, $principal, 'test', 'test');
     isa_ok ($result, 'Net::Remctl::Result', 'Basic remctl return');
+    is ($result->status, 0, '... exit status');
+    is ($result->stdout, "hello world\n", '... stdout output');
+    is ($result->stderr, undef, '... stderr output');
+    is ($result->error, undef, '... error return');
+
+    # The same, but passing the arguments in via an array.
+    my @args = ('localhost', 14373, $principal, 'test', 'test');
+    $result = remctl (@args);
+    isa_ok ($result, 'Net::Remctl::Result', 'Basic remctl with array args');
     is ($result->status, 0, '... exit status');
     is ($result->stdout, "hello world\n", '... stdout output');
     is ($result->stderr, undef, '... stderr output');
