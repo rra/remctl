@@ -12,7 +12,7 @@
 use strict;
 
 our $total;
-BEGIN { $total = 59 }
+BEGIN { $total = 61 }
 use Test::More tests => $total;
 
 use Net::Remctl;
@@ -121,6 +121,11 @@ SKIP: {
     is ($result->stdout, undef, '... stdout output');
     is ($result->stderr, undef, '... stderr output');
     is ($result->error, 'Unknown command', '... error return');
+
+    # Test not providing enough arguments to remctl.
+    eval { $result = remctl () };
+    like ($@, qr/^Usage: Net::Remctl::remctl\(host, port, principal, ...\) /,
+          'Insufficient arguments to remctl');
 
     # Complex interface, success.
     my $remctl = Net::Remctl->new;
