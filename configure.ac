@@ -37,7 +37,7 @@ AC_CHECK_FUNCS([gss_krb5_ccache_name])
 RRA_LIB_GSSAPI_RESTORE
 
 AC_SEARCH_LIBS([gethostbyname], [nsl])
-AC_SEARCH_LIBS([socket], [socket], ,
+AC_SEARCH_LIBS([socket], [socket], [],
     [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], [],
         [-lsocket])])
 AC_HEADER_STDBOOL
