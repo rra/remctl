@@ -107,8 +107,8 @@ FULL INTERFACE
       This is normally the full path to a Kerberos ticket cache, but may
       have other valid forms depending on the underlying Kerberos
       implementation in use by GSS-API.  This method will affect all
-      subsequent remctl_open() calls on the same object, but will have no
-      effect on connections that are already open.
+      subsequent open() calls on the same object, but will have no effect
+      on connections that are already open.
 
       For current GSS-API implementations, this will affect not only all
       subsequent open() calls for the same object, but all subsequent
