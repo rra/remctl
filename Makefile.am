@@ -20,10 +20,13 @@
 # it will only be built with python (without any version extension).
 #
 # REMCTL_RUBY controls which Ruby interpretor is used to do the build.
+# REMCTL_RUBY_FLAGS are additional flags to pass to extconf.rb when building
+# the Makefile.
 REMCTL_PERL_FLAGS      ?=
 REMCTL_PYTHON_INSTALL  ?=
 REMCTL_PYTHON_VERSIONS ?= python
 REMCTL_RUBY            ?= ruby
+REMCTL_RUBY_FLAGS      ?=
 
 # These three lists of files are needed for Perl builds, Python builds, and
 # for the test suite and are not generated or touched by configure.  They're
@@ -533,7 +536,7 @@ endif
 
 # The Ruby build system actually supports VPATH!
 ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c client/libremctl.la
-	cd ruby && $(REMCTL_RUBY) extconf.rb
+	cd ruby && $(REMCTL_RUBY) extconf.rb $(REMCTL_RUBY_FLAGS)
 	cd ruby && $(MAKE) CFLAGS="$(CPPFLAGS) $(CFLAGS) $(RUBY_WARNINGS)"
 
 install-data-local-ruby: ruby/remctl.so
