@@ -27,8 +27,8 @@ for doc in remctl remctl_close remctl_command remctl_error remctl_new \
 done
 
 # Generate protocol documentation if xml2rfc is available.
-cd docs
-if which xml2rfc 2>&1 >/dev/null ; then
+if command -v xml2rfc 2>&1 >/dev/null ; then
+    cd docs
     xml2rfc protocol.xml protocol.html
     xml2rfc protocol.xml protocol.txt
 else
