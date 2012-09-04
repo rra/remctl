@@ -13,6 +13,10 @@ Protocol:
    already work, but the asserted identity should be documented and it's
    not clear whether this should match an ANYUSER ACL.
 
+ * REMCTL-30: Add a capabilities command to the protocol so that the
+   client can retrieve the list of supported commands rather than assuming
+   based on the protocol version.
+
 Server:
 
  * REMCTL-5: Add a way of explicitly specifying the null command or
@@ -56,6 +60,11 @@ Server:
    command in progress (if any) stops running.  (SIGTERM or SIGINT
    directly to a child should kill it outright.)
 
+ * REMCTL-27: Use the trick of creating a pipe and writing to it in a
+   SIGCHLD signal handler to catch the completion of a command inside the
+   select loop in the server instead of the current short timeout and
+   polling to work around race conditions.
+
 Client:
 
  * REMCTL-14: Implement file upload in the remctl client.
@@ -79,6 +88,9 @@ Client library:
    retrieve the mechanism OID and then pass that in to calls to
    gssapi_error_string rather than hard-coding the Kerberos v5 OID.
 
+ * REMCTL-31: Provide a mechanism in the remctl client library to import
+   GSS credentials that will be used for subsequent server connections.
+
 Perl library:
 
  * REMCTL-19: Add a Perl module to make it easier to write remctl backends
@@ -90,6 +102,15 @@ Build system:
  * REMCTL-20: Incorporate a program that can generate a Kerberos ticket
    cache from a keytab and use that for running the Kerberos tests instead
    of requiring the user to generate a keytab.
+
+Documentation:
+
+ * REMCTL-28: Remove the description of the version 1 remctl protocol from
+   the current protocol specification and put it in its own, separate
+   specification document.  Most people will no longer care how this
+   works.
+
+ * REMCTL-29: Submit the remctl protocol as an IETF Internet-Draft.
 
 Portability layer:
 
