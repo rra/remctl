@@ -26,7 +26,11 @@ for doc in remctl remctl_close remctl_command remctl_error remctl_new \
         > docs/api/"$doc".3
 done
 
-# Generate protocol documentation.
+# Generate protocol documentation if xml2rfc is available.
 cd docs
-xml2rfc protocol.xml protocol.html
-xml2rfc protocol.xml protocol.txt
+if which xml2rfc 2>&1 >/dev/null ; then
+    xml2rfc protocol.xml protocol.html
+    xml2rfc protocol.xml protocol.txt
+else
+    echo 'xml2rfc not found, not building protocol documentation' >&2
+fi
