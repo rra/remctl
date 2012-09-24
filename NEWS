@@ -2,6 +2,8 @@
 
 remctl 3.3 (unreleased)
 
+    Fix some memory leaks when reloading the remctld configuration.
+
     Remove prototypes from the Perl remctl() function.  With prototypes,
     the connection and command information could not be provided via an
     array, since the prototype forces it into scalar context.
