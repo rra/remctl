@@ -2,6 +2,10 @@
 
 remctl 3.3 (unreleased)
 
+    Fix a file descriptor leak when checking ACL files.  This would cause
+    long-running remctld processes to eventually run out of available file
+    descriptors.
+
     Fix some memory leaks when reloading the remctld configuration.
 
     Remove prototypes from the Perl remctl() function.  With prototypes,

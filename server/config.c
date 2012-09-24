@@ -632,6 +632,7 @@ acl_check_file_internal(void *data, const char *aclfile)
             return s;
         }
     }
+    fclose(file);
     return CONFIG_NOMATCH;
 
 fail:
