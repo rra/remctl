@@ -58,6 +58,8 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
+ * Copyright 2012
+ *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
@@ -192,7 +194,7 @@ x_strndup(const char *s, size_t size, const char *file, int line)
 }
 
 
-int
+void
 x_vasprintf(char **strp, const char *fmt, va_list args, const char *file,
             int line)
 {
@@ -202,7 +204,7 @@ x_vasprintf(char **strp, const char *fmt, va_list args, const char *file,
     va_copy(args_copy, args);
     status = vasprintf(strp, fmt, args_copy);
     va_end(args_copy);
-    while (status < 0 && errno == ENOMEM) {
+    while (status < 0) {
         va_copy(args_copy, args);
         status = vsnprintf(NULL, 0, fmt, args_copy);
         va_end(args_copy);
@@ -211,12 +213,11 @@ x_vasprintf(char **strp, const char *fmt, va_list args, const char *file,
         status = vasprintf(strp, fmt, args_copy);
         va_end(args_copy);
     }
-    return status;
 }
 
 
 #if HAVE_C99_VAMACROS || HAVE_GNU_VAMACROS
-int
+void
 x_asprintf(char **strp, const char *file, int line, const char *fmt, ...)
 {
     va_list args, args_copy;
@@ -226,7 +227,7 @@ x_asprintf(char **strp, const char *file, int line, const char *fmt, ...)
     va_copy(args_copy, args);
     status = vasprintf(strp, fmt, args_copy);
     va_end(args_copy);
-    while (status < 0 && errno == ENOMEM) {
+    while (status < 0) {
         va_copy(args_copy, args);
         status = vsnprintf(NULL, 0, fmt, args_copy);
         va_end(args_copy);
@@ -235,10 +236,9 @@ x_asprintf(char **strp, const char *file, int line, const char *fmt, ...)
         status = vasprintf(strp, fmt, args_copy);
         va_end(args_copy);
     }
-    return status;
 }
 #else /* !(HAVE_C99_VAMACROS || HAVE_GNU_VAMACROS) */
-int
+void
 x_asprintf(char **strp, const char *fmt, ...)
 {
     va_list args, args_copy;
@@ -248,7 +248,7 @@ x_asprintf(char **strp, const char *fmt, ...)
     va_copy(args_copy, args);
     status = vasprintf(strp, fmt, args_copy);
     va_end(args_copy);
-    while (status < 0 && errno == ENOMEM) {
+    while (status < 0) {
         va_copy(args_copy, args);
         status = vsnprintf(NULL, 0, fmt, args_copy);
         va_end(args_copy);
@@ -257,6 +257,5 @@ x_asprintf(char **strp, const char *fmt, ...)
         status = vasprintf(strp, fmt, args_copy);
         va_end(args_copy);
     }
-    return status;
 }
 #endif /* !(HAVE_C99_VAMACROS || HAVE_GNU_VAMACROS) */

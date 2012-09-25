@@ -101,12 +101,12 @@ portable_libportable_la_SOURCES = portable/dummy.c portable/getaddrinfo.h \
 	portable/macros.h portable/socket.h portable/stdbool.h		  \
 	portable/system.h portable/uio.h
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
-util_libutil_la_SOURCES = util/concat.c util/concat.h util/fdflag.c	    \
-	util/fdflag.h util/gss-errors.c util/gss-errors.h util/gss-tokens.c \
-	util/gss-tokens.h util/macros.h util/messages.c util/messages.h	    \
-	util/network.c util/network.h util/protocol.h util/tokens.c	    \
-	util/tokens.h util/vector.c util/vector.h util/xmalloc.c	    \
-	util/xmalloc.h util/xwrite.c util/xwrite.h
+util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
+	util/gss-errors.h util/gss-tokens.c util/gss-tokens.h util/macros.h \
+	util/messages.c util/messages.h util/network.c util/network.h	    \
+	util/protocol.h util/tokens.c util/tokens.h util/vector.c	    \
+	util/vector.h util/xmalloc.c util/xmalloc.h util/xwrite.c	    \
+	util/xwrite.h
 util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
 util_libutil_la_LIBADD = portable/libportable.la $(GSSAPI_LIBS)
 
@@ -264,9 +264,9 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
 	tests/server/help-t tests/server/invalid-t tests/server/logging-t   \
 	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t   \
 	tests/server/summary-t tests/server/user-t tests/server/version-t   \
-	tests/util/concat-t tests/util/fdflag-t tests/util/gss-tokens-t	    \
-	tests/util/messages-t tests/util/network-t tests/util/tokens-t	    \
-	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
+	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t   \
+	tests/util/network-t tests/util/tokens-t tests/util/vector-t	    \
+	tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
@@ -383,8 +383,6 @@ tests_server_user_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_version_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(PCRE_LIBS)
-tests_util_concat_t_LDADD = tests/tap/libtap.a util/libutil.la \
-	portable/libportable.la
 tests_util_fdflag_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_util_gss_tokens_t_SOURCES = tests/util/faketoken.c \

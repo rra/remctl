@@ -4,7 +4,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2010
+ * Copyright 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -84,15 +84,15 @@ char *x_strdup(const char *, const char *, int)
     __attribute__((__malloc__, __nonnull__));
 char *x_strndup(const char *, size_t, const char *, int)
     __attribute__((__malloc__, __nonnull__));
-int x_vasprintf(char **, const char *, va_list, const char *, int)
+void x_vasprintf(char **, const char *, va_list, const char *, int)
     __attribute__((__nonnull__));
 
 /* asprintf special case. */
 #if HAVE_C99_VAMACROS || HAVE_GNU_VAMACROS
-int x_asprintf(char **, const char *, int, const char *, ...)
+void x_asprintf(char **, const char *, int, const char *, ...)
     __attribute__((__nonnull__, __format__(printf, 4, 5)));
 #else
-int x_asprintf(char **, const char *, ...)
+void x_asprintf(char **, const char *, ...)
     __attribute__((__nonnull__, __format__(printf, 2, 3)));
 #endif
 

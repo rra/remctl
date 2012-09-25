@@ -89,7 +89,7 @@ internal_import_name(struct remctl *r, const char *host,
     gss_OID oid;
 
     /*
-     * If principal is NULL, use host@<host>.  Don't use concat here since it
+     * If principal is NULL, use host@<host>.  Don't use xmalloc here since it
      * dies on failure and that's rude for a library.
      */
     if (principal == NULL) {
