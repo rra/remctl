@@ -10,6 +10,10 @@ remctl 3.3 (unreleased)
     several memory leaks when closing or reusing client connections in
     libremctl.
 
+    Don't create the remctld PID file until the network socket is bound
+    and listening.  This helps init scripts starting the daemon to know
+    when startup is complete and the service is available.
+
     Remove prototypes from the Perl remctl() function.  With prototypes,
     the connection and command information could not be provided via an
     array, since the prototype forces it into scalar context.
