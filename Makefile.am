@@ -447,7 +447,7 @@ check-valgrind: $(check_PROGRAMS)
 	    --track-fds=yes --trace-children=yes			   \
 	    --log-file=$(abs_top_builddir)/tmp-valgrind/log.%p		   \
 	    --suppressions=$(abs_top_srcdir)/tests/data/valgrind.supp	   \
-	    --trace-children-skip="/bin/sh,*/cat,*/cut,*/expr,*/getopt,*/kinit,*/ls,*/mkdir,*/rm,*/rmdir,*/sed,*/sleep,*/wc,*/data/cmd-*,*/docs/pod-*-t" \
+	    --trace-children-skip="/bin/sh,*/cat,*/cut,*/expr,*/getopt,*/kinit,*/ls,*/mkdir,*/rm,*/rmdir,*/sed,*/sleep,*/wc,*/data/cmd-*,*/docs/pod*-t" \
 	    tests/runtests $(abs_top_srcdir)/tests/TESTS
 
 # Used for hooking in the build of optional language bindings.
