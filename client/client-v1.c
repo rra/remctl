@@ -179,6 +179,7 @@ internal_v1_output(struct remctl *r)
      * We can only do one round with protocol version one, so close the
      * connection now.
      */
+    gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
     socket_close(r->fd);
     r->fd = INVALID_SOCKET;
     r->ready = false;

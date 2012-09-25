@@ -6,7 +6,9 @@ remctl 3.3 (unreleased)
     long-running remctld processes to eventually run out of available file
     descriptors.
 
-    Fix some memory leaks when reloading the remctld configuration.
+    Fix some memory leaks when reloading the remctld configuration and
+    several memory leaks when closing or reusing client connections in
+    libremctl.
 
     Remove prototypes from the Perl remctl() function.  With prototypes,
     the connection and command information could not be provided via an
