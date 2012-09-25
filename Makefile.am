@@ -436,6 +436,16 @@ check-local: $(check_PROGRAMS)
 		$(REMCTL_RUBY) -I. test_remctl.rb ;	\
 	fi
 
+# Used by maintainers to run the main test suite under valgrind.
+check-valgrind: $(check_PROGRAMS)
+	rm -rf $(abs_top_builddir)/tmp-valgrind
+	mkdir $(abs_top_builddir)/tmp-valgrind
+	valgrind --leak-check=full --trace-children=yes --show-reachable=yes \
+	    --trace-children-skip="*/sed,*/ls,*/data/cmd-*,/bin/sh" \
+	    --log-file=$(abs_top_builddir)/tmp-valgrind/log.%p \
+	    --suppressions=tests/data/valgrind.supp \
+	    tests/runtests $(abs_top_srcdir)/tests/TESTS
+
 # Used for hooking in the build of optional language bindings.
 BINDINGS =
 BINDINGS_INSTALL =

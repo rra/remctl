@@ -1,0 +1,65 @@
+{
+   heimdal-krb5-init-context-once
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:init_context_once
+}
+{
+   heimdal-krb5-reg-plugins-once
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:krb5_plugin_register
+   fun:reg_def_plugins_once
+}
+{
+   heimdal-krb5-openssl-init
+   Memcheck:Leak
+   fun:*alloc
+   obj:*
+   fun:CRYPTO_*alloc
+}
+{
+   mit-gss-ccache
+   Memcheck:Leak
+   fun:*alloc
+   fun:krb5int_setspecific
+   fun:kg_set_ccache_name
+   fun:gss_krb5int_ccache_name
+}
+{
+   mit-krb5-pkinit-openssl-init
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:krb5_init_preauth_context
+}
+{
+   mit-krb5-pkinit-openssl-request
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:krb5_preauth_request_context_init
+}
+{
+   mit-krb5-plugin-dirs
+   Memcheck:Leak
+   fun:calloc
+   fun:krb5int_open_plugin_dirs
+}
+{
+   mit-krb5-plugin-dlerror
+   Memcheck:Leak
+   fun:calloc
+   fun:_dlerror_run
+   ...
+   fun:krb5int_open_plugin
+}
+{
+   mit-krb5-plugin-register
+   Memcheck:Leak
+   fun:malloc
+   fun:strdup
+   fun:register_module.isra.1
+}

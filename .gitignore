@@ -107,6 +107,7 @@
 /tests/util/vector-t
 /tests/util/xmalloc
 /tests/util/xwrite-t
+/tmp-valgrind/
 .deps
 .dirstamp
 .libs/
