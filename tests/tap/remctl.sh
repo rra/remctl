@@ -51,6 +51,7 @@ remctld_start () {
           -d -S -F -k "$tap_keytab" &)
     fi
     [ -f "$tap_pidfile" ] || sleep 1
+    [ -f "$tap_pidfile" ] || sleep 1
     if [ ! -f "$tap_pidfile" ] ; then
         bail 'remctld did not start'
     fi
