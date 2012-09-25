@@ -117,7 +117,9 @@ accept_connection(char *pidfile, int protocol)
         }
     } while (major == GSS_S_CONTINUE_NEEDED);
 
-    /* All done.  Don't bother cleaning up, just exit. */
+    /* All done.  Don't bother cleaning up memory, just exit. */
+    socket_close(conn);
+    socket_close(s);
     _exit(0);
 }
 
