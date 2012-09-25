@@ -63,3 +63,9 @@
    fun:strdup
    fun:register_module.isra.1
 }
+{
+   portable-setenv
+   Memcheck:Leak
+   fun:malloc
+   fun:test_setenv
+}
