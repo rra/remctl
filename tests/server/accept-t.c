@@ -110,7 +110,9 @@ make_connection(int protocol, const char *principal)
         }
     } while (major == GSS_S_CONTINUE_NEEDED);
 
-    /* All done.  Don't bother cleaning up, just exit. */
+    /* All done. */
+    gss_delete_sec_context(&minor, &gss_context, GSS_C_NO_BUFFER);
+    socket_close(fd);
     _exit(0);
 }
 
@@ -171,6 +173,6 @@ main(void)
         server_free_client(client);
         waitpid(child, NULL, 0);
     }
-
+    socket_close(s);
     return 0;
 }

@@ -66,9 +66,11 @@ create_server(void)
     marker = open("server-ready", O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (marker < 0)
         sysbail("cannot create marker file");
+    close(marker);
     conn = accept(fd, NULL, 0);
     if (conn == INVALID_SOCKET)
         sysbail("error accepting connection");
+    socket_close(fd);
     return conn;
 }
 
@@ -125,6 +127,7 @@ send_regular_token(socket_type fd)
     memcpy(buffer.value, "hello", 5);
     buffer.length = 5;
     token_send(fd, 3, &buffer, 0);
+    free(buffer.value);
 }
 
 
@@ -151,6 +154,7 @@ main(void)
     else if (child == 0) {
         server = create_server();
         send_regular_token(server);
+        socket_close(server);
         exit(0);
     } else {
         client = create_client();
@@ -158,6 +162,7 @@ main(void)
         is_int(10, length, "received token has correct length");
         ok(memcmp(buffer, token, 10) == 0, "...and correct data");
         waitpid(child, NULL, 0);
+        socket_close(client);
     }
 
     unlink("server-ready");
@@ -167,6 +172,7 @@ main(void)
     else if (child == 0) {
         server = create_server();
         send_hand_token(server);
+        socket_close(server);
         exit(0);
     } else {
         client = create_client();
@@ -175,7 +181,9 @@ main(void)
         is_int(3, flags, "...with right flags");
         is_int(5, result.length, "...and right length");
         ok(memcmp(result.value, "hello", 5) == 0, "...and right data");
+        free(result.value);
         waitpid(child, NULL, 0);
+        socket_close(client);
     }
 
     /* Send a token with a length of one, but no following data. */
@@ -186,12 +194,14 @@ main(void)
     else if (child == 0) {
         server = create_server();
         socket_xwrite(server, "\0\0\0\0\1", 5);
+        socket_close(server);
         exit(0);
     } else {
         client = create_client();
         status = token_recv(client, &flags, &result, 200, 0);
         is_int(TOKEN_FAIL_EOF, status, "receive invalid token");
         waitpid(child, NULL, 0);
+        socket_close(client);
     }
 
     /* Send a token larger than our token size limit. */
@@ -202,12 +212,14 @@ main(void)
     else if (child == 0) {
         server = create_server();
         send_hand_token(server);
+        socket_close(server);
         exit(0);
     } else {
         client = create_client();
         status = token_recv(client, &flags, &result, 4, 0);
         is_int(TOKEN_FAIL_LARGE, status, "receive too-large token");
         waitpid(child, NULL, 0);
+        socket_close(client);
     }
 
     /* Send EOF when we were expecting a token. */
@@ -217,13 +229,14 @@ main(void)
         sysbail("cannot fork");
     else if (child == 0) {
         server = create_server();
-        close(server);
+        socket_close(server);
         exit(0);
     } else {
         client = create_client();
         status = token_recv(client, &flags, &result, 4, 0);
         is_int(TOKEN_FAIL_EOF, status, "receive end of file");
         waitpid(child, NULL, 0);
+        socket_close(client);
     }
 
     /*
@@ -237,6 +250,7 @@ main(void)
     else if (child == 0) {
         server = create_server();
         sleep(3);
+        socket_close(server);
         exit(0);
     } else {
         result.value = bmalloc(512 * 1024);
@@ -246,7 +260,7 @@ main(void)
         status = token_send(client, 3, &result, 1);
         free(result.value);
         is_int(TOKEN_FAIL_TIMEOUT, status, "can't send due to timeout");
-        close(client);
+        socket_close(client);
         waitpid(child, NULL, 0);
     }
 
@@ -258,12 +272,13 @@ main(void)
     else if (child == 0) {
         server = create_server();
         sleep(3);
+        socket_close(server);
         exit(0);
     } else {
         client = create_client();
         status = token_recv(client, &flags, &result, 200, 1);
         is_int(TOKEN_FAIL_TIMEOUT, status, "can't receive due to timeout");
-        close(client);
+        socket_close(client);
         waitpid(child, NULL, 0);
     }
 

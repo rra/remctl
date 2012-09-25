@@ -223,6 +223,7 @@ main(void)
     if (host == NULL)
         skip_block(3, "cannot look up cnn.com");
     else {
+        ai = NULL;
         ok(test_getaddrinfo("cnn.com", "80", NULL, &ai) == 0,
            "lookup of cnn.com with multiple A records");
         saddr = (struct sockaddr_in *) ai->ai_addr;
@@ -235,11 +236,14 @@ main(void)
     if (host != NULL)
         skip("lookup of addrinfo-test.invalid succeeded");
     else {
+        ai = NULL;
         result = test_getaddrinfo("addrinfo-test.invalid", NULL, NULL, &ai);
         if (result == EAI_AGAIN || result == EAI_FAIL)
             skip("lookup of invalid address returns DNS failure");
         else
             is_int(EAI_NONAME, result, "lookup of invalid address");
+        if (ai != NULL)
+            test_freeaddrinfo(ai);
     }
 
     host = gethostbyname("cnn.com");
@@ -276,7 +280,7 @@ main(void)
     }
     if (found)
         ok(1, "...result found in gethostbyname address list");
-    test_freeaddrinfo(ai);
+    test_freeaddrinfo(first);
 
     return 0;
 }
