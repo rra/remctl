@@ -203,6 +203,7 @@ internal_v2_read_token(struct remctl *r, gss_buffer_t token)
     if (status != TOKEN_OK) {
         internal_token_error(r, "receiving token", status, major, minor);
         if (status == TOKEN_FAIL_EOF || status == TOKEN_FAIL_TIMEOUT) {
+            gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
             socket_close(r->fd);
             r->fd = INVALID_SOCKET;
         }

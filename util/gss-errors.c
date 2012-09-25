@@ -32,7 +32,7 @@ gssapi_error_string(const char *prefix, OM_uint32 major, OM_uint32 minor)
 {
     char *string, *old;
     gss_buffer_desc msg;
-    OM_uint32 msg_ctx, status;
+    OM_uint32 msg_ctx, status, dummy;
 
     string = NULL;
     msg_ctx = 0;
@@ -51,6 +51,7 @@ gssapi_error_string(const char *prefix, OM_uint32 major, OM_uint32 minor)
             else
                 free(old);
         }
+        gss_release_buffer(&dummy, &msg);
     } while (msg_ctx != 0);
     if (minor != 0) {
         msg_ctx = 0;
@@ -63,6 +64,7 @@ gssapi_error_string(const char *prefix, OM_uint32 major, OM_uint32 minor)
                 string = old;
             else
                 free(old);
+            gss_release_buffer(&dummy, &msg);
         } while (msg_ctx != 0);
     }
     return string;
