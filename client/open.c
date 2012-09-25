@@ -84,7 +84,6 @@ internal_import_name(struct remctl *r, const char *host,
 {
     gss_buffer_desc name_buffer;
     char *defprinc = NULL;
-    size_t length;
     OM_uint32 major, minor;
     gss_OID oid;
 
@@ -93,15 +92,11 @@ internal_import_name(struct remctl *r, const char *host,
      * dies on failure and that's rude for a library.
      */
     if (principal == NULL) {
-        length = strlen("host@") + strlen(host) + 1;
-        defprinc = malloc(length);
-        if (defprinc == NULL) {
+        if (asprintf(&defprinc, "host@%s", host) < 0) {
             internal_set_error(r, "cannot allocate memory: %s",
                                strerror(errno));
             return false;
         }
-        strlcpy(defprinc, "host@", length);
-        strlcat(defprinc, host, length);
         principal = defprinc;
     }
 
