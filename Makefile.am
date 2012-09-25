@@ -440,8 +440,8 @@ check-local: $(check_PROGRAMS)
 check-valgrind: $(check_PROGRAMS)
 	rm -rf $(abs_top_builddir)/tmp-valgrind
 	mkdir $(abs_top_builddir)/tmp-valgrind
-	valgrind --leak-check=full --trace-children=yes --show-reachable=yes \
-	    --trace-children-skip="*/sed,*/ls,*/data/cmd-*,/bin/sh" \
+	valgrind --leak-check=full --trace-children=yes --track-fds=yes \
+	    --trace-children-skip="*/sed,*/ls,*/cat,*/data/cmd-*,/bin/sh" \
 	    --log-file=$(abs_top_builddir)/tmp-valgrind/log.%p \
 	    --suppressions=tests/data/valgrind.supp \
 	    tests/runtests $(abs_top_srcdir)/tests/TESTS
