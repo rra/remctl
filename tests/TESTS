@@ -36,7 +36,6 @@ server/streaming
 server/summary
 server/user
 server/version
-util/concat
 util/gss-tokens
 util/messages
 util/network

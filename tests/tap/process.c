@@ -102,6 +102,7 @@ run_child_function(test_function_type function, void *data, int *status,
         buf[count < 0 ? 0 : count] = '\0';
         if (waitpid(child, &rval, 0) == (pid_t) -1)
             sysbail("waitpid failed");
+        close(fds[0]);
     }
 
     /* Store the output and return. */

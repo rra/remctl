@@ -99,7 +99,8 @@ main(void)
     ok(strcmp(value, "\n") == 0 || strstr(value, "localhost") != NULL,
        "value for REMOTE_HOST");
     free(value);
-    remctl_close(r);
 
+    remctl_close(r);
+    free(expected);
     return 0;
 }

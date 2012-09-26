@@ -124,7 +124,7 @@
 .\" ========================================================================
 .\"
 .IX Title "REMCTLD 8"
-.TH REMCTLD 8 "2012-06-19" "3.2" "remctl"
+.TH REMCTLD 8 "2012-09-25" "3.3" "remctl"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l

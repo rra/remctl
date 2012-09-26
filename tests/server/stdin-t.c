@@ -62,6 +62,7 @@ test_stdin(const char *principal, const char *test, const void *data,
     is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
     is_int(0, output->status, "...and is right status");
     remctl_close(r);
+    free(command);
 }
 
 
@@ -89,6 +90,7 @@ main(void)
     test_stdin(config->principal, "nuls", "T\0e\0s\0t\0", 8);
     test_stdin(config->principal, "large", buffer, 1024 * 1024);
     test_stdin(config->principal, "delay", buffer, 1024 * 1024);
+    free(buffer);
 
     return 0;
 }

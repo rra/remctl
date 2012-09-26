@@ -237,12 +237,14 @@ main(void)
     cvector = cvector_split_space(string, NULL);
     is_int(0, cvector->count, "cvector_split_space on all whitespace string");
     cvector_free(cvector);
+    free(string);
 
     vector = vector_split_multi("foo, bar, baz", ", ", NULL);
     is_int(3, vector->count, "vector_split_multi returns right count");
     is_string("foo", vector->strings[0], "...first string");
     is_string("bar", vector->strings[1], "...second string");
     is_string("baz", vector->strings[2], "...third string");
+    vector_free(vector);
     vector = vector_split_multi("", ", ", NULL);
     is_int(0, vector->count, "vector_split_multi reuse with empty string");
     vector = vector_split_multi(",,,  foo,   ", ", ", vector);
@@ -259,6 +261,7 @@ main(void)
     is_string("bar", cvector->strings[1], "...second string");
     is_string("baz", cvector->strings[2], "...third string");
     free(string);
+    cvector_free(cvector);
     cvector = cvector_split_multi(empty, ", ", NULL);
     is_int(0, cvector->count, "cvector_split_multi reuse with empty string");
     string = xstrdup(",,,  foo,   ");

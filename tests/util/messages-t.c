@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Copyright 2002, 2004, 2005 Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010, 2011
+ * Copyright 2009, 2010, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -38,7 +38,6 @@
 
 #include <tests/tap/basic.h>
 #include <tests/tap/process.h>
-#include <util/concat.h>
 #include <util/macros.h>
 #include <util/messages.h>
 #include <util/xmalloc.h>
@@ -166,7 +165,7 @@ test_strerror(int status, const char *output, int error,
 {
     char *full_output, *name;
 
-    full_output = concat(output, ": ", strerror(error), "\n", (char *) NULL);
+    xasprintf(&full_output, "%s: %s\n", output, strerror(error));
     xasprintf(&name, "strerror %lu", testnum / 3 + 1);
     is_function_output(function, NULL, status, full_output, "%s", name);
     free(full_output);

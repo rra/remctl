@@ -174,9 +174,9 @@ as a string.
 Sets the GSS-API credential cache for outgoing connections to CCACHE,
 which is normally the path to a Kerberos ticket cache but may have other
 valid forms depending on the underlying Kerberos implementation in use by
-GSS-API.  This method must be called prior to calling open() and will
-affect all subsequent open() calls on at least the same object.  Returns
-true on success and false on failure.
+GSS-API.  This method will affect all subsequent open() calls on at least
+the same object, but will have no effect on connections that are already
+open.  Returns true on success and false on failure.
 
 For current GSS-API implementations, this will affect not only all
 subsequent open() calls for the same object, but all subsequent remctl
@@ -192,9 +192,9 @@ this is not supported, false will be returned.
 
 Sets the source IP for outgoing connections to SOURCE, which can be either
 an IPv4 or an IPv6 address (if IPv6 is supported).  It must be an IP
-address, not a host name.  This method must be called prior to calling
-open() and will affect all subsequent open() calls on the same object.
-Returns true on success and false on failure.
+address, not a host name.  This will affect all subsequent open() calls on
+the same object, but will have no effect on connections that are already
+open.  Returns true on success and false on failure.
 
 =item set_timeout(TIMEOUT)
 

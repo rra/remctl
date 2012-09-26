@@ -213,16 +213,13 @@ static int
 test_asprintf(size_t size)
 {
     char *copy, *string;
-    int status;
     size_t i;
 
     string = xmalloc(size);
     memset(string, 42, size - 1);
     string[size - 1] = '\0';
-    status = xasprintf(&copy, "%s", string);
+    xasprintf(&copy, "%s", string);
     free(string);
-    if (status < 0)
-        return 0;
     for (i = 0; i < size - 1; i++)
         if (copy[i] != 42)
             return 0;
@@ -234,16 +231,14 @@ test_asprintf(size_t size)
 
 
 /* Wrapper around vasprintf to do the va_list stuff. */
-static int
+static void
 xvasprintf_wrapper(char **strp, const char *format, ...)
 {
     va_list args;
-    int status;
 
     va_start(args, format);
-    status = xvasprintf(strp, format, args);
+    xvasprintf(strp, format, args);
     va_end(args);
-    return status;
 }
 
 
@@ -255,16 +250,13 @@ static int
 test_vasprintf(size_t size)
 {
     char *copy, *string;
-    int status;
     size_t i;
 
     string = xmalloc(size);
     memset(string, 42, size - 1);
     string[size - 1] = '\0';
-    status = xvasprintf_wrapper(&copy, "%s", string);
+    xvasprintf_wrapper(&copy, "%s", string);
     free(string);
-    if (status < 0)
-        return 0;
     for (i = 0; i < size - 1; i++)
         if (copy[i] != 42)
             return 0;

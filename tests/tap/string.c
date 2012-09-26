@@ -7,7 +7,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2011 Russ Allbery <rra@stanford.edu>
+ * Copyright 2011, 2012 Russ Allbery <rra@stanford.edu>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@
  * vsprintf into a newly allocated string, reporting a fatal error with bail
  * on failure.
  */
-int
+void
 bvasprintf(char **strp, const char *fmt, va_list args)
 {
     int status;
@@ -47,7 +47,6 @@ bvasprintf(char **strp, const char *fmt, va_list args)
     status = vasprintf(strp, fmt, args);
     if (status < 0)
         sysbail("failed to allocate memory for vasprintf");
-    return status;
 }
 
 
@@ -55,14 +54,12 @@ bvasprintf(char **strp, const char *fmt, va_list args)
  * sprintf into a newly allocated string, reporting a fatal error with bail on
  * failure.
  */
-int
+void
 basprintf(char **strp, const char *fmt, ...)
 {
     va_list args;
-    int status;
 
     va_start(args, fmt);
-    status = bvasprintf(strp, fmt, args);
+    bvasprintf(strp, fmt, args);
     va_end(args);
-    return status;
 }
