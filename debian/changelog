@@ -1,3 +1,15 @@
+remctl (3.3-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    - Fix a file descriptor leak when checking ACL files.
+    - Fix memory leaks in remctld and libremctl.
+    - Don't create the PID file in remctld until the network socket is set
+      up and listening.
+    - Remove prototypes from the Perl remctl() function to allow passing
+      in parameters via an array.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 25 Sep 2012 20:23:13 -0700
+
 remctl (3.2-3) unstable; urgency=low
 
   * Cherry-pick upstream fix to flags passed to open() when creating
