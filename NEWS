@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.3 (unreleased)
+remctl 3.3 (2012-09-25)
 
     Fix a file descriptor leak when checking ACL files.  This would cause
     long-running remctld processes to eventually run out of available file
