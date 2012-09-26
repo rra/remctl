@@ -80,15 +80,18 @@ test_user(struct remctl *r, const char *subcommand, uid_t *uid, gid_t *gid)
     value = strtol(data, &end, 10);
     if (value < 0 || end == data) {
         diag("invalid output: %s", data);
+        free(data);
         return false;
     }
     *uid = value;
     value = strtol(end, NULL, 10);
     if (value < 0) {
         diag("invalid output: %s", data);
+        free(data);
         return false;
     }
     *gid = value;
+    free(data);
     return true;
 }
 
@@ -147,6 +150,7 @@ main(void)
     is_int(pw->pw_gid, gid, "Changing GID works");
 
     /* Clean up. */
+    remctl_close(r);
     unlink(confpath);
     free(confpath);
     test_file_path_free(cmd);

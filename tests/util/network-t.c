@@ -400,11 +400,8 @@ test_timeout_ipv4(void)
     if (child < 0)
         sysbail("cannot fork");
     else if (child == 0) {
-        struct sockaddr_in sin;
-        socklen_t slen;
-
         alarm(10);
-        c = accept(fd, &sin, &slen);
+        c = accept(fd, NULL, 0);
         if (c == INVALID_SOCKET)
             _exit(1);
         sleep(9);
@@ -577,6 +574,7 @@ test_network_write(void)
         sysdiag("cannot listen to socket");
         ok_block(4, 0, "network_write");
         socket_close(fd);
+        free(buffer);
         return;
     }
     child = fork();
@@ -596,6 +594,7 @@ test_network_write(void)
             sysdiag("cannot accept on socket");
             ok_block(4, 0, "network_write");
             socket_close(fd);
+            free(buffer);
             return;
         }
         socket_set_errno(0);
@@ -611,6 +610,7 @@ test_network_write(void)
         alarm(0);
     }
     socket_close(fd);
+    free(buffer);
 }
 
 

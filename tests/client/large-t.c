@@ -68,5 +68,8 @@ main(void)
     }
     remctl_close(r);
 
+    free(command[2].iov_base);
+    free(command[3].iov_base);
+    free(command[4].iov_base);
     return 0;
 }

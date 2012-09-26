@@ -41,10 +41,9 @@ setenv(const char *name, const char *value, int overwrite)
 
     /*
      * Allocate memory for the environment string.  We intentionally don't use
-     * concat here, or the xmalloc family of allocation routines, since the
-     * intention is to provide a replacement for the standard library function
-     * which sets errno and returns in the event of a memory allocation
-     * failure.
+     * the xmalloc family of allocation routines here, since the intention is
+     * to provide a replacement for the standard library function that sets
+     * errno and returns in the event of a memory allocation failure.
      */
     size = strlen(name) + 1 + strlen(value) + 1;
     envstring = malloc(size);

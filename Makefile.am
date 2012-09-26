@@ -20,10 +20,13 @@
 # it will only be built with python (without any version extension).
 #
 # REMCTL_RUBY controls which Ruby interpretor is used to do the build.
+# REMCTL_RUBY_FLAGS are additional flags to pass to extconf.rb when building
+# the Makefile.
 REMCTL_PERL_FLAGS      ?=
 REMCTL_PYTHON_INSTALL  ?=
 REMCTL_PYTHON_VERSIONS ?= python
 REMCTL_RUBY            ?= ruby
+REMCTL_RUBY_FLAGS      ?=
 
 # These three lists of files are needed for Perl builds, Python builds, and
 # for the test suite and are not generated or touched by configure.  They're
@@ -70,9 +73,10 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
 	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
 	tests/data/configs/bad-user-1 tests/data/gput			    \
-	tests/docs/pod-spelling-t tests/docs/pod-t tests/tap/kerberos.sh    \
-	tests/tap/libtap.sh tests/tap/remctl.sh tests/server/misc-t	    \
-	tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES)
+	tests/data/valgrind.supp tests/docs/pod-spelling-t tests/docs/pod-t \
+	tests/tap/kerberos.sh tests/tap/libtap.sh tests/tap/remctl.sh	    \
+	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
+	$(PYTHON_FILES)
 
 # Set this globally, since we have too many header files that include the
 # GSS-API headers even if the code itself doesn't call GSS-API functions.
@@ -98,12 +102,12 @@ portable_libportable_la_SOURCES = portable/dummy.c portable/getaddrinfo.h \
 	portable/macros.h portable/socket.h portable/stdbool.h		  \
 	portable/system.h portable/uio.h
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
-util_libutil_la_SOURCES = util/concat.c util/concat.h util/fdflag.c	    \
-	util/fdflag.h util/gss-errors.c util/gss-errors.h util/gss-tokens.c \
-	util/gss-tokens.h util/macros.h util/messages.c util/messages.h	    \
-	util/network.c util/network.h util/protocol.h util/tokens.c	    \
-	util/tokens.h util/vector.c util/vector.h util/xmalloc.c	    \
-	util/xmalloc.h util/xwrite.c util/xwrite.h
+util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
+	util/gss-errors.h util/gss-tokens.c util/gss-tokens.h util/macros.h \
+	util/messages.c util/messages.h util/network.c util/network.h	    \
+	util/protocol.h util/tokens.c util/tokens.h util/vector.c	    \
+	util/vector.h util/xmalloc.c util/xmalloc.h util/xwrite.c	    \
+	util/xwrite.h
 util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
 util_libutil_la_LIBADD = portable/libportable.la $(GSSAPI_LIBS)
 
@@ -261,9 +265,9 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
 	tests/server/help-t tests/server/invalid-t tests/server/logging-t   \
 	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t   \
 	tests/server/summary-t tests/server/user-t tests/server/version-t   \
-	tests/util/concat-t tests/util/fdflag-t tests/util/gss-tokens-t	    \
-	tests/util/messages-t tests/util/network-t tests/util/tokens-t	    \
-	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
+	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t   \
+	tests/util/network-t tests/util/tokens-t tests/util/vector-t	    \
+	tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
@@ -380,8 +384,6 @@ tests_server_user_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_version_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(PCRE_LIBS)
-tests_util_concat_t_LDADD = tests/tap/libtap.a util/libutil.la \
-	portable/libportable.la
 tests_util_fdflag_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_util_gss_tokens_t_SOURCES = tests/util/faketoken.c \
@@ -435,6 +437,20 @@ check-local: $(check_PROGRAMS)
 		$(REMCTL_RUBY) -I. test_remctl.rb ;	\
 	fi
 
+# Used by maintainers to run the main test suite under valgrind.  Suppress
+# the xmalloc and pod-spelling tests because the former won't work properly
+# under valgrind (due to increased memory usage) and the latter is pointless
+# to run under valgrind.
+check-valgrind: $(check_PROGRAMS)
+	rm -rf $(abs_top_builddir)/tmp-valgrind
+	mkdir $(abs_top_builddir)/tmp-valgrind
+	env RRA_MAINTAINER_TESTS= valgrind --leak-check=full		   \
+	    --track-fds=yes --trace-children=yes			   \
+	    --log-file=$(abs_top_builddir)/tmp-valgrind/log.%p		   \
+	    --suppressions=$(abs_top_srcdir)/tests/data/valgrind.supp	   \
+	    --trace-children-skip="/bin/sh,*/cat,*/cut,*/expr,*/getopt,*/kinit,*/ls,*/mkdir,*/rm,*/rmdir,*/sed,*/sleep,*/wc,*/data/cmd-*,*/docs/pod*-t" \
+	    tests/runtests $(abs_top_srcdir)/tests/TESTS
+
 # Used for hooking in the build of optional language bindings.
 BINDINGS =
 BINDINGS_INSTALL =
@@ -452,7 +468,7 @@ perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs	\
 	    done						\
 	fi
 	cd perl && perl Makefile.PL $(REMCTL_PERL_FLAGS)
-	cd perl && $(MAKE) OPTIMIZE="$(CFLAGS) $(PERL_WARNINGS)"
+	cd perl && $(MAKE) OPTIMIZE="$(CPPFLAGS) $(CFLAGS) $(PERL_WARNINGS)"
 
 install-data-local-perl: perl/Remctl.o
 	cd perl && $(MAKE) install DESTDIR=$(DESTDIR)
@@ -500,9 +516,9 @@ stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py	\
 		cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
 	    done						\
 	fi
-	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do	\
-	    cd python && CFLAGS="$(CFLAGS) $(PYTHON_WARNINGS)"	\
-		"$$python" setup.py build && cd .. ;		\
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		   \
+	    cd python && CFLAGS="$(CPPFLAGS) $(CFLAGS) $(PYTHON_WARNINGS)" \
+		"$$python" setup.py build && cd .. ;			   \
 	done
 	touch stamp-python
 
@@ -533,8 +549,8 @@ endif
 
 # The Ruby build system actually supports VPATH!
 ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c client/libremctl.la
-	cd ruby && $(REMCTL_RUBY) extconf.rb
-	cd ruby && $(MAKE) CFLAGS="$(CFLAGS) $(RUBY_WARNINGS)"
+	cd ruby && $(REMCTL_RUBY) extconf.rb $(REMCTL_RUBY_FLAGS)
+	cd ruby && $(MAKE) CFLAGS="$(CPPFLAGS) $(CFLAGS) $(RUBY_WARNINGS)"
 
 install-data-local-ruby: ruby/remctl.so
 	cd ruby && $(MAKE) install DESTDIR=$(DESTDIR)

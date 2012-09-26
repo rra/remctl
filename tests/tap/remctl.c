@@ -214,6 +214,7 @@ remctld_start_internal(struct kerberos_config *krbconf, const char *config,
             execv(path_remctld, (char * const *) argv);
         sysbail("exec failed");
     } else {
+        free(argv);
         test_file_path_free(confpath);
         for (n = 0; n < 100 && access(pidfile, F_OK) != 0; n++) {
             tv.tv_sec = 0;

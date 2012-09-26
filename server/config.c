@@ -632,6 +632,7 @@ acl_check_file_internal(void *data, const char *aclfile)
             return s;
         }
     }
+    fclose(file);
     return CONFIG_NOMATCH;
 
 fail:
@@ -974,7 +975,7 @@ server_config_load(const char *file)
     /* Read the configuration file. */
     config = xcalloc(1, sizeof(struct config));
     if (read_conf_file(config, file) != 0) {
-        free(config);
+        server_config_free(config);
         return NULL;
     }
     return config;
@@ -1002,6 +1003,7 @@ server_config_free(struct config *config)
             vector_free(rule->line);
         if (rule->file != NULL)
             free(rule->file);
+        free(rule);
     }
     free(config->rules);
     free(config);

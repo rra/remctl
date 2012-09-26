@@ -351,8 +351,11 @@ remctl_close(struct remctl *r)
             socket_close(r->fd);
         if (r->error != NULL)
             free(r->error);
-        if (r->output != NULL)
+        if (r->output != NULL) {
+            if (r->output->data != NULL)
+                free(r->output->data);
             free(r->output);
+        }
         if (r->context != GSS_C_NO_CONTEXT)
             gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
         free(r);

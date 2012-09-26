@@ -83,10 +83,12 @@ main(void)
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
                              &tok, 0, &major, &minor);
     is_int(TOKEN_OK, status, "connection is still open");
+    gss_release_buffer(&minor, &tok);
     if (status == TOKEN_OK) {
         status = token_recv_priv(r->fd, r->context, &flags, &tok, 1024 * 64,
                                  0, &major, &minor);
         is_int(TOKEN_OK, status, "received token correctly");
+        gss_release_buffer(&minor, &tok);
     } else {
         ok(false, "unable to get reply to token");
     }

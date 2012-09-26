@@ -1,5 +1,31 @@
                        User-Visible remctl Changes
 
+remctl 3.3 (2012-09-25)
+
+    Fix a file descriptor leak when checking ACL files.  This would cause
+    long-running remctld processes to eventually run out of available file
+    descriptors.
+
+    Fix some memory leaks when reloading the remctld configuration and
+    several memory leaks when closing or reusing client connections in
+    libremctl.
+
+    Don't create the remctld PID file until the network socket is bound
+    and listening.  This helps init scripts starting the daemon to know
+    when startup is complete and the service is available.
+
+    Remove prototypes from the Perl remctl() function.  With prototypes,
+    the connection and command information could not be provided via an
+    array, since the prototype forces it into scalar context.
+
+    Fix build dependencies for language bindings to work with parallel
+    builds and pass CPPFLAGS down to the language binding build systems.
+
+    Update to rra-c-util 4.6:
+
+    * Drop concat from the util library in favor of asprintf.
+    * Fail on any error in [bx]asprintf and [bx]vasprintf.
+
 remctl 3.2 (2012-06-19)
 
     Add new summary option to the remctld configuration.  If remctld

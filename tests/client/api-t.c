@@ -97,6 +97,7 @@ do_tests(const char *principal, int protocol)
     ok(output != NULL, "second output token is not null");
     is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
     is_int(0, output->status, "...and is right status");
+    free(command);
 
     /* Send a failing command. */
     ok(remctl_command(r, error), "remctl_command of error command");

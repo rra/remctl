@@ -89,6 +89,7 @@ main(void)
     is_string("data/acl-simple", config->rules[3]->acls[1], "acl 4 2");
     is_string("data/acl-simple", config->rules[3]->acls[187], "acl 4 188");
     ok(config->rules[3]->acls[188] == NULL, "...and 188 total ACLs");
+    server_config_free(config);
 
     /* Now test for errors. */
     test_error("data/configs/bad-option-1",
