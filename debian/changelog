@@ -1,4 +1,4 @@
-remctl (3.3-1) UNRELEASED; urgency=low
+remctl (3.3-1) experimental; urgency=low
 
   * New upstream release.
     - Fix a file descriptor leak when checking ACL files.
@@ -11,7 +11,7 @@ remctl (3.3-1) UNRELEASED; urgency=low
   * Update to standards version 3.9.4.
     - Add branch information to Vcs-Git.
 
- -- Russ Allbery <rra@debian.org>  Tue, 25 Sep 2012 20:23:13 -0700
+ -- Russ Allbery <rra@debian.org>  Tue, 25 Sep 2012 21:34:43 -0700
 
 remctl (3.2-3) unstable; urgency=low
 
