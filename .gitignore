@@ -5,6 +5,10 @@
 /docs/remctld.8.in
 /java/build.xml
 /java/local.properties
+/java/.checkstyle
+/java/.project
+/java/.classpath
+/java/.settings
 /m4/libtool.m4
 /m4/ltoptions.m4
 /m4/ltsugar.m4
