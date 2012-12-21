@@ -68,16 +68,17 @@ sub help {
     my ($self) = @_;
 
     # Construct two parallel lists, one of syntax and one of summaries.  Skip
-    # commands that are missing a syntax description.
+    # commands that are missing a syntax description.  Add in the length of
+    # the command.
     my (@syntax, @summary);
     for my $command (sort keys %{ $self->{commands} }) {
-        next if !$self->{commands}{$command}{syntax};
-        push @syntax, $self->{commands}{$command}{syntax};
+        next if !defined $self->{commands}{$command}{syntax};
+        push @syntax, $command . q{ } . $self->{commands}{$command}{syntax};
         my $summary = $self->{commands}{$command}{summary} || q{};
         push @summary, $summary;
     }
 
-    # Calculate the maximum syntax length.
+    # Calculate the maximum syntax length.  Add in the length of the command.
     my $max_syntax_len = 0;
     for my $syntax (@syntax) {
         if (length($syntax) > $max_syntax_len) {
@@ -86,25 +87,38 @@ sub help {
     }
 
     # Padding is constructed as follows: add two to the maximum length to
-    # account for two blank spaces at the start of the line, and then pad to
-    # the next 8-character tab stop, ensuring there are at least two blank
-    # spaces after the longest syntax block.
-    $max_syntax_len += 2;
-    my $tab_spacing = TAB_WIDTH - ($max_syntax_len + 2) % TAB_WIDTH;
-    $tab_spacing = ($tab_spacing == TAB_WIDTH) ? 0 : $tab_spacing;
-    my $pad_column = $max_syntax_len + 2 + $tab_spacing;
+    # account for two blank spaces at the start of the line if there is a
+    # help_prefix set.  Add the length of the command and a space if command
+    # is set.  Then pad to two blanck spaces after the longest syntax block.
+    my $prefix = q{};
+    if ($self->{help_banner}) {
+        $prefix = q{ } x 2;
+    }
+    if ($self->{command}) {
+        $prefix .= $self->{command} . q{ };
+    }
+    my $pad_column = $max_syntax_len + 2 + length $prefix;
+
+    # Add the help banner if one is set.  Add a newline if there isn't one.
+    my $output = q{};
+    if ($self->{help_banner}) {
+        $output = $self->{help_banner};
+        if ($self->{help_banner} !~ m{ \n \z }xms) {
+            $output .= "\n";
+        }
+    }
 
     # Now, we can format each line of the help output with Text::Wrap.
     local $Text::Wrap::columns  = LINE_WIDTH;
     local $Text::Wrap::unexpand = 0;
-    my $output;
     for my $i (0 .. $#syntax) {
         if (!$summary[$i]) {
-            $output .= q{  } . $syntax[$i] . "\n";
+            $output .= $prefix . $syntax[$i] . "\n";
             next;
         }
-        my $padding = q{ } x ($pad_column - 2 - length $syntax[$i]);
-        my $syntax = q{  } . $syntax[$i] . $padding;
+        my $length  = length($prefix) + length $syntax[$i];
+        my $padding = q{ } x ($pad_column - $length);
+        my $syntax  = $prefix . $syntax[$i] . $padding;
         $output .= wrap($syntax, q{ } x $pad_column, $summary[$i] . "\n");
     }
 
@@ -182,11 +196,28 @@ be an anonymous hash with one or more of the following keys:
 
 =over 4
 
+=item command
+
+If set, defines the base remctl command implemented by this backend.  The
+primary use of this string is in usage and help output.  If set, it will
+be added to the beginning of each command syntax description so that the
+help output will match the remctl command that the user actually runs.
+
 =item commands
 
 The value of this key should be an anonymous hash describing all of the
 commands that are supported.  See below for the supported keys in the
 command configuration.
+
+=item help_banner
+
+If set, the value will be displayed as the first line of help output.
+Recommended best practice is to use a string of the form:
+
+    <service> remctl help:
+
+where <service> is something like C<Event handling> or C<User database> or
+whatever this set of commands generally does or manipulates.
 
 =back
 
@@ -207,13 +238,24 @@ client.
 =item syntax
 
 The syntax of this subcommand.  This should be short, since it needs to
-fit on the same line as the summary of what this subcommand does.  A
+fit on the same line as the summary of what this subcommand does.  Both
+the command and subcommand should be omitted; the former will be set by
+the I<command> parameter to the new() constructor for
+Net::Remctl::Backend, and the latter will come from the command itself.  A
 typical example will look like:
 
-    syntax => 'delete <object>'
+    syntax => '<object>'
+
+which will result in help output (assuming I<command> is set to C<object>
+and this parameter is set on the C<delete> command) that looks like:
+
+    object delete <object>
 
 Use abbreviations heavily to keep this string short so that the help
 output will remain readable.
+
+Set this key to the empty string to indicate that this subcommand takes
+no arguments or flags.
 
 If this key is omitted, the subcommand will be omitted from help output.
 
