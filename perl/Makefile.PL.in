@@ -34,25 +34,43 @@ my $lddlflags = $Config{lddlflags};
 my $additions = "-L$PATH @LDFLAGS@";
 $lddlflags =~ s%(^| )-L% $additions -L%;
 
+# Start method overrides to change behavior.
+package MY;
+
 # Override extliblist so that it never puts anything relative to the build
 # directory into LD_RUN_PATH.  Otherwise, ExtUtils::Liblist will hard-code the
 # build directory into the rpath of the module .so because it's trying to be
 # *way* too helpful.
-package MY;
 sub const_loadlibs {
     my $loadlibs = shift->SUPER::const_loadlibs (@_);
     $loadlibs =~ s%^(LD_RUN_PATH =.*[\s:])\Q$main::PATH\E(:|\n)%$1$2%m;
     return $loadlibs;
 }
-package main;
+
+# Override libscan to ignore *.in files.  We only want to pay attention to
+# *.pm, *.pod, and *.xs files and the lib directory.
+#
+# $self - The ExtUtils::MakeMaker internal object
+# $path - The path of a file inside the lib directory
+#
+# Returns: Empty string to ignore a file, otherwise $path
+sub libscan {
+    my ($self, $path) = @_;
+    my ($dirs, $file) = ($self->splitpath($path))[1,2];
+    if ($file =~ m{\.(?:pm|pod|xs) \Z}xms || -d $file) {
+        return $path;
+    } else {
+        return '';
+    }
+}
 
 # Okay, we can finally generate the Makefile.
-use ExtUtils::MakeMaker;
-WriteMakefile (
+package main;
+WriteMakefile(
     NAME              => 'Net::Remctl',
-    VERSION_FROM      => 'Remctl.pm',
+    VERSION_FROM      => 'lib/Net/Remctl.pm',
     ($] >= 5.005 ?
-      (ABSTRACT_FROM  => 'Remctl.pm',
+      (ABSTRACT_FROM  => 'lib/Net/Remctl.pm',
        AUTHOR         => 'Russ Allbery (rra@stanford.edu)') : ()),
     INC               => '-I@top_srcdir@/client',
     LDDLFLAGS         => $lddlflags,

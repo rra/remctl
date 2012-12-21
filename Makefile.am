@@ -463,7 +463,7 @@ BINDINGS_INSTALL =
 # which case we need to copy various files from the source directory and make
 # sure they're up to date since Perl can't handle VPATH builds.
 
-perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs	\
+perl/Remctl.o: perl/lib/Net/Remctl.pm $(srcdir)/perl/Remctl.xs	\
 		$(srcdir)/perl/typemap client/libremctl.la
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
 	    for f in $(PERL_FILES) ; do				\
