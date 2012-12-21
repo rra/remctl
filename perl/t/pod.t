@@ -1,11 +1,26 @@
 #!/usr/bin/perl
 #
-# Test suite for the Net::Remctl POD documentation.
+# Check for POD formatting errors.
+#
+# Check all POD documents in the Perl module distribution for POD formatting
+# errors.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2012
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
 
-eval 'use Test::Pod 1.00';
-if ($@) {
-    print "1..1\n";
-    print "ok 1 # skip - Test::Pod 1.00 required for testing POD\n";
-    exit;
+use strict;
+use warnings;
+
+use Test::More;
+
+# Skip tests if Test::Pod is not installed.
+if (!eval { require Test::Pod }) {
+    plan skip_all => 'Test::Pod required to test POD syntax';
 }
-all_pod_files_ok ();
+Test::Pod->import;
+
+# Check all POD in the Perl distribution.
+all_pod_files_ok();
