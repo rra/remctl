@@ -32,7 +32,10 @@ REMCTL_RUBY_FLAGS      ?=
 # for the test suite and are not generated or touched by configure.  They're
 # listed here to be added to EXTRA_DIST and so that they can be copied over
 # properly for builddir != srcdir builds.
-PERL_FILES = perl/Remctl.xs perl/typemap perl/t/pod.t perl/t/stanford-netdb.t
+PERL_FILES = perl/Remctl.xs perl/typemap perl/t/critic.t		\
+	perl/t/data/perlcriticrc perl/t/data/perltidyrc			\
+	perl/t/pod-spelling.t perl/t/pod.t perl/t/stanford-netdb.t	\
+	perl/t/strict.t
 PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
 	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
 	php/tests/005.phpt php/tests/006.phpt
