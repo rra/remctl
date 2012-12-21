@@ -8,7 +8,7 @@
 # in order to test undefined values passed to Net::Remctl functions.
 #
 # Written by Russ Allbery
-# Copyright 2008
+# Copyright 2008, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -16,57 +16,92 @@
 use strict;
 use warnings;
 
-my $total;
-BEGIN { $total = 6 }
-use Test::More tests => $total;
+use IPC::Open3 qw(open3);
+use Test::More;
 
-use Net::Remctl;
+# Regular expression to match klist output for a stanford.edu principal.
+# Copes with both MIT Kerberos klist and Heimdal klist.
+my $KLIST_REGEX = qr{
+    \n \s*
+    (Default [ ])? [Pp]rincipal: [ ]
+    \S+\@stanford\.edu
+    \s* \n
+}ixms;
 
-my $netdb = 'netdb-node-roles-rc.stanford.edu';
-my $host  = 'windlord.stanford.edu';
-my $user  = 'rra';
+# Skip tests unless we're running the test suite in maintainer mode.
+if (!$ENV{RRA_MAINTAINER_TESTS}) {
+    plan skip_all => 'Coding style tests only run for maintainer';
+}
 
-# Determine the local principal.
-my $klist = `klist 2>&1` || '';
-SKIP: {
-    skip "tests useful only with Stanford Kerberos tickets", $total
-        unless $klist =~ /^Default principal: \S+\@stanford\.edu$/m;
-    my $remctl = Net::Remctl->new;
-    isa_ok ($remctl, 'Net::Remctl', 'Object creation');
+# Skip tests unless we have a stanford.edu realm ticket.
+my ($klist, $klist_out, $klist_err);
+my $pid = open3('<&', $klist_out, $klist_err, 'klist');
+{
+    local $/ = undef;
+    $klist = <$klist_out>;
+}
+waitpid $pid, 0;
+if ($klist !~ $KLIST_REGEX) {
+    plan skip_all => 'stanford.edu Kerberos tickets required';
+}
 
-    # We want to test behavior in the presence of explicitly undefined values,
-    # so suppress the warnings.
+# Okay, we can proceed.
+plan tests => 7;
+
+# The server to query, the node to ask about, and the user on that node.
+my $NETDB = 'netdb-node-roles-rc.stanford.edu';
+my $HOST  = 'windlord.stanford.edu';
+my $USER  = 'rra';
+
+# Load the module.
+require_ok('Net::Remctl');
+
+# Create a remctl object.
+my $remctl = Net::Remctl->new();
+isa_ok($remctl, 'Net::Remctl', 'Object creation');
+
+# We want to test behavior in the presence of explicitly undefined values,
+# so suppress the warnings.
+## no critic (TestingAndDebugging::ProhibitNoWarnings)
+{
     no warnings 'uninitialized';
-    ok ($remctl->open($netdb, undef, undef),
-        'Connection with explicit undef');
+    ok($remctl->open($NETDB, undef, undef), 'open with explicit undef');
     undef $remctl;
     $remctl = Net::Remctl->new;
-    my $port = undef;
+    my $port      = undef;
     my $principal = undef;
-    ok ($remctl->open($netdb, $port, $principal),
-        'Connection with implicit undef');
-    ok ($remctl->command('netdb', 'node-roles', $user, $host),
-        'Sending command');
-    my ($output, $roles);
-    my $okay = 1;
-    do {
-        $output = $remctl->output;
-        if ($output->type eq 'output') {
-            if ($output->stream == 1) {
-                $roles .= $output->data;
-            } elsif ($output->stream == 2) {
-                print STDERR $output->data;
-                $okay = 0;
-            }
-        } elsif ($output->type eq 'error') {
-            warn $output->error, "\n";
-            $okay = 0;
-        } elsif ($output->type eq 'status') {
-            $okay = 0 unless $output->status == 0;
-        } else {
-            die "Unknown output token from library: ", $output->type, "\n";
-        }
-    } while ($output->type eq 'output');
-    ok ($okay, 'Reading output');
-    is ($roles, "admin\nuser\n", 'Saw correct output');
+    ok($remctl->open($NETDB, $port, $principal), 'open with implicit undef');
 }
+
+# Test sending the command.
+ok($remctl->command('netdb', 'node-roles', $USER, $HOST), 'Sending command');
+my $roles;
+my $okay = 1;
+while (defined(my $output = $remctl->output)) {
+    if ($output->type eq 'output') {
+        if ($output->stream == 1) {
+            $roles .= $output->data;
+        }
+        elsif ($output->stream == 2) {
+            print {*STDERR} $output->data
+              or die "Cannot display standard error\n";
+            $okay = 0;
+        }
+    }
+    elsif ($output->type eq 'error') {
+        warn $output->error, "\n";
+        $okay = 0;
+        last;
+    }
+    elsif ($output->type eq 'status') {
+        if ($output->status != 0) {
+            $okay = 0;
+        }
+        last;
+    }
+    else {
+        die 'Unknown output token from library: ', $output->type, "\n";
+    }
+}
+ok($okay, 'Reading output');
+is($roles, "admin\nuser\n", 'Saw correct output');

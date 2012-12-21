@@ -16,12 +16,13 @@ use 5.006;
 use strict;
 use warnings;
 
+use base qw(Exporter DynaLoader);
+
 our $VERSION = '@PACKAGE_VERSION@';
 
-require Exporter;
-require DynaLoader;
-
-our @ISA = qw(Exporter DynaLoader);
+# Yes, I shouldn't have done this, but I did, and now removing it would break
+# backward compatibility.  So we live with it.
+## no critic (Modules::ProhibitAutomaticExportation)
 our @EXPORT = qw(remctl);
 
 bootstrap Net::Remctl;

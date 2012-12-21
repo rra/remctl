@@ -1,0 +1,82 @@
+# -*- conf -*-
+#
+# Default configuration for perlcritic.  Be sure to copy this into the source
+# for packages that run perlcritic tests automatically during the build for
+# reproducible test results.
+#
+# The canonical version of this file is maintained in the rra-c-util package,
+# which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2011, 2012
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+  
+severity = 1
+verbose  = %f:%l:%c: [%p] %m (%e, Severity: %s)\n
+
+# This is handled with a separate test case that uses Test::Spelling.
+[-Documentation::PodSpelling]
+
+# The POD sections Perl::Critic wants are incompatible with the POD template
+# from perlpodstyle, which is what I use for my POD documentation.
+[-Documentation::RequirePodSections]
+
+# The 1990s called and would like their VCS back.
+[-Miscellanea::RequireRcsKeywords]
+
+# This is correct 80% of the time, but it isn't correct for a lot of scripts
+# inside packages, where maintaining $VERSION isn't worth the effort.
+# Unfortunately, there's no way to override it, so it gets turned off
+# globally.
+[-Modules::RequireVersionVar]
+
+# The default is a bit too aggressive.  I was unable to write an Apache access
+# log regex with each major expression broken into a separate variable and fit
+# the default limit of 40 characters.  (It's not clear how the variable names
+# are counted, but they don't seem to be by number of characters in the
+# variable reference.)
+[RegularExpressions::ProhibitComplexRegexes]
+max_characters = 65
+
+# Nice idea, but it *utterly* confuses cperl-mode when used with braces, so
+# it's more trouble than it's worth.
+[-RegularExpressions::ProhibitEscapedMetacharacters]
+
+# 100 is used for calculating percentages.  Making it a constant is just
+# confusing.
+#
+# Literal 0777 means to use the umask for permissions when creating files.
+# Using a constant for this just makes it more obscure.  0777 is 511 in
+# decimal.
+[ValuesAndExpressions::ProhibitMagicNumbers]
+allowed_types  = Octal
+allowed_values = 0 1 2 100 511
+
+# Increase this to six digits so that I'm not told to add underscores to
+# port numbers (which is just silly).
+[ValuesAndExpressions::RequireNumberSeparators]
+min_value = 100000
+
+# use English was one of the worst ideas in the history of Perl.  It makes the
+# code slightly more readable for amateurs at the cost of confusing
+# experienced Perl programmers and sending people in futile quests for where
+# these magical global variables are defined.
+[-Variables::ProhibitPunctuationVars]
