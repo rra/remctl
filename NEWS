@@ -1,5 +1,12 @@
                        User-Visible remctl Changes
 
+remctl 3.4 (unreleased)
+
+    Update to rra-c-util 4.7:
+
+    * Fix probing for Heimdal's libroken to work with older versions.
+    * Improve POD tests.
+
 remctl 3.3 (2012-09-25)
 
     Fix a file descriptor leak when checking ACL files.  This would cause

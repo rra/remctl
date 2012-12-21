@@ -1,14 +1,68 @@
-#! /usr/bin/perl
+#!/usr/bin/perl -w
 #
-# Test suite for the remctl POD documentation.  This script is taken almost
-# verbatim from the Test::Pod manual page.
+# Check all POD documents in the tree, except for any embedded Perl module
+# distribution, for POD formatting errors.
+#
+# The canonical version of this file is maintained in the rra-c-util package,
+# which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2012
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
 
+use 5.006;
 use strict;
+use warnings;
+
+use File::Spec;
 use Test::More;
-eval "use Test::Pod 1.00";
-plan skip_all => "Test::Pod 1.00 required for testing POD" if $@;
-my $srcdir = "$ENV{SOURCE}";
-$srcdir =~ s,[^/]+/*$,,;
-chdir "$srcdir" or die "$0: cannot chdir to $srcdir: $!\n";
-my @poddirs = qw(docs);
-all_pod_files_ok (all_pod_files (@poddirs));
+
+# Top-level directories to ignore.  We ignore the perl directory if it exists
+# since, in my packages, it is treated as a Perl module distribution and has
+# its own standalone test suite.
+my %IGNORE = map { $_ => 1 } qw(.git perl);
+
+# Bail if SOURCE is not set.
+if (!$ENV{SOURCE}) {
+    BAIL_OUT('SOURCE not defined (run under runtests)');
+}
+
+# Skip tests if Test::Pod is not installed.
+if (!eval { require Test::Pod }) {
+    plan skip_all => 'Test::Pod required to test POD formatting';
+}
+Test::Pod->import;
+
+# SOURCE will be the test directory.  Change to the parent directory.
+my ($rootvol, $rootdirs) = File::Spec->splitpath($ENV{SOURCE}, 1);
+my @rootdirs = File::Spec->splitdir($rootdirs);
+pop @rootdirs;
+my $root = File::Spec->catpath($rootvol, File::Spec->catdir(@rootdirs), q{});
+chdir $root or BAIL_OUT("cannot chdir to $root: $!");
+
+# Build the list of directories to test.
+opendir my $rootdir, q{.} or BAIL_OUT("cannot open .: $!");
+my @dirs = grep { -d $_ && !$IGNORE{$_} } readdir $rootdir;
+closedir $rootdir;
+@dirs = File::Spec->no_upwards(@dirs);
+
+# Finally, run the actual tests on all POD files in those directories.
+all_pod_files_ok(@dirs);
