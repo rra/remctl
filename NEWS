@@ -2,6 +2,10 @@
 
 remctl 3.4 (unreleased)
 
+    Following Perl Best Practices, remove prototypes from all Net::Remctl
+    functions.  The confusion caused by changing context away from how
+    Perl normally works is not worth any diagnostic value.
+
     Update to rra-c-util 4.7:
 
     * Fix probing for Heimdal's libroken to work with older versions.
