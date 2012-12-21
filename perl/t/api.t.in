@@ -16,13 +16,15 @@
 use strict;
 use warnings;
 
-use Test::More tests => 61;
+use Carp qw(croak);
+use Test::More tests => 62;
 
 # Load the module.
 BEGIN { use_ok('Net::Remctl') }
 
 # Set by configure.  It should be harmless for this to be left unexpanded
 # eventually, but this test is not yet self-contained.
+## no critic (Miscellanea::ProhibitUselessNoCritic)
 ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
 my $TOP = '@abs_top_srcdir@';
 
@@ -67,7 +69,7 @@ sub start_remctld {
     if ($TOP !~ m{\@abs_top_srcdir\@}xms) {
         $path = "$TOP/server" . q{:} . $path;
     }
-    local $ENV{PATH} = $path;
+    local $ENV{PATH} = "$path:$ENV{PATH}";
 
     # Set up a temporary directory for the PID file.
     unlink 'tmp/pid';
@@ -79,11 +81,11 @@ sub start_remctld {
         die "cannot fork: $!\n";
     }
     elsif ($pid == 0) {
-        chdir "$TOP/tests"
-          or die "can't chdir to $TOP/tests: $!\n";
+        close STDERR or warn "can't close STDERR: $!\n";
+        chdir "$TOP/tests" or die "can't chdir to $TOP/tests: $!\n";
         exec 'remctld', '-m', '-p', '14373',
           (defined($princ) ? ('-s', $princ) : ()),
-          '-P', "$TOP/perl/t/tmp/pid", '-f', 'data/conf-simple',
+          '-P', "$TOP/tests/tmp/pid", '-f', 'data/conf-simple',
           '-d', '-S', '-F', '-k', "$TOP/tests/config/keytab"
           or die "cannot exec $TOP/server/remctld: $!\n";
     }
@@ -109,18 +111,18 @@ sub stop_remctld {
 #
 # Returns: true on success, false on failure
 sub run_kinit {
+    my $princ = get_principal();
+    if (!defined $princ) {
+        return;
+    }
+
+    # List of commands to try.
     my @commands = (
         [qw(kinit --no-afslog -k -t config/keytab), $princ],
         [qw(kinit -k -t config/keytab),             $princ],
         [qw(kinit -t config/keytab),                $princ],
         [qw(kinit -k -K config/keytab),             $princ],
     );
-
-    # Get the principal as which to authenticate.
-    my $princ = get_principal();
-    if (!defined $princ) {
-        return;
-    }
 
     # Attempt each command in turn.  If any succeed, return true.
     for my $command (@commands) {
@@ -145,8 +147,8 @@ chdir "$TOP/tests";
 my $okay = (-f 'config/principal' && -f 'config/keytab');
 local $ENV{KRB5CCNAME} = 'tmp/krb5cc_test';
 if ($okay) {
-    start_remctld;
-    $okay = run_kinit;
+    start_remctld();
+    $okay = run_kinit();
 }
 SKIP: {
     if (!$okay) {

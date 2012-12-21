@@ -16,6 +16,7 @@
 use strict;
 use warnings;
 
+use IO::Handle;
 use IPC::Open3 qw(open3);
 use Test::More;
 
@@ -34,13 +35,17 @@ if (!$ENV{RRA_MAINTAINER_TESTS}) {
 }
 
 # Skip tests unless we have a stanford.edu realm ticket.
-my ($klist, $klist_out, $klist_err);
-my $pid = open3('<&', $klist_out, $klist_err, 'klist');
+my $klist_out = IO::Handle->new;
+my $klist_err = IO::Handle->new;
+my $klist;
+my $pid = open3(\*STDIN, $klist_out, $klist_err, 'klist');
 {
     local $/ = undef;
     $klist = <$klist_out>;
 }
 waitpid $pid, 0;
+close $klist_out or warn "cannot close klist output: $!\n";
+close $klist_err or warn "cannot close klist errors: $!\n";
 if ($klist !~ $KLIST_REGEX) {
     plan skip_all => 'stanford.edu Kerberos tickets required';
 }
