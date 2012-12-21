@@ -32,9 +32,10 @@ our $PATH = '@abs_top_builddir@/client/.libs';
 # one that we just built.
 my $lddlflags = $Config{lddlflags};
 my $additions = "-L$PATH @LDFLAGS@";
-$lddlflags =~ s%(^| )-L% $additions -L%;
+$lddlflags =~ s{ (\A|[ ]) -L }{ $additions -L}xms;
 
 # Start method overrides to change behavior.
+## no critic (Modules::ProhibitMultiplePackages)
 package MY;
 
 # Override extliblist so that it never puts anything relative to the build
@@ -42,8 +43,10 @@ package MY;
 # build directory into the rpath of the module .so because it's trying to be
 # *way* too helpful.
 sub const_loadlibs {
-    my $loadlibs = shift->SUPER::const_loadlibs (@_);
-    $loadlibs =~ s%^(LD_RUN_PATH =.*[\s:])\Q$main::PATH\E(:|\n)%$1$2%m;
+    my (@args) = @_;
+    my $loadlibs = shift->SUPER::const_loadlibs(@args);
+    $loadlibs =~ s{\A ( LD_RUN_PATH \s* = .* [\s:] ) \Q$main::PATH\E ([:\n])}
+                  {$1$2}xms;
     return $loadlibs;
 }
 
@@ -56,23 +59,23 @@ sub const_loadlibs {
 # Returns: Empty string to ignore a file, otherwise $path
 sub libscan {
     my ($self, $path) = @_;
-    my ($dirs, $file) = ($self->splitpath($path))[1,2];
+    my ($dirs, $file) = ($self->splitpath($path))[1, 2];
     if ($file =~ m{\.(?:pm|pod|xs) \Z}xms || -d $file) {
         return $path;
-    } else {
-        return '';
+    }
+    else {
+        return q{};
     }
 }
 
 # Okay, we can finally generate the Makefile.
 package main;
 WriteMakefile(
-    NAME              => 'Net::Remctl',
-    VERSION_FROM      => 'lib/Net/Remctl.pm',
-    ($] >= 5.005 ?
-      (ABSTRACT_FROM  => 'lib/Net/Remctl.pm',
-       AUTHOR         => 'Russ Allbery (rra@stanford.edu)') : ()),
-    INC               => '-I@top_srcdir@/client',
-    LDDLFLAGS         => $lddlflags,
-    LIBS              => "$additions -lremctl" . '@LIBS@',
+    NAME          => 'Net::Remctl',
+    VERSION_FROM  => 'lib/Net/Remctl.pm',
+    ABSTRACT_FROM => 'lib/Net/Remctl.pm',
+    AUTHOR        => 'Russ Allbery (rra@stanford.edu)',
+    INC           => '-I@top_srcdir@/client',
+    LDDLFLAGS     => $lddlflags,
+    LIBS          => "$additions -lremctl" . q{@LIBS@},
 );
