@@ -5,6 +5,7 @@
 # The canonical version of this file is maintained in the rra-c-util package,
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 
+-bbao           # put line breaks before any operator
 -l=79           # usually use 78, but don't want 79-long lines reformatted
 -pt=2           # don't add extra whitespace around parentheses
 -sbt=2          # ...or square brackets
