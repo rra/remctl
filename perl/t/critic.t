@@ -62,6 +62,8 @@ if (!@files) {
     @files = Perl::Critic::Utils::all_perl_files('lib');
 }
 push @files, Perl::Critic::Utils::all_perl_files('t');
+push @files, 'Makefile.PL';
+@files = grep { !m{ [.](?:in|tdy) }xms } @files;
 plan tests => scalar @files;
 
 # Run the actual tests.
