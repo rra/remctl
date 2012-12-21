@@ -18,11 +18,14 @@
 # latter.  I don't know how portable this will be, but it's the only thing I
 # can come up with that actually works.
 
+use strict;
+use warnings;
+
 use Config;
 use ExtUtils::MakeMaker;
 
 # We have to tell MakeMaker to find libremctl here.
-$PATH = '@abs_top_builddir@/client/.libs';
+our $PATH = '@abs_top_builddir@/client/.libs';
 
 # Hack the local path into lddlflags so that it will be first.  Otherwise, we
 # may accidentally build against an already installed libremctl instead of the
@@ -53,5 +56,5 @@ WriteMakefile (
        AUTHOR         => 'Russ Allbery (rra@stanford.edu)') : ()),
     INC               => '-I@top_srcdir@/client',
     LDDLFLAGS         => $lddlflags,
-    LIBS              => "$additions -lremctl @LIBS@",
+    LIBS              => "$additions -lremctl" . '@LIBS@',
 );

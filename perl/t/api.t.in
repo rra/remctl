@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 #
 # Tests for the Net::Remctl API.  This relies on being run as part of the
 # larger remctl build tree and uses the built remctld for testing.
@@ -10,12 +10,16 @@
 # See LICENSE for licensing terms.
 
 use strict;
+use warnings;
 
 our $total;
 BEGIN { $total = 61 }
 use Test::More tests => $total;
 
 use Net::Remctl;
+
+# Set by configure.
+my $TOP = '@abs_top_srcdir@';
 
 # Returns the principal to use for authentication.
 sub get_principal {
@@ -35,15 +39,15 @@ sub start_remctld {
     if (not defined $pid) {
         die "cannot fork: $!\n";
     } elsif ($pid == 0) {
-        chdir ('@abs_top_srcdir@/tests')
-            or die "can't chdir to @abs_top_srcdir@: $!\n";
-        exec ('@abs_top_builddir@/server/remctld', '-m', '-p', '14373',
+        chdir ("$TOP/tests")
+            or die "can't chdir to $TOP/tests: $!\n";
+        exec ("$TOP/server/remctld", '-m', '-p', '14373',
               (defined ($princ) ? ('-s', $princ) : ()),
-              '-P', '@abs_top_builddir@/tests/tmp/pid',
+              '-P', "$TOP/tests/tmp/pid",
               '-f', 'data/conf-simple',
               '-d', '-S', '-F', '-k',
-              '@abs_top_builddir@/tests/config/keytab')
-            or die "cannot exec @abs_top_builddir@/server/remctld: $!\n";
+              "$TOP/tests/config/keytab")
+            or die "cannot exec $TOP/server/remctld: $!\n";
     }
 }
 
@@ -84,7 +88,7 @@ sub run_kinit {
 }
 
 # Test setup.
-chdir '@abs_top_builddir@/tests';
+chdir "$TOP/tests";
 my $okay = (-f 'config/principal' && -f 'config/keytab');
 if ($okay) {
     start_remctld;

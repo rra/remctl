@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 #
 # Test default parameters against Stanford's NetDB service.
 #
@@ -13,7 +13,11 @@
 #
 # See LICENSE for licensing terms.
 
-BEGIN { our $total = 6 }
+use strict;
+use warnings;
+
+my $total;
+BEGIN { $total = 6 }
 use Test::More tests => $total;
 
 use Net::Remctl;
