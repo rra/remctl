@@ -39,6 +39,10 @@ verbose  = %f:%l:%c: [%p] %m (%e, Severity: %s)\n
 # from perlpodstyle, which is what I use for my POD documentation.
 [-Documentation::RequirePodSections]
 
+# The default of 9 is too small and forces weird code contortions.
+[InputOutput::RequireBriefOpen]
+lines = 15
+
 # The 1990s called and would like their VCS back.
 [-Miscellanea::RequireRcsKeywords]
 
