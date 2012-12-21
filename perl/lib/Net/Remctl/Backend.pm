@@ -28,6 +28,12 @@ use 5.006;
 use strict;
 use warnings;
 
+use Text::Wrap qw(wrap);
+
+# Tab and line width for formatting.  Avoid dependency on Readonly.
+use constant TAB_WIDTH  => 8;
+use constant LINE_WIDTH => 80;
+
 our $VERSION;
 
 # This version should be increased on any code change to this module.  Always
@@ -51,6 +57,61 @@ sub new {
     return $self;
 }
 
+# Return the summary help for all of our configured commands.  This is used by
+# run() to get the string to display, but can also be called separately to get
+# the formatted help summary if desired.
+#
+# $self - The Net::Remctl::Backend object
+#
+# Returns: Formatted summary help as a string
+sub help {
+    my ($self) = @_;
+
+    # Construct two parallel lists, one of syntax and one of summaries.  Skip
+    # commands that are missing a syntax description.
+    my (@syntax, @summary);
+    for my $command (sort keys %{ $self->{commands} }) {
+        next if !$self->{commands}{$command}{syntax};
+        push @syntax, $self->{commands}{$command}{syntax};
+        my $summary = $self->{commands}{$command}{summary} || q{};
+        push @summary, $summary;
+    }
+
+    # Calculate the maximum syntax length.
+    my $max_syntax_len = 0;
+    for my $syntax (@syntax) {
+        if (length($syntax) > $max_syntax_len) {
+            $max_syntax_len = length $syntax;
+        }
+    }
+
+    # Padding is constructed as follows: add two to the maximum length to
+    # account for two blank spaces at the start of the line, and then pad to
+    # the next 8-character tab stop, ensuring there are at least two blank
+    # spaces after the longest syntax block.
+    $max_syntax_len += 2;
+    my $tab_spacing = TAB_WIDTH - ($max_syntax_len + 2) % TAB_WIDTH;
+    $tab_spacing = ($tab_spacing == TAB_WIDTH) ? 0 : $tab_spacing;
+    my $pad_column = $max_syntax_len + 2 + $tab_spacing;
+
+    # Now, we can format each line of the help output with Text::Wrap.
+    local $Text::Wrap::columns  = LINE_WIDTH;
+    local $Text::Wrap::unexpand = 0;
+    my $output;
+    for my $i (0 .. $#syntax) {
+        if (!$summary[$i]) {
+            $output .= q{  } . $syntax[$i] . "\n";
+            next;
+        }
+        my $padding = q{ } x ($pad_column - 2 - length $syntax[$i]);
+        my $syntax = q{  } . $syntax[$i] . $padding;
+        $output .= wrap($syntax, q{ } x $pad_column, $summary[$i] . "\n");
+    }
+
+    # Return the formatted results.
+    return $output;
+}
+
 # The core of the code, called from the main routine of a backend.  Parse the
 # command line and either handle the command directly (for the help command)
 # or dispatch it as configured in the object.
@@ -65,9 +126,17 @@ sub run {
     my ($self) = @_;
     my ($command, @args) = @ARGV;
 
-    # Look up the command in the dispatch table and run it or throw an error.
+    # Look up the command in the dispatch table and run it, handle the help
+    # command, or throw an error.  Allow the caller to define a help command
+    # to override ours.
     if (!$self->{commands}{$command}) {
-        die "Unknown command $command\n";
+        if ($command eq 'help') {
+            print {*STDOUT} $self->help or die "Cannot write to STDOUT: $!\n";
+            return 0;
+        }
+        else {
+            die "Unknown command $command\n";
+        }
     }
     return $self->{commands}{$command}{code}->(@args);
 }
@@ -135,6 +204,30 @@ whole: 0 for success and some non-zero value for an error condition.  This
 sub should print to STDOUT and STDERR to communicate back to the remctl
 client.
 
+=item syntax
+
+The syntax of this subcommand.  This should be short, since it needs to
+fit on the same line as the summary of what this subcommand does.  A
+typical example will look like:
+
+    syntax => 'delete <object>'
+
+Use abbreviations heavily to keep this string short so that the help
+output will remain readable.
+
+If this key is omitted, the subcommand will be omitted from help output.
+
+=item summary
+
+The summary of what this subcommand does, as text.  Ideally, this should
+fit on the same line with the syntax after the help output has been laid
+out in columns.  If it is too long to fit, it will be wrapped, with each
+subsequent line indented to the column where the summaries start.
+
+If this key is omitted, the subcommand will still be shown in help
+output, provided that it has a syntax key, but without any trailing
+summary.
+
 =back
 
 =back
@@ -142,6 +235,15 @@ client.
 =head1 INSTANCE METHODS
 
 =over 4
+
+=item help()
+
+Returns the formatted help summary for the commands supported by this
+backend.  This is the same as would be printed to standard output in
+response to the command C<help> with no arguments.  The output will
+consist of the syntax and summary attributes for each command that has a
+syntax attribute defined, as described above under the command
+specification.  It will be wrapped to 80 columns.
 
 =item run()
 

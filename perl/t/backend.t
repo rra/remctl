@@ -15,14 +15,12 @@
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use Test::More tests => 14;
 
 # Test loading the module.
 BEGIN { use_ok('Net::Remctl::Backend') }
 
-# Index of the sub name in the list output of caller.  I don't want to require
-# people to have the Readonly module to run the test suite.
-## no critic (ValuesAndExpressions::ProhibitConstantPragma)
+# Index of the sub name in the list output of caller.
 use constant CALLER_SUB => 3;
 
 # We'll use this variable to accumulate call sequences to test that the right
@@ -100,3 +98,37 @@ is($out,    q{}, '... and no output');
 is($err,    q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd2 arg1 arg2)]], 'cmd2 called correctly');
 @CALLS = ();
+
+# Add help information to one of the commands.
+$commands{cmd1}{syntax}  = 'cmd1 arg1 [arg2]';
+$commands{cmd1}{summary} = 'cmd1 all over the args';
+$backend = Net::Remctl::Backend->new({ commands => \%commands });
+
+# Call help.  We should get output only for cmd1.
+($out, $err, $status) = run_wrapper($backend, qw(help));
+is($status, 0, 'help returns status 0');
+is(
+    $out,
+    "  cmd1 arg1 [arg2]      cmd1 all over the args\n",
+    '... and correct output'
+);
+is($err, q{}, '... and no errors');
+
+# Add long help information to the second command.
+$commands{cmd2}{syntax} = 'cmd2';
+$commands{cmd2}{summary}
+  = 'does the thing and then the other thing unless the second thing is'
+  . ' contradicted by the first thing in which case the third thing is done'
+  . ' after the screaming stops';
+$backend = Net::Remctl::Backend->new({ commands => \%commands });
+
+# Test the help call directly this time.  We should get back the formatted
+# help string.
+my $expected = <<'END_HELP';
+  cmd1 arg1 [arg2]      cmd1 all over the args
+  cmd2                  does the thing and then the other thing unless the
+                        second thing is contradicted by the first thing in
+                        which case the third thing is done after the screaming
+                        stops
+END_HELP
+is($backend->help, $expected, 'Wrapped help output is correct');
