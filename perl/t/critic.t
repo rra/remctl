@@ -9,6 +9,8 @@
 # Written by Russ Allbery <rra@stanford.edu>
 # Copyright 2012
 #     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
 
 use 5.006;
 use strict;

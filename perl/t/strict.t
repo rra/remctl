@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 #
-# Test WebAuth Perl bindings and WebLogin for strict, warnings, and syntax.
+# Test Perl code for strict, warnings, and syntax.
 #
+# Written by Russ Allbery <rra@stanford.edu>
 # Copyright 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
