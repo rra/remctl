@@ -1,10 +1,10 @@
 #!/usr/bin/perl
 #
-# Check for perlcritic errors in included Perl scripts.
+# Check for perlcritic errors in included Perl code.
 #
-# Checks all Perl scripts in the tree for problems uncovered by perlcritic.
-# This test is disabled unless RRA_MAINTAINER_TESTS is set, since coding style
-# will not interfere with functionality.
+# Checks all Perl code in blib/lib, t, and Makefile.PL for problems uncovered
+# by perlcritic.  This test is disabled unless RRA_MAINTAINER_TESTS is set,
+# since coding style will not interfere with functionality.
 #
 # Written by Russ Allbery <rra@stanford.edu>
 # Copyright 2012
@@ -22,7 +22,7 @@ use Test::More;
 
 # Find a configuration file included as data in the test suite.
 #
-# $file - Path of file relative to the t/data directory
+# $file - Path of file relative to the t directory
 #
 # Returns: Path of the file if found
 #  Throws: String exception if the file could not be found.
@@ -46,7 +46,7 @@ if (!eval { require Test::Perl::Critic }) {
     plan skip_all => 'Test::Perl::Critic required to test coding style';
 }
 if (!eval { require Perl::Critic::Utils }) {
-    plan skip_all => 'Test::Perl::Critic required to test coding style';
+    plan skip_all => 'Perl::Critic::Utils required to test coding style';
 }
 
 # Force the embedded Perl::Tidy check to use the correct configuration.
