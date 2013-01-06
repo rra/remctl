@@ -313,6 +313,9 @@ int
 remctl_open(struct remctl *r, const char *host, unsigned short port,
             const char *principal)
 {
+    bool port_fallback = false;
+    socket_type fd = INVALID_SOCKET;
+
     if (r->fd != -1) {
         if (r->protocol > 1)
             internal_v2_quit(r);
@@ -330,7 +333,25 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
     r->host = host;
     r->port = port;
     r->principal = principal;
-    return internal_open(r, host, port, principal);
+
+    /*
+     * If port is 0, default to trying the standard port and then falling back
+     * on the old port.
+     */
+    if (port == 0) {
+        port = REMCTL_PORT;
+        port_fallback = true;
+    }
+
+    /* Make the network connection. */
+    fd = internal_connect(r, host, port);
+    if (fd == INVALID_SOCKET && port_fallback)
+        fd = internal_connect(r, host, REMCTL_PORT_OLD);
+    if (fd == INVALID_SOCKET)
+        return false;
+    r->fd = fd;
+
+    return internal_open(r, host, principal);
 }
 
 

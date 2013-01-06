@@ -53,9 +53,11 @@ void internal_token_error(struct remctl *, const char *error, int status,
 /* Wipe and free the output token. */
 void internal_output_wipe(struct remctl_output *);
 
+/* Establish a network connection */
+socket_type internal_connect(struct remctl *, const char *, unsigned short);
+
 /* General connection opening and negotiation function. */
-bool internal_open(struct remctl *, const char *host, unsigned short port,
-                   const char *principal);
+bool internal_open(struct remctl *, const char *host, const char *principal);
 
 /* Send a protocol v1 command. */
 bool internal_v1_commandv(struct remctl *, const struct iovec *command,
