@@ -305,17 +305,9 @@ remctl_set_timeout(struct remctl *r, time_t timeout)
 }
 
 
-/*
- * Open a new persistant remctl connection to a server, given the host, port,
- * and principal.  Returns true on success and false on failure.
- */
-int
-remctl_open(struct remctl *r, const char *host, unsigned short port,
-            const char *principal)
+static void
+internal_reset(struct remctl *r)
 {
-    bool port_fallback = false;
-    socket_type fd = INVALID_SOCKET;
-
     if (r->fd != -1) {
         if (r->protocol > 1)
             internal_v2_quit(r);
@@ -330,6 +322,21 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
         free(r->output);
         r->output = NULL;
     }
+}
+
+
+/*
+ * Open a new persistant remctl connection to a server, given the host, port,
+ * and principal.  Returns true on success and false on failure.
+ */
+int
+remctl_open(struct remctl *r, const char *host, unsigned short port,
+            const char *principal)
+{
+    bool port_fallback = false;
+    socket_type fd = INVALID_SOCKET;
+
+    internal_reset(r);
     r->host = host;
     r->port = port;
     r->principal = principal;
