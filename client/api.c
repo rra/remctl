@@ -363,6 +363,83 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
 
 
 /*
+ * Open a new remctl connection to a server, given the hostname, address
+ * information, and principal.  At least one of host or principal is required.
+ * Returns true on success and false on failure.
+ */
+int
+remctl_open_addrinfo(struct remctl *r, const char *host,
+            const struct addrinfo *ai, const char *principal)
+{
+    socket_type fd = INVALID_SOCKET;
+
+    internal_reset(r);
+    r->host = NULL;
+    r->port = 0;
+    r->principal = principal;
+
+    /* Make the network connection. */
+    fd = network_connect(ai, r->source, r->timeout);
+    if (fd == INVALID_SOCKET) {
+        internal_set_error(r, "cannot connect: %s",
+                           socket_strerror(socket_errno));
+        return false;
+    }
+    r->fd = fd;
+
+    return internal_open(r, host, principal);
+}
+
+
+/*
+ * Open a new remctl connection to a server, given the hostname, socket
+ * address, and principal.  At least one of host or principal is required.
+ * Returns true on success and false on failure.
+ */
+int
+remctl_open_sockaddr(struct remctl *r, const char *host,
+            const struct sockaddr *addr, int addrlen,
+            const char *principal)
+{
+    struct addrinfo ai;
+
+    memset(&ai, 0, sizeof(ai));
+    ai.ai_family = addr->sa_family;
+    ai.ai_socktype = SOCK_STREAM;
+    ai.ai_protocol = IPPROTO_TCP;
+    ai.ai_addrlen = addrlen;
+    ai.ai_addr = addr;
+
+    return remctl_open_addrinfo(r, host, &ai, principal);
+}
+
+
+/*
+ * Open a new remctl connection to a server, given the hostname, socket,
+ * and principal.  At least one of host or principal is required.
+ * Returns true on success and false on failure.
+ */
+#ifdef _WIN32
+int
+remctl_open_fd(struct remctl *r, const char *host, SOCKET fd,
+            const char *principal)
+#else
+int
+remctl_open_fd(struct remctl *r, const char *host, int fd,
+            const char *principal)
+#endif
+{
+    internal_reset(r);
+    r->host = NULL;
+    r->port = 0;
+    r->principal = principal;
+
+    r->fd = fd;
+    return internal_open(r, host, principal);
+}
+
+
+/*
  * Close a persistant remctl connection.
  */
 void

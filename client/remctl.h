@@ -124,6 +124,28 @@ int remctl_open(struct remctl *, const char *host, unsigned short port,
 void remctl_close(struct remctl *);
 
 /*
+ * Some alternate interfaces for opening connections.  In each of these,
+ * principal may be NULL, in which case host/<host> is used, as for the
+ * basic remctl_open.  If principal is not NULL, then host is not used
+ * and may be NULL.  Connections established using these interfaces do
+ * not support automatic connection reopening, which means they cannot
+ * be used to send more than one command to a v1 server.
+ */
+int remctl_open_addrinfo(struct remctl *r, const char *host,
+                         const struct addrinfo *ai, const char *principal);
+int remctl_open_sockaddr(struct remctl *r, const char *host,
+                         const struct sockaddr *addr, int addrlen,
+                         const char *principal);
+#ifdef _WIN32
+int remctl_open_fd(struct remctl *r, const char *host,
+                   SOCKET fd, const char *principal);
+#else
+int remctl_open_fd(struct remctl *r, const char *host,
+                   int fd, const char *principal);
+#endif
+
+
+/*
  * Set the Kerberos credential cache for client connections.  This must be
  * called before remctl_open.  Takes a string representing the Kerberos
  * credential cache name (the format may vary based on the underlying Kerberos

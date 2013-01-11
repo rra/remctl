@@ -2,6 +2,9 @@
 
 remctl 3.4 (unreleased)
 
+    Add new APIs for establishing a remctl connection given a sockaddr,
+    a list of struct addrinfo, or an already-open socket.
+
     Following Perl Best Practices, remove prototypes from all Net::Remctl
     functions.  The confusion caused by changing context away from how
     Perl normally works is not worth any diagnostic value.
