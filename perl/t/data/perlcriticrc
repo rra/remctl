@@ -4,11 +4,13 @@
 # for packages that run perlcritic tests automatically during the build for
 # reproducible test results.
 #
+# This file has been updated to match perlcritic 1.118.
+#
 # The canonical version of this file is maintained in the rra-c-util package,
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2011, 2012
+# Copyright 2011, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -28,12 +30,20 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
-  
+
 severity = 1
 verbose  = %f:%l:%c: [%p] %m (%e, Severity: %s)\n
 
+# I prefer this policy (a lot, actually), but other people in my group at
+# Stanford really didn't like it, so this is my compromise to agree with a
+# group coding style.
+[-CodeLayout::ProhibitParensWithBuiltins]
+
 # This is handled with a separate test case that uses Test::Spelling.
 [-Documentation::PodSpelling]
+
+# Pod::Man and Pod::Text fixed this bug years ago.  I know, I maintain them.
+[-Documentation::RequirePodLinksIncludeText]
 
 # The POD sections Perl::Critic wants are incompatible with the POD template
 # from perlpodstyle, which is what I use for my POD documentation.
@@ -41,10 +51,7 @@ verbose  = %f:%l:%c: [%p] %m (%e, Severity: %s)\n
 
 # The default of 9 is too small and forces weird code contortions.
 [InputOutput::RequireBriefOpen]
-lines = 15
-
-# The 1990s called and would like their VCS back.
-[-Miscellanea::RequireRcsKeywords]
+lines = 25
 
 # This is correct 80% of the time, but it isn't correct for a lot of scripts
 # inside packages, where maintaining $VERSION isn't worth the effort.
@@ -52,31 +59,19 @@ lines = 15
 # globally.
 [-Modules::RequireVersionVar]
 
-# The default is a bit too aggressive.  I was unable to write an Apache access
-# log regex with each major expression broken into a separate variable and fit
-# the default limit of 40 characters.  (It's not clear how the variable names
-# are counted, but they don't seem to be by number of characters in the
-# variable reference.)
-[RegularExpressions::ProhibitComplexRegexes]
-max_characters = 65
-
-# Nice idea, but it *utterly* confuses cperl-mode when used with braces, so
-# it's more trouble than it's worth.
-[-RegularExpressions::ProhibitEscapedMetacharacters]
+# This sounds interesting but is actually useless.  Any large blocks of
+# literal text, which does not add to the complexity of the regex, will set it
+# off.
+[-RegularExpressions::ProhibitComplexRegexes]
 
 # I generally don't want to require Readonly as a prerequisite for all my Perl
 # modules.
 [-ValuesAndExpressions::ProhibitConstantPragma]
 
-# 100 is used for calculating percentages.  Making it a constant is just
-# confusing.
-#
-# Literal 0777 means to use the umask for permissions when creating files.
-# Using a constant for this just makes it more obscure.  0777 is 511 in
-# decimal.
-[ValuesAndExpressions::ProhibitMagicNumbers]
-allowed_types  = Octal
-allowed_values = 0 1 2 100 511
+# A good idea, but there are too many places where this would be more
+# confusing than helpful.  Pull out numbers if one might change them
+# independent of the algorithm, but don't do so for mathematical formulae.
+[-ValuesAndExpressions::ProhibitMagicNumbers]
 
 # Increase this to six digits so that I'm not told to add underscores to
 # port numbers (which is just silly).

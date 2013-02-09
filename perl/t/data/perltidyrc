@@ -6,6 +6,8 @@
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 
 -bbao           # put line breaks before any operator
+-nbbc           # don't force blank lines before comments (bad for else blocks)
+-ce             # cuddle braces around else
 -l=79           # usually use 78, but don't want 79-long lines reformatted
 -pt=2           # don't add extra whitespace around parentheses
 -sbt=2          # ...or square brackets
