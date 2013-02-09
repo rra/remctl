@@ -4,14 +4,10 @@
 # larger remctl build tree and uses the built remctld for testing.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2007, 2008, 2009, 2011, 2012
+# Copyright 2007, 2008, 2009, 2011, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
-
-# Not a useful check for this sort of file.  Moving the expected lengths of
-# various tokens into constants wouldn't make the code any clearer.
-## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
 
 use strict;
 use warnings;
@@ -24,8 +20,6 @@ BEGIN { use_ok('Net::Remctl') }
 
 # Set by configure.  It should be harmless for this to be left unexpanded
 # eventually, but this test is not yet self-contained.
-## no critic (Miscellanea::ProhibitUselessNoCritic)
-## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
 my $TOP = '@abs_top_srcdir@';
 
 # Find a configuration file included as data in the test suite.
@@ -79,8 +73,7 @@ sub start_remctld {
     my $pid = fork;
     if (!defined $pid) {
         die "cannot fork: $!\n";
-    }
-    elsif ($pid == 0) {
+    } elsif ($pid == 0) {
         close STDERR or warn "can't close STDERR: $!\n";
         chdir "$TOP/tests" or die "can't chdir to $TOP/tests: $!\n";
         exec 'remctld', '-m', '-p', '14373',
@@ -192,8 +185,8 @@ SKIP: {
     # Test not providing enough arguments to remctl.
     if (eval { $result = remctl() }) {
         ok(0, 'Insufficient arguments to remctl');
-    }
-    else {
+    } else {
+        ## no critic (RegularExpressions::ProhibitEscapedMetacharacters)
         like(
             $@,
             qr{\A Usage: [ ] Net::Remctl::remctl\(.*}xms,

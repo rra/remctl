@@ -8,7 +8,7 @@
 # in order to test undefined values passed to Net::Remctl functions.
 #
 # Written by Russ Allbery
-# Copyright 2008, 2012
+# Copyright 2008, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -25,7 +25,7 @@ use Test::More;
 my $KLIST_REGEX = qr{
     \n \s*
     (Default [ ])? [Pp]rincipal: [ ]
-    \S+\@stanford\.edu
+    \S+\@stanford[.]edu
     \s* \n
 }ixms;
 
@@ -86,25 +86,21 @@ while (defined(my $output = $remctl->output)) {
     if ($output->type eq 'output') {
         if ($output->stream == 1) {
             $roles .= $output->data;
-        }
-        elsif ($output->stream == 2) {
+        } elsif ($output->stream == 2) {
             print {*STDERR} $output->data
               or die "Cannot display standard error\n";
             $okay = 0;
         }
-    }
-    elsif ($output->type eq 'error') {
+    } elsif ($output->type eq 'error') {
         warn $output->error, "\n";
         $okay = 0;
         last;
-    }
-    elsif ($output->type eq 'status') {
+    } elsif ($output->type eq 'status') {
         if ($output->status != 0) {
             $okay = 0;
         }
         last;
-    }
-    else {
+    } else {
         die 'Unknown output token from library: ', $output->type, "\n";
     }
 }

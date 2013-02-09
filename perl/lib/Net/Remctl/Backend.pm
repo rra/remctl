@@ -1,7 +1,7 @@
 # Helper infrastructure for remctl backend programs.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2012
+# Copyright 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -147,8 +147,7 @@ sub run {
         if ($command eq 'help') {
             print {*STDOUT} $self->help or die "Cannot write to STDOUT: $!\n";
             return 0;
-        }
-        else {
+        } else {
             die "Unknown command $command\n";
         }
     }
