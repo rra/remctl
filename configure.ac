@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012
+dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012, 2013
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl See LICENSE for licensing terms.
@@ -137,7 +137,7 @@ AM_CONDITIONAL([GCC], [test x"$GCC" = xyes])
 AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
 AC_CONFIG_FILES([tests/data/conf-simple])
 AS_IF([test x"$build_perl" = xyes],
-    [AC_CONFIG_FILES([perl/Makefile.PL perl/lib/Net/Remctl.pm])
+    [AC_CONFIG_FILES([perl/Build.PL perl/lib/Net/Remctl.pm])
      AC_CONFIG_FILES([perl/t/api.t], [chmod +x perl/t/api.t])])
 AS_IF([test x"$build_php" = xyes],
     [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])

@@ -1,0 +1,48 @@
+# -*- conf -*-
+
+# Avoid generated build files.
+\bblib/
+^lib/Net/Remctl\.c$
+\.o$
+
+# Avoid Module::Build generated and utility files.
+\bBuild$
+\b_build/
+\bBuild.bat$
+\bBuild.COM$
+\bBUILD.COM$
+\bbuild.com$
+
+# Avoid temp and backup files.
+~$
+\.old$
+\#$
+\b\.#
+\.bak$
+\.tmp$
+\.#
+\.rej$
+
+# Avoid OS-specific files/dirs
+# Mac OSX metadata
+\B\.DS_Store
+# Mac OSX SMB mount metadata files
+\B\._
+
+# Avoid Devel::Cover and Devel::CoverX::Covered files.
+\bcover_db\b
+\bcovered\b
+
+# Avoid MYMETA files
+^MYMETA\.
+
+# Avoid archives of this distribution
+\bNet-Remctl-[\d\.\_]+
+
+# Avoid Autoconf templates.  It doesn't completely make sense to build a
+# distribution of this, but if we do, we may as well leave out the Autoconf
+# templates, since that's really only useful within the larger tree.
+\.in$
+
+# Avoid local test configuration files.
+^t/data/test\.

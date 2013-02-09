@@ -1,7 +1,7 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012
+# Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -32,14 +32,19 @@ REMCTL_RUBY_FLAGS      ?=
 # for the test suite and are not generated or touched by configure.  They're
 # listed here to be added to EXTRA_DIST and so that they can be copied over
 # properly for builddir != srcdir builds.
-PERL_FILES = perl/Remctl.xs perl/typemap perl/t/critic.t		\
-	perl/t/data/perlcriticrc perl/t/data/perltidyrc			\
-	perl/t/pod-spelling.t perl/t/pod.t perl/t/stanford-netdb.t	\
-	perl/t/strict.t
+PERL_FILES = perl/lib/Net/Remctl.xs perl/lib/Net/Remctl/Backend.pm	\
+	perl/typemap perl/t/critic.t perl/t/data/perlcriticrc		\
+	perl/t/data/perltidyrc perl/t/pod-spelling.t perl/t/pod.t	\
+	perl/t/stanford-netdb.t perl/t/strict.t
 PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
 	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
 	php/tests/005.phpt php/tests/006.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
+
+# Directories that have to be created in builddir != srcdir builds before
+# copying PERL_FILES over.
+PERL_DIRECTORIES = perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
+	perl/t/data
 
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
@@ -171,15 +176,11 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
 	m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 \
 	m4/lt~obsolete.m4
 
-# Automake should deal with the first part of this automatically, but it
-# doesn't.  Probably a bug in the non-recursive support.  Also run make clean
-# in the perl and php directories if needed and clean up after Python.
+# Also clean the perl, php, and ruby directories if needed and clean up
+# after Python.
 clean-local:
-	-rm -rf server/.libs tests/.libs tests/client/.libs tests/data/.libs \
-	    tests/portable/.libs tests/server/.libs tests/util/.libs
-	set -e; if [ -f "perl/Makefile" ] ; then			   \
-	    cd perl && $(MAKE) clean ;					   \
-	    cd perl && [ ! -f Makefile.old ] || mv Makefile.old Makefile ; \
+	set -e; if [ -f "perl/Build" ] ; then	\
+	    cd perl && ./Build realclean ;	\
 	fi
 	set -e; if [ -f "php/Makefile" ] ; then	\
 	    cd php && $(MAKE) clean ;		\
@@ -198,9 +199,8 @@ distclean-local:
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then		  \
 	    rm -rf php ;						  \
 	    for f in $(PERL_FILES) ; do					  \
-	        rm -f "$(builddir)/$$f" ;				  \
+		rm -f "$(builddir)/$$f" ;				  \
 	    done ;							  \
-	    rmdir perl/t 2>/dev/null || true ;				  \
 	    for f in $(PYTHON_FILES) ; do				  \
 		rm -f "$(builddir)/$$f" ;				  \
 	    done							  \
@@ -233,8 +233,9 @@ WARNINGS = -g -O -D_FORTIFY_SOURCE=2 -Wall -Wextra -Wendif-labels	    \
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code doesn't pass them.
 if GCC
-    PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs \
-	-Wno-strict-prototypes -Wno-redundant-decls -Wno-shadow
+    PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs	\
+	-Wno-strict-prototypes -Wno-missing-prototypes		\
+	-Wno-redundant-decls -Wno-shadow
     PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings	\
 	-Wno-missing-prototypes -Wno-unused-parameter		\
 	-Wno-redundant-decls -Wno-sign-compare
@@ -413,9 +414,9 @@ TEST_RPATH = $(abs_top_builddir)/client/.libs
 
 check-local: $(check_PROGRAMS)
 	cd tests && ./runtests $(abs_top_srcdir)/tests/TESTS
-	@set -e; if [ -f perl/Makefile ] ; then				\
+	@set -e; if [ -f perl/Build ] ; then				\
 	    echo '' ;							\
-	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH) $(MAKE) test ;	\
+	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH) ./Build test ;	\
 	fi
 	@set -e; if [ -f php/Makefile ] ; then				    \
 	    echo '' ;							    \
@@ -463,22 +464,28 @@ BINDINGS_INSTALL =
 # which case we need to copy various files from the source directory and make
 # sure they're up to date since Perl can't handle VPATH builds.
 
-perl/Remctl.o: perl/lib/Net/Remctl.pm $(srcdir)/perl/Remctl.xs	\
-		$(srcdir)/perl/typemap client/libremctl.la
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
-	    for f in $(PERL_FILES) ; do				\
-	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
-	    done						\
+perl/lib/Net/Remctl.o: perl/lib/Net/Remctl.pm				\
+		$(srcdir)/perl/lib/Net/Remctl.xs $(srcdir)/perl/typemap	\
+		client/libremctl.la perl/Build.PL
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then		\
+	    for d in $(PERL_DIRECTORIES) ; do				\
+		[ -d "$(builddir)/$$d" ] || mkdir "$(builddir)/$$d" ;	\
+	    done ;							\
+	    for f in $(PERL_FILES) ; do					\
+	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;			\
+	    done							\
 	fi
-	cd perl && perl Makefile.PL $(REMCTL_PERL_FLAGS)
-	cd perl && $(MAKE) OPTIMIZE="$(CPPFLAGS) $(CFLAGS) $(PERL_WARNINGS)"
+	cd perl && perl Build.PL					\
+	    --config optimize='$(CPPFLAGS) $(CFLAGS) $(PERL_WARNINGS)'	\
+	    $(REMCTL_PERL_FLAGS)
+	cd perl && ./Build
 
-install-data-local-perl: perl/Remctl.o
-	cd perl && $(MAKE) install DESTDIR=$(DESTDIR)
+install-data-local-perl: perl/lib/Net/Remctl.o
+	cd perl && ./Build install --destdir '$(DESTDIR)'
 
 # Build and install the Perl bindings if desired.
 if BUILD_PERL
-BINDINGS += perl/Remctl.o
+BINDINGS += perl/lib/Net/Remctl.o
 BINDINGS_INSTALL += install-data-local-perl
 endif
 

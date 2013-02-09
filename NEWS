@@ -6,6 +6,14 @@ remctl 3.4 (unreleased)
     functions.  The confusion caused by changing context away from how
     Perl normally works is not worth any diagnostic value.
 
+    The Net::Remctl Perl bindings now require Perl 5.8 or later (instead
+    of 5.006 in previous versions) and are now built with Module::Build
+    instead of ExtUtils::MakeMaker.  This should be transparent to anyone
+    not working with the source code, since Perl 5.8 was released in 2002,
+    but Module::Build and ExtUtils::CBuilder are now required to build
+    Net::Remctl.  They are included in Perl 5.10 or later and can be
+    installed separately for older versions of Perl.
+
     Update to rra-c-util 4.7:
 
     * Fix probing for Heimdal's libroken to work with older versions.

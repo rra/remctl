@@ -7,7 +7,7 @@
 # since coding style will not interfere with functionality.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2012
+# Copyright 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -62,7 +62,7 @@ if (!@files) {
     @files = Perl::Critic::Utils::all_perl_files('lib');
 }
 push @files, Perl::Critic::Utils::all_perl_files('t');
-push @files, 'Makefile.PL';
+push @files, 'Build.PL';
 @files = grep { !m{ [.](?:in|tdy) }xms } @files;
 plan tests => scalar @files;
 

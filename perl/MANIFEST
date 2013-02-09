@@ -1,0 +1,18 @@
+Build.PL
+lib/Net/Remctl.pm
+lib/Net/Remctl.xs
+lib/Net/Remctl/Backend.pm
+MANIFEST			This list of files
+MANIFEST.SKIP
+t/api.t
+t/backend.t
+t/critic.t
+t/data/perlcriticrc
+t/data/perltidyrc
+t/minimum-version.t
+t/pod-coverage.t
+t/pod-spelling.t
+t/pod.t
+t/stanford-netdb.t
+t/strict.t
+typemap
