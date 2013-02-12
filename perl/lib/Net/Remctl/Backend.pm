@@ -71,18 +71,28 @@ sub help {
     # commands that are missing a syntax description.  Add in the length of
     # the command.
     my (@syntax, @summary);
+  COMMAND:
     for my $command (sort keys %{ $self->{commands} }) {
-        next if !defined $self->{commands}{$command}{syntax};
-        push @syntax, $command . q{ } . $self->{commands}{$command}{syntax};
-        my $summary = $self->{commands}{$command}{summary} || q{};
-        push @summary, $summary;
+        my $syntax  = $self->{commands}{$command}{syntax};
+        my $summary = $self->{commands}{$command}{summary};
+        next COMMAND if !defined($syntax);
+
+        # Avoid trailing whitespace if there is no extra syntax.
+        if (length($syntax) > 0) {
+            push(@syntax, $command . q{ } . $syntax);
+        } else {
+            push(@syntax, $command);
+        }
+
+        # Translate missing summaries into the empty string.
+        push(@summary, $summary || q{});
     }
 
     # Calculate the maximum syntax length.  Add in the length of the command.
     my $max_syntax_len = 0;
     for my $syntax (@syntax) {
         if (length($syntax) > $max_syntax_len) {
-            $max_syntax_len = length $syntax;
+            $max_syntax_len = length($syntax);
         }
     }
 
@@ -97,7 +107,7 @@ sub help {
     if ($self->{command}) {
         $prefix .= $self->{command} . q{ };
     }
-    my $pad_column = $max_syntax_len + 2 + length $prefix;
+    my $pad_column = $max_syntax_len + 2 + length($prefix);
 
     # Add the help banner if one is set.  Add a newline if there isn't one.
     my $output = q{};
@@ -116,7 +126,7 @@ sub help {
             $output .= $prefix . $syntax[$i] . "\n";
             next;
         }
-        my $length  = length($prefix) + length $syntax[$i];
+        my $length  = length($prefix) + length($syntax[$i]);
         my $padding = q{ } x ($pad_column - $length);
         my $syntax  = $prefix . $syntax[$i] . $padding;
         $output .= wrap($syntax, q{ } x $pad_column, $summary[$i] . "\n");
