@@ -4,15 +4,15 @@ lib/Net/Remctl.xs
 lib/Net/Remctl/Backend.pm
 MANIFEST			This list of files
 MANIFEST.SKIP
-t/api.t
-t/backend.t
-t/critic.t
+t/api/basic.t
+t/api/stanford-netdb.t
+t/backend/basic.t
 t/data/perlcriticrc
 t/data/perltidyrc
-t/minimum-version.t
-t/pod-coverage.t
-t/pod-spelling.t
-t/pod.t
-t/stanford-netdb.t
-t/strict.t
+t/docs/pod-coverage.t
+t/docs/pod-spelling.t
+t/docs/pod.t
+t/style/critic.t
+t/style/minimum-version.t
+t/style/strict.t
 typemap

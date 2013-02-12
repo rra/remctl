@@ -19,7 +19,7 @@
 /perl/blib/
 /perl/lib/Net/Remctl.c
 /perl/lib/Net/Remctl.pm
-/perl/t/api.t
+/perl/t/api/basic.t
 /php/Makefile.*
 /php/acinclude.m4
 /php/autom4te.cache/
