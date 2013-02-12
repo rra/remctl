@@ -39,6 +39,13 @@ verbose  = %f:%l:%c: [%p] %m (%e, Severity: %s)\n
 # group coding style.
 [-CodeLayout::ProhibitParensWithBuiltins]
 
+# Stanford's coding style allows postfix unless for flow control.  There
+# doesn't appear to be any way to allow it only for flow control (the logic
+# for "if" and "when" appears to be special-cased), so we have to allow unless
+# globally.
+[ControlStructures::ProhibitPostfixControls]
+allow = unless
+
 # This is handled with a separate test case that uses Test::Spelling.
 [-Documentation::PodSpelling]
 
@@ -48,6 +55,10 @@ verbose  = %f:%l:%c: [%p] %m (%e, Severity: %s)\n
 # The POD sections Perl::Critic wants are incompatible with the POD template
 # from perlpodstyle, which is what I use for my POD documentation.
 [-Documentation::RequirePodSections]
+
+# This problem was fixed in Perl 5.14, which now properly preserves the value
+# of $@ even if destructors run at exit from the eval block.
+[-ErrorHandling::RequireCheckingReturnValueOfEval]
 
 # The default of 9 is too small and forces weird code contortions.
 [InputOutput::RequireBriefOpen]
