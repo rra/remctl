@@ -1,12 +1,9 @@
 #!/usr/bin/perl
 #
-# Check for POD formatting errors.
-#
-# Check all POD documents in the Perl module distribution for POD formatting
-# errors.
+# Check all POD documents for syntax and formatting errors.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2012
+# Copyright 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.

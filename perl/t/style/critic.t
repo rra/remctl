@@ -1,10 +1,12 @@
 #!/usr/bin/perl
 #
-# Check for perlcritic errors in included Perl code.
+# Check for perlcritic errors in all Perl code.
 #
 # Checks all Perl code in blib/lib, t, and Makefile.PL for problems uncovered
 # by perlcritic.  This test is disabled unless RRA_MAINTAINER_TESTS is set,
-# since coding style will not interfere with functionality.
+# since coding style will not interfere with functionality and newer versions
+# of perlcritic may introduce new checks or complain about old "no critic"
+# annotations.
 #
 # Written by Russ Allbery <rra@stanford.edu>
 # Copyright 2012, 2013
@@ -28,12 +30,12 @@ use Test::More;
 #  Throws: String exception if the file could not be found.
 sub test_file_path {
     my ($file) = @_;
-    for my $base (qw{t tests .}) {
+    for my $base (qw(t tests .)) {
         if (-f "$base/$file") {
             return "$base/$file";
         }
     }
-    croak "cannot find test file $file";
+    croak("cannot find test file $file");
 }
 
 # Skip tests unless we're running the test suite in maintainer mode.
@@ -56,13 +58,14 @@ local $ENV{PERLTIDY} = test_file_path('data/perltidyrc');
 my $profile = test_file_path('data/perlcriticrc');
 Test::Perl::Critic->import(-profile => $profile);
 
-# By default, Test::Perl::Critic only checks blib.  We also want to check t.
+# By default, Test::Perl::Critic only checks blib.  We also want to check t
+# and Build.PL.
 my @files = Perl::Critic::Utils::all_perl_files('blib');
 if (!@files) {
     @files = Perl::Critic::Utils::all_perl_files('lib');
 }
-push @files, Perl::Critic::Utils::all_perl_files('t');
-push @files, 'Build.PL';
+push(@files, Perl::Critic::Utils::all_perl_files('t'));
+push(@files, 'Build.PL');
 @files = grep { !m{ [.](?:in|tdy) }xms } @files;
 plan tests => scalar @files;
 

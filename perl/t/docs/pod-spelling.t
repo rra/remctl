@@ -6,7 +6,8 @@
 # is disabled unless RRA_MAINTAINER_TESTS is set, since spelling dictionaries
 # vary too much between environments.
 #
-# Copyright 2012
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -27,5 +28,10 @@ if (!eval { require Test::Spelling }) {
 }
 Test::Spelling->import;
 
-# Check all POD in the Perl distribution.
-all_pod_files_spelling_ok();
+# Check all POD in the Perl distribution.  Add the examples directory if it
+# exists.
+my @files = all_pod_files();
+if (-d 'examples') {
+    push(@files, 'examples');
+}
+all_pod_files_spelling_ok(@files);
