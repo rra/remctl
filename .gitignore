@@ -17,6 +17,7 @@
 /perl/MYMETA.yml
 /perl/_build/
 /perl/blib/
+/perl/cover_db/
 /perl/lib/Net/Remctl.c
 /perl/lib/Net/Remctl.pm
 /perl/t/api/basic.t
