@@ -18,33 +18,29 @@ use Test::More tests => 62;
 # Load the module.
 BEGIN { use_ok('Net::Remctl') }
 
-# Set by configure.  It should be harmless for this to be left unexpanded
-# eventually, but this test is not yet self-contained.
-my $TOP = '@abs_top_srcdir@';
-
 # Find a configuration file included as data in the test suite.
 #
-# $file - Path of file relative to the t/data directory
+# $file - Path of file relative to the t/config directory
 #
 # Returns: Path of the file if found
 #  Throws: String exception if the file could not be found.
 sub test_file_path {
     my ($file) = @_;
-    for my $base (qw{t tests .}) {
+    for my $base (qw(t tests .)) {
         if (-f "$base/$file") {
             return "$base/$file";
         }
     }
-    croak "cannot find test file $file";
+    croak("cannot find test file $file");
 }
 
 # Returns: The principal to use for authentication.
 sub get_principal {
     my $file = test_file_path('config/principal');
-    open my $config, '<', $file or return;
+    open(my $config, '<', $file) or return;
     my $princ = <$config>;
-    close $config or return;
-    chomp $princ;
+    close($config) or return;
+    chomp($princ);
     return $princ;
 }
 
@@ -57,17 +53,15 @@ sub get_principal {
 sub start_remctld {
     my $princ = get_principal();
 
-    # Set up a search path for remctld that includes sbin directories and
-    # prefers a newly-built remctld in the same tree if available.
-    my $path = '/usr/local/sbin:/usr/sbin';
-    if ($TOP !~ m{\@abs_top_srcdir\@}xms) {
-        $path = "$TOP/server" . q{:} . $path;
-    }
-    local $ENV{PATH} = "$path:$ENV{PATH}";
+    # If REMCTLD is set in the environment, use that as the binary.
+    my $remctld = $ENV{REMCTLD} || 'remctld';
+
+    # In case REMCTLD was not set, add sbin directories to our PATH.
+    local $ENV{PATH} = "/usr/local/sbin:/usr/sbin:$ENV{PATH}";
 
     # Set up a temporary directory for the PID file.
-    unlink 'tmp/pid';
-    mkdir 'tmp';
+    unlink 't/tmp/pid';
+    mkdir 't/tmp';
 
     # Fork off remctld.
     my $pid = fork;
@@ -75,12 +69,11 @@ sub start_remctld {
         die "cannot fork: $!\n";
     } elsif ($pid == 0) {
         close STDERR or warn "can't close STDERR: $!\n";
-        chdir "$TOP/tests" or die "can't chdir to $TOP/tests: $!\n";
-        exec 'remctld', '-m', '-p', '14373',
+        exec $remctld, '-m', '-p', '14373',
           (defined($princ) ? ('-s', $princ) : ()),
-          '-P', "$TOP/tests/tmp/pid", '-f', 'data/conf-simple',
-          '-d', '-S', '-F', '-k', "$TOP/tests/config/keytab"
-          or die "cannot exec $TOP/server/remctld: $!\n";
+          '-P', 't/tmp/pid', '-f', 't/data/remctl.conf',
+          '-d', '-S', '-F', '-k', 't/config/keytab'
+          or die "cannot exec $remctld: $!\n";
     }
 }
 
@@ -88,13 +81,13 @@ sub start_remctld {
 #
 # Returns: undef
 sub stop_remctld {
-    if (open my $pid_fh, '<', 'tmp/pid') {
+    if (open my $pid_fh, '<', 't/tmp/pid') {
         my $pid = <$pid_fh>;
         close $pid_fh or warn "cannot close PID file: $!\n";
         chomp $pid;
         kill 15, $pid;
-        unlink 'tmp/pid';
-        rmdir 'tmp';
+        unlink 't/tmp/pid';
+        rmdir 't/tmp';
     }
     return;
 }
@@ -111,15 +104,15 @@ sub run_kinit {
 
     # List of commands to try.
     my @commands = (
-        [qw(kinit --no-afslog -k -t config/keytab), $princ],
-        [qw(kinit -k -t config/keytab),             $princ],
-        [qw(kinit -t config/keytab),                $princ],
-        [qw(kinit -k -K config/keytab),             $princ],
+        [qw(kinit --no-afslog -k -t t/config/keytab), $princ],
+        [qw(kinit -k -t t/config/keytab),             $princ],
+        [qw(kinit -t t/config/keytab),                $princ],
+        [qw(kinit -k -K t/config/keytab),             $princ],
     );
 
     # Attempt each command in turn.  If any succeed, return true.
     for my $command (@commands) {
-        my $status = system "@$command >/dev/null </dev/null";
+        my $status = system "@$command >/dev/null 2>&1 </dev/null";
         if ($status == 0) {
             return 1;
         }
@@ -128,7 +121,7 @@ sub run_kinit {
     # If unable to get Kerberos tickets, wait until remctld has started and
     # then stop it.  Then return false.
     warn "Unable to obtain Kerberos tickets\n";
-    if (!-f 'tmp/pid') {
+    if (!-f 't/tmp/pid') {
         sleep 1;
     }
     stop_remctld();
@@ -136,22 +129,21 @@ sub run_kinit {
 }
 
 # Test setup.
-chdir "$TOP/tests";
-my $okay = (-f 'config/principal' && -f 'config/keytab');
-local $ENV{KRB5CCNAME} = 'tmp/krb5cc_test';
+my $okay = (-f 't/config/principal' && -f 't/config/keytab');
+local $ENV{KRB5CCNAME} = 't/tmp/krb5cc_test';
 if ($okay) {
     start_remctld();
     $okay = run_kinit();
 }
 SKIP: {
     if (!$okay) {
-        skip 'no Kerberos configuration' => 60;
+        skip 'no Kerberos configuration' => 62;
     }
 
     # Wait for remctld to start.
-    if (!-f 'tmp/pid') {
+    if (!-f 't/tmp/pid') {
         sleep 1;
-        if (!-f 'tmp/pid') {
+        if (!-f 't/tmp/pid') {
             die "remctld did not start\n";
         }
     }

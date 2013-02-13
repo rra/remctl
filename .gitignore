@@ -20,7 +20,9 @@
 /perl/cover_db/
 /perl/lib/Net/Remctl.c
 /perl/lib/Net/Remctl.pm
-/perl/t/api/basic.t
+/perl/t/config/
+/perl/t/data/cmd-hello
+/perl/t/data/cmd-sleep
 /php/Makefile.*
 /php/acinclude.m4
 /php/autom4te.cache/

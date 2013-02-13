@@ -15,6 +15,38 @@ use warnings;
 use Config;
 use Module::Build;
 
+# Create a command script that will be run by remctld during the test suite.
+# These scripts will be stored in the t/data directory.
+#
+# $build - Module::Build object
+# $name  - Name of command
+# $code  - Perl code, as a string, to put into the script
+#
+# Returns: undef
+#  Throws: Text exceptions on I/O failures
+sub create_command {
+    my ($build, $name, $code) = @_;
+    my $path = File::Spec->catfile(qw(t data), $name);
+
+    # Create the file.
+    open(my $command, q{>}, $path)
+      or die "Cannot create $path: $!\n";
+    print {$command} "#!/usr/bin/perl\nuse strict;\nuse warnings;\n"
+      or die "Cannot write to $path: $!\n";
+    print {$command} $code, "\n"
+      or die "Cannot write to $path: $!\n";
+    close($command)
+      or die "Cannot write to $path: $!\n";
+
+    # Fix the shebang line.
+    $build->fix_shebang_line($path);
+
+    # Set permissions, which seems to be un-done by fix_shebang_ling.
+    chmod(0755, $path)
+      or die "Cannot set permissions on $path: $!\n";
+    return;
+}
+
 # Determine compiler and linker flags from Autoconf.  The actual Build.PL
 # script will be built from a template with these values substituted in.
 my (@CFLAGS, @LDFLAGS, @LIBS);
@@ -50,3 +82,8 @@ my $build = Module::Build->new(
 
 # Generate the build script.
 $build->create_build_script;
+
+# Generate the commands that will be run by remctld during the test suite.
+## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+create_command($build, 'cmd-hello', 'print "hello world\n" or die "fail\n"');
+create_command($build, 'cmd-sleep', 'sleep 3;');

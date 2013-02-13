@@ -9,6 +9,7 @@ t/api/stanford-netdb.t
 t/backend/basic.t
 t/data/perlcriticrc
 t/data/perltidyrc
+t/data/remctl.conf
 t/docs/pod-coverage.t
 t/docs/pod-spelling.t
 t/docs/pod.t
