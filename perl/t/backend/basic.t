@@ -15,7 +15,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 44;
+use Test::More tests => 52;
 
 # Test loading the module.
 BEGIN { use_ok('Net::Remctl::Backend') }
@@ -104,7 +104,7 @@ is_deeply(\@CALLS, [[qw(main::test_cmd2 arg1 arg2)]], 'cmd2 called correctly');
 @CALLS = ();
 
 # Set minimum arguments for cmd1 and ensure it fails.
-$commands{cmd1}{min_args} = 1;
+$commands{cmd1}{args_min} = 1;
 $backend = Net::Remctl::Backend->new({ commands => \%commands });
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1));
 is($status, 255,                              'cmd1 with no args returns 255');
@@ -122,7 +122,7 @@ is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1)]], 'cmd1 called correctly');
 @CALLS = ();
 
 # Set a maximum number of arguments as well.  Two arguments should be fine.
-$commands{cmd1}{max_args} = 2;
+$commands{cmd1}{args_max} = 2;
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2));
 is($status, 1,   'cmd1 with two args returns correct status');
 is($out,    q{}, '... and no output');
@@ -148,7 +148,25 @@ $backend = Net::Remctl::Backend->new(
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2 arg3));
 is($status, 255, 'cmd1 with three args returns 255');
 is($out,    q{}, '... and no output');
-is($err, "foo cmd1: too many arguments\n", '... and correct error');
+is($err, "foo cmd1: too many arguments\n", '... and correct verbose error');
+is_deeply(\@CALLS, [], 'no functions called');
+@CALLS = ();
+
+# Add an argument validator for the second argument of cmd1.  This call should
+# be fine.
+$commands{cmd1}{args_match} = [undef, qr{ \A \w+ \z }xms];
+($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2));
+is($status, 1,   'cmd1 with argument checking returns correct status');
+is($out,    q{}, '... and no output');
+is($err,    q{}, '... and no errors');
+is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1 arg2)]], 'cmd1 called correctly');
+@CALLS = ();
+
+# Now, pass in an argument that should fail.
+($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg-2));
+is($status, 255, 'cmd1 fails argument checking');
+is($out,    q{}, '... and no output');
+is($err, "foo cmd1: invalid argument: arg-2\n", '... and correct error');
 is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
 

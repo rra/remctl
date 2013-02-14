@@ -189,11 +189,23 @@ sub run {
     my $config = $self->{commands}{$command};
 
     # Check the number of arguments if desired.
-    if (defined($config->{max_args}) && $config->{max_args} < @args) {
+    if (defined($config->{args_max}) && $config->{args_max} < @args) {
         $self->_command_die($command, 'too many arguments');
     }
-    if (defined($config->{min_args}) && $config->{min_args} > @args) {
+    if (defined($config->{args_min}) && $config->{args_min} > @args) {
         $self->_command_die($command, 'insufficient arguments');
+    }
+
+    # If there are check regexes, apply them to the arguments.
+    if ($config->{args_match}) {
+        my @regexes = @{ $config->{args_match} };
+        for my $i (0 .. $#args) {
+            my $arg   = $args[$i];
+            my $regex = $regexes[$i];
+            if (defined($regex) && $arg !~ $regex) {
+                $self->_command_die($command, "invalid argument: $arg");
+            }
+        }
     }
 
     # Run the command.
@@ -271,6 +283,30 @@ subcommand supported by this backend.  The possible keys in that hash are:
 
 =over 4
 
+=item args_match
+
+A reference to an array of regexes that must match the arguments to this
+function.  Each element of the array is matched against the corresponding
+element in the array of arguments, and if the corresponding regular
+expression does not match, the command will be rejected with an error
+about an invalid argument.  Set the regular expression to undef to not
+check the corresponding argument.
+
+There is currently no way to check all arguments in commands that take any
+number of arguments.
+
+=item args_max
+
+The maximum number of arguments.  If there are more than this number of
+arguments, run() will die with an error message without running the
+command.
+
+=item args_min
+
+The minimum number of arguments.  If there are fewer than this number of
+arguments, run() will die with an error message without running the
+command.
+
 =item code
 
 A reference to the sub that implements this command.  This sub will be
@@ -279,18 +315,6 @@ should return the exit status that should be used by the backend as a
 whole: 0 for success and some non-zero value for an error condition.  This
 sub should print to STDOUT and STDERR to communicate back to the remctl
 client.
-
-=item max_args
-
-The maximum number of arguments.  If there are more than this number of
-arguments, run() will die with an error message without running the
-command.
-
-=item min_args
-
-The minimum number of arguments.  If there are fewer than this number of
-arguments, run() will die with an error message without running the
-command.
 
 =item syntax
 
@@ -372,15 +396,25 @@ Perl context information won't be appended.
 
 =item %s: insufficient arguments
 
-The given command was configured with a C<min_args> parameter, and the
+The given command was configured with a C<args_min> parameter, and the
 user passed in fewer arguments than that.
+
+=item %s: invalid argument: %s
+
+The given argument to the given command failed to match a regular
+expression that was set with an C<args_match> parameter.
 
 =item %s: too many arguments
 
-The given command was configured with a C<min_args> parameter, and the
-user passed in fewer arguments than that.
+The given command was configured with a C<args_max> parameter, and the
+user passed in more arguments than that.
 
 =back
+
+=head1 BUGS
+
+There is no way to check all arguments with a regex when the command
+supports any number of arguments.
 
 =head1 SEE ALSO
 
