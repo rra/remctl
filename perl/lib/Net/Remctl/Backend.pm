@@ -166,6 +166,9 @@ sub run {
     my $config = $self->{commands}{$command};
 
     # Check the number of arguments if desired.
+    if (defined($config->{max_args}) && $config->{max_args} < @args) {
+        die "$command: too many arguments\n";
+    }
     if (defined($config->{min_args}) && $config->{min_args} > @args) {
         die "$command: insufficient arguments\n";
     }
@@ -254,6 +257,12 @@ whole: 0 for success and some non-zero value for an error condition.  This
 sub should print to STDOUT and STDERR to communicate back to the remctl
 client.
 
+=item max_args
+
+The maximum number of arguments.  If there are more than this number of
+arguments, run() will die with an error message without running the
+command.
+
 =item min_args
 
 The minimum number of arguments.  If there are fewer than this number of
@@ -339,6 +348,11 @@ Perl context information won't be appended.
 =over 4
 
 =item %s: insufficient arguments
+
+The given command was configured with a C<min_args> parameter, and the
+user passed in fewer arguments than that.
+
+=item %s: too many arguments
 
 The given command was configured with a C<min_args> parameter, and the
 user passed in fewer arguments than that.

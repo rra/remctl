@@ -15,7 +15,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 32;
+use Test::More tests => 40;
 
 # Test loading the module.
 BEGIN { use_ok('Net::Remctl::Backend') }
@@ -119,6 +119,23 @@ is($status, 1,   'cmd1 with one arg returns correct status');
 is($out,    q{}, '... and no output');
 is($err,    q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1)]], 'cmd1 called correctly');
+@CALLS = ();
+
+# Set a maximum number of arguments as well.  Two arguments should be fine.
+$commands{cmd1}{max_args} = 2;
+($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2));
+is($status, 1,   'cmd1 with two args returns correct status');
+is($out,    q{}, '... and no output');
+is($err,    q{}, '... and no errors');
+is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1 arg2)]], 'cmd1 called correctly');
+@CALLS = ();
+
+# Three arguments should result in an error.
+($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2 arg3));
+is($status, 255,                          'cmd1 with three args returns 255');
+is($out,    q{},                          '... and no output');
+is($err,    "cmd1: too many arguments\n", '... and correct error');
+is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
 
 # Add help information to one of the commands.
