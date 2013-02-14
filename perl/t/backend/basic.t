@@ -15,7 +15,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 40;
+use Test::More tests => 44;
 
 # Test loading the module.
 BEGIN { use_ok('Net::Remctl::Backend') }
@@ -135,6 +135,20 @@ is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1 arg2)]], 'cmd1 called correctly');
 is($status, 255,                          'cmd1 with three args returns 255');
 is($out,    q{},                          '... and no output');
 is($err,    "cmd1: too many arguments\n", '... and correct error');
+is_deeply(\@CALLS, [], 'no functions called');
+@CALLS = ();
+
+# Set a global command name in the object, which should change the error.
+$backend = Net::Remctl::Backend->new(
+    {
+        command  => 'foo',
+        commands => \%commands,
+    }
+);
+($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2 arg3));
+is($status, 255, 'cmd1 with three args returns 255');
+is($out,    q{}, '... and no output');
+is($err, "foo cmd1: too many arguments\n", '... and correct error');
 is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
 

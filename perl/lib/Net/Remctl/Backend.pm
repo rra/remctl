@@ -136,6 +136,29 @@ sub help {
     return $output;
 }
 
+# Report a fatal error in running a particular command.  This is the internal
+# method used to handle error messages for a particular command.  It will
+# append the globally-configured command name, if there is one, and the
+# current command.
+#
+# $self    - The Net::Remctl::Backend object
+# $command - The command being run (actually the remctl subcommand)
+# $error   - The error message
+#
+# Returns: undef
+#  Throws: Throws the text message constructed from the above
+sub _command_die {
+    my ($self, $command, $error) = @_;
+
+    # If we have a global command, prepend it to the subcommand.
+    if ($self->{command}) {
+        $command = $self->{command} . q{ } . $command;
+    }
+
+    # Report the error.
+    die "$command: $error\n";
+}
+
 # The core of the code, called from the main routine of a backend.  Parse the
 # command line and either handle the command directly (for the help command)
 # or dispatch it as configured in the object.
@@ -167,10 +190,10 @@ sub run {
 
     # Check the number of arguments if desired.
     if (defined($config->{max_args}) && $config->{max_args} < @args) {
-        die "$command: too many arguments\n";
+        $self->_command_die($command, 'too many arguments');
     }
     if (defined($config->{min_args}) && $config->{min_args} > @args) {
-        die "$command: insufficient arguments\n";
+        $self->_command_die($command, 'insufficient arguments');
     }
 
     # Run the command.
