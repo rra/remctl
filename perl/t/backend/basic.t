@@ -15,7 +15,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 24;
+use Test::More tests => 32;
 
 # Test loading the module.
 BEGIN { use_ok('Net::Remctl::Backend') }
@@ -49,7 +49,11 @@ sub run_wrapper {
 
     # Run the backend.
     local @ARGV = @args;
-    my $status = $backend->run;
+    my $status = eval { $backend->run };
+    if ($@) {
+        print {*STDERR} $@ or BAIL_OUT("Cannot write to STDERR: $!");
+        $status = 255;
+    }
 
     # Restore STDOUT and STDERR.
     open(STDOUT, '>&', $oldout) or BAIL_OUT("Cannot restore STDOUT: $!");
@@ -97,6 +101,24 @@ is($status, 2,   'cmd2 returns correct status');
 is($out,    q{}, '... and no output');
 is($err,    q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd2 arg1 arg2)]], 'cmd2 called correctly');
+@CALLS = ();
+
+# Set minimum arguments for cmd1 and ensure it fails.
+$commands{cmd1}{min_args} = 1;
+$backend = Net::Remctl::Backend->new({ commands => \%commands });
+($out, $err, $status) = run_wrapper($backend, qw(cmd1));
+is($status, 255,                              'cmd1 with no args returns 255');
+is($out,    q{},                              '... and no output');
+is($err,    "cmd1: insufficient arguments\n", '... and correct error');
+is_deeply(\@CALLS, [], 'no functions called');
+@CALLS = ();
+
+# But this works fine if we pass in one argument.
+($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1));
+is($status, 1,   'cmd1 with one arg returns correct status');
+is($out,    q{}, '... and no output');
+is($err,    q{}, '... and no errors');
+is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1)]], 'cmd1 called correctly');
 @CALLS = ();
 
 # Add help information to one of the commands.

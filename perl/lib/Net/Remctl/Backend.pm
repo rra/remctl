@@ -150,8 +150,8 @@ sub run {
     my ($self) = @_;
     my ($command, @args) = @ARGV;
 
-    # Look up the command in the dispatch table and run it, handle the help
-    # command, or throw an error.  Allow the caller to define a help command
+    # If the command is not found in the dispatch table, it's either the help
+    # command or we throw an error.  Allow the caller to define a help command
     # to override ours.
     if (!$self->{commands}{$command}) {
         if ($command eq 'help') {
@@ -161,6 +161,16 @@ sub run {
             die "Unknown command $command\n";
         }
     }
+
+    # Get the command dispatch configuration.
+    my $config = $self->{commands}{$command};
+
+    # Check the number of arguments if desired.
+    if (defined($config->{min_args}) && $config->{min_args} > @args) {
+        die "$command: insufficient arguments\n";
+    }
+
+    # Run the command.
     return $self->{commands}{$command}{code}->(@args);
 }
 
@@ -244,6 +254,12 @@ whole: 0 for success and some non-zero value for an error condition.  This
 sub should print to STDOUT and STDERR to communicate back to the remctl
 client.
 
+=item min_args
+
+The minimum number of arguments.  If there are fewer than this number of
+arguments, run() will die with an error message without running the
+command.
+
 =item syntax
 
 The syntax of this subcommand.  This should be short, since it needs to
@@ -306,6 +322,26 @@ run() expects @ARGV to contain the parameters passed to the backend
 script.  The first argument will be the subcommand, used to find the
 appropriate command to run, and any remaining arguments will be arguments
 to that command.
+
+If there are errors in the parameters to the command, run() will die with
+an appropriate error message.
+
+=back
+
+=head1 DIAGNOSTICS
+
+Since Net::Remctl::Backend is designed to handle command line parsing for
+a script and report appropriate errors if there are problems with the
+argument, its run() method may die with various errors.  The possible
+errors are listed below.  All will be terminated with a newline so the
+Perl context information won't be appended.
+
+=over 4
+
+=item %s: insufficient arguments
+
+The given command was configured with a C<min_args> parameter, and the
+user passed in fewer arguments than that.
 
 =back
 
