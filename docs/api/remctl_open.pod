@@ -1,6 +1,6 @@
 =for stopwords
 remctl const TCP GSS-API DNS DNS-based KRB5CCNAME lookups canonicalization
-libdefaults Allbery CNAME
+libdefaults Allbery CNAME ai addr addrinfo addrlen fd
 
 =head1 NAME
 
@@ -15,12 +15,12 @@ int B<remctl_open>(struct remctl *I<r>, const char *I<host>,
                    const char *I<principal>);
 
 int B<remctl_open_addrinfo>(struct remctl *I<r>, const char *I<host>,
-                           const struct addrinfo *I<ai>,
-                           const char *I<principal>);
+                            const struct addrinfo *I<ai>,
+                            const char *I<principal>);
 
 int B<remctl_open_sockaddr>(struct remctl *I<r>, const char *I<host>,
-                           const struct sockaddr *I<addr>, int I<addrlen>,
-                           const char *I<principal>);
+                            const struct sockaddr *I<addr>, int I<addrlen>,
+                            const char *I<principal>);
 
 int B<remctl_open_fd>(struct remctl *I<r>, const char *I<host>,
                       int I<fd>, const char *I<principal>);

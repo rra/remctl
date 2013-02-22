@@ -11,7 +11,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -29,6 +29,7 @@
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <util/macros.h>
+#include <util/network.h>
 
 
 /*
@@ -369,7 +370,7 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
  */
 int
 remctl_open_addrinfo(struct remctl *r, const char *host,
-            const struct addrinfo *ai, const char *principal)
+                     const struct addrinfo *ai, const char *principal)
 {
     socket_type fd = INVALID_SOCKET;
 
@@ -398,8 +399,8 @@ remctl_open_addrinfo(struct remctl *r, const char *host,
  */
 int
 remctl_open_sockaddr(struct remctl *r, const char *host,
-            const struct sockaddr *addr, int addrlen,
-            const char *principal)
+                     const struct sockaddr *addr, int addrlen,
+                     const char *principal)
 {
     struct addrinfo ai;
 
@@ -408,8 +409,7 @@ remctl_open_sockaddr(struct remctl *r, const char *host,
     ai.ai_socktype = SOCK_STREAM;
     ai.ai_protocol = IPPROTO_TCP;
     ai.ai_addrlen = addrlen;
-    ai.ai_addr = addr;
-
+    ai.ai_addr = (struct sockaddr *) addr;
     return remctl_open_addrinfo(r, host, &ai, principal);
 }
 
@@ -419,21 +419,14 @@ remctl_open_sockaddr(struct remctl *r, const char *host,
  * and principal.  At least one of host or principal is required.
  * Returns true on success and false on failure.
  */
-#ifdef _WIN32
 int
-remctl_open_fd(struct remctl *r, const char *host, SOCKET fd,
-            const char *principal)
-#else
-int
-remctl_open_fd(struct remctl *r, const char *host, int fd,
-            const char *principal)
-#endif
+remctl_open_fd(struct remctl *r, const char *host, socket_type fd,
+               const char *principal)
 {
     internal_reset(r);
     r->host = NULL;
     r->port = 0;
     r->principal = principal;
-
     r->fd = fd;
     return internal_open(r, host, principal);
 }

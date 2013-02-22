@@ -167,15 +167,21 @@ install-data-hook:
 	$(LN_S) remctl.3 $(DESTDIR)$(man3dir)/remctl_result_free.3
 	rm -f $(DESTDIR)$(man3dir)/remctl_commandv.3
 	$(LN_S) remctl_command.3 $(DESTDIR)$(man3dir)/remctl_commandv.3
+	rm -f $(DESTDIR)$(man3dir)/remctl_open_addrinfo.3
+	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_addrinfo.3
+	rm -f $(DESTDIR)$(man3dir)/remctl_open_fd.3
+	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_fd.3
+	rm -f $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
+	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
 
 CLEANFILES = client/libremctl.pc docs/remctld.8 stamp-python
 DISTCLEANFILES = perl/Makefile python/MANIFEST
-MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
-	build-aux/config.guess build-aux/config.sub build-aux/depcomp \
-	build-aux/install-sh build-aux/ltmain.sh build-aux/missing \
+MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile		   \
+	build-aux/config.guess build-aux/config.sub build-aux/depcomp	   \
+	build-aux/install-sh build-aux/ltmain.sh build-aux/missing	   \
 	config.h.in config.h.in~ configure docs/api/*.3 docs/protocol.html \
-	docs/protocol.txt docs/remctl.1 docs/remctld.8.in \
-	m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 \
+	docs/protocol.txt docs/remctl.1 docs/remctld.8.in		   \
+	m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4	   \
 	m4/lt~obsolete.m4
 
 # Also clean the perl, php, and ruby directories if needed and clean up

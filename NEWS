@@ -2,8 +2,9 @@
 
 remctl 3.4 (unreleased)
 
-    Add new APIs for establishing a remctl connection given a sockaddr,
-    a list of struct addrinfo, or an already-open socket.
+    Add new C APIs for establishing a remctl connection given a sockaddr,
+    a list of struct addrinfo, or an already-open socket.  Patch from
+    Jeffrey Hutzelman.
 
     Following Perl Best Practices, remove prototypes from all Net::Remctl
     functions.  The confusion caused by changing context away from how
