@@ -2,7 +2,7 @@
  * tokens test suite.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010, 2012
+ * Copyright 2006, 2007, 2009, 2010, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -53,7 +53,7 @@ create_server(void)
     const void *onaddr = &on;
 
     saddr.sin_family = AF_INET;
-    saddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    saddr.sin_addr.s_addr = htonl(0x7f000001UL);
     saddr.sin_port = htons(14373);
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd == INVALID_SOCKET)
@@ -87,7 +87,7 @@ create_client(void)
     struct timeval tv;
 
     saddr.sin_family = AF_INET;
-    saddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    saddr.sin_addr.s_addr = htonl(0x7f000001UL);
     saddr.sin_port = htons(14373);
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd == INVALID_SOCKET)
