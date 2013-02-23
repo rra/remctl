@@ -358,7 +358,6 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
     if (fd == INVALID_SOCKET)
         return false;
     r->fd = fd;
-
     return internal_open(r, host, principal);
 }
 
@@ -387,7 +386,6 @@ remctl_open_addrinfo(struct remctl *r, const char *host,
         return false;
     }
     r->fd = fd;
-
     return internal_open(r, host, principal);
 }
 
