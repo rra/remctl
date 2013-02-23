@@ -159,6 +159,34 @@ sub _command_die {
     die "$command: $error\n";
 }
 
+# Check the arguments for validity against any check regexes.
+#
+# $self        - The Net::Remctl::Backend object
+# $command     - The command being processed
+# $regexes_ref - The array of check regexes for each argument position
+# $args_ref    - The array of arguments
+#
+# Returns: undef
+#  Throws: Throws a text error message on validity failure
+sub _check_args_regex {
+    my ($self, $command, $regexes_ref, $args_ref) = @_;
+
+    # Loop through thte arguments and check against the corresponding regex.
+    for my $i (0 .. $#{$args_ref}) {
+        my $arg   = $args_ref->[$i];
+        my $regex = $regexes_ref->[$i];
+        if (defined($regex) && $arg !~ $regex) {
+            if ($arg =~ m{ [^[:print:]] }xms) {
+                my $n = $i + 1;
+                $self->_command_die($command, "invalid data in argument #$n");
+            } else {
+                $self->_command_die($command, "invalid argument: $arg");
+            }
+        }
+    }
+    return;
+}
+
 # The core of the code, called from the main routine of a backend.  Parse the
 # command line and either handle the command directly (for the help command)
 # or dispatch it as configured in the object.
@@ -188,6 +216,19 @@ sub run {
     # Get the command dispatch configuration.
     my $config = $self->{commands}{$command};
 
+    # If configured to read data from standard input, do so, and splice that
+    # into the argument list.  Save the index of the stdin argument for later
+    # since the error message for invalid arguments changes.
+    my $stdin_index;
+    if (defined($config->{stdin})) {
+        my $stdin = do { local $/ = undef; <STDIN> };
+        $stdin_index = $config->{stdin};
+        if ($stdin_index == -1) {
+            $stdin_index = scalar @args + 1;
+        }
+        splice(@args, $stdin_index - 1, 0, $stdin);
+    }
+
     # Check the number of arguments if desired.
     if (defined($config->{args_max}) && $config->{args_max} < @args) {
         $self->_command_die($command, 'too many arguments');
@@ -198,14 +239,7 @@ sub run {
 
     # If there are check regexes, apply them to the arguments.
     if ($config->{args_match}) {
-        my @regexes = @{ $config->{args_match} };
-        for my $i (0 .. $#args) {
-            my $arg   = $args[$i];
-            my $regex = $regexes[$i];
-            if (defined($regex) && $arg !~ $regex) {
-                $self->_command_die($command, "invalid argument: $arg");
-            }
-        }
+        $self->_check_args_regex($command, $config->{args_match}, \@args);
     }
 
     # Run the command.
@@ -216,7 +250,8 @@ sub run {
 
 =for stopwords
 remctl remctld backend subcommand subcommands Allbery MERCHANTABILITY
-NONINFRINGEMENT sublicense STDERR STDOUT
+NONINFRINGEMENT sublicense STDERR STDOUT regex regexes CONFIG undef
+stdin
 
 =head1 NAME
 
@@ -315,6 +350,21 @@ should return the exit status that should be used by the backend as a
 whole: 0 for success and some non-zero value for an error condition.  This
 sub should print to STDOUT and STDERR to communicate back to the remctl
 client.
+
+=item stdin
+
+Specifies that one argument to this function should be read from standard
+input.  All of the data on standard input until end of file will be read
+into memory, and that data will become the argument number given by the
+value of this key is the argument (based at 1).  So if this property is
+set to 1, the first argument will be the data from standard input, and any
+other arguments will be shifted down accordingly.  The value may be -1, in
+which case the data from standard input will become the last argument, no
+matter how many arguments there currently are.
+
+Checks for the number of arguments and for the validity of arguments with
+regular expression verification are done after reading the data from
+standard input and transforming the argument list accordingly.
 
 =item syntax
 

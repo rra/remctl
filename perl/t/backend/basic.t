@@ -15,7 +15,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 52;
+use Test::More tests => 64;
 
 # Test loading the module.
 BEGIN { use_ok('Net::Remctl::Backend') }
@@ -168,6 +168,43 @@ is($status, 255, 'cmd1 fails argument checking');
 is($out,    q{}, '... and no output');
 is($err, "foo cmd1: invalid argument: arg-2\n", '... and correct error');
 is_deeply(\@CALLS, [], 'no functions called');
+@CALLS = ();
+
+# Change cmd1 to take the first argument on standard input.
+$commands{cmd1}{stdin} = 1;
+close(STDIN) or BAIL_OUT("Cannot close STDIN: $!");
+my $stdin = "some\0data";
+open(STDIN, '<', \$stdin) or BAIL_OUT("Cannot redirect STDIN: $!");
+($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg2));
+is($status, 1,   'cmd1 with stdin arg returns correct status');
+is($out,    q{}, '... and no output');
+is($err,    q{}, '... and no errors');
+is_deeply(
+    \@CALLS,
+    [['main::test_cmd1', $stdin, 'arg2']],
+    'cmd1 called correctly'
+);
+@CALLS = ();
+
+# Take the last argument from standard input instead and confirm that argument
+# checking still applies to standard input arguments.
+seek(STDIN, 0, 0) or BAIL_OUT("Cannot rewind STDIN: $!");
+$commands{cmd1}{stdin} = -1;
+($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1));
+is($status, 255, 'cmd1 with final stdin arg fails argument checking');
+is($out,    q{}, '... and no output');
+is($err, "foo cmd1: invalid data in argument #2\n", '... and correct error');
+is_deeply(\@CALLS, [], 'no functions called');
+@CALLS = ();
+
+# Change the argument to something that would pass.
+seek(STDIN, 0, 0) or BAIL_OUT("Cannot rewind STDIN: $!");
+$stdin = 'stin';
+($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1));
+is($status, 1,   'cmd1 with final stdin arg returns correct status');
+is($out,    q{}, '... and no output');
+is($err,    q{}, '... and no errors');
+is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1 stin)]], 'cmd1 called correctly');
 @CALLS = ();
 
 # Add help information to one of the commands.
