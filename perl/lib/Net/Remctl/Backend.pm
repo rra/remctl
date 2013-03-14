@@ -205,6 +205,47 @@ sub _command_die {
     die "$command: $error\n";
 }
 
+# Given the command arguments, find the configuration hash for that command.
+# This implements proper search through the nested command structure.
+#
+# $self         - The Net::Remctl::Backend object
+# $commands_ref - The command hash to search through
+# $command      - The command
+# @args         - The remaining arguments
+#
+# Returns: A list of the full command name, a reference the config hash, and a
+#          reference to the remaining arguments.  Only the first will be
+#          present if the command could not be found.
+sub _parse_command {
+    my ($self, $commands_ref, $command, @args) = @_;
+
+    # If the command is not found in the dispatch table, return immediately.
+    my $config = $commands_ref->{$command};
+    if (!$config) {
+        return ($command);
+    }
+
+    # If the command is not nested, this is the simple case.
+    if (!$config->{nested}) {
+        return ($command, $config, \@args);
+    }
+
+    # If the command is nested, the value of the nested parameter is another
+    # command definition struct.  If we have further arguments, call ourselves
+    # recursively to find the correct command.  Otherwise, we have found the
+    # command iff there is a code parameter set.
+    if (@args) {
+        my ($subcommand, $subconfig, $args_ref)
+          = $self->_parse_command($config->{nested}, @args);
+        $command .= q{ } . $subcommand;
+        return ($command, $subconfig, $args_ref);
+    } elsif ($config->{code}) {
+        return ($command, $config, \@args);
+    } else {
+        return ($command);
+    }
+}
+
 # Check the arguments for validity against any check regexes.
 #
 # $self        - The Net::Remctl::Backend object
@@ -238,14 +279,14 @@ sub _check_args_regex {
 # $self       - The Net::remctl::Backend object
 # $command    - The command being run, for error reporting
 # $config_ref - A reference to the options specification
-# @args       - The arguments to the command
+# $args_ref   - The arguments to the command
 #
 # Returns: A list composed of a reference to a hash of options and values,
-#          followed by all the remaining arguments after options have been
-#          extracted
+#          followed by a reference to the remaining arguments after options
+#          have been extracted
 #  Throws: A text error message if the options are invalid
 sub _parse_options {
-    my ($self, $command, $config_ref, @args) = @_;
+    my ($self, $command, $config_ref, $args_ref) = @_;
 
     # Use the object-oriented syntax to isolate configuration options from the
     # rest of the program.
@@ -259,17 +300,17 @@ sub _parse_options {
     {
         my $error = 'option parsing failed';
         local $SIG{__WARN__} = sub { ($error) = @_ };
-        local @ARGV = @args;
+        local @ARGV = @{$args_ref};
         if (!$parser->getoptions(\%options, @{$config_ref})) {
             $error =~ s{ \n+ \z }{}xms;
             $error =~ s{ \A (\w) }{ lc($1) }xmse;
             $self->_command_die($command, $error);
         }
-        @args = @ARGV;
+        $args_ref = [@ARGV];
     }
 
     # Success.  Return the options and the remaining arguments.
-    return (\%options, @args);
+    return (\%options, $args_ref);
 }
 
 # The core of the code, called from the main routine of a backend.  Parse the
@@ -286,15 +327,17 @@ sub _parse_options {
 # Returns: The return value of the command, which should be an exit status
 #  Throws: Text exceptions on syntax errors, unknown commands, etc.
 sub run {
-    my ($self, $command, @args) = @_;
-    if (!defined($command)) {
-        ($command, @args) = @ARGV;
+    my ($self, @args) = @_;
+    if (!@args) {
+        @args = @ARGV;
     }
 
-    # If the command is not found in the dispatch table, it's either the help
-    # command or we throw an error.  Allow the caller to define a help command
-    # to override ours.
-    if (!$self->{commands}{$command}) {
+    # Find the command.
+    my ($command, $config, $args_ref)
+      = $self->_parse_command($self->{commands}, @args);
+
+    # If we can't find it, it's either the help command or we throw an error.
+    if (!$config) {
         if ($command eq 'help') {
             print {*STDOUT} $self->help or die "Cannot write to STDOUT: $!\n";
             return 0;
@@ -303,72 +346,48 @@ sub run {
         }
     }
 
-    # Get the command dispatch configuration.
-    my $config = $self->{commands}{$command};
-
-    # If the command is nested, the value of the nested parameter is another
-    # command definition struct and the next argument is our subcommand.
-    if ($config->{nested}) {
-        my $subcommand = shift(@args);
-
-        # If we have a subcommand, modify $command (for error reporting) to
-        # include the command and subcommand and proceed with the subcommand
-        # definition.  If we have no subcommand, continue with the base
-        # command iff it has a code parameter.
-        if (defined($subcommand)) {
-            $command = "$command $subcommand";
-            if (!$config->{nested}{$subcommand}) {
-                die "Unknown command $command\n";
-            }
-            $config = $config->{nested}{$subcommand};
-        } else {
-            if (!$config->{code}) {
-                die "Unknown command $command\n";
-            }
-        }
-    }
-
     # Parse options if any are configured.
     my $options_ref;
     if ($config->{options}) {
-        ($options_ref, @args)
-          = $self->_parse_options($command, $config->{options}, @args);
+        ($options_ref, $args_ref)
+          = $self->_parse_options($command, $config->{options}, $args_ref);
     }
 
     # If configured to read data from standard input, do so, and splice that
     # into the argument list.  Save the index of the stdin argument for later
     # since the error message for invalid arguments changes.
     my $stdin_index;
+    my $args_count = scalar(@{$args_ref});
     if (defined($config->{stdin})) {
         my $stdin = do { local $/ = undef; <STDIN> };
         $stdin_index = $config->{stdin};
         if ($stdin_index == -1) {
-            $stdin_index = scalar @args + 1;
+            $stdin_index = $args_count + 1;
         }
-        splice(@args, $stdin_index - 1, 0, $stdin);
+        splice(@{$args_ref}, $stdin_index - 1, 0, $stdin);
     }
 
     # Check the number of arguments if desired.
-    if (defined($config->{args_max}) && $config->{args_max} < @args) {
+    if (defined($config->{args_max}) && $config->{args_max} < $args_count) {
         $self->_command_die($command, 'too many arguments');
     }
-    if (defined($config->{args_min}) && $config->{args_min} > @args) {
+    if (defined($config->{args_min}) && $config->{args_min} > $args_count) {
         $self->_command_die($command, 'insufficient arguments');
     }
 
     # If there are check regexes, apply them to the arguments.
     if ($config->{args_match}) {
-        $self->_check_args_regex($command, $config->{args_match}, \@args);
+        $self->_check_args_regex($command, $config->{args_match}, $args_ref);
     }
 
     # Add the result of options parsing onto the beginning of the arguments
     # if option parsing was done.
     if ($options_ref) {
-        unshift(@args, $options_ref);
+        unshift(@{$args_ref}, $options_ref);
     }
 
     # Run the command.
-    return $config->{code}->(@args);
+    return $config->{code}->(@{$args_ref});
 }
 
 1;

@@ -13,7 +13,7 @@ use warnings;
 
 use lib 't/lib';
 
-use Test::More tests => 23;
+use Test::More tests => 35;
 use Test::Remctl qw(run_wrapper);
 
 # Load the module.
@@ -62,6 +62,19 @@ my %commands = (
                 summary => 'apply cmd1 to the nest of arg1',
                 syntax  => q{},
             },
+            nest => {
+                nested => {
+                    bar => {
+                        code     => \&test_cmd1,
+                        args_min => 1,
+                    },
+                    foo => {
+                        code    => \&test_cmd2,
+                        summary => 'even more nesting!',
+                        syntax  => 'arg1',
+                    },
+                },
+            },
         },
     },
 );
@@ -103,6 +116,20 @@ is($err,    q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd1)]], 'nest called correctly');
 @CALLS = ();
 
+# Try the double-nested commands.
+($out, $err, $status) = run_wrapper($backend, qw(nest nest bar foo));
+is($status, 1,   'nest nest bar returns correct status');
+is($out,    q{}, '... and no output');
+is($err,    q{}, '... and no errors');
+is_deeply(\@CALLS, [[qw(main::test_cmd1 foo)]], 'bar called correctly');
+@CALLS = ();
+($out, $err, $status) = run_wrapper($backend, qw(nest nest foo));
+is($status, 2,   'nest nest foo returns correct status');
+is($out,    q{}, '... and no output');
+is($err,    q{}, '... and no errors');
+is_deeply(\@CALLS, [[qw(main::test_cmd2)]], 'bar called correctly');
+@CALLS = ();
+
 # Ensure an unknown nested command returns the right error.
 {
     local @ARGV = qw(nest unknown);
@@ -110,6 +137,26 @@ is_deeply(\@CALLS, [[qw(main::test_cmd1)]], 'nest called correctly');
 }
 is($status, undef, 'run() of unknown command returns undef');
 is($@, "Unknown command nest unknown\n", '...with correct error');
+
+# Ensure an unknown double-nested command returns the right error.
+{
+    local @ARGV = qw(nest nest unknown);
+    $status = eval { $backend->run };
+}
+is($status, undef, 'run() of unknown command returns undef');
+is($@, "Unknown command nest nest unknown\n", '...with correct error');
+
+# Verify argument checking is handled properly in nested commands.
+{
+    local @ARGV = qw(nest nest bar);
+    $status = eval { $backend->run };
+}
+is($status, undef, 'run() with insufficient arguments returns undef');
+is(
+    $@,
+    "frobnicate nest nest bar: insufficient arguments\n",
+    '...with correct error'
+);
 
 # Check the help output.
 my $expected = <<'END_HELP';
@@ -120,6 +167,7 @@ Frobnicate remctl help:
   frobnicate nest cmd1 arg1 [arg2]
   frobnicate nest cmd2                            apply cmd1 to the nest of
                                                   arg1
+  frobnicate nest nest foo arg1                   even more nesting!
 END_HELP
 is($backend->help, $expected, 'Help output is correct');
 
