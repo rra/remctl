@@ -28,6 +28,7 @@ use 5.006;
 use strict;
 use warnings;
 
+use Getopt::Long;
 use Text::Wrap qw(wrap);
 
 # Tab and line width for formatting.  Avoid dependency on Readonly.
@@ -187,6 +188,45 @@ sub _check_args_regex {
     return;
 }
 
+# Parse command-line options and do any required error handling.
+#
+# $self       - The Net::remctl::Backend object
+# $command    - The command being run, for error reporting
+# $config_ref - A reference to the options specification
+# @args       - The arguments to the command
+#
+# Returns: A list composed of a reference to a hash of options and values,
+#          followed by all the remaining arguments after options have been
+#          extracted
+#  Throws: A text error message if the options are invalid
+sub _parse_options {
+    my ($self, $command, $config_ref, @args) = @_;
+
+    # Use the object-oriented syntax to isolate configuration options from the
+    # rest of the program.
+    my $parser = Getopt::Long::Parser->new;
+    $parser->configure(qw(bundling no_ignore_case require_order));
+
+    # Parse the options and capture any errors, turning them into exceptions.
+    # The first letter of the Getopt::Long warning message will be capitalized
+    # but we want it to be lowercase to follow our error message standard.
+    my %options;
+    {
+        my $error = 'option parsing failed';
+        local $SIG{__WARN__} = sub { ($error) = @_ };
+        local @ARGV = @args;
+        if (!$parser->getoptions(\%options, @{$config_ref})) {
+            $error =~ s{ \n+ \z }{}xms;
+            $error =~ s{ \A (\w) }{ lc($1) }xmse;
+            $self->_command_die($command, $error);
+        }
+        @args = @ARGV;
+    }
+
+    # Success.  Return the options and the remaining arguments.
+    return (\%options, @args);
+}
+
 # The core of the code, called from the main routine of a backend.  Parse the
 # command line and either handle the command directly (for the help command)
 # or dispatch it as configured in the object.
@@ -221,6 +261,13 @@ sub run {
     # Get the command dispatch configuration.
     my $config = $self->{commands}{$command};
 
+    # Parse options if any are configured.
+    my $options_ref;
+    if ($config->{options}) {
+        ($options_ref, @args)
+          = $self->_parse_options($command, $config->{options}, @args);
+    }
+
     # If configured to read data from standard input, do so, and splice that
     # into the argument list.  Save the index of the stdin argument for later
     # since the error message for invalid arguments changes.
@@ -245,6 +292,12 @@ sub run {
     # If there are check regexes, apply them to the arguments.
     if ($config->{args_match}) {
         $self->_check_args_regex($command, $config->{args_match}, \@args);
+    }
+
+    # Add the result of options parsing onto the beginning of the arguments
+    # if option parsing was done.
+    if ($options_ref) {
+        unshift(@args, $options_ref);
     }
 
     # Run the command.
@@ -350,11 +403,43 @@ command.
 =item code
 
 A reference to the sub that implements this command.  This sub will be
-called with the arguments passed on the command line as its arguments.  It
-should return the exit status that should be used by the backend as a
-whole: 0 for success and some non-zero value for an error condition.  This
-sub should print to STDOUT and STDERR to communicate back to the remctl
-client.
+called with the arguments passed on the command line as its arguments
+(possibly preceded by the options hash if the C<options> parameter is set
+as described below).  It should return the exit status that should be used
+by the backend as a whole: 0 for success and some non-zero value for an
+error condition.  This sub should print to STDOUT and STDERR to
+communicate back to the remctl client.
+
+=item options
+
+A reference to an array of Getopt::Long option specifications.  If this
+setting is present, the arguments passed to run() will be parsed by
+Getopt::Long using this option specification first, before any other
+option processing (including checking for minimum and maximum numbers of
+arguments, checking the validity of arguments, or replacing arguments with
+data from standard input).  The result of parsing options will be passed,
+as a reference to a hash, as the first argument to the code that
+implements this command, with all remaining arguments passed as the
+subsequent arguments.
+
+For example, if this is set to C<['help|h', 'version|v']> and the arguments
+passed to run() are:
+
+    command -hv foo bar
+
+then the code implementing C<command> will be called with the following
+arguments:
+
+    { help => 1, version => 1 }, 'foo', 'bar'
+
+Getopt::Long will always be configured with the options C<bundling>,
+C<no_ignore_case>, and C<require_order>.  This means, among other things,
+that the first non-option argument will stop option parsing and all
+remaining arguments will be passed through verbatim.
+
+If Getopt::Long rejects the options (due to an unknown option or an
+invalid argument to an option, for example), run() will die with the error
+message from Getopt::Long without running the command.
 
 =item stdin
 
@@ -434,7 +519,8 @@ directly to run() as parameters.  If no arguments are passed, run()
 expects @ARGV to contain the parameters passed to the backend script.
 Either way the first argument will be the subcommand, used to find the
 appropriate command to run, and any remaining arguments will be arguments
-to that command.
+to that command.  (Note that if the C<options> parameter is set, the first
+argument passed to the underlying command will be the options hash.)
 
 If there are errors in the parameters to the command, run() will die with
 an appropriate error message.
