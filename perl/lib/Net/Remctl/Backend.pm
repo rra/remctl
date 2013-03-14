@@ -191,15 +191,20 @@ sub _check_args_regex {
 # command line and either handle the command directly (for the help command)
 # or dispatch it as configured in the object.
 #
-# Expects @ARGV to be set to the parameters passed to the backend script.
+# If the command and optional arguments aren't given as parameters, expects
+# @ARGV to be set to the parameters passed to the backend script.
 #
-# $self - The Net::Remctl::Backend object
+# $self    - The Net::Remctl::Backend object
+# $command - The command (remctl subcommand) to run (optional)
+# @args    - Additional arguments (optional)
 #
 # Returns: The return value of the command, which should be an exit status
 #  Throws: Text exceptions on syntax errors, unknown commands, etc.
 sub run {
-    my ($self) = @_;
-    my ($command, @args) = @ARGV;
+    my ($self, $command, @args) = @_;
+    if (!defined($command)) {
+        ($command, @args) = @ARGV;
+    }
 
     # If the command is not found in the dispatch table, it's either the help
     # command or we throw an error.  Allow the caller to define a help command
@@ -251,7 +256,7 @@ sub run {
 =for stopwords
 remctl remctld backend subcommand subcommands Allbery MERCHANTABILITY
 NONINFRINGEMENT sublicense STDERR STDOUT regex regexes CONFIG undef
-stdin
+stdin ARG
 
 =head1 NAME
 
@@ -418,14 +423,16 @@ consist of the syntax and summary attributes for each command that has a
 syntax attribute defined, as described above under the command
 specification.  It will be wrapped to 80 columns.
 
-=item run()
+=item run([COMMAND[, ARG ...]])
 
 Parse the command line and perform the appropriate action.  The return
 value will be the return value of the command run (if any), which should
 be the exit status that the backend script should use.
 
-run() expects @ARGV to contain the parameters passed to the backend
-script.  The first argument will be the subcommand, used to find the
+The command (which is the remctl subcommand) and arguments can be passed
+directly to run() as parameters.  If no arguments are passed, run()
+expects @ARGV to contain the parameters passed to the backend script.
+Either way the first argument will be the subcommand, used to find the
 appropriate command to run, and any remaining arguments will be arguments
 to that command.
 

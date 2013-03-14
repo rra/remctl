@@ -48,8 +48,7 @@ sub run_wrapper {
     open(STDERR, '>', \$error)  or BAIL_OUT("Cannot redirect STDERR: $!");
 
     # Run the backend.
-    local @ARGV = @args;
-    my $status = eval { $backend->run };
+    my $status = eval { $backend->run(@args) };
     if ($@) {
         print {*STDERR} $@ or BAIL_OUT("Cannot write to STDERR: $!");
         $status = 255;
@@ -286,8 +285,10 @@ is($out,    $expected, '... and correct output');
 is($err,    q{},       '... and no errors');
 
 # Run an unknown command and make sure we get the appropriate results.
-local @ARGV = qw(unknown);
-$status = eval { $backend->run };
+{
+    local @ARGV = qw(unknown);
+    $status = eval { $backend->run };
+}
 is($status, undef, 'run() of unknown command returns undef');
 is($@, "Unknown command unknown\n", '...with correct error');
 
