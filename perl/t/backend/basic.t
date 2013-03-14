@@ -15,7 +15,10 @@
 use strict;
 use warnings;
 
+use lib 't/lib';
+
 use Test::More tests => 64;
+use Test::Remctl qw(run_wrapper);
 
 # Test loading the module.
 BEGIN { use_ok('Net::Remctl::Backend') }
@@ -27,42 +30,6 @@ use constant CALLER_SUB => 3;
 # functions were called by the backend wrapper.  Each element will be a
 # reference to an array holding the called function and any arguments.
 my @CALLS;
-
-# Run the backend and capture its output and return status.
-#
-# $backend - The Net::Remctl::Backend object
-# @args    - Arguments to treat like command-line arguments to the backend
-#
-# Returns: List of the stdout output, the stderr output, and the return status
-sub run_wrapper {
-    my ($backend, @args) = @_;
-    my $output = q{};
-    my $error  = q{};
-
-    # Save STDOUT and STDERR and redirect to scalars.
-    open(my $oldout, '>&', \*STDOUT) or BAIL_OUT("Cannot save STDOUT: $!");
-    open(my $olderr, '>&', \*STDERR) or BAIL_OUT("Cannot save STDERR: $!");
-    close(STDOUT) or BAIL_OUT("Cannot close STDOUT: $!");
-    close(STDERR) or BAIL_OUT("Cannot close STDERR: $!");
-    open(STDOUT, '>', \$output) or BAIL_OUT("Cannot redirect STDOUT: $!");
-    open(STDERR, '>', \$error)  or BAIL_OUT("Cannot redirect STDERR: $!");
-
-    # Run the backend.
-    my $status = eval { $backend->run(@args) };
-    if ($@) {
-        print {*STDERR} $@ or BAIL_OUT("Cannot write to STDERR: $!");
-        $status = 255;
-    }
-
-    # Restore STDOUT and STDERR.
-    open(STDOUT, '>&', $oldout) or BAIL_OUT("Cannot restore STDOUT: $!");
-    open(STDERR, '>&', $olderr) or BAIL_OUT("Cannot restore STDERR: $!");
-    close($oldout) or BAIL_OUT("Cannot close duplicate STDOUT: $!");
-    close($olderr) or BAIL_OUT("Cannot close duplicate STDERR: $!");
-
-    # Return the results.
-    return ($output, $error, $status);
-}
 
 # Helper function for test commands to save arguments in the call stack.
 #
