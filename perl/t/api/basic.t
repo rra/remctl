@@ -137,7 +137,7 @@ if ($okay) {
 }
 SKIP: {
     if (!$okay) {
-        skip 'no Kerberos configuration' => 62;
+        skip 'no Kerberos configuration' => 61;
     }
 
     # Wait for remctld to start.
