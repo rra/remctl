@@ -58,6 +58,63 @@ sub new {
     return $self;
 }
 
+# Build two parallel arrays of syntax and summary information for help output.
+# This is broken out into a separate method so that it can be called
+# recursively for nested commands.
+#
+# $self         - The Net::Remctl::Backend object
+# $commands_ref - The commands definition to generate per-command help for
+#
+# Returns: Array of a pair of references to arrays.  The first is the syntax
+#          for each command and the second is the summary.
+sub _build_help {
+    my ($self, $commands_ref) = @_;
+    my (@syntax, @summary);
+
+    # Construct two parallel lists, one of syntax and one of summaries.  Skip
+    # commands that are missing a syntax description.  Add in the length of
+    # the command.
+  COMMAND:
+    for my $command (sort keys %{$commands_ref}) {
+        my $config = $commands_ref->{$command};
+
+        # If this is a nested command, recurse.  We store the results of the
+        # nested command processing for later use since we want the root
+        # command to appear first in the help output, before the nested
+        # commands.
+        my ($more_syntax_ref, $more_summary_ref);
+        if ($config->{nested}) {
+            my $nest = $config->{nested};
+            ($more_syntax_ref, $more_summary_ref) = $self->_build_help($nest);
+        }
+
+        # Get the syntax and summary for this command and add it to the
+        # arrays if there is any syntax defined.  Avoid trailing whitespace
+        # if there is no extra syntax.
+        my $syntax  = $config->{syntax};
+        my $summary = $config->{summary};
+        if (defined($syntax)) {
+            if (length($syntax) > 0) {
+                push(@syntax, $command . q{ } . $syntax);
+            } else {
+                push(@syntax, $command);
+            }
+
+            # Translate missing summaries into the empty string.
+            push(@summary, $summary || q{});
+        }
+
+        # Now add any nested data, if there was any.
+        if ($more_syntax_ref) {
+            push(@syntax, map { $command . q{ } . $_ } @{$more_syntax_ref});
+            push(@summary, @{$more_summary_ref});
+        }
+    }
+
+    # Return the results.
+    return (\@syntax, \@summary);
+}
+
 # Return the summary help for all of our configured commands.  This is used by
 # run() to get the string to display, but can also be called separately to get
 # the formatted help summary if desired.
@@ -68,30 +125,12 @@ sub new {
 sub help {
     my ($self) = @_;
 
-    # Construct two parallel lists, one of syntax and one of summaries.  Skip
-    # commands that are missing a syntax description.  Add in the length of
-    # the command.
-    my (@syntax, @summary);
-  COMMAND:
-    for my $command (sort keys %{ $self->{commands} }) {
-        my $syntax  = $self->{commands}{$command}{syntax};
-        my $summary = $self->{commands}{$command}{summary};
-        next COMMAND if !defined($syntax);
-
-        # Avoid trailing whitespace if there is no extra syntax.
-        if (length($syntax) > 0) {
-            push(@syntax, $command . q{ } . $syntax);
-        } else {
-            push(@syntax, $command);
-        }
-
-        # Translate missing summaries into the empty string.
-        push(@summary, $summary || q{});
-    }
+    # Generate two parallel lists of syntax and summaries.
+    my ($syntax_ref, $summary_ref) = $self->_build_help($self->{commands});
 
     # Calculate the maximum syntax length.  Add in the length of the command.
     my $max_syntax_len = 0;
-    for my $syntax (@syntax) {
+    for my $syntax (@{$syntax_ref}) {
         if (length($syntax) > $max_syntax_len) {
             $max_syntax_len = length($syntax);
         }
@@ -122,15 +161,21 @@ sub help {
     # Now, we can format each line of the help output with Text::Wrap.
     local $Text::Wrap::columns  = LINE_WIDTH;
     local $Text::Wrap::unexpand = 0;
-    for my $i (0 .. $#syntax) {
-        if (!$summary[$i]) {
-            $output .= $prefix . $syntax[$i] . "\n";
+    for my $i (0 .. $#{$syntax_ref}) {
+        my $syntax  = $syntax_ref->[$i];
+        my $summary = $summary_ref->[$i];
+
+        # If there is no summary, just add the bare command syntax.
+        if (!$summary) {
+            $output .= $prefix . $syntax . "\n";
             next;
         }
-        my $length  = length($prefix) + length($syntax[$i]);
+
+        # Otherwise, line up the columns and wrap the summary.
+        my $length = length($prefix) + length($syntax);
         my $padding = q{ } x ($pad_column - $length);
-        my $syntax  = $prefix . $syntax[$i] . $padding;
-        $output .= wrap($syntax, q{ } x $pad_column, $summary[$i] . "\n");
+        $syntax = $prefix . $syntax . $padding;
+        $output .= wrap($syntax, q{ } x $pad_column, $summary . "\n");
     }
 
     # Return the formatted results.
@@ -261,6 +306,28 @@ sub run {
     # Get the command dispatch configuration.
     my $config = $self->{commands}{$command};
 
+    # If the command is nested, the value of the nested parameter is another
+    # command definition struct and the next argument is our subcommand.
+    if ($config->{nested}) {
+        my $subcommand = shift(@args);
+
+        # If we have a subcommand, modify $command (for error reporting) to
+        # include the command and subcommand and proceed with the subcommand
+        # definition.  If we have no subcommand, continue with the base
+        # command iff it has a code parameter.
+        if (defined($subcommand)) {
+            $command = "$command $subcommand";
+            if (!$config->{nested}{$subcommand}) {
+                die "Unknown command $command\n";
+            }
+            $config = $config->{nested}{$subcommand};
+        } else {
+            if (!$config->{code}) {
+                die "Unknown command $command\n";
+            }
+        }
+    }
+
     # Parse options if any are configured.
     my $options_ref;
     if ($config->{options}) {
@@ -301,7 +368,7 @@ sub run {
     }
 
     # Run the command.
-    return $self->{commands}{$command}{code}->(@args);
+    return $config->{code}->(@args);
 }
 
 1;
@@ -409,6 +476,21 @@ as described below).  It should return the exit status that should be used
 by the backend as a whole: 0 for success and some non-zero value for an
 error condition.  This sub should print to STDOUT and STDERR to
 communicate back to the remctl client.
+
+=item nested
+
+If set, indicates that this is a nested command.  The value should be a
+nested hash of command definitions, the same as the parameter to the
+C<commands> argument to new().  When this is set, the first argument to
+this command is taken to be a subcommand name, which is looked up in the
+hash.  All of the hash parameters are interpreted the same as if it were a
+top-level command.
+
+If this command is called without any arguments, behavior varies based on
+whether the C<code> parameter is also set alongside the C<nested>
+parameter.  If C<code> is set, the command is called normally, with no
+arguments.  If C<code> is not set, calling this command without a
+subcommand is treated as an unknown command.
 
 =item options
 
