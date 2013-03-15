@@ -994,7 +994,7 @@ static char *
 find_test(const char *name, const char *source, const char *build)
 {
     char *path;
-    const char *bases[4];
+    const char *bases[4], *suffix, *base;
     unsigned int i, j;
     const char *suffixes[3] = { "-t", ".t", "" };
 
@@ -1004,22 +1004,20 @@ find_test(const char *name, const char *source, const char *build)
     bases[2] = source;
     bases[3] = NULL;
 
-    /* Iterate through every possible base and format to find the file. */
+    /* Try each suffix with each base. */
     for (i = 0; i < 3; i++) {
-        if (bases[i] == NULL)
-            continue;
-
-        /* One character for the slash, plus the longest suffix, plus nul. */
-        path = xmalloc(strlen(bases[i]) + strlen(name) + 4);
-
-        /* Try each suffix in turn. */
-        for (j = 0; j < 3; j++) {
-            sprintf(path, "%s/%s%s", bases[i], name, suffixes[j]);
+        suffix = suffixes[i];
+        for (i = 0; i < 3; i++) {
+            base = bases[i];
+            if (base == NULL)
+                continue;
+            path = xmalloc(strlen(base) + strlen(name) + strlen(suffix) + 2);
+            sprintf(path, "%s/%s%s", base, name, suffix);
             if (is_valid_test(path))
                 return path;
+            free(path);
+            path = NULL;
         }
-        free(path);
-        path = NULL;
     }
     if (path == NULL)
         path = xstrdup(name);
