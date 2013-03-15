@@ -32,11 +32,15 @@ REMCTL_RUBY_FLAGS      ?=
 # for the test suite and are not generated or touched by configure.  They're
 # listed here to be added to EXTRA_DIST and so that they can be copied over
 # properly for builddir != srcdir builds.
-PERL_FILES = perl/lib/Net/Remctl.xs perl/lib/Net/Remctl/Backend.pm	  \
-	perl/t/api/stanford-netdb.t perl/t/backend/basic.t		  \
-	perl/t/data/perlcriticrc perl/t/data/perltidyrc			  \
-	perl/t/docs/pod-coverage.t perl/t/docs/pod-spelling.t		  \
-	perl/t/docs/pod.t perl/t/style/critic.t				  \
+PERL_FILES = perl/MANIFEST perl/MANIFEST.SKIP perl/lib/Net/Remctl.xs	   \
+	perl/lib/Net/Remctl/Backend.pm perl/t/api/basic.t		   \
+	perl/t/api/stanford-netdb.t perl/t/backend/basic.t		   \
+	perl/t/backend/nested.t perl/t/backend/options.t		   \
+	perl/t/data/perl.conf perl/t/data/perlcriticrc			   \
+	perl/t/data/perltidyrc perl/t/data/remctl.conf			   \
+	perl/t/docs/pod-coverage.t perl/t/docs/pod-spelling.t		   \
+	perl/t/docs/pod.t perl/t/docs/synopsis.t perl/t/lib/Test/Remctl.pm \
+	perl/t/style/coverage.t perl/t/style/critic.t			   \
 	perl/t/style/minimum-version.t perl/t/style/strict.t perl/typemap
 PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
 	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
