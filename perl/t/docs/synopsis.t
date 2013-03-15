@@ -1,13 +1,12 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 #
-# Check all POD documents in the tree, except for any embedded Perl module
-# distribution, for POD formatting errors.
+# Check the SYNOPSIS section of the documentation for syntax errors.
 #
 # The canonical version of this file is maintained in the rra-c-util package,
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2012, 2013
+# Copyright 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -32,17 +31,24 @@ use 5.006;
 use strict;
 use warnings;
 
-use lib "$ENV{SOURCE}/tap/perl";
+use lib 't/lib';
 
 use Test::More;
 use Test::RRA qw(use_prereq);
-use Test::RRA::Automake qw(automake_setup perl_dirs);
 
-# Load prerequisite modules.
-use_prereq('Test::Pod');
+use_prereq('Perl::Critic::Utils');
+use_prereq('Test::Synopsis');
 
-# Set up Automake testing.
-automake_setup();
+# The default Test::Synopsis all_synopsis_ok() function requires that the
+# module be in a lib directory.  Use Perl::Critic::Utils to find the modules
+# in blib, or lib if it doesn't exist.
+my @files = Perl::Critic::Utils::all_perl_files('blib');
+if (!@files) {
+    @files = Perl::Critic::Utils::all_perl_files('lib');
+}
+plan tests => scalar @files;
 
-# Run the tests.
-all_pod_files_ok(perl_dirs());
+# Run the actual tests.
+for my $file (@files) {
+    synopsis_ok($file);
+}

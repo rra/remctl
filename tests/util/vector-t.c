@@ -44,6 +44,8 @@ main(void)
 
     vector = vector_new();
     ok(vector != NULL, "vector_new returns non-NULL");
+    if (vector == NULL)
+        bail("vector_new returned NULL");
     vector_add(vector, cstring);
     is_int(1, vector->count, "vector_add increases count");
     ok(vector->strings[0] != cstring, "...and allocated new memory");
@@ -81,6 +83,8 @@ main(void)
 
     cvector = cvector_new();
     ok(cvector != NULL, "cvector_new returns non-NULL");
+    if (cvector == NULL)
+        bail("cvector_new returned NULL");
     cvector_add(cvector, cstring);
     is_int(1, cvector->count, "cvector_add adds a string");
     ok(cvector->strings[0] == cstring, "...and keeps the same pointer");

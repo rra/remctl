@@ -18,10 +18,19 @@ remctl 3.4 (unreleased)
     Net::Remctl.  They are included in Perl 5.10 or later and can be
     installed separately for older versions of Perl.
 
-    Update to rra-c-util 4.7:
+    Update to rra-c-util 4.8:
 
     * Fix probing for Heimdal's libroken to work with older versions.
-    * Improve POD tests.
+    * Improve POD and Perl module tests.
+    * Cleanly passes clang --analyze.
+
+    Update to C TAP Harness 2.0:
+
+    * runtests now treats the command line as a list of tests by default.
+    * The full test executable path can now be passed to runtests -o.
+    * Improved harness output for tests with lazy plans.
+    * Improved harness output to a terminal for some abort cases.
+    * Flush harness output after each test even when not on a terminal.
 
 remctl 3.3 (2012-09-25)
 

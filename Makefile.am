@@ -174,7 +174,8 @@ install-data-hook:
 	rm -f $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
 	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
 
-CLEANFILES = client/libremctl.pc docs/remctld.8 stamp-python
+CLEANFILES = client/libremctl.pc docs/remctld.8 perl/t/lib/Test/RRA.pm \
+	stamp-python
 DISTCLEANFILES = perl/Makefile python/MANIFEST
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile		   \
 	build-aux/config.guess build-aux/config.sub build-aux/depcomp	   \
@@ -187,8 +188,8 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile		   \
 # Also clean the perl, php, and ruby directories if needed and clean up
 # after Python.
 clean-local:
-	set -e; if [ -f "perl/Build" ] ; then	\
-	    cd perl && ./Build realclean ;	\
+	set -e; if [ -f "perl/Build" ] ; then		\
+	    cd perl && ./Build realclean ;		\
 	fi
 	set -e; if [ -f "php/Makefile" ] ; then	\
 	    cd php && $(MAKE) clean ;		\
@@ -196,14 +197,15 @@ clean-local:
 	set -e; if [ -f "ruby/Makefile" ] ; then	\
 	    cd ruby && $(MAKE) distclean ;		\
 	fi
-	rm -rf php/tmp-php.ini python/build python/dist python/*.pyc
+	rm -rf perl/t/config perl/t/lib/Test/RRA php/tmp-php.ini \
+	    python/build python/dist python/*.pyc
 
 # Also clean the Perl, PHP, and Python directories on make distclean if
 # needed.
 #
 # phpize --clean is stupid and requires that config.m4 exist, but it was
 # already deleted by the regular distclean target.  Hack around that.
-distclean-local:
+distclean-local: clean-local
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then		  \
 	    rm -rf php ;						  \
 	    for f in $(PERL_FILES) ; do					  \
@@ -221,6 +223,7 @@ distclean-local:
 	set -e; if [ -f "ruby/Makefile" ] ; then	\
 	    cd ruby && $(MAKE) distclean ;		\
 	fi
+	rm -rf perl/cover_db
 
 # A set of flags for warnings.  Add -O because gcc won't find some warnings
 # without optimization turned on.  Desirable warnings that can't be turned
@@ -421,11 +424,12 @@ tests_util_xwrite_t_LDADD = tests/tap/libtap.a util/libutil.la \
 TEST_RPATH = $(abs_top_builddir)/client/.libs
 
 check-local: $(check_PROGRAMS)
-	cd tests && ./runtests $(abs_top_srcdir)/tests/TESTS
+	cd tests && ./runtests -l '$(abs_top_srcdir)/tests/TESTS'
 	@set -e; if [ -f perl/Build ] ; then				  \
 	    echo '' ;							  \
 	    [ -d perl/t/config ] || mkdir perl/t/config ;		  \
 	    cp tests/config/keytab tests/config/principal perl/t/config ; \
+	    cp -R tests/tap/perl/* perl/t/lib/ ;			  \
 	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH)			  \
 		REMCTLD="$(abs_top_builddir)/server/remctld"		  \
 		./Build test ;						  \
@@ -465,7 +469,7 @@ check-valgrind: $(check_PROGRAMS)
 	    --log-file=$(abs_top_builddir)/tmp-valgrind/log.%p		   \
 	    --suppressions=$(abs_top_srcdir)/tests/data/valgrind.supp	   \
 	    --trace-children-skip="/bin/sh,*/cat,*/cut,*/expr,*/getopt,*/kinit,*/ls,*/mkdir,*/rm,*/rmdir,*/sed,*/sleep,*/wc,*/data/cmd-*,*/docs/pod*-t" \
-	    tests/runtests $(abs_top_srcdir)/tests/TESTS
+	    tests/runtests -l '$(abs_top_srcdir)/tests/TESTS'
 
 # Used for hooking in the build of optional language bindings.
 BINDINGS =

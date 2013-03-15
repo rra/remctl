@@ -23,6 +23,8 @@
 /perl/t/config/
 /perl/t/data/cmd-hello
 /perl/t/data/cmd-sleep
+/perl/t/lib/Test/RRA.pm
+/perl/t/lib/Test/RRA/
 /php/Makefile.*
 /php/acinclude.m4
 /php/autom4te.cache/

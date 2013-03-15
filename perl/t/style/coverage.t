@@ -1,6 +1,10 @@
 #!/usr/bin/perl
 #
-# Test that all methods are documented in POD.
+# Test Perl code for test coverage.
+#
+# Test coverage checking is disabled unless RRA_MAINTAINER_TESTS is set since
+# it takes a long time, is sensitive to the versions of various libraries,
+# and will not interfere with functionality.
 #
 # The canonical version of this file is maintained in the rra-c-util package,
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
@@ -33,11 +37,37 @@ use warnings;
 
 use lib 't/lib';
 
+use File::Spec;
 use Test::More;
-use Test::RRA qw(use_prereq);
-use Test::RRA::Config qw(@POD_COVERAGE_EXCLUDE);
+use Test::RRA qw(skip_unless_maintainer use_prereq);
+use Test::RRA::Config qw($COVERAGE_LEVEL @COVERAGE_SKIP_TESTS);
 
-use_prereq('Test::Pod::Coverage');
+# Skip code coverage unless doing maintainer testing.
+skip_unless_maintainer('Coverage testing');
 
-# Test everything found in the distribution.
-all_pod_coverage_ok({ also_private => [@POD_COVERAGE_EXCLUDE] });
+# Load required modules.
+use_prereq('Devel::Cover');
+use_prereq('Test::Strict');
+
+# Build a list of test directories to use for coverage.
+my %ignore = map { $_ => 1 } qw(docs style), @COVERAGE_SKIP_TESTS;
+opendir(my $testdir, 't') or BAIL_OUT("cannot open t: $!");
+my @t_dirs = readdir($testdir) or BAIL_OUT("cannot read t: $!");
+closedir($testdir) or BAIL_OUT("cannot close t: $!");
+
+# Filter out ignored and system directories.
+@t_dirs = grep { !$ignore{$_} } File::Spec->no_upwards(@t_dirs);
+
+# Prepend the t directory name to the directories.
+@t_dirs = map { File::Spec->catfile('t', $_) } @t_dirs;
+
+# Disable POD coverage; that's handled separately and is confused by
+# autoloading.
+$Test::Strict::DEVEL_COVER_OPTIONS
+  = '-coverage,statement,branch,condition,subroutine';
+
+# Do the coverage analysis.
+all_cover_ok($COVERAGE_LEVEL, @t_dirs);
+
+# Hack to suppress "used only once" warnings.
+END { $Test::Strict::DEVEL_COVER_OPTIONS = q{} }
