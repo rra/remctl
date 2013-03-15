@@ -2,7 +2,7 @@
  * Test suite for version negotiation in the server.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010, 2012
+ * Copyright 2006, 2007, 2009, 2010, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -56,6 +56,8 @@ main(void)
     /* Open the connection to the site. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
+    if (r == NULL)
+        bail("remctl_new returned NULL");
     ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
 
     /* Send the command token. */

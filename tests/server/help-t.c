@@ -2,7 +2,7 @@
  * Test suite for the server using the summary command.
  *
  * Written by Jon Robertson <jonrober@stanford.edu>
- * Copyright 2012
+ * Copyright 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -38,6 +38,8 @@ main(void)
     /* Run the tests. */
     result = remctl("localhost", 14373, config->principal, helptest);
     ok(result != NULL, "help command works");
+    if (result == NULL)
+        bail("remctl returned NULL");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
     is_int(10, result->stdout_len, "...and correct stdout_len");
@@ -48,6 +50,8 @@ main(void)
 
     result = remctl("localhost", 14373, config->principal, subhelptest);
     ok(result != NULL, "help with subcommand works");
+    if (result == NULL)
+        bail("remctl returned NULL");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
     is_int(13, result->stdout_len, "...and correct stdout_len");
@@ -58,6 +62,8 @@ main(void)
 
     result = remctl("localhost", 14373, config->principal, nohelptest);
     ok(result != NULL, "help for command without help does not work");
+    if (result == NULL)
+        bail("remctl returned NULL");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
     is_int(0, result->stdout_len, "...and no stdout");
@@ -68,6 +74,8 @@ main(void)
 
     result = remctl("localhost", 14373, config->principal, badcommand1);
     ok(result != NULL, "help for command with non-matching subcommand");
+    if (result == NULL)
+        bail("remctl returned NULL");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
     is_int(0, result->stdout_len, "...and no stdout");
@@ -77,6 +85,8 @@ main(void)
 
     result = remctl("localhost", 14373, config->principal, badcommand2);
     ok(result != NULL, "help for unknown command");
+    if (result == NULL)
+        bail("remctl returned NULL");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
     is_int(0, result->stdout_len, "...and no stdout");

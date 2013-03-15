@@ -2,7 +2,7 @@
  * Test suite for malformed commands.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2009, 2010, 2012
+ * Copyright 2007, 2009, 2010, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -41,6 +41,8 @@ test_bad_token(const struct kerberos_config *config, const char *data,
      */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
+    if (r == NULL)
+        bail("remctl_new returned NULL");
     ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
     token.value = (void *) data;
     token.length = length;
@@ -54,19 +56,19 @@ test_bad_token(const struct kerberos_config *config, const char *data,
     r->ready = 1;
     output = remctl_output(r);
     ok(output != NULL, "output is not null");
-    if (output == NULL) {
-        remctl_close(r);
-        ok_block(4, 0, "testing for %s", description);
+    if (output == NULL)
+        ok_block(4, false, "testing for %s", description);
+    else {
+        is_int(REMCTL_OUT_ERROR, output->type, "error type");
+        is_int(code, output->error, "right error code for %s", description);
+        is_int(strlen(message), output->length, "right length for %s",
+               description);
+        if (output->length <= strlen(message))
+            ok(memcmp(output->data, message, output->length) == 0,
+               "right data for %s", description);
+        else
+            ok(0, "right data for %s", description);
     }
-    is_int(REMCTL_OUT_ERROR, output->type, "error type");
-    is_int(code, output->error, "right error code for %s", description);
-    is_int(strlen(message), output->length, "right length for %s",
-           description);
-    if (output->length <= strlen(message))
-        ok(memcmp(output->data, message, output->length) == 0,
-           "right data for %s", description);
-    else
-        ok(0, "right data for %s", description);
     remctl_close(r);
 }
 

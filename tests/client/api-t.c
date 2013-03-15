@@ -56,12 +56,16 @@ test_command(struct remctl *r)
         is_int(1, output->stream, "...and is right stream");
     }
     if (r == NULL)
-        ok_block(3, 0, "...remctl_open failed");
+        ok_block(3, false, "...remctl_open failed");
     else {
         output = remctl_output(r);
-        ok(output != NULL, "second output token is not null");
-        is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
-        is_int(0, output->status, "...and is right status");
+        if (output == NULL)
+            ok_block(3, false, "second output token is not null");
+        else {
+            ok(output != NULL, "second output token is not null");
+            is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
+            is_int(0, output->status, "...and is right status");
+        }
     }
 }
 
@@ -84,6 +88,8 @@ do_tests(const char *principal, int protocol)
     /* Open the connection. */
     r = remctl_new();
     ok(r != NULL, "protocol %d: remctl_new", protocol);
+    if (r == NULL)
+        bail("remctl_new returned NULL");
     is_string("no error", remctl_error(r), "remctl_error with no error");
     r->protocol = protocol;
     ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
@@ -111,27 +117,38 @@ do_tests(const char *principal, int protocol)
     ok(remctl_commandv(r, command, 2), "remctl_commandv");
     is_string("no error", remctl_error(r), "...still no error");
     output = remctl_output(r);
-    ok(output != NULL, "first output token is not null");
-    is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
-    is_int(12, output->length, "...and is right length");
-    if (output->data == NULL)
-        ok(0, "...and is right data");
-    else
-        ok(memcmp("hello world\n", output->data, 11) == 0,
-           "...and is right data");
-    is_int(1, output->stream, "...and is right stream");
+    if (output == NULL)
+        ok_block(5, false, "first output token is not null");
+    else {
+        ok(output != NULL, "first output token is not null");
+        is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
+        is_int(12, output->length, "...and is right length");
+        if (output->data == NULL)
+            ok(0, "...and is right data");
+        else
+            ok(memcmp("hello world\n", output->data, 11) == 0,
+               "...and is right data");
+        is_int(1, output->stream, "...and is right stream");
+    }
     output = remctl_output(r);
-    ok(output != NULL, "second output token is not null");
-    is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
-    is_int(0, output->status, "...and is right status");
+    if (output == NULL)
+        ok_block(3, false, "second output token is not null");
+    else {
+        ok(output != NULL, "second output token is not null");
+        is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
+        is_int(0, output->status, "...and is right status");
+    }
     free(command);
 
     /* Send a failing command. */
     ok(remctl_command(r, error), "remctl_command of error command");
     is_string("no error", remctl_error(r), "...no error on send");
     output = remctl_output(r);
-    ok(output != NULL, "first output token is not null");
-    if (protocol == 1) {
+    if (output == NULL)
+        ok_block(protocol == 1 ? 8 : 5, false,
+                 "first output token is not null");
+    else if (protocol == 1) {
+        ok(output != NULL, "first output token is not null");
         is_int(REMCTL_OUT_OUTPUT, output->type,
                "...and is right protocol 1 type");
         is_int(16, output->length, "...and is right length");
@@ -142,10 +159,15 @@ do_tests(const char *principal, int protocol)
                "...and has the right error message");
         is_int(1, output->stream, "...and is right stream");
         output = remctl_output(r);
-        ok(output != NULL, "second output token is not null");
-        is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
-        is_int(-1, output->status, "...and is right status");
+        if (output == NULL)
+            ok_block(3, false, "second output token is not null");
+        else {
+            ok(output != NULL, "second output token is not null");
+            is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
+            is_int(-1, output->status, "...and is right status");
+        }
     } else {
+        ok(output != NULL, "first output token is not null");
         is_int(REMCTL_OUT_ERROR, output->type,
                "...and is right protocol 2 type");
         is_int(15, output->length, "...and is right length");
@@ -161,18 +183,26 @@ do_tests(const char *principal, int protocol)
     ok(remctl_command(r, no_service), "remctl_command with no service");
     is_string("no error", remctl_error(r), "...and no error");
     output = remctl_output(r);
-    ok(output != NULL, "...and non-null output token");
-    is_int(REMCTL_OUT_OUTPUT, output->type, "...of correct type");
-    is_int(12, output->length, "...and length");
-    if (output->data == NULL)
-        ok(0, "...and data");
-    else
-        ok(memcmp("hello world\n", output->data, 11) == 0, "...and data");
-    is_int(1, output->stream, "...and stream");
+    if (output == NULL)
+        ok_block(5, false, "...and non-null output token");
+    else {
+        ok(output != NULL, "...and non-null output token");
+        is_int(REMCTL_OUT_OUTPUT, output->type, "...of correct type");
+        is_int(12, output->length, "...and length");
+        if (output->data == NULL)
+            ok(0, "...and data");
+        else
+            ok(memcmp("hello world\n", output->data, 11) == 0, "...and data");
+        is_int(1, output->stream, "...and stream");
+    }
     output = remctl_output(r);
-    ok(output != NULL, "...and non-null second token");
-    is_int(REMCTL_OUT_STATUS, output->type, "...of right type");
-    is_int(0, output->status, "...and status");
+    if (output == NULL)
+        ok_block(3, false, "...and non-null second token");
+    else {
+        ok(output != NULL, "...and non-null second token");
+        is_int(REMCTL_OUT_STATUS, output->type, "...of right type");
+        is_int(0, output->status, "...and status");
+    }
 
     /* All done. */
     remctl_close(r);
@@ -211,6 +241,8 @@ main(void)
      */
     result = remctl("localhost", 14373, config->principal, test);
     ok(result != NULL, "basic remctl API works");
+    if (result == NULL)
+        bail("remctl returned NULL");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
     is_int(12, result->stdout_len, "...and correct stdout_len");
@@ -223,6 +255,8 @@ main(void)
     remctl_result_free(result);
     result = remctl("localhost", 14373, config->principal, error);
     ok(result != NULL, "remctl API with error works");
+    if (result == NULL)
+        bail("remctl returned NULL");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stdout_len, "...and no stdout");
     is_int(0, result->stderr_len, "...and no stderr");
