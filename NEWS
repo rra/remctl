@@ -18,6 +18,9 @@ remctl 3.4 (unreleased)
     Net::Remctl.  They are included in Perl 5.10 or later and can be
     installed separately for older versions of Perl.
 
+    Return an error if an empty command is passed into remctl_command
+    rather than attempting to malloc zero bytes.
+
     Update to rra-c-util 4.8:
 
     * Fix probing for Heimdal's libroken to work with older versions.

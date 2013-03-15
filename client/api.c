@@ -503,6 +503,10 @@ remctl_command(struct remctl *r, const char **command)
 
     for (count = 0; command[count] != NULL; count++)
         ;
+    if (count == 0) {
+        internal_set_error(r, "cannot send empty command");
+        return 0;
+    }
     vector = malloc(sizeof(struct iovec) * count);
     if (vector == NULL) {
         internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
