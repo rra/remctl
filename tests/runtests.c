@@ -107,6 +107,12 @@
 #endif
 
 /*
+ * Used for iterating through arrays.  Returns the number of elements in the
+ * array (useful for a < upper bound in a for loop).
+ */
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
+
+/*
  * The source and build versions of the tests directory.  This is used to set
  * the SOURCE and BUILD environment variables and find test programs, if set.
  * Normally, this should be set as part of the build process to the test
@@ -994,7 +1000,7 @@ static char *
 find_test(const char *name, const char *source, const char *build)
 {
     char *path;
-    const char *bases[4], *suffix, *base;
+    const char *bases[3], *suffix, *base;
     unsigned int i, j;
     const char *suffixes[3] = { "-t", ".t", "" };
 
@@ -1002,13 +1008,12 @@ find_test(const char *name, const char *source, const char *build)
     bases[0] = ".";
     bases[1] = build;
     bases[2] = source;
-    bases[3] = NULL;
 
     /* Try each suffix with each base. */
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < ARRAY_SIZE(suffixes); i++) {
         suffix = suffixes[i];
-        for (i = 0; i < 3; i++) {
-            base = bases[i];
+        for (j = 0; j < ARRAY_SIZE(bases); j++) {
+            base = bases[j];
             if (base == NULL)
                 continue;
             path = xmalloc(strlen(base) + strlen(name) + strlen(suffix) + 2);
