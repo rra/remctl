@@ -8,7 +8,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -193,7 +193,7 @@ internal_open(struct remctl *r, const char *host, const char *principal)
                 flags |= TOKEN_PROTOCOL;
             status = token_send(r->fd, flags, &send_tok, r->timeout);
             if (status != TOKEN_OK) {
-                internal_token_error(r, "sending token", status, major, minor);
+                internal_token_error(r, "sending token", status, 0, 0);
                 gss_release_buffer(&minor, &send_tok);
                 goto fail;
             }
