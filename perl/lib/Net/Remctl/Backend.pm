@@ -37,11 +37,10 @@ use constant LINE_WIDTH => 80;
 
 our $VERSION;
 
-# This version should be increased on any code change to this module.  Always
-# use two digits for the minor version with a leading zero if necessary so
-# that it will sort properly.
+# This version matches the version of remctl with which this module was
+# released, but with at least two digits for the minor version.
 BEGIN {
-    $VERSION = '1.00';
+    $VERSION = '3.04';
 }
 
 # Constructor.  Takes all possible parameters as a hash.  See the POD
