@@ -69,6 +69,7 @@ my $build = Module::Build->new(
     dist_author          => 'Russ Allbery <rra@stanford.edu>',
     license              => 'mit',
     recursive_test_files => 1,
+    add_to_cleanup       => [qw(cover_db t/data/cmd-hello t/data/cmd-sleep)],
 
     # XS configuration.  We prefer the in-tree libremctl library.
     config               => { lddlflags => $LDDLFLAGS },
