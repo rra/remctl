@@ -6,6 +6,11 @@ remctl 3.4 (unreleased)
     a list of struct addrinfo, or an already-open socket.  Patch from
     Jeffrey Hutzelman.
 
+    The Perl bindings now include a new module, Net::Remctl::Backend,
+    which handles the setup, dispatch, and help output for the recommended
+    style for remctl backend scripts written in Perl.  See its
+    documentation for more information.
+
     Following Perl Best Practices, remove prototypes from all Net::Remctl
     functions.  The confusion caused by changing context away from how
     Perl normally works is not worth any diagnostic value.
