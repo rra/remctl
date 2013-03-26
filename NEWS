@@ -32,7 +32,7 @@ remctl 3.4 (2013-03-26)
     * Improve POD and Perl module tests.
     * Cleanly passes clang --analyze.
 
-    Update to C TAP Harness 2.0:
+    Update to C TAP Harness 2.1:
 
     * runtests now treats the command line as a list of tests by default.
     * The full test executable path can now be passed to runtests -o.
