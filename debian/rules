@@ -8,9 +8,9 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+bindnow
 # the shared library dependencies of libremctl.
 export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
-# The additional flags to pass to Makefile.PL, picked up by the upstream
-# build system.
-export REMCTL_PERL_FLAGS := INSTALLDIRS=vendor
+# The additional flags to pass to Build.PL, picked up by the upstream build
+# system.
+export REMCTL_PERL_FLAGS := --installdirs vendor --create_packlist 0
 
 # The supported Python versions and the additional Python flags, picked up
 # by the upstream build system.
