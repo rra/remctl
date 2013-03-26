@@ -18,7 +18,7 @@ export REMCTL_PYTHON_INSTALL  := --install-layout=deb
 export REMCTL_PYTHON_VERSIONS := $(shell pyversions -s)
 
 %:
-	dh $@ --with python2
+	dh $@ --parallel --with python2
 
 override_dh_autoreconf:
 	dh_autoreconf --as-needed
