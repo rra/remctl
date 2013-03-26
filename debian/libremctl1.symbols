@@ -8,6 +8,9 @@ libremctl.so.1 libremctl1 #MINVER#
  remctl_new@REMCTL_1.0 2.10
  remctl_noop@REMCTL_1.0 3.0
  remctl_open@REMCTL_1.0 2.10
+ remctl_open_addrinfo@REMCTL_1.0 3.3
+ remctl_open_fd@REMCTL_1.0 3.3
+ remctl_open_sockaddr@REMCTL_1.0 3.3
  remctl_output@REMCTL_1.0 2.10
  remctl_result_free@REMCTL_1.0 2.10
  remctl_set_ccache@REMCTL_1.0 3.0
