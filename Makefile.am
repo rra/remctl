@@ -1,7 +1,7 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012
+# Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -32,11 +32,25 @@ REMCTL_RUBY_FLAGS      ?=
 # for the test suite and are not generated or touched by configure.  They're
 # listed here to be added to EXTRA_DIST and so that they can be copied over
 # properly for builddir != srcdir builds.
-PERL_FILES = perl/Remctl.xs perl/typemap perl/t/pod.t perl/t/stanford-netdb.t
+PERL_FILES = perl/MANIFEST perl/MANIFEST.SKIP perl/lib/Net/Remctl.xs	   \
+	perl/lib/Net/Remctl/Backend.pm perl/t/api/basic.t		   \
+	perl/t/api/stanford-netdb.t perl/t/backend/basic.t		   \
+	perl/t/backend/nested.t perl/t/backend/options.t		   \
+	perl/t/data/perl.conf perl/t/data/perlcriticrc			   \
+	perl/t/data/perltidyrc perl/t/data/remctl.conf			   \
+	perl/t/docs/pod-coverage.t perl/t/docs/pod-spelling.t		   \
+	perl/t/docs/pod.t perl/t/docs/synopsis.t perl/t/lib/Test/Remctl.pm \
+	perl/t/style/coverage.t perl/t/style/critic.t			   \
+	perl/t/style/minimum-version.t perl/t/style/strict.t perl/typemap
 PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
 	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
 	php/tests/005.phpt php/tests/006.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
+
+# Directories that have to be created in builddir != srcdir builds before
+# copying PERL_FILES over.
+PERL_DIRECTORIES = perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
+	perl/t/data
 
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
@@ -72,9 +86,11 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/configs/bad-logmask-1 tests/data/configs/bad-include-1   \
 	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
 	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
-	tests/data/configs/bad-user-1 tests/data/gput			    \
+	tests/data/configs/bad-user-1 tests/data/perl.conf tests/data/gput  \
 	tests/data/valgrind.supp tests/docs/pod-spelling-t tests/docs/pod-t \
-	tests/tap/kerberos.sh tests/tap/libtap.sh tests/tap/remctl.sh	    \
+	tests/tap/kerberos.sh tests/tap/libtap.sh			    \
+	tests/tap/perl/Test/RRA.pm tests/tap/perl/Test/RRA/Automake.pm	    \
+	tests/tap/perl/Test/RRA/Config.pm tests/tap/remctl.sh		    \
 	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
 	$(PYTHON_FILES)
 
@@ -157,26 +173,29 @@ install-data-hook:
 	$(LN_S) remctl.3 $(DESTDIR)$(man3dir)/remctl_result_free.3
 	rm -f $(DESTDIR)$(man3dir)/remctl_commandv.3
 	$(LN_S) remctl_command.3 $(DESTDIR)$(man3dir)/remctl_commandv.3
+	rm -f $(DESTDIR)$(man3dir)/remctl_open_addrinfo.3
+	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_addrinfo.3
+	rm -f $(DESTDIR)$(man3dir)/remctl_open_fd.3
+	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_fd.3
+	rm -f $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
+	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
 
-CLEANFILES = client/libremctl.pc docs/remctld.8 stamp-python
+CLEANFILES = client/libremctl.pc docs/remctld.8 perl/t/lib/Test/RRA.pm \
+	stamp-python
 DISTCLEANFILES = perl/Makefile python/MANIFEST
-MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
-	build-aux/config.guess build-aux/config.sub build-aux/depcomp \
-	build-aux/install-sh build-aux/ltmain.sh build-aux/missing \
+MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile		   \
+	build-aux/config.guess build-aux/config.sub build-aux/depcomp	   \
+	build-aux/install-sh build-aux/ltmain.sh build-aux/missing	   \
 	config.h.in config.h.in~ configure docs/api/*.3 docs/protocol.html \
-	docs/protocol.txt docs/remctl.1 docs/remctld.8.in \
-	m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 \
+	docs/protocol.txt docs/remctl.1 docs/remctld.8.in		   \
+	m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4	   \
 	m4/lt~obsolete.m4
 
-# Automake should deal with the first part of this automatically, but it
-# doesn't.  Probably a bug in the non-recursive support.  Also run make clean
-# in the perl and php directories if needed and clean up after Python.
+# Also clean the perl, php, and ruby directories if needed and clean up
+# after Python.
 clean-local:
-	-rm -rf server/.libs tests/.libs tests/client/.libs tests/data/.libs \
-	    tests/portable/.libs tests/server/.libs tests/util/.libs
-	set -e; if [ -f "perl/Makefile" ] ; then			   \
-	    cd perl && $(MAKE) clean ;					   \
-	    cd perl && [ ! -f Makefile.old ] || mv Makefile.old Makefile ; \
+	set -e; if [ -f "perl/Build" ] ; then		\
+	    cd perl && ./Build realclean ;		\
 	fi
 	set -e; if [ -f "php/Makefile" ] ; then	\
 	    cd php && $(MAKE) clean ;		\
@@ -184,20 +203,20 @@ clean-local:
 	set -e; if [ -f "ruby/Makefile" ] ; then	\
 	    cd ruby && $(MAKE) distclean ;		\
 	fi
-	rm -rf php/tmp-php.ini python/build python/dist python/*.pyc
+	rm -rf perl/t/config perl/t/lib/Test/RRA php/tmp-php.ini \
+	    python/build python/dist python/*.pyc
 
 # Also clean the Perl, PHP, and Python directories on make distclean if
 # needed.
 #
 # phpize --clean is stupid and requires that config.m4 exist, but it was
 # already deleted by the regular distclean target.  Hack around that.
-distclean-local:
+distclean-local: clean-local
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then		  \
 	    rm -rf php ;						  \
 	    for f in $(PERL_FILES) ; do					  \
-	        rm -f "$(builddir)/$$f" ;				  \
+		rm -f "$(builddir)/$$f" ;				  \
 	    done ;							  \
-	    rmdir perl/t 2>/dev/null || true ;				  \
 	    for f in $(PYTHON_FILES) ; do				  \
 		rm -f "$(builddir)/$$f" ;				  \
 	    done							  \
@@ -230,8 +249,9 @@ WARNINGS = -g -O -D_FORTIFY_SOURCE=2 -Wall -Wextra -Wendif-labels	    \
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code doesn't pass them.
 if GCC
-    PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs \
-	-Wno-strict-prototypes -Wno-redundant-decls -Wno-shadow
+    PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs	\
+	-Wno-strict-prototypes -Wno-missing-prototypes		\
+	-Wno-redundant-decls -Wno-shadow
     PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings	\
 	-Wno-missing-prototypes -Wno-unused-parameter		\
 	-Wno-redundant-decls -Wno-sign-compare
@@ -409,10 +429,15 @@ tests_util_xwrite_t_LDADD = tests/tap/libtap.a util/libutil.la \
 TEST_RPATH = $(abs_top_builddir)/client/.libs
 
 check-local: $(check_PROGRAMS)
-	cd tests && ./runtests $(abs_top_srcdir)/tests/TESTS
-	@set -e; if [ -f perl/Makefile ] ; then				\
-	    echo '' ;							\
-	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH) $(MAKE) test ;	\
+	cd tests && ./runtests -l '$(abs_top_srcdir)/tests/TESTS'
+	@set -e; if [ -f perl/Build ] ; then				  \
+	    echo '' ;							  \
+	    [ -d perl/t/config ] || mkdir perl/t/config ;		  \
+	    cp tests/config/keytab tests/config/principal perl/t/config ; \
+	    cp -R tests/tap/perl/* perl/t/lib/ ;			  \
+	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH)			  \
+		REMCTLD="$(abs_top_builddir)/server/remctld"		  \
+		./Build test ;						  \
 	fi
 	@set -e; if [ -f php/Makefile ] ; then				    \
 	    echo '' ;							    \
@@ -449,7 +474,7 @@ check-valgrind: $(check_PROGRAMS)
 	    --log-file=$(abs_top_builddir)/tmp-valgrind/log.%p		   \
 	    --suppressions=$(abs_top_srcdir)/tests/data/valgrind.supp	   \
 	    --trace-children-skip="/bin/sh,*/cat,*/cut,*/expr,*/getopt,*/kinit,*/ls,*/mkdir,*/rm,*/rmdir,*/sed,*/sleep,*/wc,*/data/cmd-*,*/docs/pod*-t" \
-	    tests/runtests $(abs_top_srcdir)/tests/TESTS
+	    tests/runtests -l '$(abs_top_srcdir)/tests/TESTS'
 
 # Used for hooking in the build of optional language bindings.
 BINDINGS =
@@ -460,22 +485,28 @@ BINDINGS_INSTALL =
 # which case we need to copy various files from the source directory and make
 # sure they're up to date since Perl can't handle VPATH builds.
 
-perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs	\
-		$(srcdir)/perl/typemap client/libremctl.la
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
-	    for f in $(PERL_FILES) ; do				\
-	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
-	    done						\
+perl/lib/Net/Remctl.o: perl/lib/Net/Remctl.pm				\
+		$(srcdir)/perl/lib/Net/Remctl.xs $(srcdir)/perl/typemap	\
+		client/libremctl.la perl/Build.PL
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then		\
+	    for d in $(PERL_DIRECTORIES) ; do				\
+		[ -d "$(builddir)/$$d" ] || mkdir "$(builddir)/$$d" ;	\
+	    done ;							\
+	    for f in $(PERL_FILES) ; do					\
+	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;			\
+	    done							\
 	fi
-	cd perl && perl Makefile.PL $(REMCTL_PERL_FLAGS)
-	cd perl && $(MAKE) OPTIMIZE="$(CPPFLAGS) $(CFLAGS) $(PERL_WARNINGS)"
+	cd perl && perl Build.PL					\
+	    --config optimize='$(CPPFLAGS) $(CFLAGS) $(PERL_WARNINGS)'	\
+	    $(REMCTL_PERL_FLAGS)
+	cd perl && ./Build
 
-install-data-local-perl: perl/Remctl.o
-	cd perl && $(MAKE) install DESTDIR=$(DESTDIR)
+install-data-local-perl: perl/lib/Net/Remctl.o
+	cd perl && ./Build install --destdir '$(DESTDIR)'
 
 # Build and install the Perl bindings if desired.
 if BUILD_PERL
-BINDINGS += perl/Remctl.o
+BINDINGS += perl/lib/Net/Remctl.o
 BINDINGS_INSTALL += install-data-local-perl
 endif
 

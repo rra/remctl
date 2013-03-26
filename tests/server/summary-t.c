@@ -2,7 +2,7 @@
  * Test suite for the server using the summary command.
  *
  * Written by Jon Robertson <jonrober@stanford.edu>
- * Copyright 2012
+ * Copyright 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -34,6 +34,8 @@ main(void)
     /* Run the tests. */
     result = remctl("localhost", 14373, config->principal, test);
     ok(result != NULL, "summary command works");
+    if (result == NULL)
+        bail("remctl returned NULL");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
     is_int(13, result->stdout_len, "...and correct stdout_len");
@@ -50,6 +52,8 @@ main(void)
     remctld_start(config, "data/conf-nosummary", NULL);
     result = remctl("localhost", 14373, config->principal, test);
     ok(result != NULL, "summary command works");
+    if (result == NULL)
+        bail("remctl returned NULL");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
     is_int(0, result->stdout_len, "...and no stdout");

@@ -2,7 +2,7 @@
  * Test suite for the server configuration parsing.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2009, 2010, 2011, 2012
+ * Copyright 2007, 2009, 2010, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -51,6 +51,8 @@ main(void)
 
     config = server_config_load("data/conf-test");
     ok(config != NULL, "config loaded");
+    if (config == NULL)
+        bail("server_config_load returned NULL");
     is_int(4, config->count, "with right count");
 
     is_string("test", config->rules[0]->command, "command 1");

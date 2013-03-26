@@ -16,13 +16,24 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '@PACKAGE_VERSION@';
+use Exporter;
+use DynaLoader;
 
-require Exporter;
-require DynaLoader;
+# Yes, I shouldn't have exported something by default, but I did, and now
+# removing it would break backward compatibility.  So we live with it.
+## no critic (Modules::ProhibitAutomaticExportation)
+use vars qw($VERSION @EXPORT @ISA);
 
-our @ISA = qw(Exporter DynaLoader);
-our @EXPORT = qw(remctl);
+BEGIN {
+    $VERSION = '@PACKAGE_VERSION@';
+}
+
+# use base qw(Exporter) requires Perl 5.8 and we still support Perl 5.6.
+## no critic (ClassHierarchies::ProhibitExplicitISA)
+BEGIN {
+    @ISA    = qw(Exporter DynaLoader);
+    @EXPORT = qw(remctl);
+}
 
 bootstrap Net::Remctl;
 1;

@@ -60,14 +60,13 @@ const struct {
 
 MODULE = Net::Remctl    PACKAGE = Net::Remctl   PREFIX = remctl_
 
-PROTOTYPES: ENABLE
+PROTOTYPES: DISABLE
 
 Net::Remctl::Result
 remctl(host, port, principal, ...)
     const char *host
     unsigned short port
     const char *principal
-  PROTOTYPE: DISABLE
   PREINIT:
     size_t count = items - 3;
     size_t i;
@@ -143,7 +142,6 @@ void
 remctl_open(self, host, ...)
     Net::Remctl self
     const char *host
-  PROTOTYPE: DISABLE
   PREINIT:
     size_t count = items - 2;
     unsigned short port = 0;

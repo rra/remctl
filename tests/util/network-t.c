@@ -245,7 +245,7 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
     socket_type *fds, fd;
     unsigned int count, i;
     pid_t child;
-    struct sockaddr_storage saddr;
+    struct sockaddr *saddr;
     socklen_t size;
     int status;
 
@@ -263,18 +263,25 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
             ok_block(4, 0, "all address server test (part %d)", i);
         } else {
             ok(1, "all address server test (part %d)", i);
-            size = sizeof(saddr);
-            if (getsockname(fd, (struct sockaddr *) &saddr, &size) < 0)
+            saddr = bmalloc(sizeof(struct sockaddr));
+            size = sizeof(struct sockaddr);
+            if (getsockname(fd, saddr, &size) < 0)
                 sysbail("cannot getsockname");
+            if (size > sizeof(struct sockaddr)) {
+                free(saddr);
+                saddr = bmalloc(size);
+                if (getsockname(fd, saddr, &size) < 0)
+                    sysbail("cannot getsockname");
+            }
             child = fork();
             if (child < 0)
                 sysbail("cannot fork");
             else if (child == 0) {
-                if (saddr.ss_family == AF_INET) {
+                if (saddr->sa_family == AF_INET) {
                     client("::1", source_ipv6, false);
                     client("127.0.0.1", source_ipv4, true);
 #ifdef HAVE_INET6
-                } else if (saddr.ss_family == AF_INET6) {
+                } else if (saddr->sa_family == AF_INET6) {
 # ifdef IPV6_V6ONLY
                     client("127.0.0.1", source_ipv4, false);
 # endif
@@ -283,6 +290,7 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
                 }
                 _exit(1);
             } else {
+                free(saddr);
                 listener(fd);
                 waitpid(child, &status, 0);
                 is_int(0, status, "client made correct connections");

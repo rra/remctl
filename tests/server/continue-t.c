@@ -2,7 +2,7 @@
  * Test suite for continued commands.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2009, 2010, 2012
+ * Copyright 2006, 2009, 2010, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -52,6 +52,8 @@ main(void)
     /* Open a connection. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
+    if (r == NULL)
+        bail("remctl_new returned NULL");
     ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
 
     /* Send the command broken in the middle of protocol elements. */
@@ -82,9 +84,13 @@ main(void)
     is_int(TOKEN_OK, status, "fourth token sent okay");
     r->ready = 1;
     output = remctl_output(r);
-    ok(output != NULL, "got output");
-    is_int(REMCTL_OUT_STATUS, output->type, "...of type status");
-    is_int(2, output->status, "...with correct status");
+    if (output == NULL)
+        ok_block(3, false, "got output");
+    else {
+        ok(output != NULL, "got output");
+        is_int(REMCTL_OUT_STATUS, output->type, "...of type status");
+        is_int(2, output->status, "...with correct status");
+    }
     remctl_close(r);
 
     return 0;

@@ -20,7 +20,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2011, 2012
+ * Copyright 2009, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007, 2008
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -424,7 +424,7 @@ network_source(socket_type fd, int family, const char *source)
  * errno.
  */
 socket_type
-network_connect(struct addrinfo *ai, const char *source, time_t timeout)
+network_connect(const struct addrinfo *ai, const char *source, time_t timeout)
 {
     socket_type fd = INVALID_SOCKET;
     int oerrno, status, err;
