@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.4 (2013-03-15)
+remctl 3.4 (2013-03-26)
 
     Add new C APIs for establishing a remctl connection given a sockaddr,
     a list of struct addrinfo, or an already-open socket.  Patch from
