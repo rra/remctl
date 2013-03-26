@@ -1,4 +1,4 @@
-remctl (3.1-1~bpo60+1) squeeze-backports; urgency=low
+remctl (3.4-1~bpo60+1) UNRELEASED; urgency=low
 
   * Backport to squeeze.
   * Remove dependency and use of dh-autoreconf and use the upstream build
@@ -6,6 +6,82 @@ remctl (3.1-1~bpo60+1) squeeze-backports; urgency=low
   * Remove multiarch support.
 
  -- Russ Allbery <rra@debian.org>  Thu, 22 Mar 2012 09:52:23 -0700
+
+remctl (3.4-1) experimental; urgency=low
+
+  * New upstream release.
+    - New C APIs for establishing a remctl connection given a sockaddr, a
+      list of struct addrinfo, or an already open socket.
+    - New Net::Remctl::Backend Perl module to aid writing remctl backend
+      scripts.
+    - Remove all prototypes from Net::Remctl functions.
+    - Return an error if an empty command is passed to remctl_command.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 26 Mar 2013 13:19:58 -0700
+
+remctl (3.3-1) experimental; urgency=low
+
+  * New upstream release.
+    - Fix a file descriptor leak when checking ACL files.
+    - Fix memory leaks in remctld and libremctl.
+    - Don't create the PID file in remctld until the network socket is set
+      up and listening.
+    - Remove prototypes from the Perl remctl() function to allow passing
+      in parameters via an array.
+  * Use xz compression for the Debian binary packages.
+  * Update to standards version 3.9.4.
+    - Add branch information to Vcs-Git.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 25 Sep 2012 21:34:43 -0700
+
+remctl (3.2-3) unstable; urgency=low
+
+  * Cherry-pick upstream fix to flags passed to open() when creating
+    sentinel files in the test suite.  Hopefully fixes FTBFS on Hurd.
+
+ -- Russ Allbery <rra@debian.org>  Thu, 28 Jun 2012 13:57:28 -0700
+
+remctl (3.2-2) unstable; urgency=low
+
+  * Cherry-pick upstream fix to add proper dependencies on libremctl.la to
+    the build rules for other language bindings.  This should fix
+    occasional FTBFS problems with parallel builds.  Thanks, Aaron
+    M. Ucko.  (Closes: #679307)
+
+ -- Russ Allbery <rra@debian.org>  Wed, 27 Jun 2012 16:32:57 -0700
+
+remctl (3.2-1) unstable; urgency=low
+
+  * New upstream release.
+    - If remctld receives a help command with no arguments and no help
+      command is explicitly defined, it will look for commands to which
+      the current user has access and for which the summary option is set
+      and run them with the argument given by the summary option,
+      collecting the output and sending it back to the client.
+    - If remctld receives a help command with one or two arguments and a
+      command entry exists matching those arguments, the user has access
+      to run it, and the help option is set, the command is run with the
+      help option as the subcommand.
+    - Always close the server's connection to the client on low-level
+      network and GSS-API errors.
+    - Fix remctld segfault when the configuration does not define any
+      commands.
+  * Update Ruby extension packaging for the new Ruby standard.  The
+    ruby-remctl package replaces all libremctl-ruby* packages, which are
+    now transitional packages to ease the upgrade.  The Ruby extension is
+    now installed in the vendor_ruby directory and the modules for all
+    supported Ruby versions are included in the same package.
+  * Switch to xz compression for the upstream and Debian tarballs.
+  * Move single-debian-patch to local-options and patch-header to
+    local-patch-header so that they only apply to the packages I build and
+    NMUs get regular version-numbered patches.
+  * Enable parallel builds.
+  * Mark libremctl-dev Multi-Arch: same and remctl-client and
+    remctl-server Multi-Arch: foreign.
+  * Convert debian/copyright to copyright-format 1.0.
+  * Update standards version to 3.9.3 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Tue, 19 Jun 2012 20:19:03 -0700
 
 remctl (3.1-1) unstable; urgency=low
 

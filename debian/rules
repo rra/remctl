@@ -8,9 +8,9 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+bindnow
 # the shared library dependencies of libremctl.
 export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
-# The additional flags to pass to Makefile.PL, picked up by the upstream
-# build system.
-export REMCTL_PERL_FLAGS := INSTALLDIRS=vendor
+# The additional flags to pass to Build.PL, picked up by the upstream build
+# system.
+export REMCTL_PERL_FLAGS := --installdirs vendor --create_packlist 0
 
 # The supported Python versions and the additional Python flags, picked up
 # by the upstream build system.
@@ -24,26 +24,26 @@ override_dh_autoreconf:
 	dh_autoreconf --as-needed
 
 override_dh_auto_configure:
-	dh_auto_configure -- --sysconfdir=/etc/remctl \
+	dh_auto_configure --parallel -- --sysconfdir=/etc/remctl \
 	    --enable-reduced-depends --enable-perl --enable-php \
 	    --enable-python --enable-ruby
 
 # For the first pass, build the Ruby 1.8 extension.  We'll go back and build
 # the extension for 1.9.1.
 override_dh_auto_build:
-	dh_auto_build -- REMCTL_RUBY=ruby1.8
+	dh_auto_build --parallel -- REMCTL_RUBY=ruby1.8
 
 override_dh_auto_test:
-	dh_auto_test -- REMCTL_RUBY=ruby1.8
+	dh_auto_test --parallel -- REMCTL_RUBY=ruby1.8
 
 # After installing the build for the default version of Ruby, go back and
 # rebuild for the newer version.
 override_dh_auto_install:
-	dh_auto_install -- RUBYARCHDIR='$$(archdir)$$(target_prefix)'
+	dh_auto_install -- RUBYARCHDIR='$$(vendorarchdir)$$(target_prefix)'
 	cd ruby && $(MAKE) distclean
-	dh_auto_build -- REMCTL_RUBY=ruby1.9.1
+	dh_auto_build --parallel -- REMCTL_RUBY=ruby1.9.1
 	cd ruby && $(MAKE) install DESTDIR='$(CURDIR)/debian/tmp' \
-	    RUBYARCHDIR='$$(archdir)$$(target_prefix)'
+	    RUBYARCHDIR='$$(vendorarchdir)$$(target_prefix)'
 
 # Override install to check for missing installed files.
 override_dh_install:
@@ -57,3 +57,6 @@ override_dh_makeshlibs:
 
 override_dh_gencontrol:
 	dh_gencontrol -- -V"php:Depends=phpapi-`php-config5 --phpapi`"
+
+override_dh_builddeb:
+	dh_builddeb -- -Zxz

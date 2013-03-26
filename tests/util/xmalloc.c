@@ -5,7 +5,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Copyright 2000, 2001, 2006 Russ Allbery <rra@stanford.edu>
- * Copyright 2008, 2012
+ * Copyright 2008, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -213,16 +213,13 @@ static int
 test_asprintf(size_t size)
 {
     char *copy, *string;
-    int status;
     size_t i;
 
     string = xmalloc(size);
     memset(string, 42, size - 1);
     string[size - 1] = '\0';
-    status = xasprintf(&copy, "%s", string);
+    xasprintf(&copy, "%s", string);
     free(string);
-    if (status < 0)
-        return 0;
     for (i = 0; i < size - 1; i++)
         if (copy[i] != 42)
             return 0;
@@ -234,16 +231,14 @@ test_asprintf(size_t size)
 
 
 /* Wrapper around vasprintf to do the va_list stuff. */
-static int
+static void
 xvasprintf_wrapper(char **strp, const char *format, ...)
 {
     va_list args;
-    int status;
 
     va_start(args, format);
-    status = xvasprintf(strp, format, args);
+    xvasprintf(strp, format, args);
     va_end(args);
-    return status;
 }
 
 
@@ -255,16 +250,13 @@ static int
 test_vasprintf(size_t size)
 {
     char *copy, *string;
-    int status;
     size_t i;
 
     string = xmalloc(size);
     memset(string, 42, size - 1);
     string[size - 1] = '\0';
-    status = xvasprintf_wrapper(&copy, "%s", string);
+    xvasprintf_wrapper(&copy, "%s", string);
     free(string);
-    if (status < 0)
-        return 0;
     for (i = 0; i < size - 1; i++)
         if (copy[i] != 42)
             return 0;
@@ -330,6 +322,7 @@ main(int argc, char *argv[])
 #if HAVE_SETRLIMIT && defined(RLIMIT_AS)
         struct rlimit rl;
         void *tmp;
+        size_t test_size;
 
         rl.rlim_cur = limit;
         rl.rlim_max = limit;
@@ -338,10 +331,13 @@ main(int argc, char *argv[])
             exit(2);
         }
         if (size < limit || code == 'r') {
-            tmp = malloc(code == 'r' ? 10 : size);
+            test_size = code == 'r' ? 10 : size;
+            if (test_size == 0)
+                test_size = 1;
+            tmp = malloc(test_size);
             if (tmp == NULL) {
                 syswarn("Can't allocate initial memory of %lu (limit %lu)",
-                        (unsigned long) size, (unsigned long) limit);
+                        (unsigned long) test_size, (unsigned long) limit);
                 exit(2);
             }
             free(tmp);

@@ -106,9 +106,9 @@ FULL INTERFACE
 
       This is normally the full path to a Kerberos ticket cache, but may
       have other valid forms depending on the underlying Kerberos
-      implementation in use by GSS-API.  This method must be called prior
-      to calling remctl_open() and will affect all subsequent
-      remctl_open() calls on the same object.
+      implementation in use by GSS-API.  This method will affect all
+      subsequent open() calls on the same object, but will have no effect
+      on connections that are already open.
 
       For current GSS-API implementations, this will affect not only all
       subsequent open() calls for the same object, but all subsequent
@@ -125,9 +125,9 @@ FULL INTERFACE
       * RemctlError: setting the credential cache isn't supported
 
   Remctl.set_source_ip(source)
-      Sets the source IP for outgoing connections.  This method must be
-      called prior to calling open() and will affect all subsequent open()
-      calls on the same object.
+      Sets the source IP for future outgoing connections.  This will
+      affect all subsequent open() calls on the same object, but will have
+      no effect on connections that are already open.
 
       Arguments:
       * source (required): string, the source IP address
@@ -292,3 +292,14 @@ THANKS
 
   Andrew Mortensen for general code formatting comments and a reminder to
   free malloc'd memory.
+
+LICENSE
+
+  Copyright 2008 Thomas L. Kula <kula@tproa.net>
+  Copyright 2008, 2009, 2011, 2012
+      The Board of Trustees of the Leland Stanford Junior University
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.  This file is offered as-is,
+  without any warranty.

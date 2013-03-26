@@ -17,6 +17,7 @@
  **  Coypright 2007 Marcus Watts <mdw@umich.edu>
  **  Copyright 2002
  **      The Board of Trustees of the Leland Stanford Junior University
+ **
  **  See LICENSE for licensing terms.
  **
  **  This version considerably modified by Marcus Watts <mdw@umich.edu>

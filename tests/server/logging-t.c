@@ -21,7 +21,7 @@ int
 main(void)
 {
     struct confline confline = {
-        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL
+        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, NULL, NULL
     };
     struct iovec **command;
     int i;
@@ -50,7 +50,7 @@ main(void)
               "logging of unprintable characters");
 
     /* Simple command. */
-    for (i = 2; i < 5; i++)
+    for (i = 2; i < 4; i++)
         command[i] = bmalloc(sizeof(struct iovec));
     free(command[1]->iov_base);
     command[1]->iov_base = bstrdup("bar");
@@ -108,5 +108,12 @@ main(void)
     is_string("COMMAND from test: foo **MASKED** arg1 **MASKED**\n", errors,
               "two masked parameters");
 
+    free(confline.logmask);
+    for (i = 0; i < 4; i++) {
+        if (command[i] != NULL)
+            free(command[i]->iov_base);
+        free(command[i]);
+    }
+    free(command);
     return 0;
 }

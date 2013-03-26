@@ -1,3 +1,13 @@
+# Windows Makefile for remctl.
+#
+# Written by Matthew Loar and Jeffrey Altman
+# Copyright 2008, 2011 Matthew Loar
+# Copyright 2009 Jeffrey Altman
+# Copyright 2008, 2009, 2010, 2011
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
+
 !INCLUDE <Win32.mak>
 
 !if "$(CPU)" == "i386"

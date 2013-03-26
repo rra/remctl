@@ -2,7 +2,7 @@
  * Test suite for running commands as a designated user.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2012
+ * Copyright 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -75,20 +75,29 @@ test_user(struct remctl *r, const char *subcommand, uid_t *uid, gid_t *gid)
         }
     } while (output->type == REMCTL_OUT_OUTPUT);
 
+    /* If there is no output, fail. */
+    if (data == NULL) {
+        diag("test env returned no output");
+        return false;
+    }
+
     /* We have the output.  Now parse it into UID and GID. */
     data[strlen(data) - 1] = '\0';
     value = strtol(data, &end, 10);
     if (value < 0 || end == data) {
         diag("invalid output: %s", data);
+        free(data);
         return false;
     }
     *uid = value;
     value = strtol(end, NULL, 10);
     if (value < 0) {
         diag("invalid output: %s", data);
+        free(data);
         return false;
     }
     *gid = value;
+    free(data);
     return true;
 }
 
@@ -147,6 +156,7 @@ main(void)
     is_int(pw->pw_gid, gid, "Changing GID works");
 
     /* Clean up. */
+    remctl_close(r);
     unlink(confpath);
     free(confpath);
     test_file_path_free(cmd);

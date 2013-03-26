@@ -1,7 +1,25 @@
-%define rel %(cat /etc/redhat-release | cut -d' ' -f7)
+# RPM spec file for remctl.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Improvements by Thomas Kula
+# Copyright 2006, 2007, 2012
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
+
+%define rel %(cat /etc/redhat-release | cut -d ' ' -f 7 | cut -d'.' -f1)
+# this is needed for Stanford packaging automation
+%define vers 3.2
 
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
 %{!?buildperl:%define buildperl 1}
+# EL6 prefers vendor_perl over site_perl
+%define perlinstall site_perl
+%define perlloc site
+%if %{rel} >= 6
+%define perlinstall vendor_perl
+%define perlloc vendor
+%endif
 
 # Use rpmbuild option "--define 'buildpython 0'" to not build the Python module.
 %{!?buildpython:%define buildpython 1}
@@ -13,9 +31,9 @@
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
-Version: 3.1
-Release: 1.EL%{rel}
-%if %( rpmbuild --version | cut -d ' ' -f 3 | cut -d . -f 1 ) >= 4
+Version: %{vers}
+Release: 2.EL%{rel}
+%if %{rel} >= 4
 License: MIT
 %else
 Copyright: MIT
@@ -26,16 +44,27 @@ Group: System Environment/Daemons
 Vendor: Stanford University
 Packager: Russ Allbery <rra@stanford.edu>
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: krb5-devel
+BuildRequires: krb5-devel, perl(ExtUtils::MakeMaker)
 %if %{buildpython}
-BuildRequires: python
+BuildRequires: python-devel, python
 %endif
 Distribution: EL
 
+# setup lib dir and perl lib dir
 %ifarch x86_64
 %define ldir /usr/lib64
+%if %{rel} >= 6
+%define perlldir %{ldir}
+%else
+%define perlldir /usr/lib
+%endif
 %else
 %define ldir /usr/lib
+%define perlldir %{ldir}
+%endif
+
+%ifarch i386
+BuildArch: i686
 %endif
 
 %description
@@ -59,6 +88,20 @@ with an ACL containing a list of Kerberos principals authorized to run
 that command.
 
 This package contains the server (remctld).
+
+%package devel
+Summary: Development files for remctl
+Group: Applications/Internet
+
+%description devel
+remctl is a client/server protocol for executing specific commands on a
+remote system with Kerberos authentication.  The allowable commands must
+be listed in a server configuration file, and the executable run on the
+server may be mapped to any command name.  Each command is also associated
+with an ACL containing a list of Kerberos principals authorized to run
+that command.
+
+This package contains the development files.
 
 %package client
 Summary: Client for Kerberos-authenticated command execution
@@ -94,7 +137,7 @@ This package contains the Python remctl client library.
 %setup -n remctl-%{version}
 
 %build
-options="--prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc/remctl"
+options="--prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc/remctl --libdir=%{ldir}"
 %if %{buildperl}
 options="$options --enable-perl"
 %endif
@@ -102,73 +145,80 @@ options="$options --enable-perl"
 options="$options --enable-python"
 %endif
 PATH="/sbin:/bin:/usr/sbin:$PATH" \
+export REMCTL_PERL_FLAGS="PREFIX=/usr SITEPREFIX=/usr INSTALLSITELIB=%{perlldir}/%{perlinstall} SITELIBEXP=/usr/share/perl5 SITEARCHEXP=%{perlldir}/perl5 INSTALLSITEARCH=%{perlldir}/perl5/%{perlinstall}"
 %configure $options
 %{__make}
 
 %install
 %{__rm} -rf %{buildroot}
-%makeinstall
+make install DESTDIR=%{buildroot} libdir=%{ldir} mandir=/usr/share/man INSTALLDIRS=%{perlloc}
 mkdir -p %{buildroot}/etc/xinetd.d
 install -c -m 0644 examples/xinetd %{buildroot}/etc/xinetd.d/remctl
 mkdir -p %{buildroot}/etc/remctl/acl
 mkdir -p %{buildroot}/etc/remctl/conf.d
+mkdir -p %{buildroot}/usr/share/doc/remctl-{server,client,python}-%{vers}
+chmod 755 %{buildroot}/usr/share/doc/remctl-{server,client,python}-%{vers}
 install -c -m 0644 examples/remctl.conf %{buildroot}/etc/remctl/remctl.conf
-%ifarch x86_64
-if [ -d %{buildroot}/usr/lib ]; then
-    mv %{buildroot}/usr/lib %{buildroot}/%{ldir}
-fi
-%endif
 %if %{buildperl}
 find %{buildroot} -name perllocal.pod -exec rm {} \;
+find %{buildroot} -name .packlist -exec rm {} \;
+find %{buildroot} -name Remctl.bs -size 0 -exec rm {} \;
+find %{buildroot} -name Remctl.so -exec chmod 755 {} \;
+%endif
+%if %{buildpython}
+find %{buildroot} -name _remctl.so -exec chmod 755 {} \;
 %endif
 
-
-%files client
-%defattr(-, root, root, 0755)
-%{_bindir}/*
-%defattr(0644, root, root)
-%doc NEWS README TODO
+%files devel
+%defattr(-, root, root)
 /usr/include/remctl.h
 %{ldir}/libremctl.a
+%doc %{_mandir}/man3/remctl*
+%{ldir}/pkgconfig/libremctl.pc
+
+%files client
+%defattr(-, root, root)
+%{_bindir}/*
+%doc NEWS README TODO
 %{ldir}/libremctl.la
 %{ldir}/libremctl.so
 %{ldir}/libremctl.so.*
-%{ldir}/pkgconfig/libremctl.pc
-%{_mandir}/*/remctl.*
-%{_mandir}/*/remctl_*
+%doc %{_mandir}/*/remctl.*
+%doc %{_mandir}/*/remctl_*
+%dir /usr/share/doc/remctl-client-%{vers}
 %if %{buildperl}
-%{ldir}/perl5/site_perl/
 %{_mandir}/*/Net::Remctl.3pm*
+%{perlldir}/perl5/%{perlinstall}/
 %endif
 
 %files server
-%defattr(-, root, root, 0755)
+%defattr(-, root, root)
+%dir /etc/remctl
 %{_sbindir}/*
-%defattr(0644, root, root)
 %doc NEWS README TODO
-%{_mandir}/*/remctld.*
-/etc/xinetd.d/remctl
-%dir /etc/remctl/
-%defattr(0640, root, root)
+%doc %{_mandir}/*/remctld.*
+%config /etc/xinetd.d/remctl
 %config(noreplace) /etc/remctl/remctl.conf
-%defattr(0755, root, root)
+%dir /usr/share/doc/remctl-server-%{vers}
 %dir /etc/remctl/acl/
-%defattr(0750, root, root)
 %dir /etc/remctl/conf.d/
 
 %if %{buildpython}
 %files python
-%defattr(-, root, root, 0755)
+%defattr(-, root, root)
 %{py_binlibdest}/site-packages/_remctl.so
+%{py_libdest}/site-packages/remctl.py*
+%if %{rel} == 6
 %{py_libdest}/site-packages/pyremctl-%{version}-py%{py_version}.egg-info
-%{py_libdest}/site-packages/remctl.py
-%{py_libdest}/site-packages/remctl.pyc
+%endif
+%doc NEWS TODO
+%doc python/README
+%dir /usr/share/doc/remctl-python-%{vers}
 %endif
 
-%post client
-/sbin/ldconfig
+%post client -p /sbin/ldconfig
 
-%post server
+%post server 
 # If this is the first remctl install, add remctl to /etc/services and
 # restart xinetd to pick up its new configuration.
 if [ "$1" = 1 ] ; then
@@ -182,8 +232,7 @@ if [ "$1" = 1 ] ; then
     fi
 fi
 
-%postun client
-/sbin/ldconfig
+%postun client -p /sbin/ldconfig
 
 %postun server
 # If we're the last remctl package, remove the /etc/services line and
@@ -204,6 +253,17 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Fri Jul 17 2012 Darren Patterson <darrenp1@stanford.edu> 3.2-2
+- spec fixes for build issues around perl and lib dirs
+- move perl to vendor_perl on EL6
+- re-add missing devel package
+- change arch to i686 from i386 (if 32bit build)
+- added missing/required doc to python package
+- general cleanup for rpmlint
+
+* Tue Jun 19 2012 Russ Allbery <rra@stanford.edu> 3.2-1
+* Update for 3.2.
+
 * Thu Feb 23 2012 Russ Allbery <rra@stanford.edu> 3.1-1
 - Update for 3.1.
 

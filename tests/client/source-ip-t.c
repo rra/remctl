@@ -61,5 +61,6 @@ main(void)
                     strlen("unknown host ::1: ")) == 0)),
        "failed with correct error");
 
+    remctl_close(r);
     return 0;
 }

@@ -6,9 +6,9 @@ Build-Depends: debhelper (>= 9), libkrb5-dev, libpcre3-dev,
  libtest-pod-perl, perl, php5-cli, php5-dev, python-all-dev, ruby1.8,
  ruby1.8-dev, ruby1.9.1, ruby1.9.1-dev
 XS-Python-Version: >= 2.6
-Standards-Version: 3.9.2
+Standards-Version: 3.9.4
 Homepage: http://www.eyrie.org/~eagle/software/remctl/
-Vcs-Git: git://git.eyrie.org/kerberos/remctl.git
+Vcs-Git: git://git.eyrie.org/kerberos/remctl.git -b debian
 Vcs-Browser: http://git.eyrie.org/?p=kerberos/remctl.git
 
 Package: libremctl1
@@ -30,6 +30,7 @@ Package: libremctl-dev
 Section: libdevel
 Priority: extra
 Architecture: any
+Multi-Arch: same
 Depends: ${misc:Depends}, libremctl1 (= ${binary:Version})
 Suggests: libkrb5-dev
 Description: Development files for Kerberos-authenticated command execution
@@ -45,6 +46,7 @@ Description: Development files for Kerberos-authenticated command execution
 
 Package: remctl-client
 Architecture: any
+Multi-Arch: foreign
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Client for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
@@ -58,6 +60,7 @@ Description: Client for Kerberos-authenticated command execution
 
 Package: remctl-server
 Architecture: any
+Multi-Arch: foreign
 Depends: ${shlibs:Depends}, ${misc:Depends}, update-inetd | inet-superserver,
  netbase (>= 4.31)
 Recommends: openbsd-inetd | inet-superserver, tcpd
@@ -84,7 +87,9 @@ Description: Perl client for Kerberos-authenticated command execution
  authorized to run that command.
  .
  This package contains the Net::Remctl Perl library, which provides native
- Perl bindings for the libremctl client library.
+ Perl bindings for the libremctl client library.  It also contains the
+ Net::Remctl::Backend module, which assists in writing remctl backends in
+ Perl.
 
 Package: php5-remctl
 Section: php
@@ -117,10 +122,12 @@ Description: Python extension for Kerberos-authenticated command execution
  This package contains the Python remctl extension, which provides native
  Python bindings for the libremctl client library.
 
-Package: libremctl-ruby
+Package: ruby-remctl
 Section: ruby
-Architecture: all
-Depends: ${misc:Depends}, libremctl-ruby1.8
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Replaces: libremctl-ruby1.8 (<< 3.2), libremctl-ruby1.9 (<< 3.2)
+Breaks: libremctl-ruby1.8 (<< 3.2), libremctl-ruby1.9 (<< 3.2)
 Description: Ruby extension for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
@@ -129,14 +136,31 @@ Description: Ruby extension for Kerberos-authenticated command execution
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
  .
- This package is a metapackage that depends on the Ruby bindings for the
- remctl client library for the default version of Ruby.
+ This package contains the Ruby remctl extension, which provides native
+ Ruby bindings for the libremctl client library.
+
+Package: libremctl-ruby
+Section: oldlibs
+Priority: extra
+Architecture: any
+Depends: ${misc:Depends}, ruby-remctl
+Description: Ruby extension for remctl (transitional package)
+ remctl is a client/server protocol for executing specific commands on a
+ remote system with Kerberos authentication.  The allowable commands must
+ be listed in a server configuration file, and the executable run on the
+ server may be mapped to any command name.  Each command is also
+ associated with an ACL containing a list of Kerberos principals
+ authorized to run that command.
+ .
+ This is a transitional package to handle upgrades from the older Ruby
+ extension naming scheme.  It can be safely removed.
 
 Package: libremctl-ruby1.8
-Section: ruby
+Section: oldlibs
+Priority: extra
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Ruby 1.8 extension for Kerberos-authenticated command execution
+Depends: ${misc:Depends}, ruby-remctl
+Description: Ruby 1.8 extension for remctl (transitional package)
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
  be listed in a server configuration file, and the executable run on the
@@ -144,14 +168,15 @@ Description: Ruby 1.8 extension for Kerberos-authenticated command execution
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
  .
- This package contains the Ruby 1.8 remctl extension, which provides
- native Ruby bindings for the libremctl client library for Ruby 1.8.
+ This is a transitional package to handle upgrades from the older Ruby
+ 1.8 extension naming scheme.  It can be safely removed.
 
 Package: libremctl-ruby1.9.1
-Section: ruby
+Section: oldlibs
+Priority: extra
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Ruby 1.9.1 extension for Kerberos-authenticated command execution
+Depends: ${misc:Depends}, ruby-remctl
+Description: Ruby 1.9.1 extension for remctl (transitional package)
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
  be listed in a server configuration file, and the executable run on the
@@ -159,5 +184,5 @@ Description: Ruby 1.9.1 extension for Kerberos-authenticated command execution
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
  .
- This package contains the Ruby 1.9.1 remctl extension, which provides
- native Ruby bindings for the libremctl client library for Ruby 1.9.1.
+ This is a transitional package to handle upgrades from the older Ruby
+ 1.9.1 extension naming scheme.  It can be safely removed.

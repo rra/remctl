@@ -223,7 +223,7 @@ kerberos_cleanup(void)
             free(config->principal);
             free(config->cache);
         }
-        if (config->principal != NULL) {
+        if (config->userprinc != NULL) {
             free(config->userprinc);
             free(config->username);
             free(config->password);
@@ -379,6 +379,8 @@ kerberos_generate_conf(const char *realm)
     char *path;
     const char *argv[3];
 
+    if (tmpdir_conf != NULL)
+        kerberos_cleanup_conf();
     path = test_file_path("data/generate-krb5-conf");
     if (path == NULL)
         bail("cannot find generate-krb5-conf");

@@ -61,7 +61,8 @@ ok "error messages end in a newline" \
     [ "`wc -l "$tmpdir/output" | sed 's, /.*,,'`" -eq 2 ]
 
 # Check refused connections.
-"$remctl" -p 14445 localhost test noauth > "$tmpdir/output" 2>&1
+"$remctl" -s "$principal" -p 14445 localhost test noauth \
+    > "$tmpdir/output" 2>&1
 output=`sed 's/):.*/)/' "$tmpdir/output"`
 echo "# saw: $output"
 ok "correct connection refused error" \
@@ -70,7 +71,8 @@ ok "correct connection refused error" \
 # Check binding to a particular source IP.
 ok_program "source of 127.0.0.1" 0 "hello world" \
     "$remctl" -b 127.0.0.1 -s "$principal" -p 14373 127.0.0.1 test test
-"$remctl" -b ::1 -p 14373 127.0.0.1 test test > "$tmpdir/output" 2>&1
+"$remctl" -b ::1 -s "$principal" -p 14373 127.0.0.1 test test \
+    > "$tmpdir/output" 2>&1
 status=$?
 ok "source of ::1 fails" [ "$status" != 0 ]
 output=`sed 's/):.*/)/' "$tmpdir/output"`
@@ -82,4 +84,4 @@ ok "correct bind address error" \
 rm -f "$tmpdir/output"
 remctld_stop
 kerberos_cleanup
-rmdir "$tmpdir"
+rmdir "$tmpdir" || true

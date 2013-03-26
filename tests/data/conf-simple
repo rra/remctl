@@ -10,6 +10,9 @@ test closed /home/eagle/data/dist/remctl/tests/data/cmd-closed ANYUSER
 test background /home/eagle/data/dist/remctl/tests/data/cmd-background ANYUSER
 test stdin /home/eagle/data/dist/remctl/tests/data/cmd-stdin stdin=last ANYUSER
 test sleep /home/eagle/data/dist/remctl/tests/data/cmd-sleep ANYUSER
+test-summary ALL /home/eagle/data/dist/remctl/tests/data/cmd-help \
+    summary=summary \
+    help=help ANYUSER
 empty EMPTY /home/eagle/data/dist/remctl/tests/data/cmd-argv ANYUSER
 all ALL /home/eagle/data/dist/remctl/tests/data/cmd-hello ANYUSER
 ALL bar /home/eagle/data/dist/remctl/tests/data/cmd-hello ANYUSER

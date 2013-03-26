@@ -276,6 +276,7 @@ server_daemon(struct options *options, struct config *config,
     struct sockaddr_storage ss;
     socklen_t sslen;
     char ip[INET6_ADDRSTRLEN];
+    FILE *pid_file;
 
     /* Set up a SIGCHLD handler so that we know when to reap children. */
     memset(&sa, 0, sizeof(sa));
@@ -320,6 +321,18 @@ server_daemon(struct options *options, struct config *config,
     for (i = 0; i < nfds; i++)
         if (listen(fds[i], 5) < 0)
             sysdie("error listening on socket (fd %d)", fds[i]);
+
+    /*
+     * Set up our PID file now that we're ready to accept connections, so that
+     * the PID file isn't created until clients can connect.
+     */
+    if (options->pid_path != NULL) {
+        pid_file = fopen(options->pid_path, "w");
+        if (pid_file == NULL)
+            sysdie("cannot create PID file %s", options->pid_path);
+        fprintf(pid_file, "%ld\n", (long) getpid());
+        fclose(pid_file);
+    }
 
     /*
      * The main processing loop.  Each time through the loop, check to see if
@@ -394,7 +407,6 @@ int
 main(int argc, char *argv[])
 {
     struct options options;
-    FILE *pid_file;
     int option;
     struct sigaction sa;
     gss_cred_id_t creds = GSS_C_NO_CREDENTIAL;
@@ -476,7 +488,7 @@ main(int argc, char *argv[])
 
     /*
      * Set up syslog unless stdout/stderr was requested.  Set up debug logging
-     * if requestsed.
+     * if requested.
      */
     if (options.log_stdout) {
         if (options.debug)
@@ -504,18 +516,6 @@ main(int argc, char *argv[])
     if (options.service != NULL) {
         if (!acquire_creds(options.service, &creds))
             die("unable to acquire creds, aborting");
-    }
-
-    /*
-     * Set up our PID file now after we've daemonized, since we may have
-     * changed PIDs in the process.
-     */
-    if (options.standalone && options.pid_path != NULL) {
-        pid_file = fopen(options.pid_path, "w");
-        if (pid_file == NULL)
-            sysdie("cannot create PID file %s", options.pid_path);
-        fprintf(pid_file, "%ld\n", (long) getpid());
-        fclose(pid_file);
     }
 
     /*

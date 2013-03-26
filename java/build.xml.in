@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE project [
 ]>
+<!--
+  Copyright 2008
+      The Board of Trustees of the Leland Stanford Junior University
+
+  See LICENSE for licensing terms.
+  -->
 <project name="jremctl" default="dist" basedir=".">
   <description>Build file for Java remctl</description>
 

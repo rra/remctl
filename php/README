@@ -113,10 +113,10 @@ FULL INTERFACE
       Sets the credential cache for outgoing connections to CCACHE.  This
       is normally the full path to a Kerberos ticket cache, but may have
       other valid forms depending on the underlying Kerberos
-      implementation in use by GSS-API.  This method must be called prior
-      to calling remctl_open() and will affect all subsequent
-      remctl_open() calls on the same object.  Returns true on success,
-      false on failure.
+      implementation in use by GSS-API.  This method will affect all
+      subsquent remctl_open() calls on the same object, but will have no
+      effect on connections that are already open.  Returns true on
+      success, false on failure.
 
       For current GSS-API implementations, this will affect not only all
       subsequent open() calls for the same object, but all subsequent
@@ -132,10 +132,10 @@ FULL INTERFACE
   remctl_set_source_ip(SOURCE)
       Sets the source IP for outgoing connections to SOURCE, which can be
       either an IPv4 or an IPv6 address (if IPv6 is supported).  It must
-      be an IP address, not a host name.  This method must be called prior
-      to calling remctl_open() and will affect all subsequent
-      remctl_open() calls on the same object.  Returns true on success,
-      false on failure.
+      be an IP address, not a host name.  This will affect all subsequent
+      remctl_open() calls on the same object, but will have no effect on
+      connections that are already open.  Returns true on success, false
+      on failure.
 
   remctl_set_timeout(TIMEOUT)
       Sets the timeout for connections and commands to TIMEOUT, which
@@ -274,3 +274,13 @@ HISTORY
   This binding was originally written by Andrew Mortensen. part of the
   stock remctl distribution and ongoing maintenance is done by Russ
   Allbery.
+
+LICENSE
+
+  Copyright 2008, 2009, 2011, 2012 The Board of Trustees of the Leland
+  Stanford Junior University
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.  This file is offered as-is,
+  without any warranty.

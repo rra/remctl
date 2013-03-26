@@ -31,7 +31,7 @@
 #define TAP_PROCESS_H 1
 
 #include <config.h>
-#include <portable/macros.h>
+#include <tests/tap/macros.h>
 
 BEGIN_DECLS
 

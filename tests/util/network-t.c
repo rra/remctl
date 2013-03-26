@@ -35,6 +35,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #include <tests/tap/basic.h>
 #include <util/macros.h>
@@ -244,7 +245,7 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
     socket_type *fds, fd;
     unsigned int count, i;
     pid_t child;
-    struct sockaddr_storage saddr;
+    struct sockaddr *saddr;
     socklen_t size;
     int status;
 
@@ -262,18 +263,25 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
             ok_block(4, 0, "all address server test (part %d)", i);
         } else {
             ok(1, "all address server test (part %d)", i);
-            size = sizeof(saddr);
-            if (getsockname(fd, (struct sockaddr *) &saddr, &size) < 0)
+            saddr = bmalloc(sizeof(struct sockaddr));
+            size = sizeof(struct sockaddr);
+            if (getsockname(fd, saddr, &size) < 0)
                 sysbail("cannot getsockname");
+            if (size > sizeof(struct sockaddr)) {
+                free(saddr);
+                saddr = bmalloc(size);
+                if (getsockname(fd, saddr, &size) < 0)
+                    sysbail("cannot getsockname");
+            }
             child = fork();
             if (child < 0)
                 sysbail("cannot fork");
             else if (child == 0) {
-                if (saddr.ss_family == AF_INET) {
+                if (saddr->sa_family == AF_INET) {
                     client("::1", source_ipv6, false);
                     client("127.0.0.1", source_ipv4, true);
 #ifdef HAVE_INET6
-                } else if (saddr.ss_family == AF_INET6) {
+                } else if (saddr->sa_family == AF_INET6) {
 # ifdef IPV6_V6ONLY
                     client("127.0.0.1", source_ipv4, false);
 # endif
@@ -282,6 +290,7 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
                 }
                 _exit(1);
             } else {
+                free(saddr);
                 listener(fd);
                 waitpid(child, &status, 0);
                 is_int(0, status, "client made correct connections");
@@ -399,11 +408,8 @@ test_timeout_ipv4(void)
     if (child < 0)
         sysbail("cannot fork");
     else if (child == 0) {
-        struct sockaddr_in sin;
-        socklen_t slen;
-
         alarm(10);
-        c = accept(fd, &sin, &slen);
+        c = accept(fd, NULL, 0);
         if (c == INVALID_SOCKET)
             _exit(1);
         sleep(9);
@@ -525,6 +531,7 @@ test_network_read(void)
         delay_writer(c);
     } else {
         alarm(10);
+        slen = sizeof(sin);
         c = accept(fd, &sin, &slen);
         if (c == INVALID_SOCKET) {
             sysdiag("cannot accept on socket");
@@ -575,6 +582,7 @@ test_network_write(void)
         sysdiag("cannot listen to socket");
         ok_block(4, 0, "network_write");
         socket_close(fd);
+        free(buffer);
         return;
     }
     child = fork();
@@ -588,11 +596,13 @@ test_network_write(void)
         delay_reader(c);
     } else {
         alarm(10);
+        slen = sizeof(struct sockaddr_in);
         c = accept(fd, &sin, &slen);
         if (c == INVALID_SOCKET) {
             sysdiag("cannot accept on socket");
             ok_block(4, 0, "network_write");
             socket_close(fd);
+            free(buffer);
             return;
         }
         socket_set_errno(0);
@@ -608,6 +618,7 @@ test_network_write(void)
         alarm(0);
     }
     socket_close(fd);
+    free(buffer);
 }
 
 
@@ -618,10 +629,12 @@ test_network_write(void)
 static void
 ok_addr(int expected, const char *a, const char *b, const char *mask)
 {
+    const char *smask = (mask == NULL) ? "(null)" : mask;
+
     if (expected)
-        ok(network_addr_match(a, b, mask), "compare %s %s %s", a, b, mask);
+        ok(network_addr_match(a, b, mask), "compare %s %s %s", a, b, smask);
     else
-        ok(!network_addr_match(a, b, mask), "compare %s %s %s", a, b, mask);
+        ok(!network_addr_match(a, b, mask), "compare %s %s %s", a, b, smask);
 }
 
 

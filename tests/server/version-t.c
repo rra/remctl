@@ -2,7 +2,7 @@
  * Test suite for version negotiation in the server.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010, 2012
+ * Copyright 2006, 2007, 2009, 2010, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -56,6 +56,8 @@ main(void)
     /* Open the connection to the site. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
+    if (r == NULL)
+        bail("remctl_new returned NULL");
     ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
 
     /* Send the command token. */
@@ -83,10 +85,12 @@ main(void)
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
                              &tok, 0, &major, &minor);
     is_int(TOKEN_OK, status, "connection is still open");
+    gss_release_buffer(&minor, &tok);
     if (status == TOKEN_OK) {
         status = token_recv_priv(r->fd, r->context, &flags, &tok, 1024 * 64,
                                  0, &major, &minor);
         is_int(TOKEN_OK, status, "received token correctly");
+        gss_release_buffer(&minor, &tok);
     } else {
         ok(false, "unable to get reply to token");
     }

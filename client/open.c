@@ -8,7 +8,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -33,7 +33,7 @@
  * network connection.  Returns the file descriptor if successful or
  * INVALID_SOCKET on failure.
  */
-static socket_type
+socket_type
 internal_connect(struct remctl *r, const char *host, unsigned short port)
 {
     struct addrinfo hints, *ai;
@@ -84,24 +84,19 @@ internal_import_name(struct remctl *r, const char *host,
 {
     gss_buffer_desc name_buffer;
     char *defprinc = NULL;
-    size_t length;
     OM_uint32 major, minor;
     gss_OID oid;
 
     /*
-     * If principal is NULL, use host@<host>.  Don't use concat here since it
+     * If principal is NULL, use host@<host>.  Don't use xmalloc here since it
      * dies on failure and that's rude for a library.
      */
     if (principal == NULL) {
-        length = strlen("host@") + strlen(host) + 1;
-        defprinc = malloc(length);
-        if (defprinc == NULL) {
+        if (asprintf(&defprinc, "host@%s", host) < 0) {
             internal_set_error(r, "cannot allocate memory: %s",
                                strerror(errno));
             return false;
         }
-        strlcpy(defprinc, "host@", length);
-        strlcat(defprinc, host, length);
         principal = defprinc;
     }
 
@@ -131,12 +126,9 @@ internal_import_name(struct remctl *r, const char *host,
  * failure.  On failure, sets the error message appropriately.
  */
 bool
-internal_open(struct remctl *r, const char *host, unsigned short port,
-              const char *principal)
+internal_open(struct remctl *r, const char *host, const char *principal)
 {
     int status, flags;
-    bool port_fallback = false;
-    socket_type fd = INVALID_SOCKET;
     gss_buffer_desc send_tok, recv_tok, *token_ptr;
     gss_buffer_desc empty_token = { 0, (void *) "" };
     gss_name_t name = GSS_C_NO_NAME;
@@ -147,23 +139,6 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
            | GSS_C_REPLAY_FLAG | GSS_C_SEQUENCE_FLAG);
     static const OM_uint32 req_gss_flags
         = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
-
-    /*
-     * If port is 0, default to trying the standard port and then falling back
-     * on the old port.
-     */
-    if (port == 0) {
-        port = REMCTL_PORT;
-        port_fallback = true;
-    }
-
-    /* Make the network connection. */
-    fd = internal_connect(r, host, port);
-    if (fd == INVALID_SOCKET && port_fallback)
-        fd = internal_connect(r, host, REMCTL_PORT_OLD);
-    if (fd == INVALID_SOCKET)
-        goto fail;
-    r->fd = fd;
 
     /* Import the name. */
     if (!internal_import_name(r, host, principal, &name))
@@ -178,7 +153,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
         r->protocol = 2;
 
     /* Send the initial negotiation token. */
-    status = token_send(fd, TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL,
+    status = token_send(r->fd, TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL,
                         &empty_token, r->timeout);
     if (status != TOKEN_OK) {
         internal_token_error(r, "sending initial token", status, 0, 0);
@@ -216,9 +191,9 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
             flags = TOKEN_CONTEXT;
             if (r->protocol > 1)
                 flags |= TOKEN_PROTOCOL;
-            status = token_send(fd, flags, &send_tok, r->timeout);
+            status = token_send(r->fd, flags, &send_tok, r->timeout);
             if (status != TOKEN_OK) {
-                internal_token_error(r, "sending token", status, major, minor);
+                internal_token_error(r, "sending token", status, 0, 0);
                 gss_release_buffer(&minor, &send_tok);
                 goto fail;
             }
@@ -234,7 +209,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
 
         /* If we're still expecting more, retrieve it. */
         if (major == GSS_S_CONTINUE_NEEDED) {
-            status = token_recv(fd, &flags, &recv_tok, TOKEN_MAX_LENGTH,
+            status = token_recv(r->fd, &flags, &recv_tok, TOKEN_MAX_LENGTH,
                                 r->timeout);
             if (status != TOKEN_OK) {
                 internal_token_error(r, "receiving token", status, major,
@@ -266,8 +241,7 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     return true;
 
 fail:
-    if (fd != INVALID_SOCKET)
-        socket_close(fd);
+    socket_close(r->fd);
     r->fd = INVALID_SOCKET;
     if (name != GSS_C_NO_NAME)
         gss_release_name(&minor, &name);

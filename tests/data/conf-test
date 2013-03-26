@@ -1,5 +1,12 @@
 # A test configuration file with a few weird features to stress the
 # parser.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2007, 2012
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
+
 
   test \
 foo\
@@ -11,7 +18,8 @@ data/acl-nonexistent \
 \
    \
 data/acl-no-such-file
-test baz data/cmd-hello logmask=4,5,7 ANYUSER
+test baz data/cmd-hello logmask=4,5,7 summary=data/cmd-hello \
+help=data/command-hello ANYUSER
 
 # The next line is actually commented out \
 foo bar data/cmd-foo ANYUSER

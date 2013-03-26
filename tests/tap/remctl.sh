@@ -1,10 +1,15 @@
 # Shell function library to start and stop remctld
 #
+# Note that while many of the functions in this library could benefit from
+# using "local" to avoid possibly hammering global variables, Solaris /bin/sh
+# doesn't support local and this library aspires to be portable to Solaris
+# Bourne shell.  Instead, all private variables are prefixed with "tap_".
+#
 # The canonical version of this file is maintained in the rra-c-util package,
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2009
+# Copyright 2009, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -28,36 +33,35 @@
 # Start remctld.  Takes the path to remctld, which may be found via configure,
 # and the path to the configuration file.
 remctld_start () {
-    local keytab principal pidfile
-    pidfile=`test_tmpdir`/remctld.pid
-    rm -f "$pidfile"
-    keytab=`test_file_path config/keytab`
-    principal=`test_file_path config/principal`
-    principal=`cat "$principal" 2>/dev/null`
-    if [ -z "$keytab" ] || [ -z "$principal" ] ; then
+    tap_pidfile=`test_tmpdir`/remctld.pid
+    rm -f "$tap_pidfile"
+    tap_keytab=`test_file_path config/keytab`
+    tap_principal=`test_file_path config/principal`
+    tap_principal=`cat "$tap_principal" 2>/dev/null`
+    if [ -z "$tap_keytab" ] || [ -z "$tap_principal" ] ; then
         return 1
     fi
     if [ -n "$VALGRIND" ] ; then
         ( "$VALGRIND" --log-file=valgrind.%p --leak-check=full "$1" -m \
-          -p 14373 -s "$principal" -P "$pidfile" -f "$2" -d -S -F \
-          -k "$keytab" &)
+          -p 14373 -s "$tap_principal" -P "$tap_pidfile" -f "$2" -d -S -F \
+          -k "$tap_keytab" &)
         [ -f "$BUILD/data/remctld.pid" ] || sleep 5
     else
-        ( "$1" -m -p 14373 -s "$principal" -P "$pidfile" -f "$2" -d -S -F \
-          -k "$keytab" &)
+        ( "$1" -m -p 14373 -s "$tap_principal" -P "$tap_pidfile" -f "$2" \
+          -d -S -F -k "$tap_keytab" &)
     fi
-    [ -f "$pidfile" ] || sleep 1
-    if [ ! -f "$pidfile" ] ; then
+    [ -f "$tap_pidfile" ] || sleep 1
+    [ -f "$tap_pidfile" ] || sleep 1
+    if [ ! -f "$tap_pidfile" ] ; then
         bail 'remctld did not start'
     fi
 }
 
 # Stop remctld and clean up.
 remctld_stop () {
-    local pidfile
-    pidfile=`test_tmpdir`/remctld.pid
-    if [ -f "$pidfile" ] ; then
-        kill -TERM `cat "$pidfile"`
-        rm -f "$pidfile"
+    tap_pidfile=`test_tmpdir`/remctld.pid
+    if [ -f "$tap_pidfile" ] ; then
+        kill -TERM `cat "$tap_pidfile"`
+        rm -f "$tap_pidfile"
     fi
 }

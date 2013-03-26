@@ -131,3 +131,13 @@ Limitations
     This protocol does not address deadlock and instead requires that the
     client and server be aware of deadlock issues and find ways of
     avoiding deadlock within the implementation of a streaming command.
+
+License
+
+    Copyright 2008, 2011
+        The Board of Trustees of the Leland Stanford Junior University
+
+    Copying and distribution of this file, with or without modification,
+    are permitted in any medium without royalty provided the copyright
+    notice and this notice are preserved.  This file is offered as-is,
+    without any warranty.

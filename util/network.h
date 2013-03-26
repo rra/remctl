@@ -5,7 +5,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010, 2011, 2012
+ * Copyright 2009, 2010, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007, 2008, 2010
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -85,7 +85,8 @@ socket_type network_accept_any(socket_type fds[], unsigned int count,
  * -1 on failure, with the error left in errno.  Takes an optional source
  * address and a timeout in seconds, which may be 0 for no timeout.
  */
-socket_type network_connect(struct addrinfo *, const char *source, time_t)
+socket_type network_connect(const struct addrinfo *, const char *source,
+                            time_t)
     __attribute__((__nonnull__(1)));
 
 /*

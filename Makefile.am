@@ -1,7 +1,7 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012
+# Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -20,20 +20,37 @@
 # it will only be built with python (without any version extension).
 #
 # REMCTL_RUBY controls which Ruby interpretor is used to do the build.
+# REMCTL_RUBY_FLAGS are additional flags to pass to extconf.rb when building
+# the Makefile.
 REMCTL_PERL_FLAGS      ?=
 REMCTL_PYTHON_INSTALL  ?=
 REMCTL_PYTHON_VERSIONS ?= python
 REMCTL_RUBY            ?= ruby
+REMCTL_RUBY_FLAGS      ?=
 
 # These three lists of files are needed for Perl builds, Python builds, and
 # for the test suite and are not generated or touched by configure.  They're
 # listed here to be added to EXTRA_DIST and so that they can be copied over
 # properly for builddir != srcdir builds.
-PERL_FILES = perl/Remctl.xs perl/typemap perl/t/pod.t perl/t/stanford-netdb.t
+PERL_FILES = perl/MANIFEST perl/MANIFEST.SKIP perl/lib/Net/Remctl.xs	   \
+	perl/lib/Net/Remctl/Backend.pm perl/t/api/basic.t		   \
+	perl/t/api/stanford-netdb.t perl/t/backend/basic.t		   \
+	perl/t/backend/nested.t perl/t/backend/options.t		   \
+	perl/t/data/perl.conf perl/t/data/perlcriticrc			   \
+	perl/t/data/perltidyrc perl/t/data/remctl.conf			   \
+	perl/t/docs/pod-coverage.t perl/t/docs/pod-spelling.t		   \
+	perl/t/docs/pod.t perl/t/docs/synopsis.t perl/t/lib/Test/Remctl.pm \
+	perl/t/style/coverage.t perl/t/style/critic.t			   \
+	perl/t/style/minimum-version.t perl/t/style/strict.t perl/typemap
 PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
 	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
 	php/tests/005.phpt php/tests/006.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
+
+# Directories that have to be created in builddir != srcdir builds before
+# copying PERL_FILES over.
+PERL_DIRECTORIES = perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
+	perl/t/data
 
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
@@ -63,15 +80,19 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/acls/val.id tests/data/acls/valid			    \
 	tests/data/acls/valid-2 tests/data/acls/val~id			    \
 	tests/data/acls2/valid-4 tests/data/cmd-argv tests/data/cmd-env	    \
-	tests/data/cmd-hello tests/data/cmd-sleep tests/data/cmd-status	    \
+	tests/data/cmd-hello tests/data/cmd-help tests/data/cmd-sleep	    \
+	tests/data/cmd-status tests/data/conf-nosummary			    \
 	tests/data/conf-simple tests/data/conf-test			    \
 	tests/data/configs/bad-logmask-1 tests/data/configs/bad-include-1   \
 	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
 	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
-	tests/data/configs/bad-user-1 tests/data/gput			    \
-	tests/docs/pod-spelling-t tests/docs/pod-t tests/tap/kerberos.sh    \
-	tests/tap/libtap.sh tests/tap/remctl.sh tests/server/misc-t	    \
-	tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES)
+	tests/data/configs/bad-user-1 tests/data/perl.conf tests/data/gput  \
+	tests/data/valgrind.supp tests/docs/pod-spelling-t tests/docs/pod-t \
+	tests/tap/kerberos.sh tests/tap/libtap.sh			    \
+	tests/tap/perl/Test/RRA.pm tests/tap/perl/Test/RRA/Automake.pm	    \
+	tests/tap/perl/Test/RRA/Config.pm tests/tap/remctl.sh		    \
+	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
+	$(PYTHON_FILES)
 
 # Set this globally, since we have too many header files that include the
 # GSS-API headers even if the code itself doesn't call GSS-API functions.
@@ -97,12 +118,12 @@ portable_libportable_la_SOURCES = portable/dummy.c portable/getaddrinfo.h \
 	portable/macros.h portable/socket.h portable/stdbool.h		  \
 	portable/system.h portable/uio.h
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
-util_libutil_la_SOURCES = util/concat.c util/concat.h util/fdflag.c	    \
-	util/fdflag.h util/gss-errors.c util/gss-errors.h util/gss-tokens.c \
-	util/gss-tokens.h util/macros.h util/messages.c util/messages.h	    \
-	util/network.c util/network.h util/protocol.h util/tokens.c	    \
-	util/tokens.h util/vector.c util/vector.h util/xmalloc.c	    \
-	util/xmalloc.h util/xwrite.c util/xwrite.h
+util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
+	util/gss-errors.h util/gss-tokens.c util/gss-tokens.h util/macros.h \
+	util/messages.c util/messages.h util/network.c util/network.h	    \
+	util/protocol.h util/tokens.c util/tokens.h util/vector.c	    \
+	util/vector.h util/xmalloc.c util/xmalloc.h util/xwrite.c	    \
+	util/xwrite.h
 util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
 util_libutil_la_LIBADD = portable/libportable.la $(GSSAPI_LIBS)
 
@@ -152,26 +173,29 @@ install-data-hook:
 	$(LN_S) remctl.3 $(DESTDIR)$(man3dir)/remctl_result_free.3
 	rm -f $(DESTDIR)$(man3dir)/remctl_commandv.3
 	$(LN_S) remctl_command.3 $(DESTDIR)$(man3dir)/remctl_commandv.3
+	rm -f $(DESTDIR)$(man3dir)/remctl_open_addrinfo.3
+	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_addrinfo.3
+	rm -f $(DESTDIR)$(man3dir)/remctl_open_fd.3
+	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_fd.3
+	rm -f $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
+	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
 
-CLEANFILES = client/libremctl.pc docs/remctld.8 stamp-python
+CLEANFILES = client/libremctl.pc docs/remctld.8 perl/t/lib/Test/RRA.pm \
+	stamp-python
 DISTCLEANFILES = perl/Makefile python/MANIFEST
-MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile \
-	build-aux/config.guess build-aux/config.sub build-aux/depcomp \
-	build-aux/install-sh build-aux/ltmain.sh build-aux/missing \
+MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile		   \
+	build-aux/config.guess build-aux/config.sub build-aux/depcomp	   \
+	build-aux/install-sh build-aux/ltmain.sh build-aux/missing	   \
 	config.h.in config.h.in~ configure docs/api/*.3 docs/protocol.html \
-	docs/protocol.txt docs/remctl.1 docs/remctld.8.in \
-	m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 \
+	docs/protocol.txt docs/remctl.1 docs/remctld.8.in		   \
+	m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4	   \
 	m4/lt~obsolete.m4
 
-# Automake should deal with the first part of this automatically, but it
-# doesn't.  Probably a bug in the non-recursive support.  Also run make clean
-# in the perl and php directories if needed and clean up after Python.
+# Also clean the perl, php, and ruby directories if needed and clean up
+# after Python.
 clean-local:
-	-rm -rf server/.libs tests/.libs tests/client/.libs tests/data/.libs \
-	    tests/portable/.libs tests/server/.libs tests/util/.libs
-	set -e; if [ -f "perl/Makefile" ] ; then			   \
-	    cd perl && $(MAKE) clean ;					   \
-	    cd perl && [ ! -f Makefile.old ] || mv Makefile.old Makefile ; \
+	set -e; if [ -f "perl/Build" ] ; then		\
+	    cd perl && ./Build realclean ;		\
 	fi
 	set -e; if [ -f "php/Makefile" ] ; then	\
 	    cd php && $(MAKE) clean ;		\
@@ -179,20 +203,20 @@ clean-local:
 	set -e; if [ -f "ruby/Makefile" ] ; then	\
 	    cd ruby && $(MAKE) distclean ;		\
 	fi
-	rm -rf php/tmp-php.ini python/build python/dist python/*.pyc
+	rm -rf perl/t/config perl/t/lib/Test/RRA php/tmp-php.ini \
+	    python/build python/dist python/*.pyc
 
 # Also clean the Perl, PHP, and Python directories on make distclean if
 # needed.
 #
 # phpize --clean is stupid and requires that config.m4 exist, but it was
 # already deleted by the regular distclean target.  Hack around that.
-distclean-local:
+distclean-local: clean-local
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then		  \
 	    rm -rf php ;						  \
 	    for f in $(PERL_FILES) ; do					  \
-	        rm -f "$(builddir)/$$f" ;				  \
+		rm -f "$(builddir)/$$f" ;				  \
 	    done ;							  \
-	    rmdir perl/t 2>/dev/null || true ;				  \
 	    for f in $(PYTHON_FILES) ; do				  \
 		rm -f "$(builddir)/$$f" ;				  \
 	    done							  \
@@ -225,8 +249,9 @@ WARNINGS = -g -O -D_FORTIFY_SOURCE=2 -Wall -Wextra -Wendif-labels	    \
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code doesn't pass them.
 if GCC
-    PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs \
-	-Wno-strict-prototypes -Wno-redundant-decls -Wno-shadow
+    PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs	\
+	-Wno-strict-prototypes -Wno-missing-prototypes		\
+	-Wno-redundant-decls -Wno-shadow
     PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings	\
 	-Wno-missing-prototypes -Wno-unused-parameter		\
 	-Wno-redundant-decls -Wno-sign-compare
@@ -256,12 +281,13 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
 	tests/portable/snprintf-t tests/portable/strlcat-t		    \
 	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t   \
 	tests/server/bind-t tests/server/config-t tests/server/continue-t   \
-	tests/server/env-t tests/server/errors-t tests/server/invalid-t	    \
-	tests/server/logging-t tests/server/noop-t tests/server/stdin-t	    \
-	tests/server/streaming-t tests/server/user-t tests/server/version-t \
-	tests/util/concat-t tests/util/fdflag-t tests/util/gss-tokens-t	    \
-	tests/util/messages-t tests/util/network-t tests/util/tokens-t	    \
-	tests/util/vector-t tests/util/xmalloc tests/util/xwrite-t
+	tests/server/empty-t tests/server/env-t tests/server/errors-t	    \
+	tests/server/help-t tests/server/invalid-t tests/server/logging-t   \
+	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t   \
+	tests/server/summary-t tests/server/user-t tests/server/version-t   \
+	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t   \
+	tests/util/network-t tests/util/tokens-t tests/util/vector-t	    \
+	tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
@@ -270,9 +296,9 @@ tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests		\
 	-DPATH_REMCTLD='"$(abs_top_builddir)/server/remctld"'
 tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 	tests/tap/kerberos.c tests/tap/kerberos.h tests/tap/messages.c	\
-	tests/tap/messages.h tests/tap/process.c tests/tap/process.h	\
-	tests/tap/remctl.c tests/tap/remctl.h tests/tap/string.c	\
-	tests/tap/string.h
+	tests/tap/messages.h tests/tap/macros.h tests/tap/process.c	\
+	tests/tap/process.h tests/tap/remctl.c tests/tap/remctl.h	\
+	tests/tap/string.c tests/tap/string.h
 
 # Used for server tests.
 SERVER_FILES = server/commands.c server/config.c server/generic.c \
@@ -350,9 +376,13 @@ tests_server_config_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS)
 tests_server_continue_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
+tests_server_empty_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
 tests_server_env_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_errors_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
+tests_server_help_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_invalid_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
@@ -367,13 +397,13 @@ tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
+tests_server_summary_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la
 tests_server_user_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_version_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(PCRE_LIBS)
-tests_util_concat_t_LDADD = tests/tap/libtap.a util/libutil.la \
-	portable/libportable.la
 tests_util_fdflag_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_util_gss_tokens_t_SOURCES = tests/util/faketoken.c \
@@ -399,10 +429,20 @@ tests_util_xwrite_t_LDADD = tests/tap/libtap.a util/libutil.la \
 TEST_RPATH = $(abs_top_builddir)/client/.libs
 
 check-local: $(check_PROGRAMS)
-	cd tests && ./runtests $(abs_top_srcdir)/tests/TESTS
-	@set -e; if [ -f perl/Makefile ] ; then				\
-	    echo '' ;							\
-	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH) $(MAKE) test ;	\
+	cd tests && ./runtests -l '$(abs_top_srcdir)/tests/TESTS'
+	@set -e; if [ -f perl/Build ] ; then			\
+	    echo '' ;						\
+	    [ -d perl/t/config ] || mkdir perl/t/config ;	\
+	    if [ -f tests/config/keytab ] ; then		\
+		cp tests/config/keytab perl/t/config ;		\
+	    fi ;						\
+	    if [ -f tests/config/principal ] ; then		\
+		cp tests/config/principal perl/t/config ;	\
+	    fi ;						\
+	    cp -R tests/tap/perl/* perl/t/lib/ ;		\
+	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH)		\
+		REMCTLD="$(abs_top_builddir)/server/remctld"	\
+		./Build test ;					\
 	fi
 	@set -e; if [ -f php/Makefile ] ; then				    \
 	    echo '' ;							    \
@@ -427,6 +467,20 @@ check-local: $(check_PROGRAMS)
 		$(REMCTL_RUBY) -I. test_remctl.rb ;	\
 	fi
 
+# Used by maintainers to run the main test suite under valgrind.  Suppress
+# the xmalloc and pod-spelling tests because the former won't work properly
+# under valgrind (due to increased memory usage) and the latter is pointless
+# to run under valgrind.
+check-valgrind: $(check_PROGRAMS)
+	rm -rf $(abs_top_builddir)/tmp-valgrind
+	mkdir $(abs_top_builddir)/tmp-valgrind
+	env RRA_MAINTAINER_TESTS= valgrind --leak-check=full		   \
+	    --track-fds=yes --trace-children=yes			   \
+	    --log-file=$(abs_top_builddir)/tmp-valgrind/log.%p		   \
+	    --suppressions=$(abs_top_srcdir)/tests/data/valgrind.supp	   \
+	    --trace-children-skip="/bin/sh,*/cat,*/cut,*/expr,*/getopt,*/kinit,*/ls,*/mkdir,*/rm,*/rmdir,*/sed,*/sleep,*/wc,*/data/cmd-*,*/docs/pod*-t" \
+	    tests/runtests -l '$(abs_top_srcdir)/tests/TESTS'
+
 # Used for hooking in the build of optional language bindings.
 BINDINGS =
 BINDINGS_INSTALL =
@@ -436,28 +490,35 @@ BINDINGS_INSTALL =
 # which case we need to copy various files from the source directory and make
 # sure they're up to date since Perl can't handle VPATH builds.
 
-perl/Remctl.o: perl/Remctl.pm $(srcdir)/perl/Remctl.xs $(srcdir)/perl/typemap
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
-	    for f in $(PERL_FILES) ; do				\
-	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
-	    done						\
+perl/lib/Net/Remctl.o: perl/lib/Net/Remctl.pm				\
+		$(srcdir)/perl/lib/Net/Remctl.xs $(srcdir)/perl/typemap	\
+		client/libremctl.la perl/Build.PL
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then		\
+	    for d in $(PERL_DIRECTORIES) ; do				\
+		[ -d "$(builddir)/$$d" ] || mkdir "$(builddir)/$$d" ;	\
+	    done ;							\
+	    for f in $(PERL_FILES) ; do					\
+	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;			\
+	    done							\
 	fi
-	cd perl && perl Makefile.PL $(REMCTL_PERL_FLAGS)
-	cd perl && $(MAKE) OPTIMIZE="$(CFLAGS) $(PERL_WARNINGS)"
+	cd perl && perl Build.PL					\
+	    --config optimize='$(CPPFLAGS) $(CFLAGS) $(PERL_WARNINGS)'	\
+	    $(REMCTL_PERL_FLAGS)
+	cd perl && ./Build
 
-install-data-local-perl: perl/Remctl.o
-	cd perl && $(MAKE) install DESTDIR=$(DESTDIR)
+install-data-local-perl: perl/lib/Net/Remctl.o
+	cd perl && ./Build install --destdir '$(DESTDIR)'
 
 # Build and install the Perl bindings if desired.
 if BUILD_PERL
-BINDINGS += perl/Remctl.o
+BINDINGS += perl/lib/Net/Remctl.o
 BINDINGS_INSTALL += install-data-local-perl
 endif
 
 # The following section sets up the PECL extension for PHP.
 
 php/modules/remctl.so: php/config.m4 php/php_remctl.h \
-		$(srcdir)/php/php_remctl.c
+		$(srcdir)/php/php_remctl.c client/libremctl.la
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
 	    mkdir php/tests 2>/dev/null || true ;		\
 	    for f in $(PHP_FILES) ; do				\
@@ -484,15 +545,16 @@ endif
 # in which case we need to copy various files from the source directory and
 # make sure they're up to date.
 
-stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py
+stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py	\
+		client/libremctl.la
 	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
 	    for f in $(PYTHON_FILES) ; do			\
 		cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
 	    done						\
 	fi
-	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do	\
-	    cd python && CFLAGS="$(CFLAGS) $(PYTHON_WARNINGS)"	\
-		"$$python" setup.py build && cd .. ;		\
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		   \
+	    cd python && CFLAGS="$(CPPFLAGS) $(CFLAGS) $(PYTHON_WARNINGS)" \
+		"$$python" setup.py build && cd .. ;			   \
 	done
 	touch stamp-python
 
@@ -522,9 +584,9 @@ endif
 # The following section sets up the Ruby bindings for remctl.
 
 # The Ruby build system actually supports VPATH!
-ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c
-	cd ruby && $(REMCTL_RUBY) extconf.rb
-	cd ruby && $(MAKE) CFLAGS="$(CFLAGS) $(RUBY_WARNINGS)"
+ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c client/libremctl.la
+	cd ruby && $(REMCTL_RUBY) extconf.rb $(REMCTL_RUBY_FLAGS)
+	cd ruby && $(MAKE) CFLAGS="$(CPPFLAGS) $(CFLAGS) $(RUBY_WARNINGS)"
 
 install-data-local-ruby: ruby/remctl.so
 	cd ruby && $(MAKE) install DESTDIR=$(DESTDIR)
