@@ -88,7 +88,9 @@ Description: Perl client for Kerberos-authenticated command execution
  authorized to run that command.
  .
  This package contains the Net::Remctl Perl library, which provides native
- Perl bindings for the libremctl client library.
+ Perl bindings for the libremctl client library.  It also contains the
+ Net::Remctl::Backend module, which assists in writing remctl backends in
+ Perl.
 
 Package: php5-remctl
 Section: php
