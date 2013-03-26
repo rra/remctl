@@ -4,6 +4,8 @@ remctl (3.4-1~bpo60+1) UNRELEASED; urgency=low
   * Remove dependency and use of dh-autoreconf and use the upstream build
     system, since the version in stable is quite old.
   * Remove multiarch support.
+  * Revert changes for the new Ruby packaging standards and reintroduce
+    libremctl-ruby* packages as non-transitional packages.
 
  -- Russ Allbery <rra@debian.org>  Thu, 22 Mar 2012 09:52:23 -0700
 
