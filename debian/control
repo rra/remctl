@@ -141,7 +141,7 @@ Description: Ruby extension for Kerberos-authenticated command execution
 
 Package: libremctl-ruby
 Section: oldlibs
-Priority: extra
+Priority: contrib
 Architecture: any
 Depends: ${misc:Depends}, ruby-remctl
 Description: Ruby extension for remctl (transitional package)
@@ -157,7 +157,7 @@ Description: Ruby extension for remctl (transitional package)
 
 Package: libremctl-ruby1.8
 Section: oldlibs
-Priority: extra
+Priority: contrib
 Architecture: any
 Depends: ${misc:Depends}, ruby-remctl
 Description: Ruby 1.8 extension for remctl (transitional package)
@@ -173,7 +173,7 @@ Description: Ruby 1.8 extension for remctl (transitional package)
 
 Package: libremctl-ruby1.9.1
 Section: oldlibs
-Priority: extra
+Priority: contrib
 Architecture: any
 Depends: ${misc:Depends}, ruby-remctl
 Description: Ruby 1.9.1 extension for remctl (transitional package)
