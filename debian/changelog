@@ -1,3 +1,15 @@
+remctl (3.4-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    - New C APIs for establishing a remctl connection given a sockaddr, a
+      list of struct addrinfo, or an already open socket.
+    - New Net::Remctl::Backend Perl module to aid writing remctl backend
+      scripts.
+    - Remove all prototypes from Net::Remctl functions.
+    - Return an error if an empty command is passed to remctl_command.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 26 Mar 2013 12:31:35 -0700
+
 remctl (3.3-1) experimental; urgency=low
 
   * New upstream release.
