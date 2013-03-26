@@ -430,14 +430,19 @@ TEST_RPATH = $(abs_top_builddir)/client/.libs
 
 check-local: $(check_PROGRAMS)
 	cd tests && ./runtests -l '$(abs_top_srcdir)/tests/TESTS'
-	@set -e; if [ -f perl/Build ] ; then				  \
-	    echo '' ;							  \
-	    [ -d perl/t/config ] || mkdir perl/t/config ;		  \
-	    cp tests/config/keytab tests/config/principal perl/t/config ; \
-	    cp -R tests/tap/perl/* perl/t/lib/ ;			  \
-	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH)			  \
-		REMCTLD="$(abs_top_builddir)/server/remctld"		  \
-		./Build test ;						  \
+	@set -e; if [ -f perl/Build ] ; then			\
+	    echo '' ;						\
+	    [ -d perl/t/config ] || mkdir perl/t/config ;	\
+	    if [ -f tests/config/keytab ] ; then		\
+		cp tests/config/keytab perl/t/config ;		\
+	    fi ;						\
+	    if [ -f tests/config/principal ] ; then		\
+		cp tests/config/principal perl/t/config ;	\
+	    fi ;						\
+	    cp -R tests/tap/perl/* perl/t/lib/ ;		\
+	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH)		\
+		REMCTLD="$(abs_top_builddir)/server/remctld"	\
+		./Build test ;					\
 	fi
 	@set -e; if [ -f php/Makefile ] ; then				    \
 	    echo '' ;							    \
