@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -160,7 +160,7 @@ server_new_client(int fd, gss_cred_id_t creds)
         warn_gssapi("while displaying client name", major, minor);
         goto fail;
     }
-    major = gss_release_name(&minor, &name);
+    gss_release_name(&minor, &name);
     client->user = xstrndup(name_buf.value, name_buf.length);
     gss_release_buffer(&minor, &name_buf);
     return client;

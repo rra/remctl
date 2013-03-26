@@ -1,5 +1,45 @@
                        User-Visible remctl Changes
 
+remctl 3.4 (2013-03-26)
+
+    Add new C APIs for establishing a remctl connection given a sockaddr,
+    a list of struct addrinfo, or an already-open socket.  Patch from
+    Jeffrey Hutzelman.
+
+    The Perl bindings now include a new module, Net::Remctl::Backend,
+    which handles the setup, dispatch, and help output for the recommended
+    style for remctl backend scripts written in Perl.  See its
+    documentation for more information.
+
+    Following Perl Best Practices, remove prototypes from all Net::Remctl
+    functions.  The confusion caused by changing context away from how
+    Perl normally works is not worth any diagnostic value.
+
+    The Net::Remctl Perl bindings now require Perl 5.8 or later (instead
+    of 5.006 in previous versions) and are now built with Module::Build
+    instead of ExtUtils::MakeMaker.  This should be transparent to anyone
+    not working with the source code, since Perl 5.8 was released in 2002,
+    but Module::Build and ExtUtils::CBuilder are now required to build
+    Net::Remctl.  They are included in Perl 5.10 or later and can be
+    installed separately for older versions of Perl.
+
+    Return an error if an empty command is passed into remctl_command
+    rather than attempting to malloc zero bytes.
+
+    Update to rra-c-util 4.8:
+
+    * Fix probing for Heimdal's libroken to work with older versions.
+    * Improve POD and Perl module tests.
+    * Cleanly passes clang --analyze.
+
+    Update to C TAP Harness 2.1:
+
+    * runtests now treats the command line as a list of tests by default.
+    * The full test executable path can now be passed to runtests -o.
+    * Improved harness output for tests with lazy plans.
+    * Improved harness output to a terminal for some abort cases.
+    * Flush harness output after each test even when not on a terminal.
+
 remctl 3.3 (2012-09-25)
 
     Fix a file descriptor leak when checking ACL files.  This would cause

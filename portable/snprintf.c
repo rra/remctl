@@ -432,7 +432,7 @@ static int dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	break;
       case 'w':
 	/* not supported yet, treat as next char */
-	ch = *format++;
+	format++;
 	break;
       default:
 	/* Unknown, skip */

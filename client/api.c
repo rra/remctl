@@ -11,7 +11,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -29,6 +29,7 @@
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <util/macros.h>
+#include <util/network.h>
 
 
 /*
@@ -305,13 +306,8 @@ remctl_set_timeout(struct remctl *r, time_t timeout)
 }
 
 
-/*
- * Open a new persistant remctl connection to a server, given the host, port,
- * and principal.  Returns true on success and false on failure.
- */
-int
-remctl_open(struct remctl *r, const char *host, unsigned short port,
-            const char *principal)
+static void
+internal_reset(struct remctl *r)
 {
     if (r->fd != -1) {
         if (r->protocol > 1)
@@ -327,10 +323,110 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
         free(r->output);
         r->output = NULL;
     }
+}
+
+
+/*
+ * Open a new persistant remctl connection to a server, given the host, port,
+ * and principal.  Returns true on success and false on failure.
+ */
+int
+remctl_open(struct remctl *r, const char *host, unsigned short port,
+            const char *principal)
+{
+    bool port_fallback = false;
+    socket_type fd = INVALID_SOCKET;
+
+    internal_reset(r);
     r->host = host;
     r->port = port;
     r->principal = principal;
-    return internal_open(r, host, port, principal);
+
+    /*
+     * If port is 0, default to trying the standard port and then falling back
+     * on the old port.
+     */
+    if (port == 0) {
+        port = REMCTL_PORT;
+        port_fallback = true;
+    }
+
+    /* Make the network connection. */
+    fd = internal_connect(r, host, port);
+    if (fd == INVALID_SOCKET && port_fallback)
+        fd = internal_connect(r, host, REMCTL_PORT_OLD);
+    if (fd == INVALID_SOCKET)
+        return false;
+    r->fd = fd;
+    return internal_open(r, host, principal);
+}
+
+
+/*
+ * Open a new remctl connection to a server, given the hostname, address
+ * information, and principal.  At least one of host or principal is required.
+ * Returns true on success and false on failure.
+ */
+int
+remctl_open_addrinfo(struct remctl *r, const char *host,
+                     const struct addrinfo *ai, const char *principal)
+{
+    socket_type fd = INVALID_SOCKET;
+
+    internal_reset(r);
+    r->host = NULL;
+    r->port = 0;
+    r->principal = principal;
+
+    /* Make the network connection. */
+    fd = network_connect(ai, r->source, r->timeout);
+    if (fd == INVALID_SOCKET) {
+        internal_set_error(r, "cannot connect: %s",
+                           socket_strerror(socket_errno));
+        return false;
+    }
+    r->fd = fd;
+    return internal_open(r, host, principal);
+}
+
+
+/*
+ * Open a new remctl connection to a server, given the hostname, socket
+ * address, and principal.  At least one of host or principal is required.
+ * Returns true on success and false on failure.
+ */
+int
+remctl_open_sockaddr(struct remctl *r, const char *host,
+                     const struct sockaddr *addr, int addrlen,
+                     const char *principal)
+{
+    struct addrinfo ai;
+
+    memset(&ai, 0, sizeof(ai));
+    ai.ai_family = addr->sa_family;
+    ai.ai_socktype = SOCK_STREAM;
+    ai.ai_protocol = IPPROTO_TCP;
+    ai.ai_addrlen = addrlen;
+    ai.ai_addr = (struct sockaddr *) addr;
+    return remctl_open_addrinfo(r, host, &ai, principal);
+}
+
+
+/*
+ * Open a new remctl connection to a server, given the hostname, socket,
+ * and principal.  At least one of host or principal is required.
+ * Returns true on success and false on failure.
+ */
+int
+remctl_open_fd(struct remctl *r, const char *host, socket_type fd,
+               const char *principal)
+{
+    internal_reset(r);
+    r->host = NULL;
+    r->port = 0;
+    r->principal = principal;
+    r->fd = fd;
+    return internal_open(r, host, principal);
 }
 
 
@@ -407,6 +503,10 @@ remctl_command(struct remctl *r, const char **command)
 
     for (count = 0; command[count] != NULL; count++)
         ;
+    if (count == 0) {
+        internal_set_error(r, "cannot send empty command");
+        return 0;
+    }
     vector = malloc(sizeof(struct iovec) * count);
     if (vector == NULL) {
         internal_set_error(r, "cannot allocate memory: %s", strerror(errno));

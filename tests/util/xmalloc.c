@@ -5,7 +5,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Copyright 2000, 2001, 2006 Russ Allbery <rra@stanford.edu>
- * Copyright 2008, 2012
+ * Copyright 2008, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -322,6 +322,7 @@ main(int argc, char *argv[])
 #if HAVE_SETRLIMIT && defined(RLIMIT_AS)
         struct rlimit rl;
         void *tmp;
+        size_t test_size;
 
         rl.rlim_cur = limit;
         rl.rlim_max = limit;
@@ -330,10 +331,13 @@ main(int argc, char *argv[])
             exit(2);
         }
         if (size < limit || code == 'r') {
-            tmp = malloc(code == 'r' ? 10 : size);
+            test_size = code == 'r' ? 10 : size;
+            if (test_size == 0)
+                test_size = 1;
+            tmp = malloc(test_size);
             if (tmp == NULL) {
                 syswarn("Can't allocate initial memory of %lu (limit %lu)",
-                        (unsigned long) size, (unsigned long) limit);
+                        (unsigned long) test_size, (unsigned long) limit);
                 exit(2);
             }
             free(tmp);

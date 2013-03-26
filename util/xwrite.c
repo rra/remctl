@@ -24,7 +24,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2008
+ * Copyright 2008, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -51,6 +51,7 @@
 #include <portable/system.h>
 #include <portable/uio.h>
 
+#include <assert.h>
 #include <errno.h>
 
 #include <util/xwrite.h>
@@ -175,6 +176,7 @@ xwritev(int fd, const struct iovec iov[], int iovcnt)
     for (i = 0; offset >= (size_t) iov[i].iov_len; i++)
         offset -= iov[i].iov_len;
     iovleft = iovcnt - i;
+    assert(iovleft > 0);
     tmpiov = malloc(iovleft * sizeof(struct iovec));
     if (tmpiov == NULL)
         return -1;

@@ -97,7 +97,7 @@ AC_DEFUN([_RRA_LIB_GSSAPI_MANUAL],
     [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], [],
         [-lsocket])])
  AC_SEARCH_LIBS([crypt], [crypt])
- AC_SEARCH_LIBS([rk_simple_execve], [roken])
+ AC_SEARCH_LIBS([roken_concat], [roken])
  rra_gssapi_extra="$LIBS"
  LIBS="$rra_gssapi_save_LIBS"
  AC_CHECK_LIB([gssapi], [gss_import_name],
