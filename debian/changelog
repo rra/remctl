@@ -1,4 +1,4 @@
-remctl (3.4-1~bpo60+1) UNRELEASED; urgency=low
+remctl (3.4-1~bpo60+1) squeeze-backports; urgency=low
 
   * Backport to squeeze.
   * Remove dependency and use of dh-autoreconf and use the upstream build
@@ -7,7 +7,7 @@ remctl (3.4-1~bpo60+1) UNRELEASED; urgency=low
   * Revert changes for the new Ruby packaging standards and reintroduce
     libremctl-ruby* packages as non-transitional packages.
 
- -- Russ Allbery <rra@debian.org>  Thu, 22 Mar 2012 09:52:23 -0700
+ -- Russ Allbery <rra@debian.org>  Tue, 26 Mar 2013 16:53:49 -0700
 
 remctl (3.4-1) experimental; urgency=low
 
