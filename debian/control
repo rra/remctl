@@ -169,7 +169,7 @@ Description: Ruby 1.8 extension for remctl (transitional package)
  authorized to run that command.
  .
  This is a transitional package to handle upgrades from the older Ruby
- 1.8 extension naming scheme.  It can be safely removed.
+ extension naming scheme.  It can be safely removed.
 
 Package: libremctl-ruby1.9.1
 Section: oldlibs
@@ -185,4 +185,4 @@ Description: Ruby 1.9.1 extension for remctl (transitional package)
  authorized to run that command.
  .
  This is a transitional package to handle upgrades from the older Ruby
- 1.9.1 extension naming scheme.  It can be safely removed.
+ extension naming scheme.  It can be safely removed.
