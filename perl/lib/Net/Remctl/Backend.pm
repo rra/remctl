@@ -672,8 +672,8 @@ Russ Allbery <rra@stanford.edu>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2012 The Board of Trustees of the Leland Stanford Junior
-University.  All rights reserved.
+Copyright 2012, 2013 The Board of Trustees of the Leland Stanford Junior
+University
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
