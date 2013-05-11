@@ -31,7 +31,7 @@ my $KLIST_REGEX = qr{
 
 # Skip tests unless we're running the test suite in maintainer mode.
 if (!$ENV{RRA_MAINTAINER_TESTS}) {
-    plan skip_all => 'Coding style tests only run for maintainer';
+    plan skip_all => 'Stanford-specific test only run for maintainer';
 }
 
 # Skip tests unless we have a stanford.edu realm ticket.
