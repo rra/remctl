@@ -1,3 +1,9 @@
+remctl (3.4-2) unstable; urgency=low
+
+  * Upload to unstable.
+
+ -- Russ Allbery <rra@debian.org>  Sat, 11 May 2013 16:25:08 -0700
+
 remctl (3.4-1) experimental; urgency=low
 
   * New upstream release.
