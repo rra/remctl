@@ -3,6 +3,8 @@ remctl (3.4-2) unstable; urgency=low
   * Upload to unstable.
   * Drop old Ruby transitional packages required for upgrades from squeeze
     now that wheezy has been released.
+  * Add additional Perl modules required to run the full module test suite
+    to Build-Depends.
 
  -- Russ Allbery <rra@debian.org>  Sat, 11 May 2013 16:34:25 -0700
 
