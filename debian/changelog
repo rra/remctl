@@ -1,8 +1,10 @@
 remctl (3.4-2) unstable; urgency=low
 
   * Upload to unstable.
+  * Drop old Ruby transitional packages required for upgrades from squeeze
+    now that wheezy has been released.
 
- -- Russ Allbery <rra@debian.org>  Sat, 11 May 2013 16:25:08 -0700
+ -- Russ Allbery <rra@debian.org>  Sat, 11 May 2013 16:34:25 -0700
 
 remctl (3.4-1) experimental; urgency=low
 
