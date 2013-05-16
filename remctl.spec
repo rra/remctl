@@ -1,7 +1,7 @@
 # RPM spec file for remctl.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Improvements by Thomas Kula
+# Improvements by Thomas Kula and Darren Patterson
 # Copyright 2006, 2007, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -21,9 +21,9 @@
 # Use rpmbuild option "--define 'buildpython 0'" to not build the Python module.
 %{!?buildpython:%define buildpython 1}
 %if %{buildpython}
-%define py_version %( python -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
-%define py_libdest %( python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'LIBDEST' ])")
-%define py_binlibdest %( python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'BINLIBDEST' ])")
+%define py_version %(python -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
+%define py_libdest %(python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'LIBDEST' ])")
+%define py_binlibdest %(python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'BINLIBDEST' ])")
 %endif
 
 Name: remctl
@@ -36,8 +36,7 @@ License: MIT
 Copyright: MIT
 %endif
 URL: http://www.eyrie.org/~eagle/software/remctl/
-Source0: http://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
-Source1: remctl.ini
+Source: http://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
 Vendor: Stanford University
 Packager: Russ Allbery <rra@stanford.edu>
@@ -64,7 +63,7 @@ BuildArch: i686
 %if %{buildphp}
 # RHEL 5/6 compatibility for PHP
 %if %{rel} == 5
-%global php_apiver  %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
+%global php_apiver %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
 %{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
 %endif
 %if %{rel} == 5 || %{rel} == 6
@@ -155,9 +154,14 @@ Requires:     php(api) = %{php_core_api}
 %endif
 
 %description php
-remctl implements a client/server protocol for running single commands
-on a remote host using Kerberos v5 authentication. If you want to use
-remctl's PHP bindings, you need to install this package.
+remctl is a client/server protocol for executing specific commands on a
+remote system with Kerberos authentication.  The allowable commands must
+be listed in a server configuration file, and the executable run on the
+server may be mapped to any command name.  Each command is also associated
+with an ACL containing a list of Kerberos principals authorized to run
+that command.
+
+This package contains the PHP remctl client library.
 %endif
 
 %if %{buildpython}
@@ -190,9 +194,14 @@ Requires: ruby(abi) = 1.9.1
 Provides: ruby(remctl) = %{version}-%{release}
 
 %description ruby
-remctl implements a client/server protocol for running single commands
-on a remote host using Kerberos v5 authentication. If you want to use
-remctl's Ruby bindings, you need to install this package.
+remctl is a client/server protocol for executing specific commands on a
+remote system with Kerberos authentication.  The allowable commands must
+be listed in a server configuration file, and the executable run on the
+server may be mapped to any command name.  Each command is also associated
+with an ACL containing a list of Kerberos principals authorized to run
+that command.
+
+This package contains the Ruby remctl client library.
 %endif
 
 %if %{buildperl}
@@ -231,7 +240,7 @@ options="$options --enable-perl"
 options="$options --enable-python"
 %endif
 %if %{buildperl}
-export PATH="/usr/kerberos/bin:/sbin:/bin:/usr/sbin:$PATH" 
+export PATH="/usr/kerberos/bin:/sbin:/bin:/usr/sbin:$PATH"
 export REMCTL_PERL_FLAGS="--installdirs=vendor"
 %if %{rel} >= 6
 export REMCTL_PERL_FLAGS="$REMCTL_PERL_FLAGS --prefix=/usr"
@@ -277,7 +286,7 @@ mkdir -p %{buildroot}/usr/share/doc/remctl-php-%{vers}
 chmod 755 %{buildroot}/usr/share/doc/remctl-php-%{vers}
 # PHP configuration
 mkdir -p %{buildroot}%{php_inidir}
-install -m 0644 -p %{SOURCE1} %{buildroot}%{php_inidir}
+install -m 0644 -p php/remctl.ini %{buildroot}%{php_inidir}
 %endif
 
 %files devel
