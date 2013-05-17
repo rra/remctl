@@ -18,9 +18,10 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
+#include <portable/krb5.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 #include <portable/uio.h>
 
 #include <errno.h>
@@ -219,9 +220,14 @@ remctl_new(void)
     r->fd = INVALID_SOCKET;
     r->host = NULL;
     r->principal = NULL;
+    r->ccache = NULL;
     r->context = GSS_C_NO_CONTEXT;
     r->error = NULL;
     r->output = NULL;
+#ifdef HAVE_KERBEROS
+    r->krb_ctx = NULL;
+    r->krb_ccache = NULL;
+#endif
     return r;
 }
 
@@ -238,11 +244,27 @@ remctl_new(void)
  * not support setting the Kerberos ticket cache.  A reasonable fallback is to
  * set the KRB5CCNAME environment variable.
  *
- * Be aware that this function sets the Kerberos credential cache globally for
- * all uses of GSS-API by that process.  The GSS-API does not provide a way of
- * setting it only for one particular GSS-API context.
+ * If Kerberos libraries and the gss_krb5_import_cred function are available,
+ * this will be per-context.  Otherwise, be aware that this function sets the
+ * Kerberos credential cache globally for all uses of GSS-API by that process.
  */
-#ifdef HAVE_GSS_KRB5_CCACHE_NAME
+#if defined(HAVE_KERBEROS) && defined(HAVE_GSS_KRB5_IMPORT_CRED)
+int
+remctl_set_ccache(struct remctl *r, const char *ccache)
+{
+    char *copy;
+
+    copy = strdup(ccache);
+    if (copy == NULL) {
+        internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
+        return 0;
+    }
+    if (r->ccache != NULL)
+        free(r->ccache);
+    r->ccache = copy;
+    return 1;
+}
+#elif defined(HAVE_GSS_KRB5_CCACHE_NAME)
 int
 remctl_set_ccache(struct remctl *r, const char *ccache)
 {
@@ -443,6 +465,8 @@ remctl_close(struct remctl *r)
             internal_v2_quit(r);
         if (r->source != NULL)
             free(r->source);
+        if (r->ccache != NULL)
+            free(r->ccache);
         if (r->fd != -1)
             socket_close(r->fd);
         if (r->error != NULL)
@@ -454,6 +478,13 @@ remctl_close(struct remctl *r)
         }
         if (r->context != GSS_C_NO_CONTEXT)
             gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
+#ifdef HAVE_KERBEROS
+        if (r->krb_ctx != NULL) {
+            if (r->krb_ccache != NULL)
+                krb5_cc_close(r->krb_ctx, r->krb_ccache);
+            krb5_free_context(r->krb_ctx);
+        }
+#endif
         free(r);
     }
     socket_shutdown();

@@ -15,9 +15,10 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
+#include <portable/krb5.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <errno.h>
 
@@ -122,6 +123,42 @@ internal_import_name(struct remctl *r, const char *host,
 
 
 /*
+ * Import the client credentials from a designated Kerberos ticket cache.
+ *
+ * This code is used if we have Kerberos libraries available and the GSS-API
+ * implementation supports gss_krb5_import_cred.  In that case, we can tell
+ * GSS-API which ticket cache to use.  Otherwise, we have to either set a
+ * global GSS-API variable with gss_krb5_ccache_name or just use whatever the
+ * default is.  The other cases are handled in remctl_set_ccache.
+ */
+static bool
+internal_set_cred(struct remctl *r, gss_cred_id_t *gss_cred)
+{
+    krb5_error_code code;
+    OM_uint32 major, minor;
+
+    if (r->krb_ctx == NULL) {
+        code = krb5_init_context(&r->krb_ctx);
+        if (code != 0) {
+            internal_krb5_error(r, "opening ticket cache", code);
+            return false;
+        }
+    }
+    code = krb5_cc_resolve(r->krb_ctx, r->ccache, &r->krb_ccache);
+    if (code != 0) {
+        internal_krb5_error(r, "opening ticket cache", code);
+        return false;
+    }
+    major = gss_krb5_import_cred(&minor, r->krb_ccache, NULL, NULL, gss_cred);
+    if (major != GSS_S_COMPLETE) {
+        internal_gssapi_error(r, "importing ticket cache", major, minor);
+        return false;
+    }
+    return true;
+}
+
+
+/*
  * Open a new connection to a server.  Returns true on success, false on
  * failure.  On failure, sets the error message appropriately.
  */
@@ -132,6 +169,7 @@ internal_open(struct remctl *r, const char *host, const char *principal)
     gss_buffer_desc send_tok, recv_tok, *token_ptr;
     gss_buffer_desc empty_token = { 0, (void *) "" };
     gss_name_t name = GSS_C_NO_NAME;
+    gss_cred_id_t gss_cred = GSS_C_NO_CREDENTIAL;
     gss_ctx_id_t gss_context = GSS_C_NO_CONTEXT;
     OM_uint32 major, minor, init_minor, gss_flags;
     static const OM_uint32 wanted_gss_flags
@@ -143,6 +181,11 @@ internal_open(struct remctl *r, const char *host, const char *principal)
     /* Import the name. */
     if (!internal_import_name(r, host, principal, &name))
         goto fail;
+
+    /* If the user has specified a Kerberos ticket cache, import it. */
+    if (r->ccache != NULL)
+        if (!internal_set_cred(r, &gss_cred))
+            goto fail;
 
     /*
      * Default to protocol version two, but if some other protocol is already
@@ -160,7 +203,8 @@ internal_open(struct remctl *r, const char *host, const char *principal)
         goto fail;
     }
 
-    /* Perform the context-establishment loop.
+    /*
+     * Perform the context-establishment loop.
      *
      * On each pass through the loop, token_ptr points to the token to send to
      * the server (or GSS_C_NO_BUFFER on the first pass).  Every generated
@@ -179,10 +223,9 @@ internal_open(struct remctl *r, const char *host, const char *principal)
      */
     token_ptr = GSS_C_NO_BUFFER;
     do {
-        major = gss_init_sec_context(&init_minor, GSS_C_NO_CREDENTIAL, 
-                    &gss_context, name, (const gss_OID) GSS_KRB5_MECHANISM,
-                    wanted_gss_flags, 0, NULL, token_ptr, NULL, &send_tok,
-                    &gss_flags, NULL);
+        major = gss_init_sec_context(&init_minor, gss_cred, &gss_context,
+                    name, (const gss_OID) GSS_KRB5_MECHANISM, wanted_gss_flags,
+                    0, NULL, token_ptr, NULL, &send_tok, &gss_flags, NULL);
         if (token_ptr != GSS_C_NO_BUFFER)
             free(recv_tok.value);
 

@@ -1,5 +1,13 @@
                        User-Visible remctl Changes
 
+remctl 3.5 (unreleased)
+
+    If a Kerberos library and gss_krb5_import_cred are available at build
+    time, libremctl now uses them to implement remctl_set_ccache to avoid
+    affecting global program GSS-API state.  If those requirements are
+    met, remctl_set_ccache will only affect the remctl context on which
+    it's called.
+
 remctl 3.4 (2013-03-26)
 
     Add new C APIs for establishing a remctl connection given a sockaddr,

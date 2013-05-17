@@ -108,15 +108,15 @@ lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
 	client/client-v2.c client/error.c client/internal.h client/open.c
 client_libremctl_la_LDFLAGS = -version-info 2:0:1 $(VERSION_LDFLAGS) \
-	$(GSSAPI_LDFLAGS)
-client_libremctl_la_LIBADD = util/libutil.la $(GSSAPI_LIBS)
+	$(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS)
+client_libremctl_la_LIBADD = util/libutil.la $(GSSAPI_LIBS) $(KRB5_LIBS)
 include_HEADERS = client/remctl.h
 
 noinst_LTLIBRARIES = portable/libportable.la util/libutil.la
 portable_libportable_la_SOURCES = portable/dummy.c portable/getaddrinfo.h \
 	portable/getnameinfo.h portable/getopt.h portable/gssapi.h	  \
-	portable/macros.h portable/socket.h portable/stdbool.h		  \
-	portable/system.h portable/uio.h
+	portable/krb5.h portable/macros.h portable/socket.h		  \
+	portable/stdbool.h portable/system.h portable/uio.h
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
 util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
 	util/gss-errors.h util/gss-tokens.c util/gss-tokens.h util/macros.h \

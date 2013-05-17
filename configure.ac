@@ -29,6 +29,15 @@ dnl Only used for the test suite.
 AC_ARG_VAR([PATH_FAKEROOT], [Path to fakeroot for the test suite])
 AC_PATH_PROG([PATH_FAKEROOT], [fakeroot])
 
+dnl Kerberos portability checks.
+RRA_LIB_KRB5_OPTIONAL
+AS_IF([test x"$rra_use_kerberos" != xfalse],
+    [RRA_LIB_KRB5_SWITCH
+     AC_CHECK_FUNCS([krb5_get_init_creds_opt_set_default_flags \
+         krb5_principal_get_realm])
+     AC_LIBOBJ([krb5-extra])
+     RRA_LIB_KRB5_RESTORE])
+
 dnl GSS-API portability checks.
 RRA_LIB_GSSAPI
 RRA_LIB_GSSAPI_SWITCH
@@ -36,7 +45,7 @@ AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
    [AC_CHECK_DECLS([gss_mech_krb5], [],
        [AC_LIBOBJ([gssapi-mech])], [RRA_INCLUDES_GSSAPI])],
    [RRA_INCLUDES_GSSAPI])
-AC_CHECK_FUNCS([gss_krb5_ccache_name])
+AC_CHECK_FUNCS([gss_krb5_ccache_name gss_krb5_import_cred])
 RRA_LIB_GSSAPI_RESTORE
 
 AC_SEARCH_LIBS([gethostbyname], [nsl])
