@@ -111,6 +111,10 @@ AC_ARG_ENABLE([perl],
     [AC_HELP_STRING([--enable-perl], [Build Perl libremctl bindings])],
     [AS_IF([test x"$enableval" = xyes], [build_perl=yes])])
 AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
+AS_IF([test x"$build_perl" = xyes],
+    [AC_PATH_PROG([PERL], [perl])
+     PERL_LDFLAGS=`"$PERL" -MConfig -e 'print $Config{lddlflags}'`])
+AC_SUBST([PERL_LDFLAGS])
 
 dnl Whether to build the PHP bindings.  The dance required to be able to run
 dnl phpize before AC_OUTPUT sucks like a sucking thing.
@@ -143,10 +147,18 @@ dnl Used to determine whether to add our GCC-specific warning suppression
 dnl flags to the language binding builds.
 AM_CONDITIONAL([GCC], [test x"$GCC" = xyes])
 
+dnl Used when building the Perl module.  Normally link against all the
+dnl dependencies that libremctl may need, but don't do so if
+dnl --enable-reduced-depends was specified.
+AS_IF([test x"$rra_reduced_depends" = xtrue],
+    [DEPEND_LIBS=],
+    [DEPEND_LIBS="$GSSAPI_LDFLAGS $GSSAPI_LIBS $KRB5_LDFLAGS $KRB5_LIBS"])
+AC_SUBST([DEPEND_LIBS])
+
 AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
 AC_CONFIG_FILES([tests/data/conf-simple])
 AS_IF([test x"$build_perl" = xyes],
-    [AC_CONFIG_FILES([perl/Build.PL perl/lib/Net/Remctl.pm])])
+    [AC_CONFIG_FILES([perl/lib/Net/Remctl.pm])])
 AS_IF([test x"$build_php" = xyes],
     [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])
 AS_IF([test x"$build_python" = xyes],
