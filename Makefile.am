@@ -583,10 +583,13 @@ endif
 
 # The following section sets up the Ruby bindings for remctl.
 
-# The Ruby build system actually supports VPATH!
+# The Ruby build system actually supports VPATH!  Always enable verbose
+# builds, since we want them for automated builds and the two lines aren't
+# important to suppress for people who want quiet builds.  (PHP and Perl are
+# way noisier.)
 ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c client/libremctl.la
 	cd ruby && $(REMCTL_RUBY) extconf.rb $(REMCTL_RUBY_FLAGS)
-	cd ruby && $(MAKE) CFLAGS="$(CPPFLAGS) $(CFLAGS) $(RUBY_WARNINGS)"
+	cd ruby && $(MAKE) V=1 CFLAGS="$(CPPFLAGS) $(CFLAGS) $(RUBY_WARNINGS)"
 
 install-data-local-ruby: ruby/remctl.so
 	cd ruby && $(MAKE) install DESTDIR=$(DESTDIR)
