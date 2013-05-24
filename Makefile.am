@@ -180,7 +180,8 @@ install-data-hook:
 	rm -f $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
 	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
 
-CLEANFILES = client/libremctl.pc docs/remctld.8 perl/t/lib/Test/RRA.pm \
+CLEANFILES = client/libremctl.pc docs/remctld.8 perl/t/lib/Test/RRA.pm	\
+	perl/t/lib/Test/RRA/Automake.pm perl/t/lib/Test/RRA/Config.pm	\
 	stamp-python
 DISTCLEANFILES = perl/Makefile python/MANIFEST
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile		   \
@@ -439,7 +440,6 @@ check-local: $(check_PROGRAMS)
 	    if [ -f tests/config/principal ] ; then		\
 		cp tests/config/principal perl/t/config ;	\
 	    fi ;						\
-	    cp -R tests/tap/perl/* perl/t/lib/ ;		\
 	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH)		\
 		REMCTLD="$(abs_top_builddir)/server/remctld"	\
 		./Build test ;					\
@@ -499,8 +499,9 @@ perl/lib/Net/Remctl.o: perl/lib/Net/Remctl.pm				\
 	    done ;							\
 	    for f in $(PERL_FILES) ; do					\
 	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;			\
-	    done							\
+	    done ;							\
 	fi
+	cp -R $(srcdir)/tests/tap/perl/* perl/t/lib/
 	cd perl && perl Build.PL					\
 	    --config optimize='$(CPPFLAGS) $(CFLAGS) $(PERL_WARNINGS)'	\
 	    $(REMCTL_PERL_FLAGS)
