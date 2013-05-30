@@ -75,8 +75,8 @@ if (!do($PATH)) {
 __END__
 
 =for stopwords
-Allbery rra-c-util Automake perlcritic .libs namespace sublicense
-MERCHANTABILITY NONINFRINGEMENT
+Allbery rra-c-util Automake perlcritic .libs namespace subdirectory
+sublicense MERCHANTABILITY NONINFRINGEMENT
 
 =head1 NAME
 
