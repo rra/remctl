@@ -271,24 +271,25 @@ warnings:
 	$(MAKE) V=0 CFLAGS='$(WARNINGS)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
-check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
-	tests/client/large-t tests/client/open-t tests/client/source-ip-t   \
-	tests/client/timeout-t tests/data/cmd-background		    \
-	tests/data/cmd-closed tests/data/cmd-stdin tests/data/cmd-streaming \
-	tests/data/cmd-user tests/portable/asprintf-t			    \
-	tests/portable/daemon-t tests/portable/getaddrinfo-t		    \
-	tests/portable/getnameinfo-t tests/portable/getopt-t		    \
-	tests/portable/inet_aton-t tests/portable/inet_ntoa-t		    \
-	tests/portable/inet_ntop-t tests/portable/setenv-t		    \
-	tests/portable/snprintf-t tests/portable/strlcat-t		    \
-	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t   \
-	tests/server/bind-t tests/server/config-t tests/server/continue-t   \
-	tests/server/empty-t tests/server/env-t tests/server/errors-t	    \
-	tests/server/help-t tests/server/invalid-t tests/server/logging-t   \
-	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t   \
-	tests/server/summary-t tests/server/user-t tests/server/version-t   \
-	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t   \
-	tests/util/network-t tests/util/tokens-t tests/util/vector-t	    \
+check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t   \
+	tests/client/large-t tests/client/open-t tests/client/source-ip-t  \
+	tests/client/timeout-t tests/data/cmd-background		   \
+	tests/data/cmd-closed tests/data/cmd-large-output		   \
+	tests/data/cmd-stdin tests/data/cmd-streaming tests/data/cmd-user  \
+	tests/portable/asprintf-t tests/portable/daemon-t		   \
+	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	   \
+	tests/portable/getopt-t tests/portable/inet_aton-t		   \
+	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		   \
+	tests/portable/setenv-t tests/portable/snprintf-t		   \
+	tests/portable/strlcat-t tests/portable/strlcpy-t		   \
+	tests/server/accept-t tests/server/acl-t tests/server/bind-t	   \
+	tests/server/config-t tests/server/continue-t tests/server/empty-t \
+	tests/server/env-t tests/server/errors-t tests/server/help-t	   \
+	tests/server/invalid-t tests/server/logging-t tests/server/noop-t  \
+	tests/server/stdin-t tests/server/streaming-t			   \
+	tests/server/summary-t tests/server/user-t tests/server/version-t  \
+	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t  \
+	tests/util/network-t tests/util/tokens-t tests/util/vector-t	   \
 	tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
@@ -322,6 +323,7 @@ tests_client_timeout_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la
 tests_data_cmd_background_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
+tests_data_cmd_large_output_LDADD = util/libutil.la portable/libportable.la
 tests_data_cmd_stdin_LDADD = util/libutil.la
 tests_portable_asprintf_t_SOURCES = tests/portable/asprintf-t.c \
 	tests/portable/asprintf.c
