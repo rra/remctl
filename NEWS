@@ -2,6 +2,14 @@
 
 remctl 3.5 (unreleased)
 
+    Fix a long-standing race condition in remctld (introduced in remctl
+    2.7) that could truncate large backend output if the backend program
+    exits immediately after sending that output.  On systems with pipe
+    buffers larger than 64KB, remctld could discard some buffered output
+    after determining that the child had exited.  remctld now polls for
+    and continues to process output from the child until no more is
+    immediately available, even after the child has exited.
+
     If a Kerberos library and gss_krb5_import_cred are available at build
     time, libremctl now uses them to implement remctl_set_ccache to avoid
     affecting global program GSS-API state.  If those requirements are
