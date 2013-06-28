@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.5 (unreleased)
+remctl 3.5 (2013-06-28)
 
     Fix a long-standing race condition in remctld (introduced in remctl
     2.7) that could truncate large backend output if the backend program
