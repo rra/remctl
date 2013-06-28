@@ -1,3 +1,17 @@
+remctl (3.5-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    - Fix a long-standing race condition in remctld that could truncate
+      large backend output.
+    - remctl_set_ccache is now threadsafe when built against a GSS-API
+      library that supports gss_krb5_import_cred.
+    - The Net::Remctl and Net::Remctl::Backend Perl module versions have
+      gone backwards from Perl's perspective to bring them in-line with
+      the package version (3.4 -> 3.05).  This is a one-time adjustment
+      to a more reliable versioning scheme.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 28 Jun 2013 16:23:12 -0700
+
 remctl (3.4-2) unstable; urgency=low
 
   * Upload to unstable.
