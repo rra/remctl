@@ -157,8 +157,6 @@ AC_SUBST([DEPEND_LIBS])
 
 AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
 AC_CONFIG_FILES([tests/data/conf-simple])
-AS_IF([test x"$build_perl" = xyes],
-    [AC_CONFIG_FILES([perl/lib/Net/Remctl.pm])])
 AS_IF([test x"$build_php" = xyes],
     [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])
 AS_IF([test x"$build_python" = xyes],

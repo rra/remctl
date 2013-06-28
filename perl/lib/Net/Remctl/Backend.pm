@@ -40,7 +40,7 @@ our $VERSION;
 # This version matches the version of remctl with which this module was
 # released, but with at least two digits for the minor version.
 BEGIN {
-    $VERSION = '3.04';
+    $VERSION = '3.05';
 }
 
 # Constructor.  Takes all possible parameters as a hash.  See the POD
