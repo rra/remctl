@@ -71,24 +71,25 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	java/org/eyrie/eagle/remctl/Remctl.java				    \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
-	java/t7.java portable/winsock.c remctl.spec ruby/README		    \
-	ruby/remctl.c tests/HOWTO tests/TESTS tests/client/remctl-t	    \
-	tests/config/README tests/data/acl-bad-include			    \
-	tests/data/acl-bad-syntax tests/data/acl-nonexistant		    \
-	tests/data/acl-recursive tests/data/acl-simple			    \
-	tests/data/acl-too-long tests/data/acl-valid-3			    \
-	tests/data/acls/VALID_09 tests/data/acls/val\#id		    \
-	tests/data/acls/val.id tests/data/acls/valid			    \
-	tests/data/acls/valid-2 tests/data/acls/val~id			    \
-	tests/data/acls2/valid-4 tests/data/cmd-argv tests/data/cmd-env	    \
-	tests/data/cmd-hello tests/data/cmd-help tests/data/cmd-sleep	    \
-	tests/data/cmd-status tests/data/conf-nosummary			    \
-	tests/data/conf-simple tests/data/conf-test			    \
-	tests/data/configs/bad-logmask-1 tests/data/configs/bad-include-1   \
-	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
-	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
-	tests/data/configs/bad-user-1 tests/data/perl.conf tests/data/gput  \
-	tests/data/valgrind.supp tests/docs/pod-spelling-t tests/docs/pod-t \
+	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
+	ruby/README ruby/remctl.c tests/HOWTO tests/TESTS		    \
+	tests/client/remctl-t tests/config/README			    \
+	tests/data/acl-bad-include tests/data/acl-bad-syntax		    \
+	tests/data/acl-nonexistant tests/data/acl-recursive		    \
+	tests/data/acl-simple tests/data/acl-too-long			    \
+	tests/data/acl-valid-3 tests/data/acls/VALID_09			    \
+	tests/data/acls/val\#id tests/data/acls/val.id			    \
+	tests/data/acls/valid tests/data/acls/valid-2			    \
+	tests/data/acls/val~id tests/data/acls2/valid-4 tests/data/cmd-argv \
+	tests/data/cmd-env tests/data/cmd-hello tests/data/cmd-help	    \
+	tests/data/cmd-sleep tests/data/cmd-status			    \
+	tests/data/conf-nosummary tests/data/conf-simple		    \
+	tests/data/conf-test tests/data/configs/bad-logmask-1		    \
+	tests/data/configs/bad-include-1 tests/data/configs/bad-logmask-2   \
+	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4   \
+	tests/data/configs/bad-option-1 tests/data/configs/bad-user-1	    \
+	tests/data/perl.conf tests/data/gput tests/data/valgrind.supp	    \
+	tests/docs/pod-spelling-t tests/docs/pod-t			    \
 	tests/perl/module-version-t tests/tap/kerberos.sh		    \
 	tests/tap/libtap.sh tests/tap/perl/Test/RRA.pm			    \
 	tests/tap/perl/Test/RRA/Automake.pm				    \
