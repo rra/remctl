@@ -11,7 +11,7 @@
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2011, 2012
+# Copyright 2011, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -59,6 +59,14 @@
    Memcheck:Leak
    fun:*alloc
    fun:krb5int_setspecific
+   fun:kg_set_ccache_name
+   fun:gss_krb5int_ccache_name
+}
+{
+   mit-gss-ccache-2
+   Memcheck:Leak
+   fun:*alloc
+   fun:strdup
    fun:kg_set_ccache_name
    fun:gss_krb5int_ccache_name
 }

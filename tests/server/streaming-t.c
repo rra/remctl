@@ -24,19 +24,21 @@ main(void)
     struct kerberos_config *config;
     struct remctl *r;
     struct remctl_output *output;
-    const char *command[] = { "test", "streaming", NULL };
+    size_t total;
+    const char *command_streaming[] = { "test", "streaming", NULL };
+    const char *command_cat[] = { "test", "large-output", "1728361", NULL };
 
     /* Unless we have Kerberos available, we can't really do anything. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     remctld_start(config, "data/conf-simple", NULL);
 
-    plan(32);
+    plan(35);
 
     /* First, version 2. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
     ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
-    ok(remctl_command(r, command), "remctl_command");
+    ok(remctl_command(r, command_streaming), "remctl_command streaming");
     output = remctl_output(r);
     if (output == NULL)
         ok_block(5, false, "output is not null");
@@ -87,6 +89,31 @@ main(void)
         is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
         is_int(0, output->status, "...and is right status");
     }
+
+    /*
+     * Test again with cat, which tests the interaction between lots of data
+     * and the child process exiting.
+     */
+    ok(remctl_command(r, command_cat), "remctl_command cat");
+    output = remctl_output(r);
+    total = 0;
+    while (output != NULL) {
+        if (output->type == REMCTL_OUT_OUTPUT) {
+            if (output->stream == 1)
+                total += output->length;
+            else
+                diag("%.*s", (int) output->length, output->data);
+        } else if (output->type == REMCTL_OUT_STATUS) {
+            is_int(0, output->status, "...correct exit status");
+            is_int(1728361, total, "...correct total size");
+            break;
+        } else {
+            is_int(REMCTL_OUT_OUTPUT, output->type, "Incorrect output type");
+            ok(false, "Incorrect output type");
+            break;
+        }
+        output = remctl_output(r);
+    }
     remctl_close(r);
 
     /* Now, version 1. */
@@ -96,7 +123,7 @@ main(void)
         bail("remctl_new returned NULL");
     r->protocol = 1;
     ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
-    ok(remctl_command(r, command), "remctl_command");
+    ok(remctl_command(r, command_streaming), "remctl_command");
     output = remctl_output(r);
     if (output == NULL)
         ok_block(5, false, "output is not null");

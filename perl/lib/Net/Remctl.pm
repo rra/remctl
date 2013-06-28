@@ -5,7 +5,7 @@
 # file contains the bootstrap and export code and the documentation.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2007, 2008, 2011, 2012
+# Copyright 2007, 2008, 2011, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -25,7 +25,7 @@ use DynaLoader;
 use vars qw($VERSION @EXPORT @ISA);
 
 BEGIN {
-    $VERSION = '@PACKAGE_VERSION@';
+    $VERSION = '3.05';
 }
 
 # use base qw(Exporter) requires Perl 5.8 and we still support Perl 5.6.
@@ -189,12 +189,12 @@ GSS-API.  This method will affect all subsequent open() calls on at least
 the same object, but will have no effect on connections that are already
 open.  Returns true on success and false on failure.
 
-For current GSS-API implementations, this will affect not only all
+If the remctl client library was built against a Kerberos library and the
+GSS-API library supported gss_krb5_import_cred, this call affects only
+this Net::Remctl object.  Otherwise, this will affect not only all
 subsequent open() calls for the same object, but all subsequent remctl
 connections of any kind from the same process, and even other GSS-API
-connections from the same process unrelated to remctl.  This is due to a
-limitation in the GSS-API that makes this setting a global setting for the
-process or thread.
+connections from the same process unrelated to remctl.
 
 Not all GSS-API implementations support setting the credential cache.  If
 this is not supported, false will be returned.
@@ -363,8 +363,8 @@ Russ Allbery <rra@stanford.edu>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007, 2008, 2011 The Board of Trustees of the Leland Stanford
-Junior University.  All rights reserved.
+Copyright 2007, 2008, 2011, 2012 The Board of Trustees of the Leland
+Stanford Junior University
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
