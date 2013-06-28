@@ -12,7 +12,6 @@
 /m4/ltversion.m4
 /m4/lt~obsolete.m4
 /perl/Build
-/perl/Build.PL
 /perl/MYMETA.json
 /perl/MYMETA.yml
 /perl/_build/
@@ -69,6 +68,7 @@
 /tests/config/principal
 /tests/data/cmd-background
 /tests/data/cmd-closed
+/tests/data/cmd-large-output
 /tests/data/cmd-stdin
 /tests/data/cmd-streaming
 /tests/data/cmd-user

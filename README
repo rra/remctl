@@ -1,4 +1,4 @@
-                            remctl release 3.4
+                            remctl release 3.5
             (remote authenticated command execution with ACLs)
 
                    Originally written by Anton Ushakov
@@ -20,29 +20,43 @@ BLURB
 
 DESCRIPTION
 
-  remctl is a client/server application that supports remote execution of
-  specific commands, using Kerberos v5 GSS-API for authentication.  Which
-  commands a given user can execute is controlled by a configuration file
-  and ACL files and can be easily tightly limited, unlike with rsh.
+  remctl is a client/server application that supports remote execution
+  of specific commands, using Kerberos GSS-API for authentication
+  and confidentiality.  Which commands a given user can execute is
+  controlled by a configuration file and ACL files and can be easily
+  tightly limited, unlike with rsh.  The mapping of command to backend
+  program is done by the configuration file, which allows some additional
+  flexibility compared to ssh command restrictions and works with Kerberos
+  authentications rather than being limited to public key authentications.
 
   remctld is very similar to a CGI server that uses a different network
-  protocol than HTTP and always does strong authentication before
-  executing the desired command.  Alternately, you can think of it as a
-  very simple combination of Kerberos rsh and sudo, without most of the
-  features of both but with simpler authorization.
+  protocol than HTTP, always does strong authentication before executing
+  the desired command, and guarantees the data is encrypted on the
+  network.  Alternately, you can think of it as a very simple combination
+  of Kerberos rsh and sudo, without most of the features of both but with
+  simpler authorization.
 
-  This package was developed to replace the use of sysctl, another package
-  that allowed remote code execution with Kerberos (v4) authentication.
-  sysctl embedded Tcl and allowed for arbitrary Tcl code to be run, but at
-  Stanford we found that in practice all we did with it was execute
-  programs on the host system.  remctl is a Kerberos v5 equivalent that
-  does only the portions we actually needed.
+  There are a lot of different client/server systems that do something
+  similar, including regular rsh, CGI, IBM's sysctl (not to be confused
+  with the Linux kernel call and configuration file of the same name),
+  CERN's arc, and more elaborate systems like MIT's Moira. remctl has the
+  advantage over many of these schemes of using GSS-API and being about
+  as simple as it possibly can be while still being useful.  It doesn't
+  require any particular programming language, builds self-contained
+  binaries, and uses as minimal of a protocol as possible.
 
   Both C and Java clients and servers are provided, as well as Perl, PHP,
   and Python bindings for the C client library.  For more information
   about the Java client, see java/README.  For more information about the
   PHP bindings, see php/README.  For more information about the Python
   bindings, see python/README.
+
+  remctl was originally written by Anton Ushakov as a replacement
+  for IBM's sysctl, a client/server application with Kerberos v4
+  authentication that allowed the client to run Tcl code on the server,
+  protected by ACLs.  At Stanford, we used sysctl extensively, but mostly
+  only to run external programs, so remctl was developed as a kerberos v5
+  equivalent that did only the portions we needed.
 
   Complete protocol documentation is available in docs/protocol.html.
   Also present, as docs/design.html, is the original design document (now
@@ -55,7 +69,10 @@ REQUIREMENTS
   The remctld server and the standard client are written in C and require
   a C compiler to build.  Both will build against either MIT Kerberos or
   Heimdal (tested with Heimdal 0.6 and later).  remctl will also build
-  against the Kerberos GSS-API implementation shipped with AIX 5.2.
+  against the Kerberos GSS-API implementation shipped with AIX 5.2 and the
+  Solaris 10 generic GSS-API library.  The remctl_set_ccache
+  implementation is improved by building against Kerberos libraries and a
+  GSS-API library that supports gss_krb5_import_cred.
 
   The remctl server will support regex ACLs if the system supports the
   POSIX regex API.  The remctl server also optionally supports PCRE
@@ -72,11 +89,16 @@ REQUIREMENTS
   Windows.
 
   To build the Perl bindings for the C client library, you will need Perl
-  5.8 or later.  To run the full test suite for the Perl bindings, the
-  Perl module Test::Pod must be installed.  Test::Pod currently must be
-  installed separately, but the POD tests will be skipped without
-  interfering with the rest of the tests if it's not installed.  The Perl
-  bindings have not been tested on Windows.
+  5.8 or later.  To run the full test suite for the Perl bindings, you
+  will also need the Perl modules:
+
+      Test::MinimumVersion
+      Test::Pod
+      Test::Strict
+      Test::Synopsis
+
+  but tests that require modules that aren't installed will be skipped.
+  The Perl bindings have not been tested on Windows.
 
   To build the PHP bindings for the C client library, you will need PHP
   5.x (only tested with 5.2 and 5.3) and phpize, plus any other programs
@@ -92,8 +114,9 @@ REQUIREMENTS
   A Java client and Java server are available in the java subdirectory,
   but they are not integrated into the normal build or built by default.
   There is a basic Makefile in that directory that may require some
-  tweaking.  It currently requires the Sun Java JDK (1.4.2, 5, or 6) or
-  OpenJDK 6 or later.
+  tweaking.  It currently requires the Sun Java JDK (1.4.2, 5, or 6)
+  or OpenJDK 6 or later.  A considerably better Java implementation is
+  currently under development.
 
   To run the test suite, you will need Test::Pod as described above.  The
   test suite will also need to be able to bind to 127.0.0.1 on port 11119
@@ -106,20 +129,27 @@ REQUIREMENTS
   (available in the fakeroot package in Debian and Ubuntu).  This test
   will be skipped if fakeroot isn't available.
 
-  To check spelling in the POD documentation, Pod::Spell (available from
-  CPAN) and either aspell or ispell with the american dictionary are also
-  required.  The user's path is searched for aspell or ispell and aspell
-  is preferred.  Spelling tests are disabled by default since spelling
-  dictionaries differ too much between systems.  To enable those tests,
-  set RRA_MAINTAINER_TESTS to a true value.
+  Bootstrapping from a Git checkout, or making changes to some of the
+  generated files, will require the following additional packages:
 
-  To bootstrap from a Git checkout, or if you change the Automake files
-  and need to regenerate Makefile.in, you will need Automake 1.11 or
-  later.  For bootstrap or if you change configure.ac or any of the m4
-  files it includes and need to regenerate configure or config.h.in, you
-  will need Autoconf 2.64 or later.  Perl and xml2rfc are also required to
-  generate the manual pages and protocol documentation from a fresh Git
-  checkout.
+      Autoconf 2.64 or later
+      Automake 1.11 or later
+      Perl 5.10 or later
+      xml2rfc
+
+  Some parts of the test suite are suppressed by default because those
+  tests are normally only useful for the maintainer.  This includes tests
+  of POD spelling and Perl coding style.  To enable those tests, set the
+  environment variable RRA_MAINTAINER_TESTS to a true value.  For these
+  tests, the additional Perl modules:
+
+      Test::Perl::Critic
+      Test::Spelling
+      Test::Strict
+
+  and their dependencies as well as a spell-checking program (several are
+  supported by Test::Spelling) are required.  These modules are all
+  available from CPAN.
 
 INSTALLATION (UNIX)
 
@@ -205,6 +235,9 @@ INSTALLATION (UNIX)
 
   krb5-config is not used and library probing is always done if either
   --with-gssapi-include or --with-gssapi-lib are given.
+
+  You can similarly override krb5-config for Kerberos libraries (if you
+  have them) with --with-krb5, --with-krb5-include, and --with-krb5-lib.
 
   remctl will automatically build with PCRE support if pcre-config or the
   PCRE library are found.  You can pass --with-pcre to configure to

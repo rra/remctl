@@ -1,38 +1,35 @@
 # RPM spec file for remctl.
 #
 # Written by Russ Allbery <rra@stanford.edu>
-# Improvements by Thomas Kula
-# Copyright 2006, 2007, 2012
+# Improvements by Thomas Kula and Darren Patterson
+# Copyright 2006, 2007, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
 
 %define rel %(cat /etc/redhat-release | cut -d ' ' -f 7 | cut -d'.' -f1)
 # this is needed for Stanford packaging automation
-%define vers 3.2
+%define vers 3.4
 
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
 %{!?buildperl:%define buildperl 1}
-# EL6 prefers vendor_perl over site_perl
-%define perlinstall site_perl
-%define perlloc site
-%if %{rel} >= 6
-%define perlinstall vendor_perl
-%define perlloc vendor
-%endif
+# Use rpmbuild option "--define 'buildperl 0'" to not build the php bindings.
+%{!?buildphp:%define buildphp 1}
+# Use rpmbuild option "--define 'buildperl 0'" to not build the ruby bindings.
+%{!?buildruby:%define buildruby 1}
 
 # Use rpmbuild option "--define 'buildpython 0'" to not build the Python module.
 %{!?buildpython:%define buildpython 1}
 %if %{buildpython}
-%define py_version %( python -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
-%define py_libdest %( python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'LIBDEST' ])")
-%define py_binlibdest %( python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'BINLIBDEST' ])")
+%define py_version %(python -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
+%define py_libdest %(python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'LIBDEST' ])")
+%define py_binlibdest %(python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'BINLIBDEST' ])")
 %endif
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
 Version: %{vers}
-Release: 2.EL%{rel}
+Release: 1.EL%{rel}
 %if %{rel} >= 4
 License: MIT
 %else
@@ -44,28 +41,54 @@ Group: System Environment/Daemons
 Vendor: Stanford University
 Packager: Russ Allbery <rra@stanford.edu>
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: krb5-devel, perl(ExtUtils::MakeMaker)
+BuildRequires: krb5-devel, libgcrypt
+%if %{buildperl}
+BuildRequires: perl(Module::Build)
+%endif
 %if %{buildpython}
 BuildRequires: python-devel, python
 %endif
+%if %{buildphp}
+BuildRequires: php-devel
+%endif
+%if %{buildruby}
+BuildRequires: ruby, ruby-devel
+%endif
 Distribution: EL
-
-# setup lib dir and perl lib dir
-%ifarch x86_64
-%define ldir /usr/lib64
-%if %{rel} >= 6
-%define perlldir %{ldir}
-%else
-%define perlldir /usr/lib
-%endif
-%else
-%define ldir /usr/lib
-%define perlldir %{ldir}
-%endif
 
 %ifarch i386
 BuildArch: i686
 %endif
+
+%if %{buildphp}
+# RHEL 5/6 compatibility for PHP
+%if %{rel} == 5
+%global php_apiver %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
+%{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
+%endif
+%if %{rel} == 5 || %{rel} == 6
+%{!?php_inidir: %{expand: %%global php_inidir %{_sysconfdir}/php.d }}
+%endif
+%endif
+
+%if %{buildpython}
+# RHEL 5 compatibility for Python
+%if %{rel} == 5
+%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%endif
+%endif
+
+%if %{buildruby}
+# RHEL 5/6 compatibility for Ruby
+%if %{rel} == 5
+%{!?ruby_vendorarchdir: %global ruby_vendorarchdir %(ruby -rrbconfig -e 'puts Config::CONFIG["sitearchdir"] ')}
+%endif
+%if %{rel} == 6
+%{!?ruby_vendorarchdir: %global ruby_vendorarchdir %(ruby -rrbconfig -e 'puts Config::CONFIG["vendorarchdir"] ')}
+%endif
+%endif
+
 
 %description
 remctl is a client/server protocol for executing specific commands on a
@@ -92,6 +115,7 @@ This package contains the server (remctld).
 %package devel
 Summary: Development files for remctl
 Group: Applications/Internet
+Requires: %{name}-client = %{version}-%{release}
 
 %description devel
 remctl is a client/server protocol for executing specific commands on a
@@ -117,10 +141,34 @@ that command.
 
 This package contains the client program (remctl) and the client libraries.
 
+%if %{buildphp}
+%package php
+Summary: PHP interface to remctl
+Group: Development/Libraries
+Requires: %{name}-client = %{version}-%{release}
+%if %{rel} == 5
+Requires:     php-api = %{php_apiver}
+%else
+Requires:     php(zend-abi) = %{php_zend_api}
+Requires:     php(api) = %{php_core_api}
+%endif
+
+%description php
+remctl is a client/server protocol for executing specific commands on a
+remote system with Kerberos authentication.  The allowable commands must
+be listed in a server configuration file, and the executable run on the
+server may be mapped to any command name.  Each command is also associated
+with an ACL containing a list of Kerberos principals authorized to run
+that command.
+
+This package contains the PHP remctl client library.
+%endif
+
 %if %{buildpython}
 %package python
 Summary: Python library for Kerberos-authenticated command execution
 Group: Applications/Internet
+Requires: %{name}-client = %{version}-%{release}
 
 %description python
 remctl is a client/server protocol for executing specific commands on a
@@ -133,63 +181,128 @@ that command.
 This package contains the Python remctl client library.
 %endif
 
+%if %{buildruby}
+%package ruby
+Summary: Ruby interface to remctl
+Group: Development/Libraries
+Requires: %{name}-client = %{version}-%{release}
+%if %{rel} <= 6
+Requires: ruby(abi) = 1.8
+%else
+Requires: ruby(abi) = 1.9.1
+%endif
+Provides: ruby(remctl) = %{version}-%{release}
+
+%description ruby
+remctl is a client/server protocol for executing specific commands on a
+remote system with Kerberos authentication.  The allowable commands must
+be listed in a server configuration file, and the executable run on the
+server may be mapped to any command name.  Each command is also associated
+with an ACL containing a list of Kerberos principals authorized to run
+that command.
+
+This package contains the Ruby remctl client library.
+%endif
+
+%if %{buildperl}
+%package perl
+Summary: Perl library for Kerberos-authenticated command execution
+Group: Applications/Internet
+Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+Requires: %{name}-client = %{version}-%{release}
+
+%description perl
+remctl is a client/server protocol for executing specific commands on a
+remote system with Kerberos authentication.  The allowable commands must
+be listed in a server configuration file, and the executable run on the
+server may be mapped to any command name.  Each command is also associated
+with an ACL containing a list of Kerberos principals authorized to run
+that command.
+
+This package contains the Perl remctl client library.
+%endif
+
 %prep
-%setup -n remctl-%{version}
+%setup -q -n remctl-%{version}
 
 %build
-options="--prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc/remctl --libdir=%{ldir}"
+options="--disable-static --libdir=%{_libdir} --sysconfdir=/etc/remctl"
+%if %{buildruby}
+options="$options --enable-ruby"
+%endif
+%if %{buildphp}
+options="$options --enable-php"
+%endif
 %if %{buildperl}
 options="$options --enable-perl"
 %endif
 %if %{buildpython}
 options="$options --enable-python"
 %endif
-PATH="/sbin:/bin:/usr/sbin:$PATH" \
-export REMCTL_PERL_FLAGS="PREFIX=/usr SITEPREFIX=/usr INSTALLSITELIB=%{perlldir}/%{perlinstall} SITELIBEXP=/usr/share/perl5 SITEARCHEXP=%{perlldir}/perl5 INSTALLSITEARCH=%{perlldir}/perl5/%{perlinstall}"
+%if %{buildperl}
+export PATH="/usr/kerberos/bin:/sbin:/bin:/usr/sbin:$PATH"
+export REMCTL_PERL_FLAGS="--installdirs=vendor"
+%if %{rel} >= 6
+export REMCTL_PERL_FLAGS="$REMCTL_PERL_FLAGS --prefix=/usr"
+%endif
+%endif
 %configure $options
 %{__make}
 
 %install
 %{__rm} -rf %{buildroot}
-make install DESTDIR=%{buildroot} libdir=%{ldir} mandir=/usr/share/man INSTALLDIRS=%{perlloc}
+options=''
+%if %{buildruby}
+options="$options RUBYARCHDIR=%{buildroot}%{ruby_vendorarchdir}"
+%endif
+make install DESTDIR=%{buildroot} INSTALL="install -p" \
+    INSTALLDIRS=vendor $options
 mkdir -p %{buildroot}/etc/xinetd.d
 install -c -m 0644 examples/xinetd %{buildroot}/etc/xinetd.d/remctl
 mkdir -p %{buildroot}/etc/remctl/acl
 mkdir -p %{buildroot}/etc/remctl/conf.d
-mkdir -p %{buildroot}/usr/share/doc/remctl-{server,client,python}-%{vers}
-chmod 755 %{buildroot}/usr/share/doc/remctl-{server,client,python}-%{vers}
+mkdir -p %{buildroot}/usr/share/doc/remctl-{server,client}-%{vers}
+chmod 755 %{buildroot}/usr/share/doc/remctl-{server,client}-%{vers}
 install -c -m 0644 examples/remctl.conf %{buildroot}/etc/remctl/remctl.conf
 %if %{buildperl}
-find %{buildroot} -name perllocal.pod -exec rm {} \;
-find %{buildroot} -name .packlist -exec rm {} \;
-find %{buildroot} -name Remctl.bs -size 0 -exec rm {} \;
-find %{buildroot} -name Remctl.so -exec chmod 755 {} \;
+find %{buildroot} -type f -name perllocal.pod -exec rm -f {} \;
+find %{buildroot} -type f -name .packlist -exec rm -f {} \;
+find %{buildroot} -type f -name '*.bs' -size 0 -exec rm -f {} \;
+find %{buildroot} -type f -name Remctl.so -exec chmod 755 {} \;
+mkdir -p %{buildroot}/usr/share/doc/remctl-perl-%{vers}
+chmod 755 %{buildroot}/usr/share/doc/remctl-perl-%{vers}
 %endif
 %if %{buildpython}
+mkdir -p %{buildroot}/usr/share/doc/remctl-python-%{vers}
+chmod 755 %{buildroot}/usr/share/doc/remctl-python-%{vers}
 find %{buildroot} -name _remctl.so -exec chmod 755 {} \;
+%endif
+%if %{buildruby}
+mkdir -p %{buildroot}/usr/share/doc/remctl-ruby-%{vers}
+chmod 755 %{buildroot}/usr/share/doc/remctl-ruby-%{vers}
+%endif
+%if %{buildphp}
+mkdir -p %{buildroot}/usr/share/doc/remctl-php-%{vers}
+chmod 755 %{buildroot}/usr/share/doc/remctl-php-%{vers}
+# PHP configuration
+mkdir -p %{buildroot}%{php_inidir}
+install -m 0644 -p php/remctl.ini %{buildroot}%{php_inidir}
 %endif
 
 %files devel
 %defattr(-, root, root)
 /usr/include/remctl.h
-%{ldir}/libremctl.a
 %doc %{_mandir}/man3/remctl*
-%{ldir}/pkgconfig/libremctl.pc
+%{_libdir}/pkgconfig/libremctl.pc
 
 %files client
 %defattr(-, root, root)
 %{_bindir}/*
 %doc NEWS README TODO
-%{ldir}/libremctl.la
-%{ldir}/libremctl.so
-%{ldir}/libremctl.so.*
-%doc %{_mandir}/*/remctl.*
-%doc %{_mandir}/*/remctl_*
-%dir /usr/share/doc/remctl-client-%{vers}
-%if %{buildperl}
-%{_mandir}/*/Net::Remctl.3pm*
-%{perlldir}/perl5/%{perlinstall}/
-%endif
+%{_libdir}/libremctl.la
+%{_libdir}/libremctl.so
+%{_libdir}/libremctl.so.*
+%doc %{_mandir}/man1/remctl.*
 
 %files server
 %defattr(-, root, root)
@@ -199,21 +312,46 @@ find %{buildroot} -name _remctl.so -exec chmod 755 {} \;
 %doc %{_mandir}/*/remctld.*
 %config /etc/xinetd.d/remctl
 %config(noreplace) /etc/remctl/remctl.conf
-%dir /usr/share/doc/remctl-server-%{vers}
 %dir /etc/remctl/acl/
 %dir /etc/remctl/conf.d/
 
 %if %{buildpython}
 %files python
 %defattr(-, root, root)
-%{py_binlibdest}/site-packages/_remctl.so
-%{py_libdest}/site-packages/remctl.py*
-%if %{rel} == 6
-%{py_libdest}/site-packages/pyremctl-%{version}-py%{py_version}.egg-info
+%{python_sitearch}/_remctl.so
+%{python_sitearch}/remctl.py*
+%if %{rel} != 5
+%{python_sitearch}/pyremctl-%{version}-*.egg-info
 %endif
 %doc NEWS TODO
 %doc python/README
-%dir /usr/share/doc/remctl-python-%{vers}
+%endif
+
+%if %{buildperl}
+%files perl
+%defattr(-,root,root,-)
+%{perl_vendorarch}/Net
+%{perl_vendorarch}/auto/Net
+%doc %{_mandir}/man3/Net::Remctl*
+%doc NEWS TODO
+%endif
+
+%if %{buildphp}
+%files php
+%defattr(-,root,root,-)
+%doc NEWS TODO
+%doc php/README
+%{php_extdir}/remctl.so
+%config(noreplace) %{php_inidir}/remctl.ini
+%endif
+
+%if %{buildruby}
+%defattr(-,root,root,-)
+%files ruby
+%defattr(-,root,root,-)
+%doc NEWS TODO
+%doc ruby/README
+%{ruby_vendorarchdir}/remctl.so
 %endif
 
 %post client -p /sbin/ldconfig
@@ -253,6 +391,10 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Thu Apr 11 2013 Darren Patterson <darrenp1@stanford.edu> 3.4-1
+- update to 3.4, and merged some changes from ktdreyer in EPEL spec
+- split out perl, php, ruby
+
 * Fri Jul 17 2012 Darren Patterson <darrenp1@stanford.edu> 3.2-2
 - spec fixes for build issues around perl and lib dirs
 - move perl to vendor_perl on EL6

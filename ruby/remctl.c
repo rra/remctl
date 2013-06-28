@@ -6,7 +6,7 @@
  *
  * Original implementation by Anthony M. Martinez <twopir@nmt.edu>
  * Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
- * Copyright 2010, 2011, 2012
+ * Copyright 2010, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -251,7 +251,7 @@ rb_remctl_ccache_get(VALUE self UNUSED)
  * Remctl.ccahe = '/path/to/some/file'  -> 0
  *
  * Change the credential cache used for new remctl connections.  This will
- * also, with most GSS-API implementations, affect all other GSS-API
+ * also, with older GSS-API implementations, affect all other GSS-API
  * connections in the same process, including other remctl objects, once the
  * value is used during open.
  */

@@ -7,6 +7,7 @@ client/source-ip
 client/timeout
 docs/pod
 docs/pod-spelling
+perl/module-version
 portable/asprintf
 portable/daemon
 portable/getaddrinfo

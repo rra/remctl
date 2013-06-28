@@ -253,9 +253,9 @@ main(void)
         socket_close(server);
         exit(0);
     } else {
-        result.value = bmalloc(512 * 1024);
-        memset(result.value, 'a', 512 * 1024);
-        result.length = 512 * 1024;
+        result.value = bmalloc(4096 * 1024);
+        memset(result.value, 'a', 4096 * 1024);
+        result.length = 4096 * 1024;
         client = create_client();
         status = token_send(client, 3, &result, 1);
         free(result.value);

@@ -72,8 +72,8 @@ Table of Contents
    3.  Network Protocol (version 1) . . . . . . . . . . . . . . . . . 10
    4.  Security Considerations  . . . . . . . . . . . . . . . . . . . 12
    Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 13
-   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 14
-
+   Appendix B.  License . . . . . . . . . . . . . . . . . . . . . . . 14
+   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 15
 
 
 
@@ -729,6 +729,62 @@ Allbery                                                        [Page 13]
                                  remctl                     October 2011
 
 
+Appendix B.  License
+
+   Copyright 2006, 2007, 2008, 2009, 2011, 2013 The Board of Trustees of
+   the Leland Stanford Junior University
+
+   Copying and distribution of this file, with or without modification,
+   are permitted in any medium without royalty provided the copyright
+   notice and this notice are preserved.  This file is offered as-is,
+   without any warranty.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Allbery                                                        [Page 14]
+
+                                 remctl                     October 2011
+
+
 Author's Address
 
    Russ Allbery
@@ -780,5 +836,5 @@ Author's Address
 
 
 
-Allbery                                                        [Page 14]
+Allbery                                                        [Page 15]
 
