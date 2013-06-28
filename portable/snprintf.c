@@ -695,7 +695,7 @@ static int fmtfp (char *buffer, size_t *currlen, size_t maxlen,
 	  /* For each leading 0 in fractional part, print one more
 	     fractional digit. */
 	  LDOUBLE temp;
-	  if (ufvalue != 0)
+	  if (ufvalue > 0)
 	    for (temp = ufvalue; temp < 0.1; temp *= 10)
 	      ++max;
 	}
