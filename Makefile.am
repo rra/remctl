@@ -310,19 +310,24 @@ SERVER_FILES = server/commands.c server/config.c server/generic.c \
 	server/logging.c server/server-v1.c server/server-v2.c
 
 # All of the test programs.
+tests_client_api_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_client_api_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_client_ccache_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_client_ccache_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
-tests_client_open_t_LDFLAGS = $(GSSAPI_LDFLAGS)
-tests_client_open_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la $(GSSAPI_LIBS)
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_client_large_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_client_large_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_client_open_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS)
+tests_client_open_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS)
+tests_client_source_ip_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_client_source_ip_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_client_timeout_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_client_timeout_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 tests_data_cmd_background_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_data_cmd_large_output_LDADD = util/libutil.la portable/libportable.la
@@ -366,57 +371,73 @@ tests_portable_strlcpy_t_SOURCES = tests/portable/strlcpy-t.c \
 	tests/portable/strlcpy.c
 tests_portable_strlcpy_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
-tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) \
-	$(PCRE_LDFLAGS)
-tests_server_accept_t_LDADD = tests/tap/libtap.a util/libutil.la \
-	portable/libportable.la $(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)
+tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
+	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
+tests_server_accept_t_LDADD = tests/tap/libtap.a util/libutil.la	 \
+	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) \
+	$(PCRE_LIBS)
 tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
 tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS)
+tests_server_bind_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_bind_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 tests_server_config_t_SOURCES = tests/server/config-t.c $(SERVER_FILES)
 tests_server_config_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_config_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS)
+tests_server_continue_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_continue_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_server_empty_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_empty_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_server_env_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_env_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_server_errors_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_errors_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_server_help_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_help_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_server_invalid_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_invalid_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 tests_server_logging_t_SOURCES = tests/server/logging-t.c $(SERVER_FILES)
 tests_server_logging_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_logging_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)
-tests_server_noop_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(PCRE_LDFLAGS)
-tests_server_noop_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(PCRE_LIBS)
+tests_server_noop_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
+	$(PCRE_LDFLAGS)
+tests_server_noop_t_LDADD = client/libremctl.la tests/tap/libtap.a	    \
+	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) \
+	$(PCRE_LIBS)
+tests_server_stdin_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_server_streaming_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_server_summary_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_summary_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_server_user_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_user_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
-tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(PCRE_LDFLAGS)
-tests_server_version_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(PCRE_LIBS)
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
+	$(PCRE_LDFLAGS)
+tests_server_version_t_LDADD = client/libremctl.la tests/tap/libtap.a	    \
+	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) \
+	$(PCRE_LIBS)
 tests_util_fdflag_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_util_gss_tokens_t_SOURCES = tests/util/faketoken.c \
 	tests/util/gss-tokens.c tests/util/gss-tokens-t.c
-tests_util_gss_tokens_t_LDFLAGS = $(GSSAPI_LDFLAGS)
+tests_util_gss_tokens_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS)
 tests_util_gss_tokens_t_LDADD = tests/tap/libtap.a util/libutil.la \
-	portable/libportable.la $(GSSAPI_LIBS)
+	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS)
 tests_util_messages_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_util_network_t_LDADD = tests/tap/libtap.a util/libutil.la \
