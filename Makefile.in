@@ -1359,7 +1359,9 @@ BINDINGS_INSTALL = $(am__append_2) $(am__append_4) $(am__append_6) \
 PERL_CFLAGS = -I$(abs_top_builddir) -I$(abs_top_srcdir) \
         -I$(abs_top_srcdir)/client $(CPPFLAGS)
 
-PERL_LDFLAGS_FULL = -L$(abs_top_builddir)/client/.libs $(PERL_LDFLAGS)
+PERL_LDFLAGS_FULL = -L$(abs_top_builddir)/client/.libs $(PERL_LDFLAGS) \
+	$(LDFLAGS)
+
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
