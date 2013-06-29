@@ -110,12 +110,13 @@ FULL INTERFACE
       subsequent open() calls on the same object, but will have no effect
       on connections that are already open.
 
-      For current GSS-API implementations, this will affect not only all
-      subsequent open() calls for the same object, but all subsequent
-      remctl connections of any kind from the same process, and even other
-      GSS-API connections from the same process unrelated to remctl.  This
-      is due to a limitation in the GSS-API that makes this setting a
-      global setting for the process or thread.
+      If the remctl client library was built against a Kerberos library
+      and the GSS-API library supported gss_krb5_import_cred, this call
+      affects only this Remctl object.  Otherwise, this will affect not
+      only all subsequent open() calls for the same object, but all
+      subsequent remctl connections of any kind from the same process, and
+      even other GSS-API connections from the same process unrelated to
+      remctl.
 
       Not all GSS-API implementations support setting the credential
       cache.  If this operation is not supported, a RemctlError exception

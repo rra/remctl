@@ -75,8 +75,8 @@ if (!do($PATH)) {
 __END__
 
 =for stopwords
-Allbery rra-c-util Automake perlcritic .libs namespace sublicense
-MERCHANTABILITY NONINFRINGEMENT
+Allbery rra-c-util Automake perlcritic .libs namespace subdirectory
+sublicense MERCHANTABILITY NONINFRINGEMENT
 
 =head1 NAME
 
@@ -167,7 +167,7 @@ Russ Allbery <rra@stanford.edu>
 =head1 COPYRIGHT AND LICENSE
 
 Copyright 2013 The Board of Trustees of the Leland Stanford Junior
-University.
+University
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),

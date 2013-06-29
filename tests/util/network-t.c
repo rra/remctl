@@ -5,7 +5,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2005 Russ Allbery <rra@stanford.edu>
+ * Copyright 2005, 2013 Russ Allbery <rra@stanford.edu>
  * Copyright 2009, 2010, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -573,8 +573,8 @@ test_network_write(void)
     socklen_t slen;
     char *buffer;
 
-    buffer = bmalloc(512 * 1024);
-    memset(buffer, 'a', 512 * 1024);
+    buffer = bmalloc(4096 * 1024);
+    memset(buffer, 'a', 4096 * 1024);
     fd = network_bind_ipv4("127.0.0.1", 11119);
     if (fd == INVALID_SOCKET)
         sysbail("cannot create or bind socket");
@@ -609,7 +609,7 @@ test_network_write(void)
         ok(network_write(c, buffer, 32 * 1024, 0), "network_write");
         ok(network_write(c, buffer, 32 * 1024, 1),
            "network_write with timeout");
-        ok(!network_write(c, buffer, 512 * 1024, 1),
+        ok(!network_write(c, buffer, 4096 * 1024, 1),
            "network_write aborted with timeout");
         is_int(ETIMEDOUT, socket_errno, "...with correct error");
         socket_close(c);

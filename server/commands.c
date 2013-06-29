@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -66,6 +66,7 @@ server_process_output(struct client *client, struct process *process)
     int i, maxfd, fd, result;
     fd_set readfds, writefds;
     struct timeval timeout;
+    bool saw_output;
 
     /* If we haven't allocated an output buffer, do so now. */
     if (client->output == NULL)
@@ -92,8 +93,15 @@ server_process_output(struct client *client, struct process *process)
      * init scripts that start poorly-written daemons.  Once our child process
      * is finished, we're done, even if standard output and error from the
      * child process aren't closed yet.  To catch this case, call waitpid with
-     * the WNOHANG flag each time through the select loop and decide we're
-     * done as soon as our child has exited.
+     * the WNOHANG flag each time through the select loop to determine when
+     * the child has exited.
+     *
+     * We cannot simply decide the child is done as soon as we get an exit
+     * status, however, since we may still have buffered output from the child
+     * sitting in system buffers.  Therefore, once the child has exited, we
+     * continue to loop but with a select timeout of 0, polling for more
+     * output.  Once the child has exited and we have no output immediately
+     * available, we decide the command has finished.
      *
      * Meanwhile, if we have input data, then as long as we've not gotten an
      * EPIPE error from sending input data to the process we keep writing
@@ -101,7 +109,8 @@ server_process_output(struct client *client, struct process *process)
      * don't care if we've sent all input data before the process says it's
      * done and exits.
      */
-    while (!process->reaped) {
+    saw_output = false;
+    while (!process->reaped || saw_output) {
         FD_ZERO(&readfds);
         maxfd = -1;
         for (i = 0; i < 2; i++) {
@@ -146,10 +155,10 @@ server_process_output(struct client *client, struct process *process)
          */
         timeout.tv_sec = 5;
         timeout.tv_usec = 0;
-        if (waitpid(process->pid, &process->status, WNOHANG) > 0) {
+        if (waitpid(process->pid, &process->status, WNOHANG) > 0)
             process->reaped = true;
+        if (process->reaped)
             timeout.tv_sec = 0;
-        }
         if (instatus != 0)
             result = select(maxfd + 1, &readfds, &writefds, NULL, &timeout);
         else
@@ -191,10 +200,12 @@ server_process_output(struct client *client, struct process *process)
          * into the buffer.  Otherwise, we send an output token for each bit
          * of output as we see it.
          */
+        saw_output = false;
         for (i = 0; i < 2; i++) {
             fd = process->fds[i];
             if (!FD_ISSET(fd, &readfds))
                 continue;
+            saw_output = true;
             if (client->protocol == 1) {
                 if (left > 0) {
                     status[i] = read(fd, p, left);

@@ -12,7 +12,6 @@ use 5.008;
 use strict;
 use warnings;
 
-use Config;
 use Module::Build;
 
 # Create a command script that will be run by remctld during the test suite.
@@ -47,22 +46,6 @@ sub create_command {
     return;
 }
 
-# Determine compiler and linker flags from Autoconf.  The actual Build.PL
-# script will be built from a template with these values substituted in.
-my (@CFLAGS, @LDFLAGS, @LIBS);
-{
-    ## no critic (TestingAndDebugging::ProhibitNoWarnings)
-    no warnings 'qw';
-    @CFLAGS  = qw(-I@top_builddir@ -I@top_srcdir@ -I@top_srcdir@/client);
-    @LDFLAGS = qw(-L@abs_top_builddir@/client/.libs @LDFLAGS@);
-    @LIBS    = qw(-lremctl @LIBS@);
-}
-
-# We will override the lddlflags set by Perl to prepend, rather than append,
-# our LDFLAGS values.  Otherwise, depending on how Perl was built, it may
-# prefer the system libremctl instead of the one in the build tree.
-my $LDDLFLAGS = join q{ }, @LDFLAGS, $Config{lddlflags};
-
 # Basic package configuration.
 my $build = Module::Build->new(
     module_name          => 'Net::Remctl',
@@ -71,10 +54,9 @@ my $build = Module::Build->new(
     recursive_test_files => 1,
     add_to_cleanup       => [qw(cover_db t/data/cmd-hello t/data/cmd-sleep)],
 
-    # XS configuration.  We prefer the in-tree libremctl library.
-    config               => { lddlflags => $LDDLFLAGS },
-    extra_compiler_flags => [@CFLAGS],
-    extra_linker_flags   => [@LIBS],
+    # XS configuration.  For in-tree builds, we override this to add the full
+    # list of dependency libraries, which will work on more systems.
+    extra_linker_flags => [qw(-lremctl)],
 
     # Other package relationships.
     configure_requires => { 'Module::Build' => 0.28 },

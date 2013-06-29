@@ -1,15 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE rfc SYSTEM "rfc2629.dtd">
 <?rfc private="remctl Protocol" toc="yes" symrefs="yes"?>
-<!--
-  Copyright 2006, 2007, 2008, 2009, 2011
-    The Board of Trustees of the Leland Stanford Junior University
-
-  Copying and distribution of this file, with or without modification,
-  are permitted in any medium without royalty provided the copyright
-  notice and this notice are preserved.  This file is offered as-is,
-  without any warranty.
--->
 <rfc>
   <front>
     <title abbrev="remctl">remctl: Remote Authenticated Command Service</title>
@@ -498,6 +489,16 @@
       with input from Russ Allbery and Roland Schemers.  Thank you to
       David Hoffman and Mike Newton for their review of the version 2
       remctl protocol.</t>
+    </section>
+
+    <section anchor='license' title='License'>
+      <t>Copyright 2006, 2007, 2008, 2009, 2011, 2013 The Board of
+      Trustees of the Leland Stanford Junior University</t>
+
+      <t>Copying and distribution of this file, with or without
+      modification, are permitted in any medium without royalty provided
+      the copyright notice and this notice are preserved.  This file is
+      offered as-is, without any warranty.</t>
     </section>
   </back>
 </rfc>
