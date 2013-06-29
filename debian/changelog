@@ -1,4 +1,4 @@
-remctl (3.5-1) UNRELEASED; urgency=low
+remctl (3.5-1) unstable; urgency=low
 
   * New upstream release.
     - Fix a long-standing race condition in remctld that could truncate
@@ -9,8 +9,9 @@ remctl (3.5-1) UNRELEASED; urgency=low
       gone backwards from Perl's perspective to bring them in-line with
       the package version (3.4 -> 3.05).  This is a one-time adjustment
       to a more reliable versioning scheme.
+    - Fix test suite issues with newer Linux kernels.
 
- -- Russ Allbery <rra@debian.org>  Fri, 28 Jun 2013 16:23:12 -0700
+ -- Russ Allbery <rra@debian.org>  Fri, 28 Jun 2013 21:45:30 -0700
 
 remctl (3.4-2) unstable; urgency=low
 
