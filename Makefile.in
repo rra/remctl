@@ -300,20 +300,35 @@ server_remctld_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 tests_client_api_t_SOURCES = tests/client/api-t.c
 tests_client_api_t_OBJECTS = tests/client/api-t.$(OBJEXT)
 tests_client_api_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_client_api_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_client_api_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_client_ccache_t_SOURCES = tests/client/ccache-t.c
 tests_client_ccache_t_OBJECTS = tests/client/ccache-t.$(OBJEXT)
 tests_client_ccache_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_client_ccache_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_client_ccache_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_client_large_t_SOURCES = tests/client/large-t.c
 tests_client_large_t_OBJECTS = tests/client/large-t.$(OBJEXT)
 tests_client_large_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_client_large_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_client_large_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_client_open_t_SOURCES = tests/client/open-t.c
 tests_client_open_t_OBJECTS = tests/client/open-t.$(OBJEXT)
 tests_client_open_t_DEPENDENCIES = client/libremctl.la \
 	tests/tap/libtap.a util/libutil.la portable/libportable.la \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 tests_client_open_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_client_open_t_LDFLAGS) \
@@ -321,11 +336,21 @@ tests_client_open_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 tests_client_source_ip_t_SOURCES = tests/client/source-ip-t.c
 tests_client_source_ip_t_OBJECTS = tests/client/source-ip-t.$(OBJEXT)
 tests_client_source_ip_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_client_source_ip_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_client_source_ip_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_client_timeout_t_SOURCES = tests/client/timeout-t.c
 tests_client_timeout_t_OBJECTS = tests/client/timeout-t.$(OBJEXT)
 tests_client_timeout_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_client_timeout_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_client_timeout_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_data_cmd_background_SOURCES = tests/data/cmd-background.c
 tests_data_cmd_background_OBJECTS =  \
 	tests/data/cmd-background.$(OBJEXT)
@@ -443,7 +468,8 @@ am_tests_server_accept_t_OBJECTS = tests/server/accept-t.$(OBJEXT) \
 tests_server_accept_t_OBJECTS = $(am_tests_server_accept_t_OBJECTS)
 tests_server_accept_t_DEPENDENCIES = tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 tests_server_accept_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_server_accept_t_LDFLAGS) \
@@ -461,7 +487,12 @@ tests_server_acl_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 tests_server_bind_t_SOURCES = tests/server/bind-t.c
 tests_server_bind_t_OBJECTS = tests/server/bind-t.$(OBJEXT)
 tests_server_bind_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_server_bind_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_bind_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_tests_server_config_t_OBJECTS = tests/server/config-t.$(OBJEXT) \
 	$(am__objects_1)
 tests_server_config_t_OBJECTS = $(am_tests_server_config_t_OBJECTS)
@@ -475,27 +506,57 @@ tests_server_config_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 tests_server_continue_t_SOURCES = tests/server/continue-t.c
 tests_server_continue_t_OBJECTS = tests/server/continue-t.$(OBJEXT)
 tests_server_continue_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_server_continue_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_continue_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_server_empty_t_SOURCES = tests/server/empty-t.c
 tests_server_empty_t_OBJECTS = tests/server/empty-t.$(OBJEXT)
 tests_server_empty_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_server_empty_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_empty_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_server_env_t_SOURCES = tests/server/env-t.c
 tests_server_env_t_OBJECTS = tests/server/env-t.$(OBJEXT)
 tests_server_env_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_server_env_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_env_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_server_errors_t_SOURCES = tests/server/errors-t.c
 tests_server_errors_t_OBJECTS = tests/server/errors-t.$(OBJEXT)
 tests_server_errors_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_server_errors_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_errors_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_server_help_t_SOURCES = tests/server/help-t.c
 tests_server_help_t_OBJECTS = tests/server/help-t.$(OBJEXT)
 tests_server_help_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_server_help_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_help_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_server_invalid_t_SOURCES = tests/server/invalid-t.c
 tests_server_invalid_t_OBJECTS = tests/server/invalid-t.$(OBJEXT)
 tests_server_invalid_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_server_invalid_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_invalid_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_tests_server_logging_t_OBJECTS = tests/server/logging-t.$(OBJEXT) \
 	$(am__objects_1)
 tests_server_logging_t_OBJECTS = $(am_tests_server_logging_t_OBJECTS)
@@ -510,7 +571,8 @@ tests_server_noop_t_SOURCES = tests/server/noop-t.c
 tests_server_noop_t_OBJECTS = tests/server/noop-t.$(OBJEXT)
 tests_server_noop_t_DEPENDENCIES = client/libremctl.la \
 	tests/tap/libtap.a util/libutil.la portable/libportable.la \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 tests_server_noop_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_server_noop_t_LDFLAGS) \
@@ -518,24 +580,45 @@ tests_server_noop_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 tests_server_stdin_t_SOURCES = tests/server/stdin-t.c
 tests_server_stdin_t_OBJECTS = tests/server/stdin-t.$(OBJEXT)
 tests_server_stdin_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_server_stdin_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_stdin_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_server_streaming_t_SOURCES = tests/server/streaming-t.c
 tests_server_streaming_t_OBJECTS = tests/server/streaming-t.$(OBJEXT)
 tests_server_streaming_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_server_streaming_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_streaming_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_server_summary_t_SOURCES = tests/server/summary-t.c
 tests_server_summary_t_OBJECTS = tests/server/summary-t.$(OBJEXT)
 tests_server_summary_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_server_summary_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_summary_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_server_user_t_SOURCES = tests/server/user-t.c
 tests_server_user_t_OBJECTS = tests/server/user-t.$(OBJEXT)
 tests_server_user_t_DEPENDENCIES = client/libremctl.la \
-	tests/tap/libtap.a util/libutil.la portable/libportable.la
+	tests/tap/libtap.a util/libutil.la portable/libportable.la \
+	$(am__DEPENDENCIES_1)
+tests_server_user_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_user_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_server_version_t_SOURCES = tests/server/version-t.c
 tests_server_version_t_OBJECTS = tests/server/version-t.$(OBJEXT)
 tests_server_version_t_DEPENDENCIES = client/libremctl.la \
 	tests/tap/libtap.a util/libutil.la portable/libportable.la \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 tests_server_version_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_server_version_t_LDFLAGS) \
@@ -550,7 +633,8 @@ am_tests_util_gss_tokens_t_OBJECTS = tests/util/faketoken.$(OBJEXT) \
 tests_util_gss_tokens_t_OBJECTS =  \
 	$(am_tests_util_gss_tokens_t_OBJECTS)
 tests_util_gss_tokens_t_DEPENDENCIES = tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la $(am__DEPENDENCIES_1)
+	util/libutil.la portable/libportable.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 tests_util_gss_tokens_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_util_gss_tokens_t_LDFLAGS) \
@@ -1066,24 +1150,29 @@ SERVER_FILES = server/commands.c server/config.c server/generic.c \
 
 
 # All of the test programs.
+tests_client_api_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_client_api_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
+tests_client_ccache_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_client_ccache_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
-tests_client_open_t_LDFLAGS = $(GSSAPI_LDFLAGS)
-tests_client_open_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la $(GSSAPI_LIBS)
-
+tests_client_large_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_client_large_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
+tests_client_open_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS)
+tests_client_open_t_LDADD = client/libremctl.la tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS)
+
+tests_client_source_ip_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_client_source_ip_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
+tests_client_timeout_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_client_timeout_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
 tests_data_cmd_background_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
@@ -1143,67 +1232,85 @@ tests_portable_strlcpy_t_SOURCES = tests/portable/strlcpy-t.c \
 
 tests_portable_strlcpy_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
-tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) \
-	$(PCRE_LDFLAGS)
+tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
+	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 
-tests_server_accept_t_LDADD = tests/tap/libtap.a util/libutil.la \
-	portable/libportable.la $(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)
+tests_server_accept_t_LDADD = tests/tap/libtap.a util/libutil.la	 \
+	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) \
+	$(PCRE_LIBS)
 
 tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
 tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS)
 
+tests_server_bind_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_bind_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
 tests_server_config_t_SOURCES = tests/server/config-t.c $(SERVER_FILES)
 tests_server_config_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_config_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS)
 
+tests_server_continue_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_continue_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
+tests_server_empty_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_empty_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
+tests_server_env_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_env_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
+tests_server_errors_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_errors_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
+tests_server_help_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_help_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
+tests_server_invalid_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_invalid_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
 tests_server_logging_t_SOURCES = tests/server/logging-t.c $(SERVER_FILES)
 tests_server_logging_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
 tests_server_logging_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)
 
-tests_server_noop_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(PCRE_LDFLAGS)
-tests_server_noop_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(PCRE_LIBS)
+tests_server_noop_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
+	$(PCRE_LDFLAGS)
 
+tests_server_noop_t_LDADD = client/libremctl.la tests/tap/libtap.a	    \
+	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) \
+	$(PCRE_LIBS)
+
+tests_server_stdin_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
+tests_server_streaming_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
+tests_server_summary_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_summary_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
+tests_server_user_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_user_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la
+	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 
-tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(PCRE_LDFLAGS)
-tests_server_version_t_LDADD = client/libremctl.la tests/tap/libtap.a \
-	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(PCRE_LIBS)
+tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
+	$(PCRE_LDFLAGS)
+
+tests_server_version_t_LDADD = client/libremctl.la tests/tap/libtap.a	    \
+	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) \
+	$(PCRE_LIBS)
 
 tests_util_fdflag_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
@@ -1211,9 +1318,9 @@ tests_util_fdflag_t_LDADD = tests/tap/libtap.a util/libutil.la \
 tests_util_gss_tokens_t_SOURCES = tests/util/faketoken.c \
 	tests/util/gss-tokens.c tests/util/gss-tokens-t.c
 
-tests_util_gss_tokens_t_LDFLAGS = $(GSSAPI_LDFLAGS)
+tests_util_gss_tokens_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS)
 tests_util_gss_tokens_t_LDADD = tests/tap/libtap.a util/libutil.la \
-	portable/libportable.la $(GSSAPI_LIBS)
+	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS)
 
 tests_util_messages_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
@@ -1596,19 +1703,19 @@ tests/client/api-t.$(OBJEXT): tests/client/$(am__dirstamp) \
 
 tests/client/api-t$(EXEEXT): $(tests_client_api_t_OBJECTS) $(tests_client_api_t_DEPENDENCIES) $(EXTRA_tests_client_api_t_DEPENDENCIES) tests/client/$(am__dirstamp)
 	@rm -f tests/client/api-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_client_api_t_OBJECTS) $(tests_client_api_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_client_api_t_LINK) $(tests_client_api_t_OBJECTS) $(tests_client_api_t_LDADD) $(LIBS)
 tests/client/ccache-t.$(OBJEXT): tests/client/$(am__dirstamp) \
 	tests/client/$(DEPDIR)/$(am__dirstamp)
 
 tests/client/ccache-t$(EXEEXT): $(tests_client_ccache_t_OBJECTS) $(tests_client_ccache_t_DEPENDENCIES) $(EXTRA_tests_client_ccache_t_DEPENDENCIES) tests/client/$(am__dirstamp)
 	@rm -f tests/client/ccache-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_client_ccache_t_OBJECTS) $(tests_client_ccache_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_client_ccache_t_LINK) $(tests_client_ccache_t_OBJECTS) $(tests_client_ccache_t_LDADD) $(LIBS)
 tests/client/large-t.$(OBJEXT): tests/client/$(am__dirstamp) \
 	tests/client/$(DEPDIR)/$(am__dirstamp)
 
 tests/client/large-t$(EXEEXT): $(tests_client_large_t_OBJECTS) $(tests_client_large_t_DEPENDENCIES) $(EXTRA_tests_client_large_t_DEPENDENCIES) tests/client/$(am__dirstamp)
 	@rm -f tests/client/large-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_client_large_t_OBJECTS) $(tests_client_large_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_client_large_t_LINK) $(tests_client_large_t_OBJECTS) $(tests_client_large_t_LDADD) $(LIBS)
 tests/client/open-t.$(OBJEXT): tests/client/$(am__dirstamp) \
 	tests/client/$(DEPDIR)/$(am__dirstamp)
 
@@ -1620,13 +1727,13 @@ tests/client/source-ip-t.$(OBJEXT): tests/client/$(am__dirstamp) \
 
 tests/client/source-ip-t$(EXEEXT): $(tests_client_source_ip_t_OBJECTS) $(tests_client_source_ip_t_DEPENDENCIES) $(EXTRA_tests_client_source_ip_t_DEPENDENCIES) tests/client/$(am__dirstamp)
 	@rm -f tests/client/source-ip-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_client_source_ip_t_OBJECTS) $(tests_client_source_ip_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_client_source_ip_t_LINK) $(tests_client_source_ip_t_OBJECTS) $(tests_client_source_ip_t_LDADD) $(LIBS)
 tests/client/timeout-t.$(OBJEXT): tests/client/$(am__dirstamp) \
 	tests/client/$(DEPDIR)/$(am__dirstamp)
 
 tests/client/timeout-t$(EXEEXT): $(tests_client_timeout_t_OBJECTS) $(tests_client_timeout_t_DEPENDENCIES) $(EXTRA_tests_client_timeout_t_DEPENDENCIES) tests/client/$(am__dirstamp)
 	@rm -f tests/client/timeout-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_client_timeout_t_OBJECTS) $(tests_client_timeout_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_client_timeout_t_LINK) $(tests_client_timeout_t_OBJECTS) $(tests_client_timeout_t_LDADD) $(LIBS)
 tests/data/$(am__dirstamp):
 	@$(MKDIR_P) tests/data
 	@: > tests/data/$(am__dirstamp)
@@ -1820,7 +1927,7 @@ tests/server/bind-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 
 tests/server/bind-t$(EXEEXT): $(tests_server_bind_t_OBJECTS) $(tests_server_bind_t_DEPENDENCIES) $(EXTRA_tests_server_bind_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/bind-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_server_bind_t_OBJECTS) $(tests_server_bind_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_server_bind_t_LINK) $(tests_server_bind_t_OBJECTS) $(tests_server_bind_t_LDADD) $(LIBS)
 tests/server/config-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
@@ -1832,37 +1939,37 @@ tests/server/continue-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 
 tests/server/continue-t$(EXEEXT): $(tests_server_continue_t_OBJECTS) $(tests_server_continue_t_DEPENDENCIES) $(EXTRA_tests_server_continue_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/continue-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_server_continue_t_OBJECTS) $(tests_server_continue_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_server_continue_t_LINK) $(tests_server_continue_t_OBJECTS) $(tests_server_continue_t_LDADD) $(LIBS)
 tests/server/empty-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
 tests/server/empty-t$(EXEEXT): $(tests_server_empty_t_OBJECTS) $(tests_server_empty_t_DEPENDENCIES) $(EXTRA_tests_server_empty_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/empty-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_server_empty_t_OBJECTS) $(tests_server_empty_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_server_empty_t_LINK) $(tests_server_empty_t_OBJECTS) $(tests_server_empty_t_LDADD) $(LIBS)
 tests/server/env-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
 tests/server/env-t$(EXEEXT): $(tests_server_env_t_OBJECTS) $(tests_server_env_t_DEPENDENCIES) $(EXTRA_tests_server_env_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/env-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_server_env_t_OBJECTS) $(tests_server_env_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_server_env_t_LINK) $(tests_server_env_t_OBJECTS) $(tests_server_env_t_LDADD) $(LIBS)
 tests/server/errors-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
 tests/server/errors-t$(EXEEXT): $(tests_server_errors_t_OBJECTS) $(tests_server_errors_t_DEPENDENCIES) $(EXTRA_tests_server_errors_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/errors-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_server_errors_t_OBJECTS) $(tests_server_errors_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_server_errors_t_LINK) $(tests_server_errors_t_OBJECTS) $(tests_server_errors_t_LDADD) $(LIBS)
 tests/server/help-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
 tests/server/help-t$(EXEEXT): $(tests_server_help_t_OBJECTS) $(tests_server_help_t_DEPENDENCIES) $(EXTRA_tests_server_help_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/help-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_server_help_t_OBJECTS) $(tests_server_help_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_server_help_t_LINK) $(tests_server_help_t_OBJECTS) $(tests_server_help_t_LDADD) $(LIBS)
 tests/server/invalid-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
 tests/server/invalid-t$(EXEEXT): $(tests_server_invalid_t_OBJECTS) $(tests_server_invalid_t_DEPENDENCIES) $(EXTRA_tests_server_invalid_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/invalid-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_server_invalid_t_OBJECTS) $(tests_server_invalid_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_server_invalid_t_LINK) $(tests_server_invalid_t_OBJECTS) $(tests_server_invalid_t_LDADD) $(LIBS)
 tests/server/logging-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
@@ -1880,25 +1987,25 @@ tests/server/stdin-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 
 tests/server/stdin-t$(EXEEXT): $(tests_server_stdin_t_OBJECTS) $(tests_server_stdin_t_DEPENDENCIES) $(EXTRA_tests_server_stdin_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/stdin-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_server_stdin_t_OBJECTS) $(tests_server_stdin_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_server_stdin_t_LINK) $(tests_server_stdin_t_OBJECTS) $(tests_server_stdin_t_LDADD) $(LIBS)
 tests/server/streaming-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
 tests/server/streaming-t$(EXEEXT): $(tests_server_streaming_t_OBJECTS) $(tests_server_streaming_t_DEPENDENCIES) $(EXTRA_tests_server_streaming_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/streaming-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_server_streaming_t_OBJECTS) $(tests_server_streaming_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_server_streaming_t_LINK) $(tests_server_streaming_t_OBJECTS) $(tests_server_streaming_t_LDADD) $(LIBS)
 tests/server/summary-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
 tests/server/summary-t$(EXEEXT): $(tests_server_summary_t_OBJECTS) $(tests_server_summary_t_DEPENDENCIES) $(EXTRA_tests_server_summary_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/summary-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_server_summary_t_OBJECTS) $(tests_server_summary_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_server_summary_t_LINK) $(tests_server_summary_t_OBJECTS) $(tests_server_summary_t_LDADD) $(LIBS)
 tests/server/user-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
 tests/server/user-t$(EXEEXT): $(tests_server_user_t_OBJECTS) $(tests_server_user_t_DEPENDENCIES) $(EXTRA_tests_server_user_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/user-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_server_user_t_OBJECTS) $(tests_server_user_t_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(tests_server_user_t_LINK) $(tests_server_user_t_OBJECTS) $(tests_server_user_t_LDADD) $(LIBS)
 tests/server/version-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
