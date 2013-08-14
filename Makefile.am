@@ -518,7 +518,7 @@ BINDINGS_INSTALL =
 
 # CFLAGS and LDFLAGS to pass to the Perl build.
 PERL_CFLAGS = -I$(abs_top_builddir) -I$(abs_top_srcdir) \
-        -I$(abs_top_srcdir)/client $(CPPFLAGS)
+	-I$(abs_top_srcdir)/client $(CPPFLAGS)
 PERL_LDFLAGS_FULL = -L$(abs_top_builddir)/client/.libs $(PERL_LDFLAGS) \
 	$(LDFLAGS)
 
