@@ -8,6 +8,10 @@ remctl 3.6 (unreleased)
     timeouts and catching signals are rare enough that this won't pose a
     serious issue.
 
+    Fix compilation problems with Kerberos libraries that don't have
+    gss_krb5_import_cred, including Mac OS X and older Red Hat.  Patch
+    from Ken Dreyer.
+
 remctl 3.5 (2013-06-28)
 
     Fix a long-standing race condition in remctld (introduced in remctl
