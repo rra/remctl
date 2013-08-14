@@ -76,6 +76,20 @@ void krb5_free_error_message(krb5_context, const char *);
 #endif
 
 /*
+ * Heimdal: krb5_kt_free_entry, MIT: krb5_free_keytab_entry_contents.  We
+ * check for the declaration rather than the function since the function is
+ * present in older MIT Kerberos libraries but not prototyped.
+ */
+#if !HAVE_DECL_KRB5_KT_FREE_ENTRY
+# define krb5_kt_free_entry(c, e) krb5_free_keytab_entry_contents((c), (e))
+#endif
+
+/* Heimdal: krb5_xfree, MIT: krb5_free_unparsed_name. */
+#ifdef HAVE_KRB5_XFREE
+# define krb5_free_unparsed_name(c, p) krb5_xfree(p)
+#endif
+
+/*
  * Heimdal provides a nice function that just returns a const char *.  On MIT,
  * there's an accessor macro that returns the krb5_data pointer, which
  * requires more work to get at the underlying char *.
