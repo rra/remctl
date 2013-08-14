@@ -1,5 +1,13 @@
                        User-Visible remctl Changes
 
+remctl 3.6 (unreleased)
+
+    If the client specifies a timeout, restart the wait for a nonblocking
+    connect when interrupted by a signal.  This can mean that a connect
+    can take longer than the timeout if interrupted; hopefully both
+    timeouts and catching signals are rare enough that this won't pose a
+    serious issue.
+
 remctl 3.5 (2013-06-28)
 
     Fix a long-standing race condition in remctld (introduced in remctl
