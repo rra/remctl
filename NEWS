@@ -8,6 +8,13 @@ remctl 3.6 (unreleased)
     timeouts and catching signals are rare enough that this won't pose a
     serious issue.
 
+    The help output from Net::Remctl::Backend now checks for commands
+    whose syntax is excessively long and does not let them influence the
+    formatting of the summary.  This keeps commands with a long syntax
+    from forcing all the summary output into a skinny column against the
+    right margin and allows proper help output for commands with a syntax
+    longer than 80 columns.
+
     Fix compilation problems with Kerberos libraries that don't have
     gss_krb5_import_cred, including Mac OS X and older Red Hat.  Patch
     from Ken Dreyer.
