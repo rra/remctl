@@ -97,7 +97,7 @@ AC_CHECK_FUNCS([getaddrinfo],
     [AC_LIBOBJ([getaddrinfo])])
 AC_CHECK_FUNCS([setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
-                  setenv strlcat strlcpy])
+                  setenv strlcat strlcpy strndup])
 AC_TYPE_SIGNAL
 
 dnl Check for the CMU GPUT library.
