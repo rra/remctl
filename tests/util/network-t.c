@@ -427,7 +427,7 @@ test_timeout_ipv4(void)
          * up to fifteen connections on Linux before connections start
          * actually timing out.
          */
-        alarm(10);
+        alarm(20);
         for (i = 0; i < (int) ARRAY_SIZE(block); i++) {
             block[i] = network_connect_host("127.0.0.1", 11119, NULL, 1);
             if (block[i] == INVALID_SOCKET)
