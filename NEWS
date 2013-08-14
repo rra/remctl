@@ -27,6 +27,10 @@ remctl 3.6 (unreleased)
     * Fix GCC warnings of casts that could increase alignment.
     * Add a portable replacement for a missing strndup.
 
+    Update to C TAP Harness 2.2:
+
+    * bail and sysbail now exit with status 255 to match Test::More.
+
 remctl 3.5 (2013-06-28)
 
     Fix a long-standing race condition in remctld (introduced in remctl
