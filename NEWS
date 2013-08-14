@@ -12,6 +12,9 @@ remctl 3.6 (unreleased)
     gss_krb5_import_cred, including Mac OS X and older Red Hat.  Patch
     from Ken Dreyer.
 
+    Fix problems with PCRE detection on platforms that have the library
+    but not pcre-config or the pcre.h header file, such as Mac OS X.
+
 remctl 3.5 (2013-06-28)
 
     Fix a long-standing race condition in remctld (introduced in remctl
