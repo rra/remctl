@@ -141,6 +141,9 @@ extern size_t strlcat(char *, const char *, size_t);
 #if !HAVE_STRLCPY
 extern size_t strlcpy(char *, const char *, size_t);
 #endif
+#if !HAVE_STRNDUP
+extern char *strndup(const char *, size_t);
+#endif
 
 /* Undo default visibility change. */
 #pragma GCC visibility pop

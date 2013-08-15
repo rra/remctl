@@ -166,6 +166,7 @@ DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/portable/daemon.c \
 	$(top_srcdir)/portable/inet_ntoa.c \
 	$(top_srcdir)/portable/strlcpy.c \
+	$(top_srcdir)/portable/strndup.c \
 	$(top_srcdir)/portable/inet_aton.c \
 	$(top_srcdir)/portable/snprintf.c \
 	$(top_srcdir)/portable/getaddrinfo.c \
@@ -1357,7 +1358,7 @@ BINDINGS_INSTALL = $(am__append_2) $(am__append_4) $(am__append_6) \
 
 # CFLAGS and LDFLAGS to pass to the Perl build.
 PERL_CFLAGS = -I$(abs_top_builddir) -I$(abs_top_srcdir) \
-        -I$(abs_top_srcdir)/client $(CPPFLAGS)
+	-I$(abs_top_srcdir)/client $(CPPFLAGS)
 
 PERL_LDFLAGS_FULL = -L$(abs_top_builddir)/client/.libs $(PERL_LDFLAGS) \
 	$(LDFLAGS)
@@ -2118,6 +2119,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/snprintf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/strlcat.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/strlcpy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/strndup.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/commands.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/config.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/generic.Po@am__quote@

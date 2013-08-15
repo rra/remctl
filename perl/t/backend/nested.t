@@ -41,7 +41,9 @@ sub save_args {
 sub test_cmd1 { my (@args) = @_; save_args(@args); return 1 }
 sub test_cmd2 { my (@args) = @_; save_args(@args); return 2 }
 
-# Set up nested command dispatch.
+# Set up nested command dispatch.  The first command has a syntax that's
+# exactly 48 characters long, once the prefix is added, which tests an edge
+# case for help formatting.
 my %commands = (
     command => {
         code    => \&test_cmd1,

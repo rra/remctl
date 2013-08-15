@@ -7,7 +7,7 @@ dnl
 dnl See LICENSE for licensing terms.
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [3.5], [rra@stanford.edu])
+AC_INIT([remctl], [3.6], [rra@stanford.edu])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
@@ -35,7 +35,9 @@ RRA_LIB_KRB5_OPTIONAL
 AS_IF([test x"$rra_use_kerberos" != xfalse],
     [RRA_LIB_KRB5_SWITCH
      AC_CHECK_FUNCS([krb5_get_init_creds_opt_set_default_flags \
-         krb5_principal_get_realm])
+         krb5_principal_get_realm \
+         krb5_xfree])
+     AC_CHECK_DECLS([krb5_kt_free_entry], [], [], [RRA_INCLUDES_KRB5])
      AC_LIBOBJ([krb5-extra])
      RRA_LIB_KRB5_RESTORE])
 
@@ -95,7 +97,7 @@ AC_CHECK_FUNCS([getaddrinfo],
     [AC_LIBOBJ([getaddrinfo])])
 AC_CHECK_FUNCS([setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
-                  setenv strlcat strlcpy])
+                  setenv strlcat strlcpy strndup])
 AC_TYPE_SIGNAL
 
 dnl Check for the CMU GPUT library.
