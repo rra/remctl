@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.6 (unreleased)
+remctl 3.6 (2013-08-14)
 
     If the client specifies a timeout, restart the wait for a nonblocking
     connect when interrupted by a signal.  This can mean that a connect
