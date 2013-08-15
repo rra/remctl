@@ -56,7 +56,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '4.08';
+    $VERSION = '4.09';
 }
 
 # Skip this test unless maintainer tests are requested.  Takes a short
