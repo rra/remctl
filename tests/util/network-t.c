@@ -5,8 +5,8 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2005, 2013 Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010, 2011, 2012
+ * Copyright 2005 Russ Allbery <rra@stanford.edu>
+ * Copyright 2009, 2010, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
