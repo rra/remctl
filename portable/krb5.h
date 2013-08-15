@@ -54,6 +54,11 @@ BEGIN_DECLS
 /* Default to a hidden visibility for all portability functions. */
 #pragma GCC visibility push(hidden)
 
+/* Heimdal: krb5_xfree, MIT: krb5_free_unparsed_name. */
+#ifdef HAVE_KRB5_XFREE
+# define krb5_free_unparsed_name(c, p) krb5_xfree(p)
+#endif
+
 /*
  * krb5_{get,free}_error_message are the preferred APIs for both current MIT
  * and current Heimdal, but there are tons of older APIs we may have to fall
@@ -73,6 +78,15 @@ void krb5_free_error_message(krb5_context, const char *);
 /* Heimdal-specific. */
 #ifndef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_DEFAULT_FLAGS
 # define krb5_get_init_creds_opt_set_default_flags(c, p, r, o) /* empty */
+#endif
+
+/*
+ * Heimdal: krb5_kt_free_entry, MIT: krb5_free_keytab_entry_contents.  We
+ * check for the declaration rather than the function since the function is
+ * present in older MIT Kerberos libraries but not prototyped.
+ */
+#if !HAVE_DECL_KRB5_KT_FREE_ENTRY
+# define krb5_kt_free_entry(c, e) krb5_free_keytab_entry_contents((c), (e))
 #endif
 
 /*

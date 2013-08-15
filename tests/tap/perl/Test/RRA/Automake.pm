@@ -87,7 +87,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '4.08';
+    $VERSION = '4.09';
 }
 
 # Perl directories to skip globally for perl_dirs.  We ignore the perl

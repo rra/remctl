@@ -32,6 +32,10 @@
    don't. */
 #undef HAVE_DECL_INET_NTOA
 
+/* Define to 1 if you have the declaration of `krb5_kt_free_entry', and to 0
+   if you don't. */
+#undef HAVE_DECL_KRB5_KT_FREE_ENTRY
+
 /* Define to 1 if you have the declaration of `snprintf', and to 0 if you
    don't. */
 #undef HAVE_DECL_SNPRINTF
@@ -128,6 +132,9 @@
 /* Define to 1 if you have the `krb5_svc_get_msg' function. */
 #undef HAVE_KRB5_SVC_GET_MSG
 
+/* Define to 1 if you have the `krb5_xfree' function. */
+#undef HAVE_KRB5_XFREE
+
 /* Define to 1 if the system has the type 'long long int'. */
 #undef HAVE_LONG_LONG_INT
 
@@ -136,6 +143,9 @@
 
 /* Define to 1 if the PCRE library is present. */
 #undef HAVE_PCRE
+
+/* Define to 1 if you have the <pcre.h> header file. */
+#undef HAVE_PCRE_H
 
 /* Define to 1 if you have the `regcomp' function. */
 #undef HAVE_REGCOMP
@@ -184,6 +194,9 @@
 
 /* Define to 1 if you have the `strlcpy' function. */
 #undef HAVE_STRLCPY
+
+/* Define to 1 if you have the `strndup' function. */
+#undef HAVE_STRNDUP
 
 /* Define to 1 if the system has the type `struct sockaddr_in6'. */
 #undef HAVE_STRUCT_SOCKADDR_IN6

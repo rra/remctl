@@ -106,7 +106,7 @@ Files: m4/gput.m4 m4/gssapi.m4 m4/inet-ntoa.m4 m4/krb5-config.m4 m4/krb5.m4
  m4/ld-version.m4 m4/lib-depends.m4 m4/lib-pathname.m4 m4/pcre.m4
  m4/snprintf.m4 m4/vamacros.m4
 Copyright: 1999-2001, 2003 Russ Allbery <rra@stanford.edu>
-  2005-2012 The Board of Trustees of the Leland Stanford Junior University
+  2005-2013 The Board of Trustees of the Leland Stanford Junior University
   2008-2010 Free Software Foundation, Inc.
 License: unlimited
  This file is free software; the authors give unlimited permission to copy
@@ -141,14 +141,14 @@ Files: portable/asprintf.c portable/daemon.c portable/dummy.c
  portable/getnameinfo.h portable/gssapi-mech.c portable/gssapi.h
  portable/inet_aton.c portable/inet_ntoa.c portable/inet_ntop.c
  portable/krb5-extra.c portable/krb5.h portable/macros.h portable/setenv.c
- portable/stdbool.h portable/strlcat.c portable/strlcpy.c portable/system.h
- portable/uio.h portable/winsock.c tests/portable/asprintf-t.c
- tests/portable/daemon-t.c tests/portable/getaddrinfo-t.c
- tests/portable/getnameinfo-t.c tests/portable/inet_aton-t.c
- tests/portable/inet_ntoa-t.c tests/portable/inet_ntop-t.c
- tests/portable/setenv-t.c tests/portable/strlcat-t.c
- tests/portable/strlcpy-t.c tests/util/vector-t.c util/macros.h
- util/vector.c util/vector.h
+ portable/stdbool.h portable/strlcat.c portable/strlcpy.c
+ portable/strndup.c portable/system.h portable/uio.h portable/winsock.c
+ tests/portable/asprintf-t.c tests/portable/daemon-t.c
+ tests/portable/getaddrinfo-t.c tests/portable/getnameinfo-t.c
+ tests/portable/inet_aton-t.c tests/portable/inet_ntoa-t.c
+ tests/portable/inet_ntop-t.c tests/portable/setenv-t.c
+ tests/portable/strlcat-t.c tests/portable/strlcpy-t.c
+ tests/util/vector-t.c util/macros.h util/vector.c util/vector.h
 Copyright: no copyright notice, see License
 License: rra-public-domain
  The authors hereby relinquish any claim to any copyright that they may

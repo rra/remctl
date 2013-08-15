@@ -50,9 +50,13 @@ our $REGEX_VERSION = qr{
 # Find all the Perl modules shipped in this package, if any, and returns the
 # list of file names.
 #
+# $dir - The root directory to search, perl/lib by default
+#
 # Returns: List of file names
 sub module_files {
-    return if !-d 'perl/lib';
+    my ($dir) = @_;
+    $dir ||= 'perl/lib';
+    return if !-d $dir;
     my @files;
     my $wanted = sub {
         if ($_ eq 'blib') {
@@ -64,7 +68,7 @@ sub module_files {
         }
         return;
     };
-    find($wanted, 'perl/lib');
+    find($wanted, $dir);
     return @files;
 }
 
@@ -88,33 +92,36 @@ sub module_version {
     die "$0: cannot find version number in $file\n";
 }
 
-# Return the current version from the NEWS file.  Munges the version to be
-# appropriate for Perl if necessary.
+# Return the current version and, optionally, the package name from the NEWS
+# file.  Munges the version to be appropriate for Perl if necessary.
 #
-# Returns: The version number of the latest version in NEWS
-#  Throws: Text exception if NEWS is not found or doesn't contain a version
+# Returns: Scalar: The version number of the latest version in NEWS
+#          List: The version number and the package name
+# Throws: Text exception if NEWS is not found or doesn't contain a version
 sub news_version {
-    ## no critic (RegularExpressions::ProhibitEscapedMetacharacters)
-    my $version;
+    my ($package, $version);
     open(my $news, q{<}, 'NEWS') or die "$0: cannot open NEWS: $!\n";
   SCAN:
     while (defined(my $line = <$news>)) {
-        if ($line =~ m{ \A [\w\s-]+ \s ([\d.]+) \s \( }xms) {
-            $version = $1;
+        ## no critic (RegularExpressions::ProhibitEscapedMetacharacters)
+        if ($line =~ m{ \A ([\w\s-]+) \s ([\d.]+) \s \( }xms) {
+            ($package, $version) = ($1, $2);
             last SCAN;
         }
+        ## use critic
     }
     close($news) or die "$0: error reading from NEWS: $!\n";
     if (!defined($version)) {
         die "$0: cannot find version number in NEWS\n";
     }
-    ## use critic
 
     # Munge the version for Perl purposes by ensuring that each component
     # has two digits and by dropping the second period.
     $version =~ s{ [.] (\d) (?= [.] | \z ) }{.0$1}xmsg;
     $version =~ s{ ([.] \d+) [.] (\d+) }{$1$2}xms;
-    return $version;
+
+    # Return the appropriate value based on context.
+    return wantarray ? ($version, $package) : $version;
 }
 
 # Given a module file and the new version for that module, update the version
@@ -160,7 +167,11 @@ sub update_module_version {
 # Returns: undef
 #  Throws: Text exception on fatal errors
 sub test_versions {
-    my @modules = module_files();
+    my ($news_version, $package) = news_version();
+
+    # For rra-c-util, check the TAP modules instead of a perl directory.
+    my $dir = ($package eq 'rra-c-util') ? 'tests/tap/perl' : 'perl/lib';
+    my @modules = module_files($dir);
 
     # Output the plan.  Skip the test if there were no modules found.
     if (@modules) {
@@ -169,9 +180,6 @@ sub test_versions {
         plan skip_all => 'No Perl modules found';
         return;
     }
-
-    # Get the NEWS version.
-    my $news_version = news_version();
 
     # For each module, get the module version and compare.
     for my $module (@modules) {
@@ -187,8 +195,9 @@ sub test_versions {
 # Returns: undef
 #  Throws: Text exception on fatal errors
 sub update_versions {
-    my @modules = module_files();
-    my $version = news_version();
+    my ($version, $package) = news_version();
+    my $dir = ($package eq 'rra-c-util') ? 'tests/tap/perl' : 'perl/lib';
+    my @modules = module_files($dir);
     for my $module (@modules) {
         update_module_version($module, $version);
     }
@@ -238,15 +247,17 @@ script.  The intent is to assist with maintaining consistent versions
 between a larger primarily C project and any embedded Perl modules.
 
 As a test, it reads the current version of a package from the F<NEWS> file
-and then looks for any Perl modules in F<perl/lib>.  If it finds any, it
-checks that the version number of the Perl module matches the version
-number of the package from the F<NEWS> file.  These test results are
-reported with Test::More, suitable for any TAP harness.
+and then looks for any Perl modules in F<perl/lib>.  (As a special
+exception, if the package name as determined from the F<NEWS> file is
+C<rra-c-util>, it looks for Perl modules in F<tests/tap/perl> instead.)
+If it finds any, it checks that the version number of the Perl module
+matches the version number of the package from the F<NEWS> file.  These
+test results are reported with Test::More, suitable for any TAP harness.
 
 As a utility script, when run with the B<--update> option, it similarly
-finds all Perl modules in F<perl/lib> and then rewrites their version
-setting to match the version of the package as determined from the F<NEWS>
-file.
+finds all Perl modules in F<perl/lib> (or F<tests/tap/perl> per above) and
+then rewrites their version setting to match the version of the package as
+determined from the F<NEWS> file.
 
 =head1 OPTIONS
 

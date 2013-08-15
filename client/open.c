@@ -24,6 +24,7 @@
 
 #include <client/internal.h>
 #include <client/remctl.h>
+#include <util/macros.h>
 #include <util/network.h>
 #include <util/protocol.h>
 #include <util/tokens.h>

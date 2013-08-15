@@ -38,5 +38,24 @@ use Test::RRA qw(use_prereq);
 
 use_prereq('Test::Pod');
 
-# Check all POD in the Perl distribution.
-all_pod_files_ok();
+# Check all POD in the Perl distribution.  Add the examples directory if it
+# exists.  Also add any files in usr/bin or usr/sbin, which are widely used in
+# Stanford-internal packages.
+my @files = all_pod_files();
+if (-d 'examples') {
+    push(@files, all_pod_files('examples'));
+}
+for my $dir (qw(usr/bin usr/sbin)) {
+    if (-d $dir) {
+        push(@files, glob("$dir/*"));
+    }
+}
+
+# We now have a list of all files to check, so output a plan and run the
+# tests.  We can't use all_pod_files_ok because it refuses to check non-Perl
+# files and Stanford-internal packages have a lot of shell scripts with POD
+# documentation.
+plan tests => scalar(@files);
+for my $file (@files) {
+    pod_file_ok($file);
+}
