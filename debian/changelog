@@ -1,4 +1,4 @@
-remctl (3.6-1) UNRELEASED; urgency=low
+remctl (3.6-1) unstable; urgency=low
 
   * New upstream release.
     - For client calls with a timeout, restart waiting for a non-blocking
@@ -6,7 +6,7 @@ remctl (3.6-1) UNRELEASED; urgency=low
     - Better Net::Remctl::Backend help formatting for commands with long
       syntax.
 
- -- Russ Allbery <rra@debian.org>  Wed, 14 Aug 2013 21:27:50 -0700
+ -- Russ Allbery <rra@debian.org>  Wed, 14 Aug 2013 21:56:39 -0700
 
 remctl (3.5-1) unstable; urgency=low
 
