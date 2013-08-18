@@ -1,4 +1,4 @@
-remctl (3.6-1~sbp60+1) squeeze-backports; urgency=low
+remctl (3.6-1~bpo60+1) squeeze-backports; urgency=low
 
   * Backport to squeeze.
   * Remove dependency and use of dh-autoreconf and use the upstream build
