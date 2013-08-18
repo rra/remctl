@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <rra@stanford.edu>
  * Copyright 2005 Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010, 2011, 2012
+ * Copyright 2009, 2010, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -111,7 +111,7 @@ listener_any(socket_type fds[], unsigned int count)
     listener_handler(client);
     is_int(AF_INET, saddr->sa_family, "...address family is IPv4");
     is_int(htonl(0x7f000001UL),
-           ((struct sockaddr_in *) saddr)->sin_addr.s_addr,
+           ((struct sockaddr_in *) (void *) saddr)->sin_addr.s_addr,
            "...and client address is 127.0.0.1");
     free(saddr);
     for (i = 0; i < count; i++)
@@ -427,7 +427,7 @@ test_timeout_ipv4(void)
          * up to fifteen connections on Linux before connections start
          * actually timing out.
          */
-        alarm(10);
+        alarm(20);
         for (i = 0; i < (int) ARRAY_SIZE(block); i++) {
             block[i] = network_connect_host("127.0.0.1", 11119, NULL, 1);
             if (block[i] == INVALID_SOCKET)
@@ -573,8 +573,8 @@ test_network_write(void)
     socklen_t slen;
     char *buffer;
 
-    buffer = bmalloc(512 * 1024);
-    memset(buffer, 'a', 512 * 1024);
+    buffer = bmalloc(4096 * 1024);
+    memset(buffer, 'a', 4096 * 1024);
     fd = network_bind_ipv4("127.0.0.1", 11119);
     if (fd == INVALID_SOCKET)
         sysbail("cannot create or bind socket");
@@ -609,7 +609,7 @@ test_network_write(void)
         ok(network_write(c, buffer, 32 * 1024, 0), "network_write");
         ok(network_write(c, buffer, 32 * 1024, 1),
            "network_write with timeout");
-        ok(!network_write(c, buffer, 512 * 1024, 1),
+        ok(!network_write(c, buffer, 4096 * 1024, 1),
            "network_write aborted with timeout");
         is_int(ETIMEDOUT, socket_errno, "...with correct error");
         socket_close(c);

@@ -416,6 +416,53 @@ network_source(socket_type fd, int family, const char *source)
 
 
 /*
+ * Internal helper function that waits for a non-blocking connect to complete
+ * on a socket.  Takes the file descriptor and the timeout.  Returns 0 on a
+ * successful completion of the connect within the timeout and -1 on failure.
+ * On failure, sets the socket errno.
+ */
+static int
+connect_wait(socket_type fd, time_t timeout)
+{
+    int status, err;
+    socklen_t length;
+    struct timeval tv;
+    fd_set set;
+
+    /*
+     * Use select to poll the file descriptor.  Loop if interrupted by a
+     * caught signal.  This means we could wait for longer than the timeout
+     * when interrupted, but there's no good way of recovering the elapsed
+     * time that's worth the hassle.
+     */
+    do {
+        tv.tv_sec = timeout;
+        tv.tv_usec = 0;
+        FD_ZERO(&set);
+        FD_SET(fd, &set);
+        status = select(fd + 1, NULL, &set, NULL, &tv);
+    } while (status < 0 && socket_errno == EINTR);
+
+    /*
+     * If we timed out, set errno appropriately.  If the connection completes,
+     * retrieve the actual status from the socket.
+     */
+    if (status == 0 && !FD_ISSET(fd, &set)) {
+        status = -1;
+        socket_set_errno(ETIMEDOUT);
+    } else if (status > 0 && FD_ISSET(fd, &set)) {
+        length = sizeof(err);
+        status = getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &length);
+        if (status == 0) {
+            status = (err == 0) ? 0 : -1;
+            socket_set_errno(err);
+        }
+    }
+    return status;
+}
+
+
+/*
  * Given a linked list of addrinfo structs representing the remote service,
  * try to create a local socket and connect to that service.  Takes an
  * optional source address.  Try each address in turn until one of them
@@ -427,10 +474,7 @@ socket_type
 network_connect(const struct addrinfo *ai, const char *source, time_t timeout)
 {
     socket_type fd = INVALID_SOCKET;
-    int oerrno, status, err;
-    socklen_t len;
-    struct timeval tv;
-    fd_set set;
+    int oerrno, status;
 
     for (status = -1; status != 0 && ai != NULL; ai = ai->ai_next) {
         if (fd != INVALID_SOCKET)
@@ -445,24 +489,8 @@ network_connect(const struct addrinfo *ai, const char *source, time_t timeout)
         else {
             fdflag_nonblocking(fd, true);
             status = connect(fd, ai->ai_addr, ai->ai_addrlen);
-            if (status < 0 && socket_errno == EINPROGRESS) {
-                tv.tv_sec = timeout;
-                tv.tv_usec = 0;
-                FD_ZERO(&set);
-                FD_SET(fd, &set);
-                status = select(fd + 1, NULL, &set, NULL, &tv);
-                if (status == 0 && !FD_ISSET(fd, &set)) {
-                    status = -1;
-                    socket_set_errno(ETIMEDOUT);
-                } else if (status > 0 && FD_ISSET(fd, &set)) {
-                    len = sizeof(err);
-                    status = getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
-                    if (status == 0) {
-                        status = (err == 0) ? 0 : -1;
-                        socket_set_errno(err);
-                    }
-                }
-            }
+            if (status < 0 && socket_errno == EINPROGRESS)
+                status = connect_wait(fd, timeout);
             oerrno = socket_errno;
             fdflag_nonblocking(fd, false);
             socket_set_errno(oerrno);

@@ -66,7 +66,7 @@ main(void)
     is_int(IPPROTO_TCP, ai->ai_protocol, "...right protocol");
     is_string(NULL, ai->ai_canonname, "...no canonname");
     is_int(sizeof(struct sockaddr_in), ai->ai_addrlen, "...right addrlen");
-    saddr = (struct sockaddr_in *) ai->ai_addr;
+    saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
     is_int(htons(25), saddr->sin_port, "...right port");
     is_int(htonl(0x7f000001UL), saddr->sin_addr.s_addr, "...right address");
     test_freeaddrinfo(ai);
@@ -76,7 +76,7 @@ main(void)
     hints.ai_socktype = SOCK_STREAM;
     ok(test_getaddrinfo(NULL, "25", &hints, &ai) == 0, "passive lookup");
     is_int(SOCK_STREAM, ai->ai_socktype, "...right socktype");
-    saddr = (struct sockaddr_in *) ai->ai_addr;
+    saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
     is_int(htons(25), saddr->sin_port, "...right port");
     is_int(INADDR_ANY, saddr->sin_addr.s_addr, "...right address");
     test_freeaddrinfo(ai);
@@ -89,7 +89,7 @@ main(void)
         ok(test_getaddrinfo(NULL, "smtp", &hints, &ai) == 0,
            "service of smtp");
         is_int(SOCK_STREAM, ai->ai_socktype, "...right socktype");
-        saddr = (struct sockaddr_in *) ai->ai_addr;
+        saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
         is_int(htons(25), saddr->sin_port, "...right port");
         is_int(INADDR_ANY, saddr->sin_addr.s_addr, "...right address");
         test_freeaddrinfo(ai);
@@ -104,7 +104,7 @@ main(void)
        "AI_NUMERICSERV with 25 space");
     ok(test_getaddrinfo(NULL, "25", &hints, &ai) == 0,
        "valid AI_NUMERICSERV");
-    saddr = (struct sockaddr_in *) ai->ai_addr;
+    saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
     is_int(htons(25), saddr->sin_port, "...right port");
     is_int(htonl(0x7f000001UL), saddr->sin_addr.s_addr, "...right address");
     test_freeaddrinfo(ai);
@@ -130,7 +130,7 @@ main(void)
     is_int(IPPROTO_TCP, ai->ai_protocol, "...right protocol");
     is_string(NULL, ai->ai_canonname, "...no canonname");
     is_int(sizeof(struct sockaddr_in), ai->ai_addrlen, "...right addrlen");
-    saddr = (struct sockaddr_in *) ai->ai_addr;
+    saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
     is_int(0, saddr->sin_port, "...right port");
     ok(saddr->sin_addr.s_addr == addr.s_addr, "...right address");
     test_freeaddrinfo(ai);
@@ -144,7 +144,7 @@ main(void)
         is_int(SOCK_STREAM, ai->ai_socktype, "...right socktype");
         is_int(IPPROTO_TCP, ai->ai_protocol, "...right protocol");
         is_string(NULL, ai->ai_canonname, "...no canonname");
-        saddr = (struct sockaddr_in *) ai->ai_addr;
+        saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
         is_int(htons(25), saddr->sin_port, "...right port");
         ok(saddr->sin_addr.s_addr == addr.s_addr, "...right address");
         test_freeaddrinfo(ai);
@@ -157,7 +157,7 @@ main(void)
        "AI_NUMERICHOST and AI_NUMERICSERV with symbolic name");
     ok(test_getaddrinfo("10.20.30.40", "25", &hints, &ai) == 0,
        "valid AI_NUMERICHOST and AI_NUMERICSERV");
-    saddr = (struct sockaddr_in *) ai->ai_addr;
+    saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
     is_int(htons(25), saddr->sin_port, "...right port");
     ok(saddr->sin_addr.s_addr == addr.s_addr, "...right address");
     test_freeaddrinfo(ai);
@@ -169,7 +169,7 @@ main(void)
         ok(test_getaddrinfo("10.20.30.40", "smtp", &hints, &ai) == 0,
            "AI_NUMERICHOST and AI_CANONNAME");
         is_string("10.20.30.40", ai->ai_canonname, "...right canonname");
-        saddr = (struct sockaddr_in *) ai->ai_addr;
+        saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
         is_int(htons(25), saddr->sin_port, "...right port");
         ok(saddr->sin_addr.s_addr == addr.s_addr, "...right address");
         test_freeaddrinfo(ai);
@@ -185,7 +185,7 @@ main(void)
            "domain service with UDP hint");
         is_int(SOCK_DGRAM, ai->ai_socktype, "...right socktype");
         is_string(NULL, ai->ai_canonname, "...no canonname");
-        saddr = (struct sockaddr_in *) ai->ai_addr;
+        saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
         is_int(htons(53), saddr->sin_port, "...right port");
         ok(saddr->sin_addr.s_addr == addr.s_addr, "...right address");
         test_freeaddrinfo(ai);
@@ -202,7 +202,7 @@ main(void)
            "lookup of www.isc.org");
         is_int(SOCK_STREAM, ai->ai_socktype, "...right socktype");
         is_string(NULL, ai->ai_canonname, "...no canonname");
-        saddr = (struct sockaddr_in *) ai->ai_addr;
+        saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
         is_int(htons(80), saddr->sin_port, "...right port");
         ok(saddr->sin_addr.s_addr != INADDR_ANY, "...address is something");
         addr = saddr->sin_addr;
@@ -212,7 +212,7 @@ main(void)
         ok(test_getaddrinfo("www.isc.org", "80", &hints, &ai) == 0,
            "lookup of www.isc.org with A_CANONNAME");
         ok(ai->ai_canonname != NULL, "...canonname isn't null");
-        saddr = (struct sockaddr_in *) ai->ai_addr;
+        saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
         is_int(htons(80), saddr->sin_port, "...right port");
         ok(saddr->sin_addr.s_addr == addr.s_addr, "...and same address");
         test_freeaddrinfo(ai);
@@ -226,7 +226,7 @@ main(void)
         ai = NULL;
         ok(test_getaddrinfo("cnn.com", "80", NULL, &ai) == 0,
            "lookup of cnn.com with multiple A records");
-        saddr = (struct sockaddr_in *) ai->ai_addr;
+        saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
         is_int(htons(80), saddr->sin_port, "...right port");
         ok(saddr->sin_addr.s_addr != INADDR_ANY, "...address is something");
         test_freeaddrinfo(ai);
@@ -255,7 +255,7 @@ main(void)
     hints.ai_flags = AI_CANONNAME;
     ok(test_getaddrinfo("cnn.com", NULL, &hints, &ai) == 0,
        "lookup of cnn.com");
-    saddr = (struct sockaddr_in *) ai->ai_addr;
+    saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
     is_int(0, saddr->sin_port, "...port is 0");
     first = ai;
     for (found = 0; ai != NULL; ai = ai->ai_next) {
@@ -268,7 +268,7 @@ main(void)
             break;
         }
         found = 0;
-        saddr = (struct sockaddr_in *) ai->ai_addr;
+        saddr = (struct sockaddr_in *) (void *) ai->ai_addr;
         addr = saddr->sin_addr;
         for (i = 0; host->h_addr_list[i] != NULL; i++)
             if (memcmp(&addr, host->h_addr_list[i], host->h_length) == 0)

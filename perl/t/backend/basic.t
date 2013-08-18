@@ -17,7 +17,7 @@ use warnings;
 
 use lib 't/lib';
 
-use Test::More tests => 64;
+use Test::More tests => 66;
 use Test::Remctl qw(run_wrapper);
 
 # Test loading the module.
@@ -250,6 +250,35 @@ is($backend->help, $expected, 'Help output w/newline banner is correct');
 is($status, 0,         'help with more configuration returns status 0');
 is($out,    $expected, '... and correct output');
 is($err,    q{},       '... and no errors');
+
+# If one of the commands has an extremely long syntax, avoid scrunching the
+# summaries against the right margin.
+$commands{cmd3} = {
+    code    => \&test_cmd2,
+    syntax  => '<lots of long options beyond 50 columns>',
+    summary => 'actually does something very simple',
+};
+$expected = <<'END_HELP';
+Foo manipulation remctl help:
+  foo cmd1 arg1 [arg2]  cmd1 all over the args
+  foo cmd2              does the thing and then the other thing unless the
+                        second thing is contradicted by the first thing in
+                        which case the third thing is done after the screaming
+                        stops
+  foo cmd3 <lots of long options beyond 50 columns>
+                        actually does something very simple
+END_HELP
+is($backend->help, $expected, 'Help output w/long syntax is correct');
+
+# Test help summary with a single command with long syntax.
+delete $commands{cmd1};
+delete $commands{cmd2};
+$expected = <<'END_HELP';
+Foo manipulation remctl help:
+  foo cmd3 <lots of long options beyond 50 columns>
+                                        actually does something very simple
+END_HELP
+is($backend->help, $expected, 'Help output w/single long syntax is correct');
 
 # Run an unknown command and make sure we get the appropriate results.
 {

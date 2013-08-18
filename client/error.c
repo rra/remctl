@@ -7,7 +7,7 @@
  * return the appropriate details.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2008, 2010
+ * Copyright 2006, 2007, 2008, 2010, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -60,6 +60,24 @@ internal_gssapi_error(struct remctl *r, const char *error, OM_uint32 major,
     if (r->error != NULL)
         free(r->error);
     r->error = gssapi_error_string(error, major, minor);
+}
+
+
+/*
+ * Internal function to set the remctl error message from a Kerberos error
+ * message.
+ */
+void
+internal_krb5_error(struct remctl *r, const char *error, krb5_error_code code)
+{
+    const char *message;
+
+    if (r->krb_ctx == NULL)
+        internal_set_error(r, "error %s: cannot create Kerberos context",
+                           error);
+    message = krb5_get_error_message(r->krb_ctx, code);
+    internal_set_error(r, "error %s: %s", error, message);
+    krb5_free_error_message(r->krb_ctx, message);
 }
 
 

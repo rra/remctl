@@ -58,10 +58,13 @@ my @files = Perl::Critic::Utils::all_perl_files('blib');
 if (!@files) {
     @files = Perl::Critic::Utils::all_perl_files('lib');
 }
-push(@files, Perl::Critic::Utils::all_perl_files('t'));
-push(@files, 'Build.PL');
-if (-d 'examples') {
-    push(@files, Perl::Critic::Utils::all_perl_files('examples'));
+if (-f 'Build.PL') {
+    push(@files, 'Build.PL');
+}
+for my $dir (qw(examples usr t)) {
+    if (-d $dir) {
+        push(@files, Perl::Critic::Utils::all_perl_files($dir));
+    }
 }
 
 # Strip out Autoconf templates or left-over perltidy files.

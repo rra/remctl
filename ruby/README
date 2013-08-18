@@ -101,12 +101,15 @@ FULL INTERFACE
 
       To override the credential cache used by GSS-API, assign the
       credential cache (as a string) to Remctl.ccache before calling
-      Remctl.new.  Be aware that this will usually change the default
-      credential cache for all uses of GSS-API in the same process,
-      including other remctl objects, rather than just this remctl object
-      due to a limitation in the GSS-API.  Some GSS-API implementations do
-      not support setting the credential cache, in which case Remctl.new
-      will throw a Remctl::Error exception if this variable is set.
+      Remctl.new.  If the remctl client library was built against a
+      Kerberos library and the GSS-API library supported
+      gss_krb5_import_cred, this will only affect subsequently-created
+      Remctl objects.  Otherwise, this will change the default credential
+      cache for all uses of GSS-API in the same process, including other
+      remctl objects, rather than just this remctl object due to a
+      limitation in the GSS-API.  Some GSS-API implementations do not
+      support setting the credential cache, in which case Remctl.new will
+      throw a Remctl::Error exception if this variable is set.
 
       Normally, the source IP used to connect to the server is assigned by
       the kernel.  To use a specific source IP, assign that IP address (as

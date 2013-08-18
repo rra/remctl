@@ -1,4 +1,4 @@
-remctl (3.4-1~sbp60+1) stable; urgency=low
+remctl (3.6-1~sbp60+1) squeeze-backports; urgency=low
 
   * Backport to squeeze.
   * Remove dependency and use of dh-autoreconf and use the upstream build
@@ -7,7 +7,42 @@ remctl (3.4-1~sbp60+1) stable; urgency=low
   * Revert changes for the new Ruby packaging standards and reintroduce
     libremctl-ruby* packages as non-transitional packages.
 
- -- Russ Allbery <rra@debian.org>  Tue, 26 Mar 2013 18:56:37 -0700
+ -- Russ Allbery <rra@debian.org>  Sun, 18 Aug 2013 13:42:15 -0700
+
+remctl (3.6-1) unstable; urgency=low
+
+  * New upstream release.
+    - For client calls with a timeout, restart waiting for a non-blocking
+      connect if the select call is interrupted by a signal.
+    - Better Net::Remctl::Backend help formatting for commands with long
+      syntax.
+
+ -- Russ Allbery <rra@debian.org>  Wed, 14 Aug 2013 21:56:39 -0700
+
+remctl (3.5-1) unstable; urgency=low
+
+  * New upstream release.
+    - Fix a long-standing race condition in remctld that could truncate
+      large backend output.
+    - remctl_set_ccache is now threadsafe when built against a GSS-API
+      library that supports gss_krb5_import_cred.
+    - The Net::Remctl and Net::Remctl::Backend Perl module versions have
+      gone backwards from Perl's perspective to bring them in-line with
+      the package version (3.4 -> 3.05).  This is a one-time adjustment
+      to a more reliable versioning scheme.
+    - Fix test suite issues with newer Linux kernels.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 28 Jun 2013 21:45:30 -0700
+
+remctl (3.4-2) unstable; urgency=low
+
+  * Upload to unstable.
+  * Drop old Ruby transitional packages required for upgrades from squeeze
+    now that wheezy has been released.
+  * Add additional Perl modules required to run the full module test suite
+    to Build-Depends.
+
+ -- Russ Allbery <rra@debian.org>  Sat, 11 May 2013 16:34:25 -0700
 
 remctl (3.4-1) experimental; urgency=low
 

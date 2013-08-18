@@ -87,7 +87,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '4.08';
+    $VERSION = '4.09';
 }
 
 # Perl directories to skip globally for perl_dirs.  We ignore the perl
@@ -329,7 +329,7 @@ Russ Allbery <rra@stanford.edu>
 =head1 COPYRIGHT AND LICENSE
 
 Copyright 2013 The Board of Trustees of the Leland Stanford Junior
-University.
+University
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),

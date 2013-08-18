@@ -41,8 +41,10 @@ use_prereq('Test::Synopsis');
 
 # The default Test::Synopsis all_synopsis_ok() function requires that the
 # module be in a lib directory.  Use Perl::Critic::Utils to find the modules
-# in blib, or lib if it doesn't exist.
+# in blib, or lib if it doesn't exist.  However, strip out anything in
+# blib/script, since scripts use a different SYNOPSIS syntax.
 my @files = Perl::Critic::Utils::all_perl_files('blib');
+@files = grep { !m{blib/script/}xms } @files;
 if (!@files) {
     @files = Perl::Critic::Utils::all_perl_files('lib');
 }

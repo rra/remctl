@@ -1,5 +1,60 @@
                        User-Visible remctl Changes
 
+remctl 3.6 (2013-08-14)
+
+    If the client specifies a timeout, restart the wait for a nonblocking
+    connect when interrupted by a signal.  This can mean that a connect
+    can take longer than the timeout if interrupted; hopefully both
+    timeouts and catching signals are rare enough that this won't pose a
+    serious issue.
+
+    The help output from Net::Remctl::Backend now checks for commands
+    whose syntax is excessively long and does not let them influence the
+    formatting of the summary.  This keeps commands with a long syntax
+    from forcing all the summary output into a skinny column against the
+    right margin and allows proper help output for commands with a syntax
+    longer than 80 columns.
+
+    Fix compilation problems with Kerberos libraries that don't have
+    gss_krb5_import_cred, including Mac OS X and older Red Hat.  Patch
+    from Ken Dreyer.
+
+    Fix problems with PCRE detection on platforms that have the library
+    but not pcre-config or the pcre.h header file, such as Mac OS X.
+
+    Update to rra-c-util 4.9:
+
+    * Fix GCC warnings of casts that could increase alignment.
+    * Add a portable replacement for a missing strndup.
+
+    Update to C TAP Harness 2.2:
+
+    * bail and sysbail now exit with status 255 to match Test::More.
+
+remctl 3.5 (2013-06-28)
+
+    Fix a long-standing race condition in remctld (introduced in remctl
+    2.7) that could truncate large backend output if the backend program
+    exits immediately after sending that output.  On systems with pipe
+    buffers larger than 64KB, remctld could discard some buffered output
+    after determining that the child had exited.  remctld now polls for
+    and continues to process output from the child until no more is
+    immediately available, even after the child has exited.
+
+    If a Kerberos library and gss_krb5_import_cred are available at build
+    time, libremctl now uses them to implement remctl_set_ccache to avoid
+    affecting global program GSS-API state.  If those requirements are
+    met, remctl_set_ccache will only affect the remctl context on which
+    it's called.
+
+    The version numbers of the Net::Remctl and Net::Remctl::Backend Perl
+    modules now match the versions of the remctl package, but with at
+    least two digits for the minor version so that, for example, 3.9
+    (which becomes 3.09) and 3.10 will sort properly as numbers.  This
+    means that, from Perl's perspective, the version numbers have gone
+    backwards in this release relative to earlier 3.0 releases.  This is a
+    one-time adjustment to a more reliable versioning scheme.
+
 remctl 3.4 (2013-03-26)
 
     Add new C APIs for establishing a remctl connection given a sockaddr,

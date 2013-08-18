@@ -19,7 +19,7 @@ dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
 dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2010
+dnl Copyright 2010, 2013
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl This file is free software; the authors give unlimited permission to copy
@@ -61,7 +61,10 @@ dnl Does the appropriate library checks for PCRE linkage without pcre-config.
 dnl The single argument, if true, says to fail if PCRE could not be found.
 AC_DEFUN([_RRA_LIB_PCRE_MANUAL],
 [RRA_LIB_PCRE_SWITCH
- AC_CHECK_LIB([pcre], [pcre_compile], [PCRE_LIBS="-lpcre"],
+ AC_CHECK_HEADERS([pcre.h],
+     [AC_CHECK_LIB([pcre], [pcre_compile], [PCRE_LIBS="-lpcre"],
+         [AS_IF([test x"$1" = xtrue],
+             [AC_MSG_ERROR([cannot find usable PCRE library])])])],
      [AS_IF([test x"$1" = xtrue],
          [AC_MSG_ERROR([cannot find usable PCRE library])])])
  RRA_LIB_PCRE_RESTORE])
@@ -71,11 +74,17 @@ dnl PCRE program.  If that fails, clear PCRE_CPPFLAGS and PCRE_LIBS so that we
 dnl know we don't have usable flags and fall back on the manual check.
 AC_DEFUN([_RRA_LIB_PCRE_CHECK],
 [RRA_LIB_PCRE_SWITCH
+ rra_lib_pcre_okay=
  AC_CHECK_FUNC([pcre_compile],
-    [RRA_LIB_PCRE_RESTORE],
-    [RRA_LIB_PCRE_RESTORE
-     PCRE_CPPFLAGS=
+    [AC_CHECK_HEADERS([pcre.h],
+        [rra_lib_pcre_okay=true])])
+ RRA_LIB_PCRE_RESTORE
+ AS_IF([test x"$rra_lib_pcre_okay" != xtrue],
+    [PCRE_CPPFLAGS=
      PCRE_LIBS=
+     AC_MSG_NOTICE([pcre-config results failed, trying manual probing])
+     ac_cv_header_pcre_h=
+     (unset ac_cv_header_pcre_h) >/dev/null 2>&1 && unset ac_cv_header_pcre_h
      _RRA_LIB_PCRE_PATHS
      _RRA_LIB_PCRE_MANUAL([$1])])])
 

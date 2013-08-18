@@ -31,16 +31,24 @@ use warnings;
 use Getopt::Long;
 use Text::Wrap qw(wrap);
 
-# Tab and line width for formatting.  Avoid dependency on Readonly.
-use constant TAB_WIDTH  => 8;
+# Line width for formatting.  Avoid dependency on Readonly.
 use constant LINE_WIDTH => 80;
+
+# In the help output, command syntax longer than this will shift the summary
+# to the following line and will not affect the column in which the summary
+# starts.
+use constant MAX_SYNTAX_LENGTH => 48;
+
+# If all syntax lines exceed MAX_SYNTAX_LENGTH, start the summary output in
+# this column.
+use constant DEFAULT_SUMMARY_COLUMN => 40;
 
 our $VERSION;
 
 # This version matches the version of remctl with which this module was
 # released, but with at least two digits for the minor version.
 BEGIN {
-    $VERSION = '3.04';
+    $VERSION = '3.06';
 }
 
 # Constructor.  Takes all possible parameters as a hash.  See the POD
@@ -127,18 +135,7 @@ sub help {
     # Generate two parallel lists of syntax and summaries.
     my ($syntax_ref, $summary_ref) = $self->_build_help($self->{commands});
 
-    # Calculate the maximum syntax length.  Add in the length of the command.
-    my $max_syntax_len = 0;
-    for my $syntax (@{$syntax_ref}) {
-        if (length($syntax) > $max_syntax_len) {
-            $max_syntax_len = length($syntax);
-        }
-    }
-
-    # Padding is constructed as follows: add two to the maximum length to
-    # account for two blank spaces at the start of the line if there is a
-    # help_prefix set.  Add the length of the command and a space if command
-    # is set.  Then pad to two blanck spaces after the longest syntax block.
+    # Calculate the prefix that will be added to each line of the syntax.
     my $prefix = q{};
     if ($self->{help_banner}) {
         $prefix = q{ } x 2;
@@ -146,7 +143,27 @@ sub help {
     if ($self->{command}) {
         $prefix .= $self->{command} . q{ };
     }
-    my $pad_column = $max_syntax_len + 2 + length($prefix);
+
+    # Calculate the longest syntax length, except for very long lines that
+    # pass the MAX_SYNTAX cutoff.
+    my $longest_syntax_len = 0;
+    my $max_syntax_len     = MAX_SYNTAX_LENGTH - length($prefix);
+    for my $syntax (@{$syntax_ref}) {
+        my $length = length($syntax);
+        if ($length > $longest_syntax_len && $length <= $max_syntax_len) {
+            $longest_syntax_len = $length;
+        }
+    }
+
+    # The summary starts two blank spaces after the longest syntax block that
+    # does not exceed the length cap.  If all the syntax lines are too long,
+    # arbitrarily start in column 40.
+    my $pad_column;
+    if ($longest_syntax_len > 0) {
+        $pad_column = length($prefix) + $longest_syntax_len + 2;
+    } else {
+        $pad_column = DEFAULT_SUMMARY_COLUMN;
+    }
 
     # Add the help banner if one is set.  Add a newline if there isn't one.
     my $output = q{};
@@ -170,11 +187,19 @@ sub help {
             next;
         }
 
-        # Otherwise, line up the columns and wrap the summary.
+        # Otherwise, line up the columns and wrap the summary.  If the length
+        # goes beyond the pad column minus two (for the blank spaces), move
+        # the summary to the next line.
         my $length = length($prefix) + length($syntax);
-        my $padding = q{ } x ($pad_column - $length);
-        $syntax = $prefix . $syntax . $padding;
-        $output .= wrap($syntax, q{ } x $pad_column, $summary . "\n");
+        if ($length <= $pad_column - 2) {
+            my $padding = q{ } x ($pad_column - $length);
+            $syntax = $prefix . $syntax . $padding;
+            $output .= wrap($syntax, q{ } x $pad_column, $summary . "\n");
+        } else {
+            my $padding = q{ } x $pad_column;
+            $output .= $prefix . $syntax . "\n";
+            $output .= wrap($padding, $padding, $summary . "\n");
+        }
     }
 
     # Return the formatted results.
@@ -672,8 +697,8 @@ Russ Allbery <rra@stanford.edu>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2012 The Board of Trustees of the Leland Stanford Junior
-University.  All rights reserved.
+Copyright 2012, 2013 The Board of Trustees of the Leland Stanford Junior
+University
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),

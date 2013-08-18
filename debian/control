@@ -2,9 +2,11 @@ Source: remctl
 Section: net
 Priority: optional
 Maintainer: Russ Allbery <rra@debian.org>
-Build-Depends: debhelper (>= 9), libkrb5-dev, libpcre3-dev,
- libtest-pod-perl, perl, php5-cli, php5-dev, python-all-dev, ruby1.8,
- ruby1.8-dev, ruby1.9.1, ruby1.9.1-dev
+Build-Depends: debhelper (>= 9), libkrb5-dev, libkrb5-dev, libpcre3-dev,
+ libperl-critic-perl, libtest-pod-perl, libtest-minimumversion-perl,
+ libtest-pod-coverage-perl, libtest-strict-perl, libtest-synopsis-perl, 
+ perl, php5-cli, php5-dev, python-all-dev, ruby1.8, ruby1.8-dev,
+ ruby1.9.1, ruby1.9.1-dev
 XS-Python-Version: >= 2.6
 Standards-Version: 3.9.4
 Homepage: http://www.eyrie.org/~eagle/software/remctl/
