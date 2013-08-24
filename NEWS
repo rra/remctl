@@ -1,5 +1,10 @@
                        User-Visible remctl Changes
 
+remctl 3.7 (unreleased)
+
+    Work around a bug in the Module::Build version that comes with RHEL 5
+    in passing compiler and linker flags to the Perl module build.
+
 remctl 3.6 (2013-08-14)
 
     If the client specifies a timeout, restart the wait for a nonblocking

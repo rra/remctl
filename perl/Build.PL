@@ -63,6 +63,16 @@ my $build = Module::Build->new(
     requires           => { perl            => '5.008' },
 );
 
+# Work around a bug in the version of Module::Build that shipped with RHEL 5.
+if ($Module::Build::VERSION <= 0.2807) {
+    for my $param (qw(extra_compiler_flags extra_linker_flags)) {
+        my $value = $build->$param;
+        if (ref($value) eq 'ARRAY' && @{$value} == 1) {
+            $build->$param($build->split_like_shell($value->[0]));
+        }
+    }
+}
+
 # Generate the build script.
 $build->create_build_script;
 
