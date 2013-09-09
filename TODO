@@ -65,6 +65,21 @@ Server:
    select loop in the server instead of the current short timeout and
    polling to work around race conditions.
 
+ * REMCTL-32: Support masking the argument following a particular string
+   so that the argument to a particular flag can be masked regardless of
+   its location on the command line.
+
+ * REMCTL-35: Support for systemd (and upstart) socket activation.
+
+ * REMCTL-36: Replace the server event loop with libevent.
+
+ * REMCTL-37: Add server support for persistent child processes that the
+   server communicates with over a UNIX domain socket.  The best protocol
+   for communication is probably FastCGI, since that will allow the child
+   processes to be written in a wide variety of languages and take
+   advantage of existing libraries.  This will probably require a new
+   implementation of the FastCGI server-side protocol.
+
 Client:
 
  * REMCTL-14: Implement file upload in the remctl client.
@@ -93,9 +108,15 @@ Client library:
 
 Perl library:
 
- * REMCTL-19: Add a Perl module to make it easier to write remctl backends
-   that produce useful output for help and summary subcommands, for
-   integration with the new remctld support for service discovery.
+ * REMCTL-33: Add Net::Remctl::Backend support for obtaining a Kerberos
+   ticket from a given keytab file before running a command.
+
+ * REMCTL-34: Add Net::Remctl::Backend support for creating a PAG and
+   obtaining AFS tokens before running a command.
+
+ * REMCTL-38: Add support for per-command help (possibly extracted from
+   the POD documentation with some additional markup) to implement the
+   help server configuration.
 
 Build system:
 
