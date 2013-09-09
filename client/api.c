@@ -358,6 +358,7 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
 {
     bool port_fallback = false;
     socket_type fd = INVALID_SOCKET;
+    char *old_error;
 
     internal_reset(r);
     r->host = host;
@@ -373,10 +374,23 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
         port_fallback = true;
     }
 
-    /* Make the network connection. */
+    /*
+     * Make the network connection.  If we're doing a fallback to the legacy
+     * port, preserve the error message from the initial connect and report
+     * it by preference to the error message for the legacy connect.
+     */
     fd = internal_connect(r, host, port);
-    if (fd == INVALID_SOCKET && port_fallback)
+    if (fd == INVALID_SOCKET && port_fallback) {
+        old_error = r->error;
+        r->error = NULL;
         fd = internal_connect(r, host, REMCTL_PORT_OLD);
+        if (fd == INVALID_SOCKET) {
+            free(r->error);
+            r->error = old_error;
+        } else {
+            free(old_error);
+        }
+    }
     if (fd == INVALID_SOCKET)
         return false;
     r->fd = fd;

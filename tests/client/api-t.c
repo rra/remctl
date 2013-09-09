@@ -220,6 +220,7 @@ main(void)
     struct addrinfo ai;
     struct sockaddr_in sin;
     int fd;
+    char *message, *p;
     static const char *test[] = { "test", "test", NULL };
     static const char *error[] = { "test", "bad-command", NULL };
 
@@ -227,7 +228,7 @@ main(void)
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     remctld_start(config, "data/conf-simple", (char *) 0);
 
-    plan(138);
+    plan(141);
 
     /* Run the basic protocol tests. */
     do_tests(config->principal, 1);
@@ -302,6 +303,29 @@ main(void)
     ok(remctl_open_fd(r, NULL, fd, config->principal), "remctl_open_fd works");
     is_string("no error", remctl_error(r), "...with no error");
     test_command(r);
+    remctl_close(r);
+
+    /*
+     * Test the error message when doing port fallback to the legacy port and
+     * the connection fails.  The reported port should be the current port
+     * even though we try the legacy port second.  The IP address here is
+     * reserved for documentation purposes by RFC 5737 and should therefore
+     * never be running a remctl listener.
+     *
+     * We strip the system call error off of the error string before we check
+     * it since the translation may vary by system.
+     */
+    r = remctl_new();
+    ok(remctl_set_timeout(r, 1), "set one second timeout");
+    ok(!remctl_open(r, "192.0.2.1", 0, config->principal),
+       "remctl_open for 192.0.2.1 fails");
+    message = bstrdup(remctl_error(r));
+    p = strrchr(message, ':');
+    if (p != NULL)
+        *p = '\0';
+    is_string("cannot connect to 192.0.2.1 (port 4373)", message,
+              "...with correct error");
+    free(message);
     remctl_close(r);
 
     return 0;
