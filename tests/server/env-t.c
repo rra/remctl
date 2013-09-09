@@ -2,7 +2,7 @@
  * Test suite for environment variables set by the server.
  *
  * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2009, 2010, 2012
+ * Copyright 2006, 2009, 2010, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -93,7 +93,10 @@ main(void)
     is_string(expected, value, "value for REMOTE_USER");
     free(value);
     value = test_env(r, "REMOTE_ADDR");
-    is_string("127.0.0.1\n", value, "value for REMOTE_ADDR");
+    if (strcmp(value, "::1\n") == 0)
+        is_string("::1\n", value, "value for REMOTE_ADDR");
+    else
+        is_string("127.0.0.1\n", value, "value for REMOTE_ADDR");
     free(value);
     value = test_env(r, "REMOTE_HOST");
     ok(strcmp(value, "\n") == 0 || strstr(value, "localhost") != NULL,
