@@ -17,6 +17,9 @@ Protocol:
    client can retrieve the list of supported commands rather than assuming
    based on the protocol version.
 
+ * REMCTL-40: Support locating remctl services via SRV records, probably
+   _<service>._remctl._tcp.<domain>.
+
 Server:
 
  * REMCTL-5: Add a way of explicitly specifying the null command or
