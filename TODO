@@ -133,6 +133,9 @@ Documentation:
 
  * REMCTL-29: Submit the remctl protocol as an IETF Internet-Draft.
 
+ * REMCTL-39: Document conventions for the configuration in the remctld
+   manual.
+
 Portability layer:
 
  * REMCTL-21: Refactor getopt to be easier to understand and less deeply
