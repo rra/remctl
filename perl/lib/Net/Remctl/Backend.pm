@@ -581,6 +581,17 @@ Checks for the number of arguments and for the validity of arguments with
 regular expression verification are done after reading the data from
 standard input and transforming the argument list accordingly.
 
+=item summary
+
+The summary of what this subcommand does, as text.  Ideally, this should
+fit on the same line with the syntax after the help output has been laid
+out in columns.  If it is too long to fit, it will be wrapped, with each
+subsequent line indented to the column where the summaries start.
+
+If this key is omitted, the subcommand will still be shown in help
+output, provided that it has a syntax key, but without any trailing
+summary.
+
 =item syntax
 
 The syntax of this subcommand.  This should be short, since it needs to
@@ -604,17 +615,6 @@ Set this key to the empty string to indicate that this subcommand takes
 no arguments or flags.
 
 If this key is omitted, the subcommand will be omitted from help output.
-
-=item summary
-
-The summary of what this subcommand does, as text.  Ideally, this should
-fit on the same line with the syntax after the help output has been laid
-out in columns.  If it is too long to fit, it will be wrapped, with each
-subsequent line indented to the column where the summaries start.
-
-If this key is omitted, the subcommand will still be shown in help
-output, provided that it has a syntax key, but without any trailing
-summary.
 
 =back
 
