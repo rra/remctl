@@ -389,6 +389,7 @@ sub run {
             $stdin_index = $args_count + 1;
         }
         splice(@{$args_ref}, $stdin_index - 1, 0, $stdin);
+        $args_count = scalar(@{$args_ref});
     }
 
     # Check the number of arguments if desired.

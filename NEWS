@@ -2,6 +2,10 @@
 
 remctl 3.7 (unreleased)
 
+    Fix Net::Remctl::Backend argument count validation when one of the
+    arguments is coming from standard input.  The count of arguments was
+    previously not updated properly after splicing in the extra argument.
+
     Work around a bug in the Module::Build version that comes with RHEL 5
     in passing compiler and linker flags to the Perl module build.
 

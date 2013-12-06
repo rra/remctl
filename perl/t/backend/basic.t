@@ -136,8 +136,10 @@ is($err, "foo cmd1: invalid argument: arg-2\n", '... and correct error');
 is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
 
-# Change cmd1 to take the first argument on standard input.
-$commands{cmd1}{stdin} = 1;
+# Change cmd1 to take the first argument on standard input and require two
+# arguments to ensure that arguments passed via standard input count.
+$commands{cmd1}{stdin}    = 1;
+$commands{cmd1}{args_min} = 2;
 close(STDIN) or BAIL_OUT("Cannot close STDIN: $!");
 my $stdin = "some\0data";
 open(STDIN, '<', \$stdin) or BAIL_OUT("Cannot redirect STDIN: $!");
