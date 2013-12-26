@@ -146,6 +146,8 @@ internal_set_cred(struct remctl *r, gss_cred_id_t *gss_cred)
             return false;
         }
     }
+    if (r->krb_ccache != NULL)
+        krb5_cc_close(r->krb_ctx, r->krb_ccache);
     code = krb5_cc_resolve(r->krb_ctx, r->ccache, &r->krb_ccache);
     if (code != 0) {
         internal_krb5_error(r, "opening ticket cache", code);
@@ -290,6 +292,8 @@ internal_open(struct remctl *r, const char *host, const char *principal)
     r->context = gss_context;
     r->ready = 0;
     gss_release_name(&minor, &name);
+    if (gss_cred != GSS_C_NO_CREDENTIAL)
+        gss_release_cred(&minor, &gss_cred);
     return true;
 
 fail:
@@ -297,6 +301,8 @@ fail:
     r->fd = INVALID_SOCKET;
     if (name != GSS_C_NO_NAME)
         gss_release_name(&minor, &name);
+    if (gss_cred != GSS_C_NO_CREDENTIAL)
+        gss_release_cred(&minor, &gss_cred);
     if (gss_context != GSS_C_NO_CONTEXT)
         gss_delete_sec_context(&minor, &gss_context, GSS_C_NO_BUFFER);
     return false;

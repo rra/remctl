@@ -2,6 +2,11 @@
 
 remctl 3.7 (unreleased)
 
+    Fix a client memory leak when remctl_set_ccache is used with a
+    Kerberos library that supports gss_krb5_import_cred.  The credential
+    was never freed, leaking memory with each remctl client call, and a
+    Kerberos ticket cache struct could also be leaked in some situations.
+
     Fix Net::Remctl::Backend argument count validation when one of the
     arguments is coming from standard input.  The count of arguments was
     previously not updated properly after splicing in the extra argument.
