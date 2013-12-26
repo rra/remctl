@@ -315,7 +315,8 @@ server_daemon(struct options *options, struct config *config,
             else
                 fds[i] = network_bind_ipv4(addr, options->port);
             if (fds[i] == INVALID_SOCKET)
-                sysdie("cannot bind to address %s", addr);
+                sysdie("cannot bind to address %s, port %hu", addr,
+                       options->port);
         }
     }
     for (i = 0; i < nfds; i++)
