@@ -83,6 +83,14 @@ Server:
    advantage of existing libraries.  This will probably require a new
    implementation of the FastCGI server-side protocol.
 
+ * REMCTL-41: In long-running remctld processes, check for configuration
+   file changes and reload the configuration automatically.
+
+ * REMCTL-42: Consider dropping the client remctl connection when the
+   client's authentication credentials have expired.  Otherwise, remctld
+   potentially violates the security properties of the Kerberos protocol
+   by using authenticators beyond their stated lifetime.
+
 Client:
 
  * REMCTL-14: Implement file upload in the remctl client.
