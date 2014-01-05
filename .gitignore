@@ -108,7 +108,10 @@
 /tests/util/fdflag-t
 /tests/util/gss-tokens-t
 /tests/util/messages-t
-/tests/util/network-t
+/tests/util/network/addr-ipv4-t
+/tests/util/network/addr-ipv6-t
+/tests/util/network/client-t
+/tests/util/network/server-t
 /tests/util/tokens-t
 /tests/util/vector-t
 /tests/util/xmalloc

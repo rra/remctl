@@ -7,7 +7,7 @@
  *
  * Written by Anton Ushakov
  * Extensive modifications by Russ Allbery <eagle@eyrie.org>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -301,9 +301,7 @@ server_daemon(struct options *options, struct config *config,
 
     /* Bind to the network sockets and configure listening addresses. */
     if (options->bindaddrs->count == 0) {
-        nfds = 0;
-        network_bind_all(options->port, &fds, &nfds);
-        if (nfds == 0)
+        if (!network_bind_all(SOCK_STREAM, options->port, &fds, &nfds))
             sysdie("cannot bind any sockets");
     } else {
         nfds = options->bindaddrs->count;
@@ -311,9 +309,9 @@ server_daemon(struct options *options, struct config *config,
         for (i = 0; i < options->bindaddrs->count; i++) {
             addr = options->bindaddrs->strings[i];
             if (is_ipv6(addr))
-                fds[i] = network_bind_ipv6(addr, options->port);
+                fds[i] = network_bind_ipv6(SOCK_STREAM, addr, options->port);
             else
-                fds[i] = network_bind_ipv4(addr, options->port);
+                fds[i] = network_bind_ipv4(SOCK_STREAM, addr, options->port);
             if (fds[i] == INVALID_SOCKET)
                 sysdie("cannot bind to address %s, port %hu", addr,
                        options->port);

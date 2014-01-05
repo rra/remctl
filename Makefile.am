@@ -1,7 +1,7 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
+# Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -291,8 +291,10 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t   \
 	tests/server/stdin-t tests/server/streaming-t			   \
 	tests/server/summary-t tests/server/user-t tests/server/version-t  \
 	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t  \
-	tests/util/network-t tests/util/tokens-t tests/util/vector-t	   \
-	tests/util/xmalloc tests/util/xwrite-t
+	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	   \
+	tests/util/network/client-t tests/util/network/server-t		   \
+	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	   \
+	tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
@@ -440,7 +442,13 @@ tests_util_gss_tokens_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS)
 tests_util_messages_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
-tests_util_network_t_LDADD = tests/tap/libtap.a util/libutil.la \
+tests_util_network_addr_ipv4_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la
+tests_util_network_addr_ipv6_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la
+tests_util_network_client_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la
+tests_util_network_server_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_util_tokens_t_LDFLAGS = $(GSSAPI_LDFLAGS)
 tests_util_tokens_t_LDADD = tests/tap/libtap.a util/libutil.la \

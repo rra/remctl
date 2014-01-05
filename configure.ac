@@ -32,7 +32,7 @@ AC_PATH_PROG([PATH_FAKEROOT], [fakeroot])
 
 dnl Kerberos portability checks.
 RRA_LIB_KRB5_OPTIONAL
-AS_IF([test x"$rra_use_kerberos" != xfalse],
+AS_IF([test x"$rra_use_KRB5" != xfalse],
     [RRA_LIB_KRB5_SWITCH
      AC_CHECK_FUNCS([krb5_get_init_creds_opt_set_default_flags \
          krb5_principal_get_realm \

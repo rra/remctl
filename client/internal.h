@@ -3,8 +3,8 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on prior work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013
- *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
+ *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
@@ -40,7 +40,7 @@ struct remctl {
     bool ready;                 /* If true, we are expecting server output. */
 
     /* Used to hold state for remctl_set_ccache. */
-#ifdef HAVE_KERBEROS
+#ifdef HAVE_KRB5
     krb5_context krb_ctx;
     krb5_ccache krb_ccache;
 #endif
@@ -55,7 +55,7 @@ BEGIN_DECLS
 void internal_set_error(struct remctl *, const char *, ...);
 void internal_gssapi_error(struct remctl *, const char *error,
                            OM_uint32 major, OM_uint32 minor);
-#ifdef HAVE_KERBEROS
+#ifdef HAVE_KRB5
 void internal_krb5_error(struct remctl *, const char *error,
                          krb5_error_code code);
 #endif

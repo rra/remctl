@@ -44,28 +44,43 @@ BEGIN_DECLS
 #pragma GCC visibility push(hidden)
 
 /*
- * Create a socket and bind it to the specified address and port (either IPv4
- * or IPv6), returning the resulting file descriptor or -1 on error.  Errors
- * are reported using warn/syswarn.  To bind to all interfaces, use "any" or
- * "all" for address.
+ * Create a socket of the given type and bind it to the specified address and
+ * port (either IPv4 or IPv6), returning the resulting file descriptor or -1
+ * on error.  Errors are reported using warn/syswarn.  To bind to all
+ * interfaces, use "any" or "all" for address.
  */
-socket_type network_bind_ipv4(const char *address, unsigned short port)
+socket_type network_bind_ipv4(int type, const char *addr, unsigned short port)
     __attribute__((__nonnull__));
-socket_type network_bind_ipv6(const char *address, unsigned short port)
+socket_type network_bind_ipv6(int type, const char *addr, unsigned short port)
     __attribute__((__nonnull__));
 
 /*
- * Create and bind sockets for every local address (normally two, one for IPv4
- * and one for IPv6, if IPv6 support is enabled).  If IPv6 is not enabled,
- * just one socket will be created and bound to the IPv4 wildcard address.
+ * Create and bind sockets of the given type for every local address (normally
+ * two, one for IPv4 and one for IPv6, if IPv6 support is enabled).  If IPv6
+ * is not enabled, just one socket will be created and bound to the IPv4
+ * wildcard address.  Returns true on success and false (setting errno) on
+ * failure.
+ *
  * fds will be set to an array containing the resulting file descriptors, with
  * count holding the count returned.  Use network_bind_all_free to free the
  * array of file descriptors when no longer needed.
  */
-void network_bind_all(unsigned short port, socket_type **fds,
+bool network_bind_all(int type, unsigned short port, socket_type **fds,
                       unsigned int *count)
     __attribute__((__nonnull__));
 void network_bind_all_free(socket_type *fds);
+
+/*
+ * Wait on an array of file descriptor for one of them to select ready for
+ * read, and return the first file descriptor that does so.  This is primarily
+ * intended for UDP services listening on mutliple file descriptors.  TCP
+ * services will probably want to use network_accept_any instead.
+ *
+ * This is not intended to be a replacement for a full event loop, just some
+ * simple shared code for UDP services.
+ */
+socket_type network_wait_any(socket_type fds[], unsigned int count)
+    __attribute__((__nonnull__));
 
 /*
  * Accept an incoming connection from any file descriptor in an array.  This

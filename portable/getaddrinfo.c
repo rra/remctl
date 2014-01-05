@@ -170,18 +170,18 @@ freeaddrinfo(struct addrinfo *ai)
  * of the string is consumed, and checking that the resulting number is
  * positive.
  */
-static int
+static bool
 convert_service(const char *string, long *result)
 {
     char *end;
 
     if (*string == '\0')
-        return 0;
+        return false;
     errno = 0;
     *result = strtol(string, &end, 10);
     if (errno != 0 || *end != '\0' || *result < 0)
-        return 0;
-    return 1;
+        return false;
+    return true;
 }
 
 

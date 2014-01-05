@@ -33,6 +33,12 @@
 # DEALINGS IN THE SOFTWARE.
 
 {
+   dlopen-dlerror
+   Memcheck:Leak
+   fun:calloc
+   fun:_dlerror_run
+}
+{
    heimdal-krb5-init-context-once
    Memcheck:Leak
    fun:*alloc

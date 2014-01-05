@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 #
 # Check all POD documents in the tree, except for any embedded Perl module
 # distribution, for POD formatting errors.

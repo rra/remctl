@@ -5,7 +5,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2009, 2010
+ * Copyright 2009, 2010, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -33,6 +33,9 @@
 #include <config.h>
 #include <tests/tap/macros.h>
 
+/* Opaque data type for process_start and friends. */
+struct process;
+
 BEGIN_DECLS
 
 /*
@@ -59,6 +62,32 @@ void is_function_output(test_function_type, void *data, int status,
  */
 void run_setup(const char *const argv[])
     __attribute__((__nonnull__));
+
+/*
+ * process_start starts a process in the background, returning an opaque data
+ * struct that can be used to stop the process later.  The standard output and
+ * standard error of the process will be sent to a log file registered with
+ * diag_file_add, so its output will be properly interleaved with the test
+ * case output.
+ *
+ * The process should create a PID file in the path given as the second
+ * argument when it's finished initialization.
+ *
+ * process_start_fakeroot is the same but starts the process under fakeroot.
+ * PATH_FAKEROOT must be defined (generally by Autoconf).  If fakeroot is not
+ * found, process_start_fakeroot will call skip_all, so be sure to call this
+ * function before plan.
+ *
+ * process_stop can be called to explicitly stop the process.  If it isn't
+ * called by the test program, it will be called automatically when the
+ * program exits.
+ */
+struct process *process_start(const char *const argv[], const char *pidfile)
+    __attribute__((__nonnull__));
+struct process *process_start_fakeroot(const char *const argv[],
+                                       const char *pidfile)
+    __attribute__((__nonnull__));
+void process_stop(struct process *);
 
 END_DECLS
 

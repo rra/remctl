@@ -21,6 +21,8 @@
 #include <config.h>
 #include <portable/system.h>
 
+#include <errno.h>
+
 /*
  * If we're running the test suite, rename the functions to avoid conflicts
  * with the system versions.
@@ -32,6 +34,7 @@ int test_asprintf(char **, const char *, ...)
     __attribute__((__format__(printf, 2, 3)));
 int test_vasprintf(char **, const char *, va_list);
 #endif
+
 
 int
 asprintf(char **strp, const char *fmt, ...)
@@ -45,11 +48,12 @@ asprintf(char **strp, const char *fmt, ...)
     return status;
 }
 
+
 int
 vasprintf(char **strp, const char *fmt, va_list args)
 {
     va_list args_copy;
-    int status, needed;
+    int status, needed, oerrno;
 
     va_copy(args_copy, args);
     needed = vsnprintf(NULL, 0, fmt, args_copy);
@@ -65,8 +69,10 @@ vasprintf(char **strp, const char *fmt, va_list args)
     if (status >= 0)
         return status;
     else {
+        oerrno = errno;
         free(*strp);
         *strp = NULL;
+        errno = oerrno;
         return status;
     }
 }

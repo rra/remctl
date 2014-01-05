@@ -4,7 +4,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2010, 2012
+ * Copyright 2010, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -33,7 +33,8 @@
 #include <config.h>
 #include <portable/macros.h>
 
-#include <sys/types.h>
+#include <stdarg.h>
+#include <stddef.h>
 
 /*
  * The functions are actually macros so that we can pick up the file and line
@@ -96,7 +97,11 @@ void x_asprintf(char **, const char *, ...)
     __attribute__((__nonnull__, __format__(printf, 2, 3)));
 #endif
 
-/* Failure handler takes the function, the size, the file, and the line. */
+/*
+ * Failure handler takes the function, the size, the file, and the line.  The
+ * size will be zero if the failure was due to some failure in snprintf
+ * instead of a memory allocation failure.
+ */
 typedef void (*xmalloc_handler_type)(const char *, size_t, const char *, int);
 
 /* The default error handler. */

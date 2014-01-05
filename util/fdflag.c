@@ -7,7 +7,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2008, 2011
+ * Copyright 2008, 2011, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -36,7 +36,6 @@
 #ifdef _WIN32
 # include <winsock2.h>
 #else
-# include <errno.h>
 # include <fcntl.h>
 # ifndef O_NONBLOCK
 #  include <sys/ioctl.h>

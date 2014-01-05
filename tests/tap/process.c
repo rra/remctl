@@ -7,12 +7,15 @@
  * runs a function in a subprocess and checks its output and exit status
  * against expected values.
  *
+ * Requires an Autoconf probe for sys/select.h and a replacement for a missing
+ * mkstemp.
+ *
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2002, 2004, 2005 Russ Allbery <eagle@eyrie.org>
- * Copyright 2009, 2010, 2011
+ * Copyright 2002, 2004, 2005, 2013 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2009, 2010, 2011, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -37,11 +40,43 @@
 #include <config.h>
 #include <portable/system.h>
 
+#include <fcntl.h>
+#include <signal.h>
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
+#include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/wait.h>
 
 #include <tests/tap/basic.h>
 #include <tests/tap/process.h>
 #include <tests/tap/string.h>
+
+/* May be defined by the build system. */
+#ifndef PATH_FAKEROOT
+# define PATH_FAKEROOT ""
+#endif
+
+/*
+ * Used to store information about a background process.  This contains
+ * everything required to stop the process and clean up after it.
+ */
+struct process {
+    pid_t pid;                  /* PID of child process */
+    char *pidfile;              /* PID file to delete on process stop */
+    char *tmpdir;               /* Temporary directory for log file */
+    char *logfile;              /* Log file of process output */
+    bool is_child;              /* Whether we can waitpid for process */
+    struct process *next;       /* Next process in global list */
+};
+
+/*
+ * Global list of started processes, which will be cleaned up automatically on
+ * program exit if they haven't been explicitly stopped with process_stop
+ * prior to that point.
+ */
+static struct process *processes = NULL;
 
 
 /*
@@ -171,7 +206,241 @@ run_setup(const char *const argv[])
         p = strchr(output, '\n');
         if (p != NULL)
             *p = '\0';
-        bail("%s", output);
+        if (output[0] != '\0')
+            bail("%s", output);
+        else
+            bail("setup command failed with no output");
     }
     free(output);
+}
+
+
+/*
+ * Stop a particular process given its process struct.  This kills the
+ * process, waits for it to exit if possible (giving it at most five seconds),
+ * and then removes it from the global processes struct so that it isn't
+ * stopped again during global shutdown.
+ */
+void
+process_stop(struct process *process)
+{
+    struct process **prev;
+
+    /* This is useful for itself, but also to flush out any log messages. */
+    diag("process_stop called with pid %lu", (unsigned long) process->pid);
+
+    /* Remove the process from the global list. */
+    prev = &processes;
+    while (*prev != NULL && *prev != process)
+        prev = &(*prev)->next;
+    if (*prev == process)
+        *prev = process->next;
+
+    /*
+     * If the process is a direct child, kill it and then wait for it to exit.
+     * Otherwise, just kill it and hope.
+     */
+    if (process->is_child) {
+        alarm(5);
+        if (waitpid(process->pid, NULL, WNOHANG) == 0) {
+            kill(process->pid, SIGTERM);
+            waitpid(process->pid, NULL, 0);
+        }
+        alarm(0);
+    } else {
+        kill(process->pid, SIGTERM);
+    }
+
+    /* Remove the log and PID file. */
+    diag_file_remove(process->logfile);
+    unlink(process->pidfile);
+    unlink(process->logfile);
+
+    /* Free resources. */
+    free(process->pidfile);
+    free(process->logfile);
+    test_tmpdir_free(process->tmpdir);
+    free(process);
+}
+
+
+/*
+ * Stop all running processes.  This is called as a cleanup handler during
+ * process shutdown.  The argument, which says whether the test was
+ * successful, is ignored, since the same actions should be performed
+ * regardless.
+ */
+static void
+process_stop_all(int success UNUSED)
+{
+    while (processes != NULL)
+        process_stop(processes);
+}
+
+
+/*
+ * Read the PID of a process from a file.  This is necessary when running
+ * under fakeroot to get the actual PID of the remctld process.
+ */
+static long
+read_pidfile(const char *path)
+{
+    FILE *file;
+    char buffer[BUFSIZ];
+    long pid;
+
+    file = fopen(path, "r");
+    if (file == NULL)
+        sysbail("cannot open %s", path);
+    if (fgets(buffer, sizeof(buffer), file) == NULL)
+        sysbail("cannot read from %s", path);
+    fclose(file);
+    pid = strtol(buffer, NULL, 10);
+    if (pid <= 0)
+        bail("cannot read PID from %s", path);
+    return pid;
+}
+
+
+/*
+ * Start a process and return its status information.  The status information
+ * is also stored in the global processes linked list so that it can be
+ * stopped automatically on program exit.
+ *
+ * The boolean argument says whether to start the process under fakeroot.  If
+ * true, PATH_FAKEROOT must be defined, generally by Autoconf.  If it's not
+ * found, call skip_all.
+ *
+ * This is a helper function for process_start and process_start_fakeroot.
+ */
+static struct process *
+process_start_internal(const char *const argv[], const char *pidfile,
+                       bool fakeroot)
+{
+    size_t i, size;
+    int log_fd;
+    const char *name;
+    struct timeval tv;
+    struct process *process;
+    const char **fakeroot_argv = NULL;
+    const char *path_fakeroot = PATH_FAKEROOT;
+
+    /* Check prerequisites. */
+    if (fakeroot && path_fakeroot[0] == '\0')
+        skip_all("fakeroot not found");
+
+    /* Create the process struct and log file. */
+    process = bcalloc(1, sizeof(struct process));
+    process->pidfile = bstrdup(pidfile);
+    process->tmpdir = test_tmpdir();
+    name = strrchr(argv[0], '/');
+    if (name != NULL)
+        name++;
+    else
+        name = argv[0];
+    basprintf(&process->logfile, "%s/%s.log.XXXXXX", process->tmpdir, name);
+    log_fd = mkstemp(process->logfile);
+    if (log_fd < 0)
+        sysbail("cannot create log file for %s", argv[0]);
+
+    /* If using fakeroot, rewrite argv accordingly. */
+    if (fakeroot) {
+        for (i = 0; argv[i] != NULL; i++)
+            ;
+        size = 2 + i + 1;
+        fakeroot_argv = bmalloc(size * sizeof(const char *));
+        fakeroot_argv[0] = path_fakeroot;
+        fakeroot_argv[1] = "--";
+        for (i = 0; argv[i] != NULL; i++)
+            fakeroot_argv[i + 2] = argv[i];
+        fakeroot_argv[i + 2] = NULL;
+        argv = fakeroot_argv;
+    }
+
+    /*
+     * Fork off the child process, redirect its standard output and standard
+     * error to the log file, and then exec the program.
+     */
+    process->pid = fork();
+    if (process->pid < 0)
+        sysbail("fork failed");
+    else if (process->pid == 0) {
+        if (dup2(log_fd, STDOUT_FILENO) < 0)
+            sysbail("cannot redirect standard output");
+        if (dup2(log_fd, STDERR_FILENO) < 0)
+            sysbail("cannot redirect standard error");
+        close(log_fd);
+        if (execv(argv[0], (char *const *) argv) < 0)
+            sysbail("exec of %s failed", argv[0]);
+    }
+    close(log_fd);
+
+    /*
+     * In the parent.  Wait for the child to start by watching for the PID
+     * file to appear in 100ms intervals.
+     */
+    for (i = 0; i < 100 && access(pidfile, F_OK) != 0; i++) {
+        tv.tv_sec = 0;
+        tv.tv_usec = 100000;
+        select(0, NULL, NULL, NULL, &tv);
+    }
+
+    /*
+     * If the PID file still hasn't appeared after ten seconds, attempt to
+     * kill the process and then bail.
+     */
+    if (access(pidfile, F_OK) != 0) {
+        kill(process->pid, SIGTERM);
+        alarm(5);
+        waitpid(process->pid, NULL, 0);
+        alarm(0);
+        bail("cannot start %s", argv[0]);
+    }
+
+    /*
+     * Read the PID back from the PID file.  This usually isn't necessary for
+     * non-forking daemons, but always doing this makes this function general,
+     * and it's required when running under fakeroot.
+     */
+    if (fakeroot)
+        process->pid = read_pidfile(pidfile);
+    process->is_child = !fakeroot;
+
+    /* Register the log file as a source of diag messages. */
+    diag_file_add(process->logfile);
+
+    /*
+     * Add the process to our global list and set our cleanup handler if this
+     * is the first process we started.
+     */
+    if (processes == NULL)
+        test_cleanup_register(process_stop_all);
+    process->next = processes;
+    processes = process;
+
+    /* All done. */
+    return process;
+}
+
+
+/*
+ * Start a process and return the opaque process struct.  The process must
+ * create pidfile with its PID when startup is complete.
+ */
+struct process *
+process_start(const char *const argv[], const char *pidfile)
+{
+    return process_start_internal(argv, pidfile, false);
+}
+
+
+/*
+ * Start a process under fakeroot and return the opaque process struct.  If
+ * fakeroot is not available, calls skip_all.  The process must create pidfile
+ * with its PID when startup is complete.
+ */
+struct process *
+process_start_fakeroot(const char *const argv[], const char *pidfile)
+{
+    return process_start_internal(argv, pidfile, true);
 }

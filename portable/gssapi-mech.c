@@ -23,6 +23,7 @@
  * work.
  */
 
+#include <config.h>
 #include <portable/gssapi.h>
 
 #if !HAVE_DECL_GSS_MECH_KRB5

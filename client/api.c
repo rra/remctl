@@ -11,8 +11,8 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
- *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013,
+ *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
@@ -224,7 +224,7 @@ remctl_new(void)
     r->context = GSS_C_NO_CONTEXT;
     r->error = NULL;
     r->output = NULL;
-#ifdef HAVE_KERBEROS
+#ifdef HAVE_KRB5
     r->krb_ctx = NULL;
     r->krb_ccache = NULL;
 #endif
@@ -248,7 +248,7 @@ remctl_new(void)
  * this will be per-context.  Otherwise, be aware that this function sets the
  * Kerberos credential cache globally for all uses of GSS-API by that process.
  */
-#if defined(HAVE_KERBEROS) && defined(HAVE_GSS_KRB5_IMPORT_CRED)
+#if defined(HAVE_KRB5) && defined(HAVE_GSS_KRB5_IMPORT_CRED)
 int
 remctl_set_ccache(struct remctl *r, const char *ccache)
 {

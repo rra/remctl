@@ -19,8 +19,10 @@
  * work.
  */
 
-/* Prototype to avoid gcc warnings. */
-int portable_dummy(void);
+#include <portable/macros.h>
+
+/* Prototype to avoid gcc warnings and set visibility. */
+int portable_dummy(void) __attribute__((__visibility__("hidden")));
 
 int
 portable_dummy(void)

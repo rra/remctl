@@ -30,13 +30,13 @@ BEGIN {
     @ISA       = qw(Exporter);
     @EXPORT_OK = qw(
       $COVERAGE_LEVEL @COVERAGE_SKIP_TESTS @CRITIC_IGNORE $LIBRARY_PATH
-      $MINIMUM_VERSION %MINIMUM_VERSION @POD_COVERAGE_EXCLUDE
+      $MINIMUM_VERSION %MINIMUM_VERSION @POD_COVERAGE_EXCLUDE @STRICT_IGNORE
     );
 
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '4.09';
+    $VERSION = '5.00';
 }
 
 # If BUILD or SOURCE are set in the environment, look for data/perl.conf under
@@ -64,6 +64,7 @@ our $LIBRARY_PATH;
 our $MINIMUM_VERSION = '5.008';
 our %MINIMUM_VERSION;
 our @POD_COVERAGE_EXCLUDE;
+our @STRICT_IGNORE;
 
 # Load the configuration.
 if (!do($PATH)) {
@@ -130,7 +131,7 @@ directory names starting with F<tests/>.
 
 =item $LIBRARY_PATH
 
-Add this directory (or a .libs subdirectory) relative to the top of the
+Add this directory (or a F<.libs> subdirectory) relative to the top of the
 source tree to LD_LIBRARY_PATH when checking the syntax of Perl modules.
 This may be required to pick up libraries that are used by in-tree Perl
 modules so that Perl scripts can pass a syntax check.
@@ -154,6 +155,13 @@ Regexes that match method names that should be excluded from POD coverage
 testing.  Normally, all methods have to be documented in the POD for a
 Perl module, but methods matching any of these regexes will be considered
 private and won't require documentation.
+
+=item @STRICT_IGNORE
+
+Additional directories to ignore when doing recursive Test::Strict testing
+for C<use strict> and C<use warnings>.  The contents of this directory
+must be either top-level directory names or directory names starting with
+F<tests/>.
 
 =back
 
@@ -189,7 +197,8 @@ DEALINGS IN THE SOFTWARE.
 
 =head1 SEE ALSO
 
-Test::RRA(3), Test::RRA::Automake(3)
+perlcritic(1), Test::MinimumVersion(3), Test::RRA(3),
+Test::RRA::Automake(3), Test::Strict(3)
 
 This module is maintained in the rra-c-util package.  The current version
 is available from L<http://www.eyrie.org/~eagle/software/rra-c-util/>.
