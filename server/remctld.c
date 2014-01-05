@@ -14,9 +14,10 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
+#include <portable/sd-daemon.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <signal.h>
 #include <syslog.h>
@@ -259,6 +260,71 @@ is_ipv6(const char *string UNUSED)
 
 
 /*
+ * Bind the listening socket or sockets on which we accept requests and return
+ * a list of sockets in the fds parameter.  Return a count of sockets in the
+ * count parameter.
+ *
+ * Handle the socket activation case where the socket has already been set up
+ * for us by systemd and, in that case, just return the already-configured
+ * socket.
+ */
+static void
+bind_sockets(struct options *options, socket_type **fds,
+             unsigned int *count)
+{
+    int status;
+    size_t i;
+    const char *addr;
+    socket_type fd;
+
+    /* Check whether systemd has already bound the sockets. */
+    status = sd_listen_fds(true);
+    if (status < 0)
+        die("using systemd-bound sockets failed: %s", strerror(-status));
+    if (status > 0) {
+        *fds = xcalloc(status, sizeof(socket_type));
+        for (i = 0; i < (size_t) status; i++)
+            (*fds)[i] = SD_LISTEN_FDS_START + i;
+        *count = status;
+        return;
+    }
+
+    /*
+     * We have to do the work ourselves.  If there is no bind address, bind to
+     * all local sockets, which will normally result in two file descriptors
+     * on which to listen.
+     */
+    if (options->bindaddrs->count == 0) {
+        if (!network_bind_all(SOCK_STREAM, options->port, fds, count))
+            sysdie("cannot bind any sockets");
+        for (i = 0; i < *count; i++)
+            if (listen((*fds)[i], 5) < 0)
+                sysdie("error listening on socket");
+        return;
+    }
+
+    /*
+     * Otherwise, we have to iterate through all the bind addresses, bind them
+     * using the appropriate function, and listen on each.
+     */
+    *count = options->bindaddrs->count;
+    *fds = xcalloc(*count, sizeof(socket_type));
+    for (i = 0; i < options->bindaddrs->count; i++) {
+        addr = options->bindaddrs->strings[i];
+        if (is_ipv6(addr))
+            fd = network_bind_ipv6(SOCK_STREAM, addr, options->port);
+        else
+            fd = network_bind_ipv4(SOCK_STREAM, addr, options->port);
+        if (fd == INVALID_SOCKET)
+            sysdie("cannot bind to address %s, port %hu", addr, options->port);
+        if (listen(fd, 5) < 0)
+            sysdie("error listening on socket");
+        (*fds)[i] = fd;
+    }
+}
+
+
+/*
  * Run as a daemon.  This is the main dispatch loop, which listens for network
  * connections, forks a child to process each connection, and reaps the
  * children when they're done.  This is only used in standalone mode; when run
@@ -271,7 +337,6 @@ server_daemon(struct options *options, struct config *config,
     socket_type s;
     unsigned int nfds, i;
     socket_type *fds;
-    const char *addr;
     pid_t child;
     int status;
     struct sigaction sa, oldsa;
@@ -299,26 +364,7 @@ server_daemon(struct options *options, struct config *config,
         sysdie("cannot set SIGHUP handler");
 
     /* Bind to the network sockets and configure listening addresses. */
-    if (options->bindaddrs->count == 0) {
-        if (!network_bind_all(SOCK_STREAM, options->port, &fds, &nfds))
-            sysdie("cannot bind any sockets");
-    } else {
-        nfds = options->bindaddrs->count;
-        fds = xmalloc(nfds * sizeof(socket_type));
-        for (i = 0; i < options->bindaddrs->count; i++) {
-            addr = options->bindaddrs->strings[i];
-            if (is_ipv6(addr))
-                fds[i] = network_bind_ipv6(SOCK_STREAM, addr, options->port);
-            else
-                fds[i] = network_bind_ipv4(SOCK_STREAM, addr, options->port);
-            if (fds[i] == INVALID_SOCKET)
-                sysdie("cannot bind to address %s, port %hu", addr,
-                       options->port);
-        }
-    }
-    for (i = 0; i < nfds; i++)
-        if (listen(fds[i], 5) < 0)
-            sysdie("error listening on socket (fd %d)", fds[i]);
+    bind_sockets(options, &fds, &nfds);
 
     /*
      * Set up our PID file now that we're ready to accept connections, so that
@@ -334,6 +380,11 @@ server_daemon(struct options *options, struct config *config,
 
     /* Log a starting message. */
     notice("starting");
+
+    /* Indicate to systemd that we're ready to answer requests. */
+    status = sd_notify(true, "READY=1");
+    if (status < 0)
+        warn("cannot notify systemd of startup: %s", strerror(-status));
 
     /* Indicate to upstart that we're ready to answer requests. */
     if (options->suspend)

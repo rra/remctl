@@ -3,7 +3,7 @@ remctld remctl -dFhmSvZ keytab GSS-API tcpserver inetd subcommand AFS
 backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
 IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
 subcommands REMUSER pcre PCRE triple-DES MERCHANTABILITY username arg
-SIGCONT SIGSTOP
+SIGCONT SIGSTOP systemd
 
 =head1 NAME
 
@@ -409,6 +409,36 @@ without any I<method>: prefixes.
 =back
 
 =head1 ENVIRONMENT
+
+B<remctld> itself uses the following environment variables when run in
+stand-alone mode (B<-m>):
+
+=over 4
+
+=item LISTEN_FDS
+
+=item LISTEN_PID
+
+If these environment variables are set, B<remctld> will expect to be
+provided its listening sockets via the systemd socket activation protocol
+and will not attempt to bind its own sockets.  For more details on the
+protocol, see L<daemon(7)> and L<sd_listen_fds(3)>.
+
+=item NOTIFY_SOCKET
+
+If this environment variable is set, B<remctld> will notify the socket
+named in this variable when it is ready to accept incoming packets using
+the systemd status notification protocol.  For more details, see
+L<daemon(7)> and L<sd_notify(3)>.
+
+Note that using socket activation is recommended when running under
+systemd in stand-alone mode, and status notification is not necessary or
+useful when using socket activation.
+
+=back
+
+When running in stand-alone mode, these environment variables will be
+cleared by B<remctld> before running any commands.
 
 The following environment variables will be set for any commands run via
 B<remctld>:

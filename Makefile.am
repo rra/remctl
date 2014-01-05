@@ -97,6 +97,11 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
 	$(PYTHON_FILES)
 
+# Override systemdsystemunitdir when running distcheck so that we don't try
+# to install files in the system directory.
+DISTCHECK_CONFIGURE_FLAGS = \
+        --with-systemdsystemunitdir=$$dc_install_base/$(systemdsystemunitdir)
+
 # Set this globally, since we have too many header files that include the
 # GSS-API headers even if the code itself doesn't call GSS-API functions.
 AM_CPPFLAGS = $(GSSAPI_CPPFLAGS)
@@ -107,14 +112,7 @@ else
     VERSION_LDFLAGS = -export-symbols ${srcdir}/client/libremctl.sym
 endif
 
-lib_LTLIBRARIES = client/libremctl.la
-client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
-	client/client-v2.c client/error.c client/internal.h client/open.c
-client_libremctl_la_LDFLAGS = -version-info 2:0:1 $(VERSION_LDFLAGS) \
-	$(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS)
-client_libremctl_la_LIBADD = util/libutil.la $(GSSAPI_LIBS) $(KRB5_LIBS)
-include_HEADERS = client/remctl.h
-
+# Supporting convenience libraries used by other targets.
 noinst_LTLIBRARIES = portable/libportable.la util/libutil.la
 portable_libportable_la_SOURCES = portable/dummy.c portable/getaddrinfo.h \
 	portable/getnameinfo.h portable/getopt.h portable/gssapi.h	  \
@@ -130,31 +128,21 @@ util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
 util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
 util_libutil_la_LIBADD = portable/libportable.la $(GSSAPI_LIBS)
 
-bin_PROGRAMS = client/remctl
-client_remctl_SOURCES = client/remctl.c
-client_remctl_LDADD = client/libremctl.la util/libutil.la
+# The remctl client library.
+lib_LTLIBRARIES = client/libremctl.la
+client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
+	client/client-v2.c client/error.c client/internal.h client/open.c
+client_libremctl_la_LDFLAGS = -version-info 2:0:1 $(VERSION_LDFLAGS) \
+	$(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS)
+client_libremctl_la_LIBADD = util/libutil.la portable/libportable.la \
+	$(GSSAPI_LIBS) $(KRB5_LIBS)
+include_HEADERS = client/remctl.h
 
-sbin_PROGRAMS = server/remctld
-server_remctld_SOURCES = server/commands.c server/config.c server/generic.c \
-	server/logging.c server/internal.h server/remctld.c \
-	server/server-v1.c server/server-v2.c
-server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\" \
-	$(GSSAPI_CPPFLAGS) $(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS)
-server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
-server_remctld_LDADD = util/libutil.la $(GSSAPI_LIBS) $(GPUT_LIBS) \
-	$(PCRE_LIBS)
-
-dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3		    \
-	docs/api/remctl_command.3 docs/api/remctl_error.3		    \
-	docs/api/remctl_new.3 docs/api/remctl_noop.3 docs/api/remctl_open.3 \
-	docs/api/remctl_output.3 docs/api/remctl_set_ccache.3		    \
-	docs/api/remctl_set_source_ip.3 docs/api/remctl_set_timeout.3	    \
-	docs/remctl.1
-man_MANS = docs/remctld.8
-
+# pkg-config configuration for the library.
 pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = client/libremctl.pc
 
+# Substitute configured paths into the pkg-config configuration file.
 client/libremctl.pc: $(srcdir)/client/libremctl.pc.in
 	sed -e 's![@]prefix[@]!$(prefix)!g'			\
 	    -e 's![@]exec_prefix[@]!$(exec_prefix)!g'		\
@@ -165,6 +153,45 @@ client/libremctl.pc: $(srcdir)/client/libremctl.pc.in
 	    -e 's![@]GSSAPI_LIBS[@]!$(GSSAPI_LIBS)!g'		\
 	    $(srcdir)/client/libremctl.pc.in > $@
 
+# The remctl command-line client.
+bin_PROGRAMS = client/remctl
+client_remctl_SOURCES = client/remctl.c
+client_remctl_LDADD = client/libremctl.la util/libutil.la \
+	portable/libportable.la
+
+# The remctld server.
+sbin_PROGRAMS = server/remctld
+server_remctld_SOURCES = server/commands.c server/config.c server/generic.c \
+	server/logging.c server/internal.h server/remctld.c		    \
+	server/server-v1.c server/server-v2.c
+server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	\
+	$(GSSAPI_CPPFLAGS) $(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS)		\
+	$(SYSTEMD_DAEMON_CFLAGS)
+server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
+server_remctld_LDADD = util/libutil.la portable/libportable.la \
+	$(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS) $(SYSTEMD_DAEMON_LIBS)
+
+# Install the systemd unit file if systemd support was detected.
+if HAVE_SYSTEMD
+    systemdsystemunit_DATA = systemd/remctld.service systemd/remctld.socket
+endif
+
+# Substitute the installation paths into the systemd unit file.
+systemd/remctld.service: $(srcdir)/systemd/remctld.service.in
+	mkdir -p systemd
+	sed -e 's![@]sbindir[@]!$(sbindir)!g' \
+	    $(srcdir)/systemd/remctld.service.in > $@
+
+# Documentation.
+dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3		    \
+	docs/api/remctl_command.3 docs/api/remctl_error.3		    \
+	docs/api/remctl_new.3 docs/api/remctl_noop.3 docs/api/remctl_open.3 \
+	docs/api/remctl_output.3 docs/api/remctl_set_ccache.3		    \
+	docs/api/remctl_set_source_ip.3 docs/api/remctl_set_timeout.3	    \
+	docs/remctl.1
+man_MANS = docs/remctld.8
+
+# Substitute the system configuration path into the manual page.
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
 	[ -d docs ] || mkdir docs
 	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \

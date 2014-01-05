@@ -11,6 +11,12 @@ remctl 3.7 (unreleased)
     arguments is coming from standard input.  The count of arguments was
     previously not updated properly after splicing in the extra argument.
 
+    Add support for systemd.  If built on a system with systemd installed,
+    remctl will install (but not enable) systemd units to start remctld
+    via socket activation.  remctld will also notify systemd when its
+    initialization is complete if started by systemd with service
+    notification enabled.
+
     Add support for upstart's expect stop daemon synchronization method.
     When starting remctld in stand-alone mode with upstart, pass the new
     -Z option to remctld, and it will raise SIGSTOP when ready to accept

@@ -58,6 +58,7 @@
 /server/remctld
 /stamp-h1
 /stamp-python
+/systemd/remctld.service
 /tests/client/api-t
 /tests/client/ccache-t
 /tests/client/pod-t

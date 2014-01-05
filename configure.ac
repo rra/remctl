@@ -1,7 +1,8 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012, 2013
+dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012,
+dnl     2013, 2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl See LICENSE for licensing terms.
@@ -25,6 +26,9 @@ m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 RRA_LD_VERSION_SCRIPT
+
+dnl Support installation of systemd unit files.
+RRA_WITH_SYSTEMD_UNITDIR
 
 dnl Only used for the test suite.
 AC_ARG_VAR([PATH_FAKEROOT], [Path to fakeroot for the test suite])
@@ -51,6 +55,17 @@ AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
 AC_CHECK_FUNCS([gss_krb5_ccache_name gss_krb5_import_cred])
 RRA_LIB_GSSAPI_RESTORE
 
+dnl Check for the systemd daemon support library.
+RRA_LIB_SYSTEMD_DAEMON_OPTIONAL
+
+dnl Check for the CMU GPUT library.
+RRA_LIB_GPUT
+
+dnl Check for regex libraries for pcre:* and regex:* ACL support.
+RRA_LIB_PCRE_OPTIONAL
+AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
+
+dnl General C library and networking probes.
 AC_SEARCH_LIBS([gethostbyname], [nsl])
 AC_SEARCH_LIBS([socket], [socket], [],
     [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], [],
@@ -99,13 +114,6 @@ AC_CHECK_FUNCS([setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
                   setenv strlcat strlcpy strndup])
 AC_TYPE_SIGNAL
-
-dnl Check for the CMU GPUT library.
-RRA_LIB_GPUT
-
-dnl Check for regex libraries for pcre:* and regex:* ACL support.
-RRA_LIB_PCRE_OPTIONAL
-AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.
