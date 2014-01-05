@@ -532,7 +532,7 @@ L<http://www.eyrie.org/~eagle/software/remctl/>.
 =head1 AUTHOR
 
 Anton Ushakov <antonu@stanford.edu> is the original author.  Updates and
-current maintenance are done by Russ Allbery <rra@stanford.edu>.
+current maintenance are done by Russ Allbery <eagle@eyrie.org>.
 
 =head1 COPYRIGHT AND LICENSE
 

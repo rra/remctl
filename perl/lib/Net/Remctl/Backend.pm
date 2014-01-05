@@ -1,6 +1,6 @@
 # Helper infrastructure for remctl backend programs.
 #
-# Written by Russ Allbery <rra@stanford.edu>
+# Written by Russ Allbery <eagle@eyrie.org>
 # Copyright 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -694,7 +694,7 @@ L<http://www.eyrie.org/~eagle/software/remctl/>.
 
 =head1 AUTHOR
 
-Russ Allbery <rra@stanford.edu>
+Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 

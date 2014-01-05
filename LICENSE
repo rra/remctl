@@ -11,7 +11,7 @@ License: Expat
 
 Files: *
 Copyright: 1997, 2000-2002 Benjamin Sittler
-  2000-2002, 2004-2013 Russ Allbery <rra@stanford.edu>
+  2000-2002, 2004-2013 Russ Allbery <eagle@eyrie.org>
   2001-2013 The Board of Trustees of the Leland Stanford Junior University
   2007 Marcus Watts <mdw@umich.edu>
   2008 Carnegie Mellon University
@@ -95,7 +95,7 @@ Copyright: 2002-2013
     The Board of Trustees of the Leland Stanford Junior University
   2006 Romain LENGLET
   2008 Thomas L. Kula <kula@tproa.net>
-  2010 Russ Allbery <rra@stanford.edu>
+  2010 Russ Allbery <eagle@eyrie.org>
 License: all-permissive
  Copying and distribution of this file, with or without modification, are
  permitted in any medium without royalty provided the copyright notice and
@@ -105,7 +105,7 @@ License: all-permissive
 Files: m4/gput.m4 m4/gssapi.m4 m4/inet-ntoa.m4 m4/krb5-config.m4 m4/krb5.m4
  m4/ld-version.m4 m4/lib-depends.m4 m4/lib-pathname.m4 m4/pcre.m4
  m4/snprintf.m4 m4/vamacros.m4
-Copyright: 1999-2001, 2003 Russ Allbery <rra@stanford.edu>
+Copyright: 1999-2001, 2003 Russ Allbery <eagle@eyrie.org>
   2005-2013 The Board of Trustees of the Leland Stanford Junior University
   2008-2010 Free Software Foundation, Inc.
 License: unlimited
@@ -161,7 +161,7 @@ License: rra-public-domain
 
 Files: portable/snprintf.c tests/portable/snprintf-t.c
 Copyright: 1995 Patrick Powell
-  2000-2006 Russ Allbery <rra@stanford.edu>
+  2000-2006 Russ Allbery <eagle@eyrie.org>
   2001 Hrvoje Niksic
   2009-2010 The Board of Trustees of the Leland Stanford Junior University
 License: Powell-snprintf

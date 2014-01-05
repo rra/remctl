@@ -1,6 +1,6 @@
 # RPM spec file for remctl.
 #
-# Written by Russ Allbery <rra@stanford.edu>
+# Written by Russ Allbery <eagle@eyrie.org>
 # Improvements by Thomas Kula and Darren Patterson
 # Copyright 2006, 2007, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
@@ -39,7 +39,7 @@ URL: http://www.eyrie.org/~eagle/software/remctl/
 Source: http://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
 Vendor: Stanford University
-Packager: Russ Allbery <rra@stanford.edu>
+Packager: Russ Allbery <eagle@eyrie.org>
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: krb5-devel, libgcrypt
 %if %{buildperl}
@@ -403,52 +403,52 @@ fi
 - added missing/required doc to python package
 - general cleanup for rpmlint
 
-* Tue Jun 19 2012 Russ Allbery <rra@stanford.edu> 3.2-1
+* Tue Jun 19 2012 Russ Allbery <eagle@eyrie.org> 3.2-1
 * Update for 3.2.
 
-* Thu Feb 23 2012 Russ Allbery <rra@stanford.edu> 3.1-1
+* Thu Feb 23 2012 Russ Allbery <eagle@eyrie.org> 3.1-1
 - Update for 3.1.
 
 * Wed Feb 15 2012 Thomas L. Kula <tlk2126@columbia.edu> 3.0-1
 - Update for 3.0
 - Add support for Python bindings, building as a sub-package
 
-* Sun May 2 2010 Russ Allbery <rra@stanford.edu> 2.16-1
+* Sun May 2 2010 Russ Allbery <eagle@eyrie.org> 2.16-1
 - Update for 2.16.
 - Ruby bindings also not yet supported.
 
-* Fri Nov 14 2008 Russ Allbery <rra@stanford.edu> 2.13-1
+* Fri Nov 14 2008 Russ Allbery <eagle@eyrie.org> 2.13-1
 - Update for 2.13.
 - PHP and Python bindings not yet supported.
 
-* Fri Apr 4 2008 Russ Allbery <rra@stanford.edu> 2.12-1
+* Fri Apr 4 2008 Russ Allbery <eagle@eyrie.org> 2.12-1
 - Update for 2.12.
 
-* Fri Nov 9 2007 Russ Allbery <rra@stanford.edu> 2.11-1
+* Fri Nov 9 2007 Russ Allbery <eagle@eyrie.org> 2.11-1
 - Update for 2.11.
 - Change port configuration to 4373.
 
-* Sun Aug 26 2007 Russ Allbery <rra@stanford.edu> 2.10-1
+* Sun Aug 26 2007 Russ Allbery <eagle@eyrie.org> 2.10-1
 - Update for 2.10.
 - Incorporate changes by Darren Patterson to install the Perl module.
 
-* Sun Mar 25 2007 Russ Allbery <rra@stanford.edu> 2.7-1
+* Sun Mar 25 2007 Russ Allbery <eagle@eyrie.org> 2.7-1
 - Update for 2.7.
 
-* Sat Feb 3 2007 Russ Allbery <rra@stanford.edu> 2.6-1
+* Sat Feb 3 2007 Russ Allbery <eagle@eyrie.org> 2.6-1
 - Update for 2.6.
 
-* Sat Feb 3 2007 Russ Allbery <rra@stanford.edu> 2.5-1
+* Sat Feb 3 2007 Russ Allbery <eagle@eyrie.org> 2.5-1
 - Update for 2.5.
 - Incorporate changes by Darren Patterson to split into subpackages for
   client and server and remove krb5-workstation requirement.
 
-* Wed Jan 17 2007 Russ Allbery <rra@stanford.edu> 2.4-1
+* Wed Jan 17 2007 Russ Allbery <eagle@eyrie.org> 2.4-1
 - Update for 2.4.
 - Changed permissions on the ACL directory to allow any user read.
 - Added fix for /usr/lib64 directory on x86_64.
 
-* Tue Aug 22 2006 Russ Allbery <rra@stanford.edu> 2.1-1
+* Tue Aug 22 2006 Russ Allbery <eagle@eyrie.org> 2.1-1
 - Update for 2.1.
 - Incorporate changes by Digant Kasundra and Darren Patterson to the
   Stanford-local RPM spec file, including looking for libraries in the
@@ -457,11 +457,11 @@ fi
 - Build remctl to look in /etc/remctl/remctl.conf for its config.
 - Install the examples/remctl.conf file as /etc/remctl/remctl.conf.
 
-* Mon Aug  7 2006 Russ Allbery <rra@stanford.edu> 2.0-1
+* Mon Aug  7 2006 Russ Allbery <eagle@eyrie.org> 2.0-1
 - New upstream release that now provides a library as well.
 - Add TODO to documentation files.
 
-* Fri Mar 24 2006 Russ Allbery <rra@stanford.edu> 1.12-3
+* Fri Mar 24 2006 Russ Allbery <eagle@eyrie.org> 1.12-3
 - Lots of modifications based on the contributed kstart spec file.
 - Use more internal RPM variables.
 - Borrow the description from the Debian packages.

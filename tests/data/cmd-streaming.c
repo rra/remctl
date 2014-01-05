@@ -2,7 +2,7 @@
  * Small C program to output three lines, one to stdout, one to stderr, and
  * then one to stdout again.  Used to test remctl streaming support.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Copyright 2006
  *     The Board of Trustees of the Leland Stanford Junior University
  *

@@ -6,7 +6,7 @@
 # This may not work with versions of Perl built without PerlIO, which was more
 # common prior to 5.8.
 #
-# Written by Russ Allbery <rra@stanford.edu>
+# Written by Russ Allbery <eagle@eyrie.org>
 # Copyright 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #

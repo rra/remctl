@@ -1,7 +1,7 @@
 # Extension setup for libremctl Ruby bindings.  -*- ruby -*-
 #
 # Original implementation by Anthony M. Martinez <twopir@nmt.edu>
-# Some subsequent updates by Russ Allbery <rra@stanford.edu>
+# Some subsequent updates by Russ Allbery <eagle@eyrie.org>
 # Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
 # Copyright 2010
 #     The Board of Trustees of the Leland Stanford Junior University

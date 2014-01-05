@@ -9,7 +9,7 @@
  * We don't try to set up the portability glue to use bool in our public
  * headers.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University

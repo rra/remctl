@@ -7,7 +7,7 @@
  * so that clients don't have to care, but some functions (like continued
  * commands) will return unimplemented errors.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University

@@ -3,7 +3,7 @@
 # Tests for the Net::Remctl API.  This relies on being run as part of the
 # larger remctl build tree and uses the built remctld for testing.
 #
-# Written by Russ Allbery <rra@stanford.edu>
+# Written by Russ Allbery <eagle@eyrie.org>
 # Copyright 2007, 2008, 2009, 2011, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
