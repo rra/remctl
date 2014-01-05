@@ -63,15 +63,17 @@ Options:\n\
     -S            Log to standard output/error rather than syslog\n\
     -s <service>  Service principal to use (default: host/<host>)\n\
     -v            Display the version of remctld\n\
+    -Z            Raise SIGSTOP once ready for connections\n\
 \n\
 Supported ACL methods: file, princ, deny";
 
 /* Structure used to store program options. */
 struct options {
-    bool foreground;
-    bool standalone;
-    bool log_stdout;
     bool debug;
+    bool foreground;
+    bool log_stdout;
+    bool standalone;
+    bool suspend;
     unsigned short port;
     char *service;
     const char *config_path;
@@ -296,9 +298,6 @@ server_daemon(struct options *options, struct config *config,
     if (sigaction(SIGHUP, &sa, NULL) < 0)
         sysdie("cannot set SIGHUP handler");
 
-    /* Log a starting message. */
-    notice("starting");
-
     /* Bind to the network sockets and configure listening addresses. */
     if (options->bindaddrs->count == 0) {
         if (!network_bind_all(SOCK_STREAM, options->port, &fds, &nfds))
@@ -332,6 +331,14 @@ server_daemon(struct options *options, struct config *config,
         fprintf(pid_file, "%ld\n", (long) getpid());
         fclose(pid_file);
     }
+
+    /* Log a starting message. */
+    notice("starting");
+
+    /* Indicate to upstart that we're ready to answer requests. */
+    if (options->suspend)
+        if (raise(SIGSTOP) < 0)
+            syswarn("cannot notify upstart of startup");
 
     /*
      * The main processing loop.  Each time through the loop, check to see if
@@ -430,7 +437,7 @@ main(int argc, char *argv[])
     options.bindaddrs = vector_new();
 
     /* Parse options. */
-    while ((option = getopt(argc, argv, "b:dFf:hk:mP:p:Ss:v")) != EOF) {
+    while ((option = getopt(argc, argv, "b:dFf:hk:mP:p:Ss:vZ")) != EOF) {
         switch (option) {
         case 'b':
             vector_add(options.bindaddrs, optarg);
@@ -470,6 +477,9 @@ main(int argc, char *argv[])
             printf("remctld %s\n", PACKAGE_VERSION);
             exit(0);
             break;
+        case 'Z':
+            options.suspend = true;
+            break;
         default:
             usage(1);
             break;
@@ -479,6 +489,8 @@ main(int argc, char *argv[])
     /* Check arguments for consistency. */
     if (options.bindaddrs->count > 0 && !options.standalone)
         die("-b only makes sense in combination with -m");
+    if (options.suspend && !options.standalone)
+        die("-Z only makes sense in combination with -m");
 
     /* Daemonize if told to do so. */
     if (options.standalone && !options.foreground)

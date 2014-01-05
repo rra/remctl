@@ -1,8 +1,9 @@
 =for stopwords
-remctld remctl -dFhmSv keytab GSS-API tcpserver inetd subcommand AFS
+remctld remctl -dFhmSvZ keytab GSS-API tcpserver inetd subcommand AFS
 backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
 IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
 subcommands REMUSER pcre PCRE triple-DES MERCHANTABILITY username arg
+SIGCONT SIGSTOP
 
 =head1 NAME
 
@@ -10,7 +11,7 @@ remctld - Server for remctl, a remote command execution utility
 
 =head1 SYNOPSIS
 
-remctld [B<-dFhmSv>] [B<-b> I<bind-address> [B<-b> I<bind-address> ...]]
+remctld [B<-dFhmSvZ>] [B<-b> I<bind-address> [B<-b> I<bind-address> ...]]
     [B<-f> I<config>] [B<-k> I<keytab>] [B<-P> I<file>] [B<-p> I<port>]
     [B<-s> I<service>]
 
@@ -99,7 +100,7 @@ I<file>.  This option is ignored unless B<-m> is also given.
 
 =item B<-p> I<port>
 
-When running in stand-alone mode, Listen on port I<port> rather than the
+When running in stand-alone mode, listen on port I<port> rather than the
 default.  This option does nothing unless used with B<-m>.
 
 =item B<-S>
@@ -119,6 +120,15 @@ with the B<-k> option).  This is normally the most desirable behavior.
 =item B<-v>
 
 Print the version of B<remctld> and exit.
+
+=item B<-Z>
+
+When B<remctld> is running in stand-alone mode, after it has set up its
+network socket and is ready to answer requests, raise SIGSTOP.  This
+signals to upstart, when using C<expect stop>, that the daemon is ready to
+accept connections, and upstart will raise SIGCONT to allow B<remctld> to
+continue.  This option is probably only useful when using upstart as the
+init system.  Only makes sense in combination with B<-m>.
 
 =back
 
