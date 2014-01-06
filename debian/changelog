@@ -1,4 +1,4 @@
-remctl (3.7-1) UNRELEASED; urgency=medium
+remctl (3.7-1) unstable; urgency=medium
 
   * New upstream release.
     - Fix client memory leak when remctl_set_ccache is used.
@@ -20,7 +20,7 @@ remctl (3.7-1) UNRELEASED; urgency=medium
     transition that substantially predated oldstable.
   * Update standards version to 3.9.5 (no changes required).
 
- -- Russ Allbery <rra@debian.org>  Mon, 06 Jan 2014 12:40:28 -0800
+ -- Russ Allbery <rra@debian.org>  Mon, 06 Jan 2014 15:03:12 -0800
 
 remctl (3.6-1) unstable; urgency=low
 
