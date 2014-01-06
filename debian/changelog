@@ -1,3 +1,18 @@
+remctl (3.7-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+    - Fix client memory leak when remctl_set_ccache is used.
+    - Fix Net::Remctl::Backend argument count validation when one of the
+      arguments is coming from standard input.
+    - remctld in stand-alone mode now supports systemd status notification
+      and socket activation and, with -Z, upstart status notification.  By
+      default, remctld is still spawned from inetd, so this only affects
+      users who change the default configuration.  Sample systemd and
+      upstart configurations are included in /usr/share/doc/remctl-server.
+    - Net::Remctl classes now fail cleanly if the object is undef.
+
+ -- Russ Allbery <rra@debian.org>  Mon, 06 Jan 2014 12:40:28 -0800
+
 remctl (3.6-1) unstable; urgency=low
 
   * New upstream release.
