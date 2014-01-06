@@ -2,7 +2,7 @@
  * Test suite for running commands as a designated user.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2012, 2013
+ * Copyright 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -106,7 +106,8 @@ int
 main(void)
 {
     struct kerberos_config *config;
-    uid_t uid, gid;
+    uid_t uid = (uid_t) -1;
+    gid_t gid = (gid_t) -1;
     struct passwd *pw;
     struct remctl *r;
     char *tmpdir, *confpath, *cmd;
