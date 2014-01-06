@@ -131,7 +131,7 @@ util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
 	util/vector.h util/xmalloc.c util/xmalloc.h util/xwrite.c	    \
 	util/xwrite.h
 util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
-util_libutil_la_LIBADD = portable/libportable.la $(GSSAPI_LIBS)
+util_libutil_la_LIBADD = $(GSSAPI_LIBS)
 
 # The remctl client library.
 lib_LTLIBRARIES = client/libremctl.la
