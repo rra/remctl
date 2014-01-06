@@ -1,17 +1,17 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Contact: Russ Allbery <rra@stanford.edu>
 Source: http://www.eyrie.org/~eagle/software/remctl/
-Copyright: 2002-2013
+Copyright: 2002-2014
     The Board of Trustees of the Leland Stanford Junior University
 License: Expat
 
 Files: *
 Copyright: 1997, 2000-2002 Benjamin Sittler
-  2000-2002, 2004-2012 Russ Allbery <rra@stanford.edu>
-  2001-2013 The Board of Trustees of the Leland Stanford Junior University
+  2000-2002, 2004-2013 Russ Allbery <eagle@eyrie.org>
+  2001-2014 The Board of Trustees of the Leland Stanford Junior University
   2007 Marcus Watts <mdw@umich.edu>
-  2008 Carnegie Mellon University
   2008 Andrew Mortensen <admorten@umich.edu>
+  2008 Carnegie Mellon University
   2008, 2011 Matthew Loar
   2009 Jeffrey Altman
   2009 Peter Eriksson <peter@ifm.liu.se>
@@ -19,19 +19,23 @@ Copyright: 1997, 2000-2002 Benjamin Sittler
 License: Expat
 
 Files: Makefile.in
-Copyright: 1994-2011 Free Software Foundation, Inc.
-  2006-2013 The Board of Trustees of the Leland Stanford Junior University
+Copyright: 1994-2013 Free Software Foundation, Inc.
+  2006-2014 The Board of Trustees of the Leland Stanford Junior University
 License: FSF-unlimited and Expat
 
-Files: aclocal.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4
- m4/lt~obsolete.m4
-Copyright: 1996-2012 Free Software Foundation, Inc.
-License: FSF-unlimited
+Files: aclocal.m4
+Copyright: 1996-2013 Free Software Foundation, Inc.
+  2004 Scott James Remnant <scott@netsplit.com>
+License: FSF-unlimited, and GPL-2+ with Autoconf exception or Expat
 
-Files: build-aux/ar-lib build-aux/compile build-aux/config.guess
- build-aux/config.sub build-aux/depcomp build-aux/missing
-Copyright: 1992-2012 Free Software Foundation, Inc.
+Files: build-aux/ar-lib build-aux/compile build-aux/depcomp
+ build-aux/missing
+Copyright: 1996-2013 Free Software Foundation, Inc.
 License: GPL-2+ with Autoconf exception or Expat
+
+Files: build-aux/config.guess build-aux/config.sub
+Copyright: 1992-2013 Free Software Foundation, Inc.
+License: GPL-3+ with Autoconf exception or Expat
 
 Files: build-aux/install-sh
 Copyright: 1994 X Consortium
@@ -78,26 +82,27 @@ Files: docs/api/remctl.3 docs/api/remctl.pod docs/api/remctl_close.3
  docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.3
  docs/api/remctl_set_source_ip.pod docs/api/remctl_set_timeout.3
  docs/api/remctl_set_timeout.pod docs/design.html docs/extending
- docs/protocol-v4 docs/protocol.xml docs/remctl.1 docs/remctl.pod
- docs/remctld.8.in docs/remctld.pod examples/remctl.conf
- examples/rsh-wrapper java/README php/README python/README ruby/README
- tests/HOWTO
-Copyright: 2002-2012
+ docs/protocol-v4 docs/protocol.html docs/protocol.txt docs/protocol.xml
+ docs/remctl.1 docs/remctl.pod docs/remctld.8.in docs/remctld.pod
+ examples/remctl.conf examples/rsh-wrapper java/README php/README
+ python/README ruby/README tests/HOWTO tests/data/acl-too-long
+ tests/data/conf-simple tests/data/conf-simple.in
+Copyright: 2002-2013
     The Board of Trustees of the Leland Stanford Junior University
   2006 Romain LENGLET
   2008 Thomas L. Kula <kula@tproa.net>
-  2010 Russ Allbery <rra@stanford.edu>
+  2010 Russ Allbery <eagle@eyrie.org>
 License: all-permissive
  Copying and distribution of this file, with or without modification, are
  permitted in any medium without royalty provided the copyright notice and
  this notice are preserved.  This file is offered as-is, without any
  warranty.
 
-Files: m4/gput.m4 m4/gssapi.m4 m4/inet-ntoa.m4 m4/krb5-config.m4
+Files: m4/gput.m4 m4/gssapi.m4 m4/inet-ntoa.m4 m4/krb5-config.m4 m4/krb5.m4
  m4/ld-version.m4 m4/lib-depends.m4 m4/lib-pathname.m4 m4/pcre.m4
- m4/snprintf.m4 m4/vamacros.m4
-Copyright: 1999-2001, 2003 Russ Allbery <rra@stanford.edu>
-  2005-2012 The Board of Trustees of the Leland Stanford Junior University
+ m4/snprintf.m4 m4/systemd.m4 m4/vamacros.m4
+Copyright: 1999-2001, 2003 Russ Allbery <eagle@eyrie.org>
+  2005-2013 The Board of Trustees of the Leland Stanford Junior University
   2008-2010 Free Software Foundation, Inc.
 License: unlimited
  This file is free software; the authors give unlimited permission to copy
@@ -107,6 +112,10 @@ License: unlimited
 Files: m4/libtool.m4
 Copyright: 1996-2001, 2003-2011 Free Software Foundation, Inc.
 License: FSF-unlimited, and GPL-2+ with Libtool exception or Expat
+
+Files: m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 m4/lt~obsolete.m4
+Copyright: 2004-2005, 2007-2009 Free Software Foundation, Inc.
+License: FSF-unlimited
 
 Files: m4/socket.m4 portable/socket.h util/fdflag.c util/fdflag.h
  util/messages.c util/messages.h util/network.c util/network.h
@@ -131,14 +140,16 @@ Files: portable/asprintf.c portable/daemon.c portable/dummy.c
  portable/getaddrinfo.c portable/getaddrinfo.h portable/getnameinfo.c
  portable/getnameinfo.h portable/gssapi-mech.c portable/gssapi.h
  portable/inet_aton.c portable/inet_ntoa.c portable/inet_ntop.c
- portable/macros.h portable/setenv.c portable/stdbool.h portable/strlcat.c
- portable/strlcpy.c portable/system.h portable/uio.h portable/winsock.c
- tests/portable/asprintf-t.c tests/portable/daemon-t.c
- tests/portable/getaddrinfo-t.c tests/portable/getnameinfo-t.c
- tests/portable/inet_aton-t.c tests/portable/inet_ntoa-t.c
- tests/portable/inet_ntop-t.c tests/portable/setenv-t.c
- tests/portable/strlcat-t.c tests/portable/strlcpy-t.c
- tests/util/vector-t.c util/macros.h util/vector.c util/vector.h
+ portable/krb5-extra.c portable/krb5.h portable/macros.h
+ portable/sd-daemon.h portable/setenv.c portable/stdbool.h
+ portable/strlcat.c portable/strlcpy.c portable/strndup.c portable/system.h
+ portable/uio.h portable/winsock.c tests/portable/asprintf-t.c
+ tests/portable/daemon-t.c tests/portable/getaddrinfo-t.c
+ tests/portable/getnameinfo-t.c tests/portable/inet_aton-t.c
+ tests/portable/inet_ntoa-t.c tests/portable/inet_ntop-t.c
+ tests/portable/setenv-t.c tests/portable/strlcat-t.c
+ tests/portable/strlcpy-t.c tests/util/vector-t.c util/macros.h
+ util/vector.c util/vector.h
 Copyright: no copyright notice, see License
 License: rra-public-domain
  The authors hereby relinquish any claim to any copyright that they may
@@ -151,7 +162,7 @@ License: rra-public-domain
 
 Files: portable/snprintf.c tests/portable/snprintf-t.c
 Copyright: 1995 Patrick Powell
-  2000-2006 Russ Allbery <rra@stanford.edu>
+  2000-2006 Russ Allbery <eagle@eyrie.org>
   2001 Hrvoje Niksic
   2009-2010 The Board of Trustees of the Leland Stanford Junior University
 License: Powell-snprintf
@@ -180,7 +191,7 @@ License: MIT-Kula
 
 Files: ruby/remctl.c
 Copyright: 2010 Anthony M. Martinez <twopir@nmt.edu>
-  2010-2012 The Board of Trustees of the Leland Stanford Junior University
+  2010-2013 The Board of Trustees of the Leland Stanford Junior University
 License: MIT-Martinez
  Permission to use, copy, modify, and distribute this software and its
  documentation for any purpose and without fee is hereby granted,
@@ -273,4 +284,29 @@ Comment: The option described in the license has been accepted and these
  files are distributed under the same terms as the package as a whole, as
  described at the top of this file.  You can find the GPL version 2 in
  /usr/share/common-licenses/GPL-2 on Debian systems.
+
+License: GPL-3+ with Autoconf exception
+ This file is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the
+ Free Software Foundation; either version 3 of the License, or (at your
+ option) any later version.
+ .
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+ Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, see <http://www.gnu.org/licenses/>.
+ .
+ As a special exception to the GNU General Public License, if you
+ distribute this file as part of a program that contains a configuration
+ script generated by Autoconf, you may include it under the same
+ distribution terms that you use for the rest of that program.  This
+ Exception is an additional permission under section 7 of the GNU General
+ Public License, version 3 ("GPLv3").
+Comment: The option described in the license has been accepted and these
+ files are distributed under the same terms as the package as a whole, as
+ described at the top of this file.  You can find the GPL version 3 in
+ /usr/share/common-licenses/GPL-3 on Debian systems.
 
