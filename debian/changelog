@@ -15,6 +15,7 @@ remctl (3.7-1) UNRELEASED; urgency=medium
   * Add necessary keyring and watch configuration for uscan to verify
     PGP signatures on new upstream releases.
   * Update the watch file to download *.tar.xz distributions by default.
+  * Remove now-unnecessary override of dh_builddeb to use xz compression.
   * Update standards version to 3.9.5 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Mon, 06 Jan 2014 12:40:28 -0800
