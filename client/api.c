@@ -492,7 +492,7 @@ remctl_close(struct remctl *r)
         }
         if (r->context != GSS_C_NO_CONTEXT)
             gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
-#ifdef HAVE_KERBEROS
+#ifdef HAVE_KRB5
         if (r->krb_ctx != NULL) {
             if (r->krb_ccache != NULL)
                 krb5_cc_close(r->krb_ctx, r->krb_ccache);
