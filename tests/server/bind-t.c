@@ -1,8 +1,8 @@
 /*
  * Test suite for address binding in the server.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2011, 2012
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2011, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -14,6 +14,7 @@
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
+#include <tests/tap/process.h>
 #include <tests/tap/remctl.h>
 #include <util/network.h>
 
@@ -26,7 +27,7 @@ have_ipv6(void)
 {
     socket_type fd;
 
-    fd = network_bind_ipv6("::1", 14373);
+    fd = network_bind_ipv6(SOCK_STREAM, "::1", 14373);
     if (fd == INVALID_SOCKET) {
         if (errno == EAFNOSUPPORT || errno == EPROTONOSUPPORT
             || errno == EADDRNOTAVAIL)
@@ -113,6 +114,7 @@ main(void)
 {
     struct kerberos_config *config;
     struct remctl *r;
+    struct process *remctld;
 #ifdef HAVE_INET6
     bool ipv6 = false;
 #endif
@@ -125,7 +127,7 @@ main(void)
     plan(26);
 
     /* Test connecting to IPv4 and IPv6 with default bind. */
-    remctld_start(config, "data/conf-simple", NULL);
+    remctld = remctld_start(config, "data/conf-simple", NULL);
     r = remctl_new();
     ok(remctl_open(r, "127.0.0.1", 14373, config->principal),
        "Connect to 127.0.0.1");
@@ -143,10 +145,11 @@ main(void)
 #else
     skip_block(4, "IPv6 not supported");
 #endif
-    remctld_stop();
+    process_stop(remctld);
 
     /* Try binding to only IPv4. */
-    remctld_start(config, "data/conf-simple", "-b", "127.0.0.1", NULL);
+    remctld = remctld_start(config, "data/conf-simple", "-b", "127.0.0.1",
+                            NULL);
     r = remctl_new();
     ok(remctl_open(r, "127.0.0.1", 14373, config->principal),
        "Connect to 127.0.0.1 when bound to that address");
@@ -164,12 +167,12 @@ main(void)
 #else
     skip("IPv6 not supported");
 #endif
-    remctld_stop();
+    process_stop(remctld);
 
     /* Try binding to only IPv6. */
 #ifdef HAVE_INET6
     if (ipv6) {
-        remctld_start(config, "data/conf-simple", "-b", "::1", NULL);
+        remctld = remctld_start(config, "data/conf-simple", "-b", "::1", NULL);
         r = remctl_new();
         ok(!remctl_open(r, "127.0.0.1", 14373, config->principal),
            "Cannot connect to 127.0.0.1 when only bound to ::1");
@@ -179,7 +182,7 @@ main(void)
            "Connect to ::1 when bound only to it");
         test_command(r, "::1");
         remctl_close(r);
-        remctld_stop();
+        process_stop(remctld);
     } else {
         skip_block(5, "IPv6 not supported");
     }
@@ -190,8 +193,8 @@ main(void)
     /* Try binding explicitly to local IPv4 and IPv6 addresses. */
 #ifdef HAVE_INET6
     if (ipv6) {
-        remctld_start(config, "data/conf-simple", "-b", "127.0.0.1", "-b",
-                      "::1", NULL);
+        remctld = remctld_start(config, "data/conf-simple", "-b", "127.0.0.1",
+                                "-b", "::1", NULL);
         r = remctl_new();
         ok(remctl_open(r, "127.0.0.1", 14373, config->principal),
            "Connect to 127.0.0.1 when bound to both local addresses");
@@ -202,7 +205,7 @@ main(void)
            "Connect to ::1 when bound to both local addresses");
         test_command(r, "::1");
         remctl_close(r);
-        remctld_stop();
+        process_stop(remctld);
     } else {
         skip_block(8, "IPv6 not supported");
     }

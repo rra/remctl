@@ -9,10 +9,10 @@
  * We don't try to set up the portability glue to use bool in our public
  * headers.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013
- *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013,
+ *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
@@ -224,7 +224,7 @@ remctl_new(void)
     r->context = GSS_C_NO_CONTEXT;
     r->error = NULL;
     r->output = NULL;
-#ifdef HAVE_KERBEROS
+#ifdef HAVE_KRB5
     r->krb_ctx = NULL;
     r->krb_ccache = NULL;
 #endif
@@ -248,7 +248,7 @@ remctl_new(void)
  * this will be per-context.  Otherwise, be aware that this function sets the
  * Kerberos credential cache globally for all uses of GSS-API by that process.
  */
-#if defined(HAVE_KERBEROS) && defined(HAVE_GSS_KRB5_IMPORT_CRED)
+#if defined(HAVE_KRB5) && defined(HAVE_GSS_KRB5_IMPORT_CRED)
 int
 remctl_set_ccache(struct remctl *r, const char *ccache)
 {
@@ -358,6 +358,7 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
 {
     bool port_fallback = false;
     socket_type fd = INVALID_SOCKET;
+    char *old_error;
 
     internal_reset(r);
     r->host = host;
@@ -373,10 +374,23 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
         port_fallback = true;
     }
 
-    /* Make the network connection. */
+    /*
+     * Make the network connection.  If we're doing a fallback to the legacy
+     * port, preserve the error message from the initial connect and report
+     * it by preference to the error message for the legacy connect.
+     */
     fd = internal_connect(r, host, port);
-    if (fd == INVALID_SOCKET && port_fallback)
+    if (fd == INVALID_SOCKET && port_fallback) {
+        old_error = r->error;
+        r->error = NULL;
         fd = internal_connect(r, host, REMCTL_PORT_OLD);
+        if (fd == INVALID_SOCKET) {
+            free(r->error);
+            r->error = old_error;
+        } else {
+            free(old_error);
+        }
+    }
     if (fd == INVALID_SOCKET)
         return false;
     r->fd = fd;
@@ -478,7 +492,7 @@ remctl_close(struct remctl *r)
         }
         if (r->context != GSS_C_NO_CONTEXT)
             gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
-#ifdef HAVE_KERBEROS
+#ifdef HAVE_KRB5
         if (r->krb_ctx != NULL) {
             if (r->krb_ccache != NULL)
                 krb5_cc_close(r->krb_ctx, r->krb_ccache);

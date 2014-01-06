@@ -102,7 +102,7 @@
 #undef HAVE_INTTYPES_H
 
 /* Define to enable Kerberos features. */
-#undef HAVE_KERBEROS
+#undef HAVE_KRB5
 
 /* Define to 1 if you have the `krb5_free_error_message' function. */
 #undef HAVE_KRB5_FREE_ERROR_MESSAGE
@@ -152,6 +152,9 @@
 
 /* Define if <sys/socket.h> defines the SA_LEN macro. */
 #undef HAVE_SA_LEN
+
+/* Define if sd_notify is available. */
+#undef HAVE_SD_NOTIFY
 
 /* Define to 1 if you have the `setenv' function. */
 #undef HAVE_SETENV
@@ -243,9 +246,6 @@
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
 #undef LT_OBJDIR
-
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-#undef NO_MINUS_C_MINUS_O
 
 /* Name of package */
 #undef PACKAGE

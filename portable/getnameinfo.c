@@ -16,7 +16,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
  * in this work, whether granted under contract or by operation of law or
@@ -58,18 +58,18 @@ int test_getnameinfo(const struct sockaddr *, socklen_t, char *, socklen_t,
  * period.  If it does, try to copy it into the provided node buffer and set
  * status accordingly, returning true.  If not, return false.
  */
-static int
+static bool
 try_name(const char *name, char *node, socklen_t nodelen, int *status)
 {
     if (strchr(name, '.') == NULL)
-        return 0;
+        return false;
     if (strlen(name) + 1 > (size_t) nodelen)
         *status = EAI_OVERFLOW;
     else {
         strlcpy(node, name, nodelen);
         *status = 0;
     }
-    return 1;
+    return true;
 }
 
 
@@ -128,6 +128,7 @@ lookup_service(unsigned short port, char *service, socklen_t servicelen,
 {
     struct servent *srv;
     const char *protocol;
+    int status;
 
     /* Do the name lookup first unless told not to. */
     if (!(flags & NI_NUMERICSERV)) {
@@ -142,7 +143,8 @@ lookup_service(unsigned short port, char *service, socklen_t servicelen,
     }
 
     /* Just convert the port number to ASCII. */
-    if ((socklen_t) snprintf(service, servicelen, "%hu", port) > servicelen)
+    status = snprintf(service, servicelen, "%hu", port);
+    if (status < 0 || (socklen_t) status > servicelen)
         return EAI_OVERFLOW;
     return 0;
 }

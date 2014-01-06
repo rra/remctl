@@ -11,7 +11,7 @@
  * large        Ensure that we read 1MB of As from stdin, then write "Okay".
  * delay        Same as large but with delays in reading.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Copyright 2009, 2010
  *     The Board of Trustees of the Leland Stanford Junior University
  *

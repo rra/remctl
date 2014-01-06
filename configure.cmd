@@ -13,7 +13,7 @@ FOR /F "usebackq tokens=4 delims=[]" %%i in (`findstr /R "^AC_INIT" configure.ac
 FOR /F "usebackq tokens=1 delims=." %%i in ('%VERSION%') DO SET MAJOR=%%i
 FOR /F "usebackq tokens=2 delims=." %%i in ('%VERSION%') DO SET MINOR=%%i
 
-echo #define PACKAGE_BUGREPORT "rra@stanford.edu" >> config.h
+echo #define PACKAGE_BUGREPORT "eagle@eyrie.org" >> config.h
 echo #define PACKAGE_NAME "remctl" >> config.h
 echo #define PACKAGE_STRING "remctl %MAJOR%.%MINOR%" >> config.h
 echo #define PACKAGE_TARNAME "remctl" >> config.h

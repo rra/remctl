@@ -1,5 +1,49 @@
                        User-Visible remctl Changes
 
+remctl 3.7 (2014-01-06)
+
+    Fix a client memory leak when remctl_set_ccache is used with a
+    Kerberos library that supports gss_krb5_import_cred.  The credential
+    was never freed, leaking memory with each remctl client call, and a
+    Kerberos ticket cache struct could also be leaked in some situations.
+
+    Fix Net::Remctl::Backend argument count validation when one of the
+    arguments is coming from standard input.  The count of arguments was
+    previously not updated properly after splicing in the extra argument.
+
+    Add support for systemd.  If built on a system with systemd installed,
+    remctl will install (but not enable) systemd units to start remctld
+    via socket activation.  remctld will also notify systemd when its
+    initialization is complete if started by systemd with service
+    notification enabled.
+
+    Add support for upstart's expect stop daemon synchronization method.
+    When starting remctld in stand-alone mode with upstart, pass the new
+    -Z option to remctld, and it will raise SIGSTOP when ready to accept
+    connections, signaling to upstart that the daemon has fully started.
+
+    Work around a bug in the Module::Build version that comes with RHEL 5
+    in passing compiler and linker flags to the Perl module build.
+
+    Net::Remctl and related classes now check that the class argument is
+    not undef and croak if it is, rather than dereferencing a NULL
+    pointer.  Caught by clang --analyze.
+
+    Update to rra-c-util 5.1:
+
+    * Suppress a dummy symbol in the client library that could leak.
+    * Don't attempt to use Kerberos if no Kerberos error APIs were found.
+    * Improve error handling in xasprintf and xvasprintf.
+    * Check the return status of snprintf and vsnprintf properly.
+    * Preserve errno if snprintf fails in vasprintf replacement.
+    * Improve error handling of network_bind_* functions.
+    * vector_free and cvector_free now can be passed NULL.
+    * Abort remctl tests if the PID file already exists.
+
+    Update to C TAP Harness 2.4:
+
+    * Suppress lazy plans and test summaries if the test failed with bail.
+
 remctl 3.6 (2013-08-14)
 
     If the client specifies a timeout, restart the wait for a nonblocking

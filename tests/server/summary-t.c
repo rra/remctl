@@ -2,7 +2,7 @@
  * Test suite for the server using the summary command.
  *
  * Written by Jon Robertson <jonrober@stanford.edu>
- * Copyright 2012, 2013
+ * Copyright 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -15,6 +15,7 @@
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
+#include <tests/tap/process.h>
 #include <tests/tap/remctl.h>
 
 
@@ -23,15 +24,16 @@ main(void)
 {
     struct kerberos_config *config;
     struct remctl_result *result;
+    struct process *remctld;
     const char *test[] = { "help", NULL };
 
     /* Unless we have Kerberos available, we can't really do anything. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
-    remctld_start(config, "data/conf-simple", NULL);
 
     plan(12);
 
-    /* Run the tests. */
+    /* Run the tests with summaries. */
+    remctld = remctld_start(config, "data/conf-simple", NULL);
     result = remctl("localhost", 14373, config->principal, test);
     ok(result != NULL, "summary command works");
     if (result == NULL)
@@ -46,10 +48,10 @@ main(void)
            "...and correct data");
     is_string(NULL, result->error, "...and no error");
     remctl_result_free(result);
-    remctld_stop();
+    process_stop(remctld);
 
-    /* Run the tests. */
-    remctld_start(config, "data/conf-nosummary", NULL);
+    /* Run the tests with the no-summary configuration. */
+    remctld = remctld_start(config, "data/conf-nosummary", NULL);
     result = remctl("localhost", 14373, config->principal, test);
     ok(result != NULL, "summary command works");
     if (result == NULL)
@@ -60,6 +62,7 @@ main(void)
     ok(result->error != NULL, "...and error");
     is_string("Unknown command", result->error, "...and correct error text");
     remctl_result_free(result);
+    process_stop(remctld);
 
     return 0;
 }

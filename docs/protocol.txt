@@ -1,12 +1,15 @@
 
 
 
-remctl Protocol                                               R. Allbery
-                                                     Stanford University
-                                                            October 2011
+
+Network Working Group                                         R. Allbery
+Internet-Draft                                       Stanford University
+Intended status: Informational                             December 2013
+Expires: June 4, 2014
 
 
               remctl: Remote Authenticated Command Service
+                        draft-allbery-remctl-00
 
 Abstract
 
@@ -18,100 +21,45 @@ Abstract
    described.  The version 1 protocol should only be implemented for
    backward compatibility.
 
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on June 4, 2014.
+
+Copyright Notice
+
+   Copyright (c) 2013 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                         [Page 1]
+Allbery                   Expires June 4, 2014                  [Page 1]
 
-                                 remctl                     October 2011
+Internet-Draft                   remctl                    December 2013
 
 
-Table of Contents
-
-   1.  Basic Packet Format  . . . . . . . . . . . . . . . . . . . . .  3
-   2.  Network Protocol (version 3) . . . . . . . . . . . . . . . . .  4
-     2.1.  Session Sequence . . . . . . . . . . . . . . . . . . . . .  4
-     2.2.  Message Format . . . . . . . . . . . . . . . . . . . . . .  5
-     2.3.  Protocol Version Negotiation . . . . . . . . . . . . . . .  5
-     2.4.  MESSAGE_COMMAND  . . . . . . . . . . . . . . . . . . . . .  6
-     2.5.  MESSAGE_OUTPUT and MESSAGE_STATUS  . . . . . . . . . . . .  7
-     2.6.  MESSAGE_ERROR  . . . . . . . . . . . . . . . . . . . . . .  8
-     2.7.  MESSAGE_QUIT . . . . . . . . . . . . . . . . . . . . . . .  9
-     2.8.  MESSAGE_NOOP . . . . . . . . . . . . . . . . . . . . . . .  9
-   3.  Network Protocol (version 1) . . . . . . . . . . . . . . . . . 10
-   4.  Security Considerations  . . . . . . . . . . . . . . . . . . . 12
-   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 13
-   Appendix B.  License . . . . . . . . . . . . . . . . . . . . . . . 14
-   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 15
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                         [Page 2]
-
-                                 remctl                     October 2011
-
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
 
 1.  Basic Packet Format
 
@@ -121,9 +69,9 @@ Allbery                                                         [Page 2]
    registered port and the RECOMMENDED default for the protocol is 4373.
    Each data packet has the following format:
 
-       1 octet     flags
-       4 octets    length
-       <length>    data payload
+    1 octet     flags
+    4 octets    length
+    <length>    data payload
 
    The total size of each token, including the five octet prefix, MUST
    NOT be larger than 1,048,576 octets (1MB).
@@ -131,13 +79,13 @@ Allbery                                                         [Page 2]
    The flag octet contains one or more of the following values, combined
    with binary xor:
 
-       0x01        TOKEN_NOOP
-       0x02        TOKEN_CONTEXT
-       0x04        TOKEN_DATA
-       0x08        TOKEN_MIC
-       0x10        TOKEN_CONTEXT_NEXT
-       0x20        TOKEN_SEND_MIC
-       0x40        TOKEN_PROTOCOL
+    0x01        TOKEN_NOOP
+    0x02        TOKEN_CONTEXT
+    0x04        TOKEN_DATA
+    0x08        TOKEN_MIC
+    0x10        TOKEN_CONTEXT_NEXT
+    0x20        TOKEN_SEND_MIC
+    0x40        TOKEN_PROTOCOL
 
    Only TOKEN_CONTEXT, TOKEN_CONTEXT_NEXT, TOKEN_DATA, and
    TOKEN_PROTOCOL are used for packets for version 2 and of the
@@ -161,12 +109,9 @@ Allbery                                                         [Page 2]
 
 
 
-
-
-
-Allbery                                                         [Page 3]
+Allbery                   Expires June 4, 2014                  [Page 2]
 
-                                 remctl                     October 2011
+Internet-Draft                   remctl                    December 2013
 
 
 2.  Network Protocol (version 3)
@@ -212,19 +157,24 @@ Allbery                                                         [Page 3]
        GSS_C_INTEG_FLAG are set in the resulting security context and
        MUST immediately close the connection if this is not the case.
 
+
+
+
+
+
+
+
+
+Allbery                   Expires June 4, 2014                  [Page 3]
+
+Internet-Draft                   remctl                    December 2013
+
+
    6.  After the security context has been established, the client and
        server exchange commands and responses as described below.  All
        commands are sent with flags TOKEN_DATA and TOKEN_PROTOCOL (0x44)
        and the data payload of all packets is protected with gss_wrap.
        The conf_req_flag parameter of gss_wrap MUST be set to non-zero,
-
-
-
-Allbery                                                         [Page 4]
-
-                                 remctl                     October 2011
-
-
        requesting both confidentiality and integrity services.
 
 2.2.  Message Format
@@ -233,9 +183,9 @@ Allbery                                                         [Page 4]
    the data payload.  This is the format of the message before passing
    it to gss_wrap for confidentiality and integrity protection.
 
-       1 octet     protocol version
-       1 octet     message type
-       <command-specific data>
+    1 octet     protocol version
+    1 octet     message type
+    <command-specific data>
 
    The protocol version sent for all messages should be 2 with the
    exception of MESSAGE_NOOP, which should have a protocol version of 3.
@@ -245,13 +195,13 @@ Allbery                                                         [Page 4]
 
    The message type is one of the following constants:
 
-       1   MESSAGE_COMMAND
-       2   MESSAGE_QUIT
-       3   MESSAGE_OUTPUT
-       4   MESSAGE_STATUS
-       5   MESSAGE_ERROR
-       6   MESSAGE_VERSION
-       7   MESSAGE_NOOP
+    1   MESSAGE_COMMAND
+    2   MESSAGE_QUIT
+    3   MESSAGE_OUTPUT
+    4   MESSAGE_STATUS
+    5   MESSAGE_ERROR
+    6   MESSAGE_VERSION
+    7   MESSAGE_NOOP
 
    The first two message types are client messages and MUST NOT be sent
    by the server.  The remaining message types are server messages and
@@ -267,19 +217,18 @@ Allbery                                                         [Page 4]
    otherwise ignore the contents of the message and SHOULD respond with
    a message type of MESSAGE_VERSION and the following message payload:
 
-       1 octet     highest supported version
+    1 octet     highest supported version
+
+
+
+Allbery                   Expires June 4, 2014                  [Page 4]
+
+Internet-Draft                   remctl                    December 2013
+
 
    The client MUST then either send only messages supported at that
    protocol version or lower or send MESSAGE_QUIT and close the
    connection.
-
-
-
-
-Allbery                                                         [Page 5]
-
-                                 remctl                     October 2011
-
 
    Currently, there are only two meaningful values for the highest
    supported version: 3, which indicates everything in this
@@ -291,12 +240,12 @@ Allbery                                                         [Page 5]
    Most client messages will be of type MESSAGE_COMMAND, which has the
    following format:
 
-       1 octet     keep-alive flag
-       1 octet     continue status
-       4 octets    number of arguments
-       4 octets    argument length
-       <length>    argument
-       ...
+    1 octet     keep-alive flag
+    1 octet     continue status
+    4 octets    number of arguments
+    4 octets    argument length
+    <length>    argument
+    ...
 
    If the keep-alive flag is 0, the server SHOULD close the connection
    after processing the command.  If it is 1, the server SHOULD leave
@@ -324,19 +273,20 @@ Allbery                                                         [Page 5]
    MESSAGE_COMMAND (with continue status 1) and the last octet would
    then be in the next MESSAGE_COMMAND (with continue status 2 or 3).
 
+
+
+
+
+Allbery                   Expires June 4, 2014                  [Page 5]
+
+Internet-Draft                   remctl                    December 2013
+
+
    For as long as the continue status is 1 or 2, the next message from
    the client MUST be either another MESSAGE_COMMAND with a continue
    status of 2 or 3 or a MESSAGE_QUIT.  In other words, other message
    types MUST NOT be intermixed with continued commands, but
    MESSAGE_QUIT may be sent by the client in the middle of a continued
-
-
-
-Allbery                                                         [Page 6]
-
-                                 remctl                     October 2011
-
-
    command to abort that command.  If the server receives MESSAGE_QUIT
    from the client before receiving a MESSAGE_COMMAND with a status of 3
    (indicating the end of the command), the command MUST be discarded
@@ -371,9 +321,9 @@ Allbery                                                         [Page 6]
    messages followed by either a MESSAGE_STATUS or a MESSAGE_ERROR
    response.  Each MESSAGE_OUTPUT message has the following format:
 
-       1 octet     output stream
-       4 octets    output length
-       <length>    output
+    1 octet     output stream
+    4 octets    output length
+    <length>    output
 
    The output stream is either 1 for standard output or 2 for standard
    error.  Output length is a four-octet number in network byte order
@@ -381,18 +331,17 @@ Allbery                                                         [Page 6]
 
    The MESSAGE_STATUS message has the following format:
 
-       1 octet     exit status
+
+
+Allbery                   Expires June 4, 2014                  [Page 6]
+
+Internet-Draft                   remctl                    December 2013
+
+
+    1 octet     exit status
 
    MESSAGE_STATUS indicates the command has finished and returns the
    final exit stauts of the command.  Exit status is 0 for success and
-
-
-
-Allbery                                                         [Page 7]
-
-                                 remctl                     October 2011
-
-
    non-zero for failure, where the meaning of non-zero exit statuses is
    left to the application to define.  (This is identical to a Unix
    command exit status.)
@@ -408,23 +357,23 @@ Allbery                                                         [Page 7]
    response after a MESSAGE_COMMAND, or it may be sent after one or more
    MESSAGE_OUTPUT messages.  The format of MESSAGE_ERROR is as follows:
 
-       4 octets    error code
-       4 octets    message length
-       <length>    error message
+    4 octets    error code
+    4 octets    message length
+    <length>    error message
 
    The error code is a four-octet number in network byte order
    indicating the type of error.  The error code may be one of the
    following values:
 
-       1  ERROR_INTERNAL           Internal server failure
-       2  ERROR_BAD_TOKEN          Invalid format in token
-       3  ERROR_UNKNOWN_MESSAGE    Unknown message type
-       4  ERROR_BAD_COMMAND        Invalid command format in token
-       5  ERROR_UNKNOWN_COMMAND    Unknown command
-       6  ERROR_ACCESS             Access denied
-       7  ERROR_TOOMANY_ARGS       Argument count exceeds server limit
-       8  ERROR_TOOMUCH_DATA       Argument size exceeds server limit
-       9  ERROR_UNEXPECTED_MESSAGE Message type not valid now
+    1  ERROR_INTERNAL           Internal server failure
+    2  ERROR_BAD_TOKEN          Invalid format in token
+    3  ERROR_UNKNOWN_MESSAGE    Unknown message type
+    4  ERROR_BAD_COMMAND        Invalid command format in token
+    5  ERROR_UNKNOWN_COMMAND    Unknown command
+    6  ERROR_ACCESS             Access denied
+    7  ERROR_TOOMANY_ARGS       Argument count exceeds server limit
+    8  ERROR_TOOMUCH_DATA       Argument size exceeds server limit
+    9  ERROR_UNEXPECTED_MESSAGE Message type not valid now
 
    Additional error codes may be added without changing the version of
    the remctl protocol, so clients MUST accept error codes other than
@@ -436,19 +385,20 @@ Allbery                                                         [Page 7]
    consumption and MUST NOT be interpreted by an automated process.
    Software should instead use the error code.
 
+
+
+
+
+Allbery                   Expires June 4, 2014                  [Page 7]
+
+Internet-Draft                   remctl                    December 2013
+
+
    Unless the MESSAGE_COMMAND message from the client had the keep-alive
    flag set to 1, the server MUST close the network connection
    immediately after sending the MESSAGE_ERROR response message.
    Otherwise, the server SHOULD still honor that flag, although the
    server MAY terminate the connection after an unreasonable number of
-
-
-
-Allbery                                                         [Page 8]
-
-                                 remctl                     October 2011
-
-
    errors.
 
 2.7.  MESSAGE_QUIT
@@ -471,40 +421,6 @@ Allbery                                                         [Page 8]
    for older servers to reply with MESSAGE_VERSION instead of
    MESSAGE_NOOP.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                         [Page 9]
-
-                                 remctl                     October 2011
-
-
 3.  Network Protocol (version 1)
 
    The old network protocol supported only 64KB of data payload, only a
@@ -520,6 +436,19 @@ Allbery                                                         [Page 9]
 
    2.   Client sends message with flags TOKEN_NOOP and
         TOKEN_CONTEXT_NEXT and an empty payload.
+
+
+
+
+
+
+
+
+
+Allbery                   Expires June 4, 2014                  [Page 8]
+
+Internet-Draft                   remctl                    December 2013
+
 
    3.   Client calls gss_init_sec_context and sends message with the
         results and flags TOKEN_CONTEXT.  The client MUST pass
@@ -553,14 +482,6 @@ Allbery                                                         [Page 9]
         TOKEN_MIC.  This is the only packet that isn't encrypted with
         gss_wrap.  Client receives and then SHOULD verify this MIC.
 
-
-
-
-Allbery                                                        [Page 10]
-
-                                 remctl                     October 2011
-
-
    9.   Server runs the command, collects the output, and sends the
         output back with flags TOKEN_DATA and the following payload
         format: four-octet exit status, four-octet data length, data.
@@ -580,41 +501,9 @@ Allbery                                                        [Page 10]
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                        [Page 11]
+Allbery                   Expires June 4, 2014                  [Page 9]
 
-                                 remctl                     October 2011
+Internet-Draft                   remctl                    December 2013
 
 
 4.  Security Considerations
@@ -647,31 +536,7 @@ Allbery                                                        [Page 11]
    so any context that didn't negotiate confidentiality and integrity
    services would fail later.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                        [Page 12]
-
-                                 remctl                     October 2011
-
+5.  References
 
 Appendix A.  Acknowledgements
 
@@ -680,56 +545,22 @@ Appendix A.  Acknowledgements
    Hoffman and Mike Newton for their review of the version 2 remctl
    protocol.
 
+Appendix B.  Additional License
+
+   This section supplements the Copyright Notice section at the start of
+   this document.  It states an additional copyright notice and grants a
+   much less restrictive license than the default IETF Trust license.
+   You may copy and distribute this document, with or without
+   modification, under your choice of the license specified in the
+   Copyright Notice section or the license below.
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                        [Page 13]
+Allbery                   Expires June 4, 2014                 [Page 10]
 
-                                 remctl                     October 2011
+Internet-Draft                   remctl                    December 2013
 
-
-Appendix B.  License
 
    Copyright 2006, 2007, 2008, 2009, 2011, 2013 The Board of Trustees of
    the Leland Stanford Junior University
@@ -739,52 +570,6 @@ Appendix B.  License
    notice and this notice are preserved.  This file is offered as-is,
    without any warranty.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                        [Page 14]
-
-                                 remctl                     October 2011
-
-
 Author's Address
 
    Russ Allbery
@@ -793,7 +578,7 @@ Author's Address
    Stanford, CA  94305-4136
    US
 
-   Email: rra@stanford.edu
+   Email: eagle@eyrie.org
    URI:   http://www.eyrie.org/~eagle/
 
 
@@ -828,13 +613,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-Allbery                                                        [Page 15]
-
+Allbery                   Expires June 4, 2014                 [Page 11]

@@ -4,7 +4,7 @@
 # which is implemented in XS.  For the actual source, see Remctl.xs.  This
 # file contains the bootstrap and export code and the documentation.
 #
-# Written by Russ Allbery <rra@stanford.edu>
+# Written by Russ Allbery <eagle@eyrie.org>
 # Copyright 2007, 2008, 2011, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -25,7 +25,7 @@ use DynaLoader;
 use vars qw($VERSION @EXPORT @ISA);
 
 BEGIN {
-    $VERSION = '3.06';
+    $VERSION = '3.07';
 }
 
 # use base qw(Exporter) requires Perl 5.8 and we still support Perl 5.6.
@@ -359,7 +359,7 @@ L<http://www.eyrie.org/~eagle/software/remctl/>.
 
 =head1 AUTHOR
 
-Russ Allbery <rra@stanford.edu>
+Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 

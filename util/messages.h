@@ -4,7 +4,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2008, 2010
+ * Copyright 2008, 2010, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -34,6 +34,7 @@
 #include <portable/macros.h>
 
 #include <stdarg.h>
+#include <stddef.h>
 
 BEGIN_DECLS
 

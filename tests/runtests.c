@@ -55,7 +55,7 @@
  * Harness <http://www.eyrie.org/~eagle/software/c-tap-harness/>.
  *
  * Copyright 2000, 2001, 2004, 2006, 2007, 2008, 2009, 2010, 2011
- *     Russ Allbery <rra@stanford.edu>
+ *     Russ Allbery <eagle@eyrie.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -87,6 +87,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -103,7 +104,7 @@
 
 /* AIX doesn't have WCOREDUMP. */
 #ifndef WCOREDUMP
-# define WCOREDUMP(status)      ((unsigned)(status) & 0x80)
+# define WCOREDUMP(status) ((unsigned)(status) & 0x80)
 #endif
 
 /*
@@ -173,14 +174,16 @@ struct testlist {
 };
 
 /*
- * Usage message.  Should be used as a printf format with two arguments: the
- * path to runtests, given twice.
+ * Usage message.  Should be used as a printf format with four arguments: the
+ * path to runtests, given three times, and the usage_description.  This is
+ * split into variables to satisfy the pedantic ISO C90 limit on strings.
  */
 static const char usage_message[] = "\
 Usage: %s [-b <build-dir>] [-s <source-dir>] <test> ...\n\
        %s [-b <build-dir>] [-s <source-dir>] -l <test-list>\n\
        %s -o [-b <build-dir>] [-s <source-dir>] <test>\n\
-\n\
+\n%s";
+static const char usage_extra[] = "\
 Options:\n\
     -b <build-dir>      Set the build directory to <build-dir>\n\
     -l <list>           Take the list of tests to run from <test-list>\n\
@@ -1310,7 +1313,7 @@ main(int argc, char *argv[])
             build = optarg;
             break;
         case 'h':
-            printf(usage_message, argv[0], argv[0], argv[0]);
+            printf(usage_message, argv[0], argv[0], argv[0], usage_extra);
             exit(0);
             break;
         case 'l':
@@ -1329,7 +1332,7 @@ main(int argc, char *argv[])
     argv += optind;
     argc -= optind;
     if ((list == NULL && argc < 1) || (list != NULL && argc > 0)) {
-        fprintf(stderr, usage_message, argv[0], argv[0], argv[0]);
+        fprintf(stderr, usage_message, argv[0], argv[0], argv[0], usage_extra);
         exit(1);
     }
 

@@ -8,7 +8,7 @@
  * and minor status to report errors.
  *
  * Originally written by Anton Ushakov
- * Extensive modifications by Russ Allbery <rra@stanford.edu>
+ * Extensive modifications by Russ Allbery <eagle@eyrie.org>
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
