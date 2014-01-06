@@ -25,6 +25,10 @@ remctl 3.7 (unreleased)
     Work around a bug in the Module::Build version that comes with RHEL 5
     in passing compiler and linker flags to the Perl module build.
 
+    Net::Remctl and related classes now check that the class argument is
+    not undef and croak if it is, rather than dereferencing a NULL
+    pointer.  Caught by clang --analyze.
+
     Update to rra-c-util 5.1:
 
     * Suppress a dummy symbol in the client library that could leak.

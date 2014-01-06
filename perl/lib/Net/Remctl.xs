@@ -1,4 +1,4 @@
-/*
+/* -*- c -*-
  * Perl bindings for the remctl client library.
  *
  * This is an XS source file, suitable for processing by xsubpp, that
@@ -21,7 +21,7 @@
  * members of the struct.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2007, 2008, 2011, 2012
+ * Copyright 2007, 2008, 2011, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -55,6 +55,15 @@ const struct {
     { REMCTL_OUT_DONE,   "done"   },
     { 0,                 NULL     }
 };
+
+/* Used to check that an object argument to a function is not NULL. */
+#define CROAK_NULL(o, t, f)                     \
+    do {                                        \
+        if ((o) == NULL)                        \
+            croak(t " object is undef in " f);  \
+    } while (0);
+#define CROAK_NULL_SELF(o, t, f) CROAK_NULL((o), t, t "::" f)
+
 
 /* XS code below this point. */
 
@@ -91,6 +100,7 @@ remctl(host, port, principal, ...)
   OUTPUT:
     RETVAL
 
+
 Net::Remctl
 remctl_new(class)
     const char *class
@@ -101,6 +111,7 @@ remctl_new(class)
   OUTPUT:
     RETVAL
 
+
 void
 DESTROY(self)
     Net::Remctl self
@@ -108,35 +119,42 @@ DESTROY(self)
     if (self != NULL)
         remctl_close(self);
 
+
 void
 remctl_set_ccache(self, ccache)
     Net::Remctl self
     const char *ccache
   PPCODE:
+    CROAK_NULL_SELF(self, "Net::Remctl", "set_ccache");
     if (remctl_set_ccache(self, ccache))
         XSRETURN_YES;
     else
         XSRETURN_UNDEF;
+
 
 void
 remctl_set_source_ip(self, source)
     Net::Remctl self
     const char *source
   PPCODE:
+    CROAK_NULL_SELF(self, "Net::Remctl", "set_source_ip");
     if (remctl_set_source_ip(self, source))
         XSRETURN_YES;
     else
         XSRETURN_UNDEF;
+
 
 void
 remctl_set_timeout(self, timeout)
     Net::Remctl self
     time_t timeout
   PPCODE:
+    CROAK_NULL_SELF(self, "Net::Remctl", "set_source_timeout");
     if (remctl_set_timeout(self, timeout))
         XSRETURN_YES;
     else
         XSRETURN_UNDEF;
+
 
 void
 remctl_open(self, host, ...)
@@ -147,6 +165,7 @@ remctl_open(self, host, ...)
     unsigned short port = 0;
     const char *principal = NULL;
   PPCODE:
+    CROAK_NULL_SELF(self, "Net::Remctl", "open");
     if (count > 2)
         croak("Too many arguments to Net::Remctl::open");
     if (count >= 1)
@@ -161,6 +180,7 @@ remctl_open(self, host, ...)
     else
         XSRETURN_UNDEF;
 
+
 void
 remctl_command(self, ...)
     Net::Remctl self
@@ -170,6 +190,7 @@ remctl_command(self, ...)
     size_t i;
     int status;
   PPCODE:
+    CROAK_NULL_SELF(self, "Net::Remctl", "command");
     if (count == 0)
         croak("Too few arguments to Net::Remctl::command");
     args = malloc(sizeof(struct iovec) * count);
@@ -185,22 +206,27 @@ remctl_command(self, ...)
     else
         XSRETURN_UNDEF;
 
+
 Net::Remctl::Output
 remctl_output(self)
     Net::Remctl self
+
 
 void
 remctl_noop(self)
     Net::Remctl self
   PPCODE:
+    CROAK_NULL_SELF(self, "Net::Remctl", "noop");
     if (remctl_noop(self))
         XSRETURN_YES;
     else
         XSRETURN_UNDEF;
 
+
 const char *
 remctl_error(self)
     Net::Remctl self
+
 
 MODULE = Net::Remctl    PACKAGE = Net::Remctl::Result
 
@@ -210,18 +236,22 @@ DESTROY(self)
   CODE:
     remctl_result_free(self);
 
+
 char *
 error(self)
     Net::Remctl::Result self
   CODE:
+    CROAK_NULL_SELF(self, "Net::Remctl::Result", "error");
     RETVAL = self->error;
   OUTPUT:
     RETVAL
+
 
 SV *
 stdout(self)
     Net::Remctl::Result self
   CODE:
+    CROAK_NULL_SELF(self, "Net::Remctl::Result", "stdout");
     if (self->stdout_buf == NULL)
         XSRETURN_UNDEF;
     else
@@ -229,10 +259,12 @@ stdout(self)
   OUTPUT:
     RETVAL
 
+
 SV *
 stderr(self)
     Net::Remctl::Result self
   CODE:
+    CROAK_NULL_SELF(self, "Net::Remctl::Result", "stderr");
     if (self->stderr_buf == NULL)
         XSRETURN_UNDEF;
     else
@@ -240,13 +272,16 @@ stderr(self)
   OUTPUT:
     RETVAL
 
+
 int
 status(self)
     Net::Remctl::Result self
   CODE:
+    CROAK_NULL_SELF(self, "Net::Remctl::Result", "status");
     RETVAL = self->status;
   OUTPUT:
     RETVAL
+
 
 MODULE = Net::Remctl    PACKAGE = Net::Remctl::Output
 
@@ -256,6 +291,7 @@ type(self)
   PREINIT:
     size_t i;
   CODE:
+    CROAK_NULL_SELF(self, "Net::Remctl::Output", "type");
     RETVAL = NULL;
     for (i = 0; OUTPUT_TYPE[i].name != NULL; i++)
         if (OUTPUT_TYPE[i].type == self->type) {
@@ -265,10 +301,12 @@ type(self)
   OUTPUT:
     RETVAL
 
+
 SV *
 data(self)
     Net::Remctl::Output self
   CODE:
+    CROAK_NULL_SELF(self, "Net::Remctl::Output", "data");
     if (self->data == NULL)
         XSRETURN_UNDEF;
     else
@@ -276,34 +314,42 @@ data(self)
   OUTPUT:
     RETVAL
 
+
 size_t
 length(self)
     Net::Remctl::Output self
   CODE:
+    CROAK_NULL_SELF(self, "Net::Remctl::Output", "length");
     RETVAL = self->length;
   OUTPUT:
     RETVAL
+
 
 int
 stream(self)
     Net::Remctl::Output self
   CODE:
+    CROAK_NULL_SELF(self, "Net::Remctl::Output", "stream");
     RETVAL = self->stream;
   OUTPUT:
     RETVAL
+
 
 int
 status(self)
     Net::Remctl::Output self
   CODE:
+    CROAK_NULL_SELF(self, "Net::Remctl::Output", "status");
     RETVAL = self->status;
   OUTPUT:
     RETVAL
+
 
 int
 error(self)
     Net::Remctl::Output self
   CODE:
+    CROAK_NULL_SELF(self, "Net::Remctl::Output", "error");
     RETVAL = self->error;
   OUTPUT:
     RETVAL
