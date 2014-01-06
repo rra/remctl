@@ -2,7 +2,7 @@
  * Test suite for the client connection negotiation code.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2007, 2009, 2010, 2012
+ * Copyright 2006, 2007, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -50,7 +50,7 @@ exit_child(void)
  * version 1 and then goes back to version 2.
  */
 static void
-accept_connection(char *pidfile, int protocol)
+accept_connection(const char *pidfile, int protocol)
 {
     struct sockaddr_in saddr;
     socket_type s, conn;
@@ -174,12 +174,13 @@ main(void)
     path = test_tmpdir();
     basprintf(&pidfile, "%s/pid", path);
     for (protocol = 0; protocol <= 2; protocol++) {
-        r = remctl_new();
         child = fork();
         if (child < 0)
             sysbail("cannot fork");
-        else if (child == 0)
+        else if (child == 0) {
+            test_tmpdir_free(path);
             accept_connection(pidfile, protocol);
+        }
         alarm(1);
         while (access(pidfile, F_OK) < 0) {
             tv.tv_sec = 0;
@@ -187,6 +188,7 @@ main(void)
             select(0, NULL, NULL, NULL, &tv);
         }
         alarm(0);
+        r = remctl_new();
         if (!remctl_open(r, "127.0.0.1", 14373, config->principal)) {
             notice("# open error: %s", remctl_error(r));
             ok_block(5, 0, "protocol %d", protocol);
