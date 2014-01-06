@@ -47,11 +47,13 @@ PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
 	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
 	php/tests/005.phpt php/tests/006.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
+RUBY_FILES = ruby/README ruby/remctl.c
 
 # Directories that have to be created in builddir != srcdir builds before
 # copying PERL_FILES over.
-PERL_DIRECTORIES = perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
-	perl/t/data
+PERL_DIRECTORIES = perl perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
+	perl/t/api perl/t/backend perl/t/data perl/t/docs perl/t/lib	 \
+	perl/t/lib/Test perl/t/style
 
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
@@ -72,8 +74,8 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
-	ruby/README ruby/remctl.c tests/HOWTO tests/TESTS		    \
-	tests/client/remctl-t tests/config/README			    \
+	systemd/remctld.service.in systemd/remctld.socket tests/HOWTO	    \
+	tests/TESTS tests/client/remctl-t tests/config/README		    \
 	tests/data/acl-bad-include tests/data/acl-bad-syntax		    \
 	tests/data/acl-nonexistant tests/data/acl-recursive		    \
 	tests/data/acl-simple tests/data/acl-too-long			    \
@@ -95,12 +97,14 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/tap/perl/Test/RRA/Automake.pm				    \
 	tests/tap/perl/Test/RRA/Config.pm tests/tap/remctl.sh		    \
 	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
-	$(PYTHON_FILES)
+	$(PYTHON_FILES) $(RUBY_FILES)
 
 # Override systemdsystemunitdir when running distcheck so that we don't try
-# to install files in the system directory.
+# to install files in the system directory.  It would be nice to also enable
+# all the language binding integrations here, but they don't play with
+# installcheck or changing prefix (but not DESTDIR) during install.
 DISTCHECK_CONFIGURE_FLAGS = \
-        --with-systemdsystemunitdir=$$dc_install_base/$(systemdsystemunitdir)
+	--with-systemdsystemunitdir=$$dc_install_base/$(systemdsystemunitdir)
 
 # Set this globally, since we have too many header files that include the
 # GSS-API headers even if the code itself doesn't call GSS-API functions.
@@ -116,8 +120,9 @@ endif
 noinst_LTLIBRARIES = portable/libportable.la util/libutil.la
 portable_libportable_la_SOURCES = portable/dummy.c portable/getaddrinfo.h \
 	portable/getnameinfo.h portable/getopt.h portable/gssapi.h	  \
-	portable/krb5.h portable/macros.h portable/socket.h		  \
-	portable/stdbool.h portable/system.h portable/uio.h
+	portable/krb5.h portable/macros.h portable/sd-daemon.h		  \
+	portable/socket.h portable/stdbool.h portable/system.h		  \
+	portable/uio.h
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
 util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
 	util/gss-errors.h util/gss-tokens.c util/gss-tokens.h util/macros.h \
@@ -212,7 +217,7 @@ install-data-hook:
 
 CLEANFILES = client/libremctl.pc docs/remctld.8 perl/t/lib/Test/RRA.pm	\
 	perl/t/lib/Test/RRA/Automake.pm perl/t/lib/Test/RRA/Config.pm	\
-	stamp-python
+	stamp-python systemd/remctld.service
 DISTCLEANFILES = perl/Makefile python/MANIFEST
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile		   \
 	build-aux/config.guess build-aux/config.sub build-aux/depcomp	   \
@@ -656,13 +661,21 @@ endif
 
 # The following section sets up the Ruby bindings for remctl.
 
-# The Ruby build system actually supports VPATH!  Always enable verbose
-# builds, since we want them for automated builds and the two lines aren't
-# important to suppress for people who want quiet builds.  (PHP and Perl are
-# way noisier.)
+# CFLAGS to pass to the Ruby build.
+RUBY_CFLAGS = -I$(abs_top_builddir) -I$(abs_top_srcdir) \
+	-I$(abs_top_srcdir)/client $(CPPFLAGS) $(CFLAGS) $(RUBY_WARNINGS)
+
+# Always enable verbose builds, since we want them for automated builds and
+# the two lines aren't important to suppress for people who want quiet
+# builds.  (PHP and Perl are way noisier.)
 ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c client/libremctl.la
+	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
+	    for f in $(RUBY_FILES) ; do			\
+		cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
+	    done						\
+	fi
 	cd ruby && $(REMCTL_RUBY) extconf.rb $(REMCTL_RUBY_FLAGS)
-	cd ruby && $(MAKE) V=1 CFLAGS="$(CPPFLAGS) $(CFLAGS) $(RUBY_WARNINGS)"
+	cd ruby && $(MAKE) V=1 CFLAGS="$(RUBY_CFLAGS)"
 
 install-data-local-ruby: ruby/remctl.so
 	cd ruby && $(MAKE) install DESTDIR=$(DESTDIR)
