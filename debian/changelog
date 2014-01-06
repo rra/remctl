@@ -10,6 +10,7 @@ remctl (3.7-1) UNRELEASED; urgency=medium
       users who change the default configuration.  Sample systemd and
       upstart configurations are included in /usr/share/doc/remctl-server.
     - Net::Remctl classes now fail cleanly if the object is undef.
+  * Update standards version to 3.9.5 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Mon, 06 Jan 2014 12:40:28 -0800
 
