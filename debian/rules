@@ -24,8 +24,9 @@ override_dh_autoreconf:
 	dh_autoreconf --as-needed
 
 override_dh_auto_configure:
-	dh_auto_configure --parallel -- --sysconfdir=/etc/remctl \
-	    --enable-reduced-depends --enable-perl --enable-php \
+	dh_auto_configure --parallel -- --sysconfdir=/etc/remctl	\
+	    --with-systemdsystemunitdir=/lib/systemd/system		\
+	    --enable-reduced-depends --enable-perl --enable-php		\
 	    --enable-python --enable-ruby
 
 # For the first pass, build the Ruby 1.8 extension.  We'll go back and build
