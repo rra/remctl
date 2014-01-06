@@ -72,8 +72,6 @@ Server:
    so that the argument to a particular flag can be masked regardless of
    its location on the command line.
 
- * REMCTL-35: Support for systemd (and upstart) socket activation.
-
  * REMCTL-36: Replace the server event loop with libevent.
 
  * REMCTL-37: Add server support for persistent child processes that the
