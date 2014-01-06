@@ -12,6 +12,9 @@ remctl (3.7-1) UNRELEASED; urgency=medium
     - Net::Remctl classes now fail cleanly if the object is undef.
   * Switch the default Ruby build to 1.9.1 to make it easier to remove the
     Ruby 1.8 module build when ready to do so.
+  * Add necessary keyring and watch configuration for uscan to verify
+    PGP signatures on new upstream releases.
+  * Update the watch file to download *.tar.xz distributions by default.
   * Update standards version to 3.9.5 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Mon, 06 Jan 2014 12:40:28 -0800
