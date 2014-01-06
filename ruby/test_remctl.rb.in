@@ -142,8 +142,8 @@ class TC_RemctlSimple < Test::Unit::TestCase
         raise
       end
     end
-    assert_raise ArgumentError do Remctl.default_port = 'foo' end
-    assert_raise ArgumentError do Remctl.default_port = -1 end
+    assert_raise ArgumentError, TypeError do Remctl.default_port = 'foo' end
+    assert_raise ArgumentError, RangeError do Remctl.default_port = -1 end
     assert_raise ArgumentError do
       begin
         Remctl.default_port = 65536
@@ -260,9 +260,11 @@ class TC_RemctlFull < Test::Unit::TestCase
     unless configured? then return end
     assert_raise ArgumentError do Remctl.new end
     assert_raise TypeError do Remctl.new(1, 14373, @principal) end
-    assert_raise ArgumentError do Remctl.new('localhost', 'foo', @principal) end
+    assert_raise ArgumentError, TypeError do
+      Remctl.new('localhost', 'foo', @principal)
+    end
     assert_raise TypeError do Remctl.new('localhost', 14373, 1) end
-    assert_raise ArgumentError do Remctl.new('localhost', -1) end
+    assert_raise ArgumentError, RangeError do Remctl.new('localhost', -1) end
     assert_raise ArgumentError do Remctl.new('localhost', 65536) end
     assert_raise Remctl::Error do
       begin
