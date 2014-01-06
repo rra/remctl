@@ -55,6 +55,7 @@
 /ruby/remctl.so
 /ruby/test_remctl.rb
 /remctl-*.tar.gz
+/remctl-*.tar.xz
 /server/remctld
 /stamp-h1
 /stamp-python
