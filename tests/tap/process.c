@@ -374,6 +374,7 @@ process_start_internal(const char *const argv[], const char *pidfile,
             sysbail("exec of %s failed", argv[0]);
     }
     close(log_fd);
+    free(fakeroot_argv);
 
     /*
      * In the parent.  Wait for the child to start by watching for the PID
