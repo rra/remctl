@@ -4,7 +4,7 @@
  * This file is part of C TAP Harness.  The current version plus supporting
  * documentation is at <http://www.eyrie.org/~eagle/software/c-tap-harness/>.
  *
- * Copyright 2009, 2010, 2011, 2012 Russ Allbery <rra@stanford.edu>
+ * Copyright 2009, 2010, 2011, 2012, 2013 Russ Allbery <eagle@eyrie.org>
  * Copyright 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -32,7 +32,7 @@
 
 #include <tests/tap/macros.h>
 #include <stdarg.h>             /* va_list */
-#include <sys/types.h>          /* size_t */
+#include <stddef.h>             /* size_t */
 
 /*
  * Used for iterating through arrays.  ARRAY_SIZE returns the number of
@@ -55,7 +55,7 @@ extern unsigned long testnum;
 void plan(unsigned long count);
 
 /*
- * Prepare for lazy planning, in which the plan will be  printed automatically
+ * Prepare for lazy planning, in which the plan will be printed automatically
  * at the end of the test program.
  */
 void plan_lazy(void);
@@ -101,24 +101,36 @@ void diag(const char *format, ...)
 void sysdiag(const char *format, ...)
     __attribute__((__nonnull__, __format__(printf, 1, 2)));
 
+/*
+ * Register or unregister a file that contains supplementary diagnostics.
+ * Before any other output, all registered files will be read, line by line,
+ * and each line will be reported as a diagnostic as if it were passed to
+ * diag().  Nul characters are not supported in these files and will result in
+ * truncated output.
+ */
+void diag_file_add(const char *file)
+    __attribute__((__nonnull__));
+void diag_file_remove(const char *file)
+    __attribute__((__nonnull__));
+
 /* Allocate memory, reporting a fatal error with bail on failure. */
 void *bcalloc(size_t, size_t)
-    __attribute__((__alloc_size__(1, 2), __malloc__));
+    __attribute__((__alloc_size__(1, 2), __malloc__, __warn_unused_result__));
 void *bmalloc(size_t)
-    __attribute__((__alloc_size__(1), __malloc__));
+    __attribute__((__alloc_size__(1), __malloc__, __warn_unused_result__));
 void *brealloc(void *, size_t)
-    __attribute__((__alloc_size__(2), __malloc__));
+    __attribute__((__alloc_size__(2), __malloc__, __warn_unused_result__));
 char *bstrdup(const char *)
-    __attribute__((__malloc__, __nonnull__));
+    __attribute__((__malloc__, __nonnull__, __warn_unused_result__));
 char *bstrndup(const char *, size_t)
-    __attribute__((__malloc__, __nonnull__));
+    __attribute__((__malloc__, __nonnull__, __warn_unused_result__));
 
 /*
  * Find a test file under BUILD or SOURCE, returning the full path.  The
  * returned path should be freed with test_file_path_free().
  */
 char *test_file_path(const char *file)
-    __attribute__((__malloc__, __nonnull__));
+    __attribute__((__malloc__, __nonnull__, __warn_unused_result__));
 void test_file_path_free(char *path);
 
 /*
@@ -126,8 +138,19 @@ void test_file_path_free(char *path);
  * returned path should be freed with test_tmpdir_free.
  */
 char *test_tmpdir(void)
-    __attribute__((__malloc__));
+    __attribute__((__malloc__, __warn_unused_result__));
 void test_tmpdir_free(char *path);
+
+/*
+ * Register a cleanup function that is called when testing ends.  All such
+ * registered functions will be run during atexit handling (and are therefore
+ * subject to all the same constraints and caveats as atexit functions).  The
+ * function must return void and will be passed one argument, an int that will
+ * be true if the test completed successfully and false otherwise.
+ */
+typedef void (*test_cleanup_func)(int);
+void test_cleanup_register(test_cleanup_func)
+    __attribute__((__nonnull__));
 
 END_DECLS
 

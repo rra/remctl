@@ -14,8 +14,8 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010, 2011, 2012
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2007, 2009, 2010, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -38,7 +38,7 @@
  */
 
 #include <config.h>
-#ifdef HAVE_KERBEROS
+#ifdef HAVE_KRB5
 # include <portable/krb5.h>
 #endif
 #include <portable/system.h>
@@ -79,7 +79,7 @@ static char *tmpdir_conf = NULL;
  * Kerberos libraries available and one if we don't.  Uses keytab to obtain
  * credentials, and fills in the cache member of the provided config struct.
  */
-#ifdef HAVE_KERBEROS
+#ifdef HAVE_KRB5
 
 static void
 kerberos_kinit(void)
@@ -147,7 +147,7 @@ kerberos_kinit(void)
     free(krbtgt);
 }
 
-#else /* !HAVE_KERBEROS */
+#else /* !HAVE_KRB5 */
 
 static void
 kerberos_kinit(void)
@@ -197,7 +197,7 @@ kerberos_kinit(void)
         bail("cannot get Kerberos tickets");
 }
 
-#endif /* !HAVE_KERBEROS */
+#endif /* !HAVE_KRB5 */
 
 
 /*
@@ -401,7 +401,7 @@ kerberos_generate_conf(const char *realm)
  * The remaining functions in this file are only available if Kerberos
  * libraries are available.
  */
-#ifdef HAVE_KERBEROS
+#ifdef HAVE_KRB5
 
 
 /*
@@ -485,4 +485,4 @@ kerberos_keytab_principal(krb5_context ctx, const char *path)
     return princ;
 }
 
-#endif /* HAVE_KERBEROS */
+#endif /* HAVE_KRB5 */

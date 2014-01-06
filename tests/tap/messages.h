@@ -4,7 +4,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2002 Russ Allbery <rra@stanford.edu>
+ * Copyright 2002 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006, 2007, 2009
  *     The Board of Trustees of the Leland Stanford Junior University
  *

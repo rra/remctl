@@ -8,9 +8,9 @@
  *     #include <sys/types.h>
  *     #include <stdarg.h>
  *     #include <stdbool.h>
+ *     #include <stddef.h>
  *     #include <stdio.h>
  *     #include <stdlib.h>
- *     #include <stddef.h>
  *     #include <stdint.h>
  *     #include <string.h>
  *     #include <strings.h>
@@ -22,7 +22,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
  * in this work, whether granted under contract or by operation of law or
@@ -43,21 +43,21 @@
 #include <portable/macros.h>
 
 /* A set of standard ANSI C headers.  We don't care about pre-ANSI systems. */
+#if HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
 #include <stdarg.h>
 #include <stddef.h>
+#if HAVE_STDINT_H
+# include <stdint.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
 #include <string.h>
 #if HAVE_STRINGS_H
 # include <strings.h>
 #endif
-#if HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
-#if HAVE_STDINT_H
-# include <stdint.h>
-#endif
+#include <sys/types.h>
 #if HAVE_UNISTD_H
 # include <unistd.h>
 #endif

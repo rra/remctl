@@ -13,7 +13,7 @@ Introduction
     of additions.
 
     If you're considering extending remctl, please feel free to contact me
-    at rra@stanford.edu and let me know what you're planning and what
+    at eagle@eyrie.org and let me know what you're planning and what
     problem you're trying to solve.  I'm generally happy to offer advice
     and incorporate and maintain extensions in the base distribution, even
     if they're optional features that require external libraries to build.

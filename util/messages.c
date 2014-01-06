@@ -53,8 +53,8 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2008, 2009, 2010
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2008, 2009, 2010, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -204,6 +204,7 @@ static void
 message_log_syslog(int pri, size_t len, const char *fmt, va_list args, int err)
 {
     char *buffer;
+    int status;
 
     buffer = malloc(len + 1);
     if (buffer == NULL) {
@@ -211,7 +212,12 @@ message_log_syslog(int pri, size_t len, const char *fmt, va_list args, int err)
                 (unsigned long) len + 1, __FILE__, __LINE__, strerror(errno));
         exit(message_fatal_cleanup ? (*message_fatal_cleanup)() : 1);
     }
-    vsnprintf(buffer, len + 1, fmt, args);
+    status = vsnprintf(buffer, len + 1, fmt, args);
+    if (status < 0) {
+        warn("failed to format output with vsnprintf in syslog handler");
+        free(buffer);
+        return;
+    }
 #ifdef _WIN32
     {
         HANDLE eventlog;

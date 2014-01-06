@@ -4,7 +4,7 @@
  * Used to test that remctld stops listening as soon as its child has exited
  * and doesn't wait forever for output to be closed.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Copyright 2007, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *

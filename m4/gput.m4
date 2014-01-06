@@ -9,7 +9,7 @@ dnl HAVE_GPUT if the library is available.
 dnl
 dnl Depends on RRA_SET_LDFLAGS.
 dnl
-dnl Written by Russ Allbery <rra@stanford.edu>
+dnl Written by Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2008
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl

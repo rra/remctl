@@ -3,7 +3,7 @@
  * and then exit successfully.  Used to verify that we don't truncate data
  * output right before process close.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Copyright 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *

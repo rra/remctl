@@ -2,8 +2,9 @@
  * Replacement for a missing snprintf or vsnprintf.
  *
  * The following implementation of snprintf was taken mostly verbatim from
- * <http://www.fiction.net/~blong/programs/>; it is the version of snprintf
- * used in Mutt.
+ * <http://www.fiction.net/blong/programs/>; it is the version of snprintf
+ * used in Mutt.  A possibly newer version is used in wget, found at
+ * <https://github.com/wertarbyte/wget/blob/master/src/snprintf.c>.
  *
  * Please do not reformat or otherwise change this file more than necessary so
  * that later merges with the original source are easy.  Bug fixes and
@@ -73,7 +74,7 @@
  *    fixed handling of %.0f
  *    added test for HAVE_LONG_DOUBLE
  *
- *  Russ Allbery <rra@stanford.edu> 2000-08-26
+ *  Russ Allbery <eagle@eyrie.org> 2000-08-26
  *    fixed return value to comply with C99
  *    fixed handling of snprintf(NULL, ...)
  *

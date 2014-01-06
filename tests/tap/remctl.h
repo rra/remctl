@@ -7,8 +7,8 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2011, 2012
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2007, 2009, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -41,33 +41,38 @@
 /* Defined in <tests/tap/kerberos.h>. */
 struct kerberos_config;
 
+/* Opaque struct with process tracking data. */
+struct process;
+
 BEGIN_DECLS
 
 /*
- * Start and stop remctld for tests that use it.  kerberos_setup should
- * normally be called first to check whether a Kerberos configuration is
- * available and to set KRB5_KTNAME.  Takes the Kerberos configuration, the
- * path to the configuration file, and then any additional arguments to
- * remctld, terminated by NULL.
+ * Start remctld for tests that use it.  kerberos_setup should normally be
+ * called first to check whether a Kerberos configuration is available and to
+ * set KRB5_KTNAME.  Takes the Kerberos configuration, the path to the
+ * configuration file, and then any additional arguments to remctld,
+ * terminated by NULL.
  *
- * remctl_stop can be called explicitly to stop remctld and clean up, but it's
- * also registered as an atexit handler, so tests that only start and stop the
- * server once can just let cleanup happen automatically.
+ * process_stop (from <tests/tap/process.h> can be called explicitly to stop
+ * remctld and clean up, but it will also be stopped automatically at the end
+ * of the test program, so tests that only start and stop the server once can
+ * just let cleanup happen automatically.
  *
  * PATH_REMCTLD must be defined, either with explicit compiler options or in
  * config.h.  If it's not defined, remctld_start calls skip_all, assuming that
  * this means that the test case cannot be run.
  */
-pid_t remctld_start(struct kerberos_config *, const char *config, ...)
+struct process *remctld_start(struct kerberos_config *, const char *config,
+                              ...)
     __attribute__((__nonnull__(1, 2)));
-void remctld_stop(void);
 
 /*
  * Like remctld_start, but run remctld under fakeroot.  Calls skip_all if
- * PATH_FAKEROOT is not dfeined, either with explicit compiler options or in
+ * PATH_FAKEROOT is not defined, either with explicit compiler options or in
  * config.h.
  */
-pid_t remctld_start_fakeroot(struct kerberos_config *, const char *, ...)
+struct process *remctld_start_fakeroot(struct kerberos_config *,
+                                       const char *config, ...)
     __attribute__((__nonnull__(1, 2)));
 
 END_DECLS
