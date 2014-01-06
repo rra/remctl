@@ -16,6 +16,8 @@ remctl (3.7-1) UNRELEASED; urgency=medium
     PGP signatures on new upstream releases.
   * Update the watch file to download *.tar.xz distributions by default.
   * Remove now-unnecessary override of dh_builddeb to use xz compression.
+  * Remove old NEWS file that predated the package split for a port
+    transition that substantially predated oldstable.
   * Update standards version to 3.9.5 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Mon, 06 Jan 2014 12:40:28 -0800
