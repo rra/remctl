@@ -1,7 +1,7 @@
 # Test suite for remctl Ruby bindings.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2010, 2012
+# Copyright 2010, 2012, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -58,7 +58,7 @@ module Helpers
                 'kinit -t config/keytab ' + @principal,
                 'kinit -k -K config/keytab ' + @principal]
     commands.each do |command|
-      if system(command + ' >/dev/null </dev/null')
+      if system(command + ' >/dev/null 2>&1 </dev/null')
         return true
       end
     end
