@@ -30,7 +30,7 @@ override_dh_auto_configure:
 	    --enable-python --enable-ruby
 
 # For the first pass, build the Ruby 1.9.1 extension.  We'll go back and
-# build the extension for 1.8.
+# build the extension for 2.0.
 override_dh_auto_build:
 	dh_auto_build --parallel -- REMCTL_RUBY=ruby1.9.1
 
@@ -42,7 +42,7 @@ override_dh_auto_test:
 override_dh_auto_install:
 	dh_auto_install -- RUBYARCHDIR='$$(vendorarchdir)$$(target_prefix)'
 	cd ruby && $(MAKE) distclean
-	dh_auto_build --parallel -- REMCTL_RUBY=ruby1.8
+	dh_auto_build --parallel -- REMCTL_RUBY=ruby2.0
 	cd ruby && $(MAKE) install DESTDIR='$(CURDIR)/debian/tmp' \
 	    RUBYARCHDIR='$$(vendorarchdir)$$(target_prefix)'
 

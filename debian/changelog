@@ -1,3 +1,10 @@
+remctl (3.7-2) UNRELEASED; urgency=medium
+
+  * Start building the Ruby extension for Ruby 2.0 and stop building it
+    for Ruby 1.8.  The latter is being removed from the archive.
+
+ -- Russ Allbery <rra@debian.org>  Wed, 08 Jan 2014 23:29:00 -0800
+
 remctl (3.7-1) unstable; urgency=medium
 
   * New upstream release.

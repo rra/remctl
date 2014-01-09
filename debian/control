@@ -6,8 +6,8 @@ Build-Depends: debhelper (>= 9), dh-autoreconf, dpkg-dev (>= 1.14.9),
  libkrb5-dev, libpcre3-dev, libperl-critic-perl, libsystemd-daemon-dev,
  libtest-pod-perl, libtest-minimumversion-perl, libtest-pod-coverage-perl,
  libtest-strict-perl, libtest-synopsis-perl, perl, php5-cli, php5-dev,
- pkg-config, python-all-dev, ruby1.8, ruby1.8-dev, ruby1.9.1,
- ruby1.9.1-dev
+ pkg-config, python-all-dev, ruby1.9.1, ruby1.9.1-dev, ruby2.0,
+ ruby2.0-dev
 XS-Python-Version: >= 2.6
 Standards-Version: 3.9.5
 Homepage: http://www.eyrie.org/~eagle/software/remctl/
