@@ -130,8 +130,6 @@ Package: ruby-remctl
 Section: ruby
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ruby | ruby-interpreter
-Replaces: libremctl-ruby1.8 (<< 3.2), libremctl-ruby1.9 (<< 3.2)
-Breaks: libremctl-ruby1.8 (<< 3.2), libremctl-ruby1.9 (<< 3.2)
 Description: Ruby extension for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must

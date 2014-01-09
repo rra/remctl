@@ -6,6 +6,8 @@ remctl (3.7-2) UNRELEASED; urgency=medium
     apparently standard for Ruby extensions, since it will pull in a
     version of Ruby that can use the extension if the Ruby versions of the
     extension match the providers of ruby-interpreter.
+  * Drop Replaces and Breaks on libremctl-ruby1.8 and libremctl-ruby1.9.
+    These were already tranditional packages in wheezy.
 
  -- Russ Allbery <rra@debian.org>  Wed, 08 Jan 2014 23:29:00 -0800
 
