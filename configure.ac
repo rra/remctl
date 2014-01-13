@@ -55,6 +55,9 @@ AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
 AC_CHECK_FUNCS([gss_krb5_ccache_name gss_krb5_import_cred])
 RRA_LIB_GSSAPI_RESTORE
 
+dnl Check for libevent, used by the server.
+RRA_LIB_EVENT
+
 dnl Check for the systemd daemon support library.
 RRA_LIB_SYSTEMD_DAEMON_OPTIONAL
 
