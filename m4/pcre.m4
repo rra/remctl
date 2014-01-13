@@ -2,7 +2,7 @@ dnl Find the compiler and linker flags for PCRE.
 dnl
 dnl Finds the compiler and linker flags for linking with the PCRE library.
 dnl Provides the --with-pcre, --with-pcre-lib, and --with-pcre-include
-dnl configure options to specify non-standard paths to the Kerberos libraries.
+dnl configure options to specify non-standard paths to the PCRE libraries.
 dnl Uses pcre-config where available.
 dnl
 dnl Provides the macro RRA_LIB_PCRE_OPTIONAL and sets the substitution
@@ -19,7 +19,7 @@ dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2010, 2013
+dnl Copyright 2010, 2013, 2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl This file is free software; the authors give unlimited permission to copy
