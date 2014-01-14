@@ -1,0 +1,146 @@
+                   remctl Server Implementation Details
+
+Overview
+
+    This directory contains the remctld server code.  This file describes
+    the layout and internals of the code.  The target audience is
+    programmers who are trying to understand or modify the server
+    internals.  For user documentation, see the remctld manual page.  For
+    information about the wire protocol, see the separate protocol
+    specification.
+
+    The source code is divided into the following source files:
+
+    remctld.c
+
+        The file does argument parsing, setup and initialization, and
+        handles the network setup and the main event loop for the
+        stand-alone server, which accepts connections and forks a child
+        process for each connection.
+
+        Once a client connection is accepted, either via stand-alone mode
+        or using a connection passed in from inetd, control is passed to
+        server_new_client to handle authentication and connection setup,
+        and then server_v1_handle_messages or server_v2_handle_messages
+        based on the negotiated protocol.
+
+    generic.c
+    server-v1.c
+    server-v2.c
+
+        The wire protocol implementation (although the exact details of
+        the token format are handled in util/gss-tokens.*).  generic.c
+        handles the points of commonality between the version 1 protocol
+        and the version 2 (or later) protocol.  The server-v?.c files
+        contain the code specific to each protocol version.  (The
+        MESSAGE_NOOP command introduced in version 3 is handled by
+        server-v2.c since it poses no special additional requirements.)
+
+        The server_v?_handle_messages functions provided by these files
+        contain the event loops to wait for the client to send a command.
+
+        Once a MESSAGE_COMMAND has been received from the client and is
+        complete, both the server-v1.c and server-v2.c implementations
+        hand off to server_run_command in commands.c.
+
+    commands.c
+
+        Handles all the processing involved in a single client command.
+        This includes checking the command against the available
+        configured commands, checking the authenticated user against ACLs
+        (although this is delegated to funtions in config.c), handling
+        special commands like help and summary, and, most importantly,
+        running an external command and returning its results over
+        protocol.
+
+        This file contains the most complex event loop, which processes
+        output from the command, input to the command, and sending the
+        results over the network to the client.
+
+    config.c
+
+        Configuration file parsing and ACL verification.  The output from
+        configuration file parsing is a config struct, which contains the
+        information required to match commands to programs, options, and
+        ACLs.  This is done during startup and on SIGHUP by the
+        stand-alone server event loop.  Also provided by this file is the
+        server_config_acl_permit call, which determines whether a user is
+        allowed to run a particular command.
+
+    logging.c
+
+        Utility functions for logging commands and reporting errors.
+
+    internal.h
+
+        Prototypes for the internal functions that are called outside
+        their own source files, and the definitions of internal structures
+        used throughout the server code.
+
+    The rest of this file describes the most interesting or complex
+    structures in the server code, including inobvious design decisions.
+    Design decisions that have been made but not yet implemented are
+    marked with (future).
+
+Event Loops
+
+    There are three event loops in the server, each with a separate set of
+    significant events.
+
+    The first of these is specific to the stand-alone server and accepts
+    new client connections, spawning a child process for each connection.
+    This event loop has the following events:
+
+    * New incoming client connection
+    * SIGHUP triggering a refresh of the configuration
+    * SIGTERM and SIGINT for a clean exit
+    * SIGCHLD triggering logging of the child status
+
+    It runs to completion of the server process (via SIGTERM or SIGINT).
+
+    Once the connection is accepted (possibly immediately if running in
+    the default inetd mode), control passes to the client message event
+    loop.  This is quite simple, with the following events:
+
+    * Message from client
+    * Inactivity timeout
+    * (future) SIGHUP triggering a refresh of the configuration
+    * (future) SIGUSR1 triggering immediate exit
+
+    This loop continues until the client sends MESSAGE_QUIT, sends
+    MESSAGE_COMMAND without keep-alive set, or the server reaches an
+    inactivity timeout.  On receipt of a complete MESSAGE_COMMAND (after
+    merging any continuations) that is valid and results in a command to
+    run, control is handed over to the command event loop.  This is the
+    most complex, with the following events:
+
+    * Output from command (on stdout or stderr)
+    * Command ready to take more input on stdin
+    * SIGCHLD indicating that the command has completed
+    * (future) SIGHUP triggering a refresh of the configuration
+    * (future) SIGUSR1 setting a flag to exit after command completion
+
+    The standard input event is only registered if one of the command
+    arguments is specified to be passed on standard input.
+
+    In the current implementation, output from the command is sent back to
+    the client over protocol with blocking calls outside of the event
+    loop.  It's safe to block on sending to the client, since that will
+    force the process to block if the remctld process can't send more
+    information to the network.
+
+    One detail here deserves special explanation.  A client command is
+    considered finished once the command process exits, even if this does
+    not close the output file descriptors.  This allows the client to
+    spawn daemons or background processes that don't close all their file
+    descriptors without causing the remctl call to hang.  However, this
+    makes client output processing somewhat tricky, since we don't want to
+    discard all further client output when the command exits.  Otherwise,
+    depending on server timing, we could prematurely truncate the client
+    output.
+
+    The approach taken is to reduce the select timeout to zero and poll
+    for output once the child has exited.  As long as more output is
+    available, we keep processing it, but as soon as no output is
+    immediately available, we consider the command finished and close our
+    end of the file descriptors.
