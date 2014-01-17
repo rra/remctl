@@ -57,6 +57,9 @@ RRA_LIB_GSSAPI_RESTORE
 
 dnl Check for libevent, used by the server.
 RRA_LIB_EVENT
+RRA_LIB_EVENT_SWITCH
+AC_CHECK_FUNCS([libevent_global_shutdown])
+RRA_LIB_EVENT_RESTORE
 
 dnl Check for the systemd daemon support library.
 RRA_LIB_SYSTEMD_DAEMON_OPTIONAL

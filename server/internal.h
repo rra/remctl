@@ -2,7 +2,7 @@
  * Internal support functions for the remctld daemon.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2007, 2008, 2009, 2010, 2012
+ * Copyright 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -19,6 +19,7 @@
 #include <util/protocol.h>
 
 /* Forward declarations to avoid extra includes. */
+struct buffer;
 struct iovec;
 
 /*
@@ -49,8 +50,7 @@ struct client {
     char *user;                 /* Name of the client as a string. */
     OM_uint32 flags;            /* Connection flags. */
     bool keepalive;             /* Whether keep-alive was set. */
-    char *output;               /* Stores output to send to the client. */
-    size_t outlen;              /* Length of output to send to client. */
+    struct buffer *output;      /* Stores output to send to the client. */
     bool fatal;                 /* Whether a fatal error has occurred. */
 };
 

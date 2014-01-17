@@ -6,13 +6,14 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013
- *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
+ *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
 
 #include <config.h>
+#include <portable/event.h>
 #include <portable/system.h>
 #include <portable/uio.h>
 
@@ -26,20 +27,154 @@
 #include <sys/wait.h>
 
 #include <server/internal.h>
+#include <util/buffer.h>
 #include <util/fdflag.h>
+#include <util/macros.h>
 #include <util/messages.h>
 #include <util/protocol.h>
 #include <util/xmalloc.h>
 
-/* Data structure used to hold details about a running process. */
+/*
+ * Data structure used to hold details about a running process.  The events we
+ * hook into the event loop are also stored here so that the event handlers
+ * can use this as their data and have their pointers so that they can remove
+ * themselves when needed.
+ */
 struct process {
-    bool reaped;                /* Whether we've reaped the process. */
+    struct event_base *events;  /* Event base for the process event loop. */
+    struct event *in;           /* Send data to process standard input. */
+    struct event *out;          /* Handle stdout from process. */
+    struct event *err;          /* Handle stderr from process. */
+    struct event *sigchld;      /* Handle the SIGCHLD signal for exit. */
+    struct client *client;      /* Pointer to corresponding remctl client. */
     int fds[2];                 /* Array of file descriptors for output. */
     int stdin_fd;               /* File descriptor for standard input. */
     struct iovec *input;        /* Data to pass on standard input. */
+    size_t offset;              /* Current offset into standard input data. */
     pid_t pid;                  /* Process ID of child. */
     int status;                 /* Exit status. */
+    bool reaped;                /* Whether we've reaped the process. */
+    bool saw_output;            /* Whether we saw process output. */
 };
+
+
+/*
+ * Callback used to handle output from a process.  We do not check why we were
+ * triggered since only EV_READ is possible.  We have to check the triggered
+ * file descriptor against process->fds to figure out if we saw standard
+ * output or standard error so that we can use the same callback for both.
+ *
+ * Note that for protocol version two and later, we immediately send the
+ * partial output to the remctl client and block our event loop in the
+ * process.  We may eventually hook this into the event loop.
+ */
+static void
+handle_output(evutil_socket_t fd, short what UNUSED, void *data)
+{
+    int stream;
+    char junk[BUFSIZ];
+    ssize_t status;
+    struct process *process = data;
+    struct client *client = process->client;
+    struct buffer *output = client->output;
+    struct event *event;
+
+    /* Determine our remctl output stream and which event called us. */
+    stream = (fd == process->fds[0]) ? 1 : 2;
+    event = (stream == 1) ? process->out : process->err;
+
+    /*
+     * Read the data.  If we're using protocol one, and hence accumulating
+     * everyting into a single buffer, and we've run out of space, just throw
+     * everything away.  Otherwise, read it into our client buffer.
+     */
+    if (client->protocol == 1 && output->left >= output->size)
+        status = read(fd, junk, sizeof(junk));
+    else
+        status = buffer_read(output, fd);
+    if (status < 0 && (errno != EINTR && errno != EAGAIN)) {
+        syswarn("read failed");
+        server_send_error(client, ERROR_INTERNAL, "Internal failure");
+        event_base_loopbreak(process->events);
+        return;
+    }
+
+    /* For protocol two and later, immediately send the output. */
+    if (status > 0) {
+        process->saw_output = true;
+        if (client->protocol != 1) {
+            if (!server_v2_send_output(client, stream))
+                event_base_loopbreak(process->events);
+            buffer_set(client->output, "", 0);
+        }
+    }
+
+    /* If we saw EOF, remove this event from the event loop. */
+    if (status == 0)
+        event_del(event);
+}
+
+
+/*
+ * Callback to send data to the process standard input.  We just keep sending
+ * as much as possible until we've gotten through all of the input data, and
+ * then remove ourselves from the event loop.
+ */
+static void
+send_input(evutil_socket_t fd, short what UNUSED, void *data)
+{
+    ssize_t status;
+    struct process *process = data;
+    struct client *client = process->client;
+
+    /* Write as much data as possible. */
+    status = write(fd, (char *) process->input->iov_base + process->offset,
+                   process->input->iov_len - process->offset);
+
+    /*
+     * On EPIPE, we assume that the process just doesn't care about the rest
+     * of the data and treat this as equivalent to having written all of the
+     * data.  On any other error other than EINTR or EAGAIN, send an error to
+     * the remctl client and abort the event loop.
+     */
+    if (status < 0) {
+        if (errno == EPIPE) {
+            process->offset = process->input->iov_len;
+            status = 0;
+        } else if (errno != EINTR && errno != EAGAIN) {
+            syswarn("write failed");
+            server_send_error(client, ERROR_INTERNAL, "Internal failure");
+            event_base_loopbreak(process->events);
+            return;
+        }
+    }
+
+    /* Update bookkeeping and see if we're done. */
+    process->offset += status;
+    if (process->offset >= process->input->iov_len) {
+        close(process->stdin_fd);
+        process->stdin_fd = -1;
+        event_del(process->in);
+    }
+}
+
+
+/*
+ * Called when the process has exited.  Here we reap the status and then tell
+ * the event loop to complete.  Ignore SIGCHLD if our child process wasn't the
+ * one that exited.
+ */
+static void
+handle_child_exit(evutil_socket_t sig UNUSED, short what UNUSED, void *data)
+{
+    struct process *process = data;
+
+    if (waitpid(process->pid, &process->status, WNOHANG) > 0) {
+        process->reaped = true;
+        event_del(process->sigchld);
+        event_base_loopexit(process->events, NULL);
+    }
+}
 
 
 /*
@@ -58,189 +193,72 @@ struct process {
 static int
 server_process_output(struct client *client, struct process *process)
 {
-    char junk[BUFSIZ];
-    char *p;
-    size_t offset = 0;
-    size_t left = MAXBUFFER;
-    ssize_t status[2], instatus;
-    int i, maxfd, fd, result;
-    fd_set readfds, writefds;
-    struct timeval timeout;
-    bool saw_output;
+    struct event_base *events;
+    bool success;
 
-    /* If we haven't allocated an output buffer, do so now. */
-    if (client->output == NULL)
-        client->output = xmalloc(MAXBUFFER);
-    p = client->output;
+    /* Clear the output buffer. */
+    buffer_set(client->output, "", 0);
 
-    /*
-     * Initialize read status for standard output and standard error and write
-     * status for standard input to the process.  Non-zero says that we keep
-     * trying to read or write.
-     */
-    status[0] = -1;
-    status[1] = -1;
-    instatus = (process->input != NULL ? -1 : 0);
+    /* Create the event base that we use for the event loop. */
+    events = event_base_new();
+    process->events = events;
 
-    /*
-     * Now, loop while we have input.  We no longer have input if the return
-     * status of read is 0 on all file descriptors.  At that point, we break
-     * out of the loop.
-     *
-     * Exceptionally, however, we want to catch the case where our child
-     * process ran some other command that didn't close its inherited standard
-     * output and error and then exited itself.  This is not uncommon with
-     * init scripts that start poorly-written daemons.  Once our child process
-     * is finished, we're done, even if standard output and error from the
-     * child process aren't closed yet.  To catch this case, call waitpid with
-     * the WNOHANG flag each time through the select loop to determine when
-     * the child has exited.
-     *
-     * We cannot simply decide the child is done as soon as we get an exit
-     * status, however, since we may still have buffered output from the child
-     * sitting in system buffers.  Therefore, once the child has exited, we
-     * continue to loop but with a select timeout of 0, polling for more
-     * output.  Once the child has exited and we have no output immediately
-     * available, we decide the command has finished.
-     *
-     * Meanwhile, if we have input data, then as long as we've not gotten an
-     * EPIPE error from sending input data to the process we keep writing
-     * input data as select indicates the process can receive it.  However, we
-     * don't care if we've sent all input data before the process says it's
-     * done and exits.
-     */
-    saw_output = false;
-    while (!process->reaped || saw_output) {
-        FD_ZERO(&readfds);
-        maxfd = -1;
-        for (i = 0; i < 2; i++) {
-            if (status[i] != 0) {
-                if (process->fds[i] > maxfd)
-                    maxfd = process->fds[i];
-                FD_SET(process->fds[i], &readfds);
-            }
-        }
-        if (instatus != 0) {
-            FD_ZERO(&writefds);
-            if (process->stdin_fd > maxfd)
-                maxfd = process->stdin_fd;
-            FD_SET(process->stdin_fd, &writefds);
-        }
-        if (maxfd == -1)
-            break;
+    /* Create events for consuming the output from the process. */
+    process->out = event_new(events, process->fds[0], EV_READ | EV_PERSIST,
+                             handle_output, process);
+    process->err = event_new(events, process->fds[1], EV_READ | EV_PERSIST,
+                             handle_output, process);
+    if (event_add(process->out, NULL) < 0)
+        die("internal error: cannot add stdout processing event");
+    if (event_add(process->err, NULL) < 0)
+        die("internal error: cannot add stderr processing event");
 
-        /*
-         * We want to wait until either our child exits or until we get data
-         * on its output file descriptors.  Normally, the SIGCHLD signal from
-         * the child exiting would break us out of our select loop.  However,
-         * the child could exit between the waitpid call and the select call,
-         * in which case select could block forever since there's nothing to
-         * wake it up.
-         *
-         * The POSIX-correct way of doing this is to block SIGCHLD and then
-         * use pselect instead of select with a signal mask that allows
-         * SIGCHLD.  This allows SIGCHLD from the exiting child process to
-         * reliably interrupt pselect without race conditions from the child
-         * exiting before pselect is called.
-         *
-         * Unfortunately, Linux didn't implement a proper pselect until 2.6.16
-         * and the glibc wrapper that emulates it leaves us open to exactly
-         * the race condition we're trying to avoid.  This unfortunately
-         * leaves us with no choice but to set a timeout and wake up every
-         * five seconds to see if our child died.  (The wait time is arbitrary
-         * but makes the test suite less annoying.)
-         *
-         * If we see that the child has already exited, do one final poll of
-         * our output file descriptors and then call the command finished.
-         */
-        timeout.tv_sec = 5;
-        timeout.tv_usec = 0;
-        if (waitpid(process->pid, &process->status, WNOHANG) > 0)
-            process->reaped = true;
-        if (process->reaped)
-            timeout.tv_sec = 0;
-        if (instatus != 0)
-            result = select(maxfd + 1, &readfds, &writefds, NULL, &timeout);
-        else
-            result = select(maxfd + 1, &readfds, NULL, NULL, &timeout);
-        if (result < 0 && errno != EINTR) {
-            syswarn("select failed");
-            server_send_error(client, ERROR_INTERNAL, "Internal failure");
-            goto fail;
-        }
-
-        /*
-         * If we can still write and our child selected for writing, send as
-         * much data as we can.
-         */
-        if (instatus != 0 && FD_ISSET(process->stdin_fd, &writefds)) {
-            instatus = write(process->stdin_fd,
-                             (char *) process->input->iov_base + offset,
-                             process->input->iov_len - offset);
-            if (instatus < 0) {
-                if (errno == EPIPE)
-                    instatus = 0;
-                else if (errno != EINTR && errno != EAGAIN) {
-                    syswarn("write failed");
-                    server_send_error(client, ERROR_INTERNAL,
-                                      "Internal failure");
-                    goto fail;
-                }
-            }
-            offset += instatus;
-            if (offset >= process->input->iov_len) {
-                close(process->stdin_fd);
-                instatus = 0;
-            }
-        }
-
-        /*
-         * Iterate through each set file descriptor and read its output.  If
-         * we're using protocol version one, we append all the output together
-         * into the buffer.  Otherwise, we send an output token for each bit
-         * of output as we see it.
-         */
-        saw_output = false;
-        for (i = 0; i < 2; i++) {
-            fd = process->fds[i];
-            if (!FD_ISSET(fd, &readfds))
-                continue;
-            saw_output = true;
-            if (client->protocol == 1) {
-                if (left > 0) {
-                    status[i] = read(fd, p, left);
-                    if (status[i] < 0 && (errno != EINTR && errno != EAGAIN))
-                        goto readfail;
-                    else if (status[i] > 0) {
-                        p += status[i];
-                        left -= status[i];
-                    }
-                } else {
-                    status[i] = read(fd, junk, sizeof(junk));
-                    if (status[i] < 0 && (errno != EINTR && errno != EAGAIN))
-                        goto readfail;
-                }
-            } else {
-                status[i] = read(fd, client->output, MAXBUFFER);
-                if (status[i] < 0 && (errno != EINTR && errno != EAGAIN))
-                    goto readfail;
-                if (status[i] > 0) {
-                    client->outlen = status[i];
-                    if (!server_v2_send_output(client, i + 1))
-                        goto fail;
-                }
-            }
-        }
+    /* If we have input for the process, create an event to send that input. */
+    if (process->input != NULL) {
+        process->in = event_new(events, process->stdin_fd,
+                                EV_WRITE | EV_PERSIST, send_input, process);
+        if (event_add(process->in, NULL) < 0)
+            die("internal error: cannot add input processing event");
     }
-    if (client->protocol == 1)
-        client->outlen = p - client->output;
-    return 1;
 
-readfail:
-    syswarn("read failed");
-    server_send_error(client, ERROR_INTERNAL, "Internal failure");
-fail:
-    return 0;
+    /* Create the event to handle SIGCHLD when the child process exits. */
+    process->sigchld = evsignal_new(events, SIGCHLD, handle_child_exit,
+                                    process);
+    if (event_add(process->sigchld, NULL) < 0)
+        die("internal error: cannot add SIGCHLD processing event");
+
+    /*
+     * Run the event loop.  This will continue until handle_child_exit is
+     * called, unless we encounter some fatal error.  If handle_child_exit was
+     * successfully called, process->reaped will be set to true.
+     */
+    if (event_base_dispatch(events) < 0)
+        die("internal error: process event loop failed");
+    if (event_base_got_break(events))
+        return false;
+
+    /*
+     * We cannot simply decide the child is done as soon as we get an exit
+     * status since we may still have buffered output from the child sitting
+     * in system buffers.  Therefore, we now repeatedly run the event loop in
+     * EVLOOP_NONBLOCK mode, only continuing if process->saw_output remains
+     * true, indicating we processed some output from the process.
+     */
+    do {
+        process->saw_output = false;
+        if (event_base_loop(events, EVLOOP_NONBLOCK) < 0)
+            die("internal error: process event loop failed");
+    } while (process->saw_output && !event_base_got_break(events));
+
+    /* Free resources and return. */
+    success = !event_base_got_break(events);
+    if (process->in != NULL)
+        event_free(process->in);
+    event_free(process->out);
+    event_free(process->err);
+    event_free(process->sigchld);
+    event_base_free(events);
+    return success;
 }
 
 
@@ -474,7 +492,7 @@ server_exec(struct client *client, char *command, char **req_argv,
         ok = server_process_output(client, process);
         close(process->fds[0]);
         close(process->fds[1]);
-        if (process->input != NULL)
+        if (process->input != NULL && process->stdin_fd >= 0)
             close(process->stdin_fd);
         if (!process->reaped)
             waitpid(process->pid, &process->status, 0);
@@ -522,8 +540,7 @@ server_send_summary(struct client *client, const char *user,
     bool ok;
     bool ok_any = false;
     int status_all = 0;
-    struct process process = { 0, { 0, 0 }, 0, NULL, -1, 0 };
-    struct process empty_process = { 0, { 0, 0 }, 0, NULL, -1, 0 };
+    struct process process;
 
     /*
      * Check each line in the config to find any that are "<command> ALL"
@@ -531,7 +548,8 @@ server_send_summary(struct client *client, const char *user,
      * given.
      */
     for (i = 0; i < config->count; i++) {
-        process = empty_process;
+        memset(&process, 0, sizeof(process));
+        process.client = client;
         cline = config->rules[i];
         if (strcmp(cline->subcommand, "ALL") != 0)
             continue;
@@ -701,7 +719,11 @@ server_run_command(struct client *client, struct config *config,
     bool ok = false;
     bool help = false;
     const char *user = client->user;
-    struct process process = { 0, { 0, 0 }, 0, NULL, -1, 0 };
+    struct process process;
+
+    /* Start with an empty process. */
+    memset(&process, 0, sizeof(process));
+    process.client = client;
 
     /*
      * We need at least one argument.  This is also rejected earlier when

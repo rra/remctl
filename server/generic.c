@@ -6,8 +6,8 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013
- *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
+ *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
@@ -19,6 +19,7 @@
 #include <portable/uio.h>
 
 #include <server/internal.h>
+#include <util/buffer.h>
 #include <util/messages.h>
 #include <util/tokens.h>
 #include <util/xmalloc.h>
@@ -48,14 +49,17 @@ server_new_client(int fd, gss_cred_id_t creds)
     static const OM_uint32 req_gss_flags
         = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
 
-    /* Create and initialize a new client struct. */
+    /*
+     * Create and initialize a new client struct.  The output buffer has to
+     * be sized to MAXBUFFER, since this will be used to cap the amount of
+     * data that we send to the client at a time.
+     */
     client = xcalloc(1, sizeof(struct client));
     client->fd = fd;
     client->context = GSS_C_NO_CONTEXT;
-    client->user = NULL;
-    client->output = NULL;
-    client->hostname = NULL;
-    client->ipaddress = NULL;
+    client->output = buffer_new();
+    buffer_resize(client->output, MAXBUFFER);
+    client->output->size = MAXBUFFER;
 
     /* Fill in hostname and IP address. */
     socklen = sizeof(ss);
@@ -170,10 +174,8 @@ fail:
         gss_delete_sec_context(&minor, &client->context, GSS_C_NO_BUFFER);
     if (name != GSS_C_NO_NAME)
         gss_release_name(&minor, &name);
-    if (client->ipaddress != NULL)
-        free(client->ipaddress);
-    if (client->hostname != NULL)
-        free(client->hostname);
+    free(client->ipaddress);
+    free(client->hostname);
     free(client);
     return NULL;
 }
@@ -187,21 +189,20 @@ server_free_client(struct client *client)
 {
     OM_uint32 major, minor;
 
+    if (client == NULL)
+        return;
     if (client->context != GSS_C_NO_CONTEXT) {
         major = gss_delete_sec_context(&minor, &client->context, NULL);
         if (major != GSS_S_COMPLETE)
             warn_gssapi("while deleting context", major, minor);
     }
     if (client->output != NULL)
-        free(client->output);
-    if (client->user != NULL)
-        free(client->user);
+        buffer_free(client->output);
     if (client->fd >= 0)
         close(client->fd);
-    if (client->hostname != NULL)
-        free(client->hostname);
-    if (client->ipaddress != NULL)
-        free(client->ipaddress);
+    free(client->user);
+    free(client->hostname);
+    free(client->ipaddress);
     free(client);
 }
 
@@ -306,12 +307,7 @@ server_send_error(struct client *client, enum error_codes error,
     if (client->protocol > 1)
         return server_v2_send_error(client, error, message);
     else {
-        if (client->output != NULL)
-            free(client->output);
-        client->output = xmalloc(strlen(message) + 1);
-        memcpy(client->output, message, strlen(message));
-        client->output[strlen(message)] = '\n';
-        client->outlen = strlen(message) + 1;
+        buffer_sprintf(client->output, "%s\n", message);
         return server_v1_send_output(client, -1);
     }
 }

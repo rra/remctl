@@ -7,7 +7,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -20,6 +20,7 @@
 #include <portable/uio.h>
 
 #include <server/internal.h>
+#include <util/buffer.h>
 #include <util/gss-tokens.h>
 #include <util/messages.h>
 #include <util/xmalloc.h>
@@ -39,7 +40,7 @@ server_v1_send_output(struct client *client, int exit_status)
     int status;
 
     /* Allocate room for the total message. */
-    token.length = 4 + 4 + client->outlen;
+    token.length = 4 + 4 + client->output->left;
     token.value = xmalloc(token.length);
 
     /* Fill in the token. */
@@ -47,10 +48,10 @@ server_v1_send_output(struct client *client, int exit_status)
     tmp = htonl(exit_status);
     memcpy(p, &tmp, 4);
     p += 4;
-    tmp = htonl(client->outlen);
+    tmp = htonl(client->output->left);
     memcpy(p, &tmp, 4);
     p += 4;
-    memcpy(p, client->output, client->outlen);
+    memcpy(p, client->output->data, client->output->left);
     
     /* Send the token. */
     status = token_send_priv(client->fd, client->context, TOKEN_DATA, &token,

@@ -14,6 +14,7 @@
  */
 
 #include <config.h>
+#include <portable/event.h>
 #include <portable/gssapi.h>
 #include <portable/sd-daemon.h>
 #include <portable/socket.h>
@@ -142,6 +143,41 @@ static RETSIGTYPE
 exit_handler(int sig UNUSED)
 {
     exit_signaled = 1;
+}
+
+
+/*
+ * The logging callback for libevent.  We hook this into our message system so
+ * that libevent messages are handled the same way as our other internal
+ * messages.  This function should be passed to event_set_log_callback at the
+ * start of libevent initialization.
+ */
+static void
+event_log_callback(int severity, const char *message)
+{
+    switch (severity) {
+    case EVENT_LOG_DEBUG:
+        debug("%s", message);
+        break;
+    case EVENT_LOG_MSG:
+        notice("%s", message);
+        break;
+    default:
+        warn("%s", message);
+        break;
+    }
+}
+
+
+/*
+ * The fatal callback for libevent.  Convert this to die, so that it's logged
+ * the same as our other messages.  This function should be passed to
+ * event_set_fatal_callback at the start of libevent initialization.
+ */
+static void
+event_fatal_callback(int err)
+{
+    die("fatal libevent error (%d)", err);
 }
 
 
@@ -476,8 +512,12 @@ main(int argc, char *argv[])
     if (sigaction(SIGPIPE, &sa, NULL) < 0)
         sysdie("cannot set SIGPIPE handler");
 
-    /* Establish identity. */
+    /* Establish identity for logging. */
     message_program_name = "remctld";
+
+    /* Initialize the logging and fatal callbacks for libevent. */
+    event_set_log_callback(event_log_callback);
+    event_set_fatal_callback(event_fatal_callback);
 
     /* Initialize options. */
     memset(&options, 0, sizeof(options));
@@ -593,5 +633,6 @@ main(int argc, char *argv[])
     /* Clean up and exit.  We only reach here in regular mode. */
     if (creds != GSS_C_NO_CREDENTIAL)
         gss_release_cred(&minor, &creds);
+    libevent_global_shutdown();
     return 0;
 }

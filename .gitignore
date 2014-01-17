@@ -107,6 +107,7 @@
 /tests/server/summary-t
 /tests/server/user-t
 /tests/server/version-t
+/tests/util/buffer-t
 /tests/util/fdflag-t
 /tests/util/gss-tokens-t
 /tests/util/messages-t
