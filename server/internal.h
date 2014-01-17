@@ -23,12 +23,6 @@ struct buffer;
 struct iovec;
 
 /*
- * Used as the default max buffer for the argv passed into the server, and for
- * the return message from the server.
- */
-#define MAXBUFFER 64000
-
-/*
  * The maximum size of argc passed to the server.  This is an arbitrary limit
  * to protect against memory-based denial of service attacks on the server.
  */

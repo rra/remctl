@@ -21,6 +21,7 @@
 #include <server/internal.h>
 #include <util/buffer.h>
 #include <util/messages.h>
+#include <util/protocol.h>
 #include <util/tokens.h>
 #include <util/xmalloc.h>
 
@@ -50,16 +51,16 @@ server_new_client(int fd, gss_cred_id_t creds)
         = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
 
     /*
-     * Create and initialize a new client struct.  The output buffer has to
-     * be sized to MAXBUFFER, since this will be used to cap the amount of
+     * Create and initialize a new client struct.  The output buffer has to be
+     * sized to TOKEN_MAX_OUTPUT, since this will be used to cap the amount of
      * data that we send to the client at a time.
      */
     client = xcalloc(1, sizeof(struct client));
     client->fd = fd;
     client->context = GSS_C_NO_CONTEXT;
     client->output = buffer_new();
-    buffer_resize(client->output, MAXBUFFER);
-    client->output->size = MAXBUFFER;
+    buffer_resize(client->output, TOKEN_MAX_OUTPUT);
+    client->output->size = TOKEN_MAX_OUTPUT;
 
     /* Fill in hostname and IP address. */
     socklen = sizeof(ss);
@@ -157,6 +158,13 @@ server_new_client(int fd, gss_cred_id_t creds)
             goto fail;
         }
     }
+
+    /*
+     * If we negotiated protocol version one, our maximum output is somewhat
+     * smaller since the token format is different.
+     */
+    if (client->protocol == 1)
+        client->output->size = TOKEN_MAX_OUTPUT_V1;
 
     /* Get the display version of the client name and store it. */
     major = gss_display_name(&minor, name, &name_buf, &doid);
