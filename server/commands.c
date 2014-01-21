@@ -324,26 +324,33 @@ static bool
 server_exec(struct client *client, char *command, char **req_argv,
             struct confline *cline, struct process *process)
 {
-    int stdin_pipe[2] = { -1, -1 };
-    int stdout_pipe[2] = { -1, -1 };
-    int stderr_pipe[2] = { -1, -1 };
+    socket_type stdin_fds[2]  = { INVALID_SOCKET, INVALID_SOCKET };
+    socket_type stdout_fds[2] = { INVALID_SOCKET, INVALID_SOCKET };
+    socket_type stderr_fds[2] = { INVALID_SOCKET, INVALID_SOCKET };
+    socket_type fd;
     bool ok = false;
-    int fd;
 
     /*
-     * These pipes are used for communication with the child process that
-     * actually runs the command.
+     * These socket pairs are used for communication with the child process
+     * that actually runs the command.  We have to use sockets rather than
+     * pipes because libevent's buffevents require sockets.
      */
-    if (pipe(stdout_pipe) != 0 || pipe(stderr_pipe) != 0) {
-        syswarn("cannot create pipes");
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, stdout_fds) < 0) {
+        syswarn("cannot create stdout socket pair");
         server_send_error(client, ERROR_INTERNAL, "Internal failure");
         goto done;
     }
-    if (process->input != NULL && pipe(stdin_pipe) != 0) {
-        syswarn("cannot create stdin pipe");
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, stderr_fds) < 0) {
+        syswarn("cannot create stderr socket pair");
         server_send_error(client, ERROR_INTERNAL, "Internal failure");
         goto done;
     }
+    if (process->input != NULL)
+        if (socketpair(AF_UNIX, SOCK_STREAM, 0, stdin_fds) < 0) {
+            syswarn("cannot create stdin socket pair");
+            server_send_error(client, ERROR_INTERNAL, "Internal failure");
+            goto done;
+        }
 
     /*
      * Flush output before forking, mostly in case -S was given and we've
@@ -360,16 +367,16 @@ server_exec(struct client *client, char *command, char **req_argv,
 
     /* In the child. */
     case 0:
-        dup2(stdout_pipe[1], 1);
-        close(stdout_pipe[0]);
-        stdout_pipe[0] = -1;
-        close(stdout_pipe[1]);
-        stdout_pipe[1] = -1;
-        dup2(stderr_pipe[1], 2);
-        close(stderr_pipe[0]);
-        stderr_pipe[0] = -1;
-        close(stderr_pipe[1]);
-        stderr_pipe[1] = -1;
+        dup2(stdout_fds[1], 1);
+        close(stdout_fds[0]);
+        stdout_fds[0] = INVALID_SOCKET;
+        close(stdout_fds[1]);
+        stdout_fds[1] = INVALID_SOCKET;
+        dup2(stderr_fds[1], 2);
+        close(stderr_fds[0]);
+        stderr_fds[0] = INVALID_SOCKET;
+        close(stderr_fds[1]);
+        stderr_fds[1] = INVALID_SOCKET;
 
         /*
          * Set up stdin pipe if we have input data.
@@ -380,11 +387,11 @@ server_exec(struct client *client, char *command, char **req_argv,
          * worst case is that we leave stdin closed.
          */
         if (process->input != NULL) {
-            dup2(stdin_pipe[0], 0);
-            close(stdin_pipe[0]);
-            stdin_pipe[0] = -1;
-            close(stdin_pipe[1]);
-            stdin_pipe[0] = -1;
+            dup2(stdin_fds[0], 0);
+            close(stdin_fds[0]);
+            stdin_fds[0] = INVALID_SOCKET;
+            close(stdin_fds[1]);
+            stdin_fds[0] = INVALID_SOCKET;
         } else {
             close(0);
             fd = open("/dev/null", O_RDONLY);
@@ -460,13 +467,13 @@ server_exec(struct client *client, char *command, char **req_argv,
 
     /* In the parent. */
     default:
-        close(stdout_pipe[1]);
-        stdout_pipe[1] = -1;
-        close(stderr_pipe[1]);
-        stderr_pipe[1] = -1;
+        close(stdout_fds[1]);
+        stdout_fds[1] = INVALID_SOCKET;
+        close(stderr_fds[1]);
+        stderr_fds[1] = INVALID_SOCKET;
         if (process->input != NULL) {
-            close(stdin_pipe[0]);
-            stdin_pipe[0] = -1;
+            close(stdin_fds[0]);
+            stdin_fds[0] = INVALID_SOCKET;
         }
 
         /*
@@ -475,20 +482,20 @@ server_exec(struct client *client, char *command, char **req_argv,
          * if we have one so that we don't block when feeding data to our
          * child.
          */
-        fdflag_nonblocking(stdout_pipe[0], true);
-        fdflag_nonblocking(stderr_pipe[0], true);
+        fdflag_nonblocking(stdout_fds[0], true);
+        fdflag_nonblocking(stderr_fds[0], true);
         if (process->input != NULL)
-            fdflag_nonblocking(stdin_pipe[1], true);
+            fdflag_nonblocking(stdin_fds[1], true);
 
         /*
          * This collects output from both pipes iteratively, while the child
          * is executing, and processes it.  It also sends input data if we
          * have any.
          */
-        process->fds[0] = stdout_pipe[0];
-        process->fds[1] = stderr_pipe[0];
+        process->fds[0] = stdout_fds[0];
+        process->fds[1] = stderr_fds[0];
         if (process->input != NULL)
-            process->stdin_fd = stdin_pipe[1];
+            process->stdin_fd = stdin_fds[1];
         ok = server_process_output(client, process);
         close(process->fds[0]);
         close(process->fds[1]);
@@ -503,18 +510,18 @@ server_exec(struct client *client, char *command, char **req_argv,
     }
 
  done:
-    if (stdout_pipe[0] != -1)
-        close(stdout_pipe[0]);
-    if (stdout_pipe[1] != -1)
-        close(stdout_pipe[1]);
-    if (stderr_pipe[0] != -1)
-        close(stderr_pipe[0]);
-    if (stderr_pipe[1] != -1)
-        close(stderr_pipe[1]);
-    if (stdin_pipe[0] != -1)
-        close(stdin_pipe[0]);
-    if (stdin_pipe[1] != -1)
-        close(stdin_pipe[1]);
+    if (stdout_fds[0] != INVALID_SOCKET)
+        close(stdout_fds[0]);
+    if (stdout_fds[1] != INVALID_SOCKET)
+        close(stdout_fds[1]);
+    if (stderr_fds[0] != INVALID_SOCKET)
+        close(stderr_fds[0]);
+    if (stderr_fds[1] != INVALID_SOCKET)
+        close(stderr_fds[1]);
+    if (stdin_fds[0] != INVALID_SOCKET)
+        close(stdin_fds[0]);
+    if (stdin_fds[1] != INVALID_SOCKET)
+        close(stdin_fds[1]);
 
     return ok;
 }
