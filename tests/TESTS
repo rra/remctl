@@ -37,7 +37,6 @@ server/streaming
 server/summary
 server/user
 server/version
-util/buffer
 util/gss-tokens
 util/messages
 util/network/addr-ipv4
