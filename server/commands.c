@@ -904,6 +904,7 @@ server_run_command(struct client *client, struct config *config,
                               "No help defined for command");
             goto done;
         } else {
+            free(subcommand);
             subcommand = xstrdup(cline->help);
         }
     }

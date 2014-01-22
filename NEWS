@@ -8,6 +8,8 @@ remctl 3.8 (unreleased)
     also slightly increases the maximum length of the output returned
     under the version one protocol.
 
+    Fix a minor memory leak in the server when processing help commands.
+
 remctl 3.7 (2014-01-06)
 
     Fix a client memory leak when remctl_set_ccache is used with a
