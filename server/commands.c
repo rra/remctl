@@ -35,17 +35,23 @@
  * themselves when needed.
  */
 struct process {
+    struct client *client;      /* Pointer to corresponding remctl client. */
+
+    /* Process data. */
+    socket_type stdinout_fd;    /* File descriptor for input and output. */
+    socket_type stderr_fd;      /* File descriptor for standard error. */
+    pid_t pid;                  /* Process ID of child. */
+    int status;                 /* Exit status. */
+
+    /* Event loop. */
     struct event_base *loop;    /* Event base for the process event loop. */
     struct bufferevent *inout;  /* Input and output from process. */
     struct bufferevent *err;    /* Standard error from process. */
     struct event *sigchld;      /* Handle the SIGCHLD signal for exit. */
+    struct evbuffer *input;     /* Buffer of input to process. */
     struct evbuffer *output;    /* Buffer of output from process. */
-    struct client *client;      /* Pointer to corresponding remctl client. */
-    socket_type stdinout_fd;    /* File descriptor for input and output. */
-    socket_type stderr_fd;      /* File descriptor for standard error. */
-    struct iovec *input;        /* Data to pass on standard input. */
-    pid_t pid;                  /* Process ID of child. */
-    int status;                 /* Exit status. */
+
+    /* State flags. */
     bool reaped;                /* Whether we've reaped the process. */
     bool saw_output;            /* Whether we saw process output. */
 };
@@ -235,8 +241,7 @@ server_process_output(struct client *client, struct process *process)
     else {
         writecb = handle_input_end;
         bufferevent_enable(process->inout, EV_READ | EV_WRITE);
-        if (bufferevent_write(process->inout, process->input->iov_base,
-                              process->input->iov_len) < 0)
+        if (bufferevent_write_buffer(process->inout, process->input) < 0)
             sysdie("cannot queue input for process");
     }
     if (client->protocol == 1) {
@@ -692,14 +697,21 @@ create_argv_command(struct confline *cline, struct process *process,
     else
         stdin_arg = (size_t) cline->stdin_arg;
     for (i = 1, j = 1; i < count; i++) {
+        const char *data = argv[i]->iov_base;
+        size_t length = argv[i]->iov_len;
+
         if (i == stdin_arg) {
-            process->input = argv[i];
+            process->input = evbuffer_new();
+            if (process->input == NULL)
+                die("internal error: cannot create input buffer");
+            if (evbuffer_add(process->input, data, length) < 0)
+                die("internal error: cannot add data to input buffer");
             continue;
         }
-        if (argv[i]->iov_len == 0)
+        if (length == 0)
             req_argv[j] = xstrdup("");
         else
-            req_argv[j] = xstrndup(argv[i]->iov_base, argv[i]->iov_len);
+            req_argv[j] = xstrndup(data, length);
         j++;
     }
     req_argv[j] = NULL;
