@@ -375,6 +375,18 @@ find_config_line(struct config *config, char *command, char *subcommand)
 
 
 /*
+ * Called on fatal errors in the child process before exec.  This callback
+ * exists only to change the exit status for fatal internal errors to -1
+ * instead of the default of 1.
+ */
+static int
+child_die_handler(void)
+{
+    return -1;
+}
+
+
+/*
  * Runs a given command via exec.  This forks a child process, sets
  * environment and changes ownership if needed, then runs the command and
  * sends the output back to the remctl client.
@@ -433,6 +445,7 @@ server_exec(struct client *client, char *command, char **req_argv,
 
     /* In the child. */
     case 0:
+        message_fatal_cleanup = child_die_handler;
         dup2(stdout_fds[1], 1);
         close(stdout_fds[0]);
         stdout_fds[0] = INVALID_SOCKET;
@@ -486,54 +499,34 @@ server_exec(struct client *client, char *command, char **req_argv,
          * information in the environment.  REMUSER is for backwards
          * compatibility with earlier versions of remctl.
          */
-        if (setenv("REMUSER", client->user, 1) < 0) {
-            syswarn("cannot set REMUSER in environment");
-            exit(-1);
-        }
-        if (setenv("REMOTE_USER", client->user, 1) < 0) {
-            syswarn("cannot set REMOTE_USER in environment");
-            exit(-1);
-        }
-        if (setenv("REMOTE_ADDR", client->ipaddress, 1) < 0) {
-            syswarn("cannot set REMOTE_ADDR in environment");
-            exit(-1);
-        }
-        if (client->hostname != NULL) {
-            if (setenv("REMOTE_HOST", client->hostname, 1) < 0) {
-                syswarn("cannot set REMOTE_HOST in environment");
-                exit(-1);
-            }
-        }
-        if (setenv("REMCTL_COMMAND", command, 1) < 0) {
-            syswarn("cannot set REMCTL_COMMAND in environment");
-            exit(-1);
-        }
+        if (setenv("REMUSER", client->user, 1) < 0)
+            sysdie("cannot set REMUSER in environment");
+        if (setenv("REMOTE_USER", client->user, 1) < 0)
+            sysdie("cannot set REMOTE_USER in environment");
+        if (setenv("REMOTE_ADDR", client->ipaddress, 1) < 0)
+            sysdie("cannot set REMOTE_ADDR in environment");
+        if (client->hostname != NULL)
+            if (setenv("REMOTE_HOST", client->hostname, 1) < 0)
+                sysdie("cannot set REMOTE_HOST in environment");
+        if (setenv("REMCTL_COMMAND", command, 1) < 0)
+            sysdie("cannot set REMCTL_COMMAND in environment");
 
         /* Drop privileges if requested. */
         if (cline->user != NULL && cline->uid > 0) {
-            if (initgroups(cline->user, cline->gid) != 0) {
-                syswarn("cannot initgroups for %s\n", cline->user);
-                exit(-1);
-            }
-            if (setgid(cline->gid) != 0) {
-                syswarn("cannot setgid to %d\n", cline->gid);
-                exit(-1);
-            }
-            if (setuid(cline->uid) != 0) {
-                syswarn("cannot setuid to %d\n", cline->uid);
-                exit(-1);
-            }
+            if (initgroups(cline->user, cline->gid) != 0)
+                sysdie("cannot initgroups for %s\n", cline->user);
+            if (setgid(cline->gid) != 0)
+                sysdie("cannot setgid to %d\n", cline->gid);
+            if (setuid(cline->uid) != 0)
+                sysdie("cannot setuid to %d\n", cline->uid);
         }
 
-        /* Run the command. */
-        execv(cline->program, req_argv);
-
         /*
-         * This happens only if the exec fails.  Print out an error message to
-         * the stderr pipe and fail; that's the best that we can do.
+         * Run the command.  On error, we intentionally don't reveal
+         * information about the command we ran.
          */
-        fprintf(stderr, "Cannot execute: %s\n", strerror(errno));
-        exit(-1);
+        if (execv(cline->program, req_argv) < 0)
+            sysdie("cannot execute command");
 
     /* In the parent. */
     default:
