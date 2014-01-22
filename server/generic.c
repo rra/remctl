@@ -269,8 +269,6 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
         }
         count++;
         p += arglen;
-        debug("arg %lu has length %lu", (unsigned long) count,
-              (unsigned long) arglen);
     }
     if (count != argc || p != buffer + length) {
         warn("argument count differs from arguments seen");
