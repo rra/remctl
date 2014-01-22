@@ -167,8 +167,8 @@ client_remctl_LDADD = client/libremctl.la util/libutil.la \
 # The remctld server.
 sbin_PROGRAMS = server/remctld
 server_remctld_SOURCES = server/commands.c server/config.c server/generic.c \
-	server/logging.c server/internal.h server/remctld.c		    \
-	server/server-v1.c server/server-v2.c
+	server/logging.c server/internal.h server/process.c		    \
+	server/remctld.c server/server-v1.c server/server-v2.c
 server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	\
 	$(GSSAPI_CPPFLAGS) $(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS)		\
 	$(LIBEVENT_CPPFLAGS) $(SYSTEMD_DAEMON_CFLAGS)
@@ -342,8 +342,9 @@ tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 	tests/tap/string.c tests/tap/string.h
 
 # Used for server tests.
-SERVER_FILES = server/commands.c server/config.c server/generic.c \
-	server/logging.c server/server-v1.c server/server-v2.c
+SERVER_FILES = server/commands.c server/config.c server/generic.c	\
+	server/logging.c server/process.c server/server-v1.c		\
+	server/server-v2.c
 
 # All of the test programs.
 tests_client_api_t_LDFLAGS = $(KRB5_LDFLAGS)

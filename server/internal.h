@@ -14,12 +14,18 @@
 #include <config.h>
 #include <portable/gssapi.h>
 #include <portable/macros.h>
+#include <portable/socket.h>
 #include <portable/stdbool.h>
+
 #include <sys/types.h>
+
 #include <util/protocol.h>
 
 /* Forward declarations to avoid extra includes. */
+struct bufferevent;
 struct evbuffer;
+struct event;
+struct event_base;
 struct iovec;
 
 /*
@@ -72,6 +78,39 @@ struct config {
     size_t allocated;
 };
 
+/*
+ * Holds details about a running process.  The events we hook into the event
+ * loop are also stored here so that the event handlers can use this as their
+ * data and have their pointers so that they can remove themselves when
+ * needed.
+ */
+struct process {
+    struct client *client;      /* Pointer to corresponding remctl client. */
+
+    /* Command data. */
+    char *command;              /* The remctl command run by the user. */
+    char **argv;                /* argv for running the command. */
+    struct confline *config;    /* Configuration for the command. */
+
+    /* Process data. */
+    socket_type stdinout_fd;    /* File descriptor for input and output. */
+    socket_type stderr_fd;      /* File descriptor for standard error. */
+    pid_t pid;                  /* Process ID of child. */
+    int status;                 /* Exit status. */
+
+    /* Event loop. */
+    struct event_base *loop;    /* Event base for the process event loop. */
+    struct bufferevent *inout;  /* Input and output from process. */
+    struct bufferevent *err;    /* Standard error from process. */
+    struct event *sigchld;      /* Handle the SIGCHLD signal for exit. */
+    struct evbuffer *input;     /* Buffer of input to process. */
+    struct evbuffer *output;    /* Buffer of output from process. */
+
+    /* State flags. */
+    bool reaped;                /* Whether we've reaped the process. */
+    bool saw_output;            /* Whether we saw process output. */
+};
+
 BEGIN_DECLS
 
 /* Logging functions. */
@@ -90,6 +129,9 @@ void server_run_command(struct client *, struct config *, struct iovec **);
 
 /* Freeing the command structure. */
 void server_free_command(struct iovec **);
+
+/* Running processes. */
+bool server_process_run(struct process *process);
 
 /* Generic protocol functions. */
 struct client *server_new_client(int fd, gss_cred_id_t creds);
