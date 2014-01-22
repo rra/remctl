@@ -17,13 +17,8 @@
 #include <portable/system.h>
 #include <portable/uio.h>
 
-#include <errno.h>
 #include <fcntl.h>
 #include <grp.h>
-#ifdef HAVE_SYS_SELECT_H
-# include <sys/select.h>
-#endif
-#include <sys/time.h>
 #include <sys/wait.h>
 
 #include <server/internal.h>
