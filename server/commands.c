@@ -42,7 +42,7 @@
  */
 struct process {
     struct event_base *events;  /* Event base for the process event loop. */
-    struct event *in;           /* Send data to process standard input. */
+    struct bufferevent *in;     /* Send data to process standard input. */
     struct event *out;          /* Handle stdout from process. */
     struct event *err;          /* Handle stderr from process. */
     struct event *sigchld;      /* Handle the SIGCHLD signal for exit. */
@@ -116,45 +116,37 @@ handle_output(evutil_socket_t fd, short what UNUSED, void *data)
 
 
 /*
- * Callback to send data to the process standard input.  We just keep sending
- * as much as possible until we've gotten through all of the input data, and
- * then remove ourselves from the event loop.
+ * Callback when all stdin data has been sent.  We only have a callback to
+ * close our end of the socketpair so that the process gets EOF on its next
+ * read.
  */
 static void
-send_input(evutil_socket_t fd, short what UNUSED, void *data)
+handle_input_end(struct bufferevent *bev, void *data)
 {
-    ssize_t status;
+    struct process *process = data;
+
+    bufferevent_disable(bev, EV_WRITE);
+    close(process->stdin_fd);
+}
+
+
+/*
+ * Callback on errors writing to the process standard input.  If the error is
+ * due to EPIPE, just treat that as if we've written all the data and close
+ * the socket.  Otherwise, report an error and abort the event loop.
+ */
+static void
+handle_input_event(struct bufferevent *bev, short events, void *data)
+{
     struct process *process = data;
     struct client *client = process->client;
 
-    /* Write as much data as possible. */
-    status = write(fd, (char *) process->input->iov_base + process->offset,
-                   process->input->iov_len - process->offset);
-
-    /*
-     * On EPIPE, we assume that the process just doesn't care about the rest
-     * of the data and treat this as equivalent to having written all of the
-     * data.  On any other error other than EINTR or EAGAIN, send an error to
-     * the remctl client and abort the event loop.
-     */
-    if (status < 0) {
-        if (errno == EPIPE) {
-            process->offset = process->input->iov_len;
-            status = 0;
-        } else if (errno != EINTR && errno != EAGAIN) {
-            syswarn("write failed");
-            server_send_error(client, ERROR_INTERNAL, "Internal failure");
-            event_base_loopbreak(process->events);
-            return;
-        }
-    }
-
-    /* Update bookkeeping and see if we're done. */
-    process->offset += status;
-    if (process->offset >= process->input->iov_len) {
-        close(process->stdin_fd);
-        process->stdin_fd = -1;
-        event_del(process->in);
+    if ((events & BEV_EVENT_ERROR) && socket_errno == EPIPE)
+        handle_input_end(bev, data);
+    else {
+        syswarn("write to standard input failed");
+        server_send_error(client, ERROR_INTERNAL, "Internal failure");
+        event_base_loopbreak(process->events);
     }
 }
 
@@ -206,19 +198,28 @@ server_process_output(struct client *client, struct process *process)
     /* Create events for consuming the output from the process. */
     process->out = event_new(events, process->fds[0], EV_READ | EV_PERSIST,
                              handle_output, process);
+    if (process->out == NULL)
+        die("internal error: cannot create stdout processing event");
     process->err = event_new(events, process->fds[1], EV_READ | EV_PERSIST,
                              handle_output, process);
+    if (process->err == NULL)
+        die("internal error: cannot create stderr processing event");
     if (event_add(process->out, NULL) < 0)
         die("internal error: cannot add stdout processing event");
     if (event_add(process->err, NULL) < 0)
         die("internal error: cannot add stderr processing event");
 
-    /* If we have input for the process, create an event to send that input. */
+    /* If we have input for the process, send it with a bufferevent. */
     if (process->input != NULL) {
-        process->in = event_new(events, process->stdin_fd,
-                                EV_WRITE | EV_PERSIST, send_input, process);
-        if (event_add(process->in, NULL) < 0)
-            die("internal error: cannot add input processing event");
+        process->in = bufferevent_socket_new(events, process->stdin_fd, 0);
+        if (process->in == NULL)
+            sysdie("internal error: cannot create bufferevent");
+        if (bufferevent_write(process->in, process->input->iov_base,
+                              process->input->iov_len) < 0)
+            sysdie("cannot queue input for process");
+        bufferevent_setcb(process->in, NULL, handle_input_end,
+                          handle_input_event, process);
+        bufferevent_enable(process->in, EV_WRITE);
     }
 
     /* Create the event to handle SIGCHLD when the child process exits. */
@@ -253,7 +254,7 @@ server_process_output(struct client *client, struct process *process)
     /* Free resources and return. */
     success = !event_base_got_break(events);
     if (process->in != NULL)
-        event_free(process->in);
+        bufferevent_free(process->in);
     event_free(process->out);
     event_free(process->err);
     event_free(process->sigchld);

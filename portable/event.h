@@ -18,9 +18,10 @@
 #ifndef PORTABLE_EVENT_H
 #define PORTABLE_EVENT_H 1
 
+#include <event2/bufferevent.h>
 #include <event2/event.h>
 
-/* Introduced in 2.1.1-alpha. */
+/* Introduced in 2.1.1-alpha.  Just skip it if we don't have it. */
 #ifndef HAVE_LIBEVENT_GLOBAL_SHUTDOWN
 # define libevent_global_shutdown() /* empty */
 #endif
