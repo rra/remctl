@@ -35,24 +35,36 @@
  * themselves when needed.
  */
 struct process {
-    struct event_base *events;  /* Event base for the process event loop. */
-    struct bufferevent *in;     /* Send data to process standard input. */
-    struct bufferevent *out;    /* Handle stdout from process. */
-    struct bufferevent *err;    /* Handle stderr from process. */
-    struct event *discard;      /* Discard output from process. */
+    struct event_base *loop;    /* Event base for the process event loop. */
+    struct bufferevent *inout;  /* Input and output from process. */
+    struct bufferevent *err;    /* Standard error from process. */
     struct event *sigchld;      /* Handle the SIGCHLD signal for exit. */
     struct evbuffer *output;    /* Buffer of output from process. */
     struct client *client;      /* Pointer to corresponding remctl client. */
-    socket_type stdin_fd;       /* File descriptor for standard input. */
-    socket_type stdout_fd;      /* File descriptor for standard output. */
+    socket_type stdinout_fd;    /* File descriptor for input and output. */
     socket_type stderr_fd;      /* File descriptor for standard error. */
     struct iovec *input;        /* Data to pass on standard input. */
-    size_t offset;              /* Current offset into standard input data. */
     pid_t pid;                  /* Process ID of child. */
     int status;                 /* Exit status. */
     bool reaped;                /* Whether we've reaped the process. */
     bool saw_output;            /* Whether we saw process output. */
 };
+
+
+/*
+ * Callback when all stdin data has been sent.  We only have a callback to
+ * shut down our end of the socketpair so that the process gets EOF on its
+ * next read.
+ */
+static void
+handle_input_end(struct bufferevent *bev, void *data)
+{
+    struct process *process = data;
+
+    bufferevent_disable(bev, EV_WRITE);
+    if (shutdown(process->stdinout_fd, SHUT_WR) < 0)
+        sysdie("cannot shut down input side of process socket pair");
+}
 
 
 /*
@@ -71,10 +83,10 @@ handle_output(struct bufferevent *bev, void *data)
     struct process *process = data;
 
     process->saw_output = true;
-    stream = (bev == process->out) ? 1 : 2;
+    stream = (bev == process->inout) ? 1 : 2;
     buf = bufferevent_get_input(bev);
     if (!server_v2_send_output(process->client, stream, buf))
-        event_base_loopbreak(process->events);
+        event_base_loopbreak(process->loop);
 }
 
 
@@ -106,73 +118,59 @@ static void
 handle_output_full(struct bufferevent *bev, void *data)
 {
     struct process *process = data;
+    bufferevent_data_cb writecb;
 
     process->output = evbuffer_new();
     if (process->output == NULL)
         sysdie("internal error: cannot create discard evbuffer");
     if (bufferevent_read_buffer(bev, process->output) < 0)
         die("internal error: cannot read data from output buffer");
-    bufferevent_setcb(process->out, handle_output_discard, NULL, NULL, data);
+
+    /*
+     * Change the output callback.  We need to be sure not to dump our input
+     * callback if it exists.
+     */
+    writecb = (process->input == NULL) ? NULL : handle_input_end;
+    bufferevent_setcb(bev, handle_output_discard, writecb, NULL, data);
 }
 
 
 /*
- * Callback for events in output handling.  This means either an error or EOF.
- * On EOF, just deactivate the bufferevent.  On error, send an error message
- * to the client and then break out of the event loop.
+ * Callback for events in input or output handling.  This means either an
+ * error or EOF.  On EOF or an EPIPE error on write, just deactivate the
+ * bufferevent.  On error, send an error message to the client and then break
+ * out of the event loop.
  */
 static void
-handle_output_event(struct bufferevent *bev, short events, void *data)
+handle_io_event(struct bufferevent *bev, short events, void *data)
 {
     struct process *process = data;
     struct client *client = process->client;
 
-    /* Check for EOF. */
+    /* Check for EOF, after which we should stop trying to listen. */
     if (events & BEV_EVENT_EOF) {
         bufferevent_disable(bev, EV_READ);
         return;
     }
 
+    /*
+     * If we get ECONNRESET or EPIPE, the client went away without bothering
+     * to read our data.  This is the same as EOF except that we should also
+     * stop trying to write data.
+     */
+    if ((events & BEV_EVENT_ERROR))
+        if (socket_errno == ECONNRESET || socket_errno == EPIPE) {
+            bufferevent_disable(bev, EV_READ | EV_WRITE);
+            return;
+        }
+
     /* Everything else is some sort of error. */
-    syswarn("read from process failed");
-    server_send_error(client, ERROR_INTERNAL, "Internal failure");
-    event_base_loopbreak(process->events);
-}
-
-
-/*
- * Callback when all stdin data has been sent.  We only have a callback to
- * close our end of the socketpair so that the process gets EOF on its next
- * read.
- */
-static void
-handle_input_end(struct bufferevent *bev, void *data)
-{
-    struct process *process = data;
-
-    bufferevent_disable(bev, EV_WRITE);
-    close(process->stdin_fd);
-}
-
-
-/*
- * Callback on errors writing to the process standard input.  If the error is
- * due to EPIPE, just treat that as if we've written all the data and close
- * the socket.  Otherwise, report an error and abort the event loop.
- */
-static void
-handle_input_event(struct bufferevent *bev, short events, void *data)
-{
-    struct process *process = data;
-    struct client *client = process->client;
-
-    if ((events & BEV_EVENT_ERROR) && socket_errno == EPIPE)
-        handle_input_end(bev, data);
-    else {
+    if (events & BEV_EVENT_READING)
+        syswarn("read from process failed");
+    else
         syswarn("write to standard input failed");
-        server_send_error(client, ERROR_INTERNAL, "Internal failure");
-        event_base_loopbreak(process->events);
-    }
+    server_send_error(client, ERROR_INTERNAL, "Internal failure");
+    event_base_loopbreak(process->loop);
 }
 
 
@@ -189,7 +187,7 @@ handle_child_exit(evutil_socket_t sig UNUSED, short what UNUSED, void *data)
     if (waitpid(process->pid, &process->status, WNOHANG) > 0) {
         process->reaped = true;
         event_del(process->sigchld);
-        event_base_loopexit(process->events, NULL);
+        event_base_loopexit(process->loop, NULL);
     }
 }
 
@@ -210,64 +208,57 @@ handle_child_exit(evutil_socket_t sig UNUSED, short what UNUSED, void *data)
 static int
 server_process_output(struct client *client, struct process *process)
 {
-    struct event_base *events;
+    struct event_base *loop;
+    bufferevent_data_cb writecb = NULL;
     bool success;
 
     /* Create the event base that we use for the event loop. */
-    events = event_base_new();
-    process->events = events;
+    loop = event_base_new();
+    process->loop = loop;
 
     /*
      * Set up a bufferevent to consume output from the process.
      *
      * There are two possibilities here.  For protocol version two, we use two
-     * bufferevents, one for standard output and one for standard error, that
-     * turn each chunk of data into a MESSAGE_OUTPUT token to the client.  For
-     * protocol version one, we use a single bufferevent, which collects both
-     * standard output and standard error and queues it to send on process
-     * exit.  In this case, stdout_fd gets both streams.
+     * bufferevents, one for standard input and output and one for standard
+     * error, that turn each chunk of data into a MESSAGE_OUTPUT token to the
+     * client.  For protocol version one, we use a single bufferevent, which
+     * sends standard intput and collects both standard output and standard
+     * error, queuing it to send on process exit.  In this case, stdinout_fd
+     * gets both streams (set up by server_exec).
      */
-    if (client->protocol == 1) {
-        process->out = bufferevent_socket_new(events, process->stdout_fd, 0);
-        if (process->out == NULL)
-            sysdie("internal error: cannot create stdout bufferevent");
-        bufferevent_setcb(process->out, handle_output_full, NULL,
-                          handle_output_event, process);
-        bufferevent_setwatermark(process->out, EV_READ, TOKEN_MAX_OUTPUT_V1,
-                                 TOKEN_MAX_OUTPUT_V1);
-        bufferevent_enable(process->out, EV_READ);
-    } else {
-        process->out = bufferevent_socket_new(events, process->stdout_fd, 0);
-        if (process->out == NULL)
-            sysdie("internal error: cannot create stdout bufferevent");
-        bufferevent_setcb(process->out, handle_output, NULL,
-                          handle_output_event, process);
-        bufferevent_setwatermark(process->out, EV_READ, 0, TOKEN_MAX_OUTPUT);
-        bufferevent_enable(process->out, EV_READ);
-        process->err = bufferevent_socket_new(events, process->stderr_fd, 0);
-        if (process->err == NULL)
-            sysdie("internal error: cannot create stderr bufferevent");
-        bufferevent_setcb(process->err, handle_output, NULL,
-                          handle_output_event, process);
-        bufferevent_setwatermark(process->err, EV_READ, 0, TOKEN_MAX_OUTPUT);
-        bufferevent_enable(process->err, EV_READ);
-    }
-
-    /* If we have input for the process, send it with a bufferevent. */
-    if (process->input != NULL) {
-        process->in = bufferevent_socket_new(events, process->stdin_fd, 0);
-        if (process->in == NULL)
-            sysdie("internal error: cannot create bufferevent");
-        if (bufferevent_write(process->in, process->input->iov_base,
+    process->inout = bufferevent_socket_new(loop, process->stdinout_fd, 0);
+    if (process->inout == NULL)
+        sysdie("internal error: cannot create stdin/stdout bufferevent");
+    if (process->input == NULL)
+        bufferevent_enable(process->inout, EV_READ);
+    else {
+        writecb = handle_input_end;
+        bufferevent_enable(process->inout, EV_READ | EV_WRITE);
+        if (bufferevent_write(process->inout, process->input->iov_base,
                               process->input->iov_len) < 0)
             sysdie("cannot queue input for process");
-        bufferevent_setcb(process->in, NULL, handle_input_end,
-                          handle_input_event, process);
-        bufferevent_enable(process->in, EV_WRITE);
+    }
+    if (client->protocol == 1) {
+        bufferevent_setcb(process->inout, handle_output_full, writecb,
+                          handle_io_event, process);
+        bufferevent_setwatermark(process->inout, EV_READ, TOKEN_MAX_OUTPUT_V1,
+                                 TOKEN_MAX_OUTPUT_V1);
+    } else {
+        bufferevent_setcb(process->inout, handle_output, writecb,
+                          handle_io_event, process);
+        bufferevent_setwatermark(process->inout, EV_READ, 0, TOKEN_MAX_OUTPUT);
+        process->err = bufferevent_socket_new(loop, process->stderr_fd, 0);
+        if (process->err == NULL)
+            sysdie("internal error: cannot create stderr bufferevent");
+        bufferevent_enable(process->err, EV_READ);
+        bufferevent_setcb(process->err, handle_output, NULL,
+                          handle_io_event, process);
+        bufferevent_setwatermark(process->err, EV_READ, 0, TOKEN_MAX_OUTPUT);
     }
 
     /* Create the event to handle SIGCHLD when the child process exits. */
-    process->sigchld = evsignal_new(events, SIGCHLD, handle_child_exit,
+    process->sigchld = evsignal_new(loop, SIGCHLD, handle_child_exit,
                                     process);
     if (event_add(process->sigchld, NULL) < 0)
         die("internal error: cannot add SIGCHLD processing event");
@@ -277,9 +268,9 @@ server_process_output(struct client *client, struct process *process)
      * called, unless we encounter some fatal error.  If handle_child_exit was
      * successfully called, process->reaped will be set to true.
      */
-    if (event_base_dispatch(events) < 0)
+    if (event_base_dispatch(loop) < 0)
         die("internal error: process event loop failed");
-    if (event_base_got_break(events))
+    if (event_base_got_break(loop))
         return false;
 
     /*
@@ -291,9 +282,9 @@ server_process_output(struct client *client, struct process *process)
      */
     do {
         process->saw_output = false;
-        if (event_base_loop(events, EVLOOP_NONBLOCK) < 0)
+        if (event_base_loop(loop, EVLOOP_NONBLOCK) < 0)
             die("internal error: process event loop failed");
-    } while (process->saw_output && !event_base_got_break(events));
+    } while (process->saw_output && !event_base_got_break(loop));
 
     /*
      * For protocol version one, if the process sent more than the max output,
@@ -303,19 +294,19 @@ server_process_output(struct client *client, struct process *process)
      */
     if (client->protocol == 1 && process->output == NULL) {
         process->output = evbuffer_new();
-        if (bufferevent_read_buffer(process->out, process->output) < 0)
+        if (process->output == NULL)
+            die("internal error: cannot create output buffer");
+        if (bufferevent_read_buffer(process->inout, process->output) < 0)
             die("internal error: cannot read data from output buffer");
     }
 
     /* Free resources and return. */
-    success = !event_base_got_break(events);
-    if (process->in != NULL)
-        bufferevent_free(process->in);
-    bufferevent_free(process->out);
+    success = !event_base_got_break(loop);
+    bufferevent_free(process->inout);
     if (process->err != NULL)
         bufferevent_free(process->err);
     event_free(process->sigchld);
-    event_base_free(events);
+    event_base_free(loop);
     return success;
 }
 
@@ -394,33 +385,30 @@ static bool
 server_exec(struct client *client, char *command, char **req_argv,
             struct confline *cline, struct process *process)
 {
-    socket_type stdin_fds[2]  = { INVALID_SOCKET, INVALID_SOCKET };
-    socket_type stdout_fds[2] = { INVALID_SOCKET, INVALID_SOCKET };
-    socket_type stderr_fds[2] = { INVALID_SOCKET, INVALID_SOCKET };
+    socket_type stdinout_fds[2] = { INVALID_SOCKET, INVALID_SOCKET };
+    socket_type stderr_fds[2]   = { INVALID_SOCKET, INVALID_SOCKET };
     socket_type fd;
     bool ok = false;
 
     /*
-     * These socket pairs are used for communication with the child process
-     * that actually runs the command.  We have to use sockets rather than
-     * pipes because libevent's buffevents require sockets.  For protocol
-     * version one, we can reuse the standard output socket for standard error
-     * since we don't distinguish between streams.
+     * Socket pairs are used for communication with the child process that
+     * actually runs the command.  We have to use sockets rather than pipes
+     * because libevent's buffevents require sockets.
+     *
+     * For protocol version one, we can use one socket pair for eerything,
+     * since we don't distinguish between streams.  For protocol version two,
+     * we use one socket pair for standard intput and standard output, and a
+     * separate read-only one for standard error so that we can keep the
+     * stream separate.
      */
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, stdout_fds) < 0) {
-        syswarn("cannot create stdout socket pair");
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, stdinout_fds) < 0) {
+        syswarn("cannot create stdin and stdout socket pair");
         server_send_error(client, ERROR_INTERNAL, "Internal failure");
         goto done;
     }
     if (client->protocol > 1)
         if (socketpair(AF_UNIX, SOCK_STREAM, 0, stderr_fds) < 0) {
             syswarn("cannot create stderr socket pair");
-            server_send_error(client, ERROR_INTERNAL, "Internal failure");
-            goto done;
-        }
-    if (process->input != NULL)
-        if (socketpair(AF_UNIX, SOCK_STREAM, 0, stdin_fds) < 0) {
-            syswarn("cannot create stdin socket pair");
             server_send_error(client, ERROR_INTERNAL, "Internal failure");
             goto done;
         }
@@ -441,36 +429,24 @@ server_exec(struct client *client, char *command, char **req_argv,
     /* In the child. */
     case 0:
         message_fatal_cleanup = child_die_handler;
-        dup2(stdout_fds[1], 1);
-        close(stdout_fds[0]);
-        stdout_fds[0] = INVALID_SOCKET;
-        if (client->protocol == 1)
-            dup2(stdout_fds[1], 2);
-        else {
-            dup2(stderr_fds[1], 2);
+
+        /* Close the server sides of the sockets. */
+        close(stdinout_fds[0]);
+        stdinout_fds[0] = INVALID_SOCKET;
+        if (stderr_fds[0] != INVALID_SOCKET) {
             close(stderr_fds[0]);
             stderr_fds[0] = INVALID_SOCKET;
-            close(stderr_fds[1]);
-            stderr_fds[1] = INVALID_SOCKET;
         }
-        close(stdout_fds[1]);
-        stdout_fds[1] = INVALID_SOCKET;
 
         /*
-         * Set up stdin pipe if we have input data.
-         *
-         * If we don't have input data, child doesn't need stdin at all, but
-         * just closing it causes problems for Puppet.  Reopen on /dev/null
-         * instead.  Ignore failure here, since it probably won't matter and
-         * worst case is that we leave stdin closed.
+         * Set up stdin if we have input data.  If we don't have input data,
+         * reopen on /dev/null instead so that the process gets immediate EOF.
+         * Ignore failure here, since it probably won't matter and worst case
+         * is that we leave stdin closed.
          */
-        if (process->input != NULL) {
-            dup2(stdin_fds[0], 0);
-            close(stdin_fds[0]);
-            stdin_fds[0] = INVALID_SOCKET;
-            close(stdin_fds[1]);
-            stdin_fds[0] = INVALID_SOCKET;
-        } else {
+        if (process->input != NULL)
+            dup2(stdinout_fds[1], 0);
+        else {
             close(0);
             fd = open("/dev/null", O_RDONLY);
             if (fd > 0) {
@@ -478,6 +454,16 @@ server_exec(struct client *client, char *command, char **req_argv,
                 close(fd);
             }
         }
+
+        /* Set up stdout and stderr. */
+        dup2(stdinout_fds[1], 1);
+        if (client->protocol == 1)
+            dup2(stdinout_fds[1], 2);
+        else {
+            dup2(stderr_fds[1], 2);
+            close(stderr_fds[1]);
+        }
+        close(stdinout_fds[1]);
 
         /*
          * Older versions of MIT Kerberos left the replay cache file open
@@ -525,15 +511,11 @@ server_exec(struct client *client, char *command, char **req_argv,
 
     /* In the parent. */
     default:
-        close(stdout_fds[1]);
-        stdout_fds[1] = INVALID_SOCKET;
+        close(stdinout_fds[1]);
+        stdinout_fds[1] = INVALID_SOCKET;
         if (client->protocol > 1) {
             close(stderr_fds[1]);
             stderr_fds[1] = INVALID_SOCKET;
-        }
-        if (process->input != NULL) {
-            close(stdin_fds[0]);
-            stdin_fds[0] = INVALID_SOCKET;
         }
 
         /*
@@ -542,28 +524,22 @@ server_exec(struct client *client, char *command, char **req_argv,
          * if we have one so that we don't block when feeding data to our
          * child.
          */
-        fdflag_nonblocking(stdout_fds[0], true);
+        fdflag_nonblocking(stdinout_fds[0], true);
         if (client->protocol > 1)
             fdflag_nonblocking(stderr_fds[0], true);
-        if (process->input != NULL)
-            fdflag_nonblocking(stdin_fds[1], true);
 
         /*
          * This collects output from both pipes iteratively, while the child
          * is executing, and processes it.  It also sends input data if we
          * have any.
          */
-        process->stdout_fd = stdout_fds[0];
+        process->stdinout_fd = stdinout_fds[0];
         if (client->protocol > 1)
             process->stderr_fd = stderr_fds[0];
-        if (process->input != NULL)
-            process->stdin_fd = stdin_fds[1];
         ok = server_process_output(client, process);
-        close(process->stdout_fd);
+        close(process->stdinout_fd);
         if (client->protocol > 1)
             close(process->stderr_fd);
-        if (process->input != NULL && process->stdin_fd >= 0)
-            close(process->stdin_fd);
         if (!process->reaped)
             waitpid(process->pid, &process->status, 0);
         if (WIFEXITED(process->status))
@@ -573,18 +549,14 @@ server_exec(struct client *client, char *command, char **req_argv,
     }
 
  done:
-    if (stdout_fds[0] != INVALID_SOCKET)
-        close(stdout_fds[0]);
-    if (stdout_fds[1] != INVALID_SOCKET)
-        close(stdout_fds[1]);
+    if (stdinout_fds[0] != INVALID_SOCKET)
+        close(stdinout_fds[0]);
+    if (stdinout_fds[1] != INVALID_SOCKET)
+        close(stdinout_fds[1]);
     if (stderr_fds[0] != INVALID_SOCKET)
         close(stderr_fds[0]);
     if (stderr_fds[1] != INVALID_SOCKET)
         close(stderr_fds[1]);
-    if (stdin_fds[0] != INVALID_SOCKET)
-        close(stdin_fds[0]);
-    if (stdin_fds[1] != INVALID_SOCKET)
-        close(stdin_fds[1]);
 
     return ok;
 }
