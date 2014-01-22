@@ -19,7 +19,7 @@
 #include <util/protocol.h>
 
 /* Forward declarations to avoid extra includes. */
-struct buffer;
+struct evbuffer;
 struct iovec;
 
 /*
@@ -44,7 +44,6 @@ struct client {
     char *user;                 /* Name of the client as a string. */
     OM_uint32 flags;            /* Connection flags. */
     bool keepalive;             /* Whether keep-alive was set. */
-    struct buffer *output;      /* Stores output to send to the client. */
     bool fatal;                 /* Whether a fatal error has occurred. */
 };
 
@@ -99,11 +98,11 @@ struct iovec **server_parse_command(struct client *, const char *, size_t);
 bool server_send_error(struct client *, enum error_codes, const char *);
 
 /* Protocol v1 functions. */
-bool server_v1_send_output(struct client *, int status);
+bool server_v1_send_output(struct client *, struct evbuffer *, int status);
 void server_v1_handle_messages(struct client *, struct config *);
 
 /* Protocol v2 functions. */
-bool server_v2_send_output(struct client *, int stream);
+bool server_v2_send_output(struct client *, int stream, struct evbuffer *);
 bool server_v2_send_status(struct client *, int);
 bool server_v2_send_error(struct client *, enum error_codes, const char *);
 void server_v2_handle_messages(struct client *, struct config *);

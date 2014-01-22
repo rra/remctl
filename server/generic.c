@@ -13,13 +13,13 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
+#include <portable/event.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 #include <portable/uio.h>
 
 #include <server/internal.h>
-#include <util/buffer.h>
 #include <util/messages.h>
 #include <util/protocol.h>
 #include <util/tokens.h>
@@ -50,17 +50,10 @@ server_new_client(int fd, gss_cred_id_t creds)
     static const OM_uint32 req_gss_flags
         = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
 
-    /*
-     * Create and initialize a new client struct.  The output buffer has to be
-     * sized to TOKEN_MAX_OUTPUT, since this will be used to cap the amount of
-     * data that we send to the client at a time.
-     */
+    /* Create and initialize a new client struct. */
     client = xcalloc(1, sizeof(struct client));
     client->fd = fd;
     client->context = GSS_C_NO_CONTEXT;
-    client->output = buffer_new();
-    buffer_resize(client->output, TOKEN_MAX_OUTPUT);
-    client->output->size = TOKEN_MAX_OUTPUT;
 
     /* Fill in hostname and IP address. */
     socklen = sizeof(ss);
@@ -159,13 +152,6 @@ server_new_client(int fd, gss_cred_id_t creds)
         }
     }
 
-    /*
-     * If we negotiated protocol version one, our maximum output is somewhat
-     * smaller since the token format is different.
-     */
-    if (client->protocol == 1)
-        client->output->size = TOKEN_MAX_OUTPUT_V1;
-
     /* Get the display version of the client name and store it. */
     major = gss_display_name(&minor, name, &name_buf, &doid);
     if (major != GSS_S_COMPLETE) {
@@ -204,8 +190,6 @@ server_free_client(struct client *client)
         if (major != GSS_S_COMPLETE)
             warn_gssapi("while deleting context", major, minor);
     }
-    if (client->output != NULL)
-        buffer_free(client->output);
     if (client->fd >= 0)
         close(client->fd);
     free(client->user);
@@ -312,10 +296,19 @@ bool
 server_send_error(struct client *client, enum error_codes error,
                   const char *message)
 {
+    struct evbuffer *buf;
+    bool result;
+
     if (client->protocol > 1)
         return server_v2_send_error(client, error, message);
     else {
-        buffer_sprintf(client->output, "%s\n", message);
-        return server_v1_send_output(client, -1);
+        buf = evbuffer_new();
+        if (buf == NULL)
+            die("internal error: cannot create output buffer");
+        if (evbuffer_add_printf(buf, "%s\n", message) < 0)
+            die("internal error: cannot add error message to buffer");
+        result = server_v1_send_output(client, buf, -1);
+        evbuffer_free(buf);
+        return result;
     }
 }

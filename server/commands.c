@@ -27,7 +27,6 @@
 #include <sys/wait.h>
 
 #include <server/internal.h>
-#include <util/buffer.h>
 #include <util/fdflag.h>
 #include <util/macros.h>
 #include <util/messages.h>
@@ -43,12 +42,15 @@
 struct process {
     struct event_base *events;  /* Event base for the process event loop. */
     struct bufferevent *in;     /* Send data to process standard input. */
-    struct event *out;          /* Handle stdout from process. */
-    struct event *err;          /* Handle stderr from process. */
+    struct bufferevent *out;    /* Handle stdout from process. */
+    struct bufferevent *err;    /* Handle stderr from process. */
+    struct event *discard;      /* Discard output from process. */
     struct event *sigchld;      /* Handle the SIGCHLD signal for exit. */
+    struct evbuffer *output;    /* Buffer of output from process. */
     struct client *client;      /* Pointer to corresponding remctl client. */
-    int fds[2];                 /* Array of file descriptors for output. */
-    int stdin_fd;               /* File descriptor for standard input. */
+    socket_type stdin_fd;       /* File descriptor for standard input. */
+    socket_type stdout_fd;      /* File descriptor for standard output. */
+    socket_type stderr_fd;      /* File descriptor for standard error. */
     struct iovec *input;        /* Data to pass on standard input. */
     size_t offset;              /* Current offset into standard input data. */
     pid_t pid;                  /* Process ID of child. */
@@ -59,59 +61,87 @@ struct process {
 
 
 /*
- * Callback used to handle output from a process.  We do not check why we were
- * triggered since only EV_READ is possible.  We have to check the triggered
- * file descriptor against process->fds to figure out if we saw standard
- * output or standard error so that we can use the same callback for both.
+ * Callback used to handle output from a process (protocol version two or
+ * later).  We use the same handler for both standard output and standard
+ * error and check the bufferevent to determine which stream we're seeing.
  *
- * Note that for protocol version two and later, we immediately send the
- * partial output to the remctl client and block our event loop in the
- * process.  We may eventually hook this into the event loop.
+ * When called, note that we saw some output, which is a flag to continue
+ * processing when running the event loop after the child has exited.
  */
 static void
-handle_output(evutil_socket_t fd, short what UNUSED, void *data)
+handle_output(struct bufferevent *bev, void *data)
 {
     int stream;
-    char junk[BUFSIZ];
-    ssize_t status;
+    struct evbuffer *buf;
+    struct process *process = data;
+
+    process->saw_output = true;
+    stream = (bev == process->out) ? 1 : 2;
+    buf = bufferevent_get_input(bev);
+    if (!server_v2_send_output(process->client, stream, buf))
+        event_base_loopbreak(process->events);
+}
+
+
+/*
+ * Discard all data in the evbuffer.  This handler is used with protocol
+ * version one when we've already read as much data as we can return to the
+ * remctl client.
+ */
+static void
+handle_output_discard(struct bufferevent *bev, void *data UNUSED)
+{
+    size_t length;
+    struct evbuffer *buf;
+
+    buf = bufferevent_get_input(bev);
+    length = evbuffer_get_length(buf);
+    if (evbuffer_drain(buf, length) < 0)
+        sysdie("internal error: cannot discard extra output");
+}
+
+
+/*
+ * Callback used to handle filling the output buffer with protocol version
+ * one.  When this happens, we pull all of the data out into a separate
+ * evbuffer and then change our read callback to handle_output_discard, which
+ * just drains (discards) all subsequent data from the process.
+ */
+static void
+handle_output_full(struct bufferevent *bev, void *data)
+{
+    struct process *process = data;
+
+    process->output = evbuffer_new();
+    if (process->output == NULL)
+        sysdie("internal error: cannot create discard evbuffer");
+    if (bufferevent_read_buffer(bev, process->output) < 0)
+        die("internal error: cannot read data from output buffer");
+    bufferevent_setcb(process->out, handle_output_discard, NULL, NULL, data);
+}
+
+
+/*
+ * Callback for events in output handling.  This means either an error or EOF.
+ * On EOF, just deactivate the bufferevent.  On error, send an error message
+ * to the client and then break out of the event loop.
+ */
+static void
+handle_output_event(struct bufferevent *bev, short events, void *data)
+{
     struct process *process = data;
     struct client *client = process->client;
-    struct buffer *output = client->output;
-    struct event *event;
 
-    /* Determine our remctl output stream and which event called us. */
-    stream = (fd == process->fds[0]) ? 1 : 2;
-    event = (stream == 1) ? process->out : process->err;
-
-    /*
-     * Read the data.  If we're using protocol one, and hence accumulating
-     * everyting into a single buffer, and we've run out of space, just throw
-     * everything away.  Otherwise, read it into our client buffer.
-     */
-    if (client->protocol == 1 && output->left >= output->size)
-        status = read(fd, junk, sizeof(junk));
-    else
-        status = buffer_read(output, fd);
-    if (status < 0 && (errno != EINTR && errno != EAGAIN)) {
-        syswarn("read failed");
-        server_send_error(client, ERROR_INTERNAL, "Internal failure");
-        event_base_loopbreak(process->events);
+    /* Check for EOF. */
+    if (events & BEV_EVENT_EOF) {
+        bufferevent_disable(bev, EV_READ);
         return;
     }
 
-    /* For protocol two and later, immediately send the output. */
-    if (status > 0) {
-        process->saw_output = true;
-        if (client->protocol != 1) {
-            if (!server_v2_send_output(client, stream))
-                event_base_loopbreak(process->events);
-            buffer_set(client->output, "", 0);
-        }
-    }
-
-    /* If we saw EOF, remove this event from the event loop. */
-    if (status == 0)
-        event_del(event);
+    /* Everything else is some sort of error. */
+    syswarn("read from process failed");
+    server_send_error(client, ERROR_INTERNAL, "Internal failure");
+    event_base_loopbreak(process->events);
 }
 
 
@@ -188,26 +218,45 @@ server_process_output(struct client *client, struct process *process)
     struct event_base *events;
     bool success;
 
-    /* Clear the output buffer. */
-    buffer_set(client->output, "", 0);
-
     /* Create the event base that we use for the event loop. */
     events = event_base_new();
     process->events = events;
 
-    /* Create events for consuming the output from the process. */
-    process->out = event_new(events, process->fds[0], EV_READ | EV_PERSIST,
-                             handle_output, process);
-    if (process->out == NULL)
-        die("internal error: cannot create stdout processing event");
-    process->err = event_new(events, process->fds[1], EV_READ | EV_PERSIST,
-                             handle_output, process);
-    if (process->err == NULL)
-        die("internal error: cannot create stderr processing event");
-    if (event_add(process->out, NULL) < 0)
-        die("internal error: cannot add stdout processing event");
-    if (event_add(process->err, NULL) < 0)
-        die("internal error: cannot add stderr processing event");
+    /*
+     * Set up a bufferevent to consume output from the process.
+     *
+     * There are two possibilities here.  For protocol version two, we use two
+     * bufferevents, one for standard output and one for standard error, that
+     * turn each chunk of data into a MESSAGE_OUTPUT token to the client.  For
+     * protocol version one, we use a single bufferevent, which collects both
+     * standard output and standard error and queues it to send on process
+     * exit.  In this case, stdout_fd gets both streams.
+     */
+    if (client->protocol == 1) {
+        process->out = bufferevent_socket_new(events, process->stdout_fd, 0);
+        if (process->out == NULL)
+            sysdie("internal error: cannot create stdout bufferevent");
+        bufferevent_setcb(process->out, handle_output_full, NULL,
+                          handle_output_event, process);
+        bufferevent_setwatermark(process->out, EV_READ, TOKEN_MAX_OUTPUT_V1,
+                                 TOKEN_MAX_OUTPUT_V1);
+        bufferevent_enable(process->out, EV_READ);
+    } else {
+        process->out = bufferevent_socket_new(events, process->stdout_fd, 0);
+        if (process->out == NULL)
+            sysdie("internal error: cannot create stdout bufferevent");
+        bufferevent_setcb(process->out, handle_output, NULL,
+                          handle_output_event, process);
+        bufferevent_setwatermark(process->out, EV_READ, 0, TOKEN_MAX_OUTPUT);
+        bufferevent_enable(process->out, EV_READ);
+        process->err = bufferevent_socket_new(events, process->stderr_fd, 0);
+        if (process->err == NULL)
+            sysdie("internal error: cannot create stderr bufferevent");
+        bufferevent_setcb(process->err, handle_output, NULL,
+                          handle_output_event, process);
+        bufferevent_setwatermark(process->err, EV_READ, 0, TOKEN_MAX_OUTPUT);
+        bufferevent_enable(process->err, EV_READ);
+    }
 
     /* If we have input for the process, send it with a bufferevent. */
     if (process->input != NULL) {
@@ -251,12 +300,25 @@ server_process_output(struct client *client, struct process *process)
             die("internal error: process event loop failed");
     } while (process->saw_output && !event_base_got_break(events));
 
+    /*
+     * For protocol version one, if the process sent more than the max output,
+     * we already pulled out the output we care about into process->output.
+     * Otherwise, we need to pull the output from the bufferevent before we
+     * free it.
+     */
+    if (client->protocol == 1 && process->output == NULL) {
+        process->output = evbuffer_new();
+        if (bufferevent_read_buffer(process->out, process->output) < 0)
+            die("internal error: cannot read data from output buffer");
+    }
+
     /* Free resources and return. */
     success = !event_base_got_break(events);
     if (process->in != NULL)
         bufferevent_free(process->in);
-    event_free(process->out);
-    event_free(process->err);
+    bufferevent_free(process->out);
+    if (process->err != NULL)
+        bufferevent_free(process->err);
     event_free(process->sigchld);
     event_base_free(events);
     return success;
@@ -334,18 +396,21 @@ server_exec(struct client *client, char *command, char **req_argv,
     /*
      * These socket pairs are used for communication with the child process
      * that actually runs the command.  We have to use sockets rather than
-     * pipes because libevent's buffevents require sockets.
+     * pipes because libevent's buffevents require sockets.  For protocol
+     * version one, we can reuse the standard output socket for standard error
+     * since we don't distinguish between streams.
      */
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, stdout_fds) < 0) {
         syswarn("cannot create stdout socket pair");
         server_send_error(client, ERROR_INTERNAL, "Internal failure");
         goto done;
     }
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, stderr_fds) < 0) {
-        syswarn("cannot create stderr socket pair");
-        server_send_error(client, ERROR_INTERNAL, "Internal failure");
-        goto done;
-    }
+    if (client->protocol > 1)
+        if (socketpair(AF_UNIX, SOCK_STREAM, 0, stderr_fds) < 0) {
+            syswarn("cannot create stderr socket pair");
+            server_send_error(client, ERROR_INTERNAL, "Internal failure");
+            goto done;
+        }
     if (process->input != NULL)
         if (socketpair(AF_UNIX, SOCK_STREAM, 0, stdin_fds) < 0) {
             syswarn("cannot create stdin socket pair");
@@ -371,19 +436,23 @@ server_exec(struct client *client, char *command, char **req_argv,
         dup2(stdout_fds[1], 1);
         close(stdout_fds[0]);
         stdout_fds[0] = INVALID_SOCKET;
+        if (client->protocol == 1)
+            dup2(stdout_fds[1], 2);
+        else {
+            dup2(stderr_fds[1], 2);
+            close(stderr_fds[0]);
+            stderr_fds[0] = INVALID_SOCKET;
+            close(stderr_fds[1]);
+            stderr_fds[1] = INVALID_SOCKET;
+        }
         close(stdout_fds[1]);
         stdout_fds[1] = INVALID_SOCKET;
-        dup2(stderr_fds[1], 2);
-        close(stderr_fds[0]);
-        stderr_fds[0] = INVALID_SOCKET;
-        close(stderr_fds[1]);
-        stderr_fds[1] = INVALID_SOCKET;
 
         /*
          * Set up stdin pipe if we have input data.
          *
          * If we don't have input data, child doesn't need stdin at all, but
-         * just closing it causes problems for puppet.  Reopen on /dev/null
+         * just closing it causes problems for Puppet.  Reopen on /dev/null
          * instead.  Ignore failure here, since it probably won't matter and
          * worst case is that we leave stdin closed.
          */
@@ -470,8 +539,10 @@ server_exec(struct client *client, char *command, char **req_argv,
     default:
         close(stdout_fds[1]);
         stdout_fds[1] = INVALID_SOCKET;
-        close(stderr_fds[1]);
-        stderr_fds[1] = INVALID_SOCKET;
+        if (client->protocol > 1) {
+            close(stderr_fds[1]);
+            stderr_fds[1] = INVALID_SOCKET;
+        }
         if (process->input != NULL) {
             close(stdin_fds[0]);
             stdin_fds[0] = INVALID_SOCKET;
@@ -484,7 +555,8 @@ server_exec(struct client *client, char *command, char **req_argv,
          * child.
          */
         fdflag_nonblocking(stdout_fds[0], true);
-        fdflag_nonblocking(stderr_fds[0], true);
+        if (client->protocol > 1)
+            fdflag_nonblocking(stderr_fds[0], true);
         if (process->input != NULL)
             fdflag_nonblocking(stdin_fds[1], true);
 
@@ -493,13 +565,15 @@ server_exec(struct client *client, char *command, char **req_argv,
          * is executing, and processes it.  It also sends input data if we
          * have any.
          */
-        process->fds[0] = stdout_fds[0];
-        process->fds[1] = stderr_fds[0];
+        process->stdout_fd = stdout_fds[0];
+        if (client->protocol > 1)
+            process->stderr_fd = stderr_fds[0];
         if (process->input != NULL)
             process->stdin_fd = stdin_fds[1];
         ok = server_process_output(client, process);
-        close(process->fds[0]);
-        close(process->fds[1]);
+        close(process->stdout_fd);
+        if (client->protocol > 1)
+            close(process->stderr_fd);
         if (process->input != NULL && process->stdin_fd >= 0)
             close(process->stdin_fd);
         if (!process->reaped)
@@ -549,6 +623,14 @@ server_send_summary(struct client *client, const char *user,
     bool ok_any = false;
     int status_all = 0;
     struct process process;
+    struct evbuffer *output = NULL;
+
+    /* Create a buffer to hold all the output for protocol version one. */
+    if (client->protocol == 1) {
+        output = evbuffer_new();
+        if (output == NULL)
+            die("internal error: cannot create output buffer");
+    }
 
     /*
      * Check each line in the config to find any that are "<command> ALL"
@@ -583,8 +665,13 @@ server_send_summary(struct client *client, const char *user,
         req_argv[1] = cline->summary;
         req_argv[2] = NULL;
         ok = server_exec(client, cline->summary, req_argv, cline, &process);
-        if (ok && process.status != 0)
-            status_all = process.status;
+        if (ok) {
+            if (client->protocol == 1)
+                if (evbuffer_add_buffer(output, process.output) < 0)
+                    die("internal error: cannot copy data from output buffer");
+            if (process.status != 0)
+                status_all = process.status;
+        }
         free(req_argv);
     }
 
@@ -595,7 +682,7 @@ server_send_summary(struct client *client, const char *user,
      */
     if (ok_any) {
         if (client->protocol == 1)
-            server_v1_send_output(client, status_all);
+            server_v1_send_output(client, output, status_all);
         else
             server_v2_send_status(client, status_all);
     } else {
@@ -603,6 +690,8 @@ server_send_summary(struct client *client, const char *user,
                user);
         server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
     }
+    if (output != NULL)
+        evbuffer_free(output);
 }
 
 /*
@@ -857,7 +946,7 @@ server_run_command(struct client *client, struct config *config,
     ok = server_exec(client, command, req_argv, cline, &process);
     if (ok) {
         if (client->protocol == 1)
-            server_v1_send_output(client, process.status);
+            server_v1_send_output(client, process.output, process.status);
         else
             server_v2_send_status(client, process.status);
     }
@@ -874,6 +963,8 @@ server_run_command(struct client *client, struct config *config,
             free(req_argv[i]);
         free(req_argv);
     }
+    if (process.output != NULL)
+        evbuffer_free(process.output);
 }
 
 

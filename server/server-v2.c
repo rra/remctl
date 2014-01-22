@@ -12,13 +12,13 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
+#include <portable/event.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 #include <portable/uio.h>
 
 #include <server/internal.h>
-#include <util/buffer.h>
 #include <util/gss-tokens.h>
 #include <util/messages.h>
 #include <util/xmalloc.h>
@@ -31,15 +31,18 @@
  * (and logs a message on failure).
  */
 bool
-server_v2_send_output(struct client *client, int stream)
+server_v2_send_output(struct client *client, int stream,
+                      struct evbuffer *output)
 {
     gss_buffer_desc token;
+    size_t outlen;
     char *p;
     OM_uint32 tmp, major, minor;
     int status;
 
     /* Allocate room for the total message. */
-    token.length = 1 + 1 + 1 + 4 + client->output->left;
+    outlen = evbuffer_get_length(output);
+    token.length = 1 + 1 + 1 + 4 + outlen;
     token.value = xmalloc(token.length);
 
     /*
@@ -53,10 +56,11 @@ server_v2_send_output(struct client *client, int stream)
     p++;
     *p = stream;
     p++;
-    tmp = htonl(client->output->left);
+    tmp = htonl(outlen);
     memcpy(p, &tmp, 4);
     p += 4;
-    memcpy(p, client->output->data, client->output->left);
+    if (evbuffer_remove(output, p, outlen) < 0)
+        die("internal error: cannot move data from output buffer");
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,

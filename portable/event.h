@@ -18,6 +18,7 @@
 #ifndef PORTABLE_EVENT_H
 #define PORTABLE_EVENT_H 1
 
+#include <event2/buffer.h>
 #include <event2/bufferevent.h>
 #include <event2/event.h>
 
