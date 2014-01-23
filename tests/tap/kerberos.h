@@ -5,7 +5,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2007, 2009, 2011, 2012, 2013
+ * Copyright 2006, 2007, 2009, 2011, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -73,11 +73,11 @@ BEGIN_DECLS
  * the principal field will be NULL.  If the files exist but loading them
  * fails, or authentication fails, kerberos_setup calls bail.
  *
- * kerberos_cleanup will be set up to run from an atexit handler.  This means
- * that any child processes that should not remove the Kerberos ticket cache
- * should call _exit instead of exit.  The principal will be automatically
- * freed when kerberos_cleanup is called or if kerberos_setup is called again.
- * The caller doesn't need to worry about it.
+ * kerberos_cleanup will be run as a cleanup function normally, freeing all
+ * resources and cleaning up temporary files on process exit.  It can,
+ * however, be called directly if for some reason the caller needs to delete
+ * the Kerberos environment again.  However, normally the caller can just call
+ * kerberos_setup again.
  */
 struct kerberos_config *kerberos_setup(enum kerberos_needs)
     __attribute__((__malloc__));
