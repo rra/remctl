@@ -267,6 +267,8 @@ main(void)
                strlen("TEST:0: compilation of regex '*host/.*' failed:")) == 0,
        "...with invalid regex error");
     errors_uncapture();
+    free(errors);
+    errors = NULL;
 #else
     errors_capture();
     ok(!server_config_acl_permit(&rule, "host/foobar.org@EXAMPLE.ORG"),
@@ -275,6 +277,8 @@ main(void)
               "...with not supported error");
     errors_uncapture();
     skip_block(5, "regex support not available");
+    free(errors);
+    errors = NULL;
 #endif
 
     /* Test for valid characters in ACL files. */

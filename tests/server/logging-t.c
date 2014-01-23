@@ -107,6 +107,9 @@ main(void)
     server_log_command(command, &rule, "test");
     is_string("COMMAND from test: foo **MASKED** arg1 **MASKED**\n", errors,
               "two masked parameters");
+    errors_uncapture();
+    free(errors);
+    errors = NULL;
 
     free(rule.logmask);
     for (i = 0; i < 4; i++) {
