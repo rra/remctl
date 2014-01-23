@@ -87,24 +87,28 @@ struct config {
 struct process {
     struct client *client;      /* Pointer to corresponding remctl client. */
 
-    /* Command data. */
+    /* Command input. */
     char *command;              /* The remctl command run by the user. */
     char **argv;                /* argv for running the command. */
     struct confline *config;    /* Configuration for the command. */
+    struct evbuffer *input;     /* Buffer of input to process. */
+
+    /* Command output. */
+    struct evbuffer *output;    /* Buffer of output from process. */
+    int status;                 /* Exit status. */
+
+    /* Everything below this point is used internally by the process loop. */
 
     /* Process data. */
     socket_type stdinout_fd;    /* File descriptor for input and output. */
     socket_type stderr_fd;      /* File descriptor for standard error. */
     pid_t pid;                  /* Process ID of child. */
-    int status;                 /* Exit status. */
 
     /* Event loop. */
     struct event_base *loop;    /* Event base for the process event loop. */
     struct bufferevent *inout;  /* Input and output from process. */
     struct bufferevent *err;    /* Standard error from process. */
     struct event *sigchld;      /* Handle the SIGCHLD signal for exit. */
-    struct evbuffer *input;     /* Buffer of input to process. */
-    struct evbuffer *output;    /* Buffer of output from process. */
 
     /* State flags. */
     bool reaped;                /* Whether we've reaped the process. */
