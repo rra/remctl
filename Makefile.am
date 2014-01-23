@@ -548,7 +548,7 @@ check-valgrind: $(check_PROGRAMS)
 	rm -rf $(abs_top_builddir)/tmp-valgrind
 	mkdir $(abs_top_builddir)/tmp-valgrind
 	env RRA_MAINTAINER_TESTS= valgrind --leak-check=full		   \
-	    --track-fds=yes --trace-children=yes			   \
+	    --show-reachable=yes --track-fds=yes --trace-children=yes	   \
 	    --log-file=$(abs_top_builddir)/tmp-valgrind/log.%p		   \
 	    --suppressions=$(abs_top_srcdir)/tests/data/valgrind.supp	   \
 	    --trace-children-skip="/bin/sh,*/cat,*/cut,*/expr,*/getopt,*/kinit,*/ls,*/mkdir,*/rm,*/rmdir,*/sed,*/sleep,*/wc,*/data/cmd-*,*/docs/pod*-t,*/perl/*-t" \
