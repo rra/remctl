@@ -56,7 +56,9 @@ static const char usage_message[] = "\
 Usage: remctld <options>\n\
 \n\
 Options:\n\
+    -b <addr>     Bind to a specific address (may be given multiple times)\n\
     -d            Log verbose debugging information\n\
+    -F            Run in the foreground instead of forking and exiting\n\
     -f <file>     Config file (default: " CONFIG_FILE ")\n\
     -h            Display this help\n\
     -m            Stand-alone daemon mode, meant mostly for testing\n\
@@ -71,16 +73,16 @@ Supported ACL methods: file, princ, deny";
 
 /* Structure used to store program options. */
 struct options {
-    bool debug;
-    bool foreground;
-    bool log_stdout;
-    bool standalone;
-    bool suspend;
-    unsigned short port;
-    char *service;
-    const char *config_path;
-    const char *pid_path;
-    struct vector *bindaddrs;
+    bool debug;                 /* -d: log verbose debugging information */
+    bool foreground;            /* -F: run in the foreground */
+    bool log_stdout;            /* -S: log to standard output and error */
+    bool standalone;            /* -m: run in stand-alone daemon mode */
+    bool suspend;               /* -Z: raise SIGSTOP when ready */
+    unsigned short port;        /* -p: port on which to listen */
+    char *service;              /* -s: service principal to use */
+    const char *config_path;    /* -f: path to the configuration file */
+    const char *pid_path;       /* -P: path to the PID file to write */
+    struct vector *bindaddrs;   /* -b: bind to a specific address */
 };
 
 
