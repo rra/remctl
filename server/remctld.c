@@ -226,7 +226,7 @@ acquire_creds(char *service, gss_cred_id_t *creds)
  * completed, either successfully or unsuccessfully.
  */
 static void
-server_handle_connection(int fd, struct config *config, gss_cred_id_t creds)
+handle_connection(int fd, struct config *config, gss_cred_id_t creds)
 {
     struct client *client;
 
@@ -260,7 +260,7 @@ server_handle_connection(int fd, struct config *config, gss_cred_id_t creds)
  * a non-zero exit status.
  */
 static void
-server_log_child(pid_t pid, int status)
+log_child(pid_t pid, int status)
 {
     if (WIFEXITED(status)) {
         if (WEXITSTATUS(status) != 0)
@@ -409,6 +409,7 @@ server_daemon(struct options *options, struct config *config,
     struct sockaddr_storage ss;
     socklen_t sslen;
     char ip[INET6_ADDRSTRLEN];
+    OM_uint32 minor;
 
     /* Set up a SIGCHLD handler so that we know when to reap children. */
     memset(&sa, 0, sizeof(sa));
@@ -461,11 +462,11 @@ server_daemon(struct options *options, struct config *config,
      * processes, so you may want to set system resource limits to prevent an
      * attacker from consuming all available processes.
      */
-    do {
+    while (1) {
         if (child_signaled) {
             child_signaled = 0;
             while ((child = waitpid(0, &status, WNOHANG)) > 0)
-                server_log_child(child, status);
+                log_child(child, status);
             if (child < 0 && errno != ECHILD)
                 sysdie("waitpid failed");
         }
@@ -479,9 +480,7 @@ server_daemon(struct options *options, struct config *config,
         }
         if (exit_signaled) {
             notice("signal received, exiting");
-            if (options->pid_path != NULL)
-                unlink(options->pid_path);
-            exit(0);
+            break;
         }
         sslen = sizeof(ss);
         s = network_accept_any(fds, nfds, (struct sockaddr *) &ss, &sslen);
@@ -499,18 +498,33 @@ server_daemon(struct options *options, struct config *config,
         } else if (child == 0) {
             for (i = 0; i < nfds; i++)
                 close(fds[i]);
+            network_bind_all_free(fds);
             if (sigaction(SIGCHLD, &oldsa, NULL) < 0)
                 syswarn("cannot reset SIGCHLD handler");
-            server_handle_connection(s, config, creds);
+            handle_connection(s, config, creds);
+            if (creds != GSS_C_NO_CREDENTIAL)
+                gss_release_cred(&minor, &creds);
             if (options->log_stdout)
                 fflush(stdout);
+            server_config_free(config);
+            vector_free(options->bindaddrs);
             exit(0);
         } else {
             close(s);
             network_sockaddr_sprint(ip, sizeof(ip), (struct sockaddr *) &ss);
             debug("child %lu for %s", (unsigned long) child, ip);
         }
-    } while (1);
+    }
+
+    /*
+     * Clean up resources at the end of the loop.  This is not strictly
+     * necessary, but it helps valgrind testing.
+     */
+    if (options->pid_path != NULL)
+        unlink(options->pid_path);
+    for (i = 0; i < nfds; i++)
+        close(fds[i]);
+    network_bind_all_free(fds);
 }
 
 
@@ -546,8 +560,6 @@ main(int argc, char *argv[])
     /* Initialize options. */
     memset(&options, 0, sizeof(options));
     options.port = 4373;
-    options.service = NULL;
-    options.pid_path = NULL;
     options.config_path = CONFIG_FILE;
     options.bindaddrs = vector_new();
 
@@ -639,10 +651,9 @@ main(int argc, char *argv[])
      * keep its default value of GSS_C_NO_CREDENTIAL, which means support
      * anything that's in the keytab.
      */
-    if (options.service != NULL) {
+    if (options.service != NULL)
         if (!acquire_creds(options.service, &creds))
             die("unable to acquire creds, aborting");
-    }
 
     /*
      * If we're not running as a daemon, just process the connection.
@@ -650,13 +661,15 @@ main(int argc, char *argv[])
      * incoming connection.
      */
     if (!options.standalone)
-        server_handle_connection(0, config, creds);
+        handle_connection(STDIN_FILENO, config, creds);
     else
         server_daemon(&options, config, creds);
 
-    /* Clean up and exit.  We only reach here in regular mode. */
+    /* Clean up and exit. */
+    server_config_free(config);
     if (creds != GSS_C_NO_CREDENTIAL)
         gss_release_cred(&minor, &creds);
+    vector_free(options.bindaddrs);
     libevent_global_shutdown();
     return 0;
 }
