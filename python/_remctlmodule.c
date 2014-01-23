@@ -7,7 +7,7 @@
  *
  * Original implementation by Thomas L. Kula <kula@tproa.net>
  * Copyright 2008 Thomas L. Kula <kula@tproa.net>
- * Copyright 2008, 2011, 2012
+ * Copyright 2008, 2011, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -106,8 +106,7 @@ py_remctl(PyObject *self, PyObject *args)
     remctl_result_free(rr);
 
 end:
-    if (command != NULL)
-        free(command);
+    free(command);
     return result;
 }
 
@@ -277,8 +276,7 @@ py_remctl_commandv(PyObject *self, PyObject *args)
     }
 
 end:
-    if (iov != NULL)
-        free(iov);
+    free(iov);
     return result;
 }
 

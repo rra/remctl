@@ -448,12 +448,9 @@ server_run_command(struct client *client, struct config *config,
     }
 
  done:
-    if (command != NULL)
-        free(command);
-    if (subcommand != NULL)
-        free(subcommand);
-    if (helpsubcommand != NULL)
-        free(helpsubcommand);
+    free(command);
+    free(subcommand);
+    free(helpsubcommand);
     if (req_argv != NULL) {
         for (i = 0; req_argv[i] != NULL; i++)
             free(req_argv[i]);

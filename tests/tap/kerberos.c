@@ -15,7 +15,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2007, 2009, 2010, 2011, 2012, 2013
+ * Copyright 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -218,16 +218,12 @@ kerberos_cleanup(void)
         tmpdir_ticket = NULL;
     }
     if (config != NULL) {
-        if (config->keytab != NULL) {
-            test_file_path_free(config->keytab);
-            free(config->principal);
-            free(config->cache);
-        }
-        if (config->userprinc != NULL) {
-            free(config->userprinc);
-            free(config->username);
-            free(config->password);
-        }
+        test_file_path_free(config->keytab);
+        free(config->principal);
+        free(config->cache);
+        free(config->userprinc);
+        free(config->username);
+        free(config->password);
         free(config);
         config = NULL;
     }
@@ -321,8 +317,7 @@ kerberos_setup(enum kerberos_needs needs)
         *config->realm = '\0';
         config->realm++;
     }
-    if (path != NULL)
-        test_file_path_free(path);
+    test_file_path_free(path);
 
     /*
      * Register the cleanup function as an atexit handler so that the caller
@@ -357,10 +352,8 @@ kerberos_cleanup_conf(void)
         tmpdir_conf = NULL;
     }
     putenv((char *) "KRB5_CONFIG=");
-    if (krb5_config != NULL) {
-        free(krb5_config);
-        krb5_config = NULL;
-    }
+    free(krb5_config);
+    krb5_config = NULL;
 }
 
 

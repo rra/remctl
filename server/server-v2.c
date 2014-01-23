@@ -378,8 +378,7 @@ server_v2_handle_command(struct client *client, struct config *config,
     return !client->fatal;
 
 fail:
-    if (allocated)
-        free(buffer);
+    free(buffer);
     return client->fatal ? false : result;
 }
 

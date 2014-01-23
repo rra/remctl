@@ -279,8 +279,7 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
     return argv;
 
 fail:
-    if (argv != NULL)
-        server_free_command(argv);
+    server_free_command(argv);
     return NULL;
 }
 

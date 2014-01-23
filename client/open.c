@@ -8,8 +8,8 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013
- *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
+ *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
@@ -113,8 +113,7 @@ internal_import_name(struct remctl *r, const char *host,
     else
         oid = GSS_C_NT_HOSTBASED_SERVICE;
     major = gss_import_name(&minor, &name_buffer, oid, name);
-    if (defprinc != NULL)
-        free(defprinc);
+    free(defprinc);
     if (major != GSS_S_COMPLETE) {
         internal_gssapi_error(r, "parsing name", major, minor);
         return false;

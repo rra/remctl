@@ -230,8 +230,7 @@ option_logmask(struct rule *rule, char *value, const char *name, size_t lineno)
     long mask;
 
     logmask = cvector_split(value, ',', NULL);
-    if (rule->logmask != NULL)
-        free(rule->logmask);
+    free(rule->logmask);
     rule->logmask = xcalloc(logmask->count + 1, sizeof(unsigned int));
     for (i = 0; i < logmask->count; i++) {
         if (!convert_number(logmask->strings[i], &mask)) {
@@ -543,11 +542,9 @@ read_conf_file(void *data, const char *name)
 fail:
     if (dir != NULL)
         closedir(dir);
-    if (line != NULL)
-        vector_free(line);
+    vector_free(line);
     if (rule != NULL) {
-        if (rule->logmask != NULL)
-            free(rule->logmask);
+        free(rule->logmask);
         free(rule);
     }
     free(buffer);
@@ -633,8 +630,7 @@ acl_check_file_internal(void *data, const char *aclfile)
     return CONFIG_NOMATCH;
 
 fail:
-    if (line != NULL)
-        vector_free(line);
+    vector_free(line);
     if (file != NULL)
         fclose(file);
     return CONFIG_ERROR;
@@ -990,16 +986,11 @@ server_config_free(struct config *config)
 
     for (i = 0; i < config->count; i++) {
         rule = config->rules[i];
-        if (rule->logmask != NULL)
-            free(rule->logmask);
-        if (rule->user != NULL)
-            free(rule->user);
-        if (rule->acls != NULL)
-            free(rule->acls);
-        if (rule->line != NULL)
-            vector_free(rule->line);
-        if (rule->file != NULL)
-            free(rule->file);
+        free(rule->logmask);
+        free(rule->user);
+        free(rule->acls);
+        vector_free(rule->line);
+        free(rule->file);
         free(rule);
     }
     free(config->rules);
