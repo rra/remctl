@@ -58,6 +58,9 @@
 # define PATH_FAKEROOT ""
 #endif
 
+/* How long to wait for the process to start in seconds. */
+#define PROCESS_WAIT 10
+
 /*
  * Used to store information about a background process.  This contains
  * everything required to stop the process and clean up after it.
@@ -380,7 +383,7 @@ process_start_internal(const char *const argv[], const char *pidfile,
      * In the parent.  Wait for the child to start by watching for the PID
      * file to appear in 100ms intervals.
      */
-    for (i = 0; i < 100 && access(pidfile, F_OK) != 0; i++) {
+    for (i = 0; i < PROCESS_WAIT * 10 && access(pidfile, F_OK) != 0; i++) {
         tv.tv_sec = 0;
         tv.tv_usec = 100000;
         select(0, NULL, NULL, NULL, &tv);
