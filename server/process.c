@@ -298,20 +298,20 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
             sysdie("cannot set REMCTL_COMMAND in environment");
 
         /* Drop privileges if requested. */
-        if (process->config->user != NULL && process->config->uid > 0) {
-            if (initgroups(process->config->user, process->config->gid) != 0)
-                sysdie("cannot initgroups for %s\n", process->config->user);
-            if (setgid(process->config->gid) != 0)
-                sysdie("cannot setgid to %d\n", process->config->gid);
-            if (setuid(process->config->uid) != 0)
-                sysdie("cannot setuid to %d\n", process->config->uid);
+        if (process->rule->user != NULL && process->rule->uid > 0) {
+            if (initgroups(process->rule->user, process->rule->gid) != 0)
+                sysdie("cannot initgroups for %s\n", process->rule->user);
+            if (setgid(process->rule->gid) != 0)
+                sysdie("cannot setgid to %d\n", process->rule->gid);
+            if (setuid(process->rule->uid) != 0)
+                sysdie("cannot setuid to %d\n", process->rule->uid);
         }
 
         /*
          * Run the command.  On error, we intentionally don't reveal
          * information about the command we ran.
          */
-        if (execv(process->config->program, process->argv) < 0)
+        if (execv(process->rule->program, process->argv) < 0)
             sysdie("cannot execute command");
 
     /* In the parent.  Close the other sides of the socket pairs. */

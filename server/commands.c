@@ -30,31 +30,30 @@
 
 
 /*
- * Given a configuration line, a command, and a subcommand, return true if
- * that command and subcommand match that configuration line and false
+ * Given a configuration rule, a command, and a subcommand, return true if
+ * that command and subcommand match that configuration rule and false
  * otherwise.  Handles the ALL and NULL special cases.
  *
  * Empty commands are not yet supported by the rest of the code, but this
  * function copes in case that changes later.
  */
 static bool
-line_matches(struct confline *cline, const char *command,
-             const char *subcommand)
+line_matches(struct rule *rule, const char *command, const char *subcommand)
 {
     bool okay = false;
 
-    if (strcmp(cline->command, "ALL") == 0)
+    if (strcmp(rule->command, "ALL") == 0)
         okay = true;
-    if (command != NULL && strcmp(cline->command, command) == 0)
+    if (command != NULL && strcmp(rule->command, command) == 0)
         okay = true;
-    if (command == NULL && strcmp(cline->command, "EMPTY") == 0)
+    if (command == NULL && strcmp(rule->command, "EMPTY") == 0)
         okay = true;
     if (okay) {
-        if (strcmp(cline->subcommand, "ALL") == 0)
+        if (strcmp(rule->subcommand, "ALL") == 0)
             return true;
-        if (subcommand != NULL && strcmp(cline->subcommand, subcommand) == 0)
+        if (subcommand != NULL && strcmp(rule->subcommand, subcommand) == 0)
             return true;
-        if (subcommand == NULL && strcmp(cline->subcommand, "EMPTY") == 0)
+        if (subcommand == NULL && strcmp(rule->subcommand, "EMPTY") == 0)
             return true;
     }
     return false;
@@ -62,11 +61,11 @@ line_matches(struct confline *cline, const char *command,
 
 
 /*
- * Look up the matching configuration line for a command and subcommand.
+ * Look up the matching configuration rule for a command and subcommand.
  * Takes the configuration, a command, and a subcommand to match against
  * Returns the matching config line or NULL if none match.
  */
-static struct confline *
+static struct rule *
 find_config_line(struct config *config, char *command, char *subcommand)
 {
     size_t i;
@@ -88,12 +87,11 @@ find_config_line(struct config *config, char *command, char *subcommand)
  * valid configurations.
  */
 static void
-server_send_summary(struct client *client, const char *user,
-                    struct config *config)
+server_send_summary(struct client *client, struct config *config)
 {
     char *path = NULL;
     char *program;
-    struct confline *cline = NULL;
+    struct rule *rule = NULL;
     size_t i;
     char **req_argv = NULL;
     bool ok_any = false;
@@ -116,12 +114,12 @@ server_send_summary(struct client *client, const char *user,
     for (i = 0; i < config->count; i++) {
         memset(&process, 0, sizeof(process));
         process.client = client;
-        cline = config->rules[i];
-        if (strcmp(cline->subcommand, "ALL") != 0)
+        rule = config->rules[i];
+        if (strcmp(rule->subcommand, "ALL") != 0)
             continue;
-        if (!server_config_acl_permit(cline, user))
+        if (!server_config_acl_permit(rule, client->user))
             continue;
-        if (cline->summary == NULL)
+        if (rule->summary == NULL)
             continue;
         ok_any = true;
 
@@ -130,7 +128,7 @@ server_send_summary(struct client *client, const char *user,
          * argv passed to the command.  Then add the summary command to the
          * argv and pass off to be executed.
          */
-        path = cline->program;
+        path = rule->program;
         req_argv = xmalloc(3 * sizeof(char *));
         program = strrchr(path, '/');
         if (program == NULL)
@@ -138,11 +136,11 @@ server_send_summary(struct client *client, const char *user,
         else
             program++;
         req_argv[0] = program;
-        req_argv[1] = cline->summary;
+        req_argv[1] = rule->summary;
         req_argv[2] = NULL;
-        process.command = cline->summary;
+        process.command = rule->summary;
         process.argv = req_argv;
-        process.config = cline;
+        process.rule = rule;
         if (server_process_run(&process)) {
             if (client->protocol == 1)
                 if (evbuffer_add_buffer(output, process.output) < 0)
@@ -169,7 +167,7 @@ server_send_summary(struct client *client, const char *user,
             server_v2_send_status(client, status_all);
     } else {
         notice("summary request from user %s, but no defined summaries",
-               user);
+               client->user);
         server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
     }
     if (output != NULL)
@@ -187,7 +185,7 @@ server_send_summary(struct client *client, const char *user,
  * a newly-allocated argv array that the caller is responsible for freeing.
  */
 static char **
-create_argv_command(struct confline *cline, struct process *process,
+create_argv_command(struct rule *rule, struct process *process,
                     struct iovec **argv)
 {
     size_t count, i, j, stdin_arg;
@@ -204,16 +202,16 @@ create_argv_command(struct confline *cline, struct process *process,
      * passed to the command.  Then build the rest of the argv for the
      * command, splicing out the argument we're passing on stdin (if any).
      */
-    program = strrchr(cline->program, '/');
+    program = strrchr(rule->program, '/');
     if (program == NULL)
-        program = cline->program;
+        program = rule->program;
     else
         program++;
     req_argv[0] = xstrdup(program);
-    if (cline->stdin_arg == -1)
+    if (rule->stdin_arg == -1)
         stdin_arg = count - 1;
     else
-        stdin_arg = (size_t) cline->stdin_arg;
+        stdin_arg = (size_t) rule->stdin_arg;
     for (i = 1, j = 1; i < count; i++) {
         const char *data = argv[i]->iov_base;
         size_t length = argv[i]->iov_len;
@@ -300,7 +298,7 @@ server_run_command(struct client *client, struct config *config,
     char *command = NULL;
     char *subcommand = NULL;
     char *helpsubcommand = NULL;
-    struct confline *cline = NULL;
+    struct rule *rule = NULL;
     char **req_argv = NULL;
     size_t i;
     bool ok = false;
@@ -345,8 +343,8 @@ server_run_command(struct client *client, struct config *config,
      * specific help command was listed, check for that in the configuration
      * instead.
      */
-    cline = find_config_line(config, command, subcommand);
-    if (cline == NULL && strcmp(command, "help") == 0) {
+    rule = find_config_line(config, command, subcommand);
+    if (rule == NULL && strcmp(command, "help") == 0) {
 
         /* Error if we have more than a command and possible subcommand. */
         if (argv[1] != NULL && argv[2] != NULL && argv[3] != NULL) {
@@ -357,14 +355,14 @@ server_run_command(struct client *client, struct config *config,
         }
 
         if (subcommand == NULL) {
-            server_send_summary(client, user, config);
+            server_send_summary(client, config);
             goto done;
         } else {
             help = true;
             if (argv[2] != NULL)
                 helpsubcommand = xstrndup(argv[2]->iov_base,
                                           argv[2]->iov_len);
-            cline = find_config_line(config, subcommand, helpsubcommand);
+            rule = find_config_line(config, subcommand, helpsubcommand);
         }
     }
 
@@ -373,10 +371,10 @@ server_run_command(struct client *client, struct config *config,
      * standard input.
      */
     for (i = 1; argv[i] != NULL; i++) {
-        if (cline != NULL) {
-            if (help == false && (long) i == cline->stdin_arg)
+        if (rule != NULL) {
+            if (help == false && (long) i == rule->stdin_arg)
                 continue;
-            if (argv[i + 1] == NULL && cline->stdin_arg == -1)
+            if (argv[i + 1] == NULL && rule->stdin_arg == -1)
                 continue;
         }
         if (memchr(argv[i]->iov_base, '\0', argv[i]->iov_len)) {
@@ -389,20 +387,20 @@ server_run_command(struct client *client, struct config *config,
     }
 
     /* Log after we look for command so we can get potentially get logmask. */
-    server_log_command(argv, cline, user);
+    server_log_command(argv, rule, user);
 
     /*
      * Check the command, aclfile, and the authorization of this client to
      * run this command.
      */
-    if (cline == NULL) {
+    if (rule == NULL) {
         notice("unknown command %s%s%s from user %s", command,
                (subcommand == NULL) ? "" : " ",
                (subcommand == NULL) ? "" : subcommand, user);
         server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
         goto done;
     }
-    if (!server_config_acl_permit(cline, user)) {
+    if (!server_config_acl_permit(rule, user)) {
         notice("access denied: user %s, command %s%s%s", user, command,
                (subcommand == NULL) ? "" : " ",
                (subcommand == NULL) ? "" : subcommand);
@@ -411,11 +409,11 @@ server_run_command(struct client *client, struct config *config,
     }
 
     /*
-     * Check for a specific command help request with the cline and do error
+     * Check for a specific command help request with the rule and do error
      * checking and arg massaging.
      */
     if (help) {
-        if (cline->help == NULL) {
+        if (rule->help == NULL) {
             notice("command %s from user %s has no defined help",
                    command, user);
             server_send_error(client, ERROR_NO_HELP,
@@ -423,20 +421,20 @@ server_run_command(struct client *client, struct config *config,
             goto done;
         } else {
             free(subcommand);
-            subcommand = xstrdup(cline->help);
+            subcommand = xstrdup(rule->help);
         }
     }
 
     /* Assemble the argv for the command we're about to run. */
     if (help)
-        req_argv = create_argv_help(cline->program, subcommand, helpsubcommand);
+        req_argv = create_argv_help(rule->program, subcommand, helpsubcommand);
     else
-        req_argv = create_argv_command(cline, &process, argv);
+        req_argv = create_argv_command(rule, &process, argv);
 
     /* Now actually execute the program. */
     process.command = command;
     process.argv = req_argv;
-    process.config = cline;
+    process.rule = rule;
     ok = server_process_run(&process);
     if (ok) {
         if (WIFEXITED(process.status))

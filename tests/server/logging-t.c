@@ -2,7 +2,7 @@
  * Test suite for server command logging.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2009, 2010, 2012
+ * Copyright 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -20,7 +20,7 @@
 int
 main(void)
 {
-    struct confline confline = {
+    struct rule rule = {
         NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, NULL, NULL
     };
     struct iovec **command;
@@ -35,7 +35,7 @@ main(void)
     command[0]->iov_len = strlen("foo");
     command[1] = NULL;
     errors_capture();
-    server_log_command(command, &confline, "test@EXAMPLE.ORG");
+    server_log_command(command, &rule, "test@EXAMPLE.ORG");
     is_string("COMMAND from test@EXAMPLE.ORG: foo\n", errors,
               "command without subcommand logging");
 
@@ -45,7 +45,7 @@ main(void)
     command[1]->iov_len = strlen("f\1o\33o\37o\177");
     command[2] = NULL;
     errors_capture();
-    server_log_command(command, &confline, "test");
+    server_log_command(command, &rule, "test");
     is_string("COMMAND from test: foo f.o.o.o.\n", errors,
               "logging of unprintable characters");
 
@@ -61,54 +61,54 @@ main(void)
     command[3]->iov_len = strlen("arg2");
     command[4] = NULL;
     errors_capture();
-    server_log_command(command, &confline, "test@EXAMPLE.ORG");
+    server_log_command(command, &rule, "test@EXAMPLE.ORG");
     is_string("COMMAND from test@EXAMPLE.ORG: foo bar arg1 arg2\n", errors,
               "simple command logging");
 
     /* Command with stdin numeric argument. */
-    confline.stdin_arg = 2;
+    rule.stdin_arg = 2;
     errors_capture();
-    server_log_command(command, &confline, "test");
+    server_log_command(command, &rule, "test");
     is_string("COMMAND from test: foo bar **DATA** arg2\n", errors,
               "stdin argument");
 
     /* Command with stdin set to "last". */
-    confline.stdin_arg = -1;
+    rule.stdin_arg = -1;
     errors_capture();
-    server_log_command(command, &confline, "test");
+    server_log_command(command, &rule, "test");
     is_string("COMMAND from test: foo bar arg1 **DATA**\n", errors,
               "stdin last argument");
 
     /* Logmask of a single argument. */
-    confline.stdin_arg = 0;
-    confline.logmask = bmalloc(2 * sizeof(unsigned int));
-    confline.logmask[0] = 2;
-    confline.logmask[1] = 0;
+    rule.stdin_arg = 0;
+    rule.logmask = bmalloc(2 * sizeof(unsigned int));
+    rule.logmask[0] = 2;
+    rule.logmask[1] = 0;
     errors_capture();
-    server_log_command(command, &confline, "test");
+    server_log_command(command, &rule, "test");
     is_string("COMMAND from test: foo bar **MASKED** arg2\n", errors,
               "one masked parameter");
 
     /* Logmask that doesn't apply to this command. */
-    confline.logmask[0] = 4;
+    rule.logmask[0] = 4;
     errors_capture();
-    server_log_command(command, &confline, "test@EXAMPLE.ORG");
+    server_log_command(command, &rule, "test@EXAMPLE.ORG");
     is_string("COMMAND from test@EXAMPLE.ORG: foo bar arg1 arg2\n", errors,
               "mask that doesn't apply");
 
     /* Logmask of the subcommand and multiple masks. */
-    free(confline.logmask);
-    confline.logmask = bmalloc(4 * sizeof(unsigned int));
-    confline.logmask[0] = 4;
-    confline.logmask[1] = 1;
-    confline.logmask[2] = 3;
-    confline.logmask[3] = 0;
+    free(rule.logmask);
+    rule.logmask = bmalloc(4 * sizeof(unsigned int));
+    rule.logmask[0] = 4;
+    rule.logmask[1] = 1;
+    rule.logmask[2] = 3;
+    rule.logmask[3] = 0;
     errors_capture();
-    server_log_command(command, &confline, "test");
+    server_log_command(command, &rule, "test");
     is_string("COMMAND from test: foo **MASKED** arg1 **MASKED**\n", errors,
               "two masked parameters");
 
-    free(confline.logmask);
+    free(rule.logmask);
     for (i = 0; i < 4; i++) {
         if (command[i] != NULL)
             free(command[i]->iov_base);

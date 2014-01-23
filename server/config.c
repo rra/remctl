@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
  *
@@ -56,8 +56,8 @@ enum config_status {
 /* Holds information about parsing configuration options. */
 struct config_option {
     const char *name;
-    enum config_status (*parse)(struct confline *, char *option,
-                                const char *file, size_t lineno);
+    enum config_status (*parse)(struct rule *, char *option, const char *file,
+                                size_t lineno);
 };
 
 /* Holds information about ACL schemes */
@@ -219,33 +219,32 @@ convert_number(const char *string, long *result)
 
 /*
  * Parse the logmask configuration option.  Verifies the listed argument
- * numbers, stores them in the configuration line struct, and returns
+ * numbers, stores them in the configuration rule struct, and returns
  * CONFIG_SUCCESS on success and CONFIG_ERROR on error.
  */
 static enum config_status
-option_logmask(struct confline *confline, char *value, const char *name,
-               size_t lineno)
+option_logmask(struct rule *rule, char *value, const char *name, size_t lineno)
 {
     struct cvector *logmask;
     size_t i;
     long mask;
 
     logmask = cvector_split(value, ',', NULL);
-    if (confline->logmask != NULL)
-        free(confline->logmask);
-    confline->logmask = xcalloc(logmask->count + 1, sizeof(unsigned int));
+    if (rule->logmask != NULL)
+        free(rule->logmask);
+    rule->logmask = xcalloc(logmask->count + 1, sizeof(unsigned int));
     for (i = 0; i < logmask->count; i++) {
         if (!convert_number(logmask->strings[i], &mask)) {
             warn("%s:%lu: invalid logmask parameter %s", name,
                  (unsigned long) lineno, logmask->strings[i]);
             cvector_free(logmask);
-            free(confline->logmask);
-            confline->logmask = NULL;
+            free(rule->logmask);
+            rule->logmask = NULL;
             return CONFIG_ERROR;
         }
-        confline->logmask[i] = mask;
+        rule->logmask[i] = mask;
     }
-    confline->logmask[i] = 0;
+    rule->logmask[i] = 0;
     cvector_free(logmask);
     return CONFIG_SUCCESS;
 }
@@ -253,16 +252,15 @@ option_logmask(struct confline *confline, char *value, const char *name,
 
 /*
  * Parse the stdin configuration option.  Verifies the argument number or
- * "last" keyword, stores it in the configuration line struct, and returns
+ * "last" keyword, stores it in the configuration rule struct, and returns
  * CONFIG_SUCCESS on success and CONFIG_ERROR on error.
  */
 static enum config_status
-option_stdin(struct confline *confline, char *value, const char *name,
-             size_t lineno)
+option_stdin(struct rule *rule, char *value, const char *name, size_t lineno)
 {
     if (strcmp(value, "last") == 0)
-        confline->stdin_arg = -1;
-    else if (!convert_number(value, &confline->stdin_arg)) {
+        rule->stdin_arg = -1;
+    else if (!convert_number(value, &rule->stdin_arg)) {
         warn("%s:%lu: invalid stdin value %s", name,
              (unsigned long) lineno, value);
         return CONFIG_ERROR;
@@ -273,14 +271,13 @@ option_stdin(struct confline *confline, char *value, const char *name,
 
 /*
  * Parse the user configuration option.  Verifies that the value is either a
- * UID or a username, stores the user in the configuration line struct, and
+ * UID or a username, stores the user in the configuration rule struct, and
  * looks up the UID and primary GID and stores that in the configuration
  * struct as well.  Returns CONFIG_SUCCESS on success and CONFIG_ERROR on
  * error.
  */
 static enum config_status
-option_user(struct confline *confline, char *value, const char *name,
-            size_t lineno)
+option_user(struct rule *rule, char *value, const char *name, size_t lineno)
 {
     struct passwd *pw;
     long uid;
@@ -294,37 +291,37 @@ option_user(struct confline *confline, char *value, const char *name,
              value);
         return CONFIG_ERROR;
     }
-    confline->user = xstrdup(pw->pw_name);
-    confline->uid = pw->pw_uid;
-    confline->gid = pw->pw_gid;
+    rule->user = xstrdup(pw->pw_name);
+    rule->uid = pw->pw_uid;
+    rule->gid = pw->pw_gid;
     return CONFIG_SUCCESS;
 }
 
 
 /*
  * Parse the summary configuration option.  Stores the summary option in the
- * configuration line struct.  Returns CONFIG_SUCCESS on success and
+ * configuration rule struct.  Returns CONFIG_SUCCESS on success and
  * CONFIG_ERROR on error.
  */
 static enum config_status
-option_summary(struct confline *confline, char *value,
-               const char *name UNUSED, size_t lineno UNUSED)
+option_summary(struct rule *rule, char *value, const char *name UNUSED,
+               size_t lineno UNUSED)
 {
-    confline->summary = value;
+    rule->summary = value;
     return CONFIG_SUCCESS;
 }
 
 
 /*
  * Parse the help configuration option.  Stores the help option in the
- * configuration line struct.  Returns CONFIG_SUCCESS on success and
+ * configuration rule struct.  Returns CONFIG_SUCCESS on success and
  * CONFIG_ERROR on error.
  */
 static enum config_status
-option_help(struct confline *confline, char *value,
-            const char *name UNUSED, size_t lineno UNUSED)
+option_help(struct rule *rule, char *value, const char *name UNUSED,
+            size_t lineno UNUSED)
 {
-    confline->help = value;
+    rule->help = value;
     return CONFIG_SUCCESS;
 }
 
@@ -346,14 +343,14 @@ static const struct config_option options[] = {
  * Parse a configuration option.  This is something after the command but
  * before the ACLs that contains an equal sign.  The configuration option is
  * the part before the equals and the value is the part afterwards.  Takes the
- * configuration line, the option string, the file name, and the line number,
- * and stores data in the configuration line struct as needed.
+ * configuration rule, the option string, the file name, and the line number,
+ * and stores data in the configuration rule struct as needed.
  *
  * Returns CONFIG_SUCCESS on success and CONFIG_ERROR on error, reporting an
  * error message.
  */
 static enum config_status
-parse_conf_option(struct confline *confline, char *option, const char *name,
+parse_conf_option(struct rule *rule, char *option, const char *name,
                   size_t lineno)
 {
     char *end;
@@ -370,7 +367,7 @@ parse_conf_option(struct confline *confline, char *option, const char *name,
     for (handler = options; handler->name != NULL; handler++)
         if (strlen(handler->name) == length)
             if (strncmp(handler->name, option, length) == 0)
-                return (handler->parse)(confline, end + 1, name, lineno);
+                return (handler->parse)(rule, end + 1, name, lineno);
     warn("%s:%lu: unknown option %s", name, (unsigned long) lineno, option);
     return CONFIG_ERROR;
 }
@@ -383,7 +380,7 @@ parse_conf_option(struct confline *confline, char *option, const char *name,
  *
  * config is populated with the parsed configuration file.  Empty lines and
  * lines beginning with # are ignored.  Each line is divided into fields,
- * separated by spaces.  The fields are defined by struct confline.  Lines
+ * separated by spaces.  The fields are defined by struct rule.  Lines
  * ending in backslash are continued on the next line.  config is passed in as
  * a void * so that read_conf_file and acl_check_file can use common include
  * handling code.
@@ -404,7 +401,7 @@ read_conf_file(void *data, const char *name)
     size_t bufsize, length, size, count, i, arg_i;
     enum config_status s;
     struct vector *line = NULL;
-    struct confline *confline = NULL;
+    struct rule *rule = NULL;
     size_t lineno = 0;
     DIR *dir = NULL;
 
@@ -491,14 +488,14 @@ read_conf_file(void *data, const char *name)
                 config->allocated = 4;
             else
                 config->allocated *= 2;
-            size = config->allocated * sizeof(struct confline *);
+            size = config->allocated * sizeof(struct rule *);
             config->rules = xrealloc(config->rules, size);
         }
-        confline = xcalloc(1, sizeof(struct confline));
-        confline->line       = line;
-        confline->command    = line->strings[0];
-        confline->subcommand = line->strings[1];
-        confline->program    = line->strings[2];
+        rule = xcalloc(1, sizeof(struct rule));
+        rule->line       = line;
+        rule->command    = line->strings[0];
+        rule->subcommand = line->strings[1];
+        rule->program    = line->strings[2];
 
         /*
          * Parse config options.
@@ -507,14 +504,14 @@ read_conf_file(void *data, const char *name)
             option = line->strings[arg_i];
             if (!is_option(option))
                 break;
-            s = parse_conf_option(confline, option, name, lineno);
+            s = parse_conf_option(rule, option, name, lineno);
             if (s != CONFIG_SUCCESS)
                 goto fail;
         }
 
         /*
-         * One more syntax error possibility here: a line that only has a
-         * logmask setting but no ACL files.
+         * One more syntax error possibility here: a line that only has
+         * settings and no ACL file.
          */
         if (line->count <= arg_i) {
             warn("%s:%lu: config parse error", name, (unsigned long) lineno);
@@ -522,18 +519,18 @@ read_conf_file(void *data, const char *name)
         }
 
         /* Grab the metadata and list of ACL files. */
-        confline->file = xstrdup(name);
-        confline->lineno = lineno;
+        rule->file = xstrdup(name);
+        rule->lineno = lineno;
         count = line->count - arg_i + 1;
-        confline->acls = xmalloc(count * sizeof(char *));
+        rule->acls = xmalloc(count * sizeof(char *));
         for (i = 0; i < line->count - arg_i; i++)
-            confline->acls[i] = line->strings[i + arg_i];
-        confline->acls[i] = NULL;
+            rule->acls[i] = line->strings[i + arg_i];
+        rule->acls[i] = NULL;
 
         /* Success.  Put the configuration line in place. */
-        config->rules[config->count] = confline;
+        config->rules[config->count] = rule;
         config->count++;
-        confline = NULL;
+        rule = NULL;
         line = NULL;
     }
 
@@ -548,10 +545,10 @@ fail:
         closedir(dir);
     if (line != NULL)
         vector_free(line);
-    if (confline != NULL) {
-        if (confline->logmask != NULL)
-            free(confline->logmask);
-        free(confline);
+    if (rule != NULL) {
+        if (rule->logmask != NULL)
+            free(rule->logmask);
+        free(rule);
     }
     free(buffer);
     fclose(file);
@@ -988,7 +985,7 @@ server_config_load(const char *file)
 void
 server_config_free(struct config *config)
 {
-    struct confline *rule;
+    struct rule *rule;
     size_t i;
 
     for (i = 0; i < config->count; i++) {
@@ -1011,22 +1008,22 @@ server_config_free(struct config *config)
 
 
 /*
- * Given the confline corresponding to the command and the principal
+ * Given the rule corresponding to the command and the principal
  * requesting access, see if the command is allowed.  Return true if so, false
  * otherwise.
  */
 bool
-server_config_acl_permit(struct confline *cline, const char *user)
+server_config_acl_permit(struct rule *rule, const char *user)
 {
-    char **acls = cline->acls;
+    char **acls = rule->acls;
     size_t i;
     enum config_status status;
 
     if (strcmp(acls[0], "ANYUSER") == 0)
         return true;
     for (i = 0; acls[i] != NULL; i++) {
-        status = acl_check(user, acls[i], ACL_SCHEME_FILE, cline->file,
-                           cline->lineno);
+        status = acl_check(user, acls[i], ACL_SCHEME_FILE, rule->file,
+                           rule->lineno);
         if (status == 0)
             return true;
         else if (status < -1)

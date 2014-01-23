@@ -54,7 +54,7 @@ struct client {
 };
 
 /* Holds the configuration for a single command. */
-struct confline {
+struct rule {
     char *file;                 /* Config file name. */
     int lineno;                 /* Config file line number. */
     struct vector *line;        /* The split configuration line. */
@@ -73,7 +73,7 @@ struct confline {
 
 /* Holds the complete parsed configuration for remctld. */
 struct config {
-    struct confline **rules;
+    struct rule **rules;
     size_t count;
     size_t allocated;
 };
@@ -90,7 +90,7 @@ struct process {
     /* Command input. */
     char *command;              /* The remctl command run by the user. */
     char **argv;                /* argv for running the command. */
-    struct confline *config;    /* Configuration for the command. */
+    struct rule *rule;          /* Configuration rule for the command. */
     struct evbuffer *input;     /* Buffer of input to process. */
 
     /* Command output. */
@@ -120,12 +120,12 @@ BEGIN_DECLS
 /* Logging functions. */
 void warn_gssapi(const char *, OM_uint32 major, OM_uint32 minor);
 void warn_token(const char *, int status, OM_uint32 major, OM_uint32 minor);
-void server_log_command(struct iovec **, struct confline *, const char *user);
+void server_log_command(struct iovec **, struct rule *, const char *user);
 
 /* Configuration file functions. */
 struct config *server_config_load(const char *file);
 void server_config_free(struct config *);
-bool server_config_acl_permit(struct confline *, const char *user);
+bool server_config_acl_permit(struct rule *, const char *user);
 void server_config_set_gput_file(char *file);
 
 /* Running commands. */
