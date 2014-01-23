@@ -31,17 +31,6 @@
 
 
 /*
- * The die handler function set by accept_connection so that it will exit with
- * _exit and not exit on errors and not run the cleanup functions.
- */
-static int
-exit_child(void)
-{
-    _exit(1);
-}
-
-
-/*
  * Create a socket, accept a single connection, try to establish a context,
  * and then close the connection and exit.  We run this in a subprocess to
  * provide the foil against which to test our connection negotiation.  Takes a
@@ -63,9 +52,6 @@ accept_connection(const char *pidfile, int protocol)
     gss_ctx_id_t context;
     gss_name_t client;
     gss_OID doid;
-
-    /* Set up the exit handler so that we don't call exit. */
-    message_fatal_cleanup = exit_child;
 
     /* Create the socket and accept the connection. */
     saddr.sin_family = AF_INET;
@@ -117,10 +103,11 @@ accept_connection(const char *pidfile, int protocol)
         }
     } while (major == GSS_S_CONTINUE_NEEDED);
 
-    /* All done.  Don't bother cleaning up memory, just exit. */
+    /* All done.  Clean up memory. */
+    gss_release_name(&minor, &client);
+    gss_delete_sec_context(&minor, &context, GSS_C_NO_BUFFER);
     socket_close(conn);
     socket_close(s);
-    _exit(0);
 }
 
 
@@ -180,6 +167,8 @@ main(void)
         else if (child == 0) {
             test_tmpdir_free(path);
             accept_connection(pidfile, protocol);
+            free(pidfile);
+            exit(0);
         }
         alarm(1);
         while (access(pidfile, F_OK) < 0) {
