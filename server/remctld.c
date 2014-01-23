@@ -361,6 +361,34 @@ bind_sockets(struct options *options, socket_type **fds,
 
 
 /*
+ * Write a PID to a file.  This is done via atomic replacement so that the
+ * file never exists with no content.  Note that there is no locking and no
+ * verification that an existing PID has exited.
+ */
+static void
+write_pidfile(pid_t pid, const char *path)
+{
+    char *template;
+    FILE *pid_file;
+    int fd;
+
+    xasprintf(&template, "%s.XXXXXX", path);
+    fd = mkstemp(template);
+    if (fd < 0)
+        sysdie("cannot create temporary PID file %s", template);
+    pid_file = fdopen(fd, "w");
+    if (pid_file == NULL)
+        sysdie("cannot reopen temporary PID file %s", template);
+    if (fprintf(pid_file, "%ld\n", (long) pid) < 0)
+        sysdie("cannot write to temporary PID file %s", template);
+    fclose(pid_file);
+    if (rename(template, path) < 0)
+        sysdie("cannot rename temporary PID file to %s", path);
+    free(template);
+}
+
+
+/*
  * Run as a daemon.  This is the main dispatch loop, which listens for network
  * connections, forks a child to process each connection, and reaps the
  * children when they're done.  This is only used in standalone mode; when run
@@ -379,7 +407,6 @@ server_daemon(struct options *options, struct config *config,
     struct sockaddr_storage ss;
     socklen_t sslen;
     char ip[INET6_ADDRSTRLEN];
-    FILE *pid_file;
 
     /* Set up a SIGCHLD handler so that we know when to reap children. */
     memset(&sa, 0, sizeof(sa));
@@ -406,13 +433,8 @@ server_daemon(struct options *options, struct config *config,
      * Set up our PID file now that we're ready to accept connections, so that
      * the PID file isn't created until clients can connect.
      */
-    if (options->pid_path != NULL) {
-        pid_file = fopen(options->pid_path, "w");
-        if (pid_file == NULL)
-            sysdie("cannot create PID file %s", options->pid_path);
-        fprintf(pid_file, "%ld\n", (long) getpid());
-        fclose(pid_file);
-    }
+    if (options->pid_path != NULL)
+        write_pidfile(getpid(), options->pid_path);
 
     /* Log a starting message. */
     notice("starting");
