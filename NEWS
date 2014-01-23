@@ -2,6 +2,15 @@
 
 remctl 3.8 (unreleased)
 
+    The remctld server now uses libevent for the event loop that processes
+    output from a command.  This is primarily an internal change to
+    improve maintainability, but it does have some noticable if minor
+    benefits: primarily, no need to poll for child process exit every five
+    seconds, and therefore faster responsiveness and less resource usage
+    in each remctld process.  libevent 2.0.1-alpha or later is required
+    (tested with 2.0.21-stable), but support for libevent 1.4 will be
+    added.
+
     Rather than capping the data returned by the server in one
     MESSAGE_OUTPUT token at the rather arbitrary length of 65,000 octets,
     send up to the maximum amount of data permitted by the protocol.  This

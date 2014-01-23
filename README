@@ -74,6 +74,9 @@ REQUIREMENTS
   implementation is improved by building against Kerberos libraries and a
   GSS-API library that supports gss_krb5_import_cred.
 
+  The remctld server requires libevent.  Currently, it requires libevent
+  2.0.21 or later, but it will be ported to libevent 1.4.13.
+
   The remctl server will support regex ACLs if the system supports the
   POSIX regex API.  The remctl server also optionally supports PCRE
   regular expressions in ACLs.  To include that support, the PCRE library
@@ -238,6 +241,15 @@ INSTALLATION (UNIX)
 
   You can similarly override krb5-config for Kerberos libraries (if you
   have them) with --with-krb5, --with-krb5-include, and --with-krb5-lib.
+
+  remctl will use pkg-config if it's available to find the build flags for
+  libevent.  You can control which pkg-config binary and paths are used
+  with the normal pkg-config environment variables of PKG_CONFIG,
+  PKG_CONFIG_PATH, and PKG_CONFIG_LIBDIR, and you can override the
+  pkg-config results with LIBEVENT_CFLAGS and LIBEVENT_LIBS.  Alternately,
+  you can bypass pkg-config by passing one or more of --with-libevent,
+  --with-libevent-include, and --with-libevent-lib to indicate the install
+  prefix, include directory, or library directory.
 
   remctl will automatically build with PCRE support if pcre-config or the
   PCRE library are found.  You can pass --with-pcre to configure to
