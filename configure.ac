@@ -61,7 +61,7 @@ RRA_LIB_EVENT_SWITCH
 AC_CHECK_HEADERS([event2/event.h])
 AC_CHECK_TYPES([bufferevent_data_cb, bufferevent_event_cb, event_callback_fn,
                 evutil_socket_t],
-    [RRA_INCLUDES_EVENT])
+    [], [], [RRA_INCLUDES_EVENT])
 AC_CHECK_FUNCS([bufferevent_get_input \
     bufferevent_read_buffer \
     bufferevent_socket_new \

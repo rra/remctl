@@ -83,7 +83,7 @@ int bufferevent_read_buffer(struct bufferevent *, struct evbuffer *);
  * older versions and therefore cannot be relied on in code that has to be
  * portable.
  */
-#ifndef HAVE_BUFFEREVENT_SOCKET_NET
+#ifndef HAVE_BUFFEREVENT_SOCKET_NEW
 struct bufferevent *bufferevent_socket_new(struct event_base *,
                                            evutil_socket_t, int);
 #endif
