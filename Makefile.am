@@ -118,11 +118,11 @@ endif
 
 # Supporting convenience libraries used by other targets.
 noinst_LTLIBRARIES = portable/libportable.la util/libutil.la
-portable_libportable_la_SOURCES = portable/dummy.c portable/getaddrinfo.h \
-	portable/getnameinfo.h portable/getopt.h portable/gssapi.h	  \
-	portable/krb5.h portable/macros.h portable/sd-daemon.h		  \
-	portable/socket.h portable/stdbool.h portable/system.h		  \
-	portable/uio.h
+portable_libportable_la_SOURCES = portable/dummy.c portable/event.h	\
+	portable/getaddrinfo.h portable/getnameinfo.h portable/getopt.h	\
+	portable/gssapi.h portable/krb5.h portable/macros.h		\
+	portable/sd-daemon.h portable/socket.h portable/stdbool.h	\
+	portable/system.h portable/uio.h
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
 util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
 	util/gss-errors.h util/gss-tokens.c util/gss-tokens.h util/macros.h \
@@ -164,11 +164,16 @@ client_remctl_SOURCES = client/remctl.c
 client_remctl_LDADD = client/libremctl.la util/libutil.la \
 	portable/libportable.la
 
-# The remctld server.
+# The remctld server.  We include portable/event-extra.c directly in the
+# sources for the server instead of including it in libportable to avoid
+# introducing a libevent dependency in libremctl, since apparently the
+# linker isn't smart enough to figure out that the event functions are
+# hidden and never called and optimize them out.
 sbin_PROGRAMS = server/remctld
-server_remctld_SOURCES = server/commands.c server/config.c server/generic.c \
-	server/logging.c server/internal.h server/process.c		    \
-	server/remctld.c server/server-v1.c server/server-v2.c
+server_remctld_SOURCES = portable/event-extra.c server/commands.c	    \
+	server/config.c server/generic.c server/logging.c server/internal.h \
+	server/process.c server/remctld.c server/server-v1.c		    \
+	server/server-v2.c
 server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	\
 	$(GSSAPI_CPPFLAGS) $(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS)		\
 	$(LIBEVENT_CPPFLAGS) $(SYSTEMD_DAEMON_CFLAGS)
@@ -342,9 +347,9 @@ tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 	tests/tap/string.c tests/tap/string.h
 
 # Used for server tests.
-SERVER_FILES = server/commands.c server/config.c server/generic.c	\
-	server/logging.c server/process.c server/server-v1.c		\
-	server/server-v2.c
+SERVER_FILES = portable/event-extra.c server/commands.c server/config.c	\
+	server/generic.c server/logging.c server/process.c		\
+	server/server-v1.c server/server-v2.c
 
 # All of the test programs.
 tests_client_api_t_LDFLAGS = $(KRB5_LDFLAGS)

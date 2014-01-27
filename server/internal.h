@@ -112,6 +112,7 @@ struct process {
 
     /* State flags. */
     bool reaped;                /* Whether we've reaped the process. */
+    bool saw_error;             /* Whether we encountered some error. */
     bool saw_output;            /* Whether we saw process output. */
 };
 

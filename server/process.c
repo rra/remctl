@@ -28,89 +28,22 @@
 #include <util/messages.h>
 #include <util/protocol.h>
 
-
 /*
- * Callback when all stdin data has been sent.  We only have a callback to
- * shut down our end of the socketpair so that the process gets EOF on its
- * next read.
- */
-static void
-handle_input_end(struct bufferevent *bev, void *data)
-{
-    struct process *process = data;
-
-    bufferevent_disable(bev, EV_WRITE);
-    if (shutdown(process->stdinout_fd, SHUT_WR) < 0)
-        sysdie("cannot shut down input side of process socket pair");
-}
-
-
-/*
- * Callback used to handle output from a process (protocol version two or
- * later).  We use the same handler for both standard output and standard
- * error and check the bufferevent to determine which stream we're seeing.
+ * We would like to use event_base_loopbreak and event_base_got_break, but the
+ * latter was introduced in libevent 2.x.  For right now, until we can rely on
+ * libevent 2.x, set a flag in the process struct instead.  We still call
+ * event_base_loopbreak where we can, to keep from processing more data than
+ * we have to.
  *
- * When called, note that we saw some output, which is a flag to continue
- * processing when running the event loop after the child has exited.
+ * This portability glue is specific to this file and assumes that the process
+ * variable is in scope to replace the event_base_got_break functionality.
  */
-static void
-handle_output(struct bufferevent *bev, void *data)
-{
-    int stream;
-    struct evbuffer *buf;
-    struct process *process = data;
-
-    process->saw_output = true;
-    stream = (bev == process->inout) ? 1 : 2;
-    buf = bufferevent_get_input(bev);
-    if (!server_v2_send_output(process->client, stream, buf))
-        event_base_loopbreak(process->loop);
-}
-
-
-/*
- * Discard all data in the evbuffer.  This handler is used with protocol
- * version one when we've already read as much data as we can return to the
- * remctl client.
- */
-static void
-handle_output_discard(struct bufferevent *bev, void *data UNUSED)
-{
-    size_t length;
-    struct evbuffer *buf;
-
-    buf = bufferevent_get_input(bev);
-    length = evbuffer_get_length(buf);
-    if (evbuffer_drain(buf, length) < 0)
-        sysdie("internal error: cannot discard extra output");
-}
-
-
-/*
- * Callback used to handle filling the output buffer with protocol version
- * one.  When this happens, we pull all of the data out into a separate
- * evbuffer and then change our read callback to handle_output_discard, which
- * just drains (discards) all subsequent data from the process.
- */
-static void
-handle_output_full(struct bufferevent *bev, void *data)
-{
-    struct process *process = data;
-    bufferevent_data_cb writecb;
-
-    process->output = evbuffer_new();
-    if (process->output == NULL)
-        die("internal error: cannot create discard evbuffer");
-    if (bufferevent_read_buffer(bev, process->output) < 0)
-        die("internal error: cannot read data from output buffer");
-
-    /*
-     * Change the output callback.  We need to be sure not to dump our input
-     * callback if it exists.
-     */
-    writecb = (process->input == NULL) ? NULL : handle_input_end;
-    bufferevent_setcb(bev, handle_output_discard, writecb, NULL, data);
-}
+#ifndef HAVE_EVENT_BASE_LOOPBREAK
+# define event_base_loopbreak(base) /* empty */
+#endif
+#ifndef HAVE_EVENT_BASE_GOT_BREAK
+# define event_base_got_break(base) process->saw_error
+#endif
 
 
 /*
@@ -148,7 +81,102 @@ handle_io_event(struct bufferevent *bev, short events, void *data)
     else
         syswarn("write to standard input failed");
     server_send_error(client, ERROR_INTERNAL, "Internal failure");
+    process->saw_error = true;
     event_base_loopbreak(process->loop);
+}
+
+
+/*
+ * Callback when all stdin data has been sent.  We only have a callback to
+ * shut down our end of the socketpair so that the process gets EOF on its
+ * next read.
+ */
+static void
+handle_input_end(struct bufferevent *bev, void *data)
+{
+    struct process *process = data;
+
+    bufferevent_disable(bev, EV_WRITE);
+    if (shutdown(process->stdinout_fd, SHUT_WR) < 0)
+        sysdie("cannot shut down input side of process socket pair");
+}
+
+
+/*
+ * Callback used to handle output from a process (protocol version two or
+ * later).  We use the same handler for both standard output and standard
+ * error and check the bufferevent to determine which stream we're seeing.
+ *
+ * When called, note that we saw some output, which is a flag to continue
+ * processing when running the event loop after the child has exited.
+ */
+static void
+handle_output(struct bufferevent *bev, void *data)
+{
+    int stream;
+    struct evbuffer *buf;
+    struct process *process = data;
+
+    process->saw_output = true;
+    stream = (bev == process->inout) ? 1 : 2;
+    buf = bufferevent_get_input(bev);
+    if (!server_v2_send_output(process->client, stream, buf)) {
+        process->saw_error = true;
+        event_base_loopbreak(process->loop);
+    }
+}
+
+
+/*
+ * Discard all data in the evbuffer.  This handler is used with protocol
+ * version one when we've already read as much data as we can return to the
+ * remctl client.
+ */
+static void
+handle_output_discard(struct bufferevent *bev, void *data UNUSED)
+{
+    size_t length;
+    struct evbuffer *buf;
+
+    buf = bufferevent_get_input(bev);
+    length = evbuffer_get_length(buf);
+    if (evbuffer_drain(buf, length) < 0)
+        sysdie("internal error: cannot discard extra output");
+}
+
+
+/*
+ * Callback used to handle filling the output buffer with protocol version
+ * one.  When this happens, we pull all of the data out into a separate
+ * evbuffer and then change our read callback to handle_output_discard, which
+ * just drains (discards) all subsequent data from the process.
+ */
+static void
+handle_output_full(struct bufferevent *bev, void *data)
+{
+    struct process *process = data;
+    bufferevent_data_cb writecb;
+
+    process->output = evbuffer_new();
+    if (process->output == NULL)
+        die("internal error: cannot create discard evbuffer");
+    if (bufferevent_read_buffer(bev, process->output) < 0)
+        die("internal error: cannot move data into output buffer");
+
+    /*
+     * Change the output callback.  We need to be sure not to dump our input
+     * callback if it exists.
+     *
+     * After we see all the output that we can send to the client, we no
+     * longer care about error and EOF events, but if we set the callback to
+     * NULL here, we cause segfaults in libevent 1.4.x when we have both read
+     * and EOF events in the same event loop.  So keep the error event handler
+     * since it doesn't hurt anything.  This can safely be set to NULL once we
+     * require libevent 2.x.
+     */
+    writecb = (process->input == NULL) ? NULL : handle_input_end;
+    bufferevent_setcb(bev, handle_output_discard, writecb, handle_io_event,
+                      data);
 }
 
 
@@ -380,6 +408,7 @@ fail:
     if (stderr_fds[1] != INVALID_SOCKET)
         close(stderr_fds[1]);
     server_send_error(client, ERROR_INTERNAL, "Internal failure");
+    process->saw_error = true;
     event_base_loopbreak(process->loop);
 }
 

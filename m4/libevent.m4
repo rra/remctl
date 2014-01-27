@@ -14,6 +14,10 @@ dnl before the last RRA_LIB_EVENT_SWITCH.  Defines HAVE_LIBEVENT and sets
 dnl rra_use_LIBEVENT to true if libevent is found.  If it isn't found, the
 dnl substitution variables will be empty.
 dnl
+dnl Also provides RRA_INCLUDES_EVENT, which are the headers to include when
+dnl probing the libevent library properties.  This assumes that
+dnl AC_CHECK_HEADERS([event2/event.h]) has been called.
+dnl
 dnl Depends on the lib-helper.m4 framework.
 dnl
 dnl The canonical version of this file is maintained in the rra-c-util
@@ -26,6 +30,17 @@ dnl
 dnl This file is free software; the authors give unlimited permission to copy
 dnl and/or distribute it, with or without modifications, as long as this
 dnl notice is preserved.
+
+dnl Headers to include when probing for libevent declarations.
+AC_DEFUN([RRA_INCLUDES_EVENT], [[
+#if HAVE_EVENT2_EVENT_H
+# include <event2/buffer.h>
+# include <event2/bufferevent.h>
+# include <event2/event.h>
+#else
+# include <event.h>
+#endif
+]])
 
 dnl Save the current CPPFLAGS, LDFLAGS, and LIBS settings and switch to
 dnl versions that include the libevent flags.  Used as a wrapper, with
