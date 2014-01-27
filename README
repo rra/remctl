@@ -69,13 +69,16 @@ REQUIREMENTS
   The remctld server and the standard client are written in C and require
   a C compiler to build.  Both will build against either MIT Kerberos or
   Heimdal (tested with Heimdal 0.6 and later).  remctl will also build
-  against the Kerberos GSS-API implementation shipped with AIX 5.2 and the
-  Solaris 10 generic GSS-API library.  The remctl_set_ccache
-  implementation is improved by building against Kerberos libraries and a
-  GSS-API library that supports gss_krb5_import_cred.
+  against the Kerberos GSS-API implementation shipped with AIX 5.2 (and
+  possibly later versions) and the Solaris 10 generic GSS-API library.
+  The remctl_set_ccache implementation is improved by building against
+  Kerberos libraries and a GSS-API library that supports
+  gss_krb5_import_cred.
 
-  The remctld server requires libevent.  Currently, it requires libevent
-  2.0.21 or later, but it will be ported to libevent 1.4.13.
+  The remctld server requires libevent 1.4.x or later.  It's only been
+  tested with libevent 1.4.13-stable, but should work with 1.4.4 or later.
+  It is primarily tested with libevent 2.x, so moving to a later version
+  of libevent if possible is recommended.
 
   The remctl server will support regex ACLs if the system supports the
   POSIX regex API.  The remctl server also optionally supports PCRE
