@@ -16,7 +16,7 @@ dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2013
+dnl Copyright 2013, 2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl This file is free software; the authors give unlimited permission to copy
@@ -28,6 +28,7 @@ dnl to override, and sets @systemdsystemunitdir@.  Provides the Automake
 dnl HAVE_SYSTEMD Automake conditional.
 AC_DEFUN([RRA_WITH_SYSTEMD_UNITDIR],
 [AC_REQUIRE([PKG_PROG_PKG_CONFIG])
+ AS_IF([test x"$PKG_CONFIG" = x], [PKG_CONFIG=false])
  AC_ARG_WITH([systemdsystemunitdir],
     [AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
         [Directory for systemd service files])],
