@@ -18,6 +18,9 @@ remctl 3.8 (unreleased)
 
     Fix a minor memory leak in the server when processing help commands.
 
+    Fix a GSS-API context leak in the remctl client when failing to send a
+    protocol version one token.
+
     Use a temporary file and atomic rename when writing the server PID
     file to avoid racing with a process monitor that tries to read the PID
     out of the file before it's written.
