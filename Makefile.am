@@ -339,7 +339,8 @@ tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
 tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests		\
 	-DPATH_FAKEROOT='"$(PATH_FAKEROOT)"'			\
-	-DPATH_REMCTLD='"$(abs_top_builddir)/server/remctld"'
+	-DPATH_REMCTLD='"$(abs_top_builddir)/server/remctld"'	\
+	$(KRB5_CPPFLAGS)
 tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 	tests/tap/kerberos.c tests/tap/kerberos.h tests/tap/messages.c	\
 	tests/tap/messages.h tests/tap/macros.h tests/tap/process.c	\
