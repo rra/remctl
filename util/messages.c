@@ -113,39 +113,11 @@ static message_handler_func *notice_handlers = stdout_handlers;
 static message_handler_func *warn_handlers   = stderr_handlers;
 static message_handler_func *die_handlers    = stderr_handlers;
 
-/* Whether our atexit handler to free the logging functions is registered. */
-static bool free_handlers_registered = false;
-
 /* If non-NULL, called before exit and its return value passed to exit. */
 int (*message_fatal_cleanup)(void) = NULL;
 
 /* If non-NULL, prepended (followed by ": ") to messages. */
 const char *message_program_name = NULL;
-
-
-/*
- * Free all of the handlers and set them back to the defaults.  Normally, this
- * is only called on exit.  Doing that isn't necessary, but it frees reachable
- * memory and allows for comprehensive memory allocation analysis.
- */
-static void
-message_handlers_free(void)
-{
-    free(debug_handlers);
-    debug_handlers = NULL;
-    if (notice_handlers != stdout_handlers) {
-        free(notice_handlers);
-        notice_handlers = stdout_handlers;
-    }
-    if (warn_handlers != stderr_handlers) {
-        free(warn_handlers);
-        warn_handlers = stderr_handlers;
-    }
-    if (die_handlers != stderr_handlers) {
-        free(die_handlers);
-        die_handlers = stderr_handlers;
-    }
-}
 
 
 /*
@@ -163,10 +135,6 @@ message_handlers(message_handler_func **list, unsigned int count, va_list args)
     for (i = 0; i < count; i++)
         (*list)[i] = (message_handler_func) va_arg(args, message_handler_func);
     (*list)[count] = NULL;
-    if (!free_handlers_registered) {
-        atexit(message_handlers_free);
-        free_handlers_registered = true;
-    }
 }
 
 
@@ -189,6 +157,31 @@ HANDLER_FUNCTION(debug)
 HANDLER_FUNCTION(notice)
 HANDLER_FUNCTION(warn)
 HANDLER_FUNCTION(die)
+
+
+/*
+ * Reset all handlers back to the defaults and free all allocated memory.
+ * This is primarily useful for programs that undergo comprehensive memory
+ * allocation analysis.
+ */
+void
+message_handlers_reset(void)
+{
+    free(debug_handlers);
+    debug_handlers = NULL;
+    if (notice_handlers != stdout_handlers) {
+        free(notice_handlers);
+        notice_handlers = stdout_handlers;
+    }
+    if (warn_handlers != stderr_handlers) {
+        free(warn_handlers);
+        warn_handlers = stderr_handlers;
+    }
+    if (die_handlers != stderr_handlers) {
+        free(die_handlers);
+        die_handlers = stderr_handlers;
+    }
+}
 
 
 /*

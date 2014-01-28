@@ -508,6 +508,8 @@ server_daemon(struct options *options, struct config *config,
                 fflush(stdout);
             server_config_free(config);
             vector_free(options->bindaddrs);
+            libevent_global_shutdown();
+            message_handlers_reset();
             exit(0);
         } else {
             close(s);
@@ -671,5 +673,6 @@ main(int argc, char *argv[])
         gss_release_cred(&minor, &creds);
     vector_free(options.bindaddrs);
     libevent_global_shutdown();
+    message_handlers_reset();
     return 0;
 }
