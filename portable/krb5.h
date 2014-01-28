@@ -98,9 +98,9 @@ void krb5_free_error_message(krb5_context, const char *);
 const char *krb5_principal_get_realm(krb5_context, krb5_const_principal);
 #endif
 
-END_DECLS
-
 /* Undo default visibility change. */
 #pragma GCC visibility pop
+
+END_DECLS
 
 #endif /* !PORTABLE_KRB5_H */
