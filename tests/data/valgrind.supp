@@ -39,6 +39,33 @@
    fun:_dlerror_run
 }
 {
+   heimdal-gss-config
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:krb5_config_parse_debug
+}
+{
+   heimdal-gss-config-2
+   Memcheck:Leak
+   fun:*alloc
+   fun:_krb5_config_get_entry
+}
+{
+   heimdal-gss-krb5-init
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:_gsskrb5_init
+}
+{
+   heimdal-gss-load-mech
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:_gss_load_mech
+}
+{
    heimdal-krb5-init-context-once
    Memcheck:Leak
    fun:*alloc
