@@ -455,29 +455,43 @@ remctl_close(struct remctl *r)
 {
     OM_uint32 minor;
 
-    if (r != NULL) {
-        if (r->protocol > 1 && r->fd != -1)
-            internal_v2_quit(r);
-        free(r->source);
-        free(r->ccache);
-        if (r->fd != INVALID_SOCKET)
-            socket_close(r->fd);
-        free(r->error);
-        if (r->output != NULL) {
-            free(r->output->data);
-            free(r->output);
-        }
-        if (r->context != GSS_C_NO_CONTEXT)
-            gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
-#ifdef HAVE_KRB5
-        if (r->krb_ctx != NULL) {
-            if (r->krb_ccache != NULL)
-                krb5_cc_close(r->krb_ctx, r->krb_ccache);
-            krb5_free_context(r->krb_ctx);
-        }
-#endif
-        free(r);
+    /* Allow the passed struct to already be NULL. */
+    if (r == NULL)
+        return;
+
+    /* If we have an open connection, shut it down. */
+    if (r->protocol > 1 && r->fd != -1)
+        internal_v2_quit(r);
+    if (r->fd != INVALID_SOCKET) {
+        shutdown(r->fd, SHUT_RDWR);
+        socket_close(r->fd);
     }
+    if (r->context != GSS_C_NO_CONTEXT)
+        gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
+
+    /* If we have a registered ticket cache, free those resources. */
+#ifdef HAVE_KRB5
+    if (r->krb_ctx != NULL) {
+        if (r->krb_ccache != NULL)
+            krb5_cc_close(r->krb_ctx, r->krb_ccache);
+        krb5_free_context(r->krb_ctx);
+    }
+#endif
+
+    /* Free remaining resources. */
+    free(r->source);
+    free(r->ccache);
+    free(r->error);
+    if (r->output != NULL) {
+        free(r->output->data);
+        free(r->output);
+    }
+    free(r);
+
+    /*
+     * Always shut down the Windows socket library since we initialized it in
+     * remctl_new.
+     */
     socket_shutdown();
 }
 
@@ -491,7 +505,7 @@ remctl_close(struct remctl *r)
 static bool
 internal_reopen(struct remctl *r)
 {
-    if (r->fd < 0) {
+    if (r->fd == INVALID_SOCKET) {
         if (r->host == NULL) {
             internal_set_error(r, "no connection open");
             return false;
@@ -608,7 +622,7 @@ internal_output_wipe(struct remctl_output *output)
 struct remctl_output *
 remctl_output(struct remctl *r)
 {
-    if (r->fd < 0 && (r->protocol != 1 || r->host == NULL)) {
+    if (r->fd == INVALID_SOCKET && (r->protocol != 1 || r->host == NULL)) {
         internal_set_error(r, "no connection open");
         return NULL;
     }
