@@ -135,7 +135,7 @@ AC_CHECK_FUNCS([getaddrinfo],
     [AC_LIBOBJ([getaddrinfo])])
 AC_CHECK_FUNCS([setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
-                  setenv strlcat strlcpy strndup])
+                  mkstemp setenv strlcat strlcpy strndup])
 AC_TYPE_SIGNAL
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up

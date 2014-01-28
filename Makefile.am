@@ -312,27 +312,27 @@ warnings:
 	$(MAKE) V=0 CFLAGS='$(WARNINGS)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
-check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t   \
-	tests/client/large-t tests/client/open-t tests/client/source-ip-t  \
-	tests/client/timeout-t tests/data/cmd-background		   \
-	tests/data/cmd-closed tests/data/cmd-large-output		   \
-	tests/data/cmd-stdin tests/data/cmd-streaming tests/data/cmd-user  \
-	tests/portable/asprintf-t tests/portable/daemon-t		   \
-	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	   \
-	tests/portable/getopt-t tests/portable/inet_aton-t		   \
-	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		   \
-	tests/portable/setenv-t tests/portable/snprintf-t		   \
-	tests/portable/strlcat-t tests/portable/strlcpy-t		   \
-	tests/server/accept-t tests/server/acl-t tests/server/bind-t	   \
-	tests/server/config-t tests/server/continue-t tests/server/empty-t \
-	tests/server/env-t tests/server/errors-t tests/server/help-t	   \
-	tests/server/invalid-t tests/server/logging-t tests/server/noop-t  \
-	tests/server/stdin-t tests/server/streaming-t			   \
-	tests/server/summary-t tests/server/user-t tests/server/version-t  \
-	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t  \
-	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	   \
-	tests/util/network/client-t tests/util/network/server-t		   \
-	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	   \
+check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t  \
+	tests/client/large-t tests/client/open-t tests/client/source-ip-t \
+	tests/client/timeout-t tests/data/cmd-background		  \
+	tests/data/cmd-closed tests/data/cmd-large-output		  \
+	tests/data/cmd-stdin tests/data/cmd-streaming tests/data/cmd-user \
+	tests/portable/asprintf-t tests/portable/daemon-t		  \
+	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	  \
+	tests/portable/getopt-t tests/portable/inet_aton-t		  \
+	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		  \
+	tests/portable/mkstemp-t tests/portable/setenv-t		  \
+	tests/portable/snprintf-t tests/portable/strlcat-t		  \
+	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t \
+	tests/server/bind-t tests/server/config-t tests/server/continue-t \
+	tests/server/empty-t tests/server/env-t tests/server/errors-t	  \
+	tests/server/help-t tests/server/invalid-t tests/server/logging-t \
+	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t \
+	tests/server/summary-t tests/server/user-t tests/server/version-t \
+	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t \
+	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	  \
+	tests/util/network/client-t tests/util/network/server-t		  \
+	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	  \
 	tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
@@ -401,6 +401,9 @@ tests_portable_inet_ntoa_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_portable_inet_ntop_t_SOURCES = tests/portable/inet_ntop-t.c \
 	tests/portable/inet_ntop.c
 tests_portable_inet_ntop_t_LDADD = tests/tap/libtap.a portable/libportable.la
+tests_portable_mkstemp_t_SOURCES = tests/portable/mkstemp-t.c \
+	tests/portable/mkstemp.c
+tests_portable_mkstemp_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_portable_setenv_t_SOURCES = tests/portable/setenv-t.c \
 	tests/portable/setenv.c
 tests_portable_setenv_t_LDADD = tests/tap/libtap.a portable/libportable.la
