@@ -141,6 +141,7 @@ REQUIREMENTS
       Autoconf 2.64 or later
       Automake 1.11 or later
       Perl 5.10 or later
+      pkg-config
       xml2rfc
 
   Some parts of the test suite are suppressed by default because those
