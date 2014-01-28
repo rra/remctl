@@ -16,6 +16,10 @@ AM_INIT_AUTOMAKE([1.11 check-news dist-xz foreign silent-rules subdir-objects
     -Wall -Werror])
 AM_MAINTAINER_MODE
 
+dnl Detect unexpanded macros.
+m4_pattern_forbid([^PKG_])
+m4_pattern_forbid([^RRA_])
+
 dnl AM_PROG_AR is required for Automake 1.12 by Libtool but not defined at all
 dnl (or needed) in Automake 1.11.  Work around this bug.
 AC_PROG_CC
