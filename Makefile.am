@@ -74,8 +74,8 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
-	systemd/remctld.service.in systemd/remctld.socket tests/HOWTO	    \
-	tests/TESTS tests/client/remctl-t tests/config/README		    \
+	server/README systemd/remctld.service.in systemd/remctld.socket	    \
+	tests/HOWTO tests/TESTS tests/client/remctl-t tests/config/README   \
 	tests/data/acl-bad-include tests/data/acl-bad-syntax		    \
 	tests/data/acl-nonexistant tests/data/acl-recursive		    \
 	tests/data/acl-simple tests/data/acl-too-long			    \
