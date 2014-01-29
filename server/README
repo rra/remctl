@@ -45,17 +45,19 @@ Overview
 
     commands.c
 
-        Handles all the processing involved in a single client command.
-        This includes checking the command against the available
-        configured commands, checking the authenticated user against ACLs
-        (although this is delegated to funtions in config.c), handling
-        special commands like help and summary, and, most importantly,
-        running an external command and returning its results over
-        protocol.
+        Handles all the general processing involved in a single client
+        command short of running a process or dispatching the command to
+        another process.  This includes checking the command against the
+        available configured commands, checking the authenticated user
+        against ACLs (although this is delegated to funtions in config.c),
+        and handling special commands like help and summary.
 
-        This file contains the most complex event loop, which processes
-        output from the command, input to the command, and sending the
-        results over the network to the client.
+    process.c
+
+        Handles running an external command and returning its results over
+        protocol.  This file contains the most complex event loop, which
+        processes output from the command, input to the command, and
+        sending the results over the network to the client.
 
     config.c
 
@@ -144,3 +146,13 @@ Event Loops
     available, we keep processing it, but as soon as no output is
     immediately available, we consider the command finished and close our
     end of the file descriptors.
+
+License
+
+    Copyright 2014
+        The Board of Trustees of the Leland Stanford Junior University
+
+    Copying and distribution of this file, with or without modification,
+    are permitted in any medium without royalty provided the copyright
+    notice and this notice are preserved.  This file is offered as-is,
+    without any warranty.
