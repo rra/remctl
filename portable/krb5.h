@@ -101,4 +101,6 @@ const char *krb5_principal_get_realm(krb5_context, krb5_const_principal);
 /* Undo default visibility change. */
 #pragma GCC visibility pop
 
+END_DECLS
+
 #endif /* !PORTABLE_KRB5_H */

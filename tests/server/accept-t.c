@@ -2,7 +2,7 @@
  * Test suite for the server connection negotiation code.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2007, 2009, 2010, 2012
+ * Copyright 2006, 2007, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -20,17 +20,6 @@
 #include <tests/tap/kerberos.h>
 #include <util/messages.h>
 #include <util/tokens.h>
-
-
-/*
- * The die handler function set by make_connection so that it will exit with
- * _exit and not exit on errors and not run the cleanup functions.
- */
-static int
-exit_child(void)
-{
-    _exit(1);
-}
 
 
 /*
@@ -53,9 +42,6 @@ make_connection(int protocol, const char *principal)
     static const OM_uint32 req_gss_flags
         = (GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_CONF_FLAG
            | GSS_C_INTEG_FLAG);
-
-    /* Set up the exit handler so that we don't call exit. */
-    message_fatal_cleanup = exit_child;
 
     /* Connect. */
     saddr.sin_family = AF_INET;
@@ -112,8 +98,8 @@ make_connection(int protocol, const char *principal)
 
     /* All done. */
     gss_delete_sec_context(&minor, &gss_context, GSS_C_NO_BUFFER);
+    gss_release_name(&minor, &name);
     socket_close(fd);
-    _exit(0);
 }
 
 
@@ -156,8 +142,11 @@ main(void)
         child = fork();
         if (child < 0)
             sysbail("cannot fork");
-        else if (child == 0)
+        else if (child == 0) {
+            close(s);
             make_connection(protocol, config->principal);
+            exit(0);
+        }
         alarm(1);
         fd = accept(s, NULL, 0);
         if (fd == INVALID_SOCKET)

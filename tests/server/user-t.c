@@ -55,21 +55,18 @@ test_user(struct remctl *r, const char *subcommand, uid_t *uid, gid_t *gid)
             break;
         case REMCTL_OUT_STATUS:
             if (output->status != 0) {
-                if (data != NULL)
-                    free(data);
+                free(data);
                 diag("test env returned status %d", output->status);
                 return false;
             }
             break;
         case REMCTL_OUT_ERROR:
-            if (data != NULL)
-                free(data);
+            free(data);
             diag("test env returned error: %.*s", (int) output->length,
                  output->data);
             return false;
         case REMCTL_OUT_DONE:
-            if (data != NULL)
-                free(data);
+            free(data);
             diag("unexpected done token");
             return false;
         }

@@ -1,4 +1,4 @@
-                            remctl release 3.7
+                            remctl release 3.8
             (remote authenticated command execution with ACLs)
 
                    Originally written by Anton Ushakov
@@ -69,10 +69,16 @@ REQUIREMENTS
   The remctld server and the standard client are written in C and require
   a C compiler to build.  Both will build against either MIT Kerberos or
   Heimdal (tested with Heimdal 0.6 and later).  remctl will also build
-  against the Kerberos GSS-API implementation shipped with AIX 5.2 and the
-  Solaris 10 generic GSS-API library.  The remctl_set_ccache
-  implementation is improved by building against Kerberos libraries and a
-  GSS-API library that supports gss_krb5_import_cred.
+  against the Kerberos GSS-API implementation shipped with AIX 5.2 (and
+  possibly later versions) and the Solaris 10 generic GSS-API library.
+  The remctl_set_ccache implementation is improved by building against
+  Kerberos libraries and a GSS-API library that supports
+  gss_krb5_import_cred.
+
+  The remctld server requires libevent 1.4.x or later.  It's only been
+  tested with libevent 1.4.13-stable, but should work with 1.4.4 or later.
+  It is primarily tested with libevent 2.x, so moving to a later version
+  of libevent if possible is recommended.
 
   The remctl server will support regex ACLs if the system supports the
   POSIX regex API.  The remctl server also optionally supports PCRE
@@ -135,6 +141,7 @@ REQUIREMENTS
       Autoconf 2.64 or later
       Automake 1.11 or later
       Perl 5.10 or later
+      pkg-config
       xml2rfc
 
   Some parts of the test suite are suppressed by default because those
@@ -238,6 +245,15 @@ INSTALLATION (UNIX)
 
   You can similarly override krb5-config for Kerberos libraries (if you
   have them) with --with-krb5, --with-krb5-include, and --with-krb5-lib.
+
+  remctl will use pkg-config if it's available to find the build flags for
+  libevent.  You can control which pkg-config binary and paths are used
+  with the normal pkg-config environment variables of PKG_CONFIG,
+  PKG_CONFIG_PATH, and PKG_CONFIG_LIBDIR, and you can override the
+  pkg-config results with LIBEVENT_CFLAGS and LIBEVENT_LIBS.  Alternately,
+  you can bypass pkg-config by passing one or more of --with-libevent,
+  --with-libevent-include, and --with-libevent-lib to indicate the install
+  prefix, include directory, or library directory.
 
   remctl will automatically build with PCRE support if pcre-config or the
   PCRE library are found.  You can pass --with-pcre to configure to

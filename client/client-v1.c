@@ -9,7 +9,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2012
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -117,8 +117,11 @@ internal_v1_output(struct remctl *r)
     if (status != TOKEN_OK) {
         internal_token_error(r, "receiving token", status, major, minor);
         if (status == TOKEN_FAIL_EOF || status == TOKEN_FAIL_TIMEOUT) {
+            gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
+            r->context = GSS_C_NO_CONTEXT;
             socket_close(r->fd);
             r->fd = INVALID_SOCKET;
+            r->ready = false;
         }
         return NULL;
     }
@@ -180,6 +183,7 @@ internal_v1_output(struct remctl *r)
      * connection now.
      */
     gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
+    r->context = GSS_C_NO_CONTEXT;
     socket_close(r->fd);
     r->fd = INVALID_SOCKET;
     r->ready = false;

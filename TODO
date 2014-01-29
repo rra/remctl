@@ -63,16 +63,9 @@ Server:
    command in progress (if any) stops running.  (SIGTERM or SIGINT
    directly to a child should kill it outright.)
 
- * REMCTL-27: Use the trick of creating a pipe and writing to it in a
-   SIGCHLD signal handler to catch the completion of a command inside the
-   select loop in the server instead of the current short timeout and
-   polling to work around race conditions.
-
  * REMCTL-32: Support masking the argument following a particular string
    so that the argument to a particular flag can be masked regardless of
    its location on the command line.
-
- * REMCTL-36: Replace the server event loop with libevent.
 
  * REMCTL-37: Add server support for persistent child processes that the
    server communicates with over a UNIX domain socket.  The best protocol

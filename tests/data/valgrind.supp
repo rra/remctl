@@ -11,7 +11,7 @@
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2011, 2012, 2013
+# Copyright 2011, 2012, 2013, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -37,6 +37,33 @@
    Memcheck:Leak
    fun:calloc
    fun:_dlerror_run
+}
+{
+   heimdal-gss-config
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:krb5_config_parse_debug
+}
+{
+   heimdal-gss-config-2
+   Memcheck:Leak
+   fun:*alloc
+   fun:_krb5_config_get_entry
+}
+{
+   heimdal-gss-krb5-init
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:_gsskrb5_init
+}
+{
+   heimdal-gss-load-mech
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:_gss_load_mech
 }
 {
    heimdal-krb5-init-context-once
@@ -75,6 +102,13 @@
    fun:strdup
    fun:kg_set_ccache_name
    fun:gss_krb5int_ccache_name
+}
+{
+   mit-gss-error
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:krb5_gss_save_error_string
 }
 {
    mit-krb5-pkinit-openssl-init

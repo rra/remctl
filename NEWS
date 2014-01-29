@@ -1,5 +1,42 @@
                        User-Visible remctl Changes
 
+remctl 3.8 (2014-01-28)
+
+    The remctld server now uses libevent for the event loop that processes
+    output from a command.  This is primarily an internal change to
+    improve maintainability, but it does have some noticable if minor
+    benefits: primarily, no need to poll for child process exit every five
+    seconds, and therefore faster responsiveness and less resource usage
+    in each remctld process.  libevent 1.4.4 or later is now required to
+    build remctl.
+
+    Rather than capping the data returned by the server in one
+    MESSAGE_OUTPUT token at the rather arbitrary length of 65,000 octets,
+    send up to the maximum amount of data permitted by the protocol.  This
+    also slightly increases the maximum length of the output returned
+    under the version one protocol.
+
+    Fix a minor memory leak in the server when processing help commands.
+
+    Fix a GSS-API context leak in the remctl client when failing to send a
+    protocol version one token.
+
+    Use a temporary file and atomic rename when writing the server PID
+    file to avoid racing with a process monitor that tries to read the PID
+    out of the file before it's written.
+
+    Update to rra-c-util 5.2:
+
+    * Assume calloc initializes pointers to NULL.
+    * Assume free(NULL) is properly ignored.
+    * Suppress shell errors from systemd probes without pkg-config.
+    * Better logging and shutdown of subprocesses during testing.
+
+    Update to C TAP Harness 3.0:
+
+    * Reopen standard input to /dev/null when running a test list.
+    * Don't leak extraneous file descriptors to tests.
+
 remctl 3.7 (2014-01-06)
 
     Fix a client memory leak when remctl_set_ccache is used with a

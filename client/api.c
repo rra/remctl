@@ -88,16 +88,14 @@ internal_output_append(struct remctl_result *result,
         buffer = &result->stderr_buf;
         length = &result->stderr_len;
     } else if (output->type == REMCTL_OUT_OUTPUT) {
-        if (result->error != NULL)
-            free(result->error);
+        free(result->error);
         status = asprintf(&result->error, "bad output stream %d",
                           output->stream);
         if (status < 0)
             result->error = NULL;
         return false;
     } else {
-        if (result->error != NULL)
-            free(result->error);
+        free(result->error);
         result->error = strdup("internal error: bad output type");
         return false;
     }
@@ -115,8 +113,7 @@ internal_output_append(struct remctl_result *result,
         newlen++;
     newbuf = realloc(*buffer, newlen);
     if (newbuf == NULL) {
-        if (result->error != NULL)
-            free(result->error);
+        free(result->error);
         result->error = strdup("cannot allocate memory");
         return false;
     }
@@ -188,15 +185,12 @@ remctl(const char *host, unsigned short port, const char *principal,
 void
 remctl_result_free(struct remctl_result *result)
 {
-    if (result != NULL) {
-        if (result->error != NULL)
-            free(result->error);
-        if (result->stdout_buf != NULL)
-            free(result->stdout_buf);
-        if (result->stderr_buf != NULL)
-            free(result->stderr_buf);
-        free(result);
-    }
+    if (result == NULL)
+        return;
+    free(result->error);
+    free(result->stdout_buf);
+    free(result->stderr_buf);
+    free(result);
 }
 
 
@@ -216,18 +210,8 @@ remctl_new(void)
     r = calloc(1, sizeof(struct remctl));
     if (r == NULL)
         return NULL;
-    r->source = NULL;
     r->fd = INVALID_SOCKET;
-    r->host = NULL;
-    r->principal = NULL;
-    r->ccache = NULL;
     r->context = GSS_C_NO_CONTEXT;
-    r->error = NULL;
-    r->output = NULL;
-#ifdef HAVE_KRB5
-    r->krb_ctx = NULL;
-    r->krb_ccache = NULL;
-#endif
     return r;
 }
 
@@ -259,8 +243,7 @@ remctl_set_ccache(struct remctl *r, const char *ccache)
         internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
         return 0;
     }
-    if (r->ccache != NULL)
-        free(r->ccache);
+    free(r->ccache);
     r->ccache = copy;
     return 1;
 }
@@ -304,8 +287,7 @@ remctl_set_source_ip(struct remctl *r, const char *source)
         internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
         return 0;
     }
-    if (r->source != NULL)
-        free(r->source);
+    free(r->source);
     r->source = copy;
     return 1;
 }
@@ -336,10 +318,8 @@ internal_reset(struct remctl *r)
             internal_v2_quit(r);
         socket_close(r->fd);
     }
-    if (r->error != NULL) {
-        free(r->error);
-        r->error = NULL;
-    }
+    free(r->error);
+    r->error = NULL;
     if (r->output != NULL) {
         internal_output_wipe(r->output);
         free(r->output);
@@ -360,6 +340,7 @@ remctl_open(struct remctl *r, const char *host, unsigned short port,
     socket_type fd = INVALID_SOCKET;
     char *old_error;
 
+    /* Reset and reconfigure the client object. */
     internal_reset(r);
     r->host = host;
     r->port = port;
@@ -474,33 +455,43 @@ remctl_close(struct remctl *r)
 {
     OM_uint32 minor;
 
-    if (r != NULL) {
-        if (r->protocol > 1 && r->fd != -1)
-            internal_v2_quit(r);
-        if (r->source != NULL)
-            free(r->source);
-        if (r->ccache != NULL)
-            free(r->ccache);
-        if (r->fd != -1)
-            socket_close(r->fd);
-        if (r->error != NULL)
-            free(r->error);
-        if (r->output != NULL) {
-            if (r->output->data != NULL)
-                free(r->output->data);
-            free(r->output);
-        }
-        if (r->context != GSS_C_NO_CONTEXT)
-            gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
-#ifdef HAVE_KRB5
-        if (r->krb_ctx != NULL) {
-            if (r->krb_ccache != NULL)
-                krb5_cc_close(r->krb_ctx, r->krb_ccache);
-            krb5_free_context(r->krb_ctx);
-        }
-#endif
-        free(r);
+    /* Allow the passed struct to already be NULL. */
+    if (r == NULL)
+        return;
+
+    /* If we have an open connection, shut it down. */
+    if (r->protocol > 1 && r->fd != -1)
+        internal_v2_quit(r);
+    if (r->fd != INVALID_SOCKET) {
+        shutdown(r->fd, SHUT_RDWR);
+        socket_close(r->fd);
     }
+    if (r->context != GSS_C_NO_CONTEXT)
+        gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
+
+    /* If we have a registered ticket cache, free those resources. */
+#ifdef HAVE_KRB5
+    if (r->krb_ctx != NULL) {
+        if (r->krb_ccache != NULL)
+            krb5_cc_close(r->krb_ctx, r->krb_ccache);
+        krb5_free_context(r->krb_ctx);
+    }
+#endif
+
+    /* Free remaining resources. */
+    free(r->source);
+    free(r->ccache);
+    free(r->error);
+    if (r->output != NULL) {
+        free(r->output->data);
+        free(r->output);
+    }
+    free(r);
+
+    /*
+     * Always shut down the Windows socket library since we initialized it in
+     * remctl_new.
+     */
     socket_shutdown();
 }
 
@@ -514,7 +505,7 @@ remctl_close(struct remctl *r)
 static bool
 internal_reopen(struct remctl *r)
 {
-    if (r->fd < 0) {
+    if (r->fd == INVALID_SOCKET) {
         if (r->host == NULL) {
             internal_set_error(r, "no connection open");
             return false;
@@ -522,10 +513,8 @@ internal_reopen(struct remctl *r)
         if (!remctl_open(r, r->host, r->port, r->principal))
             return false;
     }
-    if (r->error != NULL) {
-        free(r->error);
-        r->error = NULL;
-    }
+    free(r->error);
+    r->error = NULL;
     return true;
 }
 
@@ -610,15 +599,9 @@ internal_output_wipe(struct remctl_output *output)
 {
     if (output == NULL)
         return;
+    free(output->data);
+    memset(output, 0, sizeof(*output));
     output->type = REMCTL_OUT_DONE;
-    if (output->data != NULL) {
-        free(output->data);
-        output->data = NULL;
-    }
-    output->length = 0;
-    output->stream = 0;
-    output->status = 0;
-    output->error = 0;
 }
 
 
@@ -639,14 +622,12 @@ internal_output_wipe(struct remctl_output *output)
 struct remctl_output *
 remctl_output(struct remctl *r)
 {
-    if (r->fd < 0 && (r->protocol != 1 || r->host == NULL)) {
+    if (r->fd == INVALID_SOCKET && (r->protocol != 1 || r->host == NULL)) {
         internal_set_error(r, "no connection open");
         return NULL;
     }
-    if (r->error != NULL) {
-        free(r->error);
-        r->error = NULL;
-    }
+    free(r->error);
+    r->error = NULL;
     if (r->protocol == 1)
         return internal_v1_output(r);
     else
