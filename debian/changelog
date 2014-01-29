@@ -20,6 +20,12 @@ remctl (3.8-1) UNRELEASED; urgency=medium
     These were already tranditional packages in wheezy.
   * Correctly qualify the libsystemd-daemon-dev dependency with
     [linux-any].  (Closes: #736578)
+  * Switch to the new uscan upstream signature verification method, which
+    uses an armored key in debian/upstream/signing-key.asc.  This allows
+    removal of debian/source/include-binaries.  Export a minimal key to
+    save all the space required by key signatures, since inclusion of the
+    key in the package already indicates the relevant trust and the
+    signatures are retrievable from a public keyserver.
 
  -- Russ Allbery <rra@debian.org>  Wed, 08 Jan 2014 23:29:00 -0800
 
