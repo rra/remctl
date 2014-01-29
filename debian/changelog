@@ -1,4 +1,4 @@
-remctl (3.8-1) UNRELEASED; urgency=medium
+remctl (3.8-1) unstable; urgency=medium
 
   * New upstream release.
     - remctld now uses libevent for the process event loop, which removes
@@ -27,7 +27,7 @@ remctl (3.8-1) UNRELEASED; urgency=medium
     key in the package already indicates the relevant trust and the
     signatures are retrievable from a public keyserver.
 
- -- Russ Allbery <rra@debian.org>  Wed, 08 Jan 2014 23:29:00 -0800
+ -- Russ Allbery <rra@debian.org>  Tue, 28 Jan 2014 19:50:20 -0800
 
 remctl (3.7-1) unstable; urgency=medium
 
