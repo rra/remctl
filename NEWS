@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.8 (unreleased)
+remctl 3.8 (2014-01-28)
 
     The remctld server now uses libevent for the event loop that processes
     output from a command.  This is primarily an internal change to

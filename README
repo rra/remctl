@@ -1,4 +1,4 @@
-                            remctl release 3.7
+                            remctl release 3.8
             (remote authenticated command execution with ACLs)
 
                    Originally written by Anton Ushakov
