@@ -74,8 +74,8 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
-	systemd/remctld.service.in systemd/remctld.socket tests/HOWTO	    \
-	tests/TESTS tests/client/remctl-t tests/config/README		    \
+	server/README systemd/remctld.service.in systemd/remctld.socket	    \
+	tests/HOWTO tests/TESTS tests/client/remctl-t tests/config/README   \
 	tests/data/acl-bad-include tests/data/acl-bad-syntax		    \
 	tests/data/acl-nonexistant tests/data/acl-recursive		    \
 	tests/data/acl-simple tests/data/acl-too-long			    \
@@ -118,11 +118,11 @@ endif
 
 # Supporting convenience libraries used by other targets.
 noinst_LTLIBRARIES = portable/libportable.la util/libutil.la
-portable_libportable_la_SOURCES = portable/dummy.c portable/getaddrinfo.h \
-	portable/getnameinfo.h portable/getopt.h portable/gssapi.h	  \
-	portable/krb5.h portable/macros.h portable/sd-daemon.h		  \
-	portable/socket.h portable/stdbool.h portable/system.h		  \
-	portable/uio.h
+portable_libportable_la_SOURCES = portable/dummy.c portable/event.h	\
+	portable/getaddrinfo.h portable/getnameinfo.h portable/getopt.h	\
+	portable/gssapi.h portable/krb5.h portable/macros.h		\
+	portable/sd-daemon.h portable/socket.h portable/stdbool.h	\
+	portable/system.h portable/uio.h
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
 util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
 	util/gss-errors.h util/gss-tokens.c util/gss-tokens.h util/macros.h \
@@ -164,17 +164,24 @@ client_remctl_SOURCES = client/remctl.c
 client_remctl_LDADD = client/libremctl.la util/libutil.la \
 	portable/libportable.la
 
-# The remctld server.
+# The remctld server.  We include portable/event-extra.c directly in the
+# sources for the server instead of including it in libportable to avoid
+# introducing a libevent dependency in libremctl, since apparently the
+# linker isn't smart enough to figure out that the event functions are
+# hidden and never called and optimize them out.
 sbin_PROGRAMS = server/remctld
-server_remctld_SOURCES = server/commands.c server/config.c server/generic.c \
-	server/logging.c server/internal.h server/remctld.c		    \
-	server/server-v1.c server/server-v2.c
+server_remctld_SOURCES = portable/event-extra.c server/commands.c	    \
+	server/config.c server/generic.c server/logging.c server/internal.h \
+	server/process.c server/remctld.c server/server-v1.c		    \
+	server/server-v2.c
 server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	\
 	$(GSSAPI_CPPFLAGS) $(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS)		\
-	$(SYSTEMD_DAEMON_CFLAGS)
-server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
-server_remctld_LDADD = util/libutil.la portable/libportable.la \
-	$(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS) $(SYSTEMD_DAEMON_LIBS)
+	$(LIBEVENT_CPPFLAGS) $(SYSTEMD_DAEMON_CFLAGS)
+server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
+	$(LIBEVENT_LDFLAGS)
+server_remctld_LDADD = util/libutil.la portable/libportable.la		\
+	$(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)	\
+	$(SYSTEMD_DAEMON_LIBS)
 
 # Install the systemd unit file if systemd support was detected.
 if HAVE_SYSTEMD
@@ -305,34 +312,35 @@ warnings:
 	$(MAKE) V=0 CFLAGS='$(WARNINGS)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
-check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t   \
-	tests/client/large-t tests/client/open-t tests/client/source-ip-t  \
-	tests/client/timeout-t tests/data/cmd-background		   \
-	tests/data/cmd-closed tests/data/cmd-large-output		   \
-	tests/data/cmd-stdin tests/data/cmd-streaming tests/data/cmd-user  \
-	tests/portable/asprintf-t tests/portable/daemon-t		   \
-	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	   \
-	tests/portable/getopt-t tests/portable/inet_aton-t		   \
-	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		   \
-	tests/portable/setenv-t tests/portable/snprintf-t		   \
-	tests/portable/strlcat-t tests/portable/strlcpy-t		   \
-	tests/server/accept-t tests/server/acl-t tests/server/bind-t	   \
-	tests/server/config-t tests/server/continue-t tests/server/empty-t \
-	tests/server/env-t tests/server/errors-t tests/server/help-t	   \
-	tests/server/invalid-t tests/server/logging-t tests/server/noop-t  \
-	tests/server/stdin-t tests/server/streaming-t			   \
-	tests/server/summary-t tests/server/user-t tests/server/version-t  \
-	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t  \
-	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	   \
-	tests/util/network/client-t tests/util/network/server-t		   \
-	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	   \
+check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t  \
+	tests/client/large-t tests/client/open-t tests/client/source-ip-t \
+	tests/client/timeout-t tests/data/cmd-background		  \
+	tests/data/cmd-closed tests/data/cmd-large-output		  \
+	tests/data/cmd-stdin tests/data/cmd-streaming tests/data/cmd-user \
+	tests/portable/asprintf-t tests/portable/daemon-t		  \
+	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	  \
+	tests/portable/getopt-t tests/portable/inet_aton-t		  \
+	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		  \
+	tests/portable/mkstemp-t tests/portable/setenv-t		  \
+	tests/portable/snprintf-t tests/portable/strlcat-t		  \
+	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t \
+	tests/server/bind-t tests/server/config-t tests/server/continue-t \
+	tests/server/empty-t tests/server/env-t tests/server/errors-t	  \
+	tests/server/help-t tests/server/invalid-t tests/server/logging-t \
+	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t \
+	tests/server/summary-t tests/server/user-t tests/server/version-t \
+	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t \
+	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	  \
+	tests/util/network/client-t tests/util/network/server-t		  \
+	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	  \
 	tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
 	-DBUILD='"$(abs_top_builddir)/tests"'
 tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests		\
 	-DPATH_FAKEROOT='"$(PATH_FAKEROOT)"'			\
-	-DPATH_REMCTLD='"$(abs_top_builddir)/server/remctld"'
+	-DPATH_REMCTLD='"$(abs_top_builddir)/server/remctld"'	\
+	$(KRB5_CPPFLAGS)
 tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 	tests/tap/kerberos.c tests/tap/kerberos.h tests/tap/messages.c	\
 	tests/tap/messages.h tests/tap/macros.h tests/tap/process.c	\
@@ -340,8 +348,9 @@ tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 	tests/tap/string.c tests/tap/string.h
 
 # Used for server tests.
-SERVER_FILES = server/commands.c server/config.c server/generic.c \
-	server/logging.c server/server-v1.c server/server-v2.c
+SERVER_FILES = portable/event-extra.c server/commands.c server/config.c	\
+	server/generic.c server/logging.c server/process.c		\
+	server/server-v1.c server/server-v2.c
 
 # All of the test programs.
 tests_client_api_t_LDFLAGS = $(KRB5_LDFLAGS)
@@ -392,6 +401,9 @@ tests_portable_inet_ntoa_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_portable_inet_ntop_t_SOURCES = tests/portable/inet_ntop-t.c \
 	tests/portable/inet_ntop.c
 tests_portable_inet_ntop_t_LDADD = tests/tap/libtap.a portable/libportable.la
+tests_portable_mkstemp_t_SOURCES = tests/portable/mkstemp-t.c \
+	tests/portable/mkstemp.c
+tests_portable_mkstemp_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_portable_setenv_t_SOURCES = tests/portable/setenv-t.c \
 	tests/portable/setenv.c
 tests_portable_setenv_t_LDADD = tests/tap/libtap.a portable/libportable.la
@@ -406,21 +418,23 @@ tests_portable_strlcpy_t_SOURCES = tests/portable/strlcpy-t.c \
 tests_portable_strlcpy_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
 tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
-	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
+	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
 tests_server_accept_t_LDADD = tests/tap/libtap.a util/libutil.la	 \
 	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) \
-	$(PCRE_LIBS)
+	$(PCRE_LIBS) $(LIBEVENT_LIBS)
 tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
-tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
+tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
+	$(LIBEVENT_LDFLAGS)
 tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la \
-	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS)
+	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
 tests_server_bind_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_bind_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 tests_server_config_t_SOURCES = tests/server/config-t.c $(SERVER_FILES)
-tests_server_config_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
+tests_server_config_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
+	$(LIBEVENT_LDFLAGS)
 tests_server_config_t_LDADD = tests/tap/libtap.a util/libutil.la \
-	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS)
+	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
 tests_server_continue_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_continue_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
@@ -440,14 +454,16 @@ tests_server_invalid_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_invalid_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 tests_server_logging_t_SOURCES = tests/server/logging-t.c $(SERVER_FILES)
-tests_server_logging_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)
-tests_server_logging_t_LDADD = tests/tap/libtap.a util/libutil.la \
-	portable/libportable.la $(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)
+tests_server_logging_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
+	$(LIBEVENT_LDFLAGS)
+tests_server_logging_t_LDADD = tests/tap/libtap.a util/libutil.la	 \
+	portable/libportable.la $(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS) \
+	$(LIBEVENT_LIBS)
 tests_server_noop_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
-	$(PCRE_LDFLAGS)
+	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
 tests_server_noop_t_LDADD = client/libremctl.la tests/tap/libtap.a	    \
 	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) \
-	$(PCRE_LIBS)
+	$(PCRE_LIBS) $(LIBEVENT_LIBS)
 tests_server_stdin_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
@@ -541,10 +557,10 @@ check-valgrind: $(check_PROGRAMS)
 	rm -rf $(abs_top_builddir)/tmp-valgrind
 	mkdir $(abs_top_builddir)/tmp-valgrind
 	env RRA_MAINTAINER_TESTS= valgrind --leak-check=full		   \
-	    --track-fds=yes --trace-children=yes			   \
+	    --show-reachable=yes --track-fds=yes --trace-children=yes	   \
 	    --log-file=$(abs_top_builddir)/tmp-valgrind/log.%p		   \
 	    --suppressions=$(abs_top_srcdir)/tests/data/valgrind.supp	   \
-	    --trace-children-skip="/bin/sh,*/cat,*/cut,*/expr,*/getopt,*/kinit,*/ls,*/mkdir,*/rm,*/rmdir,*/sed,*/sleep,*/wc,*/data/cmd-*,*/docs/pod*-t" \
+	    --trace-children-skip="/bin/sh,*/cat,*/cut,*/expr,*/getopt,*/kinit,*/ls,*/mkdir,*/rm,*/rmdir,*/sed,*/sleep,*/wc,*/data/cmd-*,*/docs/pod*-t,*/perl/*-t" \
 	    tests/runtests -l '$(abs_top_srcdir)/tests/TESTS'
 
 # Used for hooking in the build of optional language bindings.

@@ -8,13 +8,17 @@ dnl
 dnl See LICENSE for licensing terms.
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [3.7], [eagle@eyrie.org])
+AC_INIT([remctl], [3.8], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11 check-news dist-xz foreign silent-rules subdir-objects
     -Wall -Werror])
 AM_MAINTAINER_MODE
+
+dnl Detect unexpanded macros.
+m4_pattern_forbid([^PKG_])
+m4_pattern_forbid([^RRA_])
 
 dnl AM_PROG_AR is required for Automake 1.12 by Libtool but not defined at all
 dnl (or needed) in Automake 1.11.  Work around this bug.
@@ -54,6 +58,25 @@ AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
    [RRA_INCLUDES_GSSAPI])
 AC_CHECK_FUNCS([gss_krb5_ccache_name gss_krb5_import_cred])
 RRA_LIB_GSSAPI_RESTORE
+
+dnl Check for libevent, used by the server.
+RRA_LIB_EVENT
+RRA_LIB_EVENT_SWITCH
+AC_CHECK_HEADERS([event2/event.h])
+AC_CHECK_TYPES([bufferevent_data_cb, bufferevent_event_cb, event_callback_fn,
+                evutil_socket_t],
+    [], [], [RRA_INCLUDES_EVENT])
+AC_CHECK_FUNCS([bufferevent_get_input \
+    bufferevent_read_buffer \
+    bufferevent_socket_new \
+    evbuffer_get_length \
+    event_base_got_break \
+    event_base_loopbreak \
+    event_free \
+    event_new \
+    event_set_fatal_callback \
+    libevent_global_shutdown])
+RRA_LIB_EVENT_RESTORE
 
 dnl Check for the systemd daemon support library.
 RRA_LIB_SYSTEMD_DAEMON_OPTIONAL
@@ -112,7 +135,7 @@ AC_CHECK_FUNCS([getaddrinfo],
     [AC_LIBOBJ([getaddrinfo])])
 AC_CHECK_FUNCS([setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
-                  setenv strlcat strlcpy strndup])
+                  mkstemp setenv strlcat strlcpy strndup])
 AC_TYPE_SIGNAL
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up

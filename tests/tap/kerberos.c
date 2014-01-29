@@ -15,7 +15,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2007, 2009, 2010, 2011, 2012, 2013
+ * Copyright 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -47,6 +47,7 @@
 
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
+#include <tests/tap/macros.h>
 #include <tests/tap/process.h>
 #include <tests/tap/string.h>
 
@@ -201,33 +202,23 @@ kerberos_kinit(void)
 
 
 /*
- * Clean up at the end of a test.  This removes the ticket cache and resets
- * and frees the memory allocated for the environment variables so that
- * valgrind output on test suites is cleaner.
+ * Free all the memory associated with our Kerberos setup, but don't remove
+ * the ticket cache.  This is used when cleaning up on exit from a non-primary
+ * process so that test programs that fork don't remove the ticket cache still
+ * used by the main program.
  */
-void
-kerberos_cleanup(void)
+static void
+kerberos_free(void)
 {
-    char *path;
-
-    if (tmpdir_ticket != NULL) {
-        basprintf(&path, "%s/krb5cc_test", tmpdir_ticket);
-        unlink(path);
-        free(path);
-        test_tmpdir_free(tmpdir_ticket);
-        tmpdir_ticket = NULL;
-    }
+    test_tmpdir_free(tmpdir_ticket);
+    tmpdir_ticket = NULL;
     if (config != NULL) {
-        if (config->keytab != NULL) {
-            test_file_path_free(config->keytab);
-            free(config->principal);
-            free(config->cache);
-        }
-        if (config->userprinc != NULL) {
-            free(config->userprinc);
-            free(config->username);
-            free(config->password);
-        }
+        test_file_path_free(config->keytab);
+        free(config->principal);
+        free(config->cache);
+        free(config->userprinc);
+        free(config->username);
+        free(config->password);
         free(config);
         config = NULL;
     }
@@ -241,6 +232,42 @@ kerberos_cleanup(void)
         free(krb5_ktname);
         krb5_ktname = NULL;
     }
+}
+
+
+/*
+ * Clean up at the end of a test.  This removes the ticket cache and resets
+ * and frees the memory allocated for the environment variables so that
+ * valgrind output on test suites is cleaner.  Most of the work is done by
+ * kerberos_free, but this function also deletes the ticket cache.
+ */
+void
+kerberos_cleanup(void)
+{
+    char *path;
+
+    if (tmpdir_ticket != NULL) {
+        basprintf(&path, "%s/krb5cc_test", tmpdir_ticket);
+        unlink(path);
+        free(path);
+    }
+    kerberos_free();
+}
+
+
+/*
+ * The cleanup handler for the TAP framework.  Call kerberos_cleanup if we're
+ * in the primary process and kerberos_free if not.  The first argument, which
+ * indicates whether the test succeeded or not, is ignored, since we need to
+ * do the same thing either way.
+ */
+static void
+kerberos_cleanup_handler(int success UNUSED, int primary)
+{
+    if (primary)
+        kerberos_cleanup();
+    else
+        kerberos_free();
 }
 
 
@@ -321,15 +348,13 @@ kerberos_setup(enum kerberos_needs needs)
         *config->realm = '\0';
         config->realm++;
     }
-    if (path != NULL)
-        test_file_path_free(path);
+    test_file_path_free(path);
 
     /*
-     * Register the cleanup function as an atexit handler so that the caller
-     * doesn't have to worry about cleanup.
+     * Register the cleanup function so that the caller doesn't have to do
+     * explicit cleanup.
      */
-    if (atexit(kerberos_cleanup) != 0)
-        sysdiag("cannot register cleanup function");
+    test_cleanup_register(kerberos_cleanup_handler);
 
     /* Return the configuration. */
     return config;
@@ -357,10 +382,8 @@ kerberos_cleanup_conf(void)
         tmpdir_conf = NULL;
     }
     putenv((char *) "KRB5_CONFIG=");
-    if (krb5_config != NULL) {
-        free(krb5_config);
-        krb5_config = NULL;
-    }
+    free(krb5_config);
+    krb5_config = NULL;
 }
 
 

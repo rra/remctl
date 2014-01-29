@@ -40,6 +40,7 @@
 #include <config.h>
 #include <portable/system.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #ifdef HAVE_SYS_SELECT_H
@@ -57,6 +58,9 @@
 #ifndef PATH_FAKEROOT
 # define PATH_FAKEROOT ""
 #endif
+
+/* How long to wait for the process to start in seconds. */
+#define PROCESS_WAIT 10
 
 /*
  * Used to store information about a background process.  This contains
@@ -216,18 +220,14 @@ run_setup(const char *const argv[])
 
 
 /*
- * Stop a particular process given its process struct.  This kills the
- * process, waits for it to exit if possible (giving it at most five seconds),
- * and then removes it from the global processes struct so that it isn't
- * stopped again during global shutdown.
+ * Free the resources associated with tracking a process, without doing
+ * anything to the process.  This is kept separate so that we can free
+ * resources during shutdown in a non-primary process.
  */
-void
-process_stop(struct process *process)
+static void
+process_free(struct process *process)
 {
     struct process **prev;
-
-    /* This is useful for itself, but also to flush out any log messages. */
-    diag("process_stop called with pid %lu", (unsigned long) process->pid);
 
     /* Remove the process from the global list. */
     prev = &processes;
@@ -235,26 +235,6 @@ process_stop(struct process *process)
         prev = &(*prev)->next;
     if (*prev == process)
         *prev = process->next;
-
-    /*
-     * If the process is a direct child, kill it and then wait for it to exit.
-     * Otherwise, just kill it and hope.
-     */
-    if (process->is_child) {
-        alarm(5);
-        if (waitpid(process->pid, NULL, WNOHANG) == 0) {
-            kill(process->pid, SIGTERM);
-            waitpid(process->pid, NULL, 0);
-        }
-        alarm(0);
-    } else {
-        kill(process->pid, SIGTERM);
-    }
-
-    /* Remove the log and PID file. */
-    diag_file_remove(process->logfile);
-    unlink(process->pidfile);
-    unlink(process->logfile);
 
     /* Free resources. */
     free(process->pidfile);
@@ -265,16 +245,111 @@ process_stop(struct process *process)
 
 
 /*
+ * Kill a process and wait for it to exit.  Returns the status of the process.
+ * Calls bail on a system failure or a failure of the process to exit.
+ *
+ * We are quite aggressive with error reporting here because child processes
+ * that don't exit or that don't exist often indicate some form of test
+ * failure.
+ */
+static int
+process_kill(struct process *process)
+{
+    int result, i;
+    int status = -1;
+    struct timeval tv;
+    unsigned long pid = process->pid;
+
+    /* If the process is not a child, just kill it and hope. */
+    if (!process->is_child) {
+        if (kill(process->pid, SIGTERM) < 0 && errno != ESRCH)
+            sysbail("cannot send SIGTERM to process %lu", pid);
+        return 0;
+    }
+
+    /* Check if the process has already exited. */
+    result = waitpid(process->pid, &status, WNOHANG);
+    if (result < 0)
+        sysbail("cannot wait for child process %lu", pid);
+    else if (result > 0)
+        return status;
+
+    /*
+     * Kill the process and wait for it to exit.  I don't want to go to the
+     * work of setting up a SIGCHLD handler or a full event loop here, so we
+     * effectively poll every tenth of a second for process exit (and
+     * hopefully faster when it does since the SIGCHLD may interrupt our
+     * select, although we're racing with it.
+     */
+    if (kill(process->pid, SIGTERM) < 0 && errno != ESRCH)
+        sysbail("cannot send SIGTERM to child process %lu", pid);
+    for (i = 0; i < PROCESS_WAIT * 10; i++) {
+        tv.tv_sec = 0;
+        tv.tv_usec = 100000;
+        select(0, NULL, NULL, NULL, &tv);
+        result = waitpid(process->pid, &status, WNOHANG);
+        if (result < 0)
+            sysbail("cannot wait for child process %lu", pid);
+        else if (result > 0)
+            return status;
+    }
+
+    /* The process still hasn't exited.  Bail. */
+    bail("child process %lu did not exit on SIGTERM", pid);
+
+    /* Not reached, but some compilers may get confused. */
+    return status;
+}
+
+
+/*
+ * Stop a particular process given its process struct.  This kills the
+ * process, waits for it to exit if possible (giving it at most five seconds),
+ * and then removes it from the global processes struct so that it isn't
+ * stopped again during global shutdown.
+ */
+void
+process_stop(struct process *process)
+{
+    int status;
+    unsigned long pid = process->pid;
+
+    /* Stop the process. */
+    status = process_kill(process);
+
+    /* Call diag to flush logs as well as provide exit status. */
+    if (process->is_child)
+        diag("stopped process %lu (exit status %d)", pid, status);
+    else
+        diag("stopped process %lu", pid);
+
+    /* Remove the log and PID file. */
+    diag_file_remove(process->logfile);
+    unlink(process->pidfile);
+    unlink(process->logfile);
+
+    /* Free resources. */
+    process_free(process);
+}
+
+
+/*
  * Stop all running processes.  This is called as a cleanup handler during
- * process shutdown.  The argument, which says whether the test was
+ * process shutdown.  The first argument, which says whether the test was
  * successful, is ignored, since the same actions should be performed
- * regardless.
+ * regardless.  The second argument says whether this is the primary process,
+ * in which case we do the full shutdown.  Otherwise, we only free resources
+ * but don't stop the process.
  */
 static void
-process_stop_all(int success UNUSED)
+process_stop_all(int success UNUSED, int primary)
 {
-    while (processes != NULL)
-        process_stop(processes);
+    while (processes != NULL) {
+        if (primary)
+            process_stop(processes);
+        else
+            process_free(processes);
+    }
 }
 
 
@@ -380,7 +455,7 @@ process_start_internal(const char *const argv[], const char *pidfile,
      * In the parent.  Wait for the child to start by watching for the PID
      * file to appear in 100ms intervals.
      */
-    for (i = 0; i < 100 && access(pidfile, F_OK) != 0; i++) {
+    for (i = 0; i < PROCESS_WAIT * 10 && access(pidfile, F_OK) != 0; i++) {
         tv.tv_sec = 0;
         tv.tv_usec = 100000;
         select(0, NULL, NULL, NULL, &tv);

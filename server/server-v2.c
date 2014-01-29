@@ -5,16 +5,17 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
 
 #include <config.h>
-#include <portable/system.h>
+#include <portable/event.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 #include <portable/uio.h>
 
 #include <server/internal.h>
@@ -30,15 +31,18 @@
  * (and logs a message on failure).
  */
 bool
-server_v2_send_output(struct client *client, int stream)
+server_v2_send_output(struct client *client, int stream,
+                      struct evbuffer *output)
 {
     gss_buffer_desc token;
+    size_t outlen;
     char *p;
     OM_uint32 tmp, major, minor;
     int status;
 
     /* Allocate room for the total message. */
-    token.length = 1 + 1 + 1 + 4 + client->outlen;
+    outlen = evbuffer_get_length(output);
+    token.length = 1 + 1 + 1 + 4 + outlen;
     token.value = xmalloc(token.length);
 
     /*
@@ -52,10 +56,11 @@ server_v2_send_output(struct client *client, int stream)
     p++;
     *p = stream;
     p++;
-    tmp = htonl(client->outlen);
+    tmp = htonl(outlen);
     memcpy(p, &tmp, 4);
     p += 4;
-    memcpy(p, client->output, client->outlen);
+    if (evbuffer_remove(output, p, outlen) < 0)
+        die("internal error: cannot move data from output buffer");
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
@@ -373,8 +378,7 @@ server_v2_handle_command(struct client *client, struct config *config,
     return !client->fatal;
 
 fail:
-    if (allocated)
-        free(buffer);
+    free(buffer);
     return client->fatal ? false : result;
 }
 

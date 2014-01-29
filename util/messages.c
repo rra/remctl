@@ -160,6 +160,31 @@ HANDLER_FUNCTION(die)
 
 
 /*
+ * Reset all handlers back to the defaults and free all allocated memory.
+ * This is primarily useful for programs that undergo comprehensive memory
+ * allocation analysis.
+ */
+void
+message_handlers_reset(void)
+{
+    free(debug_handlers);
+    debug_handlers = NULL;
+    if (notice_handlers != stdout_handlers) {
+        free(notice_handlers);
+        notice_handlers = stdout_handlers;
+    }
+    if (warn_handlers != stderr_handlers) {
+        free(warn_handlers);
+        warn_handlers = stderr_handlers;
+    }
+    if (die_handlers != stderr_handlers) {
+        free(die_handlers);
+        die_handlers = stderr_handlers;
+    }
+}
+
+
+/*
  * Print a message to stdout, supporting message_program_name.
  */
 void

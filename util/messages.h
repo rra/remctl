@@ -4,7 +4,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2008, 2010, 2013
+ * Copyright 2008, 2010, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -71,6 +71,12 @@ void message_handlers_debug(unsigned int count, ...);
 void message_handlers_notice(unsigned int count, ...);
 void message_handlers_warn(unsigned int count, ...);
 void message_handlers_die(unsigned int count, ...);
+
+/*
+ * Reset all message handlers back to the defaults and free any memory that
+ * was allocated by the other message_handlers_* functions.
+ */
+void message_handlers_reset(void);
 
 /*
  * Some useful handlers, intended to be passed to message_handlers_*.  All

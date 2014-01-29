@@ -2,7 +2,7 @@
  * Internal support functions for the remctld daemon.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2007, 2008, 2009, 2010, 2012
+ * Copyright 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -14,18 +14,19 @@
 #include <config.h>
 #include <portable/gssapi.h>
 #include <portable/macros.h>
+#include <portable/socket.h>
 #include <portable/stdbool.h>
+
 #include <sys/types.h>
+
 #include <util/protocol.h>
 
 /* Forward declarations to avoid extra includes. */
+struct bufferevent;
+struct evbuffer;
+struct event;
+struct event_base;
 struct iovec;
-
-/*
- * Used as the default max buffer for the argv passed into the server, and for
- * the return message from the server.
- */
-#define MAXBUFFER 64000
 
 /*
  * The maximum size of argc passed to the server.  This is an arbitrary limit
@@ -49,13 +50,11 @@ struct client {
     char *user;                 /* Name of the client as a string. */
     OM_uint32 flags;            /* Connection flags. */
     bool keepalive;             /* Whether keep-alive was set. */
-    char *output;               /* Stores output to send to the client. */
-    size_t outlen;              /* Length of output to send to client. */
     bool fatal;                 /* Whether a fatal error has occurred. */
 };
 
 /* Holds the configuration for a single command. */
-struct confline {
+struct rule {
     char *file;                 /* Config file name. */
     int lineno;                 /* Config file line number. */
     struct vector *line;        /* The split configuration line. */
@@ -74,9 +73,47 @@ struct confline {
 
 /* Holds the complete parsed configuration for remctld. */
 struct config {
-    struct confline **rules;
+    struct rule **rules;
     size_t count;
     size_t allocated;
+};
+
+/*
+ * Holds details about a running process.  The events we hook into the event
+ * loop are also stored here so that the event handlers can use this as their
+ * data and have their pointers so that they can remove themselves when
+ * needed.
+ */
+struct process {
+    struct client *client;      /* Pointer to corresponding remctl client. */
+
+    /* Command input. */
+    char *command;              /* The remctl command run by the user. */
+    char **argv;                /* argv for running the command. */
+    struct rule *rule;          /* Configuration rule for the command. */
+    struct evbuffer *input;     /* Buffer of input to process. */
+
+    /* Command output. */
+    struct evbuffer *output;    /* Buffer of output from process. */
+    int status;                 /* Exit status. */
+
+    /* Everything below this point is used internally by the process loop. */
+
+    /* Process data. */
+    socket_type stdinout_fd;    /* File descriptor for input and output. */
+    socket_type stderr_fd;      /* File descriptor for standard error. */
+    pid_t pid;                  /* Process ID of child. */
+
+    /* Event loop. */
+    struct event_base *loop;    /* Event base for the process event loop. */
+    struct bufferevent *inout;  /* Input and output from process. */
+    struct bufferevent *err;    /* Standard error from process. */
+    struct event *sigchld;      /* Handle the SIGCHLD signal for exit. */
+
+    /* State flags. */
+    bool reaped;                /* Whether we've reaped the process. */
+    bool saw_error;             /* Whether we encountered some error. */
+    bool saw_output;            /* Whether we saw process output. */
 };
 
 BEGIN_DECLS
@@ -84,12 +121,12 @@ BEGIN_DECLS
 /* Logging functions. */
 void warn_gssapi(const char *, OM_uint32 major, OM_uint32 minor);
 void warn_token(const char *, int status, OM_uint32 major, OM_uint32 minor);
-void server_log_command(struct iovec **, struct confline *, const char *user);
+void server_log_command(struct iovec **, struct rule *, const char *user);
 
 /* Configuration file functions. */
 struct config *server_config_load(const char *file);
 void server_config_free(struct config *);
-bool server_config_acl_permit(struct confline *, const char *user);
+bool server_config_acl_permit(struct rule *, const char *user);
 void server_config_set_gput_file(char *file);
 
 /* Running commands. */
@@ -98,6 +135,9 @@ void server_run_command(struct client *, struct config *, struct iovec **);
 /* Freeing the command structure. */
 void server_free_command(struct iovec **);
 
+/* Running processes. */
+bool server_process_run(struct process *process);
+
 /* Generic protocol functions. */
 struct client *server_new_client(int fd, gss_cred_id_t creds);
 void server_free_client(struct client *);
@@ -105,11 +145,11 @@ struct iovec **server_parse_command(struct client *, const char *, size_t);
 bool server_send_error(struct client *, enum error_codes, const char *);
 
 /* Protocol v1 functions. */
-bool server_v1_send_output(struct client *, int status);
+bool server_v1_send_output(struct client *, struct evbuffer *, int status);
 void server_v1_handle_messages(struct client *, struct config *);
 
 /* Protocol v2 functions. */
-bool server_v2_send_output(struct client *, int stream);
+bool server_v2_send_output(struct client *, int stream, struct evbuffer *);
 bool server_v2_send_status(struct client *, int);
 bool server_v2_send_error(struct client *, enum error_codes, const char *);
 void server_v2_handle_messages(struct client *, struct config *);

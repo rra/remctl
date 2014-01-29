@@ -51,8 +51,7 @@ vector_new(void)
 {
     struct vector *vector;
 
-    vector = xmalloc(sizeof(struct vector));
-    vector->count = 0;
+    vector = xcalloc(1, sizeof(struct vector));
     vector->allocated = 1;
     vector->strings = xcalloc(1, sizeof(char *));
     return vector;
@@ -63,8 +62,7 @@ cvector_new(void)
 {
     struct cvector *vector;
 
-    vector = xmalloc(sizeof(struct cvector));
-    vector->count = 0;
+    vector = xcalloc(1, sizeof(struct cvector));
     vector->allocated = 1;
     vector->strings = xcalloc(1, sizeof(const char *));
     return vector;

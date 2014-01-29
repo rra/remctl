@@ -84,6 +84,7 @@
 /tests/portable/inet_aton-t
 /tests/portable/inet_ntoa-t
 /tests/portable/inet_ntop-t
+/tests/portable/mkstemp-t
 /tests/portable/setenv-t
 /tests/portable/snprintf-t
 /tests/portable/strlcat-t
