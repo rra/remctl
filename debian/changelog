@@ -1,5 +1,15 @@
-remctl (3.7-2) UNRELEASED; urgency=medium
+remctl (3.8-1) UNRELEASED; urgency=medium
 
+  * New upstream release.
+    - remctld now uses libevent for the process event loop, which removes
+      the need to poll for child exit and will make the server faster and
+      more responsive.
+    - Fill each MESSAGE_OUTPUT message from the server with the maximum
+      allowed data per the protocol, rather than capping it artificially
+      at 65000 octets.
+    - Fix a minor server memory leak when processing help commands.
+    - Fix a minor client memory leak on errors with protocol one commands.
+    - Write out the server PID file atomically.
   * Start building the Ruby extension for Ruby 2.0 and stop building it
     for Ruby 1.8, which is being removed.  (Closes: #735659)
   * Add Depends on ruby | ruby-interpreter to ruby-remctl.  This is
