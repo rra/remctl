@@ -1,5 +1,12 @@
                        User-Visible remctl Changes
 
+remctl 3.9 (unreleased)
+
+    Add version and compatibility information to all manual pages.
+    Command-line and configuration options, ACL methods, environment
+    variables, client library APIs, and other major features are now
+    annotated with the version of remctl in which they were added.
+
 remctl 3.8 (2014-01-28)
 
     The remctld server now uses libevent for the event loop that processes

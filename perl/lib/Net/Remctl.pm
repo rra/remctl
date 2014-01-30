@@ -5,7 +5,7 @@
 # file contains the bootstrap and export code and the documentation.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2007, 2008, 2011, 2012, 2013
+# Copyright 2007, 2008, 2011, 2012, 2013, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -159,11 +159,18 @@ multiple commands on the same persistent connection (provided that the
 remote server supports protocol version two; if not, the library will
 transparently fall back to opening a new connection for each command).
 
-To use the full interface, first create a Net::Remctl object with new() and
-then connect() to a remote server.  Then, issue a command() and call
-output() to retrieve output tokens (as Net::Remctl::Output objects) until a
-status token is received.  Destroying the Net::Remctl object will close the
-connection.
+To use the full interface, first create a Net::Remctl object with new()
+and then connect() to a remote server.  Then, issue a command() and call
+output() to retrieve output tokens (as Net::Remctl::Output objects) until
+a status token is received.  Destroying the Net::Remctl object will close
+the connection.
+
+Methods below are annotated with the version at which they were added.
+Note that this is the version of the remctl distribution, which only
+matches the Net::Remctl module version in 3.05 and later.  Earlier
+versions of the module used an independent versioning system that is not
+documented here, and versions earlier than 3.05 are therefore not suitable
+for use with C<use>.
 
 The supported object methods are:
 
@@ -171,23 +178,23 @@ The supported object methods are:
 
 =item new()
 
-Create a new Net::Remctl object.  This doesn't attempt to connect to a host
-and hence will only fail (by throwing an exception) if the library cannot
-allocate memory.
+[2.8] Create a new Net::Remctl object.  This doesn't attempt to connect to
+a host and hence will only fail (by throwing an exception) if the library
+cannot allocate memory.
 
 =item error()
 
-Retrieves the error message from the last failing operation and returns it
-as a string.
+[2.8] Retrieves the error message from the last failing operation and
+returns it as a string.
 
 =item set_ccache(CCACHE)
 
-Sets the GSS-API credential cache for outgoing connections to CCACHE,
-which is normally the path to a Kerberos ticket cache but may have other
-valid forms depending on the underlying Kerberos implementation in use by
-GSS-API.  This method will affect all subsequent open() calls on at least
-the same object, but will have no effect on connections that are already
-open.  Returns true on success and false on failure.
+[3.00] Sets the GSS-API credential cache for outgoing connections to
+CCACHE, which is normally the path to a Kerberos ticket cache but may have
+other valid forms depending on the underlying Kerberos implementation in
+use by GSS-API.  This method will affect all subsequent open() calls on at
+least the same object, but will have no effect on connections that are
+already open.  Returns true on success and false on failure.
 
 If the remctl client library was built against a Kerberos library and the
 GSS-API library supported gss_krb5_import_cred, this call affects only
@@ -201,20 +208,20 @@ this is not supported, false will be returned.
 
 =item set_source_ip(SOURCE)
 
-Sets the source IP for outgoing connections to SOURCE, which can be either
-an IPv4 or an IPv6 address (if IPv6 is supported).  It must be an IP
-address, not a host name.  This will affect all subsequent open() calls on
-the same object, but will have no effect on connections that are already
-open.  Returns true on success and false on failure.
+[3.00] Sets the source IP for outgoing connections to SOURCE, which can be
+either an IPv4 or an IPv6 address (if IPv6 is supported).  It must be an
+IP address, not a host name.  This will affect all subsequent open() calls
+on the same object, but will have no effect on connections that are
+already open.  Returns true on success and false on failure.
 
 =item set_timeout(TIMEOUT)
 
-Sets the timeout for connections and commands to TIMEOUT, which should be
-an integer number of seconds.  TIMEOUT may be 0 to clear a timeout that
-was previously set.  All subsequent operations on this Net::Remctl object
-will be subject to this timeout, including open() if called prior to
-calling open().  Returns true on success and false on failure.  Failure is
-only possible if TIMEOUT is malformed.
+[3.01] Sets the timeout for connections and commands to TIMEOUT, which
+should be an integer number of seconds.  TIMEOUT may be 0 to clear a
+timeout that was previously set.  All subsequent operations on this
+Net::Remctl object will be subject to this timeout, including open() if
+called prior to calling open().  Returns true on success and false on
+failure.  Failure is only possible if TIMEOUT is malformed.
 
 The timeout is a timeout on network activity from the server, not on a
 complete operation.  So, for example, a timeout of ten seconds just
@@ -224,11 +231,11 @@ take much longer than ten seconds without triggering the timeout.
 
 =item open(HOSTNAME[, PORT[, PRINCIPAL]])
 
-Connect to HOSTNAME on port PORT using PRINCIPAL as the remote server's
-principal for authentication.  If PORT is omitted or 0, use the default
-(first try 4373, the registered remctl port, and fall back to the legacy
-4444 port if that fails).  If PRINCIPAL is omitted or the empty string,
-use the default of host/HOSTNAME, with the realm determined by
+[2.8] Connect to HOSTNAME on port PORT using PRINCIPAL as the remote
+server's principal for authentication.  If PORT is omitted or 0, use the
+default (first try 4373, the registered remctl port, and fall back to the
+legacy 4444 port if that fails).  If PRINCIPAL is omitted or the empty
+string, use the default of host/HOSTNAME, with the realm determined by
 domain-realm mapping.  Returns true on success, false on failure.  On
 failure, call error() to get the failure message.
 
@@ -239,18 +246,20 @@ argument.
 
 =item command(COMMAND[, ARGS, ...])
 
-Send the command and arguments to the remote host.  The command and the
-arguments may, under the remctl protocol, contain any character, but be
-aware that most remctl servers will reject commands or arguments containing
-ASCII 0 (NUL), so currently this cannot be used for upload of arbitrary
-unencoded binary data.  Returns true on success (meaning success in sending
-the command, and implying nothing about the result of the command), false on
-failure.  On failure, call error() to get the failure message.
+[2.8] Send the command and arguments to the remote host.  The command and
+the arguments may, under the remctl protocol, contain any character, but
+be aware that most remctl servers will reject commands or arguments
+containing ASCII 0 (NUL), so currently this cannot be used for upload of
+arbitrary unencoded binary data.  Returns true on success (meaning success
+in sending the command, and implying nothing about the result of the
+command), false on failure.  On failure, call error() to get the failure
+message.
 
 =item output()
 
-Returns the next output token from the remote host.  The token is returned
-as a Net::Remctl::Output object, which supports the following methods:
+[2.8] Returns the next output token from the remote host.  The token is
+returned as a Net::Remctl::Output object, which supports the following
+methods:
 
 =over 4
 
@@ -298,11 +307,11 @@ for all other token types.
 
 =item noop()
 
-Send a NOOP message to the server and read the reply.  This is primarily
-used to keep a connection to a remctl server alive, such as through a
-firewall with a session timeout, while waiting to issue further commands.
-Returns true on success, false on failure.  On failure, call error() to
-get the failure message.
+[3.00] Send a NOOP message to the server and read the reply.  This is
+primarily used to keep a connection to a remctl server alive, such as
+through a firewall with a session timeout, while waiting to issue further
+commands.  Returns true on success, false on failure.  On failure, call
+error() to get the failure message.
 
 The NOOP message requires protocol version 3 support in the server, so the
 caller should be prepared for this function to fail, indicating that the
@@ -318,6 +327,20 @@ next call to command() or output() or by destroying the producing
 Net::Remctl object.  Therefore, any data in the output token should be
 processed and stored if needed before making any further Net::Remctl method
 calls on the same object.
+
+=head1 COMPATIBILITY
+
+The main object methods are annotated above with the version in which that
+interface was added.  All unannotated methods have been present since the
+first release of the module.
+
+Support for the gss_krb5_import_cred method of isolating the changed
+ticket cache to only this remctl client object was added in version 3.5.
+
+The default port was changed to the IANA-registered port of 4373 in
+version 2.11.
+
+This module was first released with version 2.8.
 
 =head1 CAVEATS
 
@@ -350,21 +373,14 @@ port and should be phased out.
 The remctl port number, 4373, was derived by tracing the diagonals of a
 QWERTY keyboard up from the letters C<remc> to the number row.
 
-=head1 SEE ALSO
-
-remctl(1), remctld(8)
-
-The current version of this module is available from its web page at
-L<http://www.eyrie.org/~eagle/software/remctl/>.
-
 =head1 AUTHOR
 
 Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007, 2008, 2011, 2012 The Board of Trustees of the Leland
-Stanford Junior University
+Copyright 2007, 2008, 2011, 2012, 2013, 2014 The Board of Trustees of the
+Leland Stanford Junior University
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -383,5 +399,12 @@ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
+
+=head1 SEE ALSO
+
+remctl(1), remctld(8)
+
+The current version of this module is available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
 
 =cut

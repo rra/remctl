@@ -1,7 +1,7 @@
 # Helper infrastructure for remctl backend programs.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2012, 2013
+# Copyright 2012, 2013, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -680,17 +680,20 @@ user passed in more arguments than that.
 
 =back
 
+=head1 COMPATIBILITY
+
+This module was added in the 3.4 release of remctl.  Since 3.5, the module
+version matches the remctl version but with a leading zero added so that
+the minor version always has two numbers (so Net::Remctl::Backend 3.05 was
+included in remctl 3.5).
+
+All currently-supported methods and options have been supported since the
+original release of the module.
+
 =head1 BUGS
 
 There is no way to check all arguments with a regex when the command
 supports any number of arguments.
-
-=head1 SEE ALSO
-
-remctld(8)
-
-The current version of this module is available from its web page at
-L<http://www.eyrie.org/~eagle/software/remctl/>.
 
 =head1 AUTHOR
 
@@ -698,8 +701,8 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2012, 2013 The Board of Trustees of the Leland Stanford Junior
-University
+Copyright 2012, 2013, 2014 The Board of Trustees of the Leland Stanford
+Junior University
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -718,5 +721,12 @@ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
+
+=head1 SEE ALSO
+
+remctld(8)
+
+The current version of this module is available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
 
 =cut
