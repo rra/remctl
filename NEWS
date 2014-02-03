@@ -2,6 +2,11 @@
 
 remctl 3.9 (unreleased)
 
+    Reset the SIGPIPE signal handler before running a command.  The server
+    sets SIGPIPE to SIG_IGN, which unlike all other signal handlers is
+    inherited across an exec.  Reset the handler to SIG_DFL so that
+    commands get default SIGPIPE handling.
+
     Add version and compatibility information to all manual pages.
     Command-line and configuration options, ACL methods, environment
     variables, client library APIs, and other major features are now

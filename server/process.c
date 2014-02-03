@@ -225,6 +225,7 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
     socket_type stdinout_fds[2] = { INVALID_SOCKET, INVALID_SOCKET };
     socket_type stderr_fds[2]   = { INVALID_SOCKET, INVALID_SOCKET };
     socket_type fd;
+    struct sigaction sa;
 
     /*
      * Socket pairs are used for communication with the child process that
@@ -307,6 +308,16 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
          */
         for (fd = 3; fd < 16; fd++)
             close(fd);
+
+        /*
+         * Restore the default SIGPIPE handler.  The server sets it to
+         * SIG_IGN, which is inherited by children.  We want the child to have
+         * a default set of signal handlers.
+         */
+        memset(&sa, 0, sizeof(sa));
+        sa.sa_handler = SIG_DFL;
+        if (sigaction(SIGPIPE, &sa, NULL) < 0)
+            sysdie("cannot clear SIGPIPE handler");
 
         /*
          * Put the authenticated principal and other connection and command

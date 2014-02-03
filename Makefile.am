@@ -316,7 +316,8 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t  \
 	tests/client/large-t tests/client/open-t tests/client/source-ip-t \
 	tests/client/timeout-t tests/data/cmd-background		  \
 	tests/data/cmd-closed tests/data/cmd-large-output		  \
-	tests/data/cmd-stdin tests/data/cmd-streaming tests/data/cmd-user \
+	tests/data/cmd-sigpipe tests/data/cmd-stdin			  \
+	tests/data/cmd-streaming tests/data/cmd-user			  \
 	tests/portable/asprintf-t tests/portable/daemon-t		  \
 	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	  \
 	tests/portable/getopt-t tests/portable/inet_aton-t		  \
@@ -374,7 +375,8 @@ tests_client_timeout_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 tests_data_cmd_background_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_data_cmd_large_output_LDADD = util/libutil.la portable/libportable.la
-tests_data_cmd_stdin_LDADD = util/libutil.la
+tests_data_cmd_sigpipe_LDADD = portable/libportable.la
+tests_data_cmd_stdin_LDADD = util/libutil.la portable/libportable.la
 tests_portable_asprintf_t_SOURCES = tests/portable/asprintf-t.c \
 	tests/portable/asprintf.c
 tests_portable_asprintf_t_LDADD = tests/tap/libtap.a portable/libportable.la

@@ -72,6 +72,7 @@
 /tests/data/cmd-background
 /tests/data/cmd-closed
 /tests/data/cmd-large-output
+/tests/data/cmd-sigpipe
 /tests/data/cmd-stdin
 /tests/data/cmd-streaming
 /tests/data/cmd-user
