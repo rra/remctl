@@ -15,7 +15,7 @@ import org.eyrie.remctl.core.RemctlToken;
 import org.junit.Test;
 
 /**
- * Test the base validation strategy
+ * Test the base validation strategy.
  * 
  * @author pradtke
  * 

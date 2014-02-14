@@ -27,7 +27,7 @@ public class RemctlConnectionFactoryTest {
         assertEquals("Updated Default port expected", 1234, client.getPort());
 
         // check that specify port doesn't get overridden
-        client = factory.createClient("dude.dude.ca", 78);
+        client = factory.createClient("dude.dude.ca", 78, null);
         assertEquals("Specified port expected", 78, client.getPort());
     }
 }

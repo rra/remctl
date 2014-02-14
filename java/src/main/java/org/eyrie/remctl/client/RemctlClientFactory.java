@@ -26,7 +26,7 @@ public class RemctlClientFactory {
      * @return A RemctlClient
      */
     public RemctlClient createClient(final String hostname) {
-        return createClient(hostname, defaultPort);
+        return this.createClient(hostname, this.defaultPort, null);
     }
 
     /**
@@ -36,9 +36,11 @@ public class RemctlClientFactory {
      *            the hostname to connect to.
      * @param port
      *            the port to connect on.
+     * @param servicePrincipal
+     *            The server principal to use. If null then use the <code>host/hostname</code> principal
      * @return A RemctlClient
      */
-    public RemctlClient createClient(final String hostname, final int port) {
+    public RemctlClient createClient(final String hostname, final int port, final String servicePrincipal) {
         return new SimpleRemctlClient(hostname, port, null);
     }
 
@@ -48,7 +50,7 @@ public class RemctlClientFactory {
      * @return the port
      */
     public int getPort() {
-        return defaultPort;
+        return this.defaultPort;
     }
 
     /**
