@@ -41,7 +41,18 @@ public class RemctlClientFactory {
      * @return A RemctlClient
      */
     public RemctlClient createClient(final String hostname, final int port, final String servicePrincipal) {
-        return new SimpleRemctlClient(hostname, port, null);
+        return new SimpleRemctlClient(hostname, port, servicePrincipal);
+    }
+
+    /**
+     * Create a new RemctlClient based on the configuration settings.
+     * 
+     * @param config
+     *            The config settings to use.
+     * @return A RemctlClient
+     */
+    public RemctlClient createClient(final Config config) {
+        return new SimpleRemctlClient(config);
     }
 
     /**

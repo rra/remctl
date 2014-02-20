@@ -33,6 +33,11 @@ public final class Utils {
     public static final int DEFAULT_PORT = 4373;
 
     /**
+     * The default name to use for the login module in a JAAS config file.
+     */
+    public static final String LOGIN_MODULE_NAME = "RemctlClient";
+
+    /**
      * Convert a throwable and stack trace into a String.
      * 
      * <p>
@@ -41,7 +46,7 @@ public final class Utils {
      * 
      * @param throwable
      *            the throwable to convert
-     * @return The thowable stack trace as a string.
+     * @return The throwable stack trace as a string.
      */
     public static String throwableToString(final Throwable throwable) {
         StringWriter stringWriter = new StringWriter();

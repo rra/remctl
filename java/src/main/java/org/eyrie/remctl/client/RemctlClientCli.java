@@ -3,6 +3,9 @@ package org.eyrie.remctl.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.security.auth.login.LoginContext;
+import javax.security.auth.login.LoginException;
+
 import org.eyrie.remctl.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +70,7 @@ public class RemctlClientCli {
      */
     public int run(final String... args) {
 
-        int port = Utils.DEFAULT_PORT;
-        String serverPrincipal = null;
+        Config.Builder config = new Config.Builder();
 
         List<String> commandArgs = new ArrayList<String>();
 
@@ -77,9 +79,20 @@ public class RemctlClientCli {
             String arg = args[i];
             if (lookForOptions && arg.startsWith("-")) {
                 if (arg.equals("-p")) {
-                    port = Integer.parseInt(args[++i]);
+                    config.withPort(Integer.parseInt(args[++i]));
                 } else if (arg.equals("-s")) {
-                    serverPrincipal = args[++i];
+                    config.withServerPrincipal(args[++i]);
+                } else if (arg.equals("--prompt")) {
+                    // set call back to prompt for username/password
+                    try {
+                        @SuppressWarnings("restriction")
+                        LoginContext context = new LoginContext(Utils.LOGIN_MODULE_NAME,
+                                new com.sun.security.auth.callback.TextCallbackHandler());
+                        config.withLoginContext(context);
+                    } catch (LoginException e) {
+                        e.printStackTrace();
+                        return 1;
+                    }
                 } else {
                     this.printHelp("Unrecognized option " + arg);
                     return 1;
@@ -97,11 +110,12 @@ public class RemctlClientCli {
 
         logger.info("Running {}", commandArgs);
 
-        String hostname = commandArgs.remove(0);
+        config.withHostname(commandArgs.remove(0));
+
+        RemctlClient client = this.clientFactory.createClient(config.build());
 
         // FIXME: catch exception and print error code
-        RemctlResponse response = this.clientFactory.createClient(hostname, port, serverPrincipal)
-                .executeAllowAnyStatus(commandArgs.toArray(new String[0]));
+        RemctlResponse response = client.executeAllowAnyStatus(commandArgs.toArray(new String[0]));
 
         System.err.print(response.getStdErr());
         System.out.print(response.getStdOut());
@@ -118,11 +132,12 @@ public class RemctlClientCli {
     private void printHelp(final String message) {
         System.out.println(message);
         // full usage: remctl [-dhv] [-b source-ip] [-p port] [-s service] host
-        System.out.println("usage: remctl [-p port] [-s service] host"
+        System.out.println("usage: remctl [--prompt] [-p port] [-s service] host"
                 + " command [subcommand [parameters ...]]");
         System.out.println("The Java command line tool is geared towards testing the Remctl library. "
                 + "This tool attempts to follow the C version: "
                 + "http://www.eyrie.org/~eagle/software/remctl/remctl.html");
     }
+
 
 }

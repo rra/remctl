@@ -17,20 +17,7 @@ import org.eyrie.remctl.core.RemctlCommandToken;
  */
 public class SimpleRemctlClient implements RemctlClient {
 
-    /**
-     * hostname to connect to.
-     */
-    private final String hostname;
-
-    /**
-     * port to connect on.
-     */
-    private final int port;
-
-    /**
-     * Server principal.
-     */
-    private final String serverPrincipal;
+    private final Config config;
 
     /**
      * Create a SimpleRemctlClient that connects to hostname using default port and server principal.
@@ -53,10 +40,17 @@ public class SimpleRemctlClient implements RemctlClient {
      *            The server principal. If null, defaults to 'host/hostname'
      */
     public SimpleRemctlClient(final String hostname, final int port, final String serverPrincipal) {
-        this.hostname = hostname;
-        this.port = port;
-        this.serverPrincipal = serverPrincipal;
+        this(new Config.Builder().withHostname(hostname).withPort(port).withServerPrincipal(serverPrincipal).build());
+    }
 
+    /**
+     * Create a new RemctlClient based on the configuration settings.
+     * 
+     * @param config
+     *            The config settings to use.
+     */
+    public SimpleRemctlClient(final Config config) {
+        this.config = config;
     }
 
     /*
@@ -86,8 +80,7 @@ public class SimpleRemctlClient implements RemctlClient {
         // a setter or a constructor). That would allow us to use a mock
         // connection
         // for testing the functionality.
-        RemctlConnection remctlConnection = new RemctlConnection(this.hostname, this.port, this.serverPrincipal);
-
+        RemctlConnection remctlConnection = new RemctlConnection(this.config);
         remctlConnection.connect();
 
         RemctlCommandToken command = new RemctlCommandToken(false, arguments);
@@ -100,7 +93,7 @@ public class SimpleRemctlClient implements RemctlClient {
 
     @Override
     public int getPort() {
-        return port;
+        return this.config.getPort();
     }
 
 }
