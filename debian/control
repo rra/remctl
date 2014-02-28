@@ -20,10 +20,10 @@ Build-Depends: debhelper (>= 9),
  php5-dev,
  pkg-config,
  python-all-dev,
+ ruby1.8,
+ ruby1.8-dev,
  ruby1.9.1,
- ruby1.9.1-dev,
- ruby2.0,
- ruby2.0-dev
+ ruby1.9.1-dev
 XS-Python-Version: >= 2.6
 Standards-Version: 3.9.5
 Homepage: http://www.eyrie.org/~eagle/software/remctl/
