@@ -16,7 +16,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2008, 2009, 2011
+ * Copyright 2008, 2009, 2011, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -186,6 +186,16 @@ struct sockaddr_storage {
  */
 #ifndef EAFNOSUPPORT
 # define EAFNOSUPPORT EDOM
+#endif
+
+/*
+ * EAI_ADDRFAMILY was made obsolete by RFC 3493, but it may still be used by
+ * obsolete IPv6 stacks and may be distinct from EAI_FAMILY.  Define it so
+ * that code that needs to handle this case can compare against it
+ * unconditionally.
+ */
+#ifndef EAI_ADDRFAMILY
+# define EAI_ADDRFAMILY EAI_FAMILY
 #endif
 
 BEGIN_DECLS

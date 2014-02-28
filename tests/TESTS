@@ -16,6 +16,7 @@ portable/getopt
 portable/inet_aton
 portable/inet_ntoa
 portable/inet_ntop
+portable/mkstemp
 portable/setenv
 portable/snprintf
 portable/strlcat
@@ -39,7 +40,10 @@ server/user
 server/version
 util/gss-tokens
 util/messages
-util/network
+util/network/addr-ipv4
+util/network/addr-ipv6
+util/network/client
+util/network/server
 util/tokens
 util/vector
 util/xmalloc

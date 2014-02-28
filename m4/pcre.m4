@@ -2,23 +2,23 @@ dnl Find the compiler and linker flags for PCRE.
 dnl
 dnl Finds the compiler and linker flags for linking with the PCRE library.
 dnl Provides the --with-pcre, --with-pcre-lib, and --with-pcre-include
-dnl configure options to specify non-standard paths to the Kerberos libraries.
+dnl configure options to specify non-standard paths to the PCRE libraries.
 dnl Uses pcre-config where available.
 dnl
 dnl Provides the macro RRA_LIB_PCRE_OPTIONAL and sets the substitution
 dnl variables PCRE_CPPFLAGS, PCRE_LDFLAGS, and PCRE_LIBS.  Also provides
 dnl RRA_LIB_PCRE_SWITCH to set CPPFLAGS, LDFLAGS, and LIBS to include the PCRE
 dnl libraries, saving the current values first, and RRA_LIB_PCRE_RESTORE to
-dnl restore those settings to before the last RRA_LIB_PCRE_SWITCH.  HAVE_PCRE
-dnl will be defined if PCRE is found.  If it isn't found, the substitution
-dnl variables will be empty.
+dnl restore those settings to before the last RRA_LIB_PCRE_SWITCH.  Defines
+dnl HAVE_PCRE and sets rra_use_pcre to true if PCRE is found.  If it isn't
+dnl found, the substitution variables will be empty.
 dnl
 dnl Depends on RRA_SET_LDFLAGS.
 dnl
 dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
-dnl Written by Russ Allbery <rra@stanford.edu>
+dnl Written by Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2010, 2013
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
@@ -91,8 +91,7 @@ AC_DEFUN([_RRA_LIB_PCRE_CHECK],
 dnl The core of the PCRE library checking.  The single argument, if "true",
 dnl says to fail if PCRE could not be found.
 AC_DEFUN([_RRA_LIB_PCRE_INTERNAL],
-[AC_REQUIRE([RRA_ENABLE_REDUCED_DEPENDS])
- AC_ARG_VAR([PCRE_CONFIG], [Path to pcre-config])
+[AC_ARG_VAR([PCRE_CONFIG], [Path to pcre-config])
  AS_IF([test x"$rra_pcre_root" != x && test -z "$PCRE_CONFIG"],
     [AS_IF([test -x "${rra_pcre_root}/bin/pcre-config"],
         [PCRE_CONFIG="${rra_pcre_root}/bin/pcre-config"])],
@@ -110,7 +109,7 @@ AC_DEFUN([RRA_LIB_PCRE_OPTIONAL],
 [rra_pcre_root=
  rra_pcre_libdir=
  rra_pcre_includedir=
- rra_with_pcre=
+ rra_use_pcre=
  PCRE_CPPFLAGS=
  PCRE_LDFLAGS=
  PCRE_LIBS=
@@ -141,5 +140,6 @@ AC_DEFUN([RRA_LIB_PCRE_OPTIONAL],
          [_RRA_LIB_PCRE_INTERNAL([true])],
          [_RRA_LIB_PCRE_INTERNAL([false])])])
  AS_IF([test x"$PCRE_LIBS" != x],
-    [AC_DEFINE([HAVE_PCRE], 1,
+    [rra_use_pcre=true
+     AC_DEFINE([HAVE_PCRE], 1,
         [Define to 1 if the PCRE library is present.])])])

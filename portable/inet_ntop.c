@@ -10,7 +10,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
  * in this work, whether granted under contract or by operation of law or
@@ -47,21 +47,26 @@ const char *test_inet_ntop(int, const void *, char *, socklen_t);
 #endif
 
 const char *
-inet_ntop(int af, const void *src, char *dst, socklen_t cnt)
+inet_ntop(int af, const void *src, char *dst, socklen_t size)
 {
     const unsigned char *p;
+    int status;
 
     if (af != AF_INET) {
         socket_set_errno(EAFNOSUPPORT);
         return NULL;
     }
-    if (cnt < INET_ADDRSTRLEN) {
+    if (size < INET_ADDRSTRLEN) {
         errno = ENOSPC;
         return NULL;
     }
     p = src;
-    snprintf(dst, cnt, "%u.%u.%u.%u",
-             (unsigned int) (p[0] & 0xff), (unsigned int) (p[1] & 0xff),
-             (unsigned int) (p[2] & 0xff), (unsigned int) (p[3] & 0xff));
+    status = snprintf(dst, size, "%u.%u.%u.%u",
+                      (unsigned int) (p[0] & 0xff),
+                      (unsigned int) (p[1] & 0xff),
+                      (unsigned int) (p[2] & 0xff),
+                      (unsigned int) (p[3] & 0xff));
+    if (status < 0)
+        return NULL;
     return dst;
 }

@@ -8,8 +8,8 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2002, 2004, 2005 Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2012
+ * Copyright 2002, 2004, 2005 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2007, 2009, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -75,10 +75,8 @@ message_log_buffer(int len UNUSED, const char *fmt, va_list args,
 void
 errors_capture(void)
 {
-    if (errors != NULL) {
-        free(errors);
-        errors = NULL;
-    }
+    free(errors);
+    errors = NULL;
     message_handlers_warn(1, message_log_buffer);
     message_handlers_notice(1, message_log_buffer);
 }

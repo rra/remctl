@@ -1,19 +1,24 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
-dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012, 2013
+dnl Written by Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012,
+dnl     2013, 2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl See LICENSE for licensing terms.
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [3.6], [rra@stanford.edu])
+AC_INIT([remctl], [3.8], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11 check-news dist-xz foreign silent-rules subdir-objects
     -Wall -Werror])
 AM_MAINTAINER_MODE
+
+dnl Detect unexpanded macros.
+m4_pattern_forbid([^PKG_])
+m4_pattern_forbid([^RRA_])
 
 dnl AM_PROG_AR is required for Automake 1.12 by Libtool but not defined at all
 dnl (or needed) in Automake 1.11.  Work around this bug.
@@ -26,13 +31,16 @@ AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 RRA_LD_VERSION_SCRIPT
 
+dnl Support installation of systemd unit files.
+RRA_WITH_SYSTEMD_UNITDIR
+
 dnl Only used for the test suite.
 AC_ARG_VAR([PATH_FAKEROOT], [Path to fakeroot for the test suite])
 AC_PATH_PROG([PATH_FAKEROOT], [fakeroot])
 
 dnl Kerberos portability checks.
 RRA_LIB_KRB5_OPTIONAL
-AS_IF([test x"$rra_use_kerberos" != xfalse],
+AS_IF([test x"$rra_use_KRB5" != xfalse],
     [RRA_LIB_KRB5_SWITCH
      AC_CHECK_FUNCS([krb5_get_init_creds_opt_set_default_flags \
          krb5_principal_get_realm \
@@ -51,6 +59,36 @@ AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
 AC_CHECK_FUNCS([gss_krb5_ccache_name gss_krb5_import_cred])
 RRA_LIB_GSSAPI_RESTORE
 
+dnl Check for libevent, used by the server.
+RRA_LIB_EVENT
+RRA_LIB_EVENT_SWITCH
+AC_CHECK_HEADERS([event2/event.h])
+AC_CHECK_TYPES([bufferevent_data_cb, bufferevent_event_cb, event_callback_fn,
+                evutil_socket_t],
+    [], [], [RRA_INCLUDES_EVENT])
+AC_CHECK_FUNCS([bufferevent_get_input \
+    bufferevent_read_buffer \
+    bufferevent_socket_new \
+    evbuffer_get_length \
+    event_base_got_break \
+    event_base_loopbreak \
+    event_free \
+    event_new \
+    event_set_fatal_callback \
+    libevent_global_shutdown])
+RRA_LIB_EVENT_RESTORE
+
+dnl Check for the systemd daemon support library.
+RRA_LIB_SYSTEMD_DAEMON_OPTIONAL
+
+dnl Check for the CMU GPUT library.
+RRA_LIB_GPUT
+
+dnl Check for regex libraries for pcre:* and regex:* ACL support.
+RRA_LIB_PCRE_OPTIONAL
+AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
+
+dnl General C library and networking probes.
 AC_SEARCH_LIBS([gethostbyname], [nsl])
 AC_SEARCH_LIBS([socket], [socket], [],
     [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], [],
@@ -97,15 +135,8 @@ AC_CHECK_FUNCS([getaddrinfo],
     [AC_LIBOBJ([getaddrinfo])])
 AC_CHECK_FUNCS([setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
-                  setenv strlcat strlcpy strndup])
+                  mkstemp setenv strlcat strlcpy strndup])
 AC_TYPE_SIGNAL
-
-dnl Check for the CMU GPUT library.
-RRA_LIB_GPUT
-
-dnl Check for regex libraries for pcre:* and regex:* ACL support.
-RRA_LIB_PCRE_OPTIONAL
-AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.

@@ -13,7 +13,7 @@
 # The canonical version of this file is maintained in the rra-c-util package,
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
-# Written by Russ Allbery <rra@stanford.edu>
+# Written by Russ Allbery <eagle@eyrie.org>
 # Copyright 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -82,18 +82,23 @@ our (@EXPORT_OK, @ISA, $VERSION);
 # consistency is good).
 BEGIN {
     @ISA       = qw(Exporter);
-    @EXPORT_OK = qw(automake_setup perl_dirs test_file_path);
+    @EXPORT_OK = qw(automake_setup perl_dirs test_file_path test_tmpdir);
 
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '4.09';
+    $VERSION = '5.02';
 }
 
 # Perl directories to skip globally for perl_dirs.  We ignore the perl
 # directory if it exists since, in my packages, it is treated as a Perl module
 # distribution and has its own standalone test suite.
 my @GLOBAL_SKIP = qw(.git perl);
+
+# The temporary directory created by test_tmpdir, if any.  If this is set,
+# attempt to remove the directory stored here on program exit (but ignore
+# failure to do so).
+my $TMPDIR;
 
 # Perform initial test setup for running a Perl test in an Automake package.
 # This verifies that BUILD and SOURCE are set and then changes directory to
@@ -238,12 +243,53 @@ sub test_file_path {
     return;
 }
 
+# Create a temporary directory for tests to use for transient files and return
+# the path to that directory.  The directory is automatically removed on
+# program exit.  The directory permissions use the current umask.  Calls
+# BAIL_OUT if the directory could not be created.
+#
+# Returns: Path to a writable temporary directory
+sub test_tmpdir {
+    my $path;
+
+    # If we already figured out what directory to use, reuse the same path.
+    # Otherwise, create a directory relative to BUILD if set.
+    if (defined($TMPDIR)) {
+        $path = $TMPDIR;
+    } else {
+        my $base = defined($ENV{BUILD}) ? $ENV{BUILD} : File::Spec->curdir;
+        $path = File::Spec->catdir($base, 'tmp');
+    }
+
+    # Create the directory if it doesn't exist.
+    if (!-d $path) {
+        if (!mkdir($path, 0777)) {
+            BAIL_OUT("cannot create directory $path: $!");
+        }
+    }
+
+    # Store the directory name for cleanup and return it.
+    $TMPDIR = $path;
+    return $path;
+}
+
+# On program exit, remove $TMPDIR if set and if possible.  Report errors with
+# diag but otherwise ignore them.
+END {
+    if (defined($TMPDIR) && -d $TMPDIR) {
+        local $! = undef;
+        if (!rmdir($TMPDIR)) {
+            diag("cannot remove temporary directory $TMPDIR: $!");
+        }
+    }
+}
+
 1;
 __END__
 
 =for stopwords
 Allbery Automake Automake-aware Automake-based rra-c-util ARGS
-subdirectories sublicense MERCHANTABILITY NONINFRINGEMENT
+subdirectories sublicense MERCHANTABILITY NONINFRINGEMENT umask
 
 =head1 NAME
 
@@ -320,11 +366,24 @@ checked for relative to the environment variable BUILD first, and then
 relative to SOURCE.  test_file_path() returns the full path to FILE or
 calls BAIL_OUT if FILE could not be found.
 
+=item test_tmpdir()
+
+Create a temporary directory for tests to use for transient files and
+return the path to that directory.  The directory is created relative to
+the BUILD environment variable, which must be set.  Permissions on the
+directory are set using the current umask.  test_tmpdir() returns the full
+path to the temporary directory or calls BAIL_OUT if it could not be
+created.
+
+The directory is automatically removed if possible on program exit.
+Failure to remove the directory on exit is reported with diag() and
+otherwise ignored.
+
 =back
 
 =head1 AUTHOR
 
-Russ Allbery <rra@stanford.edu>
+Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -1,4 +1,4 @@
-remctl (3.6-1~bpo60+1) squeeze-backports; urgency=low
+remctl (3.8-1~bpo60+1) squeeze-backports; urgency=low
 
   * Backport to squeeze.
   * Remove dependency and use of dh-autoreconf and use the upstream build
@@ -6,8 +6,66 @@ remctl (3.6-1~bpo60+1) squeeze-backports; urgency=low
   * Remove multiarch support.
   * Revert changes for the new Ruby packaging standards and reintroduce
     libremctl-ruby* packages as non-transitional packages.
+  * Remove libsystemd-daemon-dev build dependency and systemd startup
+    notification support.
 
  -- Russ Allbery <rra@debian.org>  Sun, 18 Aug 2013 13:42:15 -0700
+
+remctl (3.8-1) unstable; urgency=medium
+
+  * New upstream release.
+    - remctld now uses libevent for the process event loop, which removes
+      the need to poll for child exit and will make the server faster and
+      more responsive.
+    - Fill each MESSAGE_OUTPUT message from the server with the maximum
+      allowed data per the protocol, rather than capping it artificially
+      at 65000 octets.
+    - Fix a minor server memory leak when processing help commands.
+    - Fix a minor client memory leak on errors with protocol one commands.
+    - Write out the server PID file atomically.
+  * Start building the Ruby extension for Ruby 2.0 and stop building it
+    for Ruby 1.8, which is being removed.  (Closes: #735659)
+  * Add Depends on ruby | ruby-interpreter to ruby-remctl.  This is
+    apparently standard for Ruby extensions, since it will pull in a
+    version of Ruby that can use the extension if the Ruby versions of the
+    extension match the providers of ruby-interpreter.
+  * Drop Replaces and Breaks on libremctl-ruby1.8 and libremctl-ruby1.9.
+    These were already tranditional packages in wheezy.
+  * Correctly qualify the libsystemd-daemon-dev dependency with
+    [linux-any].  (Closes: #736578)
+  * Switch to the new uscan upstream signature verification method, which
+    uses an armored key in debian/upstream/signing-key.asc.  This allows
+    removal of debian/source/include-binaries.  Export a minimal key to
+    save all the space required by key signatures, since inclusion of the
+    key in the package already indicates the relevant trust and the
+    signatures are retrievable from a public keyserver.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 28 Jan 2014 19:50:20 -0800
+
+remctl (3.7-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Fix client memory leak when remctl_set_ccache is used.
+    - Fix Net::Remctl::Backend argument count validation when one of the
+      arguments is coming from standard input.
+    - remctld in stand-alone mode now supports systemd status notification
+      and socket activation and, with -Z, upstart status notification.  By
+      default, remctld is still spawned from inetd, so this only affects
+      users who change the default configuration.  Sample systemd and
+      upstart configurations are included in /usr/share/doc/remctl-server.
+    - Net::Remctl classes now fail cleanly if the object is undef.
+  * Switch the default Ruby build to 1.9.1 to make it easier to remove the
+    Ruby 1.8 module build when ready to do so.
+  * Add necessary keyring and watch configuration for uscan to verify
+    PGP signatures on new upstream releases.
+  * Update the watch file to download *.tar.xz distributions by default.
+  * Remove now-unnecessary override of dh_builddeb to use xz compression.
+  * Remove old NEWS file that predated the package split for a port
+    transition that substantially predated oldstable.
+  * Update standards version to 3.9.5 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Mon, 06 Jan 2014 15:03:12 -0800
+>>>>>>> debian
 
 remctl (3.6-1) unstable; urgency=low
 

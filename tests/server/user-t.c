@@ -1,8 +1,8 @@
 /*
  * Test suite for running commands as a designated user.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2012, 2013
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -55,21 +55,18 @@ test_user(struct remctl *r, const char *subcommand, uid_t *uid, gid_t *gid)
             break;
         case REMCTL_OUT_STATUS:
             if (output->status != 0) {
-                if (data != NULL)
-                    free(data);
+                free(data);
                 diag("test env returned status %d", output->status);
                 return false;
             }
             break;
         case REMCTL_OUT_ERROR:
-            if (data != NULL)
-                free(data);
+            free(data);
             diag("test env returned error: %.*s", (int) output->length,
                  output->data);
             return false;
         case REMCTL_OUT_DONE:
-            if (data != NULL)
-                free(data);
+            free(data);
             diag("unexpected done token");
             return false;
         }
@@ -106,7 +103,8 @@ int
 main(void)
 {
     struct kerberos_config *config;
-    uid_t uid, gid;
+    uid_t uid = (uid_t) -1;
+    gid_t gid = (gid_t) -1;
     struct passwd *pw;
     struct remctl *r;
     char *tmpdir, *confpath, *cmd;

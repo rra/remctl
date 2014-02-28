@@ -1,8 +1,8 @@
 /*
  * Test suite for environment variables set by the server.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2009, 2010, 2012
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2009, 2010, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -43,8 +43,7 @@ test_env(struct remctl *r, const char *variable)
             break;
         case REMCTL_OUT_STATUS:
             if (output->status != 0) {
-                if (value != NULL)
-                    free(value);
+                free(value);
                 diag("test env returned status %d", output->status);
                 return NULL;
             }
@@ -52,14 +51,12 @@ test_env(struct remctl *r, const char *variable)
                 value = bstrdup("");
             return value;
         case REMCTL_OUT_ERROR:
-            if (value != NULL)
-                free(value);
+            free(value);
             diag("test env returned error: %.*s", (int) output->length,
                  output->data);
             return NULL;
         case REMCTL_OUT_DONE:
-            if (value != NULL)
-                free(value);
+            free(value);
             diag("unexpected done token");
             return NULL;
         }
@@ -93,7 +90,10 @@ main(void)
     is_string(expected, value, "value for REMOTE_USER");
     free(value);
     value = test_env(r, "REMOTE_ADDR");
-    is_string("127.0.0.1\n", value, "value for REMOTE_ADDR");
+    if (strcmp(value, "::1\n") == 0)
+        is_string("::1\n", value, "value for REMOTE_ADDR");
+    else
+        is_string("127.0.0.1\n", value, "value for REMOTE_ADDR");
     free(value);
     value = test_env(r, "REMOTE_HOST");
     ok(strcmp(value, "\n") == 0 || strstr(value, "localhost") != NULL,

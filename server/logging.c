@@ -5,8 +5,8 @@
  * remctld, mostly wrappers around warn and die which will send errors to the
  * right place.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2008, 2010
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2007, 2008, 2010, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -25,6 +25,7 @@
 #include <util/messages.h>
 #include <util/tokens.h>
 #include <util/vector.h>
+
 
 /*
  * Report a GSS-API failure using warn.
@@ -83,8 +84,7 @@ warn_token(const char *error, int status, OM_uint32 major, OM_uint32 minor)
  * matched the command, and the principal running the command.
  */
 void
-server_log_command(struct iovec **argv, struct confline *cline,
-                   const char *user)
+server_log_command(struct iovec **argv, struct rule *rule, const char *user)
 {
     char *command, *p;
     unsigned int i;
@@ -95,17 +95,17 @@ server_log_command(struct iovec **argv, struct confline *cline,
     masked = vector_new();
     for (i = 0; argv[i] != NULL; i++) {
         arg = NULL;
-        if (cline != NULL) {
-            if (cline->logmask != NULL)
-                for (j = cline->logmask; *j != 0; j++) {
+        if (rule != NULL) {
+            if (rule->logmask != NULL)
+                for (j = rule->logmask; *j != 0; j++) {
                     if (*j == i) {
                         arg = "**MASKED**";
                         break;
                     }
                 }
             if (i > 0
-                && (cline->stdin_arg == (long) i
-                    || (cline->stdin_arg == -1 && argv[i + 1] == NULL))) {
+                && (rule->stdin_arg == (long) i
+                    || (rule->stdin_arg == -1 && argv[i + 1] == NULL))) {
                 arg = "**DATA**";
             }
         }

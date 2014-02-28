@@ -1,7 +1,7 @@
 # test_remctl.py -- Test suite for remctl Python bindings
 #
-# Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2008, 2011, 2012
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2008, 2011, 2012, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -78,7 +78,7 @@ class TestRemctl(unittest.TestCase):
             'kinit -t config/keytab ' + self.principal,
             'kinit -k -K config/keytab ' + self.principal)
         for command in commands:
-            if os.system(command + ' >/dev/null </dev/null') == 0:
+            if os.system(command + ' >/dev/null 2>&1 </dev/null') == 0:
                 return True
         if not os.path.isfile('tmp/pid'):
             time.sleep(1)

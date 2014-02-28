@@ -2,13 +2,27 @@ Source: remctl
 Section: net
 Priority: optional
 Maintainer: Russ Allbery <rra@debian.org>
-Build-Depends: debhelper (>= 9), libkrb5-dev, libkrb5-dev, libpcre3-dev,
- libperl-critic-perl, libtest-pod-perl, libtest-minimumversion-perl,
- libtest-pod-coverage-perl, libtest-strict-perl, libtest-synopsis-perl, 
- perl, php5-cli, php5-dev, python-all-dev, ruby1.8, ruby1.8-dev,
- ruby1.9.1, ruby1.9.1-dev
+Build-Depends: debhelper (>= 9),
+ libevent-dev,
+ libkrb5-dev,
+ libpcre3-dev,
+ libperl-critic-perl,
+ libtest-pod-perl,
+ libtest-minimumversion-perl,
+ libtest-pod-coverage-perl,
+ libtest-strict-perl,
+ libtest-synopsis-perl,
+ perl,
+ php5-cli,
+ php5-dev,
+ pkg-config,
+ python-all-dev,
+ ruby1.8,
+ ruby1.8-dev,
+ ruby1.9.1,
+ ruby1.9.1-dev
 XS-Python-Version: >= 2.6
-Standards-Version: 3.9.4
+Standards-Version: 3.9.5
 Homepage: http://www.eyrie.org/~eagle/software/remctl/
 Vcs-Git: git://git.eyrie.org/kerberos/remctl.git -b debian
 Vcs-Browser: http://git.eyrie.org/?p=kerberos/remctl.git
@@ -138,7 +152,7 @@ Description: Ruby extension for Kerberos-authenticated command execution
 Package: libremctl-ruby1.8
 Section: ruby
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, ruby | ruby-interpreter
 Description: Ruby 1.8 extension for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must

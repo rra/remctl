@@ -2,7 +2,7 @@
 #
 # Build script for the Net::Remctl distribution.
 #
-# Written by Russ Allbery <rra@stanford.edu>
+# Written by Russ Allbery <eagle@eyrie.org>
 # Copyright 2007, 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -49,7 +49,7 @@ sub create_command {
 # Basic package configuration.
 my $build = Module::Build->new(
     module_name          => 'Net::Remctl',
-    dist_author          => 'Russ Allbery <rra@stanford.edu>',
+    dist_author          => 'Russ Allbery <eagle@eyrie.org>',
     license              => 'mit',
     recursive_test_files => 1,
     add_to_cleanup       => [qw(cover_db t/data/cmd-hello t/data/cmd-sleep)],
@@ -62,6 +62,16 @@ my $build = Module::Build->new(
     configure_requires => { 'Module::Build' => 0.28 },
     requires           => { perl            => '5.008' },
 );
+
+# Work around a bug in the version of Module::Build that shipped with RHEL 5.
+if ($Module::Build::VERSION <= 0.2807) {
+    for my $param (qw(extra_compiler_flags extra_linker_flags)) {
+        my $value = $build->$param;
+        if (ref($value) eq 'ARRAY' && @{$value} == 1) {
+            $build->$param($build->split_like_shell($value->[0]));
+        }
+    }
+}
 
 # Generate the build script.
 $build->create_build_script;

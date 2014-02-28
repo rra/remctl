@@ -1,3 +1,4 @@
+/autom4te.cache/
 /build-aux/
 /client/libremctl.pc
 /client/remctl
@@ -54,9 +55,11 @@
 /ruby/remctl.so
 /ruby/test_remctl.rb
 /remctl-*.tar.gz
+/remctl-*.tar.xz
 /server/remctld
 /stamp-h1
 /stamp-python
+/systemd/remctld.service
 /tests/client/api-t
 /tests/client/ccache-t
 /tests/client/pod-t
@@ -81,6 +84,7 @@
 /tests/portable/inet_aton-t
 /tests/portable/inet_ntoa-t
 /tests/portable/inet_ntop-t
+/tests/portable/mkstemp-t
 /tests/portable/setenv-t
 /tests/portable/snprintf-t
 /tests/portable/strlcat-t
@@ -107,7 +111,10 @@
 /tests/util/fdflag-t
 /tests/util/gss-tokens-t
 /tests/util/messages-t
-/tests/util/network-t
+/tests/util/network/addr-ipv4-t
+/tests/util/network/addr-ipv6-t
+/tests/util/network/client-t
+/tests/util/network/server-t
 /tests/util/tokens-t
 /tests/util/vector-t
 /tests/util/xmalloc

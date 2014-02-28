@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE rfc SYSTEM "rfc2629.dtd">
 <?rfc private="remctl Protocol" toc="yes" symrefs="yes"?>
-<rfc>
+<rfc category="info" docName="draft-allbery-remctl-00" ipr="trust200902">
   <front>
     <title abbrev="remctl">remctl: Remote Authenticated Command Service</title>
     <author initials='R.' surname='Allbery' fullname='Russ Allbery'>
@@ -12,11 +12,11 @@
           <city>Stanford</city> <region>CA</region>
           <code>94305-4136</code> <country>US</country>
         </postal>
-        <email>rra@stanford.edu</email>
+        <email>eagle@eyrie.org</email>
         <uri>http://www.eyrie.org/~eagle/</uri>
       </address>
     </author>
-    <date month='October' year='2011' />
+    <date month='December' year='2013' />
 
     <abstract>
       <t>This document specifies the remctl wire protocol, used to send
@@ -491,7 +491,14 @@
       remctl protocol.</t>
     </section>
 
-    <section anchor='license' title='License'>
+    <section anchor='license' title='Additional License'>
+      <t>This section supplements the Copyright Notice section at the
+      start of this document.  It states an additional copyright notice
+      and grants a much less restrictive license than the default IETF
+      Trust license.  You may copy and distribute this document, with or
+      without modification, under your choice of the license specified in
+      the Copyright Notice section or the license below.</t>
+
       <t>Copyright 2006, 2007, 2008, 2009, 2011, 2013 The Board of
       Trustees of the Leland Stanford Junior University</t>
 

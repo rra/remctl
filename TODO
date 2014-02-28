@@ -17,6 +17,9 @@ Protocol:
    client can retrieve the list of supported commands rather than assuming
    based on the protocol version.
 
+ * REMCTL-40: Support locating remctl services via SRV records, probably
+   _<service>._remctl._tcp.<domain>.
+
 Server:
 
  * REMCTL-5: Add a way of explicitly specifying the null command or
@@ -60,10 +63,24 @@ Server:
    command in progress (if any) stops running.  (SIGTERM or SIGINT
    directly to a child should kill it outright.)
 
- * REMCTL-27: Use the trick of creating a pipe and writing to it in a
-   SIGCHLD signal handler to catch the completion of a command inside the
-   select loop in the server instead of the current short timeout and
-   polling to work around race conditions.
+ * REMCTL-32: Support masking the argument following a particular string
+   so that the argument to a particular flag can be masked regardless of
+   its location on the command line.
+
+ * REMCTL-37: Add server support for persistent child processes that the
+   server communicates with over a UNIX domain socket.  The best protocol
+   for communication is probably FastCGI, since that will allow the child
+   processes to be written in a wide variety of languages and take
+   advantage of existing libraries.  This will probably require a new
+   implementation of the FastCGI server-side protocol.
+
+ * REMCTL-41: In long-running remctld processes, check for configuration
+   file changes and reload the configuration automatically.
+
+ * REMCTL-42: Consider dropping the client remctl connection when the
+   client's authentication credentials have expired.  Otherwise, remctld
+   potentially violates the security properties of the Kerberos protocol
+   by using authenticators beyond their stated lifetime.
 
 Client:
 
@@ -93,9 +110,15 @@ Client library:
 
 Perl library:
 
- * REMCTL-19: Add a Perl module to make it easier to write remctl backends
-   that produce useful output for help and summary subcommands, for
-   integration with the new remctld support for service discovery.
+ * REMCTL-33: Add Net::Remctl::Backend support for obtaining a Kerberos
+   ticket from a given keytab file before running a command.
+
+ * REMCTL-34: Add Net::Remctl::Backend support for creating a PAG and
+   obtaining AFS tokens before running a command.
+
+ * REMCTL-38: Add support for per-command help (possibly extracted from
+   the POD documentation with some additional markup) to implement the
+   help server configuration.
 
 Build system:
 
@@ -111,6 +134,9 @@ Documentation:
    works.
 
  * REMCTL-29: Submit the remctl protocol as an IETF Internet-Draft.
+
+ * REMCTL-39: Document conventions for the configuration in the remctld
+   manual.
 
 Portability layer:
 

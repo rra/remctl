@@ -19,7 +19,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
  * in this work, whether granted under contract or by operation of law or
@@ -152,10 +152,8 @@ freeaddrinfo(struct addrinfo *ai)
 
     while (ai != NULL) {
         next = ai->ai_next;
-        if (ai->ai_addr != NULL)
-            free(ai->ai_addr);
-        if (ai->ai_canonname != NULL)
-            free(ai->ai_canonname);
+        free(ai->ai_addr);
+        free(ai->ai_canonname);
         free(ai);
         ai = next;
     }
@@ -170,18 +168,18 @@ freeaddrinfo(struct addrinfo *ai)
  * of the string is consumed, and checking that the resulting number is
  * positive.
  */
-static int
+static bool
 convert_service(const char *string, long *result)
 {
     char *end;
 
     if (*string == '\0')
-        return 0;
+        return false;
     errno = 0;
     *result = strtol(string, &end, 10);
     if (errno != 0 || *end != '\0' || *result < 0)
-        return 0;
-    return 1;
+        return false;
+    return true;
 }
 
 

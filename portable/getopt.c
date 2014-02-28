@@ -10,7 +10,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
- * Copyright 2008 Russ Allbery <rra@stanford.edu>
+ * Copyright 2008 Russ Allbery <eagle@eyrie.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

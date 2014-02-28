@@ -1,6 +1,6 @@
 # Helper infrastructure for remctl backend programs.
 #
-# Written by Russ Allbery <rra@stanford.edu>
+# Written by Russ Allbery <eagle@eyrie.org>
 # Copyright 2012, 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -48,7 +48,7 @@ our $VERSION;
 # This version matches the version of remctl with which this module was
 # released, but with at least two digits for the minor version.
 BEGIN {
-    $VERSION = '3.06';
+    $VERSION = '3.08';
 }
 
 # Constructor.  Takes all possible parameters as a hash.  See the POD
@@ -389,6 +389,7 @@ sub run {
             $stdin_index = $args_count + 1;
         }
         splice(@{$args_ref}, $stdin_index - 1, 0, $stdin);
+        $args_count = scalar(@{$args_ref});
     }
 
     # Check the number of arguments if desired.
@@ -581,6 +582,17 @@ Checks for the number of arguments and for the validity of arguments with
 regular expression verification are done after reading the data from
 standard input and transforming the argument list accordingly.
 
+=item summary
+
+The summary of what this subcommand does, as text.  Ideally, this should
+fit on the same line with the syntax after the help output has been laid
+out in columns.  If it is too long to fit, it will be wrapped, with each
+subsequent line indented to the column where the summaries start.
+
+If this key is omitted, the subcommand will still be shown in help
+output, provided that it has a syntax key, but without any trailing
+summary.
+
 =item syntax
 
 The syntax of this subcommand.  This should be short, since it needs to
@@ -604,17 +616,6 @@ Set this key to the empty string to indicate that this subcommand takes
 no arguments or flags.
 
 If this key is omitted, the subcommand will be omitted from help output.
-
-=item summary
-
-The summary of what this subcommand does, as text.  Ideally, this should
-fit on the same line with the syntax after the help output has been laid
-out in columns.  If it is too long to fit, it will be wrapped, with each
-subsequent line indented to the column where the summaries start.
-
-If this key is omitted, the subcommand will still be shown in help
-output, provided that it has a syntax key, but without any trailing
-summary.
 
 =back
 
@@ -693,7 +694,7 @@ L<http://www.eyrie.org/~eagle/software/remctl/>.
 
 =head1 AUTHOR
 
-Russ Allbery <rra@stanford.edu>
+Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 

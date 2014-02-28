@@ -2,7 +2,7 @@
  * Small C program to verify that standard input is not closed but returns EOF
  * on any read and that all file descriptors higher than 2 are closed.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Copyright 2007, 2008
  *     The Board of Trustees of the Leland Stanford Junior University
  *

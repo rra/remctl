@@ -1,8 +1,8 @@
 /*
  * Test suite for setting a specific Kerberos credential cache.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2011, 2012, 2013
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2011, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -44,9 +44,9 @@ main(void)
         is_string("setting credential cache not supported", remctl_error(r),
                   "unsupported remctl_set_ccache failed with correct error");
     else {
+        diag("%s", remctl_error(r));
         ok(!remctl_open(r, "127.0.0.1", 14373, config->principal),
            "remctl_open to 127.0.0.1");
-        diag("%s", remctl_error(r));
     }
     remctl_close(r);
 

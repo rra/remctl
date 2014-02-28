@@ -1,5 +1,86 @@
                        User-Visible remctl Changes
 
+remctl 3.8 (2014-01-28)
+
+    The remctld server now uses libevent for the event loop that processes
+    output from a command.  This is primarily an internal change to
+    improve maintainability, but it does have some noticable if minor
+    benefits: primarily, no need to poll for child process exit every five
+    seconds, and therefore faster responsiveness and less resource usage
+    in each remctld process.  libevent 1.4.4 or later is now required to
+    build remctl.
+
+    Rather than capping the data returned by the server in one
+    MESSAGE_OUTPUT token at the rather arbitrary length of 65,000 octets,
+    send up to the maximum amount of data permitted by the protocol.  This
+    also slightly increases the maximum length of the output returned
+    under the version one protocol.
+
+    Fix a minor memory leak in the server when processing help commands.
+
+    Fix a GSS-API context leak in the remctl client when failing to send a
+    protocol version one token.
+
+    Use a temporary file and atomic rename when writing the server PID
+    file to avoid racing with a process monitor that tries to read the PID
+    out of the file before it's written.
+
+    Update to rra-c-util 5.2:
+
+    * Assume calloc initializes pointers to NULL.
+    * Assume free(NULL) is properly ignored.
+    * Suppress shell errors from systemd probes without pkg-config.
+    * Better logging and shutdown of subprocesses during testing.
+
+    Update to C TAP Harness 3.0:
+
+    * Reopen standard input to /dev/null when running a test list.
+    * Don't leak extraneous file descriptors to tests.
+
+remctl 3.7 (2014-01-06)
+
+    Fix a client memory leak when remctl_set_ccache is used with a
+    Kerberos library that supports gss_krb5_import_cred.  The credential
+    was never freed, leaking memory with each remctl client call, and a
+    Kerberos ticket cache struct could also be leaked in some situations.
+
+    Fix Net::Remctl::Backend argument count validation when one of the
+    arguments is coming from standard input.  The count of arguments was
+    previously not updated properly after splicing in the extra argument.
+
+    Add support for systemd.  If built on a system with systemd installed,
+    remctl will install (but not enable) systemd units to start remctld
+    via socket activation.  remctld will also notify systemd when its
+    initialization is complete if started by systemd with service
+    notification enabled.
+
+    Add support for upstart's expect stop daemon synchronization method.
+    When starting remctld in stand-alone mode with upstart, pass the new
+    -Z option to remctld, and it will raise SIGSTOP when ready to accept
+    connections, signaling to upstart that the daemon has fully started.
+
+    Work around a bug in the Module::Build version that comes with RHEL 5
+    in passing compiler and linker flags to the Perl module build.
+
+    Net::Remctl and related classes now check that the class argument is
+    not undef and croak if it is, rather than dereferencing a NULL
+    pointer.  Caught by clang --analyze.
+
+    Update to rra-c-util 5.1:
+
+    * Suppress a dummy symbol in the client library that could leak.
+    * Don't attempt to use Kerberos if no Kerberos error APIs were found.
+    * Improve error handling in xasprintf and xvasprintf.
+    * Check the return status of snprintf and vsnprintf properly.
+    * Preserve errno if snprintf fails in vasprintf replacement.
+    * Improve error handling of network_bind_* functions.
+    * vector_free and cvector_free now can be passed NULL.
+    * Abort remctl tests if the PID file already exists.
+
+    Update to C TAP Harness 2.4:
+
+    * Suppress lazy plans and test summaries if the test failed with bail.
+
 remctl 3.6 (2013-08-14)
 
     If the client specifies a timeout, restart the wait for a nonblocking

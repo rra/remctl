@@ -1,8 +1,8 @@
 /*
  * Test suite for the server configuration parsing.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2009, 2010, 2011, 2012, 2013
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2007, 2009, 2010, 2011, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -37,6 +37,9 @@ test_error(const char *file, const char *expected)
         *p = '\0';
     }
     is_string(expected, errors, "...with the right error");
+    errors_uncapture();
+    free(errors);
+    errors = NULL;
 }
 
 

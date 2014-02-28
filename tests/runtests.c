@@ -54,8 +54,8 @@
  * should be sent to the e-mail address below.  This program is part of C TAP
  * Harness <http://www.eyrie.org/~eagle/software/c-tap-harness/>.
  *
- * Copyright 2000, 2001, 2004, 2006, 2007, 2008, 2009, 2010, 2011
- *     Russ Allbery <rra@stanford.edu>
+ * Copyright 2000, 2001, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
+ *     2014 Russ Allbery <eagle@eyrie.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -87,6 +87,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -101,9 +102,20 @@
 /* sys/time.h must be included before sys/resource.h on some platforms. */
 #include <sys/resource.h>
 
-/* AIX doesn't have WCOREDUMP. */
+/* AIX 6.1 (and possibly later) doesn't have WCOREDUMP. */
 #ifndef WCOREDUMP
-# define WCOREDUMP(status)      ((unsigned)(status) & 0x80)
+# define WCOREDUMP(status) ((unsigned)(status) & 0x80)
+#endif
+
+/*
+ * POSIX requires that these be defined in <unistd.h>, but they're not always
+ * available.  If one of them has been defined, all the rest almost certainly
+ * have.
+ */
+#ifndef STDIN_FILENO
+# define STDIN_FILENO  0
+# define STDOUT_FILENO 1
+# define STDERR_FILENO 2
 #endif
 
 /*
@@ -144,7 +156,8 @@ enum plan_status {
 /* Error exit statuses for test processes. */
 #define CHILDERR_DUP    100     /* Couldn't redirect stderr or stdout. */
 #define CHILDERR_EXEC   101     /* Couldn't exec child process. */
-#define CHILDERR_STDERR 102     /* Couldn't open stderr file. */
+#define CHILDERR_STDIN  102     /* Couldn't open stdin file. */
+#define CHILDERR_STDERR 103     /* Couldn't open stderr file. */
 
 /* Structure to hold data for a set of tests. */
 struct testset {
@@ -173,14 +186,16 @@ struct testlist {
 };
 
 /*
- * Usage message.  Should be used as a printf format with two arguments: the
- * path to runtests, given twice.
+ * Usage message.  Should be used as a printf format with four arguments: the
+ * path to runtests, given three times, and the usage_description.  This is
+ * split into variables to satisfy the pedantic ISO C90 limit on strings.
  */
 static const char usage_message[] = "\
 Usage: %s [-b <build-dir>] [-s <source-dir>] <test> ...\n\
        %s [-b <build-dir>] [-s <source-dir>] -l <test-list>\n\
        %s -o [-b <build-dir>] [-s <source-dir>] <test>\n\
-\n\
+\n%s";
+static const char usage_extra[] = "\
 Options:\n\
     -b <build-dir>      Set the build directory to <build-dir>\n\
     -l <list>           Take the list of tests to run from <test-list>\n\
@@ -396,36 +411,62 @@ skip_whitespace(const char *p)
 static pid_t
 test_start(const char *path, int *fd)
 {
-    int fds[2], errfd;
+    int fds[2], infd, errfd;
     pid_t child;
 
+    /* Create a pipe used to capture the output from the test program. */
     if (pipe(fds) == -1) {
         puts("ABORTED");
         fflush(stdout);
         sysdie("can't create pipe");
     }
+
+    /* Fork a child process, massage the file descriptors, and exec. */
     child = fork();
-    if (child == (pid_t) -1) {
+    switch (child) {
+    case -1:
         puts("ABORTED");
         fflush(stdout);
         sysdie("can't fork");
-    } else if (child == 0) {
-        /* In child.  Set up our stdout and stderr. */
+
+    /* In the child.  Set up our standard output. */
+    case 0:
+        close(fds[0]);
+        close(STDOUT_FILENO);
+        if (dup2(fds[1], STDOUT_FILENO) < 0)
+            _exit(CHILDERR_DUP);
+        close(fds[1]);
+
+        /* Point standard input at /dev/null. */
+        close(STDIN_FILENO);
+        infd = open("/dev/null", O_RDONLY);
+        if (infd < 0)
+            _exit(CHILDERR_STDIN);
+        if (infd != STDIN_FILENO) {
+            if (dup2(infd, STDIN_FILENO) < 0)
+                _exit(CHILDERR_DUP);
+            close(infd);
+        }
+
+        /* Point standard error at /dev/null. */
+        close(STDERR_FILENO);
         errfd = open("/dev/null", O_WRONLY);
         if (errfd < 0)
             _exit(CHILDERR_STDERR);
-        if (dup2(errfd, 2) == -1)
-            _exit(CHILDERR_DUP);
-        close(fds[0]);
-        if (dup2(fds[1], 1) == -1)
-            _exit(CHILDERR_DUP);
+        if (errfd != STDERR_FILENO) {
+            if (dup2(errfd, STDERR_FILENO) < 0)
+                _exit(CHILDERR_DUP);
+            close(errfd);
+        }
 
         /* Now, exec our process. */
         if (execl(path, path, (char *) 0) == -1)
             _exit(CHILDERR_EXEC);
-    } else {
-        /* In parent.  Close the extra file descriptor. */
+
+    /* In parent.  Close the extra file descriptor. */
+    default:
         close(fds[1]);
+        break;
     }
     *fd = fds[0];
     return child;
@@ -832,6 +873,7 @@ test_analyze(struct testset *ts)
             if (!ts->reported)
                 puts("ABORTED (execution failed -- not found?)");
             break;
+        case CHILDERR_STDIN:
         case CHILDERR_STDERR:
             if (!ts->reported)
                 puts("ABORTED (can't open /dev/null)");
@@ -1129,8 +1171,7 @@ free_testset(struct testset *ts)
     free(ts->file);
     free(ts->path);
     free(ts->results);
-    if (ts->reason != NULL)
-        free(ts->reason);
+    free(ts->reason);
     free(ts);
 }
 
@@ -1310,7 +1351,7 @@ main(int argc, char *argv[])
             build = optarg;
             break;
         case 'h':
-            printf(usage_message, argv[0], argv[0], argv[0]);
+            printf(usage_message, argv[0], argv[0], argv[0], usage_extra);
             exit(0);
             break;
         case 'l':
@@ -1329,7 +1370,7 @@ main(int argc, char *argv[])
     argv += optind;
     argc -= optind;
     if ((list == NULL && argc < 1) || (list != NULL && argc > 0)) {
-        fprintf(stderr, usage_message, argv[0], argv[0], argv[0]);
+        fprintf(stderr, usage_message, argv[0], argv[0], argv[0], usage_extra);
         exit(1);
     }
 
