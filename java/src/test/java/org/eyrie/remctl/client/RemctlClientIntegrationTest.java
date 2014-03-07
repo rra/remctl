@@ -1,65 +1,105 @@
 package org.eyrie.remctl.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
+import org.eyrie.remctl.core.RemctlErrorCode;
 import org.eyrie.remctl.core.RemctlErrorException;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * FIXME: this test is highly dependent on stanford infrastructure. We should mock up the dependencies
+ * These test assume you have deployed the sample `test-server-script` script and sample remctl config file on a server
+ * and will perform integration tests against that script.
  * 
+ * <p>
  * FIXME: these tests should be run against SimpleRemctlClient and PooledRemctlClient
+ * 
+ * <p>
+ * On some systems you may to be explicit about the kerberos configuration, or need to use a SOCKS proxy to reach the
+ * destination host.
+ * 
+ * <pre>
+ * -DsocksProxyPort=1535  -DsocksProxyHost=localhost -Djava.security.krb5.realm=stanford.edu  -Djava.security.krb5.kdc=krb5auth1.stanford.edu:88
+ * </pre>
  * 
  * @author pradtke
  * 
  */
-@Ignore
 public class RemctlClientIntegrationTest {
+
+    /** The configuration to use in contacting the remctl server. */
+    private static Config config;
+
+    /** The command to call in the integration scripts. */
+    private String cmdName = "test-server-script";
 
     /**
      * Setup things before test.
      */
-    @Before
-    public void setup() {
+    @BeforeClass
+    public static void setup() {
         System.setProperty("java.security.auth.login.config", "gss_jaas.conf");
+
+        // TODO: pull this config from system properties
+        config = new Config.Builder().withHostname("venture.stanford.edu").withPort(5555).build();
     }
 
     /**
-     * Test getting a response on std out.
+     * Test getting a response on stdout.
      */
     @Test
     public void testStdOut() {
 
-        SimpleRemctlClient remctlClient = new SimpleRemctlClient("acct-scripts-dev.stanford.edu");
+        SimpleRemctlClient remctlClient = new SimpleRemctlClient(config);
 
-        RemctlResponse remctlResponse = remctlClient.execute("account-show", "show", "bob");
+        // repeat simply echos back the data
+        RemctlResponse remctlResponse = remctlClient.execute(this.cmdName, "repeat", "Monkey", "Like", "Mango Man");
 
-        String expectedOutput = "Account bob\n" + "   account key: 1000007311\n" + "   type:        self\n"
-                + "   status:      inactive\n" + "   description: \n"
-                + "   owner:       person/468c983ee76911d1a32a2436000baa77 -- Edwards, Robert Scott (bob)\n"
-                + "   service:     kerberos (inactive)\n" + "       setting: principal = bob\n" + "Sunetid\n"
-                + "   entity key:  14780\n" + "   regid:       17faee88b44052d1564d9ebcbe5a9d52\n"
-                + "   status:      enabled\n"
-                + "   identifies:  person/468c983ee76911d1a32a2436000baa77 -- Edwards, Robert Scott (bob)\n";
+        String expectedOutput = "repeat Monkey Like Mango Man\n";
 
         assertEquals("Status is success", Integer.valueOf(0), remctlResponse.getStatus());
-
         assertEquals("Stdout should match", expectedOutput, remctlResponse.getStdOut());
-
         assertEquals("Stderr should be emtpy", "", remctlResponse.getStdErr());
 
     }
 
     /**
-     * Test a supported command, but call it with bad arguments so we get output on stderror.
+     * Test a command that prints to stderr and stdout.
      */
     @Test
-    public void testStdErr() {
-        SimpleRemctlClient remctlClient = new SimpleRemctlClient("tools3.stanford.edu");
-        this.assertStdError(remctlClient);
+    public void testMixedStream() {
+        SimpleRemctlClient remctlClient = new SimpleRemctlClient(config);
+        this.assertMixedStreams(remctlClient);
+    }
+
+    /**
+     * Test getting a non-0 response.
+     */
+    @Test
+    public void testStatusErr() {
+        Integer expectedStatus = 78;
+
+        SimpleRemctlClient remctlClient = new SimpleRemctlClient(config);
+
+        // 'exit-err' simply exists with a status of 78
+        RemctlResponse remctlResponse = remctlClient.executeAllowAnyStatus(this.cmdName, "exit-err");
+
+        assertEquals("Status is success", expectedStatus, remctlResponse.getStatus());
+        assertEquals("Stdout should  be emtpy", "", remctlResponse.getStdOut());
+        assertEquals("Stderr should be emtpy", "", remctlResponse.getStdErr());
+
+        // regular execture throws an exception
+        try {
+            remctlClient.execute(this.cmdName, "exit-err");
+            fail("Exception expected");
+        } catch (RemctlStatusException e) {
+            assertEquals("Status is success", expectedStatus, e.getStatus());
+            assertEquals("Stdout should  be emtpy", "", e.getStdOut());
+            assertEquals("Stderr should be emtpy", "", e.getStdErr());
+        }
 
     }
 
@@ -67,10 +107,12 @@ public class RemctlClientIntegrationTest {
      * Test that we use the canonical hostname for setting the default server principal.
      */
     @Test
+    @Ignore
     public void testHostnameIsAlias() {
+        // FIXME: test against an alias for a host
         // hosts real name is tools3.stanford.edu
         SimpleRemctlClient remctlClient = new SimpleRemctlClient("tools.stanford.edu");
-        this.assertStdError(remctlClient);
+        this.assertMixedStreams(remctlClient);
     }
 
     /**
@@ -79,7 +121,7 @@ public class RemctlClientIntegrationTest {
     @Test
     public void testClientFactory() {
         RemctlClientFactory factory = new RemctlClientFactory();
-        this.assertStdError(factory.createClient("tools.stanford.edu"));
+        this.assertMixedStreams(factory.createClient(config));
     }
 
     /**
@@ -89,6 +131,7 @@ public class RemctlClientIntegrationTest {
      *             exception from pool
      */
     @Test
+    @Ignore
     public void testMultipleExecutes() throws Exception {
         RemctlConnectionFactory factory = new RemctlConnectionFactory();
         factory.setHostname("tools3.stanford.edu");
@@ -96,47 +139,58 @@ public class RemctlClientIntegrationTest {
         RemctlConnectionPool pool = new RemctlConnectionPool(factory);
 
         PooledRemctlClient remctlClient = new PooledRemctlClient(pool);
-        this.assertStdError(remctlClient);
-        this.assertStdError(remctlClient);
+        this.assertMixedStreams(remctlClient);
+        this.assertMixedStreams(remctlClient);
 
         // clean up
         pool.close();
     }
 
     /**
-     * Execute and test the contents.
+     * Perform a standard test against a remctl command that prints to stderr and stdout.
      * 
      * @param remctlClient
      *            The remctl client to run execute with.
      */
-    private void assertStdError(final RemctlClient remctlClient) {
-        // note the [31m and [0m make the shell print colors, and don't appear
-        // as text when run from the cmdline
-        String expectedErr = "[31mTicket.pm: error loading '67': \n[0merror loading '67':  at /usr/share/perl5/Remedy/Ticket.pm line 280\n";
+    private void assertMixedStreams(final RemctlClient remctlClient) {
+        RemctlResponse remctlResponse = remctlClient.execute(this.cmdName, "mix-stream");
 
-        try {
-            remctlClient.execute("ticket", "67");
-        } catch (RemctlStatusException statusException) {
-            assertEquals("Status is success", Integer.valueOf(-1), statusException.getStatus());
+        String expectedStdOutput = "This is stdout\nThis is more stdout\n";
+        String expectedStdErr = "This is stderr\n";
 
-            assertEquals("Stdout should be emtpy", "", statusException.getStdOut());
-
-            assertEquals("Stderr should match", expectedErr, statusException.getStdErr());
-        }
+        assertEquals("Status is success", Integer.valueOf(0), remctlResponse.getStatus());
+        assertEquals("Stdout should match", expectedStdOutput, remctlResponse.getStdOut());
+        assertEquals("Stderr should match", expectedStdErr, remctlResponse.getStdErr());
     }
 
     /**
      * Test behavior when error token is encountered.
      */
     @Test
-    public void testErrorToken() {
-        SimpleRemctlClient remctlClient = new SimpleRemctlClient("tools3.stanford.edu");
+    public void testErrorTokenUnknownCommand() {
+        SimpleRemctlClient remctlClient = new SimpleRemctlClient(config);
         try {
             remctlClient.execute("no-such-command");
 
             Assert.fail("Error tokens should be exceptions");
         } catch (RemctlErrorException e) {
-            assertEquals("Code shoud match", 5, e.getErrorCode());
+            assertEquals("Code shoud match", RemctlErrorCode.ERROR_UNKNOWN_COMMAND.value, e.getErrorCode());
+        }
+
+    }
+
+    /**
+     * Test behavior when error token is encountered because of acls.
+     */
+    @Test
+    public void testErrorTokenAccess() {
+        SimpleRemctlClient remctlClient = new SimpleRemctlClient(config);
+        try {
+            remctlClient.execute("not-allowed");
+
+            Assert.fail("Error tokens should be exceptions");
+        } catch (RemctlErrorException e) {
+            assertEquals("Code shoud match", RemctlErrorCode.ERROR_ACCESS.value, e.getErrorCode());
         }
 
     }
@@ -145,6 +199,7 @@ public class RemctlClientIntegrationTest {
      * Test enabling command validator.
      */
     @Test
+    @Ignore
     public void testWithCommandValidation() {
         // ---setup connection and pool
         RemctlConnectionFactory factory = new RemctlConnectionFactory();

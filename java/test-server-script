@@ -1,0 +1,34 @@
+#!/bin/bash
+# This script is used in integration testing the Java remctl library.
+# This script should be deployed and configured on a server with remctld
+# and then the Java integration tests will make calls to that server.
+#
+# Assuming this script and the corresponding config file are in /tmp
+# Then you can run it with
+#
+#      remctld -Fm -p 5555 -f /tmp/remctl-test.conf
+
+case "$1" in 
+  noop)
+     # Returns noop. For use in connection validation
+     echo "NOOP"
+     ;;
+  repeat)
+     # Returns what ever was entered in the remctl cmd
+     echo "$@"
+     ;;
+  mix-stream)
+     # Write to both stdout and stderr
+     echo This is stdout
+     echo This is stderr 1>&2
+     echo This is more stdout
+     ;;
+  exit-err)
+     # Exit with an error status
+     exit 78
+     ;;
+  *)
+     echo "Usage: $0 {noop|repeat|mix-stream|exit-err}" >&2
+     exit 3
+     ;;
+esac

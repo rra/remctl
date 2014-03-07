@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
  * <p>
  * A factory compatible with commons-pooling
  * 
- * 
+ * <p>
  * FIXME: add some logging. Excpetions may be lost, so try-catch our code and log what exceptions we generate
  * 
  * @author pradtke
