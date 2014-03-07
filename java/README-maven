@@ -1,0 +1,66 @@
+The Remctl library is built using maven.
+
+# Deploying to alternate repository
+
+During development you may want to deploy it to remote repository
+(other than the sonatype one) for testing.  You can specify an
+alternate deployment repo. The format is is id::default::url.  In the
+below example, the alternate repo is called 'afs-internal-repo' and
+the url is a filesystem.  'default' indicates the default maven layout
+for the repo
+
+    mvn deploy -DaltDeploymentRepository=afs-internal-repo::default::file:/afs/ir.stanford.edu/product/account/maven-repo
+
+# Deploy to maven central
+
+To deploy to the central maven repository, we follow the guidelines
+outline
+[here](https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide)
+
+The `remctl` project is already setup in sonatype's repository.
+You'll need to add your sonatype username/password to your `~/.m2/settings.xml`
+
+    <settings>
+      ...
+      <servers>
+        <server>
+          <id>sonatype-nexus-snapshots</id>
+          <username>your-jira-id</username>
+          <password>your-jira-pwd</password>
+        </server>
+        <server>
+          <id>sonatype-nexus-staging</id>
+          <username>your-jira-id</username>
+          <password>your-jira-pwd</password>
+        </server>
+      </servers>
+      ...
+    </settings>
+
+## Deploy snapshot
+
+You can deploy a snapshot release to sonatype with
+
+    mvn clean deploy
+
+## Deploy a final release
+
+A final release uses maven's release plugin.
+
+    mvn release:clean
+    mvn release:prepare
+
+This will prompt you to tag the release. Since this project also
+contains `remctl` implementations in other languages, the tag should be
+
+    java/[version]
+
+for example
+
+    java/2.2.0
+
+You can then stage the release with Sonatype
+
+     mvn release:perform
+
+And then visit https://oss.sonatype.org/ to release it.
