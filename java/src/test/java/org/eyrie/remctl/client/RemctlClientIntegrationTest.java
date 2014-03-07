@@ -131,11 +131,8 @@ public class RemctlClientIntegrationTest {
      *             exception from pool
      */
     @Test
-    @Ignore
     public void testMultipleExecutes() throws Exception {
-        RemctlConnectionFactory factory = new RemctlConnectionFactory();
-        factory.setHostname("tools3.stanford.edu");
-
+        RemctlConnectionFactory factory = new RemctlConnectionFactory(config);
         RemctlConnectionPool pool = new RemctlConnectionPool(factory);
 
         PooledRemctlClient remctlClient = new PooledRemctlClient(pool);
@@ -199,19 +196,39 @@ public class RemctlClientIntegrationTest {
      * Test enabling command validator.
      */
     @Test
-    @Ignore
     public void testWithCommandValidation() {
         // ---setup connection and pool
-        RemctlConnectionFactory factory = new RemctlConnectionFactory();
-        factory.setHostname("acct-scripts-dev.stanford.edu");
+        RemctlConnectionFactory factory = new RemctlConnectionFactory(config);
         RemctlConnectionPool pool = new RemctlConnectionPool(factory);
 
         PooledRemctlClient remctlClient = new PooledRemctlClient(pool);
-        CommandValidationStrategy validationStrategy = new CommandValidationStrategy("account-show", "show", "bob");
+        CommandValidationStrategy validationStrategy = new CommandValidationStrategy(this.cmdName, "noop");
         factory.setValidationStrategy(validationStrategy);
 
-        RemctlResponse reponse = remctlClient.execute("account-show", "list", "pradtke");
-        assertEquals(0, reponse.getStatus().intValue());
+        this.assertMixedStreams(remctlClient);
+    }
 
+    /**
+     * Test failed command validation.
+     * 
+     * @throws Exception
+     *             thrown if error with the pool
+     */
+    @Test
+    public void testWithFailedCommandValidation() throws Exception {
+        // ---setup connection and pool
+        RemctlConnectionFactory factory = new RemctlConnectionFactory(config);
+        RemctlConnectionPool pool = new RemctlConnectionPool(factory);
+
+        // this command validation will fail
+        CommandValidationStrategy validationStrategy = new CommandValidationStrategy(this.cmdName, "exit-err");
+        factory.setValidationStrategy(validationStrategy);
+
+        try {
+            pool.borrowObject();
+            fail("Command validation should have failed");
+        } catch (Exception expected) {
+            // exception expected
+        }
     }
 }

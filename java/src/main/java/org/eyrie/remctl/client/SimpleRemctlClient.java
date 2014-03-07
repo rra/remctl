@@ -17,6 +17,9 @@ import org.eyrie.remctl.core.RemctlCommandToken;
  */
 public class SimpleRemctlClient implements RemctlClient {
 
+    /**
+     * The configuration to use when connecting.
+     */
     private final Config config;
 
     /**

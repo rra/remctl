@@ -1,7 +1,6 @@
 package org.eyrie.remctl.client;
 
 import org.apache.commons.pool.BasePoolableObjectFactory;
-import org.eyrie.remctl.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,20 +22,11 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
      * Allow logging.
      */
     static final Logger logger = LoggerFactory.getLogger(RemctlConnectionFactory.class);
-    /**
-     * The hostname to connect to.
-     */
-    private String hostname;
 
     /**
-     * the port to connect to.
+     * The configuration to use with new connections.
      */
-    private int port = Utils.DEFAULT_PORT;
-
-    /**
-     * The server principal.
-     */
-    private String serverPrincipal;
+    private Config config;
 
     /**
      * Set a default validation strategy.
@@ -57,12 +47,25 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
      *            the hostname connections should connect to.
      */
     public RemctlConnectionFactory(final String hostname) {
-        this.hostname = hostname;
+        this(new Config.Builder().withHostname(hostname).build());
+    }
+
+    /**
+     * Create factory that creates remctl connection based on the configuration settings.
+     * 
+     * @param config
+     *            The config settings to use.
+     */
+    public RemctlConnectionFactory(final Config config) {
+        this.config = config;
     }
 
     @Override
     public RemctlConnection makeObject() throws Exception {
-        RemctlConnection connection = new RemctlConnection(this.hostname, this.port, this.serverPrincipal);
+        if (this.config == null) {
+            throw new IllegalStateException("A hostname or Config must be provided to create new RemctlConnection");
+        }
+        RemctlConnection connection = new RemctlConnection(this.config);
         connection.connect();
         return connection;
     }
@@ -73,47 +76,46 @@ public class RemctlConnectionFactory extends BasePoolableObjectFactory {
      * @return the hostname
      */
     public String getHostname() {
-        return this.hostname;
+        return this.config == null ? null : this.config.getHostname();
     }
 
     /**
      * Set the hostname that connections are made to.
+     * <p>
+     * Use {@link Config} to change configuration options for the connections
+     * </p>
+     * .
+     * 
+     * <p>
+     * Calling this method, overwrites any existing configuration, and uses the default port and server principal in
+     * conjunction with the provided hostname
+     * </p>
      * 
      * @param hostname
      *            the hostname to set
      */
+    @Deprecated
     public void setHostname(final String hostname) {
-        this.hostname = hostname;
+        this.config = new Config.Builder().withHostname(hostname).build();
     }
 
     /**
-     * @return the port
+     * The configuration to use when creating new connections.
+     * 
+     * @return the config
      */
-    public int getPort() {
-        return this.port;
+    public Config getConfig() {
+        return this.config;
     }
 
     /**
-     * @param port
-     *            the port to set
+     * Set the configuration to use when creating new connection.
+     * 
+     * @param config
+     *            the config to set
      */
-    public void setPort(final int port) {
-        this.port = port;
-    }
-
-    /**
-     * @return the serverPrincipal
-     */
-    public String getServerPrincipal() {
-        return this.serverPrincipal;
-    }
-
-    /**
-     * @param serverPrincipal
-     *            the serverPrincipal to set
-     */
-    public void setServerPrincipal(final String serverPrincipal) {
-        this.serverPrincipal = serverPrincipal;
+    public void setConfig(final Config config) {
+        this.config = config;
     }
 
     /*
