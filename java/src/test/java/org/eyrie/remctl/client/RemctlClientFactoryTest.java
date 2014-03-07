@@ -10,7 +10,7 @@ import org.junit.Test;
  * @author pradtke
  * 
  */
-public class RemctlConnectionFactoryTest {
+public class RemctlClientFactoryTest {
 
     /**
      * Test specifying the default port.
