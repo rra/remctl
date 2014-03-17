@@ -59,8 +59,51 @@ for example
 
     java/2.2.0
 
-You can then stage the release with Sonatype
+An additional issue is that the release plugin automatically tries to push
+the commits and tags. This doesn't work by default with gerrit, and the behavior
+can be disabled with the `pushChanges` flag.
 
-     mvn release:perform
+The below example shows a prepare where we've skipped tests (because we don't
+have the integration environment setup), and have disabled pushes
 
-And then visit https://oss.sonatype.org/ to release it.
+    mvn release:prepare -DpreparationGoals=compile -DpushChanges=false
+
+You can then stage the release with Sonatype using `mvn release:perform`. The `perform` task hasn't worked for
+me in the past, and I've done the deployment by hand with 
+
+    git checkout java/[tag-name]
+    cd java
+
+    # note: only skip tests if you don't have an integration environment setup
+    mvm clean package -DskipTests
+
+    # deploy jar
+    mvn gpg:sign-and-deploy-file -Durl=https://oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=sonatype-nexus-staging -DpomFile=pom.xml -Dfile=target/remctl-2.2.0.jar
+
+    # deploy source
+    mvn gpg:sign-and-deploy-file -Durl=https://oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=sonatype-nexus-staging -DpomFile=pom.xml -Dfile=target/remctl-2.2.0-sources.jar  -Dclassifier=sources
+
+    #deploy doc
+    mvn gpg:sign-and-deploy-file -Durl=https://oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=sonatype-nexus-staging -DpomFile=pom.xml -Dfile=target/remctl-2.2.0-javadoc.jar  -Dclassifier=javadoc
+
+
+
+Once the files have been signed, and uploaded to sonatype's staging repository, you can than release it to maven central.
+This is covered in 'step 8a' of Sonatypes [instructions](https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide).
+
+# Updating the 'site'
+
+Maven can create a website for the project. The site will contain
+javadoc, source code, test information, as well as any user guides we
+write. The site is current seperate from the main Remctl website. The site
+can be created with
+
+    mvn site
+
+It is currently hosted in Patrick's webspace.
+To deploy:
+
+    #backup old version
+    mv ~/WWW/remctl/ ~/WWW/remctl-2.1.1
+    #deploy new version
+    cp -r  target/site/ ~/WWW/remctl
