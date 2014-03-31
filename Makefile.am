@@ -324,6 +324,7 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t  \
 	tests/portable/mkstemp-t tests/portable/setenv-t		  \
 	tests/portable/snprintf-t tests/portable/strlcat-t		  \
 	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t \
+	tests/server/acl-unxgrp-t \
 	tests/server/bind-t tests/server/config-t tests/server/continue-t \
 	tests/server/empty-t tests/server/env-t tests/server/errors-t	  \
 	tests/server/help-t tests/server/invalid-t tests/server/logging-t \
@@ -427,6 +428,13 @@ tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
 	$(LIBEVENT_LDFLAGS)
 tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
+
+tests_server_acl_unxgrp_t_SOURCES = tests/server/acl-unxgrp-t.c tests/server/getgrnam_r.c $(SERVER_FILES)
+tests_server_acl_unxgrp_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
+	$(LIBEVENT_LDFLAGS)
+tests_server_acl_unxgrp_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
+
 tests_server_bind_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_bind_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)

@@ -388,6 +388,12 @@ C<deny:pcre:regex> syntax.
 This method is supported only if B<remctld> was compiled with PCRE support
 by using the C<--with-pcre> configure option.
 
+=item unxgrp
+
+This method is used to grant or deny access based on Unix group.
+The user name is first sanitized (instances and REALM are removed from principal name),
+and then compared to members of B<group>.
+
 =back
 
 To see the list of ACL types supported by a particular build of

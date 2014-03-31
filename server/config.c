@@ -27,6 +27,11 @@
 # include <regex.h>
 #endif
 #include <sys/stat.h>
+#ifdef HAVE_GETGRNAM_R
+# include <sys/types.h>
+# include <grp.h>
+# include <unistd.h>
+#endif
 
 #include <server/internal.h>
 #include <util/macros.h>
@@ -885,6 +890,79 @@ acl_check_regex(const char *user, const char *data, const char *file,
 }
 #endif /* HAVE_REGCOMP */
 
+#ifdef HAVE_GETGRNAM_R
+static enum config_status
+acl_check_unxgrp (const char *user, const char *data, const char *file,
+                int lineno)
+{
+    struct group grp;
+    struct group *tempgrp = NULL;
+    int status = -1;
+    enum config_status result = CONFIG_ERROR;
+    long buf_len = -1;
+    char *buf = NULL;
+    size_t buf_sz = 1024;
+
+    memset(&grp, 0x0, sizeof(grp));
+
+    buf_len = sysconf(_SC_GETGR_R_SIZE_MAX);
+    if (buf_len > 0) {
+        buf_sz = (size_t) buf_sz;
+    }
+
+    buf = (char *) xmalloc(sizeof(char) * buf_sz);
+    memset(buf, 0x0, buf_sz);
+
+    do {
+        status = getgrnam_r(data, &grp, buf, buf_sz, &tempgrp);
+        if (status != 0 && status != EINTR) {
+            warn("%s:%d: resolving unix group '%s' failed with status %d", file,
+                 lineno, data, status);
+            result = CONFIG_ERROR;
+            goto die;
+        }
+    } while (status == EINTR);
+
+    /* No group matching */
+    if (tempgrp == NULL) {
+        result = CONFIG_NOMATCH;
+    }
+    else {
+        /* Sanitize and search for match in group members */
+        char *cur_member = grp.gr_mem[0];
+        char *p_user = user;
+        int i = 0;
+        char *sanitized_user = NULL;
+
+        /* Sanitize username, remove instances and REALM */
+        sanitized_user = xmalloc(sizeof(char)* strlen(user));
+        memset(sanitized_user, 0x0, strlen(user));
+
+        while (p_user != NULL && *p_user != '\0') {
+            if (*p_user == '\x40' || *p_user == '\x2F')
+                break;
+            sanitized_user[i++] = *p_user;
+            p_user += 1;
+        }
+
+        /* Check if sanitized user is within group members */
+        i = 0;
+        while (cur_member != NULL && *cur_member != '\0') {
+            if (strcmp(cur_member, sanitized_user) == 0) {
+                result = CONFIG_SUCCESS;
+                goto die;
+            }
+            cur_member = grp.gr_mem[++i];
+        }
+
+        result = CONFIG_NOMATCH;
+    }
+
+die:
+    return result;
+}
+#endif /* HAVE_GETGRNAM_R */
+
 /*
  * The table relating ACL scheme names to functions.  The first two ACL
  * schemes must remain in their current slots or the index constants set at
@@ -908,6 +986,11 @@ static const struct acl_scheme schemes[] = {
     { "regex", acl_check_regex },
 #else
     { "regex", NULL            },
+#endif
+#ifdef HAVE_GETGRNAM_R
+    { "unxgrp", acl_check_unxgrp },
+#else
+    { "unxgrp", NULL         },
 #endif
     { NULL,    NULL            }
 };
