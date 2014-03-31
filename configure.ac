@@ -7,7 +7,8 @@ dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl See LICENSE for licensing terms.
 
-AC_PREREQ([2.64])
+AC_PREREQ([2.63])
+dnl AC_PREREQ([2.64])
 AC_INIT([remctl], [3.8], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
@@ -87,6 +88,10 @@ RRA_LIB_GPUT
 dnl Check for regex libraries for pcre:* and regex:* ACL support.
 RRA_LIB_PCRE_OPTIONAL
 AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
+
+dnl Check for POSIX getgrnam_r, get*nam_r functions.
+AC_CHECK_FUNCS([getgrnam_r])
+AC_DEFINE([HAVE_GETGRNAM_R], [0])
 
 dnl General C library and networking probes.
 AC_SEARCH_LIBS([gethostbyname], [nsl])

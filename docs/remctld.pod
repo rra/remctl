@@ -420,6 +420,12 @@ identity.  To deny access, use the C<deny:regex:I<regex>> syntax.
 This method is supported only if a library for POSIX-compatible regular
 expressions was found when B<remctld> was built.
 
+=item unxgrp
+
+This method is used to grant or deny access based on Unix group.
+The user name is first sanitized (instances and REALM are removed from principal name),
+and then compared to members of B<group>.
+
 =back
 
 To see the list of ACL types supported by a particular build of
