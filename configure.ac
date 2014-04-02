@@ -91,7 +91,6 @@ AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
 
 dnl Check for POSIX getgrnam_r, get*nam_r functions.
 AC_CHECK_FUNCS([getgrnam_r])
-AC_DEFINE([HAVE_GETGRNAM_R], [0])
 
 dnl General C library and networking probes.
 AC_SEARCH_LIBS([gethostbyname], [nsl])
