@@ -62,8 +62,6 @@ int getgrnam_r(const char *name, struct group *grp,
     if (call_idx >= PRE_ALLOC_ANSWERS_MAX_IDX)
         call_idx = 0;
 
-    printf("call_idx = %d\n", call_idx);
-
     *grp = *(getgrnam_r_responses[call_idx].getgrnam_grp);
     *result = grp;
     rc = getgrnam_r_responses[call_idx].getgrnam_r_rc;
