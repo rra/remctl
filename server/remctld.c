@@ -107,7 +107,7 @@ usage(int status)
 #ifdef HAVE_REGCOMP
     fprintf(output, ", regex");
 #endif
-#ifdef HAVE_GETGRNAM_R
+#ifdef HAVE_REMCTL_UNXGRP_ACL
     fprintf(output, ", unxgrp");
 #endif
     fprintf(output, "\n");

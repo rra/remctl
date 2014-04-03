@@ -27,10 +27,12 @@
 # include <regex.h>
 #endif
 #include <sys/stat.h>
-#ifdef HAVE_GETGRNAM_R
+
+#ifdef HAVE_REMCTL_UNXGRP_ACL 
 # include <sys/types.h>
 # include <grp.h>
 # include <unistd.h>
+# include <portable/krb5.h>
 #endif
 
 #include <server/internal.h>
@@ -49,6 +51,14 @@
 # include <gput.h>
 static char *acl_gput_file = NULL;
 #endif
+
+/*
+ * maximum length allowed when converting
+ * principal to local name
+ */
+#define REMCTL_KRB5_LOCALNAME_MAX_LEN sysconf(_SC_LOGIN_NAME_MAX) < 256 \
+                                      ? 256 \
+                                      : sysconf(_SC_LOGIN_NAME_MAX)
 
 /* Return codes for configuration and ACL parsing. */
 enum config_status {
@@ -890,7 +900,7 @@ acl_check_regex(const char *user, const char *data, const char *file,
 }
 #endif /* HAVE_REGCOMP */
 
-#ifdef HAVE_GETGRNAM_R
+#ifdef HAVE_REMCTL_UNXGRP_ACL
 static enum config_status
 acl_check_unxgrp (const char *user, const char *data, const char *file,
                 int lineno)
@@ -901,6 +911,8 @@ acl_check_unxgrp (const char *user, const char *data, const char *file,
     enum config_status result = CONFIG_ERROR;
     long buf_len = -1;
     char *buf = NULL;
+    char *lname = NULL;
+    size_t lsize = REMCTL_KRB5_LOCALNAME_MAX_LEN;
     size_t buf_sz = 1024;
 
     memset(&grp, 0x0, sizeof(grp));
@@ -930,25 +942,48 @@ acl_check_unxgrp (const char *user, const char *data, const char *file,
     else {
         /* Sanitize and search for match in group members */
         char *cur_member = grp.gr_mem[0];
-        char *p_user = user;
         int i = 0;
-        char *sanitized_user = NULL;
+        krb5_context krb_ctx = NULL;
+        krb5_principal princ;
+        krb5_error_code krb5_code = -1;
 
-        /* Sanitize username, remove instances and REALM */
-        sanitized_user = xmalloc(sizeof(char)* strlen(user));
-        memset(sanitized_user, 0x0, strlen(user));
+        memset(&princ, 0x0, sizeof(princ));
 
-        while (p_user != NULL && *p_user != '\0') {
-            if (*p_user == '\x40' || *p_user == '\x2F')
-                break;
-            sanitized_user[i++] = *p_user;
-            p_user += 1;
+        krb5_code = krb5_init_context(&krb_ctx);
+        if (krb5_code != 0) {
+            warn("%s:%d: initializing krb5 context failed with status %d", file,
+                lineno, krb5_code);
+            result = CONFIG_ERROR;
+            goto die;
+        }
+
+        krb5_code = krb5_parse_name(krb_ctx, user, &princ);
+        if (krb5_code != 0) {
+            warn("%s:%d: parsing principal %s failed with status %d (%s)", file,
+                lineno, user, krb5_code, krb5_get_error_message(krb_ctx, krb5_code));
+            result = CONFIG_ERROR;
+            goto die;
+        }
+
+        lname = (char *) xmalloc(sizeof(char) * lsize);
+        memset(lname, 0x0, lsize);
+
+        krb5_code = krb5_aname_to_localname(krb_ctx, princ, lsize, lname);
+        if (krb5_code != 0) {
+            if (krb5_code == KRB5_LNAME_NOTRANS) {
+                result = CONFIG_NOMATCH;
+            }
+            else {
+                warn("%s:%d: converting krb5 principal %s to localname failed with status %d (%s)", file,
+                    lineno, user, krb5_code, krb5_get_error_message(krb_ctx, krb5_code));
+                result = CONFIG_ERROR;
+            }
+            goto die;
         }
 
         /* Check if sanitized user is within group members */
-        i = 0;
         while (cur_member != NULL && *cur_member != '\0') {
-            if (strcmp(cur_member, sanitized_user) == 0) {
+            if (strcmp(cur_member, lname) == 0) {
                 result = CONFIG_SUCCESS;
                 goto die;
             }
@@ -959,9 +994,19 @@ acl_check_unxgrp (const char *user, const char *data, const char *file,
     }
 
 die:
+    if (buf != NULL) {
+        free(buf);
+        buf = NULL;
+    }
+
+    if (lname != NULL) {
+        free(lname);
+        lname = NULL;
+    }
+
     return result;
 }
-#endif /* HAVE_GETGRNAM_R */
+#endif /* HAVE_REMCTL_UNXGRP_ACL */
 
 /*
  * The table relating ACL scheme names to functions.  The first two ACL
@@ -987,7 +1032,7 @@ static const struct acl_scheme schemes[] = {
 #else
     { "regex", NULL            },
 #endif
-#ifdef HAVE_GETGRNAM_R
+#ifdef HAVE_REMCTL_UNXGRP_ACL
     { "unxgrp", acl_check_unxgrp },
 #else
     { "unxgrp", NULL         },

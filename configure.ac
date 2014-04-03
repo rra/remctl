@@ -8,7 +8,6 @@ dnl
 dnl See LICENSE for licensing terms.
 
 AC_PREREQ([2.63])
-dnl AC_PREREQ([2.64])
 AC_INIT([remctl], [3.8], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
@@ -45,6 +44,7 @@ AS_IF([test x"$rra_use_KRB5" != xfalse],
     [RRA_LIB_KRB5_SWITCH
      AC_CHECK_FUNCS([krb5_get_init_creds_opt_set_default_flags \
          krb5_principal_get_realm \
+         krb5_aname_to_localname \
          krb5_xfree])
      AC_CHECK_DECLS([krb5_kt_free_entry], [], [], [RRA_INCLUDES_KRB5])
      AC_LIBOBJ([krb5-extra])
@@ -90,7 +90,17 @@ RRA_LIB_PCRE_OPTIONAL
 AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
 
 dnl Check for POSIX getgrnam_r, get*nam_r functions.
-AC_CHECK_FUNCS([getgrnam_r])
+AC_CHECK_FUNCS([getgrnam_r],
+    [rra_have_GETGRNAM=true],
+    [rra_have_GETGRNAM=false])
+
+dnl Check if specific ACL types should be enabled
+dnl Check if unxgrp ACL could be enabled
+AC_MSG_CHECKING([whether unxgrp acl scheme will be compiled])
+AS_IF([test x"$rra_use_KRB5" != xfalse && test x"$rra_have_GETGRNAM" != xfalse],
+    [AC_MSG_RESULT([yes])
+     AC_DEFINE([HAVE_REMCTL_UNXGRP_ACL], 1, [Define to enable Unix group ACL support.])],
+    [AC_MSG_RESULT([no])])
 
 dnl General C library and networking probes.
 AC_SEARCH_LIBS([gethostbyname], [nsl])
