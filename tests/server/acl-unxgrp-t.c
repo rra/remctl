@@ -1,42 +1,18 @@
-/**
-  * Test suite for the server ACL unxgrp checking.
-  * This file is part of the remctl project.
-  *
-  * Copyright 2014 - IN2P3 Computing Centre
-  * 
-  * IN2P3 Computing Centre - written by <remi.ferrand@cc.in2p3.fr>
-  * 
-  * This file is governed by the CeCILL  license under French law and
-  * abiding by the rules of distribution of free software.  You can  use, 
-  * modify and/ or redistribute the software under the terms of the CeCILL
-  * license as circulated by CEA, CNRS and INRIA at the following URL
-  * "http://www.cecill.info". 
-  * 
-  * As a counterpart to the access to the source code and  rights to copy,
-  * modify and redistribute granted by the license, users are provided only
-  * with a limited warranty  and the software's author,  the holder of the
-  * economic rights,  and the successive licensors  have only  limited
-  * liability. 
-  * 
-  * In this respect, the user's attention is drawn to the risks associated
-  * with loading,  using,  modifying and/or developing or reproducing the
-  * software by the user in light of its specific status of free software,
-  * that may mean  that it is complicated to manipulate,  and  that  also
-  * therefore means  that it is reserved for developers  and  experienced
-  * professionals having in-depth computer knowledge. Users are therefore
-  * encouraged to load and test the software's suitability as regards their
-  * requirements in conditions enabling the security of their systems and/or 
-  * data to be ensured and,  more generally, to use and operate it in the 
-  * same conditions as regards security. 
-  * 
-  * The fact that you are presently reading this means that you have had
-  * knowledge of the CeCILL license and that you accept its terms.
-  *
-  * See LICENSE for full licensing terms
-  */ 
+/*
+ * This file is part of the remctl project.
+ *
+ * Test suite for unxgrp ACL scheme.
+ *
+ * Written by Remi Ferrand <remi.ferrand@cc.in2p3.fr>
+ * Copyright 2014
+ *     IN2P3 Computing Centre - CNRS
+ *
+ * See LICENSE for licensing terms.
+ */
 
 #include <config.h>
 #include <portable/system.h>
+#include <portable/krb5.h>
 
 #include <server/internal.h>
 #include <tests/tap/basic.h>
@@ -60,6 +36,8 @@ do { \
     call_idx = v; \
 } while(0)
 
+#define VERY_LONG_PRINCIPAL 512
+
 /**
  * Dummy group definitions used to override return value of getgrnam
  */
@@ -74,10 +52,15 @@ main(void)
         NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, NULL, NULL
     };
     const char *acls[5];
+    int i = 0;
+
+    char long_principal[VERY_LONG_PRINCIPAL];
+    char expected_error[VERY_LONG_PRINCIPAL*2];
 
     memset(&getgrnam_r_responses, 0x0, sizeof(getgrnam_r_responses));
 
-    plan(11);
+    plan(14);
+
     if (chdir(getenv("SOURCE")) < 0)
         sysbail("can't chdir to SOURCE");
 
@@ -87,7 +70,16 @@ main(void)
     acls[0] = "unxgrp:foobargroup";
     acls[1] = NULL;
 
-#ifdef HAVE_GETGRNAM_R
+#ifdef HAVE_REMCTL_UNXGRP_ACL
+
+    /*
+     * Note(remi):
+     * Those tests requires a krb5 configuration with realm EXAMPLE.ORG
+     * defined.
+     *
+     * If not, krb5_aname_to_localname will refuse to resolve a principal
+     * from an unknown REALM to a local user name (at least with Heimdal libs).
+     */
 
     /* Check behavior with empty groups */
     STACK_GETGRNAM_RESP(&emptygrp, 0);
@@ -117,8 +109,33 @@ main(void)
     RESET_GETGRNAM_CALL_IDX(0);
 
     /* ... and when principal is complex */
-    ok(server_config_acl_permit(&rule, "remi/admin@EXAMPLE.ORG"),
+    ok(!server_config_acl_permit(&rule, "remi/admin@EXAMPLE.ORG"),
     "... with principal with instances but main user in group");
+
+    RESET_GETGRNAM_CALL_IDX(0);
+
+    /* and when principal name is too long */
+    for (i = 0; i < VERY_LONG_PRINCIPAL - 1; i++)
+        long_principal[i] = 'A';
+    long_principal[VERY_LONG_PRINCIPAL-1] = '\0';
+
+    errors_capture();
+    ok(!server_config_acl_permit(&rule, long_principal),
+    "... with long_principal very very long");
+
+    memset(&expected_error, 0x0, sizeof(expected_error));
+    sprintf(expected_error, "TEST:0: converting krb5 principal %s to localname failed with"
+    " status %d (Insufficient space to return complete information)\n", long_principal, KRB5_CONFIG_NOTENUFSPACE);
+    expected_error[1023] = '\0';
+
+    is_string(expected_error, errors, "... match error message with principal too long");
+    errors_uncapture();
+
+    RESET_GETGRNAM_CALL_IDX(0);
+
+    /* Check when user comes from a not supported REALM */
+    ok(!server_config_acl_permit(&rule, "eagle@ANY.OTHER.REALM.FR"),
+    "... with user from not supported REALM");
 
     RESET_GETGRNAM_CALL_IDX(0);
 
@@ -180,7 +197,7 @@ main(void)
     is_string("TEST:0: ACL scheme 'unxgrp' is not supported\n", errors,
     "...with not supported error");
     errors_uncapture();
-    skip_block(9, "UNXGRP support not configured");
+    skip_block(12, "UNXGRP support not configured");
 #endif
 
     return 0;
