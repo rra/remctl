@@ -388,6 +388,17 @@ C<deny:pcre:regex> syntax.
 This method is supported only if B<remctld> was compiled with PCRE support
 by using the C<--with-pcre> configure option.
 
+=item unxgrp
+
+This method is used to grant or deny access using Unix groups.
+The user principal is converted to a local user name with I<krb5_aname_to_localname(3)>
+and then compared to the members of B<group>.
+To allow access to the members of group B<goodguys>, use the C<unxgrp:goodguys> syntax, whereas
+to deny access to the members of group B<badguys>, use the C<deny:unxgrp:badguys> syntax.
+
+Because of how I<krb5_aname_to_localname(3)> works, if the user principal isn't in one of 
+the local realms, access will be denied.
+
 =back
 
 To see the list of ACL types supported by a particular build of

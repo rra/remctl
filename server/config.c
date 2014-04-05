@@ -28,6 +28,13 @@
 #endif
 #include <sys/stat.h>
 
+#ifdef HAVE_REMCTL_UNXGRP_ACL 
+# include <sys/types.h>
+# include <grp.h>
+# include <unistd.h>
+# include <portable/krb5.h>
+#endif
+
 #include <server/internal.h>
 #include <util/macros.h>
 #include <util/messages.h>
@@ -44,6 +51,14 @@
 # include <gput.h>
 static char *acl_gput_file = NULL;
 #endif
+
+/*
+ * maximum length allowed when converting
+ * principal to local name
+ */
+#define REMCTL_KRB5_LOCALNAME_MAX_LEN sysconf(_SC_LOGIN_NAME_MAX) < 256 \
+                                      ? 256 \
+                                      : sysconf(_SC_LOGIN_NAME_MAX)
 
 /* Return codes for configuration and ACL parsing. */
 enum config_status {
@@ -885,6 +900,131 @@ acl_check_regex(const char *user, const char *data, const char *file,
 }
 #endif /* HAVE_REGCOMP */
 
+#ifdef HAVE_REMCTL_UNXGRP_ACL
+static enum config_status
+acl_check_unxgrp (const char *user, const char *data, const char *file,
+                int lineno)
+{
+    struct group grp;
+    struct group *tempgrp = NULL;
+    int status = -1;
+    enum config_status result = CONFIG_ERROR;
+    long buf_len = -1;
+    char *buf = NULL;
+    char *lname = NULL;
+    size_t lsize = REMCTL_KRB5_LOCALNAME_MAX_LEN;
+    size_t buf_sz = 1024;
+    krb5_context krb_ctx = NULL;
+    krb5_principal princ = NULL;
+    krb5_error_code krb5_code = -1;
+
+    memset(&grp, 0x0, sizeof(grp));
+
+    buf_len = sysconf(_SC_GETGR_R_SIZE_MAX);
+    if (buf_len > 0) {
+        buf_sz = (size_t) buf_sz;
+    }
+
+    buf = (char *) xmalloc(sizeof(char) * buf_sz);
+    memset(buf, 0x0, buf_sz);
+
+    do {
+        status = getgrnam_r(data, &grp, buf, buf_sz, &tempgrp);
+        if (status != 0 && status != EINTR) {
+            warn("%s:%d: resolving unix group '%s' failed with status %d", file,
+                 lineno, data, status);
+            result = CONFIG_ERROR;
+            goto die;
+        }
+    } while (status == EINTR);
+
+    /* No group matching */
+    if (tempgrp == NULL) {
+        result = CONFIG_NOMATCH;
+    }
+    else {
+        /* Sanitize and search for match in group members */
+        const char *krb_message;
+        char *cur_member = grp.gr_mem[0];
+        int i = 0;
+
+        memset(&princ, 0x0, sizeof(princ));
+
+        krb5_code = krb5_init_context(&krb_ctx);
+        if (krb5_code != 0) {
+            warn("%s:%d: initializing krb5 context failed with status %d", file,
+                lineno, krb5_code);
+            result = CONFIG_ERROR;
+            goto die;
+        }
+
+        krb5_code = krb5_parse_name(krb_ctx, user, &princ);
+        if (krb5_code != 0) {
+            krb_message = krb5_get_error_message(krb_ctx, krb5_code);
+            warn("%s:%d: parsing principal %s failed with status %d (%s)", file,
+                lineno, user, krb5_code, krb_message);
+            krb5_free_error_message(krb_ctx, krb_message);
+
+            result = CONFIG_ERROR;
+            goto die;
+        }
+
+        lname = (char *) xmalloc(sizeof(char) * lsize);
+        memset(lname, 0x0, lsize);
+
+        krb5_code = krb5_aname_to_localname(krb_ctx, princ, lsize, lname);
+        if (krb5_code != 0) {
+            if (krb5_code == KRB5_LNAME_NOTRANS) {
+                result = CONFIG_NOMATCH;
+            }
+            else {
+                krb_message = krb5_get_error_message(krb_ctx, krb5_code);
+                warn("%s:%d: converting krb5 principal %s to localname failed with status %d (%s)", file,
+                    lineno, user, krb5_code, krb_message);
+                krb5_free_error_message(krb_ctx, krb_message);
+
+                result = CONFIG_ERROR;
+            }
+            goto die;
+        }
+
+        /* Check if sanitized user is within group members */
+        while (cur_member != NULL && *cur_member != '\0') {
+            if (strcmp(cur_member, lname) == 0) {
+                result = CONFIG_SUCCESS;
+                goto die;
+            }
+            cur_member = grp.gr_mem[++i];
+        }
+
+        result = CONFIG_NOMATCH;
+    }
+
+die:
+    if (buf != NULL) {
+        free(buf);
+        buf = NULL;
+    }
+
+    if (lname != NULL) {
+        free(lname);
+        lname = NULL;
+    }
+
+    if (princ != NULL) {
+        krb5_free_principal(krb_ctx, princ);
+        princ = NULL;
+    }
+
+    if (krb_ctx != NULL) {
+        krb5_free_context(krb_ctx);
+        krb_ctx = NULL;
+    }
+
+    return result;
+}
+#endif /* HAVE_REMCTL_UNXGRP_ACL */
+
 /*
  * The table relating ACL scheme names to functions.  The first two ACL
  * schemes must remain in their current slots or the index constants set at
@@ -908,6 +1048,11 @@ static const struct acl_scheme schemes[] = {
     { "regex", acl_check_regex },
 #else
     { "regex", NULL            },
+#endif
+#ifdef HAVE_REMCTL_UNXGRP_ACL
+    { "unxgrp", acl_check_unxgrp },
+#else
+    { "unxgrp", NULL         },
 #endif
     { NULL,    NULL            }
 };
