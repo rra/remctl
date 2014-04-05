@@ -944,6 +944,7 @@ acl_check_unxgrp (const char *user, const char *data, const char *file,
     }
     else {
         /* Sanitize and search for match in group members */
+        const char *krb_message;
         char *cur_member = grp.gr_mem[0];
         int i = 0;
 
@@ -959,8 +960,11 @@ acl_check_unxgrp (const char *user, const char *data, const char *file,
 
         krb5_code = krb5_parse_name(krb_ctx, user, &princ);
         if (krb5_code != 0) {
+            krb_message = krb5_get_error_message(krb_ctx, krb5_code);
             warn("%s:%d: parsing principal %s failed with status %d (%s)", file,
-                lineno, user, krb5_code, krb5_get_error_message(krb_ctx, krb5_code));
+                lineno, user, krb5_code, krb_message);
+            krb5_free_error_message(krb_ctx, krb_message);
+
             result = CONFIG_ERROR;
             goto die;
         }
@@ -974,8 +978,11 @@ acl_check_unxgrp (const char *user, const char *data, const char *file,
                 result = CONFIG_NOMATCH;
             }
             else {
+                krb_message = krb5_get_error_message(krb_ctx, krb5_code);
                 warn("%s:%d: converting krb5 principal %s to localname failed with status %d (%s)", file,
-                    lineno, user, krb5_code, krb5_get_error_message(krb_ctx, krb5_code));
+                    lineno, user, krb5_code, krb_message);
+                krb5_free_error_message(krb_ctx, krb_message);
+
                 result = CONFIG_ERROR;
             }
             goto die;
