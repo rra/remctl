@@ -914,6 +914,9 @@ acl_check_unxgrp (const char *user, const char *data, const char *file,
     char *lname = NULL;
     size_t lsize = REMCTL_KRB5_LOCALNAME_MAX_LEN;
     size_t buf_sz = 1024;
+    krb5_context krb_ctx = NULL;
+    krb5_principal princ = NULL;
+    krb5_error_code krb5_code = -1;
 
     memset(&grp, 0x0, sizeof(grp));
 
@@ -943,9 +946,6 @@ acl_check_unxgrp (const char *user, const char *data, const char *file,
         /* Sanitize and search for match in group members */
         char *cur_member = grp.gr_mem[0];
         int i = 0;
-        krb5_context krb_ctx = NULL;
-        krb5_principal princ;
-        krb5_error_code krb5_code = -1;
 
         memset(&princ, 0x0, sizeof(princ));
 
@@ -1002,6 +1002,16 @@ die:
     if (lname != NULL) {
         free(lname);
         lname = NULL;
+    }
+
+    if (princ != NULL) {
+        krb5_free_principal(krb_ctx, princ);
+        princ = NULL;
+    }
+
+    if (krb_ctx != NULL) {
+        krb5_free_context(krb_ctx);
+        krb_ctx = NULL;
     }
 
     return result;
