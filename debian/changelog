@@ -8,6 +8,7 @@ remctl (3.8-2) UNRELEASED; urgency=medium
     automatically use the current supported Ruby versions, avoiding the
     need for sourceful uploads for new Ruby releases.  Thanks to Christian
     Hofstaedtler for the patch.
+  * Remove now-unneeded Lintian override for the upstream signing key.
 
  -- Russ Allbery <rra@debian.org>  Tue, 08 Apr 2014 18:49:33 -0700
 
