@@ -143,8 +143,10 @@ Description: Python extension for Kerberos-authenticated command execution
 Package: ruby-remctl
 Section: ruby
 Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}, ruby | ruby-interpreter
 X-DhRuby-Root: ruby
+XB-Ruby-Versions: ${ruby:Versions}
 Description: Ruby extension for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
