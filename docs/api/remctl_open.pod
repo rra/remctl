@@ -1,6 +1,6 @@
 =for stopwords
 remctl const TCP GSS-API DNS DNS-based KRB5CCNAME lookups canonicalization
-libdefaults Allbery CNAME ai addr addrinfo addrlen fd
+libdefaults Allbery CNAME ai addr addrinfo addrlen fd IANA-registered
 
 =head1 NAME
 

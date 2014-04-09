@@ -1,7 +1,7 @@
 =for stopwords
 remctl const API hostname IP NUL-terminated GSS-API DNS KRB5CCNAME NULs
 ENOMEM CNAME lookups canonicalization libdefaults canonicalize Allbery
-DNS-based
+DNS-based IANA-registered
 
 =head1 NAME
 

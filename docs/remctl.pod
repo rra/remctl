@@ -1,7 +1,7 @@
 =for stopwords
 remctl -dhv subcommand remctld GSS-API GSS-API's hostname AFS
 canonicalizes DNS DNS-based canonicalization Heimdal MICs Ushakov Allbery
-triple-DES MERCHANTABILITY IP IPv4 IPv6 source-ip
+triple-DES MERCHANTABILITY IP IPv4 IPv6 source-ip IANA-registered
 
 =head1 NAME
 
