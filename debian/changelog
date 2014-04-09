@@ -4,6 +4,10 @@ remctl (3.8-2) UNRELEASED; urgency=medium
     Linux has apparently increased the size of network writes it is
     willing to buffer internally, so we now have to write more data to
     force a timeout.  (Closes: #743991)
+  * Use gem2deb to build and install the Ruby module.  This will
+    automatically use the current supported Ruby versions, avoiding the
+    need for sourceful uploads for new Ruby releases.  Thanks to Christian
+    Hofstaedtler for the patch.
 
  -- Russ Allbery <rra@debian.org>  Tue, 08 Apr 2014 18:49:33 -0700
 

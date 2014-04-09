@@ -5,6 +5,7 @@ Maintainer: Russ Allbery <rra@debian.org>
 Build-Depends: debhelper (>= 9),
  dh-autoreconf,
  dpkg-dev (>= 1.14.9),
+ gem2deb,
  libevent-dev,
  libkrb5-dev,
  libpcre3-dev,
@@ -19,12 +20,9 @@ Build-Depends: debhelper (>= 9),
  php5-cli,
  php5-dev,
  pkg-config,
- python-all-dev,
- ruby1.9.1,
- ruby1.9.1-dev,
- ruby2.0,
- ruby2.0-dev
+ python-all-dev
 XS-Python-Version: >= 2.6
+XS-Ruby-Versions: all
 Standards-Version: 3.9.5
 Homepage: http://www.eyrie.org/~eagle/software/remctl/
 Vcs-Git: git://git.eyrie.org/kerberos/remctl.git -b debian
@@ -146,6 +144,7 @@ Package: ruby-remctl
 Section: ruby
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ruby | ruby-interpreter
+X-DhRuby-Root: ruby
 Description: Ruby extension for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
