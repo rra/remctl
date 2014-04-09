@@ -1,3 +1,12 @@
+remctl (3.8-2) UNRELEASED; urgency=medium
+
+  * Add upstream patch to increase the buffer size on timeout tests.
+    Linux has apparently increased the size of network writes it is
+    willing to buffer internally, so we now have to write more data to
+    force a timeout.  (Closes: #743991)
+
+ -- Russ Allbery <rra@debian.org>  Tue, 08 Apr 2014 18:49:33 -0700
+
 remctl (3.8-1) unstable; urgency=medium
 
   * New upstream release.
