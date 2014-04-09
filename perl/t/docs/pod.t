@@ -6,7 +6,7 @@
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2012, 2013
+# Copyright 2012, 2013, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -34,8 +34,12 @@ use warnings;
 use lib 't/lib';
 
 use Test::More;
-use Test::RRA qw(use_prereq);
+use Test::RRA qw(skip_unless_automated use_prereq);
 
+# Skip this test for normal user installs, although pod2man may still fail.
+skip_unless_automated('POD syntax tests');
+
+# Load prerequisite modules.
 use_prereq('Test::Pod');
 
 # Check all POD in the Perl distribution.  Add the examples directory if it

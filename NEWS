@@ -12,6 +12,11 @@ remctl 3.9 (unreleased)
     variables, client library APIs, and other major features are now
     annotated with the version of remctl in which they were added.
 
+    Update to rra-c-util 5.4:
+
+    * Use Lancaster Consensus environment variables to control tests.
+    * Work around perltidy bug that leaves behind stray log files.
+
 remctl 3.8 (2014-01-28)
 
     The remctld server now uses libevent for the event loop that processes

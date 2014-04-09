@@ -6,7 +6,7 @@
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2000, 2001, 2006 Russ Allbery <eagle@eyrie.org>
+# Copyright 2000, 2001, 2006, 2014 Russ Allbery <eagle@eyrie.org>
 # Copyright 2008, 2009, 2010, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -59,8 +59,8 @@ ok_xmalloc () {
 # failures in automated testing have been problems with the assumptions around
 # memory allocation or problems with the test suite, not problems with the
 # underlying xmalloc code.
-if [ -z "$RRA_MAINTAINER_TESTS" ] ; then
-    skip_all 'xmalloc tests only run for maintainer'
+if [ -z "$AUTHOR_TESTING" ] ; then
+    skip_all 'xmalloc tests only run for author'
 fi
 
 # Total tests.
