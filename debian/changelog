@@ -1,4 +1,4 @@
-remctl (3.8-3) UNRELEASED; urgency=medium
+remctl (3.8-3) unstable; urgency=medium
 
   * Build-Depend on the version of gem2deb with working multi-binary
     package support for native extensions.
@@ -7,7 +7,7 @@ remctl (3.8-3) UNRELEASED; urgency=medium
     will go back and install the module in the correct locations.)  Should
     fix FTBFS in Ubuntu, which still has Ruby 1.9.1.
 
- -- Russ Allbery <rra@debian.org>  Fri, 11 Apr 2014 13:18:00 -0700
+ -- Russ Allbery <rra@debian.org>  Fri, 11 Apr 2014 13:27:58 -0700
 
 remctl (3.8-2) unstable; urgency=medium
 
