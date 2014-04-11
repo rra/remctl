@@ -30,10 +30,11 @@ override_dh_auto_configure:
 	    --enable-python --enable-ruby
 
 # Override install to check for missing installed files.  Ignore the Ruby
-# module installed by the upstream build system and run dh_ruby --install to
-# build and install the module for each supported Ruby version.
+# module installed in usr/local/lib by the upstream build system.  Run
+# dh_ruby --install to build and install the module for each supported Ruby
+# version.
 override_dh_install:
-	dh_install --fail-missing -Xlibremctl.la -Xsite_ruby/remctl.so
+	dh_install --fail-missing -Xlibremctl.la -Xusr/local/lib
 	dh_ruby --install
 
 override_dh_installchangelogs:

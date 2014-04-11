@@ -2,6 +2,10 @@ remctl (3.8-3) UNRELEASED; urgency=medium
 
   * Build-Depend on the version of gem2deb with working multi-binary
     package support for native extensions.
+  * Fix the exclusion rule for dh_install --fail-missing to ignore the
+    Ruby module under both the 2.0 and 1.9.1 paths.  (dh_ruby --install
+    will go back and install the module in the correct locations.)  Should
+    fix FTBFS in Ubuntu, which still has Ruby 1.9.1.
 
  -- Russ Allbery <rra@debian.org>  Fri, 11 Apr 2014 13:18:00 -0700
 
