@@ -5,7 +5,7 @@ Maintainer: Russ Allbery <rra@debian.org>
 Build-Depends: debhelper (>= 9),
  dh-autoreconf,
  dpkg-dev (>= 1.14.9),
- gem2deb,
+ gem2deb (>= 0.4.1~),
  libevent-dev,
  libkrb5-dev,
  libpcre3-dev,
