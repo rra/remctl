@@ -1,3 +1,9 @@
+remctl (3.8-4) UNRELEASED; urgency=medium
+
+  * Fix Upstream-Contact email address in debian/copyright.
+
+ -- Russ Allbery <rra@debian.org>  Sun, 13 Apr 2014 13:28:57 -0700
+
 remctl (3.8-3) unstable; urgency=medium
 
   * Build-Depend on the version of gem2deb with working multi-binary
