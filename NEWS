@@ -2,6 +2,11 @@
 
 remctl 3.9 (unreleased)
 
+    Fix incorrect handling of interruptions of network writes by signals
+    in the server.  Previous versions of remctld did not correctly handle
+    EINTR returns from select, read, and write and might abort the
+    connection instead of retrying the system call.
+
     Reset the SIGPIPE signal handler before running a command.  The server
     sets SIGPIPE to SIG_IGN, which unlike all other signal handlers is
     inherited across an exec.  Reset the handler to SIG_DFL so that
@@ -12,10 +17,17 @@ remctl 3.9 (unreleased)
     variables, client library APIs, and other major features are now
     annotated with the version of remctl in which they were added.
 
-    Update to rra-c-util 5.4:
+    Update to rra-c-util 5.5:
 
     * Use Lancaster Consensus environment variables to control tests.
     * Work around perltidy bug that leaves behind stray log files.
+    * Use calloc or reallocarray for protection against integer overflows.
+    * Suppress warnings from Kerberos headers in non-system paths.
+
+    Update to C TAP Harness 3.1:
+
+    * Add breallocarray API for error-checked reallocarray in tests.
+    * Check for integer overflow on memory allocations.
 
 remctl 3.8 (2014-01-28)
 

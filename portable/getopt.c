@@ -133,7 +133,7 @@ getopt(int argc, char *argv[], const char *optstring)
                             --i;
                             tmp = argv[i];
                             end = (charind == 0) ? optind - 1 : optind;
-                            for (k = i; k + 1 <= end; k++) {
+                            for (k = i; k < end; k++) {
                                 argv[k] = argv[k + 1];
                             }
                             argv[end] = tmp;

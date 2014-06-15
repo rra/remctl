@@ -33,6 +33,10 @@
  * allocation function will try its allocation again (calling the handler
  * again if it still fails).
  *
+ * xreallocarray behaves the same as the OpenBSD reallocarray function but for
+ * the same error checking, which in turn is the same as realloc but with
+ * calloc-style arguments and size overflow checking.
+ *
  * xstrndup behaves like xstrdup but only copies the given number of
  * characters.  It allocates an additional byte over its second argument and
  * always nul-terminates the string.
@@ -58,7 +62,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2012, 2013
+ * Copyright 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -147,6 +151,20 @@ x_realloc(void *p, size_t size, const char *file, int line)
     while (newp == NULL && size > 0) {
         (*xmalloc_error_handler)("realloc", size, file, line);
         newp = realloc(p, size);
+    }
+    return newp;
+}
+
+
+void *
+x_reallocarray(void *p, size_t n, size_t size, const char *file, int line)
+{
+    void *newp;
+
+    newp = reallocarray(p, n, size);
+    while (newp == NULL && size > 0 && n > 0) {
+        (*xmalloc_error_handler)("reallocarray", n * size, file, line);
+        newp = reallocarray(p, n, size);
     }
     return newp;
 }
