@@ -293,13 +293,14 @@ WARNINGS = -g -O -fstrict-overflow -fstrict-aliasing -D_FORTIFY_SOURCE=2    \
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code doesn't pass them.
 if GCC
-    PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs	\
-	-Wno-strict-prototypes -Wno-missing-prototypes		\
-	-Wno-redundant-decls -Wno-shadow
-    PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings	\
-	-Wno-missing-prototypes -Wno-unused-parameter		\
-	-Wno-redundant-decls -Wno-sign-compare
-    PYTHON_WARNINGS = -Wno-unused-parameter
+    PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs		\
+	-Wno-strict-prototypes -Wno-missing-prototypes			\
+	-Wno-redundant-decls -Wno-shadow -Wno-old-style-definition
+    PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
+	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
+	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal \
+	-Wno-strict-overflow
+    PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
     RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
 else
     PERL_WARNINGS =
