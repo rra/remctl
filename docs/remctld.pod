@@ -3,8 +3,7 @@ remctld remctl -dFhmSvZ keytab GSS-API tcpserver inetd subcommand AFS
 backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
 IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
 subcommands REMUSER pcre PCRE triple-DES MERCHANTABILITY username arg
-SIGCONT SIGSTOP systemd IANA-registered
-unxgrp
+SIGCONT SIGSTOP systemd IANA-registered localgroup
 
 =head1 NAME
 
@@ -401,6 +400,29 @@ the optional I<xform> or the default transform.
 This method is supported only if B<remctld> was compiled with GPUT support
 by using the C<--with-gput> configure option.
 
+=item localgroup
+
+[3.9] This method is used to grant or deny access based on membership in
+local UNIX groups.  The data is taken to be a name of a local system
+group.  The user principal is converted to a local user name
+with krb5_aname_to_localname(3) and then compared to the members of the
+given group.
+
+For example, to allow access to the members of group C<goodguys>, use an
+ACL of C<localgroup:goodguys> syntax.  To deny access to the members of
+group C<badguys>, use C<deny:localgroup:badguys>.
+
+krb5_aname_to_localname() follows local configuration rules to determine
+how to convert Kerberos principal to local users.  If the realm of the
+principal is not in a local realm and is not otherwise covered by one of
+those rules, the principal will be unchanged, which will almost certainly
+mean that it will not be a member of any local group and access will be
+denied.
+
+This method is supported only if B<remctld> was built with Kerberos
+support and the getgrnam_r(3) library function was supported by the C
+library when it was built.
+
 =item pcre
 
 [2.16] This method is used to grant or deny access based on
@@ -420,17 +442,6 @@ identity.  To deny access, use the C<deny:regex:I<regex>> syntax.
 
 This method is supported only if a library for POSIX-compatible regular
 expressions was found when B<remctld> was built.
-
-=item unxgrp
-
-This method is used to grant or deny access using Unix groups.
-The user principal is converted to a local user name with I<krb5_aname_to_localname(3)>
-and then compared to the members of B<group>.
-To allow access to the members of group C<goodguys>, use the C<unxgrp:goodguys> syntax, whereas
-to deny access to the members of group C<badguys>, use the C<deny:unxgrp:badguys> syntax.
-
-Because of how I<krb5_aname_to_localname(3)> works, if the user principal isn't in one of 
-the local realms, access will be denied.
 
 =back
 

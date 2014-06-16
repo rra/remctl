@@ -101,14 +101,14 @@ usage(int status)
 #ifdef HAVE_GPUT
     fprintf(output, ", gput");
 #endif
+#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
+    fprintf(output, ", localgroup");
+#endif
 #ifdef HAVE_PCRE
     fprintf(output, ", pcre");
 #endif
 #ifdef HAVE_REGCOMP
     fprintf(output, ", regex");
-#endif
-#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
-    fprintf(output, ", unxgrp");
 #endif
     fprintf(output, "\n");
     exit(status);

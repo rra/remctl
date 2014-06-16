@@ -898,10 +898,15 @@ acl_check_regex(const char *user, const char *data, const char *file,
 #endif /* HAVE_REGCOMP */
 
 
+/*
+ * The ACL check operation for UNIX local group membership.  Takes the user to
+ * check, the group of which they have to be a member, and the referencing
+ * file name and line number.
+ */
 #if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
 static enum config_status
-acl_check_unxgrp (const char *user, const char *data, const char *file,
-                int lineno)
+acl_check_localgroup(const char *user, const char *data, const char *file,
+                     int lineno)
 {
     struct group grp;
     struct group *tempgrp = NULL;
@@ -1030,30 +1035,30 @@ die:
  * the top of the file need to change.
  */
 static const struct acl_scheme schemes[] = {
-    { "file",  acl_check_file  },
-    { "princ", acl_check_princ },
-    { "deny",  acl_check_deny  },
+    { "file",       acl_check_file       },
+    { "princ",      acl_check_princ      },
+    { "deny",       acl_check_deny       },
 #ifdef HAVE_GPUT
-    { "gput",  acl_check_gput  },
+    { "gput",       acl_check_gput       },
 #else
-    { "gput",  NULL            },
-#endif
-#ifdef HAVE_PCRE
-    { "pcre",  acl_check_pcre  },
-#else
-    { "pcre",  NULL            },
-#endif
-#ifdef HAVE_REGCOMP
-    { "regex", acl_check_regex },
-#else
-    { "regex", NULL            },
+    { "gput",       NULL                 },
 #endif
 #if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
-    { "unxgrp", acl_check_unxgrp },
+    { "localgroup", acl_check_localgroup },
 #else
-    { "unxgrp", NULL           },
+    { "localgroup", NULL                 },
 #endif
-    { NULL,    NULL            }
+#ifdef HAVE_PCRE
+    { "pcre",       acl_check_pcre       },
+#else
+    { "pcre",       NULL                 },
+#endif
+#ifdef HAVE_REGCOMP
+    { "regex",      acl_check_regex      },
+#else
+    { "regex",      NULL                 },
+#endif
+    { NULL,         NULL                 }
 };
 
 

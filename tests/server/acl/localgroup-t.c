@@ -70,7 +70,7 @@ main(void)
     rule.file = (char *) "TEST";
     rule.acls = (char **) acls;
 
-    acls[0] = "unxgrp:foobargroup";
+    acls[0] = "localgroup:foobargroup";
     acls[1] = NULL;
 
 #if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
@@ -87,7 +87,7 @@ main(void)
     /* Check behavior with empty groups */
     STACK_GETGRNAM_RESP(&emptygrp, 0);
     RESET_GETGRNAM_CALL_IDX(0);
-    acls[0] = "unxgrp:emptygrp";
+    acls[0] = "localgroup:emptygrp";
     acls[1] = NULL;
 
     ok(!server_config_acl_permit(&rule, "someone@EXAMPLE.ORG"),
@@ -98,7 +98,7 @@ main(void)
     /* Check behavior when user is expected to be in supplied group ... */
     STACK_GETGRNAM_RESP(&goodguys, 0);
     RESET_GETGRNAM_CALL_IDX(0);
-    acls[0] = "unxgrp:goodguys";
+    acls[0] = "localgroup:goodguys";
     acls[1] = NULL;
     ok(server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"), 
     "... with user within group");
@@ -157,7 +157,7 @@ main(void)
     /* Check that deny group works as expected */
     STACK_GETGRNAM_RESP(&badguys, 0);
     RESET_GETGRNAM_CALL_IDX(0);
-    acls[0] = "deny:unxgrp:badguys";
+    acls[0] = "deny:localgroup:badguys";
     acls[1] = NULL;
 
     ok(!server_config_acl_permit(&rule, "boba-fett@EXAMPLE.ORG"),
@@ -174,8 +174,8 @@ main(void)
     STACK_GETGRNAM_RESP(&goodguys, 0);
     STACK_GETGRNAM_RESP(&badguys, 0);
     RESET_GETGRNAM_CALL_IDX(0);
-    acls[0] = "unxgrp:goodguys";
-    acls[1] = "deny:unxgrp:badguys";
+    acls[0] = "localgroup:goodguys";
+    acls[1] = "deny:localgroup:badguys";
     acls[2] = NULL;
 
     ok(server_config_acl_permit(&rule, "eagle@EXAMPLE.ORG"),
@@ -196,11 +196,11 @@ main(void)
 #else
     errors_capture();
     ok(!server_config_acl_permit(&rule, "foobaruser@EXAMPLE.ORG"),
-       "UNXGRP");
-    is_string("TEST:0: ACL scheme 'unxgrp' is not supported\n", errors,
+       "localgroup ACL check fails");
+    is_string("TEST:0: ACL scheme 'localgroup' is not supported\n", errors,
     "...with not supported error");
     errors_uncapture();
-    skip_block(12, "UNXGRP support not configured");
+    skip_block(12, "localgroup ACL support not supported");
 #endif
 
     return 0;

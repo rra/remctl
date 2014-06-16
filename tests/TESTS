@@ -23,7 +23,7 @@ portable/strlcat
 portable/strlcpy
 server/accept
 server/acl
-server/acl-unxgrp
+server/acl/localgroup
 server/bind
 server/config
 server/continue
