@@ -17,6 +17,11 @@
  * See LICENSE for licensing terms.
  */
 
+#include <config.h>
+#include <portable/system.h>
+
+#include <util/macros.h>
+
 #include "getgrnam_r.h"
 
 int call_idx = 0; // Call index that allow
@@ -31,8 +36,8 @@ struct faked_getgrnam_call getgrnam_r_responses[PRE_ALLOC_ANSWERS_MAX_IDX];
  * in global variable.
  * This is only used for the tests suite.
  */
-int getgrnam_r(const char *name, struct group *grp,
-                char *buf, size_t buflen, struct group **result) {
+int getgrnam_r(const char *name UNUSED, struct group *grp,
+                char *buf UNUSED, size_t buflen UNUSED, struct group **result) {
 
     int rc = -1;
 

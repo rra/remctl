@@ -11,21 +11,21 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/krb5.h>
+#include <portable/system.h>
 
 #include <server/internal.h>
 #include <tests/tap/basic.h>
+#include <tests/tap/kerberos.h>
 #include <tests/tap/messages.h>
 
-#include <sys/types.h>
 #include "getgrnam_r.h"
 
 #define STACK_GETGRNAM_RESP(grp, rc) \
 do { \
     struct faked_getgrnam_call s; \
     memset(&s, 0x0, sizeof(s)); \
-    s.getgrnam_grp = grp; \
+    s.getgrnam_grp = grp;               \
     s.getgrnam_r_rc = rc; \
     memcpy(&getgrnam_r_responses[call_idx], &s, sizeof(s)); \
     call_idx++; \
@@ -41,9 +41,9 @@ do { \
 /**
  * Dummy group definitions used to override return value of getgrnam
  */
-struct group emptygrp = { "emptygrp", NULL, 42, (char *[]) { NULL } };
-struct group goodguys = { "goodguys", NULL, 42, (char *[]) { "remi", "eagle", NULL } };
-struct group badguys = { "badguys", NULL, 42, (char *[]) { "darth-vader", "darth-maul", "boba-fett", NULL } };
+struct group emptygrp = { (char *) "emptygrp", NULL, 42, (char *[]) { NULL } };
+struct group goodguys = { (char *) "goodguys", NULL, 42, (char *[]) { (char *) "remi", (char *) "eagle", NULL } };
+struct group badguys = { (char *) "badguys", NULL, 42, (char *[]) { (char *) "darth-vader", (char *) "darth-maul", (char *) "boba-fett", NULL } };
 
 int
 main(void)
@@ -61,6 +61,9 @@ main(void)
 
     plan(14);
 
+    /* Use a krb5.conf with a default realm of EXAMPLE.ORG. */
+    kerberos_generate_conf("EXAMPLE.ORG");
+
     if (chdir(getenv("SOURCE")) < 0)
         sysbail("can't chdir to SOURCE");
 
@@ -70,7 +73,7 @@ main(void)
     acls[0] = "unxgrp:foobargroup";
     acls[1] = NULL;
 
-#ifdef HAVE_REMCTL_UNXGRP_ACL
+#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
 
     /*
      * Note(remi):
@@ -125,7 +128,7 @@ main(void)
 
     memset(&expected_error, 0x0, sizeof(expected_error));
     sprintf(expected_error, "TEST:0: converting krb5 principal %s to localname failed with"
-    " status %d (Insufficient space to return complete information)\n", long_principal, KRB5_CONFIG_NOTENUFSPACE);
+            " status %ld (Insufficient space to return complete information)\n", long_principal, (long) KRB5_CONFIG_NOTENUFSPACE);
     expected_error[1023] = '\0';
 
     is_string(expected_error, errors, "... match error message with principal too long");

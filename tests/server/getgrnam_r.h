@@ -34,7 +34,4 @@ extern int call_idx;
  */
 extern struct faked_getgrnam_call getgrnam_r_responses[PRE_ALLOC_ANSWERS_MAX_IDX];
 
-int getgrnam_r(const char *name, struct group *grp,
-                char *buf, size_t buflen, struct group **result);
-
 #endif
