@@ -4,6 +4,7 @@ backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
 IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
 subcommands REMUSER pcre PCRE triple-DES MERCHANTABILITY username arg
 SIGCONT SIGSTOP systemd IANA-registered
+unxgrp
 
 =head1 NAME
 
@@ -425,8 +426,8 @@ expressions was found when B<remctld> was built.
 This method is used to grant or deny access using Unix groups.
 The user principal is converted to a local user name with I<krb5_aname_to_localname(3)>
 and then compared to the members of B<group>.
-To allow access to the members of group B<goodguys>, use the C<unxgrp:goodguys> syntax, whereas
-to deny access to the members of group B<badguys>, use the C<deny:unxgrp:badguys> syntax.
+To allow access to the members of group C<goodguys>, use the C<unxgrp:goodguys> syntax, whereas
+to deny access to the members of group C<badguys>, use the C<deny:unxgrp:badguys> syntax.
 
 Because of how I<krb5_aname_to_localname(3)> works, if the user principal isn't in one of 
 the local realms, access will be denied.
