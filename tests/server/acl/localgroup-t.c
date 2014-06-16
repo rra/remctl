@@ -4,16 +4,21 @@
  * Test suite for unxgrp ACL scheme.
  *
  * Written by Remi Ferrand <remi.ferrand@cc.in2p3.fr>
+ * Revisions by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2014 IN2P3 Computing Centre - CNRS
  * Copyright 2014
- *     IN2P3 Computing Centre - CNRS
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
 
 #include <config.h>
-#include <portable/krb5.h>
+#ifdef HAVE_KRB5
+# include <portable/krb5.h>
+#endif
 #include <portable/system.h>
 
+#include <grp.h>
 #include <pwd.h>
 
 #include <server/internal.h>
@@ -24,30 +29,61 @@
 #include <tests/tap/messages.h>
 #include <tests/tap/string.h>
 
-#define STACK_GETGRNAM_RESP(grp, rc) \
-do { \
-    struct faked_getgrnam_call s; \
-    memset(&s, 0x0, sizeof(s)); \
-    s.getgrnam_grp = grp;               \
-    s.getgrnam_r_rc = rc; \
-    memcpy(&getgrnam_r_responses[call_idx], &s, sizeof(s)); \
-    call_idx++; \
-} while(0)
+/*
+ * Lists of users used to populate the group membership field of various test
+ * group structs.
+ */
+static const char *const empty_members[] = { NULL };
+static const char *const goodguys_members[] = { "remi", "eagle", NULL };
+static const char *const badguys_members[] = {
+    "darth-vader", "darth-maul", "boba-fett", NULL
+};
 
-#define RESET_GETGRNAM_CALL_IDX(v) \
-do { \
-    call_idx = v; \
-} while(0)
+/* Dummy group definitions used as return values from getgrnam_r. */
+static const struct group empty = {
+    (char *) "empty", NULL, 42, (char **) empty_members
+};
+static const struct group goodguys = {
+    (char *) "goodguys", NULL, 42, (char **) goodguys_members
+};
+static const struct group badguys = {
+    (char *) "badguys", NULL, 42, (char **) badguys_members
+};
 
+/*
+ * Length of a principal that will be longer than the buffer size we use for
+ * the results of krb5_aname_to_localname.
+ */
 #define VERY_LONG_PRINCIPAL (BUFSIZ + 2)
 
-/**
- * Dummy group definitions used to override return value of getgrnam
- */
-struct group emptygrp = { (char *) "emptygrp", NULL, 42, (char *[]) { NULL } };
-struct group goodguys = { (char *) "goodguys", NULL, 42, (char *[]) { (char *) "remi", (char *) "eagle", NULL } };
-struct group badguys = { (char *) "badguys", NULL, 42, (char *[]) { (char *) "darth-vader", (char *) "darth-maul", (char *) "boba-fett", NULL } };
 
+/* If we can't build with localgroup support, test the failure message. */
+#if !defined(HAVE_KRB5) || !defined(HAVE_GETGRNAM_R)
+int
+main(void)
+{
+    const char *acls[5];
+    const struct rule rule = {
+        (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL,
+        NULL, acls
+    };
+
+    plan(2);
+
+    errors_capture();
+    acls[0] = "localgroup:foobargroup";
+    acls[1] = NULL;
+    ok(!server_config_acl_permit(&rule, "foobaruser@EXAMPLE.ORG"),
+       "localgroup ACL check fails");
+    is_string("TEST:0: ACL scheme 'localgroup' is not supported\n", errors,
+              "...with not supported error");
+    errors_uncapture();
+    free(errors);
+    return 0;
+}
+
+/* Otherwise, do the regular testing. */
+#else /* HAVE_KRB5 && HAVE_GETGRNAM_R */
 
 /*
  * Set a fake getpwnam response for the given user.  This will have no useful
@@ -69,174 +105,117 @@ set_passwd(const char *user, gid_t gid)
 int
 main(void)
 {
-    struct rule rule = {
-        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, NULL, NULL
-    };
-    const char *acls[5];
-    int i = 0;
-
-    char long_principal[VERY_LONG_PRINCIPAL];
-    char *expected;
     krb5_context ctx;
     const char *message;
+    char *expected;
+    char long_principal[VERY_LONG_PRINCIPAL];
+    const char *acls[5];
+    const struct rule rule = {
+        (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL,
+        NULL, (char **) acls
+    };
 
-    memset(&getgrnam_r_responses, 0x0, sizeof(getgrnam_r_responses));
-
-    plan(14);
+    plan(15);
 
     /* Use a krb5.conf with a default realm of EXAMPLE.ORG. */
     kerberos_generate_conf("EXAMPLE.ORG");
 
-    if (chdir(getenv("SOURCE")) < 0)
-        sysbail("can't chdir to SOURCE");
-
-    rule.file = (char *) "TEST";
-    rule.acls = (char **) acls;
-
-    acls[0] = "localgroup:foobargroup";
+    /* Check behavior with empty groups. */
+    fake_queue_group(&empty, 0);
+    set_passwd("someone", 0);
+    acls[0] = "localgroup:empty";
     acls[1] = NULL;
+    ok(!server_config_acl_permit(&rule, "someone@EXAMPLE.ORG"), "Empty");
 
-#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
-
-    /*
-     * Note(remi):
-     * Those tests requires a krb5 configuration with realm EXAMPLE.ORG
-     * defined.
-     *
-     * If not, krb5_aname_to_localname will refuse to resolve a principal
-     * from an unknown REALM to a local user name (at least with Heimdal libs).
-     */
-
-    /* Check behavior with empty groups */
-    STACK_GETGRNAM_RESP(&emptygrp, 0);
-    RESET_GETGRNAM_CALL_IDX(0);
-    acls[0] = "localgroup:emptygrp";
-    acls[1] = NULL;
-
-    ok(!server_config_acl_permit(&rule, "someone@EXAMPLE.ORG"),
-    "... with empty group");
-
-    RESET_GETGRNAM_CALL_IDX(0);
-
-    /* Check behavior when user is expected to be in supplied group ... */
-    STACK_GETGRNAM_RESP(&goodguys, 0);
-    RESET_GETGRNAM_CALL_IDX(0);
+    /* Check behavior when user is expected to be in supplied group. */
+    fake_queue_group(&goodguys, 0);
+    set_passwd("remi", 0);
     acls[0] = "localgroup:goodguys";
     acls[1] = NULL;
-    set_passwd("remi", 0);
-    ok(server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"),
-    "... with user within group");
+    ok(server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"), "User in group");
 
-    RESET_GETGRNAM_CALL_IDX(0);
-
-    /* ... and when it's not ... */
+    /* And when the user is not in the supplied group. */
+    fake_queue_group(&goodguys, 0);
     set_passwd("someoneelse", 0);
     ok(!server_config_acl_permit(&rule, "someoneelse@EXAMPLE.ORG"),
-    "... with user not in group");
+       "User not in group");
 
-    RESET_GETGRNAM_CALL_IDX(0);
-
-    /* ... and when principal is complex */
+    /* And when the user does not convert to a local user or is complex. */
+    fake_queue_group(&goodguys, 0);
     set_passwd("remi", 0);
-    ok(!server_config_acl_permit(&rule, "remi/admin@EXAMPLE.ORG"),
-    "... with principal with instances but main user in group");
-
-    RESET_GETGRNAM_CALL_IDX(0);
-
-    /* and when principal name is too long */
-    for (i = 0; i < VERY_LONG_PRINCIPAL - 1; i++)
-        long_principal[i] = 'A';
-    long_principal[VERY_LONG_PRINCIPAL-1] = '\0';
-
     errors_capture();
-    ok(!server_config_acl_permit(&rule, long_principal),
-    "... with long_principal very very long");
+    ok(!server_config_acl_permit(&rule, "remi/admin@EXAMPLE.ORG"),
+       "User with instance with base user in group");
+    is_string(NULL, errors, "...with no error");
 
-    /* Determine the expected error message. */
+    /* Principal name is too long. */
+    fake_queue_group(&goodguys, 0);
+    memset(long_principal, 'A', sizeof(long_principal));
+    long_principal[sizeof(long_principal) - 1] = '\0';
+    errors_capture();
+    ok(!server_config_acl_permit(&rule, long_principal), "Long principal");
+
+    /* Determine the expected error message and check it. */
     if (krb5_init_context(&ctx) != 0)
         bail("cannot create Kerberos context");
     message = krb5_get_error_message(ctx, KRB5_CONFIG_NOTENUFSPACE);
     basprintf(&expected, "conversion of %s to local name failed: %s\n",
               long_principal, message);
-    is_string(expected, errors, "... match error message with principal too long");
-    errors_uncapture();
+    krb5_free_context(ctx);
+    is_string(expected, errors, "...with correct error message");
     free(expected);
 
-    RESET_GETGRNAM_CALL_IDX(0);
-
-    /* Check when user comes from a not supported REALM */
+    /* Unsupported realm. */
+    fake_queue_group(&goodguys, 0);
     set_passwd("eagle", 0);
     ok(!server_config_acl_permit(&rule, "eagle@ANY.OTHER.REALM.FR"),
-    "... with user from not supported REALM");
-
-    RESET_GETGRNAM_CALL_IDX(0);
+       "Non-local realm");
 
     /* Check behavior when syscall fails */
-    STACK_GETGRNAM_RESP(&goodguys, EPERM);
-    RESET_GETGRNAM_CALL_IDX(0);
-    errors_capture();
+    fake_queue_group(&goodguys, EPERM);
     set_passwd("remi", 0);
+    errors_capture();
     ok(!server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"),
-    "... with getgrnam_r failing");
+       "Failing getgrnam_r");
     is_string("TEST:0: retrieving membership of localgroup goodguys failed\n",
-              errors, "... with getgrnam_r error handling");
+              errors, "...with correct error message");
     errors_uncapture();
 
-    RESET_GETGRNAM_CALL_IDX(0);
-
     /* Check that deny group works as expected */
-    STACK_GETGRNAM_RESP(&badguys, 0);
-    RESET_GETGRNAM_CALL_IDX(0);
+    fake_queue_group(&badguys, 0);
+    set_passwd("boba-fett", 0);
     acls[0] = "deny:localgroup:badguys";
     acls[1] = NULL;
-
-    set_passwd("boba-fett", 0);
     ok(!server_config_acl_permit(&rule, "boba-fett@EXAMPLE.ORG"),
-    "... with denied user in group");
-
-    RESET_GETGRNAM_CALL_IDX(0);
-
+       "Denied user");
+    fake_queue_group(&badguys, 0);
     set_passwd("remi", 0);
     ok(!server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"),
-    "... with user not in denied group but not allowed");
-
-    RESET_GETGRNAM_CALL_IDX(0);
+       "User not in denied group but also not allowed");
 
     /* Check that both deny and "allow" pragma work together */
-    STACK_GETGRNAM_RESP(&goodguys, 0);
-    STACK_GETGRNAM_RESP(&badguys, 0);
-    RESET_GETGRNAM_CALL_IDX(0);
+    fake_queue_group(&goodguys, 0);
+    fake_queue_group(&badguys, 0);
+    set_passwd("eagle", 0);
     acls[0] = "localgroup:goodguys";
     acls[1] = "deny:localgroup:badguys";
     acls[2] = NULL;
-
-    set_passwd("eagle", 0);
     ok(server_config_acl_permit(&rule, "eagle@EXAMPLE.ORG"),
-    "... with user within group plus a deny pragma");
-
-    RESET_GETGRNAM_CALL_IDX(0);
-
+       "User in allowed group plus a denied group");
+    fake_queue_group(&goodguys, 0);
+    fake_queue_group(&badguys, 0);
     set_passwd("darth-maul", 0);
     ok(!server_config_acl_permit(&rule, "darth-maul@EXAMPLE.ORG"),
-    "... with user in denied group plus a allow group pragma");
-
-    RESET_GETGRNAM_CALL_IDX(0);
-
+       "User in a denied group plus an allowed group");
+    fake_queue_group(&goodguys, 0);
+    fake_queue_group(&badguys, 0);
     set_passwd("anyoneelse", 0);
     ok(!server_config_acl_permit(&rule, "anyoneelse@EXAMPLE.ORG"),
-    "... with user neither in allowed or denied group");
+       "User in neither denied nor allowed group");
 
-    RESET_GETGRNAM_CALL_IDX(0);
-
-#else
-    errors_capture();
-    ok(!server_config_acl_permit(&rule, "foobaruser@EXAMPLE.ORG"),
-       "localgroup ACL check fails");
-    is_string("TEST:0: ACL scheme 'localgroup' is not supported\n", errors,
-    "...with not supported error");
-    errors_uncapture();
-    skip_block(12, "localgroup ACL support not supported");
-#endif
-
+    /* Clean up. */
+    free(errors);
     return 0;
 }
+
+#endif /* HAVE_KRB5 && HAVE_GETGRNAM_R */

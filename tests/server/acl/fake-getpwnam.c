@@ -19,7 +19,6 @@
 
 #include <pwd.h>
 
-#include <util/xmalloc.h>
 #include <tests/server/acl/fake-getpwnam.h>
 #include <tests/tap/basic.h>
 
@@ -38,7 +37,7 @@ void
 fake_set_passwd(struct passwd *pwd)
 {
     free(pwd_info);
-    pwd_info = xmalloc(sizeof(*pwd_info));
+    pwd_info = bmalloc(sizeof(*pwd_info));
     *pwd_info = *pwd;
 }
 

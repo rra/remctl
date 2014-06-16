@@ -1,37 +1,32 @@
 /*
- * This file is part of the remctl project.
- *
- * Header file for fake getgrnam_r function only used for testing.
+ * Testing interface to the fake getgrnam_r replacement.
  *
  * Written by Remi Ferrand <remi.ferrand@cc.in2p3.fr>
+ * Revisions by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2014 IN2P3 Computing Centre - CNRS
  * Copyright 2014
- *     IN2P3 Computing Centre - CNRS
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
  
-#ifndef TESTS_SERVER_FAKE_GETGRNAM_R_H
-#define TESTS_SERVER_FAKE_GETGRNAM_R_H
+#ifndef TESTS_SERVER_ACL_FAKE_GETGRNAM_H
+#define TESTS_SERVER_ACL_FAKE_GETGRNAM_H 1
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <grp.h>
+#include <config.h>
+#include <portable/macros.h>
 
-#define PRE_ALLOC_ANSWERS_MAX_IDX 5
+/* Forward declarations to avoid additional includes. */
+struct group;
 
-struct faked_getgrnam_call {
-    struct group *getgrnam_grp; // Group struct returned
-    int getgrnam_r_rc; // syscall return code
-};
+BEGIN_DECLS
 
-/* Call index iterator
- * incremented at every getgrnam_r call
+/*
+ * Queue up a new return from getgrnam_r with the group struct and the return
+ * status.  These will be returned in the order in which they're queued,
+ * provided that the requested group name matches the gr_name struct field.
+ * If not, NULL will be returned and the queue will not be advanced.
  */
-extern int call_idx;
+void fake_queue_group(const struct group *, int);
 
-/* Stack of pre-made answers
- * The current answer is decided based on *call_idx* value
- */
-extern struct faked_getgrnam_call getgrnam_r_responses[PRE_ALLOC_ANSWERS_MAX_IDX];
-
-#endif
+#endif /* !TESTS_SERVER_ACL_FAKE_GETGRNAM_H */

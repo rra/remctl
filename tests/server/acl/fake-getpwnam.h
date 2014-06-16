@@ -14,6 +14,9 @@
 #include <config.h>
 #include <portable/macros.h>
 
+/* Forward declarations to avoid additional includes. */
+struct passwd;
+
 BEGIN_DECLS
 
 /*
