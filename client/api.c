@@ -541,7 +541,7 @@ remctl_command(struct remctl *r, const char **command)
         internal_set_error(r, "cannot send empty command");
         return 0;
     }
-    vector = malloc(sizeof(struct iovec) * count);
+    vector = calloc(count, sizeof(struct iovec));
     if (vector == NULL) {
         internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
         return 0;

@@ -2,6 +2,14 @@
 
 remctl 3.9 (unreleased)
 
+    Use calloc in preference to calculating a malloc size with
+    multiplication everywhere, and reallocarray in preference to
+    calculating a realloc size.  In most places this caution was probably
+    not necessary, but uniformity is easier to audit and no one will ever
+    notice the speed difference between malloc and calloc.  Add explicit
+    overflow checks before every remaining malloc call with a calculated
+    size.
+
     Fix incorrect handling of interruptions of network writes by signals
     in the server.  Previous versions of remctld did not correctly handle
     EINTR returns from select, read, and write and might abort the

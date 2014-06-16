@@ -397,7 +397,7 @@ read_conf_file(void *data, const char *name)
     struct config *config = data;
     FILE *file;
     char *buffer, *p, *option;
-    size_t bufsize, length, size, count, i, arg_i;
+    size_t bufsize, length, count, i, arg_i;
     enum config_status s;
     struct vector *line = NULL;
     struct rule *rule = NULL;
@@ -483,12 +483,12 @@ read_conf_file(void *data, const char *name)
          * space for it in the config struct and stuff the vector into place.
          */
         if (config->count == config->allocated) {
-            if (config->allocated < 4)
-                config->allocated = 4;
-            else
-                config->allocated *= 2;
-            size = config->allocated * sizeof(struct rule *);
-            config->rules = xrealloc(config->rules, size);
+            size_t size, n;
+
+            n = (config->allocated < 4) ? 4 : config->allocated * 2;
+            size = sizeof(struct rule *);
+            config->rules = xreallocarray(config->rules, n, size);
+            config->allocated = n;
         }
         rule = xcalloc(1, sizeof(struct rule));
         rule->line       = line;
@@ -521,7 +521,7 @@ read_conf_file(void *data, const char *name)
         rule->file = xstrdup(name);
         rule->lineno = lineno;
         count = line->count - arg_i + 1;
-        rule->acls = xmalloc(count * sizeof(char *));
+        rule->acls = xcalloc(count, sizeof(char *));
         for (i = 0; i < line->count - arg_i; i++)
             rule->acls[i] = line->strings[i + arg_i];
         rule->acls[i] = NULL;

@@ -29,10 +29,13 @@ struct event_base;
 struct iovec;
 
 /*
- * The maximum size of argc passed to the server.  This is an arbitrary limit
- * to protect against memory-based denial of service attacks on the server.
+ * The maximum size of argc passed to the server (4K arguments), and the
+ * maximum size of a single command including all of its arguments (100MB).
+ * These are arbitrary limit to protect against memory-based denial of service
+ * attacks on the server.
  */
-#define MAXCMDARGS (4 * 1024)
+#define COMMAND_MAX_ARGS (4 * 1024)
+#define COMMAND_MAX_DATA (100UL * 1024 * 1024)
 
 /*
  * The timeout.  We won't wait for longer than this number of seconds for more
