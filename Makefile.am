@@ -133,6 +133,14 @@ util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
 util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
 util_libutil_la_LIBADD = $(GSSAPI_LIBS)
 
+# If built with Kerberos support, add messages-krb5.
+if HAVE_KRB5
+    util_libutil_la_SOURCES += util/messages-krb5.c util/messages-krb5.h
+    util_libutil_la_CPPFLAGS = $(KRB5_CPPFLAGS)
+    util_libutil_la_LDFLAGS += $(KRB5_LDFLAGS)
+    util_libutil_la_LIBADD += $(KRB5_LIBS)
+endif
+
 # The remctl client library.
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
@@ -175,13 +183,13 @@ server_remctld_SOURCES = portable/event-extra.c server/commands.c	    \
 	server/process.c server/remctld.c server/server-v1.c		    \
 	server/server-v2.c
 server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	\
-	$(GSSAPI_CPPFLAGS) $(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS)		\
-	$(LIBEVENT_CPPFLAGS) $(SYSTEMD_DAEMON_CFLAGS)
-server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
-	$(LIBEVENT_LDFLAGS)
-server_remctld_LDADD = util/libutil.la portable/libportable.la		\
-	$(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)	\
-	$(SYSTEMD_DAEMON_LIBS)
+	$(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)		\
+	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS) $(SYSTEMD_DAEMON_CFLAGS)
+server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
+	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
+server_remctld_LDADD = util/libutil.la portable/libportable.la	\
+	$(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)	\
+	$(LIBEVENT_LIBS) $(SYSTEMD_DAEMON_LIBS)
 
 # Install the systemd unit file if systemd support was detected.
 if HAVE_SYSTEMD
@@ -334,7 +342,8 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t   \
 	tests/server/invalid-t tests/server/logging-t tests/server/noop-t  \
 	tests/server/stdin-t tests/server/streaming-t			   \
 	tests/server/summary-t tests/server/user-t tests/server/version-t  \
-	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t  \
+	tests/util/fdflag-t tests/util/gss-tokens-t			   \
+	tests/util/messages-krb5-t tests/util/messages-t		   \
 	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	   \
 	tests/util/network/client-t tests/util/network/server-t		   \
 	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	   \
@@ -433,8 +442,10 @@ tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
 	$(LIBEVENT_LDFLAGS)
 tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
-tests_server_acl_localgroup_t_SOURCES = tests/server/acl/localgroup-t.c \
-	tests/server/acl/getgrnam_r.c $(SERVER_FILES)
+tests_server_acl_localgroup_t_SOURCES = tests/server/acl/localgroup-t.c	  \
+	$(SERVER_FILES) tests/server/acl/fake-getgrnam.c		  \
+	tests/server/acl/fake-getgrnam.h tests/server/acl/fake-getpwnam.c \
+	tests/server/acl/fake-getpwnam.h
 tests_server_acl_localgroup_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
 	$(LIBEVENT_LDFLAGS)
 tests_server_acl_localgroup_t_LDADD = tests/tap/libtap.a util/libutil.la \
@@ -502,6 +513,10 @@ tests_util_gss_tokens_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS)
 tests_util_messages_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
+tests_util_messages_krb5_t_CPPFLAGS = $(KRB5_CPPFLAGS)
+tests_util_messages_krb5_t_LDFLAGS = $(KRB5_LDFLAGS)
+tests_util_messages_krb5_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la $(KRB5_LIBS)
 tests_util_network_addr_ipv4_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_util_network_addr_ipv6_t_LDADD = tests/tap/libtap.a util/libutil.la \

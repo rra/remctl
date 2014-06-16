@@ -14,12 +14,15 @@
 #include <portable/krb5.h>
 #include <portable/system.h>
 
+#include <pwd.h>
+
 #include <server/internal.h>
+#include <tests/server/acl/fake-getgrnam.h>
+#include <tests/server/acl/fake-getpwnam.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/messages.h>
-
-#include "getgrnam_r.h"
+#include <tests/tap/string.h>
 
 #define STACK_GETGRNAM_RESP(grp, rc) \
 do { \
@@ -36,7 +39,7 @@ do { \
     call_idx = v; \
 } while(0)
 
-#define VERY_LONG_PRINCIPAL 512
+#define VERY_LONG_PRINCIPAL (BUFSIZ + 2)
 
 /**
  * Dummy group definitions used to override return value of getgrnam
@@ -44,6 +47,24 @@ do { \
 struct group emptygrp = { (char *) "emptygrp", NULL, 42, (char *[]) { NULL } };
 struct group goodguys = { (char *) "goodguys", NULL, 42, (char *[]) { (char *) "remi", (char *) "eagle", NULL } };
 struct group badguys = { (char *) "badguys", NULL, 42, (char *[]) { (char *) "darth-vader", (char *) "darth-maul", (char *) "boba-fett", NULL } };
+
+
+/*
+ * Set a fake getpwnam response for the given user.  This will have no useful
+ * data other than the GID, which will be set to match the given value.
+ */
+static void
+set_passwd(const char *user, gid_t gid)
+{
+    struct passwd pw;
+
+    memset(&pw, 0, sizeof(pw));
+    pw.pw_name = (char *) user;
+    pw.pw_uid  = 1000;
+    pw.pw_gid  = gid;
+    fake_set_passwd(&pw);
+}
+
 
 int
 main(void)
@@ -55,7 +76,9 @@ main(void)
     int i = 0;
 
     char long_principal[VERY_LONG_PRINCIPAL];
-    char expected_error[VERY_LONG_PRINCIPAL*2];
+    char *expected;
+    krb5_context ctx;
+    const char *message;
 
     memset(&getgrnam_r_responses, 0x0, sizeof(getgrnam_r_responses));
 
@@ -100,18 +123,21 @@ main(void)
     RESET_GETGRNAM_CALL_IDX(0);
     acls[0] = "localgroup:goodguys";
     acls[1] = NULL;
-    ok(server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"), 
+    set_passwd("remi", 0);
+    ok(server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"),
     "... with user within group");
 
     RESET_GETGRNAM_CALL_IDX(0);
 
     /* ... and when it's not ... */
+    set_passwd("someoneelse", 0);
     ok(!server_config_acl_permit(&rule, "someoneelse@EXAMPLE.ORG"),
     "... with user not in group");
 
     RESET_GETGRNAM_CALL_IDX(0);
 
     /* ... and when principal is complex */
+    set_passwd("remi", 0);
     ok(!server_config_acl_permit(&rule, "remi/admin@EXAMPLE.ORG"),
     "... with principal with instances but main user in group");
 
@@ -126,30 +152,34 @@ main(void)
     ok(!server_config_acl_permit(&rule, long_principal),
     "... with long_principal very very long");
 
-    memset(&expected_error, 0x0, sizeof(expected_error));
-    sprintf(expected_error, "TEST:0: converting krb5 principal %s to localname failed with"
-            " status %ld (Insufficient space to return complete information)\n", long_principal, (long) KRB5_CONFIG_NOTENUFSPACE);
-    expected_error[1023] = '\0';
-
-    is_string(expected_error, errors, "... match error message with principal too long");
+    /* Determine the expected error message. */
+    if (krb5_init_context(&ctx) != 0)
+        bail("cannot create Kerberos context");
+    message = krb5_get_error_message(ctx, KRB5_CONFIG_NOTENUFSPACE);
+    basprintf(&expected, "conversion of %s to local name failed: %s\n",
+              long_principal, message);
+    is_string(expected, errors, "... match error message with principal too long");
     errors_uncapture();
+    free(expected);
 
     RESET_GETGRNAM_CALL_IDX(0);
 
     /* Check when user comes from a not supported REALM */
+    set_passwd("eagle", 0);
     ok(!server_config_acl_permit(&rule, "eagle@ANY.OTHER.REALM.FR"),
     "... with user from not supported REALM");
 
     RESET_GETGRNAM_CALL_IDX(0);
 
     /* Check behavior when syscall fails */
-    STACK_GETGRNAM_RESP(&goodguys, 2);
+    STACK_GETGRNAM_RESP(&goodguys, EPERM);
     RESET_GETGRNAM_CALL_IDX(0);
     errors_capture();
-    ok(!server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"), 
+    set_passwd("remi", 0);
+    ok(!server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"),
     "... with getgrnam_r failing");
-    is_string("TEST:0: resolving unix group 'goodguys' failed with status 2\n", errors,
-              "... with getgrnam_r error handling");
+    is_string("TEST:0: retrieving membership of localgroup goodguys failed\n",
+              errors, "... with getgrnam_r error handling");
     errors_uncapture();
 
     RESET_GETGRNAM_CALL_IDX(0);
@@ -160,11 +190,13 @@ main(void)
     acls[0] = "deny:localgroup:badguys";
     acls[1] = NULL;
 
+    set_passwd("boba-fett", 0);
     ok(!server_config_acl_permit(&rule, "boba-fett@EXAMPLE.ORG"),
     "... with denied user in group");
 
     RESET_GETGRNAM_CALL_IDX(0);
 
+    set_passwd("remi", 0);
     ok(!server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"),
     "... with user not in denied group but not allowed");
 
@@ -178,16 +210,19 @@ main(void)
     acls[1] = "deny:localgroup:badguys";
     acls[2] = NULL;
 
+    set_passwd("eagle", 0);
     ok(server_config_acl_permit(&rule, "eagle@EXAMPLE.ORG"),
     "... with user within group plus a deny pragma");
 
     RESET_GETGRNAM_CALL_IDX(0);
 
+    set_passwd("darth-maul", 0);
     ok(!server_config_acl_permit(&rule, "darth-maul@EXAMPLE.ORG"),
     "... with user in denied group plus a allow group pragma");
-    
+
     RESET_GETGRNAM_CALL_IDX(0);
 
+    set_passwd("anyoneelse", 0);
     ok(!server_config_acl_permit(&rule, "anyoneelse@EXAMPLE.ORG"),
     "... with user neither in allowed or denied group");
 

@@ -21,8 +21,8 @@
 #include <portable/system.h>
 
 #include <util/macros.h>
-
-#include "getgrnam_r.h"
+#include <tests/server/acl/fake-getgrnam.h>
+#include <tests/tap/basic.h>
 
 int call_idx = 0; // Call index that allow
                   // to fake multiple calls to

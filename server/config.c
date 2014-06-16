@@ -35,6 +35,7 @@
 #include <server/internal.h>
 #include <util/macros.h>
 #include <util/messages.h>
+#include <util/messages-krb5.h>
 #include <util/vector.h>
 #include <util/xmalloc.h>
 
@@ -898,134 +899,187 @@ acl_check_regex(const char *user, const char *data, const char *file,
 #endif /* HAVE_REGCOMP */
 
 
+#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
+
+/*
+ * Convert the user (a Kerberos principal name) to a local username for group
+ * lookups.  Returns true on success and false on an error other than there
+ * being no local equivalent of the Kerberos principal.  Stores the local
+ * equivalent username, or NULL if there is none, in the localname parameter.
+ */
+static bool
+user_to_localname(const char *user, char **localname)
+{
+    krb5_context ctx = NULL;
+    krb5_error_code code;
+    krb5_principal princ = NULL;
+    char buffer[BUFSIZ];
+
+    /* Initialize the result. */
+    *localname = NULL;
+
+    /*
+     * Unfortunately, we don't keep a Kerberos context around and have to
+     * create a new one with each invocation.
+     */
+    code = krb5_init_context(&ctx);
+    if (code != 0) {
+        warn_krb5(ctx, code, "cannot create Kerberos context");
+        return false;
+    }
+
+    /* Convert the user to a principal and find the local name. */
+    code = krb5_parse_name(ctx, user, &princ);
+    if (code != 0) {
+        warn_krb5(ctx, code, "cannot parse principal %s", user);
+        goto fail;
+    }
+    code = krb5_aname_to_localname(ctx, princ, sizeof(buffer), buffer);
+    if (code != 0 && code != KRB5_LNAME_NOTRANS) {
+        warn_krb5(ctx, code, "conversion of %s to local name failed", user);
+        goto fail;
+    }
+
+    /* If there was a result, make a copy.  Then clean up and return. */
+    if (code == 0)
+        *localname = xstrdup(buffer);
+    krb5_free_principal(ctx, princ);
+    krb5_free_context(ctx);
+    return true;
+
+fail:
+    if (princ != NULL)
+        krb5_free_principal(ctx, princ);
+    krb5_free_context(ctx);
+    return false;
+}
+
+
+/*
+ * Look up a group with getgrnam_r, which provides better error reporting than
+ * the normal getrnam function but requires buffer handling.  Returns either
+ * CONFIG_SUCCESS or CONFIG_ERROR.  On success, sets the provided group and
+ * buffer pointers if the group was found.  The caller should free the buffer
+ * when done with the results.  On failure to find the group, but no error,
+ * returns success but with the buffer and group pointers set to NULL.  On
+ * error, returns CONFIG_ERROR and sets errno.
+ */
+static enum config_status
+acl_getgrnam(const char *group, struct group **grp, char **buffer)
+{
+    size_t buflen;
+    int status, oerrno;
+    struct group *result;
+    enum config_status retval;
+
+    /* Initialize the return values. */
+    *grp = NULL;
+    *buffer = NULL;
+
+    /* Determine the size of the buffer for getgrnam_r. */
+    buflen = sysconf(_SC_GETGR_R_SIZE_MAX);
+    if (buflen <= 0)
+        buflen = BUFSIZ;
+    *buffer = xmalloc(buflen);
+
+    /* Get the group information, repeating on EINTR. */
+    *grp = xmalloc(sizeof(struct group));
+    do {
+        status = getgrnam_r(group, *grp, *buffer, buflen, &result);
+        if (status != 0 && status != EINTR) {
+            errno = status;
+            retval = CONFIG_ERROR;
+            goto fail;
+        }
+    } while (status == EINTR);
+
+    /* If not found, free all the memory and return success with NULL. */
+    if (result == NULL) {
+        retval = CONFIG_SUCCESS;
+        goto fail;
+    }
+
+    /* Otherwise, return success. */
+    return CONFIG_SUCCESS;
+
+fail:
+    oerrno = errno;
+    free(*buffer);
+    *buffer = NULL;
+    free(*grp);
+    *grp = NULL;
+    errno = oerrno;
+    return retval;
+}
+
+
 /*
  * The ACL check operation for UNIX local group membership.  Takes the user to
  * check, the group of which they have to be a member, and the referencing
  * file name and line number.
  */
-#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
 static enum config_status
-acl_check_localgroup(const char *user, const char *data, const char *file,
-                     int lineno)
+acl_check_localgroup(const char *user, const char *group,
+                     const char *file, int lineno)
 {
-    struct group grp;
-    struct group *tempgrp = NULL;
-    int status = -1;
-    enum config_status result = CONFIG_ERROR;
-    long buf_len = -1;
-    char *buf = NULL;
-    char *lname = NULL;
-    size_t lsize = REMCTL_KRB5_LOCALNAME_MAX_LEN;
-    size_t buf_sz = 1024;
-    krb5_context krb_ctx = NULL;
-    krb5_principal princ = NULL;
-    krb5_error_code krb5_code = -1;
+    struct passwd *pw;
+    struct group *gr = NULL;
+    char *grbuffer = NULL;
+    size_t i;
+    char *localname = NULL;
+    enum config_status result;
 
-    memset(&grp, 0x0, sizeof(grp));
-
-    buf_len = sysconf(_SC_GETGR_R_SIZE_MAX);
-    if (buf_len > 0) {
-        buf_sz = (size_t) buf_sz;
+    /* Look up the group membership. */
+    result = acl_getgrnam(group, &gr, &grbuffer);
+    if (result != CONFIG_SUCCESS) {
+        syswarn("%s:%d: retrieving membership of localgroup %s failed", file,
+                lineno, group);
+        return result;
     }
+    if (gr == NULL)
+        return CONFIG_NOMATCH;
 
-    buf = (char *) xmalloc(sizeof(char) * buf_sz);
-    memset(buf, 0x0, buf_sz);
-
-    do {
-        status = getgrnam_r(data, &grp, buf, buf_sz, &tempgrp);
-        if (status != 0 && status != EINTR) {
-            warn("%s:%d: resolving unix group '%s' failed with status %d", file,
-                 lineno, data, status);
-            result = CONFIG_ERROR;
-            goto die;
-        }
-    } while (status == EINTR);
-
-    /* No group matching */
-    if (tempgrp == NULL) {
+    /*
+     * Convert the principal to a local name.  Return no match if it doesn't
+     * convert.
+     */
+    if (!user_to_localname(user, &localname)) {
+        result = CONFIG_ERROR;
+        goto done;
+    }
+    if (localname == NULL) {
         result = CONFIG_NOMATCH;
+        goto done;
     }
-    else {
-        /* Sanitize and search for match in group members */
-        const char *krb_message;
-        char *cur_member = grp.gr_mem[0];
-        int i = 0;
 
-        memset(&princ, 0x0, sizeof(princ));
-
-        krb5_code = krb5_init_context(&krb_ctx);
-        if (krb5_code != 0) {
-            warn("%s:%d: initializing krb5 context failed with status %d", file,
-                lineno, krb5_code);
-            result = CONFIG_ERROR;
-            goto die;
-        }
-
-        krb5_code = krb5_parse_name(krb_ctx, user, &princ);
-        if (krb5_code != 0) {
-            krb_message = krb5_get_error_message(krb_ctx, krb5_code);
-            warn("%s:%d: parsing principal %s failed with status %d (%s)", file,
-                lineno, user, krb5_code, krb_message);
-            krb5_free_error_message(krb_ctx, krb_message);
-
-            result = CONFIG_ERROR;
-            goto die;
-        }
-
-        lname = (char *) xmalloc(sizeof(char) * lsize);
-        memset(lname, 0x0, lsize);
-
-        krb5_code = krb5_aname_to_localname(krb_ctx, princ, lsize, lname);
-        if (krb5_code != 0) {
-            if (krb5_code == KRB5_LNAME_NOTRANS) {
-                result = CONFIG_NOMATCH;
-            }
-            else {
-                krb_message = krb5_get_error_message(krb_ctx, krb5_code);
-                warn("%s:%d: converting krb5 principal %s to localname failed with status %d (%s)", file,
-                    lineno, user, krb5_code, krb_message);
-                krb5_free_error_message(krb_ctx, krb_message);
-
-                result = CONFIG_ERROR;
-            }
-            goto die;
-        }
-
-        /* Check if sanitized user is within group members */
-        while (cur_member != NULL && *cur_member != '\0') {
-            if (strcmp(cur_member, lname) == 0) {
-                result = CONFIG_SUCCESS;
-                goto die;
-            }
-            cur_member = grp.gr_mem[++i];
-        }
-
+    /* Look up the local user.  If they don't exist, return no match. */
+    pw = getpwnam(localname);
+    if (pw == NULL) {
         result = CONFIG_NOMATCH;
+        goto done;
     }
 
-die:
-    if (buf != NULL) {
-        free(buf);
-        buf = NULL;
+    /* Check if the user's primary group is the desired group. */
+    if (gr->gr_gid == pw->pw_gid) {
+        result = CONFIG_SUCCESS;
+        goto done;
     }
 
-    if (lname != NULL) {
-        free(lname);
-        lname = NULL;
-    }
+    /* Otherwise, check if the user is one of the other group members. */
+    result = CONFIG_NOMATCH;
+    for (i = 0; gr->gr_mem[i] != NULL; i++)
+        if (strcmp(localname, gr->gr_mem[i]) == 0) {
+            result = CONFIG_SUCCESS;
+            break;
+        }
 
-    if (princ != NULL) {
-        krb5_free_principal(krb_ctx, princ);
-        princ = NULL;
-    }
-
-    if (krb_ctx != NULL) {
-        krb5_free_context(krb_ctx);
-        krb_ctx = NULL;
-    }
-
+done:
+    free(gr);
+    free(grbuffer);
+    free(localname);
     return result;
 }
+
 #endif /* HAVE_KRB5 && HAVE_GETGRNAM_R */
 
 

@@ -48,6 +48,7 @@ AS_IF([test x"$rra_use_KRB5" != xfalse],
      AC_CHECK_DECLS([krb5_kt_free_entry], [], [], [RRA_INCLUDES_KRB5])
      AC_LIBOBJ([krb5-extra])
      RRA_LIB_KRB5_RESTORE])
+AM_CONDITIONAL([HAVE_KRB5], [test x"$rra_use_KRB5" = xtrue])
 
 dnl GSS-API portability checks.
 RRA_LIB_GSSAPI
