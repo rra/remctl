@@ -77,7 +77,6 @@ main(void)
        "localgroup ACL check fails");
     is_string("TEST:0: ACL scheme 'localgroup' is not supported\n", errors,
               "...with not supported error");
-    errors_uncapture();
     free(errors);
     return 0;
 }
@@ -115,7 +114,7 @@ main(void)
         NULL, (char **) acls
     };
 
-    plan(15);
+    plan(16);
 
     /* Use a krb5.conf with a default realm of EXAMPLE.ORG. */
     kerberos_generate_conf("EXAMPLE.ORG");
@@ -139,6 +138,12 @@ main(void)
     set_passwd("someoneelse", 0);
     ok(!server_config_acl_permit(&rule, "someoneelse@EXAMPLE.ORG"),
        "User not in group");
+
+    /* Check that the user's primary group also counts. */
+    fake_queue_group(&goodguys, 0);
+    set_passwd("otheruser", 42);
+    ok(server_config_acl_permit(&rule, "otheruser@EXAMPLE.ORG"),
+       "User has group as primary group");
 
     /* And when the user does not convert to a local user or is complex. */
     fake_queue_group(&goodguys, 0);
@@ -179,7 +184,6 @@ main(void)
        "Failing getgrnam_r");
     is_string("TEST:0: retrieving membership of localgroup goodguys failed\n",
               errors, "...with correct error message");
-    errors_uncapture();
 
     /* Check that deny group works as expected */
     fake_queue_group(&badguys, 0);
