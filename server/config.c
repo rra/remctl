@@ -9,6 +9,7 @@
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
+ * Copyright 2014 IN2P3 Computing Centre - CNRS
  *
  * See LICENSE for licensing terms.
  */
@@ -935,14 +936,23 @@ user_to_localname(const char *user, char **localname)
         goto fail;
     }
     code = krb5_aname_to_localname(ctx, princ, sizeof(buffer), buffer);
-    if (code != 0 && code != KRB5_LNAME_NOTRANS) {
+
+    /*
+     * Distinguish between no result with no error, a result (where we want to
+     * make a copy), and an error.  Then free memory and return.
+     */
+    switch (code) {
+    case KRB5_LNAME_NOTRANS:
+    case KRB5_NO_LOCALNAME:
+        /* No result.  Do nothing. */
+        break;
+    case 0:
+        *localname = xstrdup(buffer);
+        break;
+    default:
         warn_krb5(ctx, code, "conversion of %s to local name failed", user);
         goto fail;
     }
-
-    /* If there was a result, make a copy.  Then clean up and return. */
-    if (code == 0)
-        *localname = xstrdup(buffer);
     krb5_free_principal(ctx, princ);
     krb5_free_context(ctx);
     return true;
@@ -1207,7 +1217,7 @@ server_config_free(struct config *config)
  * otherwise.
  */
 bool
-server_config_acl_permit(struct rule *rule, const char *user)
+server_config_acl_permit(const struct rule *rule, const char *user)
 {
     char **acls = rule->acls;
     size_t i;
