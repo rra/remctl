@@ -14,11 +14,15 @@
  */
 
 #include <config.h>
+#ifdef HAVE_KRB5
+# include <portable/krb5.h>
+#endif
 #include <portable/system.h>
 
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
+#include <grp.h>
 #ifdef HAVE_PCRE
 # include <pcre.h>
 #endif
@@ -27,13 +31,6 @@
 # include <regex.h>
 #endif
 #include <sys/stat.h>
-
-#ifdef HAVE_REMCTL_UNXGRP_ACL 
-# include <sys/types.h>
-# include <grp.h>
-# include <unistd.h>
-# include <portable/krb5.h>
-#endif
 
 #include <server/internal.h>
 #include <util/macros.h>
@@ -900,7 +897,8 @@ acl_check_regex(const char *user, const char *data, const char *file,
 }
 #endif /* HAVE_REGCOMP */
 
-#ifdef HAVE_REMCTL_UNXGRP_ACL
+
+#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
 static enum config_status
 acl_check_unxgrp (const char *user, const char *data, const char *file,
                 int lineno)
@@ -1023,7 +1021,8 @@ die:
 
     return result;
 }
-#endif /* HAVE_REMCTL_UNXGRP_ACL */
+#endif /* HAVE_KRB5 && HAVE_GETGRNAM_R */
+
 
 /*
  * The table relating ACL scheme names to functions.  The first two ACL
@@ -1049,10 +1048,10 @@ static const struct acl_scheme schemes[] = {
 #else
     { "regex", NULL            },
 #endif
-#ifdef HAVE_REMCTL_UNXGRP_ACL
+#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
     { "unxgrp", acl_check_unxgrp },
 #else
-    { "unxgrp", NULL         },
+    { "unxgrp", NULL           },
 #endif
     { NULL,    NULL            }
 };
