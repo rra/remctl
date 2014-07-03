@@ -1,4 +1,4 @@
-remctl (3.9-1) UNRELEASED; urgency=medium
+remctl (3.9-1) unstable; urgency=medium
 
   * New upstream release.
     - New server ACL type, localgroup, which converts the principal to a
@@ -22,7 +22,7 @@ remctl (3.9-1) UNRELEASED; urgency=medium
     tree and the installed binary tree and benefits from the
     disambiguation.
 
- -- Russ Allbery <rra@debian.org>  Sun, 13 Apr 2014 13:28:57 -0700
+ -- Russ Allbery <rra@debian.org>  Wed, 02 Jul 2014 20:57:10 -0700
 
 remctl (3.8-3) unstable; urgency=medium
 
