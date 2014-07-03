@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.9 (unreleased)
+remctl 3.9 (2014-07-02)
 
     Add a new server ACL type, localgroup, which converts the principal to
     a local username with krb5_aname_to_localname and then checks whether
