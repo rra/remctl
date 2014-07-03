@@ -90,8 +90,8 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/configs/bad-include-1 tests/data/configs/bad-logmask-2   \
 	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4   \
 	tests/data/configs/bad-option-1 tests/data/configs/bad-user-1	    \
-	tests/data/perl.conf tests/data/gput tests/data/valgrind.supp	    \
-	tests/docs/pod-spelling-t tests/docs/pod-t			    \
+	tests/data/perl.conf tests/data/generate-krb5-conf tests/data/gput  \
+	tests/data/valgrind.supp tests/docs/pod-spelling-t tests/docs/pod-t \
 	tests/perl/module-version-t tests/tap/kerberos.sh		    \
 	tests/tap/libtap.sh tests/tap/perl/Test/RRA.pm			    \
 	tests/tap/perl/Test/RRA/Automake.pm				    \
