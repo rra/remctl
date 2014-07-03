@@ -13,6 +13,8 @@ remctl (3.9-1) UNRELEASED; urgency=medium
     correct Perl arch-specific vendor module path from Perl during the
     build.  Should fix builds with Perl 5.20.  Thanks, Niko Tyni and
     gregor herrmann.  (Closes: #752902)
+  * Build-Depend on krb5-config to get enough of a Kerberos configuration
+    for some test cases that are KDC-independent to run.
   * Fix Upstream-Contact email address in debian/copyright.
   * Remove most debian/tmp prefixes from debhelper *.install files.  These
     have not been needed since compat level 7.  Retain them only for the
