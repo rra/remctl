@@ -98,6 +98,9 @@
 /* Define if the AI_ADDRCONFIG flag works with getaddrinfo. */
 #undef HAVE_GETADDRINFO_ADDRCONFIG
 
+/* Define to 1 if you have the `getgrnam_r' function. */
+#undef HAVE_GETGRNAM_R
+
 /* Define to 1 if you have the `getnameinfo' function. */
 #undef HAVE_GETNAMEINFO
 
@@ -197,6 +200,9 @@
 
 /* Define to 1 if you have the <pcre.h> header file. */
 #undef HAVE_PCRE_H
+
+/* Define to 1 if you have the `reallocarray' function. */
+#undef HAVE_REALLOCARRAY
 
 /* Define to 1 if you have the `regcomp' function. */
 #undef HAVE_REGCOMP

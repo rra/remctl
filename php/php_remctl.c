@@ -6,7 +6,7 @@
  *
  * Originally written by Andrew Mortensen <admorten@umich.edu>, 2008
  * Copyright 2008 Andrew Mortensen <admorten@umich.edu>
- * Copyright 2008, 2011, 2012
+ * Copyright 2008, 2011, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -133,9 +133,9 @@ ZEND_FUNCTION(remctl)
      * is less than ideal because we make another copy of all of the
      * arguments.  There should be some way to do this without making a copy.
      */
-    command = emalloc((count + 1) * sizeof(char *));
+    command = ecalloc(count + 1, sizeof(char *));
     if (command == NULL) {
-        zend_error(E_WARNING, "remctl: emalloc failed\n");
+        zend_error(E_WARNING, "remctl: ecalloc failed\n");
         RETURN_NULL();
     }
     i = 0;
@@ -358,9 +358,9 @@ ZEND_FUNCTION(remctl_command)
      * than ideal because it makes another copy of all of the data.  There
      * should be some way to do this without copying.
      */
-    cmd_vec = emalloc(count * sizeof(struct iovec));
+    cmd_vec = ecalloc(count, sizeof(struct iovec));
     if (cmd_vec == NULL) {
-        zend_error(E_WARNING, "remctl_command: emalloc failed\n");
+        zend_error(E_WARNING, "remctl_command: ecalloc failed\n");
         RETURN_FALSE;
     }
     i = 0;

@@ -23,6 +23,7 @@ portable/strlcat
 portable/strlcpy
 server/accept
 server/acl
+server/acl/localgroup
 server/bind
 server/config
 server/continue
@@ -40,6 +41,7 @@ server/user
 server/version
 util/gss-tokens
 util/messages
+util/messages-krb5
 util/network/addr-ipv4
 util/network/addr-ipv6
 util/network/client

@@ -1,6 +1,6 @@
 =for stopwords
 remctl const TCP GSS-API DNS DNS-based KRB5CCNAME lookups canonicalization
-libdefaults Allbery CNAME ai addr addrinfo addrlen fd
+libdefaults Allbery CNAME ai addr addrinfo addrlen fd IANA-registered
 
 =head1 NAME
 
@@ -56,17 +56,34 @@ GSS-API library may canonicalize I<host> via DNS before determining the
 service principal, depending on your library configuration.  Specifying a
 principal disables this behavior.
 
-The remctl protocol uses Kerberos v5 via GSS-API for authentication.  The
+The remctl protocol uses Kerberos via GSS-API for authentication.  The
 underlying GSS-API library will use the default ticket cache for
 authentication, so to successfully use remctl_open(), the caller should
 already have Kerberos tickets for an appropriate realm stored in its
-default ticket cache.  The environment variable KRB5CCNAME can be used to
-control which ticket cache is used.
+default ticket cache.  The environment variable KRB5CCNAME or the
+L<remctl_set_ccache(3)> function can be used to control which ticket cache
+is used.
+
+To control the timeout for the connect and for subsequent calls, see the
+L<remctl_set_timeout(3)> function.  To control the source IP used by
+remctl_open(), remctl_open_addrinfo(), and remctl_open_sockaddr(), see the
+L<remctl_set_source_ip(3)> function.
 
 =head1 RETURN VALUE
 
 remctl_open() returns true on success and false on failure.  On failure,
 the caller should call remctl_error() to retrieve the error message.
+
+=head1 COMPATIBILITY
+
+The remctl_open() interface has been provided by the remctl client library
+since its initial release in version 2.0.  remctl_open_addrinfo(),
+remctl_open_sockaddr(), and remctl_open_fd() were added in version 3.4.
+
+The default port was changed to the IANA-registered port of 4373 in
+version 2.11.
+
+Support for IPv6 was added in version 2.4.
 
 =head1 CAVEATS
 
@@ -108,26 +125,27 @@ be closed and reopened before another command can be sent.
 The remctl port number, 4373, was derived by tracing the diagonals of a
 QWERTY keyboard up from the letters C<remc> to the number row.
 
-=head1 SEE ALSO
-
-remctl_new(3), remctl_error(3)
-
-The current version of the remctl library and complete details of the
-remctl protocol are available from its web page at
-L<http://www.eyrie.org/~eagle/software/remctl/>.
-
 =head1 AUTHOR
 
 Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007, 2008, 2009 The Board of Trustees of the Leland Stanford
-Junior University
+Copyright 2007, 2008, 2009, 2014 The Board of Trustees of the Leland
+Stanford Junior University
 
 Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice and
 this notice are preserved.  This file is offered as-is, without any
 warranty.
   
+=head1 SEE ALSO
+
+remctl_new(3), remctl_error(3), remctl_set_ccache(3),
+remctl_set_source_ip(3), remctl_set_timeout(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
 =cut

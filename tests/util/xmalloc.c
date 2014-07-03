@@ -5,7 +5,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Copyright 2000, 2001, 2006 Russ Allbery <eagle@eyrie.org>
- * Copyright 2008, 2012, 2013
+ * Copyright 2008, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -102,6 +102,36 @@ test_realloc(size_t size)
         if (buffer[i] != 1)
             return 0;
     for (i = 10; i < size; i++)
+        if (buffer[i] != 2)
+            return 0;
+    free(buffer);
+    return 1;
+}
+
+
+/*
+ * Like test_realloc, but test allocating an array instead.  Returns true on
+ * success, false on any failure.
+ */
+static int
+test_reallocarray(size_t n, size_t size)
+{
+    char *buffer;
+    size_t i;
+
+    buffer = xmalloc(10);
+    if (buffer == NULL)
+        return 0;
+    memset(buffer, 1, 10);
+    buffer = xreallocarray(buffer, n, size);
+    if (buffer == NULL)
+        return 0;
+    if (n > 0 && size > 0)
+        memset(buffer + 10, 2, (n * size) - 10);
+    for (i = 0; i < 10; i++)
+        if (buffer[i] != 1)
+            return 0;
+    for (i = 10; i < n * size; i++)
         if (buffer[i] != 2)
             return 0;
     free(buffer);
@@ -330,8 +360,8 @@ main(int argc, char *argv[])
             syswarn("Can't set data limit to %lu", (unsigned long) limit);
             exit(2);
         }
-        if (size < limit || code == 'r') {
-            test_size = code == 'r' ? 10 : size;
+        if (size < limit || code == 'r' || code == 'y') {
+            test_size = (code == 'r' || code == 'y') ? 10 : size;
             if (test_size == 0)
                 test_size = 1;
             tmp = malloc(test_size);
@@ -352,6 +382,7 @@ main(int argc, char *argv[])
     case 'c': exit(test_calloc(size) ? willfail : 1);
     case 'm': exit(test_malloc(size) ? willfail : 1);
     case 'r': exit(test_realloc(size) ? willfail : 1);
+    case 'y': exit(test_reallocarray(4, size / 4) ? willfail : 1);
     case 's': exit(test_strdup(size) ? willfail : 1);
     case 'n': exit(test_strndup(size) ? willfail : 1);
     case 'a': exit(test_asprintf(size) ? willfail : 1);

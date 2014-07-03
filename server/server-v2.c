@@ -42,6 +42,8 @@ server_v2_send_output(struct client *client, int stream,
 
     /* Allocate room for the total message. */
     outlen = evbuffer_get_length(output);
+    if (outlen >= SIZE_MAX - 1 - 1 - 1 - 4)
+        die("internal error: memory allocation too large");
     token.length = 1 + 1 + 1 + 4 + outlen;
     token.value = xmalloc(token.length);
 
@@ -125,6 +127,8 @@ server_v2_send_error(struct client *client, enum error_codes code,
     int status;
 
     /* Build the error token. */
+    if (strlen(message) >= SIZE_MAX - 1 - 1 - 4 - 4)
+        die("internal error: memory allocation too large");
     token.length = 1 + 1 + 4 + 4 + strlen(message);
     token.value = xmalloc(token.length);
     p = token.value;
@@ -337,6 +341,13 @@ server_v2_handle_command(struct client *client, struct config *config,
          */
         p += 4;
         length = token->length - (p - (char *) token->value);
+        if (length >= COMMAND_MAX_DATA - total) {
+            warn("total command length %lu exceeds %lu", length + total,
+                 COMMAND_MAX_DATA);
+            result = server_send_error(client, ERROR_TOOMUCH_DATA,
+                                       "Too much data");
+            goto fail;
+        }
         if (continued || buffer != NULL) {
             if (buffer == NULL)
                 buffer = xmalloc(length);

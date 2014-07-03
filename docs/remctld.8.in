@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "REMCTLD 8"
-.TH REMCTLD 8 "2014-01-28" "3.8" "remctl"
+.TH REMCTLD 8 "2014-07-02" "3.9" "remctl"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -150,8 +150,9 @@ remctld [\fB\-dFhmSvZ\fR] [\fB\-b\fR \fIbind-address\fR [\fB\-b\fR \fIbind-addre
 \&\fBremctld\fR is the server for remctl.  It accepts a connection from remctl,
 receives the command to execute and the arguments, verifies authorization
 of the user and executes the command, returning the result back to the
-client.  All connections are authenticated using GSS-API Kerberos v5, and
-all transmissions are also encrypted using the GSS-API privacy layer.
+client.  All connections are authenticated using Kerberos GSS-API
+Kerberos, and all transmissions are also encrypted using the GSS-API
+privacy layer.
 .PP
 \&\fBremctld\fR is normally started using \fBtcpserver\fR or from \fBinetd\fR, but it
 may be run in stand-alone mode as a daemon using \fB\-m\fR.  Either \fB\-s\fR must
@@ -168,46 +169,58 @@ FILE\*(R"\s0 below.
 When the command is run, several environment variables will be set
 providing information about the remote connection.  See \s-1ENVIRONMENT\s0
 below for more information.
+.PP
+Command-line and configuration options and \s-1ACL\s0 methods are annotated below
+with the version at which they were added.  For version information for
+more general features, see \s-1COMPATIBILITY\s0 below.
 .SH "OPTIONS"
 .IX Header "OPTIONS"
+The start of each option description is annotated with the version of
+\&\fBremctld\fR in which that option was added with its current meaning.
 .IP "\fB\-b\fR \fIbind-address\fR" 4
 .IX Item "-b bind-address"
-When running as a standalone server, bind to the specified local address
-rather than listening on all interfaces.  This option may be given
+[2.17] When running as a standalone server, bind to the specified local
+address rather than listening on all interfaces.  This option may be given
 multiple times to bind to multiple addresses.  \fIbind-address\fR must be an
 \&\s-1IP\s0 address (either IPv4 or IPv6), not a hostname.  Only makes sense in
 combination with \fB\-m\fR.
+.Sp
+This option is ignored if \fBremctld\fR is passed already open sockets via
+the systemd socket activation protocol.  In that case, the bind addresses
+of the sockets should be controlled via the systemd configuration.
 .IP "\fB\-d\fR" 4
 .IX Item "-d"
-Enable verbose debug logging to syslog (or to standard output if \fB\-S\fR is
-also given).
+[1.10] Enable verbose debug logging to syslog (or to standard output if
+\&\fB\-S\fR is also given).
 .IP "\fB\-F\fR" 4
 .IX Item "-F"
-Normally when running in stand-alone mode (\fB\-m\fR), \fBremctld\fR backgrounds
-itself to run as a daemon, changes directory to \fI/\fR, and drops any
-controlling terminal.  This flag suppresses this behavior, usually for
-debugging or so that \fBremctld\fR can be monitored by other processes.
+[2.8] Normally when running in stand-alone mode (\fB\-m\fR), \fBremctld\fR
+backgrounds itself to run as a daemon, changes directory to \fI/\fR, and
+drops any controlling terminal.  This flag suppresses this behavior,
+usually for debugging or so that \fBremctld\fR can be monitored by other
+processes.
 .IP "\fB\-f\fR \fIconfig\fR" 4
 .IX Item "-f config"
-The configuration file for \fBremctld\fR, overriding the default path.
+[1.0] The configuration file for \fBremctld\fR, overriding the default path.
 .IP "\fB\-h\fR" 4
 .IX Item "-h"
-Show a brief usage message and then exit.  This usage method will include
-a list of supported \s-1ACL\s0 types and can be used to determine if optional \s-1ACL\s0
-methods were compiled into a given \fBremctld\fR build.
+[1.10] Show a brief usage message and then exit.  This usage method will
+include a list of supported \s-1ACL\s0 types and can be used to determine if
+optional \s-1ACL\s0 methods were compiled into a given \fBremctld\fR build.
 .IP "\fB\-k\fR \fIkeytab\fR" 4
 .IX Item "-k keytab"
-Use \fIkeytab\fR as the keytab for server credentials rather than the system
-default or the value of the \s-1KRB5_KTNAME\s0 environment variable.  Using \fB\-k\fR
-just sets the \s-1KRB5_KTNAME\s0 environment variable internally in the process.
+[2.8] Use \fIkeytab\fR as the keytab for server credentials rather than the
+system default or the value of the \s-1KRB5_KTNAME\s0 environment variable.
+Using \fB\-k\fR just sets the \s-1KRB5_KTNAME\s0 environment variable internally in
+the process.
 .IP "\fB\-m\fR" 4
 .IX Item "-m"
-Enable stand-alone mode.  \fBremctld\fR will listen to its configured port
-and fork a new child for each incoming connection.  By default, when this
-option is used, \fBremctld\fR also changes directory to \fI/\fR, backgrounds
-itself, and closes standard input, output, and error.  To not background,
-pass \fB\-F\fR as well.  To not close standard output and error and continue
-using them for logging, pass \fB\-S\fR as well.
+[2.8] Enable stand-alone mode.  \fBremctld\fR will listen to its configured
+port and fork a new child for each incoming connection.  By default, when
+this option is used, \fBremctld\fR also changes directory to \fI/\fR,
+backgrounds itself, and closes standard input, output, and error.  To not
+background, pass \fB\-F\fR as well.  To not close standard output and error
+and continue using them for logging, pass \fB\-S\fR as well.
 .Sp
 To determine the port, \fBremctld\fR attempts to look up the \f(CW\*(C`remctl\*(C'\fR
 service in the local \fI/etc/services\fR file and uses the port defined
@@ -215,31 +228,35 @@ there.  If the \f(CW\*(C`remctl\*(C'\fR service could not be found, it uses 4373
 registered remctl port.
 .IP "\fB\-P\fR \fIfile\fR" 4
 .IX Item "-P file"
-When running in stand-alone mode (\fB\-m\fR), write the \s-1PID\s0 of \fBremctld\fR to
-\&\fIfile\fR.  This option is ignored unless \fB\-m\fR is also given.
+[2.0] When running in stand-alone mode (\fB\-m\fR), write the \s-1PID\s0 of
+\&\fBremctld\fR to \fIfile\fR.  This option is ignored unless \fB\-m\fR is also given.
 .IP "\fB\-p\fR \fIport\fR" 4
 .IX Item "-p port"
-When running in stand-alone mode, listen on port \fIport\fR rather than the
-default.  This option does nothing unless used with \fB\-m\fR.
+[1.0] When running in stand-alone mode, listen on port \fIport\fR rather than
+the default.  This option does nothing unless used with \fB\-m\fR.
+.Sp
+This option is ignored if \fBremctld\fR is passed already open sockets via
+the systemd socket activation protocol.  In that case, the listening port
+should be controlled via the systemd configuration.
 .IP "\fB\-S\fR" 4
 .IX Item "-S"
-Rather than logging to syslog, log debug and routine connection messages
-to standard output and error messages to standard error.  This option is
-mostly useful for testing and debugging.
+[2.3] Rather than logging to syslog, log debug and routine connection
+messages to standard output and error messages to standard error.  This
+option is mostly useful for testing and debugging.
 .IP "\fB\-s\fR \fIservice\fR" 4
 .IX Item "-s service"
-Specifies which principal is used as the server identity for client
+[1.0] Specifies which principal is used as the server identity for client
 authentication.  The client must also use the same identity as the server
 identity for authentication to succeed.  By default, \fBremctld\fR accepts
 any principal with a key in the default keytab file (which can be changed
 with the \fB\-k\fR option).  This is normally the most desirable behavior.
 .IP "\fB\-v\fR" 4
 .IX Item "-v"
-Print the version of \fBremctld\fR and exit.
+[1.10] Print the version of \fBremctld\fR and exit.
 .IP "\fB\-Z\fR" 4
 .IX Item "-Z"
-When \fBremctld\fR is running in stand-alone mode, after it has set up its
-network socket and is ready to answer requests, raise \s-1SIGSTOP. \s0 This
+[3.7] When \fBremctld\fR is running in stand-alone mode, after it has set up
+its network socket and is ready to answer requests, raise \s-1SIGSTOP. \s0 This
 signals to upstart, when using \f(CW\*(C`expect stop\*(C'\fR, that the daemon is ready to
 accept connections, and upstart will raise \s-1SIGCONT\s0 to allow \fBremctld\fR to
 continue.  This option is probably only useful when using upstart as the
@@ -277,7 +294,7 @@ case all files whose names do not contain a period found in that directory
 will be included (in no particular order).  \fIfile\fR should be a fully
 qualified path.
 .PP
-The meaning of these fields is:
+The meaning of the fields on each configuration line are:
 .IP "\fIcommand\fR" 4
 .IX Item "command"
 The command being issued or the special keyword \f(CW\*(C`ALL\*(C'\fR.  Normally, related
@@ -288,12 +305,12 @@ If the keyword \f(CW\*(C`ALL\*(C'\fR is used instead of a specific subcommand, t
 matches all commands with the given subcommand (so \f(CW\*(C`ALL ALL\*(C'\fR matches any
 command) and can be used to dispatch all commands to the same executable
 with the same ACLs.  Since the first matching entry is used, list entries
-for specific commands first (if any) and then the \f(CW\*(C`ALL\*(C'\fR catch-all.  Note
-that while the subcommand is passed to the executable, the command is not.
-Prior to remctl 2.16, the program run will not be able to distinguish
-between different commands.  From remctl 2.16 on, the environment variable
-\&\s-1REMCTL_COMMAND\s0 will contain the command.  (See the \s-1ENVIRONMENT\s0 section
-below.)
+for specific commands first (if any) and then the \f(CW\*(C`ALL\*(C'\fR catch-all.
+.Sp
+Note that while the subcommand is passed to the executable as a
+command-line option, the command is not.  The command is available to the
+executable in the environment variable \s-1REMCTL_COMMAND \s0(see \s-1ENVIRONMENT\s0
+below).
 .Sp
 The command \f(CW\*(C`help\*(C'\fR is handled specially if no such command is defined in
 the configuration file.  See below under the \f(CW\*(C`help\*(C'\fR and \f(CW\*(C`summary\*(C'\fR
@@ -321,12 +338,13 @@ The full path to the command executable to run for this command and
 subcommand combination.  (See examples below.)
 .IP "\fIoption\fR=\fIvalue\fR" 4
 .IX Item "option=value"
-An option setting that applies to this command.  Supported option settings
-are:
+An option setting that applies to this command.  Supported option
+settings, annotated with the version at which that option was added in its
+current form, are:
 .RS 4
 .IP "help=\fIarg\fR" 4
 .IX Item "help=arg"
-Specifies the argument for this command that will print help for a
+[3.2] Specifies the argument for this command that will print help for a
 particular subcommand to standard output.
 .Sp
 If remctld receives the command \f(CW\*(C`help\*(C'\fR with one or two arguments, and no
@@ -343,12 +361,12 @@ This permits a standard interface to get additional help for a particular
 remctl command.  Also see the \f(CW\*(C`summary\*(C'\fR option.
 .IP "logmask=\fIn\fR[,...]" 4
 .IX Item "logmask=n[,...]"
-Limit logging of command arguments.  Any argument listed in the logmask
-list will have its value logged as \*(L"**MASKED**\*(R".  This is to avoid logging
-the arguments of commands that take private information such as passwords.
-The logmask list should contain argument numbers separated by commas, with
-the \fIsubcommand\fR considered argument 1.  The \fIcommand\fR argument cannot
-be masked.
+[1.4] Limit logging of command arguments.  Any argument listed in the
+logmask list will have its value logged as \*(L"**MASKED**\*(R".  This is to avoid
+logging the arguments of commands that take private information such as
+passwords.  The logmask list should contain argument numbers separated by
+commas, with the \fIsubcommand\fR considered argument 1.  The \fIcommand\fR
+argument cannot be masked.
 .Sp
 For example, if the command is \f(CW\*(C`admin passwd \f(CIusername\f(CW \f(CIpassword\f(CW\*(C'\fR,
 then you'd want to set logmask to \f(CW3\fR, so the password argument gets
@@ -357,12 +375,12 @@ logged as \f(CW\*(C`**MASKED**\*(C'\fR.  If the command is \f(CW\*(C`user passwd
 .ie n .IP "stdin=(\fIn\fR | ""last"")" 4
 .el .IP "stdin=(\fIn\fR | \f(CWlast\fR)" 4
 .IX Item "stdin=(n | last)"
-Specifies that the \fIn\fRth or last argument to the command be passed on
-standard input instead of on the command line.  The value of this option
-must either be the number of argument to pass on standard input (with the
-\&\fIsubcommand\fR considered argument 1) or the special value \f(CW\*(C`last\*(C'\fR, which
-indicates that the final argument (no matter how many there are) be passed
-on standard input.
+[2.14] Specifies that the \fIn\fRth or last argument to the command be passed
+on standard input instead of on the command line.  The value of this
+option must either be the number of argument to pass on standard input
+(with the \fIsubcommand\fR considered argument 1) or the special value
+\&\f(CW\*(C`last\*(C'\fR, which indicates that the final argument (no matter how many there
+are) be passed on standard input.
 .Sp
 The \fIcommand\fR cannot be passed on standard input, so \fIn\fR must be at
 least \f(CW1\fR.  If this option is set to \f(CW\*(C`last\*(C'\fR and no arguments are given
@@ -378,8 +396,8 @@ argument to pass on standard input (\f(CW\*(C`stdin=1\*(C'\fR), the \fIsubcomman
 contain \s-1NUL\s0 characters.
 .IP "summary=\fIarg\fR" 4
 .IX Item "summary=arg"
-Specifies the argument for this command that will print a usage summary
-to standard output.
+[3.2] Specifies the argument for this command that will print a usage
+summary to standard output.
 .Sp
 If remctld receives the command \f(CW\*(C`help\*(C'\fR with no arguments, and no \f(CW\*(C`help\*(C'\fR
 command is defined in the configuration file, the server will look through
@@ -397,8 +415,8 @@ As mentioned above, this option is only meaningful on configuration lines
 with a \fIsubcommand\fR of \f(CW\*(C`ALL\*(C'\fR.
 .IP "user=(\fIusername\fR | \fIuid\fR)" 4
 .IX Item "user=(username | uid)"
-Run this command as the specified user, which can be given as either a
-username or as a \s-1UID. \s0 Even if given as a \s-1UID,\s0 the user must be found in
+[3.1] Run this command as the specified user, which can be given as either
+a username or as a \s-1UID. \s0 Even if given as a \s-1UID,\s0 the user must be found in
 the user database (searched via \fIgetpwuid\fR\|(3)).  \fBremctld\fR will run the
 command as the specified user, including that user's primary and
 supplemental groups.
@@ -416,19 +434,21 @@ If \fImethod\fR is omitted, \fIacl\fR must either begin with \f(CW\*(C`/\*(C'\fR
 contain \f(CW\*(C`=\*(C'\fR.  Otherwise, it will be parsed as an option instead.  If
 there is any ambiguity, prepend the \fImethod\fR.
 .Sp
-Each entry is checked in order, and access is granted as soon as an
-entry matches.  If no entry matches, access is denied.  The following
-methods are supported:
+Each entry is checked in order, and access is granted as soon as an entry
+matches.  If no entry matches, access is denied.  The following methods
+may supported; however, be aware that the availability of several \s-1ACL\s0
+types depends on whether \fBremctld\fR was built with that support.  Each \s-1ACL\s0
+type is annotated with the version in which it was added.
 .RS 4
 .IP "file" 4
 .IX Item "file"
-The data is the full path of an \s-1ACL\s0 file or to a directory containing \s-1ACL\s0
-files.  Directories are handled as described for the include directive in
-configuration files.  An \s-1ACL\s0 file contains one entry per line, in the
-[\fImethod\fR:]\fIdata\fR form described above.  Entries are handled exactly as
-if they had appeared in the configuration file except that the default
-method is \f(CW\*(C`princ\*(C'\fR instead of \f(CW\*(C`file\*(C'\fR.  Blank lines and lines beginning
-with \f(CW\*(C`#\*(C'\fR are ignored in the \s-1ACL\s0 files.
+[2.13] The data is the full path of an \s-1ACL\s0 file or to a directory
+containing \s-1ACL\s0 files.  Directories are handled as described for the
+include directive in configuration files.  An \s-1ACL\s0 file contains one entry
+per line, in the [\fImethod\fR:]\fIdata\fR form described above.  Entries are
+handled exactly as if they had appeared in the configuration file except
+that the default method is \f(CW\*(C`princ\*(C'\fR instead of \f(CW\*(C`file\*(C'\fR.  Blank lines and
+lines beginning with \f(CW\*(C`#\*(C'\fR are ignored in the \s-1ACL\s0 files.
 .Sp
 For backward compatibility, a line like:
 .Sp
@@ -453,14 +473,15 @@ and is handled identically to the include directive in configuration
 files.
 .IP "princ" 4
 .IX Item "princ"
-The data is the name of a Kerberos v5 principal which is to be granted
-access, such as \f(CW\*(C`username@EXAMPLE.ORG\*(C'\fR.
+[2.13] The data is the name of a Kerberos v5 principal which is to be
+granted access, such as \f(CW\*(C`username@EXAMPLE.ORG\*(C'\fR.
 .IP "deny" 4
 .IX Item "deny"
-This method is used to selectively deny access.  The data is parsed as a
-[\fImethod\fR:]\fIdata\fR and evaluated as described above, with the default
-scheme being \f(CW\*(C`princ\*(C'\fR.  If it matches, access is denied immediately
-without examining any further entries.  Otherwise, processing continues.
+[2.13] This method is used to selectively deny access.  The data is parsed
+as a [\fImethod\fR:]\fIdata\fR and evaluated as described above, with the
+default scheme being \f(CW\*(C`princ\*(C'\fR.  If it matches, access is denied
+immediately without examining any further entries.  Otherwise, processing
+continues.
 .Sp
 Remember that access is granted as soon as an entry matches.  For \f(CW\*(C`deny\*(C'\fR
 rules to be effective, they therefore must come before any ACLs they are
@@ -474,7 +495,7 @@ alone does not grant access to anyone, and using deny on itself as in
 \&\f(CW\*(C`deny:deny:foo\*(C'\fR neither denies nor grants access to anyone.
 .IP "gput" 4
 .IX Item "gput"
-This method is used to grant access based on the \s-1CMU GPUT \s0(Global
+[2.13] This method is used to grant access based on the \s-1CMU GPUT \s0(Global
 Privileged User Table \*(-- see \fIgput\fR\|(5)).  The data is either a \s-1GPUT\s0 role
 name or a string of the form \fIgroup\fR[\fIxform\fR], where \fIgroup\fR is a \s-1GPUT\s0
 role name and \fIxform\fR is a \s-1GPUT\s0 transform string.  Access is granted if
@@ -483,15 +504,46 @@ the optional \fIxform\fR or the default transform.
 .Sp
 This method is supported only if \fBremctld\fR was compiled with \s-1GPUT\s0 support
 by using the \f(CW\*(C`\-\-with\-gput\*(C'\fR configure option.
+.IP "localgroup" 4
+.IX Item "localgroup"
+[3.9] This method is used to grant or deny access based on membership in
+local \s-1UNIX\s0 groups.  The data is taken to be a name of a local system
+group.  The user principal is converted to a local user name
+with \fIkrb5_aname_to_localname\fR\|(3) and then compared to the members of the
+given group.
+.Sp
+For example, to allow access to the members of group \f(CW\*(C`goodguys\*(C'\fR, use an
+\&\s-1ACL\s0 of \f(CW\*(C`localgroup:goodguys\*(C'\fR syntax.  To deny access to the members of
+group \f(CW\*(C`badguys\*(C'\fR, use \f(CW\*(C`deny:localgroup:badguys\*(C'\fR.
+.Sp
+\&\fIkrb5_aname_to_localname()\fR follows local configuration rules to determine
+how to convert Kerberos principal to local users.  If the realm of the
+principal is not in a local realm and is not otherwise covered by one of
+those rules, the principal will be unchanged, which will almost certainly
+mean that it will not be a member of any local group and access will be
+denied.
+.Sp
+This method is supported only if \fBremctld\fR was built with Kerberos
+support and the \fIgetgrnam_r\fR\|(3) library function was supported by the C
+library when it was built.
 .IP "pcre" 4
 .IX Item "pcre"
-This method is used to grant or deny access based on Perl-compatible
-regular expressions.  The data is taken to be a Perl-compatible regular
-expression and matched against the user identity.  To deny access, use the
-\&\f(CW\*(C`deny:pcre:regex\*(C'\fR syntax.
+[2.16] This method is used to grant or deny access based on
+Perl-compatible regular expressions.  The data is taken to be a
+Perl-compatible regular expression and matched against the user identity.
+To deny access, use the \f(CW\*(C`deny:pcre:\f(CIregex\f(CW\*(C'\fR syntax.
 .Sp
 This method is supported only if \fBremctld\fR was compiled with \s-1PCRE\s0 support
 by using the \f(CW\*(C`\-\-with\-pcre\*(C'\fR configure option.
+.IP "regex" 4
+.IX Item "regex"
+[2.16] This method is used to grant or deny access based on \s-1POSIX\s0 extended
+regular expressions.  The data is taken to be a \s-1POSIX\s0 extended regular
+expression (like those used by \fBegrep\fR) and matched against the user
+identity.  To deny access, use the \f(CW\*(C`deny:regex:\f(CIregex\f(CW\*(C'\fR syntax.
+.Sp
+This method is supported only if a library for POSIX-compatible regular
+expressions was found when \fBremctld\fR was built.
 .RE
 .RS 4
 .Sp
@@ -505,11 +557,6 @@ check ACLs themselves and will retrieve the authenticated principal from
 the \s-1REMOTE_USER\s0 environment variable.  Note that \s-1ANYUSER\s0 accepts \fBany\fR
 authenticated user, including cross-realm users from foreign Kerberos
 realms.
-.Sp
-Support for \s-1ACL\s0 schemes is new in remctl 2.13.  Prior versions of
-\&\fBremctld\fR expected only files in the main \fBremctld\fR configuration file,
-and only principals or lines starting with \f(CW\*(C`include\*(C'\fR in those files,
-without any \fImethod\fR: prefixes.
 .RE
 .SH "ENVIRONMENT"
 .IX Header "ENVIRONMENT"
@@ -540,35 +587,27 @@ When running in stand-alone mode, these environment variables will be
 cleared by \fBremctld\fR before running any commands.
 .PP
 The following environment variables will be set for any commands run via
-\&\fBremctld\fR:
+\&\fBremctld\fR (annotated with the version at which they were added):
 .IP "\s-1REMOTE_USER\s0" 4
 .IX Item "REMOTE_USER"
 .PD 0
 .IP "\s-1REMUSER\s0" 4
 .IX Item "REMUSER"
 .PD
-Set to the Kerberos principal of the authenticated client.  \s-1REMUSER\s0 has
-always been set by \fBremctld\fR; \s-1REMOTE_USER\s0 is also set (to the same value)
-starting with remctl 2.1.
+[1.0 for \s-1REMUSER, 2.1\s0 for \s-1REMOTE_USER\s0] Set to the Kerberos principal of
+the authenticated client.
 .IP "\s-1REMOTE_ADDR\s0" 4
 .IX Item "REMOTE_ADDR"
-The \s-1IP\s0 address of the remote host.  Currently, this is always an IPv4
-address, but in the future it may be set to an IPv6 address.  This
-environment variable was added in remctl 2.1.
+[2.1] The \s-1IP\s0 address of the remote host.  This may be IPv4 or IPv6.
 .IP "\s-1REMOTE_HOST\s0" 4
 .IX Item "REMOTE_HOST"
-The hostname of the remote host, if it was available.  If reverse name
-resolution failed, this environment variable will not be set.  This
-variable was added in remctl 2.1.
+[2.1] The hostname of the remote host, if it was available.  If reverse
+name resolution failed, this environment variable will not be set.
 .IP "\s-1REMCTL_COMMAND\s0" 4
 .IX Item "REMCTL_COMMAND"
-The command string that caused this command to be run.  This variable will
-contain only the command, not the subcommand or any additional arguments
-(which are passed as command arguments).  This variable was added in
-remctl 2.16.
-.PP
-\&\fBremctld\fR also used to set \s-1SCPRINCIPAL\s0 for (partial) backward
-compatibility with \fBsysctld\fR, but stopped doing so as of remctl 2.1.
+[2.16] The command string that caused this command to be run.  This
+variable will contain only the command, not the subcommand or any
+additional arguments (which are passed as command arguments).
 .PP
 If the \fB\-k\fR flag is used, \fBremctld\fR will also set \s-1KRB5_KTNAME\s0 to the
 provided keytab path.  This is primarily for communication with the
@@ -603,6 +642,19 @@ To start \fBremctld\fR in stand-alone mode instead, run:
 \&    remctld \-m
 .Ve
 .PP
+To start \fBremctld\fR in stand-alone mode in the foreground, use:
+.PP
+.Vb 1
+\&    remctld \-F \-m
+.Ve
+.PP
+This is a typical invocation with systemd using socket activation.  For
+upstart (with \f(CW\*(C`expect stop\*(C'\fR), use:
+.PP
+.Vb 1
+\&    remctld \-F \-m \-Z
+.Ve
+.PP
 Example configuration file:
 .PP
 .Vb 7
@@ -624,7 +676,7 @@ still get \f(CW\*(C`passwd\*(C'\fR as its first argument.  The third argument to
 All commands starting with \f(CW\*(C`printing\*(C'\fR will be passed to
 /usr/local/bin/printthing.
 .PP
-Example \s-1ACL\s0 file using the scheme support new in remctl 2.13:
+Example \s-1ACL\s0 file:
 .PP
 .Vb 5
 \&    # This is a comment.
@@ -640,6 +692,44 @@ access according to the \s-1ACL\s0 entries in \fI/etc/remctl/acl/admins\fR and t
 specific principals \f(CW\*(C`service/admin@EXAMPLE.ORG\*(C'\fR and
 \&\f(CW\*(C`service/other@EXAMPLE.ORG\*(C'\fR.  The last line takes advantage of the
 default \s-1ACL\s0 method of \f(CW\*(C`principal\*(C'\fR when processing an \s-1ACL\s0 file.
+.SH "COMPATIBILITY"
+.IX Header "COMPATIBILITY"
+The version at which various command-line and configuration options and
+\&\s-1ACL\s0 methods were added to \fBremctld\fR are noted in their descriptions.
+Below is the version information for more general features, in reverse
+order of when the feature was added.
+.PP
+Support for the systemd readiness protocol and socket activation,
+including honoring the environment variables \s-1LISTEN_FDS, LISTEN_PID,\s0 and
+\&\s-1NOTIFY_SOCKET,\s0 was added in version 3.7.
+.PP
+Special handling of the \f(CW\*(C`help\*(C'\fR and \f(CW\*(C`summary\*(C'\fR commands was added in
+version 3.2.
+.PP
+Support for the \f(CW\*(C`ALL\*(C'\fR keyword in the command field of the configuration
+file was added in version 2.15.  (It has always been supported in the
+subcommand field.)
+.PP
+Support for the \f(CW\*(C`EMPTY\*(C'\fR keyword in the subcommand field of the
+configuration file was added in version 2.15.
+.PP
+Support for \s-1ACL\s0 schemes and the \fImethod\fR:\fIdata\fR syntax was added in
+remctl 2.13.  Prior versions of \fBremctld\fR expected only files in the main
+\&\fBremctld\fR configuration file, and only principals or lines starting with
+\&\f(CW\*(C`include\*(C'\fR in those files, without any \fImethod\fR: prefixes.
+.PP
+The default listening port with the \fB\-m\fR option was changed to the
+IANA-registered port of 4373 in version 2.11.
+.PP
+Support for IPv6 addresses in the \s-1REMOTE_ADDR\s0 environment variable was
+added in version 2.4.
+.PP
+\&\fBremctld\fR used to set the environment variable \s-1SCPRINCIPAL\s0 when running
+commands, for (partial) backward compatibility with \fBsysctld\fR, but
+stopped doing so in version 2.1.
+.PP
+\&\f(CW\*(C`include\*(C'\fR directives in \s-1ACL\s0 files were added in version 1.11.  \f(CW\*(C`include\*(C'\fR
+directives in configuration files were added in version 1.8.
 .SH "CAVEATS"
 .IX Header "CAVEATS"
 When using Heimdal with triple-DES keys and talking to old clients that
@@ -663,22 +753,22 @@ configuration file.  At most one argument may be passed that way.
 .IX Header "NOTES"
 The remctl port number, 4373, was derived by tracing the diagonals of a
 \&\s-1QWERTY\s0 keyboard up from the letters \f(CW\*(C`remc\*(C'\fR to the number row.
+.SH "AUTHOR"
+.IX Header "AUTHOR"
+\&\fBremctld\fR was originally written by Anton Ushakov.  Updates and current
+maintenance are done by Russ Allbery <eagle@eyrie.org>.
+.SH "COPYRIGHT AND LICENSE"
+.IX Header "COPYRIGHT AND LICENSE"
+Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
+2012, 2014 The Board of Trustees of the Leland Stanford Junior University
+.PP
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIremctl\fR\|(1), \fIsyslog\fR\|(3), \fItcpserver\fR\|(1)
 .PP
 The current version of this program is available from its web page at
 <http://www.eyrie.org/~eagle/software/remctl/>.
-.SH "AUTHOR"
-.IX Header "AUTHOR"
-Anton Ushakov <antonu@stanford.edu> is the original author.  Updates and
-current maintenance are done by Russ Allbery <eagle@eyrie.org>.
-.SH "COPYRIGHT AND LICENSE"
-.IX Header "COPYRIGHT AND LICENSE"
-Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
-The Board of Trustees of the Leland Stanford Junior University
-.PP
-Copying and distribution of this file, with or without modification, are
-permitted in any medium without royalty provided the copyright notice and
-this notice are preserved.  This file is offered as-is, without any
-warranty.

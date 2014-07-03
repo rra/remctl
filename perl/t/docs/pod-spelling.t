@@ -2,15 +2,11 @@
 #
 # Check for spelling errors in POD documentation.
 #
-# Checks all POD files in a Perl distribution using Test::Spelling.  This test
-# is disabled unless RRA_MAINTAINER_TESTS is set, since spelling dictionaries
-# vary too much between environments.
-#
 # The canonical version of this file is maintained in the rra-c-util package,
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2013
+# Copyright 2013, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -38,10 +34,11 @@ use warnings;
 use lib 't/lib';
 
 use Test::More;
-use Test::RRA qw(skip_unless_maintainer use_prereq);
+use Test::RRA qw(skip_unless_author use_prereq);
 
-# Only run this test for the maintainer.
-skip_unless_maintainer('Spelling tests');
+# Only run this test for the module author since the required stopwords are
+# too sensitive to the exact spell-checking program and dictionary.
+skip_unless_author('Spelling tests');
 
 # Load prerequisite modules.
 use_prereq('Test::Spelling');

@@ -2,7 +2,7 @@
  * tokens test suite.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2007, 2009, 2010, 2012, 2013
+ * Copyright 2006, 2007, 2009, 2010, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -253,9 +253,9 @@ main(void)
         socket_close(server);
         exit(0);
     } else {
-        result.value = bmalloc(4096 * 1024);
-        memset(result.value, 'a', 4096 * 1024);
-        result.length = 4096 * 1024;
+        result.value = bmalloc(8192 * 1024);
+        memset(result.value, 'a', 8192 * 1024);
+        result.length = 8192 * 1024;
         client = create_client();
         status = token_send(client, 3, &result, 1);
         free(result.value);

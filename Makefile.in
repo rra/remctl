@@ -89,6 +89,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+
+# If built with Kerberos support, add messages-krb5.
+@HAVE_KRB5_TRUE@am__append_1 = util/messages-krb5.c util/messages-krb5.h
+@HAVE_KRB5_TRUE@am__append_2 = $(KRB5_LDFLAGS)
+@HAVE_KRB5_TRUE@am__append_3 = $(KRB5_LIBS)
 bin_PROGRAMS = client/remctl$(EXEEXT)
 sbin_PROGRAMS = server/remctld$(EXEEXT)
 check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
@@ -98,7 +103,7 @@ check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
 	tests/data/cmd-background$(EXEEXT) \
 	tests/data/cmd-closed$(EXEEXT) \
 	tests/data/cmd-large-output$(EXEEXT) \
-	tests/data/cmd-stdin$(EXEEXT) \
+	tests/data/cmd-sigpipe$(EXEEXT) tests/data/cmd-stdin$(EXEEXT) \
 	tests/data/cmd-streaming$(EXEEXT) tests/data/cmd-user$(EXEEXT) \
 	tests/portable/asprintf-t$(EXEEXT) \
 	tests/portable/daemon-t$(EXEEXT) \
@@ -114,6 +119,7 @@ check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
 	tests/portable/strlcat-t$(EXEEXT) \
 	tests/portable/strlcpy-t$(EXEEXT) \
 	tests/server/accept-t$(EXEEXT) tests/server/acl-t$(EXEEXT) \
+	tests/server/acl/localgroup-t$(EXEEXT) \
 	tests/server/bind-t$(EXEEXT) tests/server/config-t$(EXEEXT) \
 	tests/server/continue-t$(EXEEXT) tests/server/empty-t$(EXEEXT) \
 	tests/server/env-t$(EXEEXT) tests/server/errors-t$(EXEEXT) \
@@ -124,6 +130,7 @@ check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
 	tests/server/summary-t$(EXEEXT) tests/server/user-t$(EXEEXT) \
 	tests/server/version-t$(EXEEXT) tests/util/fdflag-t$(EXEEXT) \
 	tests/util/gss-tokens-t$(EXEEXT) \
+	tests/util/messages-krb5-t$(EXEEXT) \
 	tests/util/messages-t$(EXEEXT) \
 	tests/util/network/addr-ipv4-t$(EXEEXT) \
 	tests/util/network/addr-ipv6-t$(EXEEXT) \
@@ -133,20 +140,20 @@ check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
 	tests/util/xmalloc$(EXEEXT) tests/util/xwrite-t$(EXEEXT)
 
 # Build and install the Perl bindings if desired.
-@BUILD_PERL_TRUE@am__append_1 = perl/lib/Net/Remctl.o
-@BUILD_PERL_TRUE@am__append_2 = install-data-local-perl
+@BUILD_PERL_TRUE@am__append_4 = perl/lib/Net/Remctl.o
+@BUILD_PERL_TRUE@am__append_5 = install-data-local-perl
 
 # Build and install the PHP bindings if desired.
-@BUILD_PHP_TRUE@am__append_3 = php/modules/remctl.so
-@BUILD_PHP_TRUE@am__append_4 = install-data-local-php
+@BUILD_PHP_TRUE@am__append_6 = php/modules/remctl.so
+@BUILD_PHP_TRUE@am__append_7 = install-data-local-php
 
 # Build and install the Python bindings if desired.
-@BUILD_PYTHON_TRUE@am__append_5 = stamp-python
-@BUILD_PYTHON_TRUE@am__append_6 = install-data-local-python
+@BUILD_PYTHON_TRUE@am__append_8 = stamp-python
+@BUILD_PYTHON_TRUE@am__append_9 = install-data-local-python
 
 # Build and install the Ruby bindings if desired.
-@BUILD_RUBY_TRUE@am__append_7 = ruby/remctl.so
-@BUILD_RUBY_TRUE@am__append_8 = install-data-local-ruby
+@BUILD_RUBY_TRUE@am__append_10 = ruby/remctl.so
+@BUILD_RUBY_TRUE@am__append_11 = install-data-local-ruby
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
@@ -160,22 +167,23 @@ DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/python/test_remctl.py.in \
 	$(top_srcdir)/ruby/extconf.rb.in \
 	$(top_srcdir)/ruby/test_remctl.rb.in \
-	$(top_srcdir)/portable/getaddrinfo.c \
-	$(top_srcdir)/portable/getnameinfo.c \
-	$(top_srcdir)/portable/strndup.c \
 	$(top_srcdir)/portable/daemon.c \
-	$(top_srcdir)/portable/inet_ntoa.c \
-	$(top_srcdir)/portable/getopt.c \
 	$(top_srcdir)/portable/snprintf.c \
-	$(top_srcdir)/portable/gssapi-mech.c \
-	$(top_srcdir)/portable/krb5-extra.c \
-	$(top_srcdir)/portable/strlcpy.c \
-	$(top_srcdir)/portable/asprintf.c \
-	$(top_srcdir)/portable/inet_aton.c \
-	$(top_srcdir)/portable/inet_ntop.c \
 	$(top_srcdir)/portable/setenv.c \
+	$(top_srcdir)/portable/krb5-extra.c \
+	$(top_srcdir)/portable/getopt.c \
+	$(top_srcdir)/portable/getnameinfo.c \
+	$(top_srcdir)/portable/gssapi-mech.c \
 	$(top_srcdir)/portable/mkstemp.c \
+	$(top_srcdir)/portable/asprintf.c \
+	$(top_srcdir)/portable/reallocarray.c \
+	$(top_srcdir)/portable/inet_ntop.c \
+	$(top_srcdir)/portable/inet_ntoa.c \
+	$(top_srcdir)/portable/getaddrinfo.c \
+	$(top_srcdir)/portable/strlcpy.c \
 	$(top_srcdir)/portable/strlcat.c \
+	$(top_srcdir)/portable/inet_aton.c \
+	$(top_srcdir)/portable/strndup.c \
 	$(top_srcdir)/build-aux/depcomp $(dist_man_MANS) \
 	$(include_HEADERS) NEWS README TODO build-aux/ar-lib \
 	build-aux/compile build-aux/config.guess build-aux/config.sub \
@@ -280,10 +288,24 @@ portable_libportable_la_DEPENDENCIES = $(LTLIBOBJS)
 am_portable_libportable_la_OBJECTS = portable/dummy.lo
 portable_libportable_la_OBJECTS =  \
 	$(am_portable_libportable_la_OBJECTS)
-util_libutil_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am_util_libutil_la_OBJECTS = util/fdflag.lo util/gss-errors.lo \
-	util/gss-tokens.lo util/messages.lo util/network.lo \
-	util/tokens.lo util/vector.lo util/xmalloc.lo util/xwrite.lo
+@HAVE_KRB5_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
+util_libutil_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_2)
+am__util_libutil_la_SOURCES_DIST = util/fdflag.c util/fdflag.h \
+	util/gss-errors.c util/gss-errors.h util/gss-tokens.c \
+	util/gss-tokens.h util/macros.h util/messages.c \
+	util/messages.h util/network.c util/network.h util/protocol.h \
+	util/tokens.c util/tokens.h util/vector.c util/vector.h \
+	util/xmalloc.c util/xmalloc.h util/xwrite.c util/xwrite.h \
+	util/messages-krb5.c util/messages-krb5.h
+@HAVE_KRB5_TRUE@am__objects_1 = util/util_libutil_la-messages-krb5.lo
+am_util_libutil_la_OBJECTS = util/util_libutil_la-fdflag.lo \
+	util/util_libutil_la-gss-errors.lo \
+	util/util_libutil_la-gss-tokens.lo \
+	util/util_libutil_la-messages.lo \
+	util/util_libutil_la-network.lo util/util_libutil_la-tokens.lo \
+	util/util_libutil_la-vector.lo util/util_libutil_la-xmalloc.lo \
+	util/util_libutil_la-xwrite.lo $(am__objects_1)
 util_libutil_la_OBJECTS = $(am_util_libutil_la_OBJECTS)
 util_libutil_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
@@ -308,7 +330,7 @@ server_remctld_OBJECTS = $(am_server_remctld_OBJECTS)
 server_remctld_DEPENDENCIES = util/libutil.la portable/libportable.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 server_remctld_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(server_remctld_LDFLAGS) $(LDFLAGS) -o \
@@ -380,9 +402,13 @@ tests_data_cmd_large_output_OBJECTS =  \
 	tests/data/cmd-large-output.$(OBJEXT)
 tests_data_cmd_large_output_DEPENDENCIES = util/libutil.la \
 	portable/libportable.la
+tests_data_cmd_sigpipe_SOURCES = tests/data/cmd-sigpipe.c
+tests_data_cmd_sigpipe_OBJECTS = tests/data/cmd-sigpipe.$(OBJEXT)
+tests_data_cmd_sigpipe_DEPENDENCIES = portable/libportable.la
 tests_data_cmd_stdin_SOURCES = tests/data/cmd-stdin.c
 tests_data_cmd_stdin_OBJECTS = tests/data/cmd-stdin.$(OBJEXT)
-tests_data_cmd_stdin_DEPENDENCIES = util/libutil.la
+tests_data_cmd_stdin_DEPENDENCIES = util/libutil.la \
+	portable/libportable.la
 tests_data_cmd_streaming_SOURCES = tests/data/cmd-streaming.c
 tests_data_cmd_streaming_OBJECTS = tests/data/cmd-streaming.$(OBJEXT)
 tests_data_cmd_streaming_LDADD = $(LDADD)
@@ -483,13 +509,13 @@ tests_portable_strlcpy_t_DEPENDENCIES = tests/tap/libtap.a \
 tests_runtests_SOURCES = tests/runtests.c
 tests_runtests_OBJECTS = tests/tests_runtests-runtests.$(OBJEXT)
 tests_runtests_LDADD = $(LDADD)
-am__objects_1 = portable/event-extra.$(OBJEXT) \
+am__objects_2 = portable/event-extra.$(OBJEXT) \
 	server/commands.$(OBJEXT) server/config.$(OBJEXT) \
 	server/generic.$(OBJEXT) server/logging.$(OBJEXT) \
 	server/process.$(OBJEXT) server/server-v1.$(OBJEXT) \
 	server/server-v2.$(OBJEXT)
 am_tests_server_accept_t_OBJECTS = tests/server/accept-t.$(OBJEXT) \
-	$(am__objects_1)
+	$(am__objects_2)
 tests_server_accept_t_OBJECTS = $(am_tests_server_accept_t_OBJECTS)
 tests_server_accept_t_DEPENDENCIES = tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(am__DEPENDENCIES_1) \
@@ -500,7 +526,7 @@ tests_server_accept_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_server_accept_t_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am_tests_server_acl_t_OBJECTS = tests/server/acl-t.$(OBJEXT) \
-	$(am__objects_1)
+	$(am__objects_2)
 tests_server_acl_t_OBJECTS = $(am_tests_server_acl_t_OBJECTS)
 tests_server_acl_t_DEPENDENCIES = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(am__DEPENDENCIES_1) \
@@ -509,6 +535,19 @@ tests_server_acl_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_server_acl_t_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_tests_server_acl_localgroup_t_OBJECTS =  \
+	tests/server/acl/localgroup-t.$(OBJEXT) $(am__objects_2) \
+	tests/server/acl/fake-getgrnam.$(OBJEXT) \
+	tests/server/acl/fake-getpwnam.$(OBJEXT)
+tests_server_acl_localgroup_t_OBJECTS =  \
+	$(am_tests_server_acl_localgroup_t_OBJECTS)
+tests_server_acl_localgroup_t_DEPENDENCIES = tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+tests_server_acl_localgroup_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) \
+	$(tests_server_acl_localgroup_t_LDFLAGS) $(LDFLAGS) -o $@
 tests_server_bind_t_SOURCES = tests/server/bind-t.c
 tests_server_bind_t_OBJECTS = tests/server/bind-t.$(OBJEXT)
 tests_server_bind_t_DEPENDENCIES = client/libremctl.la \
@@ -519,7 +558,7 @@ tests_server_bind_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_server_bind_t_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am_tests_server_config_t_OBJECTS = tests/server/config-t.$(OBJEXT) \
-	$(am__objects_1)
+	$(am__objects_2)
 tests_server_config_t_OBJECTS = $(am_tests_server_config_t_OBJECTS)
 tests_server_config_t_DEPENDENCIES = tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(am__DEPENDENCIES_1) \
@@ -583,7 +622,7 @@ tests_server_invalid_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_server_invalid_t_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am_tests_server_logging_t_OBJECTS = tests/server/logging-t.$(OBJEXT) \
-	$(am__objects_1)
+	$(am__objects_2)
 tests_server_logging_t_OBJECTS = $(am_tests_server_logging_t_OBJECTS)
 tests_server_logging_t_DEPENDENCIES = tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(am__DEPENDENCIES_1) \
@@ -664,6 +703,14 @@ tests_util_gss_tokens_t_DEPENDENCIES = tests/tap/libtap.a \
 tests_util_gss_tokens_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_util_gss_tokens_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
+tests_util_messages_krb5_t_SOURCES = tests/util/messages-krb5-t.c
+tests_util_messages_krb5_t_OBJECTS = tests/util/tests_util_messages_krb5_t-messages-krb5-t.$(OBJEXT)
+tests_util_messages_krb5_t_DEPENDENCIES = tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la $(am__DEPENDENCIES_1)
+tests_util_messages_krb5_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_util_messages_krb5_t_LDFLAGS) \
 	$(LDFLAGS) -o $@
 tests_util_messages_t_SOURCES = tests/util/messages-t.c
 tests_util_messages_t_OBJECTS = tests/util/messages-t.$(OBJEXT)
@@ -753,9 +800,9 @@ SOURCES = $(tests_tap_libtap_a_SOURCES) $(client_libremctl_la_SOURCES) \
 	tests/client/large-t.c tests/client/open-t.c \
 	tests/client/source-ip-t.c tests/client/timeout-t.c \
 	tests/data/cmd-background.c tests/data/cmd-closed.c \
-	tests/data/cmd-large-output.c tests/data/cmd-stdin.c \
-	tests/data/cmd-streaming.c tests/data/cmd-user.c \
-	$(tests_portable_asprintf_t_SOURCES) \
+	tests/data/cmd-large-output.c tests/data/cmd-sigpipe.c \
+	tests/data/cmd-stdin.c tests/data/cmd-streaming.c \
+	tests/data/cmd-user.c $(tests_portable_asprintf_t_SOURCES) \
 	$(tests_portable_daemon_t_SOURCES) \
 	$(tests_portable_getaddrinfo_t_SOURCES) \
 	$(tests_portable_getnameinfo_t_SOURCES) \
@@ -769,15 +816,16 @@ SOURCES = $(tests_tap_libtap_a_SOURCES) $(client_libremctl_la_SOURCES) \
 	$(tests_portable_strlcat_t_SOURCES) \
 	$(tests_portable_strlcpy_t_SOURCES) tests/runtests.c \
 	$(tests_server_accept_t_SOURCES) $(tests_server_acl_t_SOURCES) \
-	tests/server/bind-t.c $(tests_server_config_t_SOURCES) \
-	tests/server/continue-t.c tests/server/empty-t.c \
-	tests/server/env-t.c tests/server/errors-t.c \
-	tests/server/help-t.c tests/server/invalid-t.c \
-	$(tests_server_logging_t_SOURCES) tests/server/noop-t.c \
-	tests/server/stdin-t.c tests/server/streaming-t.c \
-	tests/server/summary-t.c tests/server/user-t.c \
-	tests/server/version-t.c tests/util/fdflag-t.c \
-	$(tests_util_gss_tokens_t_SOURCES) tests/util/messages-t.c \
+	$(tests_server_acl_localgroup_t_SOURCES) tests/server/bind-t.c \
+	$(tests_server_config_t_SOURCES) tests/server/continue-t.c \
+	tests/server/empty-t.c tests/server/env-t.c \
+	tests/server/errors-t.c tests/server/help-t.c \
+	tests/server/invalid-t.c $(tests_server_logging_t_SOURCES) \
+	tests/server/noop-t.c tests/server/stdin-t.c \
+	tests/server/streaming-t.c tests/server/summary-t.c \
+	tests/server/user-t.c tests/server/version-t.c \
+	tests/util/fdflag-t.c $(tests_util_gss_tokens_t_SOURCES) \
+	tests/util/messages-krb5-t.c tests/util/messages-t.c \
 	tests/util/network/addr-ipv4-t.c \
 	tests/util/network/addr-ipv6-t.c tests/util/network/client-t.c \
 	tests/util/network/server-t.c tests/util/tokens-t.c \
@@ -785,13 +833,14 @@ SOURCES = $(tests_tap_libtap_a_SOURCES) $(client_libremctl_la_SOURCES) \
 	$(tests_util_xwrite_t_SOURCES)
 DIST_SOURCES = $(tests_tap_libtap_a_SOURCES) \
 	$(client_libremctl_la_SOURCES) \
-	$(portable_libportable_la_SOURCES) $(util_libutil_la_SOURCES) \
-	$(client_remctl_SOURCES) $(server_remctld_SOURCES) \
-	tests/client/api-t.c tests/client/ccache-t.c \
-	tests/client/large-t.c tests/client/open-t.c \
-	tests/client/source-ip-t.c tests/client/timeout-t.c \
-	tests/data/cmd-background.c tests/data/cmd-closed.c \
-	tests/data/cmd-large-output.c tests/data/cmd-stdin.c \
+	$(portable_libportable_la_SOURCES) \
+	$(am__util_libutil_la_SOURCES_DIST) $(client_remctl_SOURCES) \
+	$(server_remctld_SOURCES) tests/client/api-t.c \
+	tests/client/ccache-t.c tests/client/large-t.c \
+	tests/client/open-t.c tests/client/source-ip-t.c \
+	tests/client/timeout-t.c tests/data/cmd-background.c \
+	tests/data/cmd-closed.c tests/data/cmd-large-output.c \
+	tests/data/cmd-sigpipe.c tests/data/cmd-stdin.c \
 	tests/data/cmd-streaming.c tests/data/cmd-user.c \
 	$(tests_portable_asprintf_t_SOURCES) \
 	$(tests_portable_daemon_t_SOURCES) \
@@ -807,15 +856,16 @@ DIST_SOURCES = $(tests_tap_libtap_a_SOURCES) \
 	$(tests_portable_strlcat_t_SOURCES) \
 	$(tests_portable_strlcpy_t_SOURCES) tests/runtests.c \
 	$(tests_server_accept_t_SOURCES) $(tests_server_acl_t_SOURCES) \
-	tests/server/bind-t.c $(tests_server_config_t_SOURCES) \
-	tests/server/continue-t.c tests/server/empty-t.c \
-	tests/server/env-t.c tests/server/errors-t.c \
-	tests/server/help-t.c tests/server/invalid-t.c \
-	$(tests_server_logging_t_SOURCES) tests/server/noop-t.c \
-	tests/server/stdin-t.c tests/server/streaming-t.c \
-	tests/server/summary-t.c tests/server/user-t.c \
-	tests/server/version-t.c tests/util/fdflag-t.c \
-	$(tests_util_gss_tokens_t_SOURCES) tests/util/messages-t.c \
+	$(tests_server_acl_localgroup_t_SOURCES) tests/server/bind-t.c \
+	$(tests_server_config_t_SOURCES) tests/server/continue-t.c \
+	tests/server/empty-t.c tests/server/env-t.c \
+	tests/server/errors-t.c tests/server/help-t.c \
+	tests/server/invalid-t.c $(tests_server_logging_t_SOURCES) \
+	tests/server/noop-t.c tests/server/stdin-t.c \
+	tests/server/streaming-t.c tests/server/summary-t.c \
+	tests/server/user-t.c tests/server/version-t.c \
+	tests/util/fdflag-t.c $(tests_util_gss_tokens_t_SOURCES) \
+	tests/util/messages-krb5-t.c tests/util/messages-t.c \
 	tests/util/network/addr-ipv4-t.c \
 	tests/util/network/addr-ipv6-t.c tests/util/network/client-t.c \
 	tests/util/network/server-t.c tests/util/tokens-t.c \
@@ -911,6 +961,7 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 KRB5_CPPFLAGS = @KRB5_CPPFLAGS@
+KRB5_CPPFLAGS_GCC = @KRB5_CPPFLAGS_GCC@
 KRB5_LDFLAGS = @KRB5_LDFLAGS@
 KRB5_LIBS = @KRB5_LIBS@
 LD = @LD@
@@ -1081,8 +1132,8 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/configs/bad-include-1 tests/data/configs/bad-logmask-2   \
 	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4   \
 	tests/data/configs/bad-option-1 tests/data/configs/bad-user-1	    \
-	tests/data/perl.conf tests/data/gput tests/data/valgrind.supp	    \
-	tests/docs/pod-spelling-t tests/docs/pod-t			    \
+	tests/data/perl.conf tests/data/generate-krb5-conf tests/data/gput  \
+	tests/data/valgrind.supp tests/docs/pod-spelling-t tests/docs/pod-t \
 	tests/perl/module-version-t tests/tap/kerberos.sh		    \
 	tests/tap/libtap.sh tests/tap/perl/Test/RRA.pm			    \
 	tests/tap/perl/Test/RRA/Automake.pm				    \
@@ -1114,15 +1165,16 @@ portable_libportable_la_SOURCES = portable/dummy.c portable/event.h	\
 	portable/system.h portable/uio.h
 
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
-util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
-	util/gss-errors.h util/gss-tokens.c util/gss-tokens.h util/macros.h \
-	util/messages.c util/messages.h util/network.c util/network.h	    \
-	util/protocol.h util/tokens.c util/tokens.h util/vector.c	    \
-	util/vector.h util/xmalloc.c util/xmalloc.h util/xwrite.c	    \
-	util/xwrite.h
-
-util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
-util_libutil_la_LIBADD = $(GSSAPI_LIBS)
+util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h \
+	util/gss-errors.c util/gss-errors.h util/gss-tokens.c \
+	util/gss-tokens.h util/macros.h util/messages.c \
+	util/messages.h util/network.c util/network.h util/protocol.h \
+	util/tokens.c util/tokens.h util/vector.c util/vector.h \
+	util/xmalloc.c util/xmalloc.h util/xwrite.c util/xwrite.h \
+	$(am__append_1)
+util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS) $(am__append_2)
+util_libutil_la_LIBADD = $(GSSAPI_LIBS) $(am__append_3)
+@HAVE_KRB5_TRUE@util_libutil_la_CPPFLAGS = $(KRB5_CPPFLAGS)
 
 # The remctl client library.
 lib_LTLIBRARIES = client/libremctl.la
@@ -1150,15 +1202,15 @@ server_remctld_SOURCES = portable/event-extra.c server/commands.c	    \
 	server/server-v2.c
 
 server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	\
-	$(GSSAPI_CPPFLAGS) $(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS)		\
-	$(LIBEVENT_CPPFLAGS) $(SYSTEMD_DAEMON_CFLAGS)
+	$(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)		\
+	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS) $(SYSTEMD_DAEMON_CFLAGS)
 
-server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
-	$(LIBEVENT_LDFLAGS)
+server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
+	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
 
-server_remctld_LDADD = util/libutil.la portable/libportable.la		\
-	$(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)	\
-	$(SYSTEMD_DAEMON_LIBS)
+server_remctld_LDADD = util/libutil.la portable/libportable.la	\
+	$(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)	\
+	$(LIBEVENT_LIBS) $(SYSTEMD_DAEMON_LIBS)
 
 
 # Install the systemd unit file if systemd support was detected.
@@ -1191,33 +1243,35 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile		   \
 # without optimization turned on.  Desirable warnings that can't be turned
 # on due to other problems:
 #
-#     -Wconversion      http://bugs.debian.org/488884 (htons warnings)
+#     -Wconversion	http://bugs.debian.org/488884 (htons warnings)
 #
-# Last checked against gcc 4.6.1 (2011-05-04).  -D_FORTIFY_SOURCE=2 enables
+# Last checked against gcc 4.8.2 (2014-04-12).  -D_FORTIFY_SOURCE=2 enables
 # warn_unused_result attribute markings on glibc functions on Linux, which
 # catches a few more issues.
-WARNINGS = -g -O -D_FORTIFY_SOURCE=2 -Wall -Wextra -Wendif-labels	    \
-	-Wformat=2 -Winit-self -Wswitch-enum -Wdeclaration-after-statement  \
+WARNINGS = -g -O -fstrict-overflow -fstrict-aliasing -D_FORTIFY_SOURCE=2    \
+	-Wall -Wextra -Wendif-labels -Wformat=2 -Winit-self -Wswitch-enum   \
+	-Wstrict-overflow=5 -Wfloat-equal -Wdeclaration-after-statement	    \
 	-Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align	    \
-	-Wwrite-strings -Wjump-misses-init -Wlogical-op			    \
-	-Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls	    \
-	-Wnested-externs -Werror
+	-Wwrite-strings -Wjump-misses-init -Wlogical-op -Wstrict-prototypes \
+	-Wold-style-definition -Wmissing-prototypes -Wnormalized=nfc	    \
+	-Wpacked -Wredundant-decls -Wnested-externs -Winline -Wvla -Werror
 
 @GCC_FALSE@PERL_WARNINGS = 
 
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code doesn't pass them.
-@GCC_TRUE@PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs	\
-@GCC_TRUE@	-Wno-strict-prototypes -Wno-missing-prototypes		\
-@GCC_TRUE@	-Wno-redundant-decls -Wno-shadow
+@GCC_TRUE@PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs		\
+@GCC_TRUE@	-Wno-strict-prototypes -Wno-missing-prototypes			\
+@GCC_TRUE@	-Wno-redundant-decls -Wno-shadow -Wno-old-style-definition
 
 @GCC_FALSE@PHP_WARNINGS = 
-@GCC_TRUE@PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings	\
-@GCC_TRUE@	-Wno-missing-prototypes -Wno-unused-parameter		\
-@GCC_TRUE@	-Wno-redundant-decls -Wno-sign-compare
+@GCC_TRUE@PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
+@GCC_TRUE@	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
+@GCC_TRUE@	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal \
+@GCC_TRUE@	-Wno-strict-overflow
 
 @GCC_FALSE@PYTHON_WARNINGS = 
-@GCC_TRUE@PYTHON_WARNINGS = -Wno-unused-parameter
+@GCC_TRUE@PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
 @GCC_FALSE@RUBY_WARNINGS = 
 @GCC_TRUE@RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
 check_LIBRARIES = tests/tap/libtap.a
@@ -1271,7 +1325,8 @@ tests_data_cmd_background_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 
 tests_data_cmd_large_output_LDADD = util/libutil.la portable/libportable.la
-tests_data_cmd_stdin_LDADD = util/libutil.la
+tests_data_cmd_sigpipe_LDADD = portable/libportable.la
+tests_data_cmd_stdin_LDADD = util/libutil.la portable/libportable.la
 tests_portable_asprintf_t_SOURCES = tests/portable/asprintf-t.c \
 	tests/portable/asprintf.c
 
@@ -1341,6 +1396,17 @@ tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
 	$(LIBEVENT_LDFLAGS)
 
 tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
+
+tests_server_acl_localgroup_t_SOURCES = tests/server/acl/localgroup-t.c	  \
+	$(SERVER_FILES) tests/server/acl/fake-getgrnam.c		  \
+	tests/server/acl/fake-getgrnam.h tests/server/acl/fake-getpwnam.c \
+	tests/server/acl/fake-getpwnam.h
+
+tests_server_acl_localgroup_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
+	$(LIBEVENT_LDFLAGS)
+
+tests_server_acl_localgroup_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
 
 tests_server_bind_t_LDFLAGS = $(KRB5_LDFLAGS)
@@ -1429,6 +1495,11 @@ tests_util_gss_tokens_t_LDADD = tests/tap/libtap.a util/libutil.la \
 tests_util_messages_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 
+tests_util_messages_krb5_t_CPPFLAGS = $(KRB5_CPPFLAGS)
+tests_util_messages_krb5_t_LDFLAGS = $(KRB5_LDFLAGS)
+tests_util_messages_krb5_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la $(KRB5_LIBS)
+
 tests_util_network_addr_ipv4_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 
@@ -1458,10 +1529,10 @@ tests_util_xwrite_t_LDADD = tests/tap/libtap.a util/libutil.la \
 TEST_RPATH = $(abs_top_builddir)/client/.libs
 
 # Used for hooking in the build of optional language bindings.
-BINDINGS = $(am__append_1) $(am__append_3) $(am__append_5) \
-	$(am__append_7)
-BINDINGS_INSTALL = $(am__append_2) $(am__append_4) $(am__append_6) \
-	$(am__append_8)
+BINDINGS = $(am__append_4) $(am__append_6) $(am__append_8) \
+	$(am__append_10)
+BINDINGS_INSTALL = $(am__append_5) $(am__append_7) $(am__append_9) \
+	$(am__append_11)
 
 # The following section sets up the Perl module build properly.  Most of the
 # complexity is here to handle building outside of the source directory, in
@@ -1663,17 +1734,26 @@ util/$(am__dirstamp):
 util/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) util/$(DEPDIR)
 	@: > util/$(DEPDIR)/$(am__dirstamp)
-util/fdflag.lo: util/$(am__dirstamp) util/$(DEPDIR)/$(am__dirstamp)
-util/gss-errors.lo: util/$(am__dirstamp) \
+util/util_libutil_la-fdflag.lo: util/$(am__dirstamp) \
 	util/$(DEPDIR)/$(am__dirstamp)
-util/gss-tokens.lo: util/$(am__dirstamp) \
+util/util_libutil_la-gss-errors.lo: util/$(am__dirstamp) \
 	util/$(DEPDIR)/$(am__dirstamp)
-util/messages.lo: util/$(am__dirstamp) util/$(DEPDIR)/$(am__dirstamp)
-util/network.lo: util/$(am__dirstamp) util/$(DEPDIR)/$(am__dirstamp)
-util/tokens.lo: util/$(am__dirstamp) util/$(DEPDIR)/$(am__dirstamp)
-util/vector.lo: util/$(am__dirstamp) util/$(DEPDIR)/$(am__dirstamp)
-util/xmalloc.lo: util/$(am__dirstamp) util/$(DEPDIR)/$(am__dirstamp)
-util/xwrite.lo: util/$(am__dirstamp) util/$(DEPDIR)/$(am__dirstamp)
+util/util_libutil_la-gss-tokens.lo: util/$(am__dirstamp) \
+	util/$(DEPDIR)/$(am__dirstamp)
+util/util_libutil_la-messages.lo: util/$(am__dirstamp) \
+	util/$(DEPDIR)/$(am__dirstamp)
+util/util_libutil_la-network.lo: util/$(am__dirstamp) \
+	util/$(DEPDIR)/$(am__dirstamp)
+util/util_libutil_la-tokens.lo: util/$(am__dirstamp) \
+	util/$(DEPDIR)/$(am__dirstamp)
+util/util_libutil_la-vector.lo: util/$(am__dirstamp) \
+	util/$(DEPDIR)/$(am__dirstamp)
+util/util_libutil_la-xmalloc.lo: util/$(am__dirstamp) \
+	util/$(DEPDIR)/$(am__dirstamp)
+util/util_libutil_la-xwrite.lo: util/$(am__dirstamp) \
+	util/$(DEPDIR)/$(am__dirstamp)
+util/util_libutil_la-messages-krb5.lo: util/$(am__dirstamp) \
+	util/$(DEPDIR)/$(am__dirstamp)
 
 util/libutil.la: $(util_libutil_la_OBJECTS) $(util_libutil_la_DEPENDENCIES) $(EXTRA_util_libutil_la_DEPENDENCIES) util/$(am__dirstamp)
 	$(AM_V_CCLD)$(util_libutil_la_LINK)  $(util_libutil_la_OBJECTS) $(util_libutil_la_LIBADD) $(LIBS)
@@ -1884,6 +1964,12 @@ tests/data/cmd-large-output.$(OBJEXT): tests/data/$(am__dirstamp) \
 tests/data/cmd-large-output$(EXEEXT): $(tests_data_cmd_large_output_OBJECTS) $(tests_data_cmd_large_output_DEPENDENCIES) $(EXTRA_tests_data_cmd_large_output_DEPENDENCIES) tests/data/$(am__dirstamp)
 	@rm -f tests/data/cmd-large-output$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(tests_data_cmd_large_output_OBJECTS) $(tests_data_cmd_large_output_LDADD) $(LIBS)
+tests/data/cmd-sigpipe.$(OBJEXT): tests/data/$(am__dirstamp) \
+	tests/data/$(DEPDIR)/$(am__dirstamp)
+
+tests/data/cmd-sigpipe$(EXEEXT): $(tests_data_cmd_sigpipe_OBJECTS) $(tests_data_cmd_sigpipe_DEPENDENCIES) $(EXTRA_tests_data_cmd_sigpipe_DEPENDENCIES) tests/data/$(am__dirstamp)
+	@rm -f tests/data/cmd-sigpipe$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_data_cmd_sigpipe_OBJECTS) $(tests_data_cmd_sigpipe_LDADD) $(LIBS)
 tests/data/cmd-stdin.$(OBJEXT): tests/data/$(am__dirstamp) \
 	tests/data/$(DEPDIR)/$(am__dirstamp)
 
@@ -2060,6 +2146,25 @@ tests/server/acl-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 tests/server/acl-t$(EXEEXT): $(tests_server_acl_t_OBJECTS) $(tests_server_acl_t_DEPENDENCIES) $(EXTRA_tests_server_acl_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/acl-t$(EXEEXT)
 	$(AM_V_CCLD)$(tests_server_acl_t_LINK) $(tests_server_acl_t_OBJECTS) $(tests_server_acl_t_LDADD) $(LIBS)
+tests/server/acl/$(am__dirstamp):
+	@$(MKDIR_P) tests/server/acl
+	@: > tests/server/acl/$(am__dirstamp)
+tests/server/acl/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) tests/server/acl/$(DEPDIR)
+	@: > tests/server/acl/$(DEPDIR)/$(am__dirstamp)
+tests/server/acl/localgroup-t.$(OBJEXT):  \
+	tests/server/acl/$(am__dirstamp) \
+	tests/server/acl/$(DEPDIR)/$(am__dirstamp)
+tests/server/acl/fake-getgrnam.$(OBJEXT):  \
+	tests/server/acl/$(am__dirstamp) \
+	tests/server/acl/$(DEPDIR)/$(am__dirstamp)
+tests/server/acl/fake-getpwnam.$(OBJEXT):  \
+	tests/server/acl/$(am__dirstamp) \
+	tests/server/acl/$(DEPDIR)/$(am__dirstamp)
+
+tests/server/acl/localgroup-t$(EXEEXT): $(tests_server_acl_localgroup_t_OBJECTS) $(tests_server_acl_localgroup_t_DEPENDENCIES) $(EXTRA_tests_server_acl_localgroup_t_DEPENDENCIES) tests/server/acl/$(am__dirstamp)
+	@rm -f tests/server/acl/localgroup-t$(EXEEXT)
+	$(AM_V_CCLD)$(tests_server_acl_localgroup_t_LINK) $(tests_server_acl_localgroup_t_OBJECTS) $(tests_server_acl_localgroup_t_LDADD) $(LIBS)
 tests/server/bind-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
@@ -2172,6 +2277,13 @@ tests/util/gss-tokens-t.$(OBJEXT): tests/util/$(am__dirstamp) \
 tests/util/gss-tokens-t$(EXEEXT): $(tests_util_gss_tokens_t_OBJECTS) $(tests_util_gss_tokens_t_DEPENDENCIES) $(EXTRA_tests_util_gss_tokens_t_DEPENDENCIES) tests/util/$(am__dirstamp)
 	@rm -f tests/util/gss-tokens-t$(EXEEXT)
 	$(AM_V_CCLD)$(tests_util_gss_tokens_t_LINK) $(tests_util_gss_tokens_t_OBJECTS) $(tests_util_gss_tokens_t_LDADD) $(LIBS)
+tests/util/tests_util_messages_krb5_t-messages-krb5-t.$(OBJEXT):  \
+	tests/util/$(am__dirstamp) \
+	tests/util/$(DEPDIR)/$(am__dirstamp)
+
+tests/util/messages-krb5-t$(EXEEXT): $(tests_util_messages_krb5_t_OBJECTS) $(tests_util_messages_krb5_t_DEPENDENCIES) $(EXTRA_tests_util_messages_krb5_t_DEPENDENCIES) tests/util/$(am__dirstamp)
+	@rm -f tests/util/messages-krb5-t$(EXEEXT)
+	$(AM_V_CCLD)$(tests_util_messages_krb5_t_LINK) $(tests_util_messages_krb5_t_OBJECTS) $(tests_util_messages_krb5_t_LDADD) $(LIBS)
 tests/util/messages-t.$(OBJEXT): tests/util/$(am__dirstamp) \
 	tests/util/$(DEPDIR)/$(am__dirstamp)
 
@@ -2253,6 +2365,7 @@ mostlyclean-compile:
 	-rm -f tests/data/*.$(OBJEXT)
 	-rm -f tests/portable/*.$(OBJEXT)
 	-rm -f tests/server/*.$(OBJEXT)
+	-rm -f tests/server/acl/*.$(OBJEXT)
 	-rm -f tests/tap/*.$(OBJEXT)
 	-rm -f tests/util/*.$(OBJEXT)
 	-rm -f tests/util/network/*.$(OBJEXT)
@@ -2281,6 +2394,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/inet_ntop.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/krb5-extra.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/mkstemp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/reallocarray.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/server_remctld-event-extra.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/setenv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/snprintf.Plo@am__quote@
@@ -2312,6 +2426,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/data/$(DEPDIR)/cmd-background.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/data/$(DEPDIR)/cmd-closed.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/data/$(DEPDIR)/cmd-large-output.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/data/$(DEPDIR)/cmd-sigpipe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/data/$(DEPDIR)/cmd-stdin.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/data/$(DEPDIR)/cmd-streaming.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/data/$(DEPDIR)/cmd-user.Po@am__quote@
@@ -2358,6 +2473,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/summary-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/user-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/version-t.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/server/acl/$(DEPDIR)/fake-getgrnam.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/server/acl/$(DEPDIR)/fake-getpwnam.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/server/acl/$(DEPDIR)/localgroup-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/tap/$(DEPDIR)/tests_tap_libtap_a-basic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/tap/$(DEPDIR)/tests_tap_libtap_a-kerberos.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/tap/$(DEPDIR)/tests_tap_libtap_a-messages.Po@am__quote@
@@ -2370,6 +2488,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/$(DEPDIR)/gss-tokens-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/$(DEPDIR)/gss-tokens.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/$(DEPDIR)/messages-t.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/util/$(DEPDIR)/tests_util_messages_krb5_t-messages-krb5-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/$(DEPDIR)/tokens-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/$(DEPDIR)/vector-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/$(DEPDIR)/xmalloc.Po@am__quote@
@@ -2379,15 +2498,16 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/network/$(DEPDIR)/addr-ipv6-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/network/$(DEPDIR)/client-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/network/$(DEPDIR)/server-t.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/fdflag.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/gss-errors.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/gss-tokens.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/messages.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/network.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/tokens.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/vector.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/xmalloc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/xwrite.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-fdflag.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-gss-errors.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-gss-tokens.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-messages-krb5.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-messages.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-network.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-tokens.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-vector.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-xmalloc.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-xwrite.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -2496,6 +2616,76 @@ tests/tap/tests_tap_libtap_a-string.obj: tests/tap/string.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/tap/string.c' object='tests/tap/tests_tap_libtap_a-string.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_tap_libtap_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/tap/tests_tap_libtap_a-string.obj `if test -f 'tests/tap/string.c'; then $(CYGPATH_W) 'tests/tap/string.c'; else $(CYGPATH_W) '$(srcdir)/tests/tap/string.c'; fi`
+
+util/util_libutil_la-fdflag.lo: util/fdflag.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util/util_libutil_la-fdflag.lo -MD -MP -MF util/$(DEPDIR)/util_libutil_la-fdflag.Tpo -c -o util/util_libutil_la-fdflag.lo `test -f 'util/fdflag.c' || echo '$(srcdir)/'`util/fdflag.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) util/$(DEPDIR)/util_libutil_la-fdflag.Tpo util/$(DEPDIR)/util_libutil_la-fdflag.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util/fdflag.c' object='util/util_libutil_la-fdflag.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util/util_libutil_la-fdflag.lo `test -f 'util/fdflag.c' || echo '$(srcdir)/'`util/fdflag.c
+
+util/util_libutil_la-gss-errors.lo: util/gss-errors.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util/util_libutil_la-gss-errors.lo -MD -MP -MF util/$(DEPDIR)/util_libutil_la-gss-errors.Tpo -c -o util/util_libutil_la-gss-errors.lo `test -f 'util/gss-errors.c' || echo '$(srcdir)/'`util/gss-errors.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) util/$(DEPDIR)/util_libutil_la-gss-errors.Tpo util/$(DEPDIR)/util_libutil_la-gss-errors.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util/gss-errors.c' object='util/util_libutil_la-gss-errors.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util/util_libutil_la-gss-errors.lo `test -f 'util/gss-errors.c' || echo '$(srcdir)/'`util/gss-errors.c
+
+util/util_libutil_la-gss-tokens.lo: util/gss-tokens.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util/util_libutil_la-gss-tokens.lo -MD -MP -MF util/$(DEPDIR)/util_libutil_la-gss-tokens.Tpo -c -o util/util_libutil_la-gss-tokens.lo `test -f 'util/gss-tokens.c' || echo '$(srcdir)/'`util/gss-tokens.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) util/$(DEPDIR)/util_libutil_la-gss-tokens.Tpo util/$(DEPDIR)/util_libutil_la-gss-tokens.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util/gss-tokens.c' object='util/util_libutil_la-gss-tokens.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util/util_libutil_la-gss-tokens.lo `test -f 'util/gss-tokens.c' || echo '$(srcdir)/'`util/gss-tokens.c
+
+util/util_libutil_la-messages.lo: util/messages.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util/util_libutil_la-messages.lo -MD -MP -MF util/$(DEPDIR)/util_libutil_la-messages.Tpo -c -o util/util_libutil_la-messages.lo `test -f 'util/messages.c' || echo '$(srcdir)/'`util/messages.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) util/$(DEPDIR)/util_libutil_la-messages.Tpo util/$(DEPDIR)/util_libutil_la-messages.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util/messages.c' object='util/util_libutil_la-messages.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util/util_libutil_la-messages.lo `test -f 'util/messages.c' || echo '$(srcdir)/'`util/messages.c
+
+util/util_libutil_la-network.lo: util/network.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util/util_libutil_la-network.lo -MD -MP -MF util/$(DEPDIR)/util_libutil_la-network.Tpo -c -o util/util_libutil_la-network.lo `test -f 'util/network.c' || echo '$(srcdir)/'`util/network.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) util/$(DEPDIR)/util_libutil_la-network.Tpo util/$(DEPDIR)/util_libutil_la-network.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util/network.c' object='util/util_libutil_la-network.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util/util_libutil_la-network.lo `test -f 'util/network.c' || echo '$(srcdir)/'`util/network.c
+
+util/util_libutil_la-tokens.lo: util/tokens.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util/util_libutil_la-tokens.lo -MD -MP -MF util/$(DEPDIR)/util_libutil_la-tokens.Tpo -c -o util/util_libutil_la-tokens.lo `test -f 'util/tokens.c' || echo '$(srcdir)/'`util/tokens.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) util/$(DEPDIR)/util_libutil_la-tokens.Tpo util/$(DEPDIR)/util_libutil_la-tokens.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util/tokens.c' object='util/util_libutil_la-tokens.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util/util_libutil_la-tokens.lo `test -f 'util/tokens.c' || echo '$(srcdir)/'`util/tokens.c
+
+util/util_libutil_la-vector.lo: util/vector.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util/util_libutil_la-vector.lo -MD -MP -MF util/$(DEPDIR)/util_libutil_la-vector.Tpo -c -o util/util_libutil_la-vector.lo `test -f 'util/vector.c' || echo '$(srcdir)/'`util/vector.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) util/$(DEPDIR)/util_libutil_la-vector.Tpo util/$(DEPDIR)/util_libutil_la-vector.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util/vector.c' object='util/util_libutil_la-vector.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util/util_libutil_la-vector.lo `test -f 'util/vector.c' || echo '$(srcdir)/'`util/vector.c
+
+util/util_libutil_la-xmalloc.lo: util/xmalloc.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util/util_libutil_la-xmalloc.lo -MD -MP -MF util/$(DEPDIR)/util_libutil_la-xmalloc.Tpo -c -o util/util_libutil_la-xmalloc.lo `test -f 'util/xmalloc.c' || echo '$(srcdir)/'`util/xmalloc.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) util/$(DEPDIR)/util_libutil_la-xmalloc.Tpo util/$(DEPDIR)/util_libutil_la-xmalloc.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util/xmalloc.c' object='util/util_libutil_la-xmalloc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util/util_libutil_la-xmalloc.lo `test -f 'util/xmalloc.c' || echo '$(srcdir)/'`util/xmalloc.c
+
+util/util_libutil_la-xwrite.lo: util/xwrite.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util/util_libutil_la-xwrite.lo -MD -MP -MF util/$(DEPDIR)/util_libutil_la-xwrite.Tpo -c -o util/util_libutil_la-xwrite.lo `test -f 'util/xwrite.c' || echo '$(srcdir)/'`util/xwrite.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) util/$(DEPDIR)/util_libutil_la-xwrite.Tpo util/$(DEPDIR)/util_libutil_la-xwrite.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util/xwrite.c' object='util/util_libutil_la-xwrite.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util/util_libutil_la-xwrite.lo `test -f 'util/xwrite.c' || echo '$(srcdir)/'`util/xwrite.c
+
+util/util_libutil_la-messages-krb5.lo: util/messages-krb5.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util/util_libutil_la-messages-krb5.lo -MD -MP -MF util/$(DEPDIR)/util_libutil_la-messages-krb5.Tpo -c -o util/util_libutil_la-messages-krb5.lo `test -f 'util/messages-krb5.c' || echo '$(srcdir)/'`util/messages-krb5.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) util/$(DEPDIR)/util_libutil_la-messages-krb5.Tpo util/$(DEPDIR)/util_libutil_la-messages-krb5.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util/messages-krb5.c' object='util/util_libutil_la-messages-krb5.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util/util_libutil_la-messages-krb5.lo `test -f 'util/messages-krb5.c' || echo '$(srcdir)/'`util/messages-krb5.c
 
 portable/server_remctld-event-extra.o: portable/event-extra.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT portable/server_remctld-event-extra.o -MD -MP -MF portable/$(DEPDIR)/server_remctld-event-extra.Tpo -c -o portable/server_remctld-event-extra.o `test -f 'portable/event-extra.c' || echo '$(srcdir)/'`portable/event-extra.c
@@ -2637,6 +2827,20 @@ tests/tests_runtests-runtests.obj: tests/runtests.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_runtests_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/tests_runtests-runtests.obj `if test -f 'tests/runtests.c'; then $(CYGPATH_W) 'tests/runtests.c'; else $(CYGPATH_W) '$(srcdir)/tests/runtests.c'; fi`
 
+tests/util/tests_util_messages_krb5_t-messages-krb5-t.o: tests/util/messages-krb5-t.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_util_messages_krb5_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/util/tests_util_messages_krb5_t-messages-krb5-t.o -MD -MP -MF tests/util/$(DEPDIR)/tests_util_messages_krb5_t-messages-krb5-t.Tpo -c -o tests/util/tests_util_messages_krb5_t-messages-krb5-t.o `test -f 'tests/util/messages-krb5-t.c' || echo '$(srcdir)/'`tests/util/messages-krb5-t.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/util/$(DEPDIR)/tests_util_messages_krb5_t-messages-krb5-t.Tpo tests/util/$(DEPDIR)/tests_util_messages_krb5_t-messages-krb5-t.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/util/messages-krb5-t.c' object='tests/util/tests_util_messages_krb5_t-messages-krb5-t.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_util_messages_krb5_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/util/tests_util_messages_krb5_t-messages-krb5-t.o `test -f 'tests/util/messages-krb5-t.c' || echo '$(srcdir)/'`tests/util/messages-krb5-t.c
+
+tests/util/tests_util_messages_krb5_t-messages-krb5-t.obj: tests/util/messages-krb5-t.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_util_messages_krb5_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/util/tests_util_messages_krb5_t-messages-krb5-t.obj -MD -MP -MF tests/util/$(DEPDIR)/tests_util_messages_krb5_t-messages-krb5-t.Tpo -c -o tests/util/tests_util_messages_krb5_t-messages-krb5-t.obj `if test -f 'tests/util/messages-krb5-t.c'; then $(CYGPATH_W) 'tests/util/messages-krb5-t.c'; else $(CYGPATH_W) '$(srcdir)/tests/util/messages-krb5-t.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/util/$(DEPDIR)/tests_util_messages_krb5_t-messages-krb5-t.Tpo tests/util/$(DEPDIR)/tests_util_messages_krb5_t-messages-krb5-t.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/util/messages-krb5-t.c' object='tests/util/tests_util_messages_krb5_t-messages-krb5-t.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_util_messages_krb5_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/util/tests_util_messages_krb5_t-messages-krb5-t.obj `if test -f 'tests/util/messages-krb5-t.c'; then $(CYGPATH_W) 'tests/util/messages-krb5-t.c'; else $(CYGPATH_W) '$(srcdir)/tests/util/messages-krb5-t.c'; fi`
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
@@ -2650,6 +2854,7 @@ clean-libtool:
 	-rm -rf tests/data/.libs tests/data/_libs
 	-rm -rf tests/portable/.libs tests/portable/_libs
 	-rm -rf tests/server/.libs tests/server/_libs
+	-rm -rf tests/server/acl/.libs tests/server/acl/_libs
 	-rm -rf tests/util/.libs tests/util/_libs
 	-rm -rf tests/util/network/.libs tests/util/network/_libs
 	-rm -rf util/.libs util/_libs
@@ -3133,6 +3338,8 @@ distclean-generic:
 	-rm -f tests/portable/$(am__dirstamp)
 	-rm -f tests/server/$(DEPDIR)/$(am__dirstamp)
 	-rm -f tests/server/$(am__dirstamp)
+	-rm -f tests/server/acl/$(DEPDIR)/$(am__dirstamp)
+	-rm -f tests/server/acl/$(am__dirstamp)
 	-rm -f tests/tap/$(DEPDIR)/$(am__dirstamp)
 	-rm -f tests/tap/$(am__dirstamp)
 	-rm -f tests/util/$(DEPDIR)/$(am__dirstamp)
@@ -3155,7 +3362,7 @@ clean-am: clean-binPROGRAMS clean-checkLIBRARIES clean-checkPROGRAMS \
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf client/$(DEPDIR) portable/$(DEPDIR) server/$(DEPDIR) tests/$(DEPDIR) tests/client/$(DEPDIR) tests/data/$(DEPDIR) tests/portable/$(DEPDIR) tests/server/$(DEPDIR) tests/tap/$(DEPDIR) tests/util/$(DEPDIR) tests/util/network/$(DEPDIR) util/$(DEPDIR)
+	-rm -rf client/$(DEPDIR) portable/$(DEPDIR) server/$(DEPDIR) tests/$(DEPDIR) tests/client/$(DEPDIR) tests/data/$(DEPDIR) tests/portable/$(DEPDIR) tests/server/$(DEPDIR) tests/server/acl/$(DEPDIR) tests/tap/$(DEPDIR) tests/util/$(DEPDIR) tests/util/network/$(DEPDIR) util/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-local distclean-tags
@@ -3206,7 +3413,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf client/$(DEPDIR) portable/$(DEPDIR) server/$(DEPDIR) tests/$(DEPDIR) tests/client/$(DEPDIR) tests/data/$(DEPDIR) tests/portable/$(DEPDIR) tests/server/$(DEPDIR) tests/tap/$(DEPDIR) tests/util/$(DEPDIR) tests/util/network/$(DEPDIR) util/$(DEPDIR)
+	-rm -rf client/$(DEPDIR) portable/$(DEPDIR) server/$(DEPDIR) tests/$(DEPDIR) tests/client/$(DEPDIR) tests/data/$(DEPDIR) tests/portable/$(DEPDIR) tests/server/$(DEPDIR) tests/server/acl/$(DEPDIR) tests/tap/$(DEPDIR) tests/util/$(DEPDIR) tests/util/network/$(DEPDIR) util/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -3359,8 +3566,9 @@ distclean-local: clean-local
 	fi
 
 warnings:
-	$(MAKE) V=0 CFLAGS='$(WARNINGS)'
-	$(MAKE) V=0 CFLAGS='$(WARNINGS)' $(check_PROGRAMS)
+	$(MAKE) V=0 CFLAGS='$(WARNINGS)' KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)'
+	$(MAKE) V=0 CFLAGS='$(WARNINGS)' \
+	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)' $(check_PROGRAMS)
 
 check-local: $(check_PROGRAMS)
 	cd tests && ./runtests -l '$(abs_top_srcdir)/tests/TESTS'

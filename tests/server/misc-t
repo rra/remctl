@@ -3,7 +3,7 @@
 # Test suite for various server functions.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2006, 2007, 2009, 2012
+# Copyright 2006, 2007, 2009, 2012, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -17,7 +17,7 @@ kerberos_setup
 if [ $? != 0 ] ; then
     skip_all "Kerberos tests not configured"
 else
-    plan 6
+    plan 7
 fi
 remctl="$BUILD/../client/remctl"
 if [ ! -x "$remctl" ] ; then
@@ -38,6 +38,8 @@ ok_program "wildcard matching for the command" 0 "hello world" \
     "$remctl" -s "$principal" -p 14373 localhost foo bar
 ok_program "...but only matches that subcommand" 255 "Unknown command" \
     "$remctl" -s "$principal" -p 14373 localhost foo baz
+ok_program "server resets SIGPIPE handler before running client" 255 '' \
+    "$remctl" -s "$principal" -p 14373 localhost test sigpipe
 
 # Clean up.
 tmpdir=`test_tmpdir`

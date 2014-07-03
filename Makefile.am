@@ -90,8 +90,8 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/configs/bad-include-1 tests/data/configs/bad-logmask-2   \
 	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4   \
 	tests/data/configs/bad-option-1 tests/data/configs/bad-user-1	    \
-	tests/data/perl.conf tests/data/gput tests/data/valgrind.supp	    \
-	tests/docs/pod-spelling-t tests/docs/pod-t			    \
+	tests/data/perl.conf tests/data/generate-krb5-conf tests/data/gput  \
+	tests/data/valgrind.supp tests/docs/pod-spelling-t tests/docs/pod-t \
 	tests/perl/module-version-t tests/tap/kerberos.sh		    \
 	tests/tap/libtap.sh tests/tap/perl/Test/RRA.pm			    \
 	tests/tap/perl/Test/RRA/Automake.pm				    \
@@ -132,6 +132,14 @@ util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
 	util/xwrite.h
 util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
 util_libutil_la_LIBADD = $(GSSAPI_LIBS)
+
+# If built with Kerberos support, add messages-krb5.
+if HAVE_KRB5
+    util_libutil_la_SOURCES += util/messages-krb5.c util/messages-krb5.h
+    util_libutil_la_CPPFLAGS = $(KRB5_CPPFLAGS)
+    util_libutil_la_LDFLAGS += $(KRB5_LDFLAGS)
+    util_libutil_la_LIBADD += $(KRB5_LIBS)
+endif
 
 # The remctl client library.
 lib_LTLIBRARIES = client/libremctl.la
@@ -175,13 +183,13 @@ server_remctld_SOURCES = portable/event-extra.c server/commands.c	    \
 	server/process.c server/remctld.c server/server-v1.c		    \
 	server/server-v2.c
 server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	\
-	$(GSSAPI_CPPFLAGS) $(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS)		\
-	$(LIBEVENT_CPPFLAGS) $(SYSTEMD_DAEMON_CFLAGS)
-server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
-	$(LIBEVENT_LDFLAGS)
-server_remctld_LDADD = util/libutil.la portable/libportable.la		\
-	$(GSSAPI_LIBS) $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)	\
-	$(SYSTEMD_DAEMON_LIBS)
+	$(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)		\
+	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS) $(SYSTEMD_DAEMON_CFLAGS)
+server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
+	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
+server_remctld_LDADD = util/libutil.la portable/libportable.la	\
+	$(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)	\
+	$(LIBEVENT_LIBS) $(SYSTEMD_DAEMON_LIBS)
 
 # Install the systemd unit file if systemd support was detected.
 if HAVE_SYSTEMD
@@ -277,28 +285,30 @@ distclean-local: clean-local
 # without optimization turned on.  Desirable warnings that can't be turned
 # on due to other problems:
 #
-#     -Wconversion      http://bugs.debian.org/488884 (htons warnings)
+#     -Wconversion	http://bugs.debian.org/488884 (htons warnings)
 #
-# Last checked against gcc 4.6.1 (2011-05-04).  -D_FORTIFY_SOURCE=2 enables
+# Last checked against gcc 4.8.2 (2014-04-12).  -D_FORTIFY_SOURCE=2 enables
 # warn_unused_result attribute markings on glibc functions on Linux, which
 # catches a few more issues.
-WARNINGS = -g -O -D_FORTIFY_SOURCE=2 -Wall -Wextra -Wendif-labels	    \
-	-Wformat=2 -Winit-self -Wswitch-enum -Wdeclaration-after-statement  \
+WARNINGS = -g -O -fstrict-overflow -fstrict-aliasing -D_FORTIFY_SOURCE=2    \
+	-Wall -Wextra -Wendif-labels -Wformat=2 -Winit-self -Wswitch-enum   \
+	-Wstrict-overflow=5 -Wfloat-equal -Wdeclaration-after-statement	    \
 	-Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align	    \
-	-Wwrite-strings -Wjump-misses-init -Wlogical-op			    \
-	-Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls	    \
-	-Wnested-externs -Werror
+	-Wwrite-strings -Wjump-misses-init -Wlogical-op -Wstrict-prototypes \
+	-Wold-style-definition -Wmissing-prototypes -Wnormalized=nfc	    \
+	-Wpacked -Wredundant-decls -Wnested-externs -Winline -Wvla -Werror
 
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code doesn't pass them.
 if GCC
-    PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs	\
-	-Wno-strict-prototypes -Wno-missing-prototypes		\
-	-Wno-redundant-decls -Wno-shadow
-    PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings	\
-	-Wno-missing-prototypes -Wno-unused-parameter		\
-	-Wno-redundant-decls -Wno-sign-compare
-    PYTHON_WARNINGS = -Wno-unused-parameter
+    PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs		\
+	-Wno-strict-prototypes -Wno-missing-prototypes			\
+	-Wno-redundant-decls -Wno-shadow -Wno-old-style-definition
+    PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
+	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
+	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal \
+	-Wno-strict-overflow
+    PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
     RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
 else
     PERL_WARNINGS =
@@ -308,31 +318,35 @@ else
 endif
 
 warnings:
-	$(MAKE) V=0 CFLAGS='$(WARNINGS)'
-	$(MAKE) V=0 CFLAGS='$(WARNINGS)' $(check_PROGRAMS)
+	$(MAKE) V=0 CFLAGS='$(WARNINGS)' KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)'
+	$(MAKE) V=0 CFLAGS='$(WARNINGS)' \
+	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
-check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t  \
-	tests/client/large-t tests/client/open-t tests/client/source-ip-t \
-	tests/client/timeout-t tests/data/cmd-background		  \
-	tests/data/cmd-closed tests/data/cmd-large-output		  \
-	tests/data/cmd-stdin tests/data/cmd-streaming tests/data/cmd-user \
-	tests/portable/asprintf-t tests/portable/daemon-t		  \
-	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	  \
-	tests/portable/getopt-t tests/portable/inet_aton-t		  \
-	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		  \
-	tests/portable/mkstemp-t tests/portable/setenv-t		  \
-	tests/portable/snprintf-t tests/portable/strlcat-t		  \
-	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t \
-	tests/server/bind-t tests/server/config-t tests/server/continue-t \
-	tests/server/empty-t tests/server/env-t tests/server/errors-t	  \
-	tests/server/help-t tests/server/invalid-t tests/server/logging-t \
-	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t \
-	tests/server/summary-t tests/server/user-t tests/server/version-t \
-	tests/util/fdflag-t tests/util/gss-tokens-t tests/util/messages-t \
-	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	  \
-	tests/util/network/client-t tests/util/network/server-t		  \
-	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	  \
+check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t   \
+	tests/client/large-t tests/client/open-t tests/client/source-ip-t  \
+	tests/client/timeout-t tests/data/cmd-background		   \
+	tests/data/cmd-closed tests/data/cmd-large-output		   \
+	tests/data/cmd-sigpipe tests/data/cmd-stdin			   \
+	tests/data/cmd-streaming tests/data/cmd-user			   \
+	tests/portable/asprintf-t tests/portable/daemon-t		   \
+	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	   \
+	tests/portable/getopt-t tests/portable/inet_aton-t		   \
+	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		   \
+	tests/portable/mkstemp-t tests/portable/setenv-t		   \
+	tests/portable/snprintf-t tests/portable/strlcat-t		   \
+	tests/portable/strlcpy-t tests/server/accept-t tests/server/acl-t  \
+	tests/server/acl/localgroup-t tests/server/bind-t		   \
+	tests/server/config-t tests/server/continue-t tests/server/empty-t \
+	tests/server/env-t tests/server/errors-t tests/server/help-t	   \
+	tests/server/invalid-t tests/server/logging-t tests/server/noop-t  \
+	tests/server/stdin-t tests/server/streaming-t			   \
+	tests/server/summary-t tests/server/user-t tests/server/version-t  \
+	tests/util/fdflag-t tests/util/gss-tokens-t			   \
+	tests/util/messages-krb5-t tests/util/messages-t		   \
+	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	   \
+	tests/util/network/client-t tests/util/network/server-t		   \
+	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	   \
 	tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
@@ -374,7 +388,8 @@ tests_client_timeout_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 tests_data_cmd_background_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_data_cmd_large_output_LDADD = util/libutil.la portable/libportable.la
-tests_data_cmd_stdin_LDADD = util/libutil.la
+tests_data_cmd_sigpipe_LDADD = portable/libportable.la
+tests_data_cmd_stdin_LDADD = util/libutil.la portable/libportable.la
 tests_portable_asprintf_t_SOURCES = tests/portable/asprintf-t.c \
 	tests/portable/asprintf.c
 tests_portable_asprintf_t_LDADD = tests/tap/libtap.a portable/libportable.la
@@ -426,6 +441,14 @@ tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
 tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
 	$(LIBEVENT_LDFLAGS)
 tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
+tests_server_acl_localgroup_t_SOURCES = tests/server/acl/localgroup-t.c	  \
+	$(SERVER_FILES) tests/server/acl/fake-getgrnam.c		  \
+	tests/server/acl/fake-getgrnam.h tests/server/acl/fake-getpwnam.c \
+	tests/server/acl/fake-getpwnam.h
+tests_server_acl_localgroup_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
+	$(LIBEVENT_LDFLAGS)
+tests_server_acl_localgroup_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
 tests_server_bind_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_bind_t_LDADD = client/libremctl.la tests/tap/libtap.a \
@@ -490,6 +513,10 @@ tests_util_gss_tokens_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS)
 tests_util_messages_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
+tests_util_messages_krb5_t_CPPFLAGS = $(KRB5_CPPFLAGS)
+tests_util_messages_krb5_t_LDFLAGS = $(KRB5_LDFLAGS)
+tests_util_messages_krb5_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la $(KRB5_LIBS)
 tests_util_network_addr_ipv4_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_util_network_addr_ipv6_t_LDADD = tests/tap/libtap.a util/libutil.la \

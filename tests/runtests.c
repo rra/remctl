@@ -86,6 +86,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -220,10 +221,11 @@ Failed Set                 Fail/Total (%) Skip Stat  Failing Tests\n\
 -------------------------- -------------- ---- ----  ------------------------";
 
 /* Include the file name and line number in malloc failures. */
-#define xcalloc(n, size)  x_calloc((n), (size), __FILE__, __LINE__)
-#define xmalloc(size)     x_malloc((size), __FILE__, __LINE__)
-#define xrealloc(p, size) x_realloc((p), (size), __FILE__, __LINE__)
-#define xstrdup(p)        x_strdup((p), __FILE__, __LINE__)
+#define xcalloc(n, size)      x_calloc((n), (size), __FILE__, __LINE__)
+#define xmalloc(size)         x_malloc((size), __FILE__, __LINE__)
+#define xstrdup(p)            x_strdup((p), __FILE__, __LINE__)
+#define xreallocarray(p, n, size) \
+    x_reallocarray((p), (n), (size), __FILE__, __LINE__)
 
 /*
  * __attribute__ is available in gcc 2.5 and later, but only with gcc 2.7
@@ -266,8 +268,8 @@ static void *x_calloc(size_t, size_t, const char *, int)
     __attribute__((__alloc_size__(1, 2), __malloc__, __nonnull__));
 static void *x_malloc(size_t, const char *, int)
     __attribute__((__alloc_size__(1), __malloc__, __nonnull__));
-static void *x_realloc(void *, size_t, const char *, int)
-    __attribute__((__alloc_size__(2), __malloc__, __nonnull__(3)));
+static void *x_reallocarray(void *, size_t, size_t, const char *, int)
+    __attribute__((__alloc_size__(2, 3), __malloc__, __nonnull__(4)));
 static char *x_strdup(const char *, const char *, int)
     __attribute__((__malloc__, __nonnull__));
 
@@ -328,14 +330,26 @@ x_malloc(size_t size, const char *file, int line)
 
 /*
  * Reallocate memory, reporting a fatal error and exiting on failure.
+ *
+ * We should technically use SIZE_MAX here for the overflow check, but
+ * SIZE_MAX is C99 and we're only assuming C89 + SUSv3, which does not
+ * guarantee that it exists.  They do guarantee that UINT_MAX exists, and we
+ * can assume that UINT_MAX <= SIZE_MAX.  And we should not be allocating
+ * anything anywhere near that large.
+ *
+ * (In theory, C89 and C99 permit size_t to be smaller than unsigned int, but
+ * I disbelieve in the existence of such systems and they will have to cope
+ * without overflow checks.)
  */
 static void *
-x_realloc(void *p, size_t size, const char *file, int line)
+x_reallocarray(void *p, size_t n, size_t size, const char *file, int line)
 {
-    p = realloc(p, size);
+    if (n > 0 && UINT_MAX / n <= size)
+        sysdie("realloc too large at %s line %d", file, line);
+    p = realloc(p, n * size);
     if (p == NULL)
         sysdie("failed to realloc %lu bytes at %s line %d",
-               (unsigned long) size, file, line);
+               (unsigned long) (n * size), file, line);
     return p;
 }
 
@@ -356,6 +370,55 @@ x_strdup(const char *s, const char *file, int line)
                (unsigned long) len, file, line);
     memcpy(p, s, len);
     return p;
+}
+
+
+/*
+ * Form a new string by concatenating multiple strings.  The arguments must be
+ * terminated by (const char *) 0.
+ *
+ * This function only exists because we can't assume asprintf.  We can't
+ * simulate asprintf with snprintf because we're only assuming SUSv3, which
+ * does not require that snprintf with a NULL buffer return the required
+ * length.  When those constraints are relaxed, this should be ripped out and
+ * replaced with asprintf or a more trivial replacement with snprintf.
+ */
+static char *
+concat(const char *first, ...)
+{
+    va_list args;
+    char *result;
+    const char *string;
+    size_t offset;
+    size_t length = 0;
+
+    /*
+     * Find the total memory required.  Ensure we don't overflow length.  We
+     * aren't guaranteed to have SIZE_MAX, so use UINT_MAX as an acceptable
+     * substitute (see the x_nrealloc comments).
+     */
+    va_start(args, first);
+    for (string = first; string != NULL; string = va_arg(args, const char *)) {
+        if (length >= UINT_MAX - strlen(string)) {
+            errno = EINVAL;
+            sysdie("strings too long in concat");
+        }
+        length += strlen(string);
+    }
+    va_end(args);
+    length++;
+
+    /* Create the string. */
+    result = xmalloc(length);
+    va_start(args, first);
+    offset = 0;
+    for (string = first; string != NULL; string = va_arg(args, const char *)) {
+        memcpy(result + offset, string, strlen(string));
+        offset += strlen(string);
+    }
+    va_end(args);
+    result[offset] = '\0';
+    return result;
 }
 
 
@@ -494,6 +557,40 @@ test_backspace(struct testset *ts)
 
 
 /*
+ * Allocate or resize the array of test results to be large enough to contain
+ * the test number in.
+ */
+static void
+resize_results(struct testset *ts, unsigned long n)
+{
+    unsigned long i;
+    size_t s;
+
+    /* If there's already enough space, return quickly. */
+    if (n <= ts->allocated)
+        return;
+
+    /*
+     * If no space has been allocated, do the initial allocation.  Otherwise,
+     * resize.  Start with 32 test cases and then add 1024 with each resize to
+     * try to reduce the number of reallocations.
+     */
+    if (ts->allocated == 0) {
+        s = (n > 32) ? n : 32;
+        ts->results = xcalloc(s, sizeof(enum test_status));
+    } else {
+        s = (n > ts->allocated + 1024) ? n : ts->allocated + 1024;
+        ts->results = xreallocarray(ts->results, s, sizeof(enum test_status));
+    }
+
+    /* Set the results for the newly-allocated test array. */
+    for (i = ts->allocated; i < s; i++)
+        ts->results[i] = TEST_INVALID;
+    ts->allocated = s;
+}
+
+
+/*
  * Read the plan line of test output, which should contain the range of test
  * numbers.  We may initialize the testset structure here if we haven't yet
  * seen a test.  Return true if initialization succeeded and the test should
@@ -502,7 +599,6 @@ test_backspace(struct testset *ts)
 static int
 test_plan(const char *line, struct testset *ts)
 {
-    unsigned long i;
     long n;
 
     /*
@@ -515,12 +611,14 @@ test_plan(const char *line, struct testset *ts)
         line += 3;
 
     /*
-     * Get the count, check it for validity, and initialize the struct.  If we
-     * have something of the form "1..0 # skip foo", the whole file was
+     * Get the count and check it for validity.
+     *
+     * If we have something of the form "1..0 # skip foo", the whole file was
      * skipped; record that.  If we do skip the whole file, zero out all of
-     * our statistics, since they're no longer relevant.  strtol is called
-     * with a second argument to advance the line pointer past the count to
-     * make it simpler to detect the # skip case.
+     * our statistics, since they're no longer relevant.
+     *
+     * strtol is called with a second argument to advance the line pointer
+     * past the count to make it simpler to detect the # skip case.
      */
     n = strtol(line, (char **) &line, 10);
     if (n == 0) {
@@ -549,30 +647,30 @@ test_plan(const char *line, struct testset *ts)
         ts->reported = 1;
         return 0;
     }
-    if (ts->plan == PLAN_INIT && ts->allocated == 0) {
-        ts->count = n;
-        ts->allocated = n;
-        ts->plan = PLAN_FIRST;
-        ts->results = xmalloc(ts->count * sizeof(enum test_status));
-        for (i = 0; i < ts->count; i++)
-            ts->results[i] = TEST_INVALID;
-    } else if (ts->plan == PLAN_PENDING) {
-        if ((unsigned long) n < ts->count) {
-            test_backspace(ts);
-            printf("ABORTED (invalid test number %lu)\n", ts->count);
-            ts->aborted = 1;
-            ts->reported = 1;
-            return 0;
-        }
-        ts->count = n;
-        if ((unsigned long) n > ts->allocated) {
-            ts->results = xrealloc(ts->results, n * sizeof(enum test_status));
-            for (i = ts->allocated; i < ts->count; i++)
-                ts->results[i] = TEST_INVALID;
-            ts->allocated = n;
-        }
-        ts->plan = PLAN_FINAL;
+
+    /*
+     * If we are doing lazy planning, check the plan against the largest test
+     * number that we saw and fail now if we saw a check outside the plan
+     * range.
+     */
+    if (ts->plan == PLAN_PENDING && (unsigned long) n < ts->count) {
+        test_backspace(ts);
+        printf("ABORTED (invalid test number %lu)\n", ts->count);
+        ts->aborted = 1;
+        ts->reported = 1;
+        return 0;
     }
+
+    /*
+     * Otherwise, allocated or resize the results if needed and update count,
+     * and then record that we've seen a plan.
+     */
+    resize_results(ts, n);
+    ts->count = n;
+    if (ts->plan == PLAN_INIT)
+        ts->plan = PLAN_FIRST;
+    else if (ts->plan == PLAN_PENDING)
+        ts->plan = PLAN_FINAL;
     return 1;
 }
 
@@ -590,7 +688,7 @@ test_checkline(const char *line, struct testset *ts)
     const char *bail;
     char *end;
     long number;
-    unsigned long i, current;
+    unsigned long current;
     int outlen;
 
     /* Before anything, check for a test abort. */
@@ -663,19 +761,9 @@ test_checkline(const char *line, struct testset *ts)
     /* We have a valid test result.  Tweak the results array if needed. */
     if (ts->plan == PLAN_INIT || ts->plan == PLAN_PENDING) {
         ts->plan = PLAN_PENDING;
+        resize_results(ts, current);
         if (current > ts->count)
             ts->count = current;
-        if (current > ts->allocated) {
-            unsigned long n;
-
-            n = (ts->allocated == 0) ? 32 : ts->allocated * 2;
-            if (n < current)
-                n = current;
-            ts->results = xrealloc(ts->results, n * sizeof(enum test_status));
-            for (i = ts->allocated; i < n; i++)
-                ts->results[i] = TEST_INVALID;
-            ts->allocated = n;
-        }
     }
 
     /*
@@ -1058,8 +1146,7 @@ find_test(const char *name, const char *source, const char *build)
             base = bases[j];
             if (base == NULL)
                 continue;
-            path = xmalloc(strlen(base) + strlen(name) + strlen(suffix) + 2);
-            sprintf(path, "%s/%s%s", base, name, suffix);
+            path = concat(base, "/", name, suffix, (const char *) 0);
             if (is_valid_test(path))
                 return path;
             free(path);
@@ -1087,9 +1174,7 @@ read_test_list(const char *filename)
     struct testlist *listhead, *current;
 
     /* Create the initial container list that will hold our results. */
-    listhead = xmalloc(sizeof(struct testlist));
-    listhead->ts = NULL;
-    listhead->next = NULL;
+    listhead = xcalloc(1, sizeof(struct testlist));
     current = NULL;
 
     /*
@@ -1111,14 +1196,12 @@ read_test_list(const char *filename)
         if (current == NULL)
             current = listhead;
         else {
-            current->next = xmalloc(sizeof(struct testlist));
+            current->next = xcalloc(1, sizeof(struct testlist));
             current = current->next;
-            current->next = NULL;
         }
         current->ts = xcalloc(1, sizeof(struct testset));
         current->ts->plan = PLAN_INIT;
         current->ts->file = xstrdup(buffer);
-        current->ts->reason = NULL;
     }
     fclose(file);
 
@@ -1139,9 +1222,7 @@ build_test_list(char *argv[], int argc)
     struct testlist *listhead, *current;
 
     /* Create the initial container list that will hold our results. */
-    listhead = xmalloc(sizeof(struct testlist));
-    listhead->ts = NULL;
-    listhead->next = NULL;
+    listhead = xcalloc(1, sizeof(struct testlist));
     current = NULL;
 
     /* Walk the list of arguments and create test sets for them. */
@@ -1149,14 +1230,12 @@ build_test_list(char *argv[], int argc)
         if (current == NULL)
             current = listhead;
         else {
-            current->next = xmalloc(sizeof(struct testlist));
+            current->next = xcalloc(1, sizeof(struct testlist));
             current = current->next;
-            current->next = NULL;
         }
         current->ts = xcalloc(1, sizeof(struct testset));
         current->ts->plan = PLAN_INIT;
         current->ts->file = xstrdup(argv[i]);
-        current->ts->reason = NULL;
     }
 
     /* Return the results. */
@@ -1376,14 +1455,12 @@ main(int argc, char *argv[])
 
     /* Set SOURCE and BUILD environment variables. */
     if (source != NULL) {
-        source_env = xmalloc(strlen("SOURCE=") + strlen(source) + 1);
-        sprintf(source_env, "SOURCE=%s", source);
+        source_env = concat("SOURCE=", source, (const char *) 0);
         if (putenv(source_env) != 0)
             sysdie("cannot set SOURCE in the environment");
     }
     if (build != NULL) {
-        build_env = xmalloc(strlen("BUILD=") + strlen(build) + 1);
-        sprintf(build_env, "BUILD=%s", build);
+        build_env = concat("BUILD=", build, (const char *) 0);
         if (putenv(build_env) != 0)
             sysdie("cannot set BUILD in the environment");
     }

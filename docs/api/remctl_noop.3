@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "REMCTL_NOOP 3"
-.TH REMCTL_NOOP 3 "2014-01-28" "3.8" "remctl Library Reference"
+.TH REMCTL_NOOP 3 "2014-07-02" "3.9" "remctl Library Reference"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -163,6 +163,21 @@ connection with \fIremctl_open()\fR.
 the caller should call \fIremctl_error()\fR to retrieve the error message.  In
 addition to network errors, this function may fail if the server doesn't
 support protocol version 3.
+.SH "COMPATIBILITY"
+.IX Header "COMPATIBILITY"
+This interface was added in version 3.0.
+.SH "AUTHOR"
+.IX Header "AUTHOR"
+Russ Allbery <eagle@eyrie.org>
+.SH "COPYRIGHT AND LICENSE"
+.IX Header "COPYRIGHT AND LICENSE"
+Copyright 2011, 2014 The Board of Trustees of the Leland Stanford Junior
+University
+.PP
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIremctl_new\fR\|(3), \fIremctl_open\fR\|(3), \fIremctl_command\fR\|(3), \fIremctl_error\fR\|(3)
@@ -170,15 +185,3 @@ support protocol version 3.
 The current version of the remctl library and complete details of the
 remctl protocol are available from its web page at
 <http://www.eyrie.org/~eagle/software/remctl/>.
-.SH "AUTHOR"
-.IX Header "AUTHOR"
-Russ Allbery <eagle@eyrie.org>
-.SH "COPYRIGHT AND LICENSE"
-.IX Header "COPYRIGHT AND LICENSE"
-Copyright 2011 The Board of Trustees of the Leland Stanford Junior
-University
-.PP
-Copying and distribution of this file, with or without modification, are
-permitted in any medium without royalty provided the copyright notice and
-this notice are preserved.  This file is offered as-is, without any
-warranty.

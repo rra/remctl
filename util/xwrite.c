@@ -24,7 +24,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2008, 2013
+ * Copyright 2008, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -137,13 +137,21 @@ xwritev(int fd, const struct iovec iov[], int iovcnt)
     int iovleft, i, count;
     struct iovec *tmpiov;
 
+    /*
+     * Bounds-check the iovcnt argument.  This is just for our safety.  The
+     * system will probably impose a lower limit on iovcnt, causing the later
+     * writev to fail with an error we'll return.
+     */
     if (iovcnt == 0)
 	return 0;
+    if (iovcnt < 0 || (size_t) iovcnt > SIZE_MAX / sizeof(struct iovec)) {
+        errno = EINVAL;
+        return -1;
+    }
 
     /* Get a count of the total number of bytes in the iov array. */
     for (total = 0, i = 0; i < iovcnt; i++)
         total += iov[i].iov_len;
-
     if (total == 0)
 	return 0;
 
@@ -177,7 +185,7 @@ xwritev(int fd, const struct iovec iov[], int iovcnt)
         offset -= iov[i].iov_len;
     iovleft = iovcnt - i;
     assert(iovleft > 0);
-    tmpiov = malloc(iovleft * sizeof(struct iovec));
+    tmpiov = calloc(iovleft, sizeof(struct iovec));
     if (tmpiov == NULL)
         return -1;
     memcpy(tmpiov, iov + i, iovleft * sizeof(struct iovec));

@@ -45,8 +45,13 @@ internal_v1_commandv(struct remctl *r, const struct iovec *command,
 
     /* Allocate room for the total message: argc, {<length><arg>}+. */
     token.length = 4;
-    for (i = 0; i < count; i++)
+    for (i = 0; i < count; i++) {
+        if (token.length >= SIZE_MAX - 4 - command[i].iov_len) {
+            internal_set_error(r, "memory allocation too large");
+            return false;
+        }
         token.length += 4 + command[i].iov_len;
+    }
     token.value = malloc(token.length);
     if (token.value == NULL) {
         internal_set_error(r, "cannot allocate memory: %s", strerror(errno));

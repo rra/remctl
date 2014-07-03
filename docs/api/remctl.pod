@@ -1,7 +1,7 @@
 =for stopwords
 remctl const API hostname IP NUL-terminated GSS-API DNS KRB5CCNAME NULs
 ENOMEM CNAME lookups canonicalization libdefaults canonicalize Allbery
-DNS-based
+DNS-based IANA-registered
 
 =head1 NAME
 
@@ -39,12 +39,14 @@ GSS-API library may canonicalize I<host> via DNS before determining the
 service principal, depending on your library configuration.  Specifying a
 principal disables this behavior.
 
-The remctl protocol uses Kerberos v5 via GSS-API for authentication.  The
+The remctl protocol uses Kerberos via GSS-API for authentication.  The
 underlying GSS-API library will use the default ticket cache for
 authentication, so to successfully use remctl(), the caller should already
 have Kerberos tickets for an appropriate realm stored in its default
 ticket cache.  The environment variable KRB5CCNAME can be used to control
-which ticket cache is used.
+which ticket cache is used.  If the client needs to control which ticket
+cache is used without changing the environment, use the full client API
+along with remctl_set_ccache(3).
 
 remctl() returns a newly allocated remctl_result struct, which has the
 following members:
@@ -70,11 +72,11 @@ given command may have its own exit status conventions.
 remctl_result_free() frees the remctl_result struct when the calling
 program is through with it.
 
-If you want more control over the steps of the protocol, if you want to
-issue multiple commands on the same connection, or if you need to send
-data as part of the command that contains NULs, use the full API described
-in remctl_new(3), remctl_open(3), remctl_commandv(3), and
-remctl_output(3).
+If you want more control over the steps of the protocol, issue multiple
+commands on the same connection, control the ticket cache or source IP,
+set a timeout on replies, or send data as part of the command that
+contains NULs, use the full API described in L<remctl_new(3)>,
+L<remctl_open(3)>, L<remctl_commandv(3)>, and L<remctl_output(3)>.
 
 =head1 RETURN VALUE
 
@@ -84,6 +86,16 @@ returns a newly allocated remctl_result struct with either an error
 message in the error field or the results of the command filled out as
 described above.  If remctl() returns NULL, errno will be set to an
 appropriate error code (generally ENOMEM).
+
+=head1 COMPATIBILITY
+
+This interface has been provided by the remctl client library since its
+initial release in version 2.0.
+
+The default port was changed to the IANA-registered port of 4373 in
+version 2.11.
+
+Support for IPv6 was added in version 2.4.
 
 =head1 CAVEATS
 
@@ -116,6 +128,20 @@ remctl port and should be phased out.
 The remctl port number, 4373, was derived by tracing the diagonals of a
 QWERTY keyboard up from the letters C<remc> to the number row.
 
+=head1 AUTHOR
+
+Russ Allbery <eagle@eyrie.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2007, 2008, 2009, 2014 The Board of Trustees of the Leland
+Stanford Junior University
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
+  
 =head1 SEE ALSO
 
 remctl_new(3), remctl_open(3), remctl_command(3), remctl_commandv(3),
@@ -125,18 +151,4 @@ The current version of the remctl library and complete details of the
 remctl protocol are available from its web page at
 L<http://www.eyrie.org/~eagle/software/remctl/>.
 
-=head1 AUTHOR
-
-Russ Allbery <eagle@eyrie.org>
-
-=head1 COPYRIGHT AND LICENSE
-
-Copyright 2007, 2008, 2009 The Board of Trustees of the Leland Stanford
-Junior University
-
-Copying and distribution of this file, with or without modification, are
-permitted in any medium without royalty provided the copyright notice and
-this notice are preserved.  This file is offered as-is, without any
-warranty.
-  
 =cut

@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "REMCTL_OPEN 3"
-.TH REMCTL_OPEN 3 "2014-01-28" "3.8" "remctl Library Reference"
+.TH REMCTL_OPEN 3 "2014-07-02" "3.9" "remctl Library Reference"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -189,16 +189,32 @@ GSS-API library may canonicalize \fIhost\fR via \s-1DNS\s0 before determining th
 service principal, depending on your library configuration.  Specifying a
 principal disables this behavior.
 .PP
-The remctl protocol uses Kerberos v5 via GSS-API for authentication.  The
+The remctl protocol uses Kerberos via GSS-API for authentication.  The
 underlying GSS-API library will use the default ticket cache for
 authentication, so to successfully use \fIremctl_open()\fR, the caller should
 already have Kerberos tickets for an appropriate realm stored in its
-default ticket cache.  The environment variable \s-1KRB5CCNAME\s0 can be used to
-control which ticket cache is used.
+default ticket cache.  The environment variable \s-1KRB5CCNAME\s0 or the
+\&\fIremctl_set_ccache\fR\|(3) function can be used to control which ticket cache
+is used.
+.PP
+To control the timeout for the connect and for subsequent calls, see the
+\&\fIremctl_set_timeout\fR\|(3) function.  To control the source \s-1IP\s0 used by
+\&\fIremctl_open()\fR, \fIremctl_open_addrinfo()\fR, and \fIremctl_open_sockaddr()\fR, see the
+\&\fIremctl_set_source_ip\fR\|(3) function.
 .SH "RETURN VALUE"
 .IX Header "RETURN VALUE"
 \&\fIremctl_open()\fR returns true on success and false on failure.  On failure,
 the caller should call \fIremctl_error()\fR to retrieve the error message.
+.SH "COMPATIBILITY"
+.IX Header "COMPATIBILITY"
+The \fIremctl_open()\fR interface has been provided by the remctl client library
+since its initial release in version 2.0.  \fIremctl_open_addrinfo()\fR,
+\&\fIremctl_open_sockaddr()\fR, and \fIremctl_open_fd()\fR were added in version 3.4.
+.PP
+The default port was changed to the IANA-registered port of 4373 in
+version 2.11.
+.PP
+Support for IPv6 was added in version 2.4.
 .SH "CAVEATS"
 .IX Header "CAVEATS"
 If the \fIprincipal\fR argument to \fIremctl_open()\fR is \s-1NULL,\s0 most GSS-API
@@ -237,22 +253,23 @@ be closed and reopened before another command can be sent.
 .IX Header "NOTES"
 The remctl port number, 4373, was derived by tracing the diagonals of a
 \&\s-1QWERTY\s0 keyboard up from the letters \f(CW\*(C`remc\*(C'\fR to the number row.
-.SH "SEE ALSO"
-.IX Header "SEE ALSO"
-\&\fIremctl_new\fR\|(3), \fIremctl_error\fR\|(3)
-.PP
-The current version of the remctl library and complete details of the
-remctl protocol are available from its web page at
-<http://www.eyrie.org/~eagle/software/remctl/>.
 .SH "AUTHOR"
 .IX Header "AUTHOR"
 Russ Allbery <eagle@eyrie.org>
 .SH "COPYRIGHT AND LICENSE"
 .IX Header "COPYRIGHT AND LICENSE"
-Copyright 2007, 2008, 2009 The Board of Trustees of the Leland Stanford
-Junior University
+Copyright 2007, 2008, 2009, 2014 The Board of Trustees of the Leland
+Stanford Junior University
 .PP
 Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice and
 this notice are preserved.  This file is offered as-is, without any
 warranty.
+.SH "SEE ALSO"
+.IX Header "SEE ALSO"
+\&\fIremctl_new\fR\|(3), \fIremctl_error\fR\|(3), \fIremctl_set_ccache\fR\|(3),
+\&\fIremctl_set_source_ip\fR\|(3), \fIremctl_set_timeout\fR\|(3)
+.PP
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+<http://www.eyrie.org/~eagle/software/remctl/>.
