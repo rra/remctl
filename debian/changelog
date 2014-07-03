@@ -1,5 +1,14 @@
-remctl (3.8-4) UNRELEASED; urgency=medium
+remctl (3.9-1) UNRELEASED; urgency=medium
 
+  * New upstream release.
+    - New server ACL type, localgroup, which converts the principal to a
+      local username and then checks for membership in a local group.
+    - Fix incorrect handling of interruptions of network writes by signals
+      in the server.
+    - Prefer calloc and reallocarray when allocating memory with
+      multiplication.
+    - Restore the SIGPIPE handler before running a command.
+    - Add version and compatibility information to all manual pages.
   * Fix Upstream-Contact email address in debian/copyright.
 
  -- Russ Allbery <rra@debian.org>  Sun, 13 Apr 2014 13:28:57 -0700
