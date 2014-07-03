@@ -36,7 +36,9 @@
 #include <server/internal.h>
 #include <util/macros.h>
 #include <util/messages.h>
-#include <util/messages-krb5.h>
+#ifdef HAVE_KRB5
+# include <util/messages-krb5.h>
+#endif
 #include <util/vector.h>
 #include <util/xmalloc.h>
 

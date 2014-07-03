@@ -65,7 +65,7 @@ main(void)
     const char *acls[5];
     const struct rule rule = {
         (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL,
-        NULL, acls
+        NULL, (char **) acls
     };
 
     plan(2);
