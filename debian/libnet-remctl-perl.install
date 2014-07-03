@@ -1,2 +1,2 @@
-debian/tmp/usr/lib/perl5
-debian/tmp/usr/share/man/man3/*.3pm
+usr/lib/perl5
+usr/share/man/man3/*.3pm

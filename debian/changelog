@@ -10,6 +10,11 @@ remctl (3.9-1) UNRELEASED; urgency=medium
     - Restore the SIGPIPE handler before running a command.
     - Add version and compatibility information to all manual pages.
   * Fix Upstream-Contact email address in debian/copyright.
+  * Remove most debian/tmp prefixes from debhelper *.install files.  These
+    have not been needed since compat level 7.  Retain them only for the
+    remctl-server.install file, which pulls files from both the source
+    tree and the installed binary tree and benefits from the
+    disambiguation.
 
  -- Russ Allbery <rra@debian.org>  Sun, 13 Apr 2014 13:28:57 -0700
 
