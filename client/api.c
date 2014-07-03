@@ -19,7 +19,9 @@
 
 #include <config.h>
 #include <portable/gssapi.h>
-#include <portable/krb5.h>
+#ifdef HAVE_KRB5
+# include <portable/krb5.h>
+#endif
 #include <portable/socket.h>
 #include <portable/system.h>
 #include <portable/uio.h>
@@ -541,7 +543,7 @@ remctl_command(struct remctl *r, const char **command)
         internal_set_error(r, "cannot send empty command");
         return 0;
     }
-    vector = malloc(sizeof(struct iovec) * count);
+    vector = calloc(count, sizeof(struct iovec));
     if (vector == NULL) {
         internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
         return 0;

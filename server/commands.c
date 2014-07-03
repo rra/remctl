@@ -129,7 +129,7 @@ server_send_summary(struct client *client, struct config *config)
          * argv and pass off to be executed.
          */
         path = rule->program;
-        req_argv = xmalloc(3 * sizeof(char *));
+        req_argv = xcalloc(3, sizeof(char *));
         program = strrchr(path, '/');
         if (program == NULL)
             program = path;
@@ -195,7 +195,7 @@ create_argv_command(struct rule *rule, struct process *process,
     /* Get ready to assemble the argv of the command. */
     for (count = 0; argv[count] != NULL; count++)
         ;
-    req_argv = xmalloc((count + 1) * sizeof(char *));
+    req_argv = xcalloc(count + 1, sizeof(char *));
 
     /*
      * Get the real program name, and use it as the first argument in argv
@@ -251,9 +251,9 @@ create_argv_help(const char *path, const char *command, const char *subcommand)
     const char *program;
 
     if (subcommand == NULL)
-        req_argv = xmalloc(3 * sizeof(char *));
+        req_argv = xcalloc(3, sizeof(char *));
     else
-        req_argv = xmalloc(4 * sizeof(char *));
+        req_argv = xcalloc(4, sizeof(char *));
 
     /* The argv to pass along for a help command is very simple. */
     program = strrchr(path, '/');

@@ -4,7 +4,7 @@
  * This file is part of C TAP Harness.  The current version plus supporting
  * documentation is at <http://www.eyrie.org/~eagle/software/c-tap-harness/>.
  *
- * Copyright 2009, 2010, 2011, 2012, 2013 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Russ Allbery <eagle@eyrie.org>
  * Copyright 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2011, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -67,26 +67,33 @@ void skip_all(const char *format, ...)
 /*
  * Basic reporting functions.  The okv() function is the same as ok() but
  * takes the test description as a va_list to make it easier to reuse the
- * reporting infrastructure when writing new tests.
+ * reporting infrastructure when writing new tests.  ok() and okv() return the
+ * value of the success argument.
  */
-void ok(int success, const char *format, ...)
+int ok(int success, const char *format, ...)
     __attribute__((__format__(printf, 2, 3)));
-void okv(int success, const char *format, va_list args);
+int okv(int success, const char *format, va_list args);
 void skip(const char *reason, ...)
     __attribute__((__format__(printf, 1, 2)));
 
-/* Report the same status on, or skip, the next count tests. */
-void ok_block(unsigned long count, int success, const char *format, ...)
+/*
+ * Report the same status on, or skip, the next count tests.  ok_block()
+ * returns the value of the success argument.
+ */
+int ok_block(unsigned long count, int success, const char *format, ...)
     __attribute__((__format__(printf, 3, 4)));
 void skip_block(unsigned long count, const char *reason, ...)
     __attribute__((__format__(printf, 2, 3)));
 
-/* Check an expected value against a seen value. */
-void is_int(long wanted, long seen, const char *format, ...)
+/*
+ * Check an expected value against a seen value.  Returns true if the test
+ * passes and false if it fails.
+ */
+int is_int(long wanted, long seen, const char *format, ...)
     __attribute__((__format__(printf, 3, 4)));
-void is_string(const char *wanted, const char *seen, const char *format, ...)
+int is_string(const char *wanted, const char *seen, const char *format, ...)
     __attribute__((__format__(printf, 3, 4)));
-void is_hex(unsigned long wanted, unsigned long seen, const char *format, ...)
+int is_hex(unsigned long wanted, unsigned long seen, const char *format, ...)
     __attribute__((__format__(printf, 3, 4)));
 
 /* Bail out with an error.  sysbail appends strerror(errno). */
@@ -96,9 +103,9 @@ void sysbail(const char *format, ...)
     __attribute__((__noreturn__, __nonnull__, __format__(printf, 1, 2)));
 
 /* Report a diagnostic to stderr prefixed with #. */
-void diag(const char *format, ...)
+int diag(const char *format, ...)
     __attribute__((__nonnull__, __format__(printf, 1, 2)));
-void sysdiag(const char *format, ...)
+int sysdiag(const char *format, ...)
     __attribute__((__nonnull__, __format__(printf, 1, 2)));
 
 /*
@@ -118,6 +125,8 @@ void *bcalloc(size_t, size_t)
     __attribute__((__alloc_size__(1, 2), __malloc__, __warn_unused_result__));
 void *bmalloc(size_t)
     __attribute__((__alloc_size__(1), __malloc__, __warn_unused_result__));
+void *breallocarray(void *, size_t, size_t)
+    __attribute__((__alloc_size__(2, 3), __malloc__, __warn_unused_result__));
 void *brealloc(void *, size_t)
     __attribute__((__alloc_size__(2), __malloc__, __warn_unused_result__));
 char *bstrdup(const char *)

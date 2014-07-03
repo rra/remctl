@@ -15,8 +15,10 @@
  */
 
 #include <config.h>
-#include <portable/krb5.h>
 #include <portable/gssapi.h>
+#ifdef HAVE_KRB5
+# include <portable/krb5.h>
+#endif
 #include <portable/socket.h>
 #include <portable/system.h>
 
@@ -131,7 +133,7 @@ internal_import_name(struct remctl *r, const char *host,
  * global GSS-API variable with gss_krb5_ccache_name or just use whatever the
  * default is.  The other cases are handled in remctl_set_ccache.
  */
-#ifdef HAVE_GSS_KRB5_IMPORT_CRED
+#if defined(HAVE_GSS_KRB5_IMPORT_CRED) && defined(HAVE_KRB5)
 static bool
 internal_set_cred(struct remctl *r, gss_cred_id_t *gss_cred)
 {
@@ -159,7 +161,7 @@ internal_set_cred(struct remctl *r, gss_cred_id_t *gss_cred)
     }
     return true;
 }
-#else /* !HAVE_GSS_KRB5_IMPORT_CRED */
+#else /* !HAVE_GSS_KRB5_IMPORT_CRED || !HAVE_KRB5 */
 static bool
 internal_set_cred(struct remctl *r UNUSED, gss_cred_id_t *gss_cred UNUSED)
 {

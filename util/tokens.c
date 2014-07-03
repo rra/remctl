@@ -7,7 +7,7 @@
  *
  * Originally written by Anton Ushakov
  * Extensive modifications by Russ Allbery <eagle@eyrie.org>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -61,6 +61,10 @@ token_send(socket_type fd, int flags, gss_buffer_t tok, time_t timeout)
     OM_uint32 len = htonl(tok->length);
 
     /* Send out the whole message in a single write. */
+    if (tok->length > SIZE_MAX - 1 - sizeof(OM_uint32)) {
+        errno = ENOMEM;
+        return TOKEN_FAIL_SYSTEM;
+    }
     buflen = 1 + sizeof(OM_uint32) + tok->length;
     buffer = malloc(buflen);
     if (buffer == NULL)

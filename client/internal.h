@@ -14,7 +14,9 @@
 
 #include <config.h>
 #include <portable/gssapi.h>
-#include <portable/krb5.h>
+#ifdef HAVE_KRB5
+# include <portable/krb5.h>
+#endif
 #include <portable/macros.h>
 #include <portable/socket.h>
 #include <portable/stdbool.h>

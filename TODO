@@ -20,6 +20,10 @@ Protocol:
  * REMCTL-40: Support locating remctl services via SRV records, probably
    _<service>._remctl._tcp.<domain>.
 
+ * REMCTL-43: Modify the server to not allow MESSAGE_COMMAND split in the
+   middle of a length element and require that commands be split in the
+   middle or at the end of argument data.
+
 Server:
 
  * REMCTL-5: Add a way of explicitly specifying the null command or

@@ -9,16 +9,21 @@
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
+ * Copyright 2014 IN2P3 Computing Centre - CNRS
  *
  * See LICENSE for licensing terms.
  */
 
 #include <config.h>
+#ifdef HAVE_KRB5
+# include <portable/krb5.h>
+#endif
 #include <portable/system.h>
 
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
+#include <grp.h>
 #ifdef HAVE_PCRE
 # include <pcre.h>
 #endif
@@ -31,6 +36,9 @@
 #include <server/internal.h>
 #include <util/macros.h>
 #include <util/messages.h>
+#ifdef HAVE_KRB5
+# include <util/messages-krb5.h>
+#endif
 #include <util/vector.h>
 #include <util/xmalloc.h>
 
@@ -44,6 +52,14 @@
 # include <gput.h>
 static char *acl_gput_file = NULL;
 #endif
+
+/*
+ * maximum length allowed when converting
+ * principal to local name
+ */
+#define REMCTL_KRB5_LOCALNAME_MAX_LEN sysconf(_SC_LOGIN_NAME_MAX) < 256 \
+                                      ? 256 \
+                                      : sysconf(_SC_LOGIN_NAME_MAX)
 
 /* Return codes for configuration and ACL parsing. */
 enum config_status {
@@ -397,7 +413,7 @@ read_conf_file(void *data, const char *name)
     struct config *config = data;
     FILE *file;
     char *buffer, *p, *option;
-    size_t bufsize, length, size, count, i, arg_i;
+    size_t bufsize, length, count, i, arg_i;
     enum config_status s;
     struct vector *line = NULL;
     struct rule *rule = NULL;
@@ -483,12 +499,12 @@ read_conf_file(void *data, const char *name)
          * space for it in the config struct and stuff the vector into place.
          */
         if (config->count == config->allocated) {
-            if (config->allocated < 4)
-                config->allocated = 4;
-            else
-                config->allocated *= 2;
-            size = config->allocated * sizeof(struct rule *);
-            config->rules = xrealloc(config->rules, size);
+            size_t size, n;
+
+            n = (config->allocated < 4) ? 4 : config->allocated * 2;
+            size = sizeof(struct rule *);
+            config->rules = xreallocarray(config->rules, n, size);
+            config->allocated = n;
         }
         rule = xcalloc(1, sizeof(struct rule));
         rule->line       = line;
@@ -521,7 +537,7 @@ read_conf_file(void *data, const char *name)
         rule->file = xstrdup(name);
         rule->lineno = lineno;
         count = line->count - arg_i + 1;
-        rule->acls = xmalloc(count * sizeof(char *));
+        rule->acls = xcalloc(count, sizeof(char *));
         for (i = 0; i < line->count - arg_i; i++)
             rule->acls[i] = line->strings[i + arg_i];
         rule->acls[i] = NULL;
@@ -885,31 +901,230 @@ acl_check_regex(const char *user, const char *data, const char *file,
 }
 #endif /* HAVE_REGCOMP */
 
+
+#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
+
+/*
+ * Convert the user (a Kerberos principal name) to a local username for group
+ * lookups.  Returns true on success and false on an error other than there
+ * being no local equivalent of the Kerberos principal.  Stores the local
+ * equivalent username, or NULL if there is none, in the localname parameter.
+ */
+static bool
+user_to_localname(const char *user, char **localname)
+{
+    krb5_context ctx = NULL;
+    krb5_error_code code;
+    krb5_principal princ = NULL;
+    char buffer[BUFSIZ];
+
+    /* Initialize the result. */
+    *localname = NULL;
+
+    /*
+     * Unfortunately, we don't keep a Kerberos context around and have to
+     * create a new one with each invocation.
+     */
+    code = krb5_init_context(&ctx);
+    if (code != 0) {
+        warn_krb5(ctx, code, "cannot create Kerberos context");
+        return false;
+    }
+
+    /* Convert the user to a principal and find the local name. */
+    code = krb5_parse_name(ctx, user, &princ);
+    if (code != 0) {
+        warn_krb5(ctx, code, "cannot parse principal %s", user);
+        goto fail;
+    }
+    code = krb5_aname_to_localname(ctx, princ, sizeof(buffer), buffer);
+
+    /*
+     * Distinguish between no result with no error, a result (where we want to
+     * make a copy), and an error.  Then free memory and return.
+     */
+    switch (code) {
+    case KRB5_LNAME_NOTRANS:
+    case KRB5_NO_LOCALNAME:
+        /* No result.  Do nothing. */
+        break;
+    case 0:
+        *localname = xstrdup(buffer);
+        break;
+    default:
+        warn_krb5(ctx, code, "conversion of %s to local name failed", user);
+        goto fail;
+    }
+    krb5_free_principal(ctx, princ);
+    krb5_free_context(ctx);
+    return true;
+
+fail:
+    if (princ != NULL)
+        krb5_free_principal(ctx, princ);
+    krb5_free_context(ctx);
+    return false;
+}
+
+
+/*
+ * Look up a group with getgrnam_r, which provides better error reporting than
+ * the normal getrnam function but requires buffer handling.  Returns either
+ * CONFIG_SUCCESS or CONFIG_ERROR.  On success, sets the provided group and
+ * buffer pointers if the group was found.  The caller should free the buffer
+ * when done with the results.  On failure to find the group, but no error,
+ * returns success but with the buffer and group pointers set to NULL.  On
+ * error, returns CONFIG_ERROR and sets errno.
+ */
+static enum config_status
+acl_getgrnam(const char *group, struct group **grp, char **buffer)
+{
+    size_t buflen;
+    int status, oerrno;
+    struct group *result;
+    enum config_status retval;
+
+    /* Initialize the return values. */
+    *grp = NULL;
+    *buffer = NULL;
+
+    /* Determine the size of the buffer for getgrnam_r. */
+    buflen = sysconf(_SC_GETGR_R_SIZE_MAX);
+    if (buflen <= 0)
+        buflen = BUFSIZ;
+    *buffer = xmalloc(buflen);
+
+    /* Get the group information, repeating on EINTR. */
+    *grp = xmalloc(sizeof(struct group));
+    do {
+        status = getgrnam_r(group, *grp, *buffer, buflen, &result);
+        if (status != 0 && status != EINTR) {
+            errno = status;
+            retval = CONFIG_ERROR;
+            goto fail;
+        }
+    } while (status == EINTR);
+
+    /* If not found, free all the memory and return success with NULL. */
+    if (result == NULL) {
+        retval = CONFIG_SUCCESS;
+        goto fail;
+    }
+
+    /* Otherwise, return success. */
+    return CONFIG_SUCCESS;
+
+fail:
+    oerrno = errno;
+    free(*buffer);
+    *buffer = NULL;
+    free(*grp);
+    *grp = NULL;
+    errno = oerrno;
+    return retval;
+}
+
+
+/*
+ * The ACL check operation for UNIX local group membership.  Takes the user to
+ * check, the group of which they have to be a member, and the referencing
+ * file name and line number.
+ */
+static enum config_status
+acl_check_localgroup(const char *user, const char *group,
+                     const char *file, int lineno)
+{
+    struct passwd *pw;
+    struct group *gr = NULL;
+    char *grbuffer = NULL;
+    size_t i;
+    char *localname = NULL;
+    enum config_status result;
+
+    /* Look up the group membership. */
+    result = acl_getgrnam(group, &gr, &grbuffer);
+    if (result != CONFIG_SUCCESS) {
+        syswarn("%s:%d: retrieving membership of localgroup %s failed", file,
+                lineno, group);
+        return result;
+    }
+    if (gr == NULL)
+        return CONFIG_NOMATCH;
+
+    /*
+     * Convert the principal to a local name.  Return no match if it doesn't
+     * convert.
+     */
+    if (!user_to_localname(user, &localname)) {
+        result = CONFIG_ERROR;
+        goto done;
+    }
+    if (localname == NULL) {
+        result = CONFIG_NOMATCH;
+        goto done;
+    }
+
+    /* Look up the local user.  If they don't exist, return no match. */
+    pw = getpwnam(localname);
+    if (pw == NULL) {
+        result = CONFIG_NOMATCH;
+        goto done;
+    }
+
+    /* Check if the user's primary group is the desired group. */
+    if (gr->gr_gid == pw->pw_gid) {
+        result = CONFIG_SUCCESS;
+        goto done;
+    }
+
+    /* Otherwise, check if the user is one of the other group members. */
+    result = CONFIG_NOMATCH;
+    for (i = 0; gr->gr_mem[i] != NULL; i++)
+        if (strcmp(localname, gr->gr_mem[i]) == 0) {
+            result = CONFIG_SUCCESS;
+            break;
+        }
+
+done:
+    free(gr);
+    free(grbuffer);
+    free(localname);
+    return result;
+}
+
+#endif /* HAVE_KRB5 && HAVE_GETGRNAM_R */
+
+
 /*
  * The table relating ACL scheme names to functions.  The first two ACL
  * schemes must remain in their current slots or the index constants set at
  * the top of the file need to change.
  */
 static const struct acl_scheme schemes[] = {
-    { "file",  acl_check_file  },
-    { "princ", acl_check_princ },
-    { "deny",  acl_check_deny  },
+    { "file",       acl_check_file       },
+    { "princ",      acl_check_princ      },
+    { "deny",       acl_check_deny       },
 #ifdef HAVE_GPUT
-    { "gput",  acl_check_gput  },
+    { "gput",       acl_check_gput       },
 #else
-    { "gput",  NULL            },
+    { "gput",       NULL                 },
+#endif
+#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
+    { "localgroup", acl_check_localgroup },
+#else
+    { "localgroup", NULL                 },
 #endif
 #ifdef HAVE_PCRE
-    { "pcre",  acl_check_pcre  },
+    { "pcre",       acl_check_pcre       },
 #else
-    { "pcre",  NULL            },
+    { "pcre",       NULL                 },
 #endif
 #ifdef HAVE_REGCOMP
-    { "regex", acl_check_regex },
+    { "regex",      acl_check_regex      },
 #else
-    { "regex", NULL            },
+    { "regex",      NULL                 },
 #endif
-    { NULL,    NULL            }
+    { NULL,         NULL                 }
 };
 
 
@@ -1004,7 +1219,7 @@ server_config_free(struct config *config)
  * otherwise.
  */
 bool
-server_config_acl_permit(struct rule *rule, const char *user)
+server_config_acl_permit(const struct rule *rule, const char *user)
 {
     char **acls = rule->acls;
     size_t i;

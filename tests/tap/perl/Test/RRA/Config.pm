@@ -31,12 +31,13 @@ BEGIN {
     @EXPORT_OK = qw(
       $COVERAGE_LEVEL @COVERAGE_SKIP_TESTS @CRITIC_IGNORE $LIBRARY_PATH
       $MINIMUM_VERSION %MINIMUM_VERSION @POD_COVERAGE_EXCLUDE @STRICT_IGNORE
+      @STRICT_PREREQ
     );
 
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '5.02';
+    $VERSION = '5.05';
 }
 
 # If BUILD or SOURCE are set in the environment, look for data/perl.conf under
@@ -65,6 +66,7 @@ our $MINIMUM_VERSION = '5.008';
 our %MINIMUM_VERSION;
 our @POD_COVERAGE_EXCLUDE;
 our @STRICT_IGNORE;
+our @STRICT_PREREQ;
 
 # Load the configuration.
 if (!do($PATH)) {
@@ -163,6 +165,13 @@ for C<use strict> and C<use warnings>.  The contents of this directory
 must be either top-level directory names or directory names starting with
 F<tests/>.
 
+=item @STRICT_PREREQ
+
+A list of Perl modules that have to be available in order to do meaningful
+Test::Strict testing.  If any of the modules cannot be loaded via C<use>,
+Test::Strict checking will be skipped.  There is currently no way to
+require specific versions of the modules.
+
 =back
 
 No variables are exported by default, but the variables can be imported
@@ -174,7 +183,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2013 The Board of Trustees of the Leland Stanford Junior
+Copyright 2013, 2014 The Board of Trustees of the Leland Stanford Junior
 University
 
 Permission is hereby granted, free of charge, to any person obtaining a

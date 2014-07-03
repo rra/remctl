@@ -20,7 +20,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2009, 2011, 2012, 2013
+ * Copyright 2009, 2011, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007, 2008
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -328,7 +328,7 @@ network_bind_all(int type, unsigned short port, socket_type **fds,
      * assuming an IPv6 and IPv4 socket, and grow it by two when necessary.
      */
     size = 2;
-    *fds = xmalloc(size * sizeof(socket_type));
+    *fds = xcalloc(size, sizeof(socket_type));
     for (addr = addrs; addr != NULL; addr = addr->ai_next) {
         network_sockaddr_sprint(name, sizeof(name), addr->ai_addr);
         if (addr->ai_family == AF_INET)
@@ -340,7 +340,7 @@ network_bind_all(int type, unsigned short port, socket_type **fds,
         if (fd != INVALID_SOCKET) {
             if (*count >= size) {
                 size += 2;
-                *fds = xrealloc(*fds, size * sizeof(socket_type));
+                *fds = xreallocarray(*fds, size, sizeof(socket_type));
             }
             (*fds)[*count] = fd;
             (*count)++;
@@ -712,7 +712,12 @@ network_read(socket_type fd, void *buffer, size_t total, time_t timeout)
     if (timeout == 0)
         return (socket_xread(fd, buffer, total) >= 0);
 
-    /* The hard way.  We try to apply the timeout on the whole read. */
+    /*
+     * The hard way.  We try to apply the timeout on the whole read.  If
+     * either select or read fails with EINTR, restart the loop, and rely on
+     * the overall timeout to limit how long we wait without forward
+     * progress.
+     */
     start = time(NULL);
     now = start;
     do {
@@ -723,16 +728,20 @@ network_read(socket_type fd, void *buffer, size_t total, time_t timeout)
             tv.tv_sec = 1;
         tv.tv_usec = 0;
         status = select(fd + 1, &set, NULL, NULL, &tv);
-        if (status < 0)
+        if (status < 0) {
+            if (socket_errno == EINTR)
+                continue;
             return false;
-        else if (status == 0) {
+        } else if (status == 0) {
             socket_set_errno(ETIMEDOUT);
             return false;
         }
         status = socket_read(fd, (char *) buffer + got, total - got);
-        if (status < 0)
+        if (status < 0) {
+            if (socket_errno == EINTR)
+                continue;
             return false;
-        else if (status == 0) {
+        } else if (status == 0) {
             socket_set_errno(EPIPE);
             return false;
         }
@@ -767,7 +776,10 @@ network_write(socket_type fd, const void *buffer, size_t total, time_t timeout)
     if (timeout == 0)
         return (socket_xwrite(fd, buffer, total) >= 0);
 
-    /* The hard way.  We try to apply the timeout on the whole write. */
+    /* The hard way.  We try to apply the timeout on the whole write.  If
+     * either select or read fails with EINTR, restart the loop, and rely on
+     * the overall timeout to limit how long we wait without forward progress.
+     */
     fdflag_nonblocking(fd, true);
     start = time(NULL);
     now = start;
@@ -779,15 +791,20 @@ network_write(socket_type fd, const void *buffer, size_t total, time_t timeout)
             tv.tv_sec = 1;
         tv.tv_usec = 0;
         status = select(fd + 1, NULL, &set, NULL, &tv);
-        if (status < 0)
+        if (status < 0) {
+            if (socket_errno == EINTR)
+                continue;
             goto fail;
-        else if (status == 0) {
+        } else if (status == 0) {
             socket_set_errno(ETIMEDOUT);
             goto fail;
         }
         status = socket_write(fd, (const char *) buffer + sent, total - sent);
-        if (status < 0)
+        if (status < 0) {
+            if (socket_errno == EINTR)
+                continue;
             goto fail;
+        }
         sent += status;
         if (sent == total) {
             fdflag_nonblocking(fd, false);

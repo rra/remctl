@@ -65,6 +65,7 @@ internal_gssapi_error(struct remctl *r, const char *error, OM_uint32 major,
  * Internal function to set the remctl error message from a Kerberos error
  * message.
  */
+#ifdef HAVE_KRB5
 void
 internal_krb5_error(struct remctl *r, const char *error, krb5_error_code code)
 {
@@ -77,6 +78,7 @@ internal_krb5_error(struct remctl *r, const char *error, krb5_error_code code)
     internal_set_error(r, "error %s: %s", error, message);
     krb5_free_error_message(r->krb_ctx, message);
 }
+#endif
 
 
 /*

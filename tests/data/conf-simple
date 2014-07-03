@@ -11,6 +11,7 @@ test background /home/eagle/data/dist/remctl/tests/data/cmd-background ANYUSER
 test stdin /home/eagle/data/dist/remctl/tests/data/cmd-stdin stdin=last ANYUSER
 test sleep /home/eagle/data/dist/remctl/tests/data/cmd-sleep ANYUSER
 test large-output /home/eagle/data/dist/remctl/tests/data/cmd-large-output ANYUSER
+test sigpipe /home/eagle/data/dist/remctl/tests/data/cmd-sigpipe ANYUSER
 test-summary ALL /home/eagle/data/dist/remctl/tests/data/cmd-help \
     summary=summary \
     help=help ANYUSER
@@ -18,7 +19,7 @@ empty EMPTY /home/eagle/data/dist/remctl/tests/data/cmd-argv ANYUSER
 all ALL /home/eagle/data/dist/remctl/tests/data/cmd-hello ANYUSER
 ALL bar /home/eagle/data/dist/remctl/tests/data/cmd-hello ANYUSER
 
-# Copyright 2013
+# Copyright 2013, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # Copying and distribution of this file, with or without modification,
