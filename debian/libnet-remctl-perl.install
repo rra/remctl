@@ -1,2 +1,20 @@
-usr/lib/perl5
+#!/usr/bin/perl
+#
+# The directory into which arch-specific Perl modules are installed with
+# vendor paths varies based on Perl version, multiarch, and other issues.
+# Get the path at package build time from Perl rather than hard-coding an
+# expected path.
+
+use 5.006;
+use strict;
+use warnings;
+
+use Config;
+
+# The modules themselves.
+print substr($Config{vendorarch}, 1) . "\n";
+
+# Other files to include in the module package.
+print <<'EOF';
 usr/share/man/man3/*.3pm
+EOF
