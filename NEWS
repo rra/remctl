@@ -1,5 +1,15 @@
                        User-Visible remctl Changes
 
+remctl 3.10 (unreleased)
+
+    Previous versions always passed the flags to disable certain warnings
+    to the language binding builds, even if warnings weren't otherwise
+    enabled.  As of remctl 3.9, that included a warning flag not supported
+    by old versions of gcc, breaking builds on RHEL 5.  Instead, only pass
+    the warning suppression flags when building with warnings (via make
+    warnings), which is not the default and is only supported with recent
+    versions of gcc.  Thanks to Ken Dreyer for the report.
+
 remctl 3.9 (2014-07-02)
 
     Add a new server ACL type, localgroup, which converts the principal to

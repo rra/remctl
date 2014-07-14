@@ -178,10 +178,6 @@ AC_ARG_ENABLE([ruby],
     [AS_IF([test x"$enableval" = xyes], [build_ruby=yes])])
 AM_CONDITIONAL([BUILD_RUBY], [test x"$build_ruby" = xyes])
 
-dnl Used to determine whether to add our GCC-specific warning suppression
-dnl flags to the language binding builds.
-AM_CONDITIONAL([GCC], [test x"$GCC" = xyes])
-
 dnl Used when building the Perl module.  Normally link against all the
 dnl dependencies that libremctl may need, but don't do so if
 dnl --enable-reduced-depends was specified.
