@@ -16,10 +16,10 @@ int B<remctl_set_ccache>(struct remctl *I<r>, const char *I<ccache>);
 remctl_set_ccache() tells the the remctl client library to use I<ccache>
 as the credential cache for authentication to a remctl server.  It will
 affect any subsequent remctl_open() calls on the same struct remctl object
-(and may have broader effects; see below).  I<ccache> is normally a path
-to a file in the file system that holds Kerberos credentials, but may take
-other values depending on the underlying Kerberos implementation used by
-GSS-API.
+(and may have broader effects; see L<WARNINGS> below).  I<ccache> is
+normally a path to a file in the file system that holds Kerberos
+credentials, but may take other values depending on the underlying
+Kerberos implementation used by GSS-API.
 
 Calling this function will normally override any KRB5CCNAME environment
 setting.  If the caller wishes to honor that setting, it should either not
@@ -54,6 +54,13 @@ function is not supported.
 This assumes that any failure is due to lack of support from the
 underlying library rather than some other cause.
 
+=head1 COMPATIBILITY
+
+This interface was added in version 3.0, but that version would always
+change the ticket cache used by all GSS-API calls in the same process.
+Support for the gss_krb5_import_cred() method of isolating the changed
+ticket cache to only this remctl client object was added in version 3.5.
+
 =head1 WARNINGS
 
 The effect of this function is only localized to this specific remctl
@@ -67,6 +74,20 @@ even just for remctl operations.  This function may therefore change
 global execution state and may affect other GSS-API operations done
 elsewhere in the same process.
 
+=head1 AUTHOR
+
+Russ Allbery <eagle@eyrie.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2011, 2013, 2014 The Board of Trustees of the Leland Stanford
+Junior University
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
+  
 =head1 SEE ALSO
 
 remctl_new(3), remctl_open(3), remctl_error(3)
@@ -75,18 +96,4 @@ The current version of the remctl library and complete details of the
 remctl protocol are available from its web page at
 L<http://www.eyrie.org/~eagle/software/remctl/>.
 
-=head1 AUTHOR
-
-Russ Allbery <eagle@eyrie.org>
-
-=head1 COPYRIGHT AND LICENSE
-
-Copyright 2011, 2013 The Board of Trustees of the Leland Stanford Junior
-University
-
-Copying and distribution of this file, with or without modification, are
-permitted in any medium without royalty provided the copyright notice and
-this notice are preserved.  This file is offered as-is, without any
-warranty.
-  
 =cut

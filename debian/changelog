@@ -1,9 +1,61 @@
-remctl (3.8-1~bpo70+1) wheezy-backports; urgency=low
+remctl (3.9-1~bpo70+1) wheezy-backports; urgency=low
 
   * Backport to wheezy.
   * Restore Ruby 1.8 build and drop Ruby 2.0 build.
 
- -- Russ Allbery <rra@debian.org>  Fri, 28 Feb 2014 12:30:31 -0800
+ -- Russ Allbery <rra@debian.org>  Sun, 13 Jul 2014 22:04:12 -0700
+
+remctl (3.9-1) unstable; urgency=medium
+
+  * New upstream release.
+    - New server ACL type, localgroup, which converts the principal to a
+      local username and then checks for membership in a local group.
+    - Fix incorrect handling of interruptions of network writes by signals
+      in the server.
+    - Prefer calloc and reallocarray when allocating memory with
+      multiplication.
+    - Restore the SIGPIPE handler before running a command.
+    - Add version and compatibility information to all manual pages.
+  * Use an executable debian/libnet-remctl-perl.install file to pull the
+    correct Perl arch-specific vendor module path from Perl during the
+    build.  Should fix builds with Perl 5.20.  Thanks, Niko Tyni and
+    gregor herrmann.  (Closes: #752902)
+  * Build-Depend on krb5-config to get enough of a Kerberos configuration
+    for some test cases that are KDC-independent to run.
+  * Fix Upstream-Contact email address in debian/copyright.
+  * Remove most debian/tmp prefixes from debhelper *.install files.  These
+    have not been needed since compat level 7.  Retain them only for the
+    remctl-server.install file, which pulls files from both the source
+    tree and the installed binary tree and benefits from the
+    disambiguation.
+
+ -- Russ Allbery <rra@debian.org>  Wed, 02 Jul 2014 20:57:10 -0700
+
+remctl (3.8-3) unstable; urgency=medium
+
+  * Build-Depend on the version of gem2deb with working multi-binary
+    package support for native extensions.
+  * Fix the exclusion rule for dh_install --fail-missing to ignore the
+    Ruby module under both the 2.0 and 1.9.1 paths.  (dh_ruby --install
+    will go back and install the module in the correct locations.)  Should
+    fix FTBFS in Ubuntu, which still has Ruby 1.9.1.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 11 Apr 2014 13:27:58 -0700
+
+remctl (3.8-2) unstable; urgency=medium
+
+  * Add upstream patch to increase the buffer size on timeout tests.
+    Linux has apparently increased the size of network writes it is
+    willing to buffer internally, so we now have to write more data to
+    force a timeout.  (Closes: #743991)
+  * Use gem2deb to build and install the Ruby module.  This will
+    automatically use the current supported Ruby versions, avoiding the
+    need for sourceful uploads for new Ruby releases.  Thanks to Christian
+    Hofstaedtler for the patch.
+  * Remove now-unneeded Lintian override for the upstream signing key.
+  * Add a Lintian override for the dual-licensed protocol specification.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 08 Apr 2014 19:34:24 -0700
 
 remctl (3.8-1) unstable; urgency=medium
 

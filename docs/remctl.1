@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "REMCTL 1"
-.TH REMCTL 1 "2014-01-28" "3.8" "remctl"
+.TH REMCTL 1 "2014-07-02" "3.9" "remctl"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -153,10 +153,9 @@ return message.  The commands must be defined on the server-side before a
 \&\fBremctl\fR client can execute them, and the user running \fBremctl\fR must be
 authorized to execute the particular command on the server.
 .PP
-Access to remote commands is authenticated via Kerberos v5 GSS-API, so a
-user must have a ticket granting ticket to use \fBremctl\fR.  All
-transmissions to and from the remctld server are encrypted using GSS-API's
-security layer.
+Access to remote commands is authenticated via Kerberos GSS-API, so a user
+must have a ticket granting ticket to use \fBremctl\fR.  All transmissions to
+and from the remctld server are encrypted using GSS-API's security layer.
 .PP
 \&\fIhost\fR is the hostname of the target server.  \fIcommand\fR and
 \&\fIsubcommand\fR together specify the command to run and correspond to the
@@ -164,33 +163,35 @@ command names in the configuration file on the server.  \fIparameters\fR are
 any additional command-line parameters to pass to the remote command.
 .SH "OPTIONS"
 .IX Header "OPTIONS"
+The start of each option description is annotated with the version of
+\&\fBremctl\fR in which that option was added with its current meaning.
 .IP "\fB\-b\fR \fIsource-ip\fR" 4
 .IX Item "-b source-ip"
-When connecting to the remote remctl server, use \fIsource-ip\fR as the
+[3.0] When connecting to the remote remctl server, use \fIsource-ip\fR as the
 source \s-1IP\s0 address.  This can be useful on multihomed systems where the
 remctl connections need to be made over a particular network.
 \&\fIsource-ip\fR must be an \s-1IP\s0 address, not a hostname, and can be either an
 IPv4 or IPv6 address (assuming IPv6 is supported).
 .IP "\fB\-d\fR" 4
 .IX Item "-d"
-Turn on extra debugging output of the client-server interaction.
+[1.10] Turn on extra debugging output of the client-server interaction.
 .IP "\fB\-h\fR" 4
 .IX Item "-h"
-Show a brief usage message and then exit.
+[1.10] Show a brief usage message and then exit.
 .IP "\fB\-p\fR \fIport\fR" 4
 .IX Item "-p port"
-Connect to the server on \fIport\fR.  If this option isn't given, the client
-first tries the registered remctl port (4373) and then falls back on the
-legacy port (4444) if that fails.
+[1.0] Connect to the server on \fIport\fR.  If this option isn't given, the
+client first tries the registered remctl port (4373) and then falls back
+on the legacy port (4444) if that fails.
 .IP "\fB\-s\fR \fIservice\fR" 4
 .IX Item "-s service"
-Authenticate to the server with a service ticket for \fIservice\fR rather
-than the default server identity of host/\fIhostname\fR.  This may be
+[1.0] Authenticate to the server with a service ticket for \fIservice\fR
+rather than the default server identity of host/\fIhostname\fR.  This may be
 necessary with, for instance, a server where \fBremctld\fR is not running as
 root.
 .IP "\fB\-v\fR" 4
 .IX Item "-v"
-Print the version of \fBremctl\fR and exit.
+[1.10] Print the version of \fBremctl\fR and exit.
 .SH "EXIT STATUS"
 .IX Header "EXIT STATUS"
 \&\fBremctl\fR will exit with the exit status returned by the remote command.
@@ -204,6 +205,12 @@ Release an \s-1AFS\s0 volume called ls.tripwire:
 .Vb 1
 \&    remctl lsdb afs release ls.tripwire
 .Ve
+.SH "COMPATIBILITY"
+.IX Header "COMPATIBILITY"
+The default port was changed to the IANA-registered port of 4373 in
+version 2.11.
+.PP
+Support for IPv6 was added in version 2.4.
 .SH "CAVEATS"
 .IX Header "CAVEATS"
 If no principal is specified with \fB\-s\fR, \fBremctl\fR canonicalizes the
@@ -228,22 +235,22 @@ run into \s-1MIC\s0 verification problems, see the \s-1COMPATIBILITY\s0 section 
 .IX Header "NOTES"
 The remctl port number, 4373, was derived by tracing the diagonals of a
 \&\s-1QWERTY\s0 keyboard up from the letters \f(CW\*(C`remc\*(C'\fR to the number row.
+.SH "AUTHOR"
+.IX Header "AUTHOR"
+\&\fBremctl\fR was originally written by Anton Ushakov.  Updates and current
+maintenance are done by Russ Allbery <eagle@eyrie.org>.
+.SH "COPYRIGHT AND LICENSE"
+.IX Header "COPYRIGHT AND LICENSE"
+Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2014
+The Board of Trustees of the Leland Stanford Junior University
+.PP
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIkinit\fR\|(1), \fIremctld\fR\|(8)
 .PP
 The current version of this program is available from its web page at
 <http://www.eyrie.org/~eagle/software/remctl/>.
-.SH "AUTHOR"
-.IX Header "AUTHOR"
-Anton Ushakov <antonu@stanford.edu> is the original author.  Updates and
-current maintenance are done by Russ Allbery <eagle@eyrie.org>.
-.SH "COPYRIGHT AND LICENSE"
-.IX Header "COPYRIGHT AND LICENSE"
-Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 The
-Board of Trustees of the Leland Stanford Junior University
-.PP
-Copying and distribution of this file, with or without modification, are
-permitted in any medium without royalty provided the copyright notice and
-this notice are preserved.  This file is offered as-is, without any
-warranty.

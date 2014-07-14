@@ -392,7 +392,7 @@ static struct process *
 process_start_internal(const char *const argv[], const char *pidfile,
                        bool fakeroot)
 {
-    size_t i, size;
+    size_t i;
     int log_fd;
     const char *name;
     struct timeval tv;
@@ -422,8 +422,7 @@ process_start_internal(const char *const argv[], const char *pidfile,
     if (fakeroot) {
         for (i = 0; argv[i] != NULL; i++)
             ;
-        size = 2 + i + 1;
-        fakeroot_argv = bmalloc(size * sizeof(const char *));
+        fakeroot_argv = bcalloc(2 + i + 1, sizeof(const char *));
         fakeroot_argv[0] = path_fakeroot;
         fakeroot_argv[1] = "--";
         for (i = 0; argv[i] != NULL; i++)

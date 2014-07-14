@@ -81,7 +81,7 @@ main(void)
 
     /* Logmask of a single argument. */
     rule.stdin_arg = 0;
-    rule.logmask = bmalloc(2 * sizeof(unsigned int));
+    rule.logmask = bcalloc(2, sizeof(unsigned int));
     rule.logmask[0] = 2;
     rule.logmask[1] = 0;
     errors_capture();
@@ -98,7 +98,7 @@ main(void)
 
     /* Logmask of the subcommand and multiple masks. */
     free(rule.logmask);
-    rule.logmask = bmalloc(4 * sizeof(unsigned int));
+    rule.logmask = bcalloc(4, sizeof(unsigned int));
     rule.logmask[0] = 4;
     rule.logmask[1] = 1;
     rule.logmask[2] = 3;

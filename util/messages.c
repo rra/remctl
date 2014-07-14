@@ -131,7 +131,7 @@ message_handlers(message_handler_func **list, unsigned int count, va_list args)
 
     if (*list != stdout_handlers && *list != stderr_handlers)
         free(*list);
-    *list = xmalloc(sizeof(message_handler_func) * (count + 1));
+    *list = xcalloc(count + 1, sizeof(message_handler_func));
     for (i = 0; i < count; i++)
         (*list)[i] = (message_handler_func) va_arg(args, message_handler_func);
     (*list)[count] = NULL;

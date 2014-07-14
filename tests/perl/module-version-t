@@ -19,10 +19,13 @@ use File::Find qw(find);
 use Getopt::Long qw(GetOptions);
 use Test::More;
 
-# If SOURCE is set in the environment, use it to find Test::RRA::Automake.
+# SOURCE may not be set if we're running this script manually to update
+# version numbers.  Only load the Test::RRA modules if it is set, enabling us
+# to find those modules.
 BEGIN {
     if ($ENV{SOURCE}) {
         unshift(@INC, "$ENV{SOURCE}/tap/perl");
+        require Test::RRA;
         require Test::RRA::Automake;
     }
 }
@@ -204,10 +207,12 @@ sub update_versions {
     return;
 }
 
-# If SOURCE is set, use automake_setup to change directories to the top of the
-# source tree.  We don't do this unconditionally since we want to support
-# being run with the --update option outside of the test suite.
+# If SOURCE is set, skip the test unless automated testing is enabled and use
+# automake_setup to change directories to the top of the source tree.  We
+# don't do this unconditionally since we want to support being run with the
+# --update option outside of the test suite.
 if ($ENV{SOURCE}) {
+    Test::RRA::skip_unless_automated('Module version tests');
     Test::RRA::Automake::automake_setup();
 }
 

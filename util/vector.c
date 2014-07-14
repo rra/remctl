@@ -87,7 +87,7 @@ vector_resize(struct vector *vector, size_t size)
     }
     if (size == 0)
         size = 1;
-    vector->strings = xrealloc(vector->strings, size * sizeof(char *));
+    vector->strings = xreallocarray(vector->strings, size, sizeof(char *));
     vector->allocated = size;
 }
 
@@ -99,7 +99,8 @@ cvector_resize(struct cvector *vector, size_t size)
         vector->count = size;
     if (size == 0)
         size = 1;
-    vector->strings = xrealloc(vector->strings, size * sizeof(const char *));
+    vector->strings
+        = xreallocarray(vector->strings, size, sizeof(const char *));
     vector->allocated = size;
 }
 

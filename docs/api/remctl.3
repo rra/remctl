@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "REMCTL 3"
-.TH REMCTL 3 "2014-01-28" "3.8" "remctl Library Reference"
+.TH REMCTL 3 "2014-07-02" "3.9" "remctl Library Reference"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -171,12 +171,14 @@ GSS-API library may canonicalize \fIhost\fR via \s-1DNS\s0 before determining th
 service principal, depending on your library configuration.  Specifying a
 principal disables this behavior.
 .PP
-The remctl protocol uses Kerberos v5 via GSS-API for authentication.  The
+The remctl protocol uses Kerberos via GSS-API for authentication.  The
 underlying GSS-API library will use the default ticket cache for
 authentication, so to successfully use \fIremctl()\fR, the caller should already
 have Kerberos tickets for an appropriate realm stored in its default
 ticket cache.  The environment variable \s-1KRB5CCNAME\s0 can be used to control
-which ticket cache is used.
+which ticket cache is used.  If the client needs to control which ticket
+cache is used without changing the environment, use the full client \s-1API\s0
+along with \fIremctl_set_ccache\fR\|(3).
 .PP
 \&\fIremctl()\fR returns a newly allocated remctl_result struct, which has the
 following members:
@@ -204,11 +206,11 @@ given command may have its own exit status conventions.
 \&\fIremctl_result_free()\fR frees the remctl_result struct when the calling
 program is through with it.
 .PP
-If you want more control over the steps of the protocol, if you want to
-issue multiple commands on the same connection, or if you need to send
-data as part of the command that contains NULs, use the full \s-1API\s0 described
-in \fIremctl_new\fR\|(3), \fIremctl_open\fR\|(3), \fIremctl_commandv\fR\|(3), and
-\&\fIremctl_output\fR\|(3).
+If you want more control over the steps of the protocol, issue multiple
+commands on the same connection, control the ticket cache or source \s-1IP,\s0
+set a timeout on replies, or send data as part of the command that
+contains NULs, use the full \s-1API\s0 described in \fIremctl_new\fR\|(3),
+\&\fIremctl_open\fR\|(3), \fIremctl_commandv\fR\|(3), and \fIremctl_output\fR\|(3).
 .SH "RETURN VALUE"
 .IX Header "RETURN VALUE"
 \&\fIremctl()\fR returns \s-1NULL\s0 on failure to allocate a new remctl_result struct or
@@ -217,6 +219,15 @@ returns a newly allocated remctl_result struct with either an error
 message in the error field or the results of the command filled out as
 described above.  If \fIremctl()\fR returns \s-1NULL,\s0 errno will be set to an
 appropriate error code (generally \s-1ENOMEM\s0).
+.SH "COMPATIBILITY"
+.IX Header "COMPATIBILITY"
+This interface has been provided by the remctl client library since its
+initial release in version 2.0.
+.PP
+The default port was changed to the IANA-registered port of 4373 in
+version 2.11.
+.PP
+Support for IPv6 was added in version 2.4.
 .SH "CAVEATS"
 .IX Header "CAVEATS"
 If the \fIprincipal\fR argument to \fIremctl()\fR is \s-1NULL,\s0 most GSS-API libraries
@@ -246,6 +257,18 @@ remctl port and should be phased out.
 .IX Header "NOTES"
 The remctl port number, 4373, was derived by tracing the diagonals of a
 \&\s-1QWERTY\s0 keyboard up from the letters \f(CW\*(C`remc\*(C'\fR to the number row.
+.SH "AUTHOR"
+.IX Header "AUTHOR"
+Russ Allbery <eagle@eyrie.org>
+.SH "COPYRIGHT AND LICENSE"
+.IX Header "COPYRIGHT AND LICENSE"
+Copyright 2007, 2008, 2009, 2014 The Board of Trustees of the Leland
+Stanford Junior University
+.PP
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIremctl_new\fR\|(3), \fIremctl_open\fR\|(3), \fIremctl_command\fR\|(3), \fIremctl_commandv\fR\|(3),
@@ -254,15 +277,3 @@ The remctl port number, 4373, was derived by tracing the diagonals of a
 The current version of the remctl library and complete details of the
 remctl protocol are available from its web page at
 <http://www.eyrie.org/~eagle/software/remctl/>.
-.SH "AUTHOR"
-.IX Header "AUTHOR"
-Russ Allbery <eagle@eyrie.org>
-.SH "COPYRIGHT AND LICENSE"
-.IX Header "COPYRIGHT AND LICENSE"
-Copyright 2007, 2008, 2009 The Board of Trustees of the Leland Stanford
-Junior University
-.PP
-Copying and distribution of this file, with or without modification, are
-permitted in any medium without royalty provided the copyright notice and
-this notice are preserved.  This file is offered as-is, without any
-warranty.

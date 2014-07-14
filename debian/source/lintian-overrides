@@ -1,2 +1,6 @@
-# Lintian doesn't know about the new preferred upstream PGP key naming yet.
-remctl source: debian-watch-file-pubkey-file-is-missing  
+# -*- conf -*-
+
+# Upstream has dual-licensed these files under the IETF license and an
+# all-permissive license.  See the Additional License section.
+remctl source: license-problem-non-free-RFC-BCP78 docs/protocol.html
+remctl source: license-problem-non-free-RFC-BCP78 docs/protocol.txt

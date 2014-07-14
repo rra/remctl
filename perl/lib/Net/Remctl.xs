@@ -85,7 +85,7 @@ remctl(host, port, principal, ...)
         croak("Too few arguments to Net::Remctl::remctl");
     if (principal != NULL && *principal == '\0')
         principal = NULL;
-    command = malloc(sizeof(char *) * (count + 1));
+    command = calloc(count + 1, sizeof(char *));
     if (command == NULL)
         croak("Error allocating memory in Net::Remctl::remctl: %s",
               strerror(errno));
@@ -193,7 +193,7 @@ remctl_command(self, ...)
     CROAK_NULL_SELF(self, "Net::Remctl", "command");
     if (count == 0)
         croak("Too few arguments to Net::Remctl::command");
-    args = malloc(sizeof(struct iovec) * count);
+    args = calloc(count, sizeof(struct iovec));
     if (args == NULL)
         croak("Error allocating memory in Net::Remctl::command: %s",
               strerror(errno));

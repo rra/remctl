@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "REMCTL_COMMAND 3"
-.TH REMCTL_COMMAND 3 "2014-01-28" "3.8" "remctl Library Reference"
+.TH REMCTL_COMMAND 3 "2014-07-02" "3.9" "remctl Library Reference"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -166,6 +166,9 @@ is most convenient when passing simple text commands.
 the command, since the iovec struct takes a pointer and a length for each
 chunk of data.  See \fIwritev\fR\|(2) for the layout of the iovec struct.
 .PP
+To control the network timeout for sending the command, see the
+\&\fIremctl_set_timeout\fR\|(3) function.
+.PP
 After calling one of these functions, call \fIremctl_output()\fR to get the
 results of the command.
 .SH "RETURN VALUE"
@@ -173,6 +176,22 @@ results of the command.
 \&\fIremctl_command()\fR and \fIremctl_commandv()\fR return true on success and false on
 failure.  On failure, the caller should call \fIremctl_error()\fR to retrieve
 the error message.
+.SH "COMPATIBILITY"
+.IX Header "COMPATIBILITY"
+These interfaces have been provided by the remctl client library since its
+initial release in version 2.0.
+.SH "AUTHOR"
+.IX Header "AUTHOR"
+Russ Allbery <eagle@eyrie.org>
+.SH "COPYRIGHT AND LICENSE"
+.IX Header "COPYRIGHT AND LICENSE"
+Copyright 2007, 2009, 2014 The Board of Trustees of the Leland Stanford
+Junior University
+.PP
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIremctl_new\fR\|(3), \fIremctl_open\fR\|(3), \fIremctl_output\fR\|(3), \fIremctl_error\fR\|(3)
@@ -180,15 +199,3 @@ the error message.
 The current version of the remctl library and complete details of the
 remctl protocol are available from its web page at
 <http://www.eyrie.org/~eagle/software/remctl/>.
-.SH "AUTHOR"
-.IX Header "AUTHOR"
-Russ Allbery <eagle@eyrie.org>
-.SH "COPYRIGHT AND LICENSE"
-.IX Header "COPYRIGHT AND LICENSE"
-Copyright 2007, 2009 The Board of Trustees of the Leland Stanford Junior
-University
-.PP
-Copying and distribution of this file, with or without modification, are
-permitted in any medium without royalty provided the copyright notice and
-this notice are preserved.  This file is offered as-is, without any
-warranty.

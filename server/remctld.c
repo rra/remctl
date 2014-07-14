@@ -101,6 +101,9 @@ usage(int status)
 #ifdef HAVE_GPUT
     fprintf(output, ", gput");
 #endif
+#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
+    fprintf(output, ", localgroup");
+#endif
 #ifdef HAVE_PCRE
     fprintf(output, ", pcre");
 #endif

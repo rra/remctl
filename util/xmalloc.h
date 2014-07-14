@@ -4,7 +4,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2010, 2012, 2013
+ * Copyright 2010, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -47,6 +47,8 @@
 #define xstrdup(p)              x_strdup((p), __FILE__, __LINE__)
 #define xstrndup(p, size)       x_strndup((p), (size), __FILE__, __LINE__)
 #define xvasprintf(p, f, a)     x_vasprintf((p), (f), (a), __FILE__, __LINE__)
+#define xreallocarray(p, n, size) \
+    x_reallocarray((p), (n), (size), __FILE__, __LINE__)
 
 /*
  * asprintf is a special case since it takes variable arguments.  If we have
@@ -81,6 +83,8 @@ void *x_malloc(size_t, const char *, int)
     __attribute__((__alloc_size__(1), __malloc__, __nonnull__));
 void *x_realloc(void *, size_t, const char *, int)
     __attribute__((__alloc_size__(2), __malloc__, __nonnull__(3)));
+void *x_reallocarray(void *, size_t, size_t, const char *, int)
+    __attribute__((__alloc_size__(2, 3), __malloc__, __nonnull__(4)));
 char *x_strdup(const char *, const char *, int)
     __attribute__((__malloc__, __nonnull__));
 char *x_strndup(const char *, size_t, const char *, int)

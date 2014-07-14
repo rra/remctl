@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "REMCTL_CLOSE 3"
-.TH REMCTL_CLOSE 3 "2014-01-28" "3.8" "remctl Library Reference"
+.TH REMCTL_CLOSE 3 "2014-07-02" "3.9" "remctl Library Reference"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -156,6 +156,22 @@ longer valid.
 .PP
 \&\fIremctl_close()\fR is always successful, even if it is unable to send a clean
 protocol quit command to the remote server.
+.SH "COMPATIBILITY"
+.IX Header "COMPATIBILITY"
+This interface has been provided by the remctl client library since its
+initial release in version 2.0.
+.SH "AUTHOR"
+.IX Header "AUTHOR"
+Russ Allbery <eagle@eyrie.org>
+.SH "COPYRIGHT AND LICENSE"
+.IX Header "COPYRIGHT AND LICENSE"
+Copyright 2007, 2009, 2014 The Board of Trustees of the Leland Stanford
+Junior University
+.PP
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIremctl_new\fR\|(3), \fIremctl_open\fR\|(3)
@@ -163,15 +179,3 @@ protocol quit command to the remote server.
 The current version of the remctl library and complete details of the
 remctl protocol are available from its web page at
 <http://www.eyrie.org/~eagle/software/remctl/>.
-.SH "AUTHOR"
-.IX Header "AUTHOR"
-Russ Allbery <eagle@eyrie.org>
-.SH "COPYRIGHT AND LICENSE"
-.IX Header "COPYRIGHT AND LICENSE"
-Copyright 2007, 2009 The Board of Trustees of the Leland Stanford Junior
-University
-.PP
-Copying and distribution of this file, with or without modification, are
-permitted in any medium without royalty provided the copyright notice and
-this notice are preserved.  This file is offered as-is, without any
-warranty.

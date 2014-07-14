@@ -43,6 +43,8 @@ server_v1_send_output(struct client *client, struct evbuffer *output,
 
     /* Allocate room for the total message. */
     outlen = evbuffer_get_length(output);
+    if (outlen >= SIZE_MAX - 4 - 4)
+        die("internal error: memory allocation too large");
     token.length = 4 + 4 + outlen;
     token.value = xmalloc(token.length);
 

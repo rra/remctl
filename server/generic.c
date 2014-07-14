@@ -225,8 +225,8 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
         server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
         return NULL;
     }
-    if (argc > MAXCMDARGS) {
-        warn("too large argc %lu in request message", (unsigned long) argc);
+    if (argc > COMMAND_MAX_ARGS) {
+        warn("too large argc (%lu) in request message", (unsigned long) argc);
         server_send_error(client, ERROR_TOOMANY_ARGS, "Too many arguments");
         return NULL;
     }

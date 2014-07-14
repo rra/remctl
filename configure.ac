@@ -8,7 +8,7 @@ dnl
 dnl See LICENSE for licensing terms.
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [3.8], [eagle@eyrie.org])
+AC_INIT([remctl], [3.9], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
@@ -48,6 +48,7 @@ AS_IF([test x"$rra_use_KRB5" != xfalse],
      AC_CHECK_DECLS([krb5_kt_free_entry], [], [], [RRA_INCLUDES_KRB5])
      AC_LIBOBJ([krb5-extra])
      RRA_LIB_KRB5_RESTORE])
+AM_CONDITIONAL([HAVE_KRB5], [test x"$rra_use_KRB5" = xtrue])
 
 dnl GSS-API portability checks.
 RRA_LIB_GSSAPI
@@ -133,9 +134,9 @@ RRA_FUNC_SNPRINTF
 AC_CHECK_FUNCS([getaddrinfo],
     [RRA_FUNC_GETADDRINFO_ADDRCONFIG],
     [AC_LIBOBJ([getaddrinfo])])
-AC_CHECK_FUNCS([setrlimit setsid])
+AC_CHECK_FUNCS([getgrnam_r setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
-                  mkstemp setenv strlcat strlcpy strndup])
+                  mkstemp reallocarray setenv strlcat strlcpy strndup])
 AC_TYPE_SIGNAL
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
