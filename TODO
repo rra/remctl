@@ -18,7 +18,9 @@ Protocol:
    based on the protocol version.
 
  * REMCTL-40: Support locating remctl services via SRV records, probably
-   _<service>._remctl._tcp.<domain>.
+   _remctl._tcp.<hostname>.  This will need linking with a resolver
+   library that allows SRV queries.  libresolv and res_search is probably
+   the best approach, since that should be portable to any system.
 
  * REMCTL-43: Modify the server to not allow MESSAGE_COMMAND split in the
    middle of a length element and require that commands be split in the
