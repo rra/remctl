@@ -104,6 +104,9 @@ Client:
  * Allow sending the empty command in the command-line client once the
    server supports it.
 
+ * Allow multiple comma-separated hosts to be specified on the command
+   line, resulting in the remctl command being run on each host in turn.
+
 Client library:
 
  * The client should ideally not specify an OID for the authentication
@@ -123,6 +126,10 @@ Perl library:
  * Add support for per-command help (possibly extracted from the POD
    documentation with some additional markup) to implement the help server
    configuration.
+
+Language bindings:
+
+ * Incorporate the Go bindings for the client library.
 
 Documentation:
 
