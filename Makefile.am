@@ -437,7 +437,7 @@ tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 tests_server_accept_t_LDADD = tests/tap/libtap.a util/libutil.la	 \
 	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) \
 	$(PCRE_LIBS) $(LIBEVENT_LIBS)
-tests_server_acl_t_SOURCES = tests/server/acl-t.c $(SERVER_FILES)
+tests_server_acl_t_SOURCES = tests/server/acl-t.c tests/server/acl-helpers.c $(SERVER_FILES)
 tests_server_acl_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
 	$(LIBEVENT_LDFLAGS)
 tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la \
@@ -445,6 +445,7 @@ tests_server_acl_t_LDADD = tests/tap/libtap.a util/libutil.la \
 tests_server_acl_localgroup_t_SOURCES = tests/server/acl/localgroup-t.c	  \
 	$(SERVER_FILES) tests/server/acl/fake-getgrnam.c		  \
 	tests/server/acl/fake-getgrnam.h tests/server/acl/fake-getpwnam.c \
+	tests/server/acl-helpers.c \
 	tests/server/acl/fake-getpwnam.h
 tests_server_acl_localgroup_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
 	$(LIBEVENT_LDFLAGS)

@@ -79,7 +79,7 @@ struct config_option {
 /* Holds information about ACL schemes */
 struct acl_scheme {
     const char *name;
-    enum config_status (*check)(const char *user, const char *data,
+    enum config_status (*check)(const struct request *request, const char *data,
                                 const char *file, int lineno);
 };
 
@@ -91,8 +91,8 @@ struct acl_scheme {
 #define ACL_SCHEME_PRINC 1
 
 /* Forward declarations. */
-static enum config_status acl_check(const char *user, const char *entry,
-                                    int def_index, const char *file,
+static enum config_status acl_check(const struct request *request,
+                                    const char *entry, int def_index, const char *file,
                                     int lineno);
 
 /*
@@ -585,7 +585,7 @@ fail:
 static enum config_status
 acl_check_file_internal(void *data, const char *aclfile)
 {
-    const char *user = data;
+    struct request *request = (struct request *) data;
     FILE *file = NULL;
     char buffer[BUFSIZ];
     char *p;
@@ -624,11 +624,11 @@ acl_check_file_internal(void *data, const char *aclfile)
 
         /* Parse the line. */
         if (strchr(p, ' ') == NULL)
-            s = acl_check(user, p, ACL_SCHEME_PRINC, aclfile, lineno);
+            s = acl_check(request, p, ACL_SCHEME_PRINC, aclfile, lineno);
         else {
             line = vector_split_space(buffer, NULL);
             if (line->count == 2 && strcmp(line->strings[0], "include") == 0) {
-                s = acl_check(data, line->strings[1], ACL_SCHEME_FILE,
+                s = acl_check(request, line->strings[1], ACL_SCHEME_FILE,
                               aclfile, lineno);
                 vector_free(line);
                 line = NULL;
@@ -672,11 +672,11 @@ fail:
  *   remaining result, which should be CONFIG_SUCCESS or CONFIG_NOMATCH.
  */
 static enum config_status
-acl_check_file(const char *user, const char *aclfile, const char *file,
-               int lineno)
+acl_check_file(const struct request *request, const char *aclfile,
+               const char *file, int lineno)
 {
     return handle_include(aclfile, file, lineno, acl_check_file_internal,
-                          (void *) user);
+                          (void *) request);
 }
 
 
@@ -689,9 +689,10 @@ acl_check_file(const char *user, const char *aclfile, const char *file,
  * aren't.
  */
 static enum config_status
-acl_check_princ(const char *user, const char *data, const char *file UNUSED,
+acl_check_princ(const struct request *request, const char *data, const char *file UNUSED,
                 int lineno UNUSED)
 {
+    char *user = (char *) request->user;
     return (strcmp(user, data) == 0) ? CONFIG_SUCCESS : CONFIG_NOMATCH;
 }
 
@@ -720,12 +721,12 @@ acl_check_princ(const char *user, const char *data, const char *file UNUSED,
  * Any other result indicates a processing error and is returned as-is.
  */
 static enum config_status
-acl_check_deny(const char *user, const char *data, const char *file,
+acl_check_deny(const struct request *request, const char *data, const char *file,
                int lineno)
 {
     enum config_status s;
 
-    s = acl_check(user, data, ACL_SCHEME_PRINC, file, lineno);
+    s = acl_check(request, data, ACL_SCHEME_PRINC, file, lineno);
     switch (s) {
     case CONFIG_SUCCESS: return CONFIG_DENY;
     case CONFIG_NOMATCH: return CONFIG_NOMATCH;
@@ -768,9 +769,10 @@ server_config_set_gput_file(char *file UNUSED)
  */
 #ifdef HAVE_GPUT
 static enum config_status
-acl_check_gput(const char *user, const char *data, const char *file,
+acl_check_gput(const struct request *request, const char *data, const char *file,
                int lineno)
 {
+    char *user = request->user;
     GPUT *G;
     char *role, *xform, *xform_start, *xform_end;
     enum config_status s;
@@ -828,9 +830,10 @@ acl_check_gput(const char *user, const char *data, const char *file,
  */
 #ifdef HAVE_PCRE
 static enum config_status
-acl_check_pcre(const char *user, const char *data, const char *file,
+acl_check_pcre(const struct request *request, const char *data, const char *file,
                int lineno)
 {
+    char *user = (char *) request->user;
     pcre *regex;
     const char *error;
     int offset, status;
@@ -865,9 +868,10 @@ acl_check_pcre(const char *user, const char *data, const char *file,
  */
 #ifdef HAVE_REGCOMP
 static enum config_status
-acl_check_regex(const char *user, const char *data, const char *file,
+acl_check_regex(const struct request *request, const char *data, const char *file,
                 int lineno)
 {
+    char *user = (char *) request->user;
     regex_t regex;
     char error[BUFSIZ];
     int status;
@@ -1031,9 +1035,10 @@ fail:
  * file name and line number.
  */
 static enum config_status
-acl_check_localgroup(const char *user, const char *group,
+acl_check_localgroup(const struct request *request, const char *group,
                      const char *file, int lineno)
 {
+    char *user = (char *) request->user;
     struct passwd *pw;
     struct group *gr = NULL;
     char *grbuffer = NULL;
@@ -1094,6 +1099,25 @@ done:
 
 #endif /* HAVE_KRB5 && HAVE_GETGRNAM_R */
 
+/*
+ * The ACL check operation for UNIX local group membership.  Takes the user to
+ * check, the group of which they have to be a member, and the referencing
+ * file name and line number.
+ */
+#if 0
+static enum config_status
+acl_check_exec(const char *user, const char *program,
+               const char *file, int lineno)
+{
+
+    enum config_status result;
+
+    result = CONFIG_NOMATCH;
+
+done:
+    return result;
+}
+#endif
 
 /*
  * The table relating ACL scheme names to functions.  The first two ACL
@@ -1104,6 +1128,7 @@ static const struct acl_scheme schemes[] = {
     { "file",       acl_check_file       },
     { "princ",      acl_check_princ      },
     { "deny",       acl_check_deny       },
+//    { "exec",       acl_check_exec       },
 #ifdef HAVE_GPUT
     { "gput",       acl_check_gput       },
 #else
@@ -1129,7 +1154,7 @@ static const struct acl_scheme schemes[] = {
 
 
 /*
- * The access control check switch.  Takes the user to check, the ACL entry,
+ * The access control check switch.  Takes the request to check, the ACL entry,
  * default scheme index, and referencing file name and line number.
  *
  * Returns CONFIG_SUCCESS if the user is authorized, CONFIG_NOMATCH if they
@@ -1137,7 +1162,7 @@ static const struct acl_scheme schemes[] = {
  * file or a syntax error), and CONFIG_DENY for an explicit deny.
  */
 static enum config_status
-acl_check(const char *user, const char *entry, int def_index,
+acl_check(const struct request *request, const char *entry, int def_index,
           const char *file, int lineno)
 {
     const struct acl_scheme *scheme;
@@ -1167,7 +1192,7 @@ acl_check(const char *user, const char *entry, int def_index,
              scheme->name);
         return CONFIG_ERROR;
     }
-    return scheme->check(user, data, file, lineno);
+    return scheme->check(request, data, file, lineno);
 }
 
 
@@ -1219,16 +1244,18 @@ server_config_free(struct config *config)
  * otherwise.
  */
 bool
-server_config_acl_permit(const struct rule *rule, const char *user)
+server_config_acl_permit(const struct rule *rule, const struct request *request)
 {
     char **acls = rule->acls;
     size_t i;
     enum config_status status;
 
+    fprintf(stderr, "request->user = '%s'\n", request->user);
+
     if (strcmp(acls[0], "ANYUSER") == 0)
         return true;
     for (i = 0; acls[i] != NULL; i++) {
-        status = acl_check(user, acls[i], ACL_SCHEME_FILE, rule->file,
+        status = acl_check(request, acls[i], ACL_SCHEME_FILE, rule->file,
                            rule->lineno);
         if (status == 0)
             return true;

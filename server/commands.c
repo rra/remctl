@@ -98,6 +98,7 @@ server_send_summary(struct client *client, struct config *config)
     int status_all = 0;
     struct process process;
     struct evbuffer *output = NULL;
+    struct request *request = NULL;
 
     /* Create a buffer to hold all the output for protocol version one. */
     if (client->protocol == 1) {
@@ -105,6 +106,13 @@ server_send_summary(struct client *client, struct config *config)
         if (output == NULL)
             die("internal error: cannot create output buffer");
     }
+
+    /* Fill up request */
+    request = (struct request *) xmalloc(sizeof(struct request));
+    request->user = client->user;
+    request->command = "help";
+    request->subcommand = NULL;
+    request->argv = NULL;
 
     /*
      * Check each line in the config to find any that are "<command> ALL"
@@ -117,7 +125,7 @@ server_send_summary(struct client *client, struct config *config)
         rule = config->rules[i];
         if (strcmp(rule->subcommand, "ALL") != 0)
             continue;
-        if (!server_config_acl_permit(rule, client->user))
+        if (!server_config_acl_permit(rule, (const struct request *) request))
             continue;
         if (rule->summary == NULL)
             continue;
@@ -150,6 +158,9 @@ server_send_summary(struct client *client, struct config *config)
         }
         free(req_argv);
     }
+
+    if (request != NULL)
+        free(request);
 
     /*
      * Sets the last process status to 0 if all succeeded, or the last failed
@@ -299,6 +310,7 @@ server_run_command(struct client *client, struct config *config,
     char *subcommand = NULL;
     char *helpsubcommand = NULL;
     struct rule *rule = NULL;
+    struct request *request = NULL;
     char **req_argv = NULL;
     size_t i;
     bool ok = false;
@@ -400,7 +412,15 @@ server_run_command(struct client *client, struct config *config,
         server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
         goto done;
     }
-    if (!server_config_acl_permit(rule, user)) {
+
+    /* Fill up request */
+    request = (struct request *) xmalloc(sizeof(struct request));
+    request->user = user;
+    request->command = xstrdup(command);
+    request->subcommand = (subcommand == NULL) ? NULL : xstrdup(subcommand);
+    request->argv = NULL;
+
+    if (!server_config_acl_permit(rule, request)) {
         notice("access denied: user %s, command %s%s%s", user, command,
                (subcommand == NULL) ? "" : " ",
                (subcommand == NULL) ? "" : subcommand);
@@ -448,6 +468,8 @@ server_run_command(struct client *client, struct config *config,
     }
 
  done:
+    if (request != NULL)
+        free(request);
     free(command);
     free(subcommand);
     free(helpsubcommand);

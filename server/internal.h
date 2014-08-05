@@ -74,6 +74,14 @@ struct rule {
     char **acls;                /* Full file names of ACL files. */
 };
 
+/* Holds the detail of command, subcommand and args requested by remote user */
+struct request {
+    char *user;
+    char *command;
+    char *subcommand;
+    char **argv;
+};
+
 /* Holds the complete parsed configuration for remctld. */
 struct config {
     struct rule **rules;
@@ -129,7 +137,7 @@ void server_log_command(struct iovec **, struct rule *, const char *user);
 /* Configuration file functions. */
 struct config *server_config_load(const char *file);
 void server_config_free(struct config *);
-bool server_config_acl_permit(const struct rule *, const char *user);
+bool server_config_acl_permit(const struct rule *, const struct request *request);
 void server_config_set_gput_file(char *file);
 
 /* Running commands. */
