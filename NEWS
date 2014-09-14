@@ -5,7 +5,11 @@ remctl 3.10 (unreleased)
     Simplify the Python RemctlError exception class.  The code in the
     exception class just duplicated the behavior of the parent Exception
     class and was unnecessary, and it interfered with pickling the
-    exception.  Thanks to Andrew Deason for the report.
+    exception.  This means that RemctlError exceptions, and any derived
+    from RemctlError, will no longer have a value attribute.  To get this
+    information, use the string value of the exception object, or call the
+    error() method on the remctl object.  Thanks to Andrew Deason for the
+    report.
 
     Previous versions always passed the flags to disable certain warnings
     to the language binding builds, even if warnings weren't otherwise
