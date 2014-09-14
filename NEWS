@@ -2,6 +2,11 @@
 
 remctl 3.10 (unreleased)
 
+    Simplify the Python RemctlError exception class.  The code in the
+    exception class just duplicated the behavior of the parent Exception
+    class and was unnecessary, and it interfered with pickling the
+    exception.  Thanks to Andrew Deason for the report.
+
     Previous versions always passed the flags to disable certain warnings
     to the language binding builds, even if warnings weren't otherwise
     enabled.  As of remctl 3.9, that included a warning flag not supported
