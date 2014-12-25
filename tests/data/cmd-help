@@ -5,9 +5,13 @@ help)
     subhelp)    echo "subhelp text" ;;
     *)          echo "help text" ;;
     esac ;;
-summary)    echo "summary text" ;;
+summary) 
+    case "$2" in
+    subcommand) echo "subcommand summary" ;;
+    *)          echo "summary text" ;;
+    esac ;;
 *)
-    echo "requested $1 for help"
+    echo "requested '$1' for help"
     exit 1
     ;;
 esac

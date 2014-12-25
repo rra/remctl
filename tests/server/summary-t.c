@@ -40,12 +40,13 @@ main(void)
         bail("remctl returned NULL");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
-    is_int(13, result->stdout_len, "...and correct stdout_len");
+    is_int(32, result->stdout_len, "...and correct stdout_len");
     if (result->stdout_buf == NULL)
         ok(0, "...and correct data");
-    else
-        ok(memcmp("summary text\n", result->stdout_buf, 13) == 0,
+    else {
+        ok(memcmp("summary text\nsubcommand summary\n", result->stdout_buf, 32) == 0,
            "...and correct data");
+    }
     is_string(NULL, result->error, "...and no error");
     remctl_result_free(result);
     process_stop(remctld);
