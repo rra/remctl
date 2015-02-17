@@ -75,6 +75,23 @@ const char *krb5_get_error_message(krb5_context, krb5_error_code);
 void krb5_free_error_message(krb5_context, const char *);
 #endif
 
+/*
+ * Both current MIT and current Heimdal prefer _opt_alloc and _opt_free, but
+ * older versions of both require allocating your own struct and calling
+ * _opt_init.
+ */
+#ifndef HAVE_KRB5_GET_INIT_CREDS_OPT_ALLOC
+krb5_error_code krb5_get_init_creds_opt_alloc(krb5_context,
+                                              krb5_get_init_creds_opt **);
+#endif
+#ifdef HAVE_KRB5_GET_INIT_CREDS_OPT_FREE
+# ifndef HAVE_KRB5_GET_INIT_CREDS_OPT_FREE_2_ARGS
+#  define krb5_get_init_creds_opt_free(c, o) krb5_get_init_creds_opt_free(o)
+# endif
+#else
+# define krb5_get_init_creds_opt_free(c, o) free(o)
+#endif
+
 /* Heimdal-specific. */
 #ifndef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_DEFAULT_FLAGS
 # define krb5_get_init_creds_opt_set_default_flags(c, p, r, o) /* empty */

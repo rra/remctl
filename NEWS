@@ -19,6 +19,10 @@ remctl 3.10 (unreleased)
     warnings), which is not the default and is only supported with recent
     versions of gcc.  Thanks to Ken Dreyer for the report.
 
+    Fix test suite portability to systems with older versions of Kerberos
+    that didn't have krb5_get_init_creds_opt_alloc, such as the included
+    Kerberos in Solaris 10.
+
 remctl 3.9 (2014-07-02)
 
     Add a new server ACL type, localgroup, which converts the principal to

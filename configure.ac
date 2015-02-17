@@ -43,8 +43,11 @@ RRA_LIB_KRB5_OPTIONAL
 AS_IF([test x"$rra_use_KRB5" != xfalse],
     [RRA_LIB_KRB5_SWITCH
      AC_CHECK_FUNCS([krb5_get_init_creds_opt_set_default_flags \
+         krb5_get_init_creds_opt_alloc \
          krb5_principal_get_realm \
          krb5_xfree])
+     AC_CHECK_FUNCS([krb5_get_init_creds_opt_free],
+        [RRA_FUNC_KRB5_GET_INIT_CREDS_OPT_FREE_ARGS])
      AC_CHECK_DECLS([krb5_kt_free_entry], [], [], [RRA_INCLUDES_KRB5])
      AC_LIBOBJ([krb5-extra])
      RRA_LIB_KRB5_RESTORE])
