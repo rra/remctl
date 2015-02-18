@@ -28,6 +28,7 @@
 #include <tests/tap/kerberos.h>
 #include <tests/tap/messages.h>
 #include <tests/tap/string.h>
+#include <tests/server/acl-helpers.h>
 
 /*
  * Lists of users used to populate the group membership field of various test
@@ -73,7 +74,7 @@ main(void)
     errors_capture();
     acls[0] = "localgroup:foobargroup";
     acls[1] = NULL;
-    ok(!server_config_acl_permit(&rule, "foobaruser@EXAMPLE.ORG"),
+    ok(!server_config_acl_permit(&rule, USER_ONLY_REQUEST("foobaruser@EXAMPLE.ORG")),
        "localgroup ACL check fails");
     is_string("TEST:0: ACL scheme 'localgroup' is not supported\n", errors,
               "...with not supported error");
@@ -124,32 +125,32 @@ main(void)
     set_passwd("someone", 0);
     acls[0] = "localgroup:empty";
     acls[1] = NULL;
-    ok(!server_config_acl_permit(&rule, "someone@EXAMPLE.ORG"), "Empty");
+    ok(!server_config_acl_permit(&rule, USER_ONLY_REQUEST("someone@EXAMPLE.ORG")), "Empty");
 
     /* Check behavior when user is expected to be in supplied group. */
     fake_queue_group(&goodguys, 0);
     set_passwd("remi", 0);
     acls[0] = "localgroup:goodguys";
     acls[1] = NULL;
-    ok(server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"), "User in group");
+    ok(server_config_acl_permit(&rule, USER_ONLY_REQUEST("remi@EXAMPLE.ORG")), "User in group");
 
     /* And when the user is not in the supplied group. */
     fake_queue_group(&goodguys, 0);
     set_passwd("someoneelse", 0);
-    ok(!server_config_acl_permit(&rule, "someoneelse@EXAMPLE.ORG"),
+    ok(!server_config_acl_permit(&rule, USER_ONLY_REQUEST("someoneelse@EXAMPLE.ORG")),
        "User not in group");
 
     /* Check that the user's primary group also counts. */
     fake_queue_group(&goodguys, 0);
     set_passwd("otheruser", 42);
-    ok(server_config_acl_permit(&rule, "otheruser@EXAMPLE.ORG"),
+    ok(server_config_acl_permit(&rule, USER_ONLY_REQUEST("otheruser@EXAMPLE.ORG")),
        "User has group as primary group");
 
     /* And when the user does not convert to a local user or is complex. */
     fake_queue_group(&goodguys, 0);
     set_passwd("remi", 0);
     errors_capture();
-    ok(!server_config_acl_permit(&rule, "remi/admin@EXAMPLE.ORG"),
+    ok(!server_config_acl_permit(&rule, USER_ONLY_REQUEST("remi/admin@EXAMPLE.ORG")),
        "User with instance with base user in group");
     is_string(NULL, errors, "...with no error");
 
@@ -158,7 +159,7 @@ main(void)
     memset(long_principal, 'A', sizeof(long_principal));
     long_principal[sizeof(long_principal) - 1] = '\0';
     errors_capture();
-    ok(!server_config_acl_permit(&rule, long_principal), "Long principal");
+    ok(!server_config_acl_permit(&rule, USER_ONLY_REQUEST(long_principal)), "Long principal");
 
     /* Determine the expected error message and check it. */
     if (krb5_init_context(&ctx) != 0)
@@ -173,14 +174,14 @@ main(void)
     /* Unsupported realm. */
     fake_queue_group(&goodguys, 0);
     set_passwd("eagle", 0);
-    ok(!server_config_acl_permit(&rule, "eagle@ANY.OTHER.REALM.FR"),
+    ok(!server_config_acl_permit(&rule, USER_ONLY_REQUEST("eagle@ANY.OTHER.REALM.FR")),
        "Non-local realm");
 
     /* Check behavior when syscall fails */
     fake_queue_group(&goodguys, EPERM);
     set_passwd("remi", 0);
     errors_capture();
-    ok(!server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"),
+    ok(!server_config_acl_permit(&rule, USER_ONLY_REQUEST("remi@EXAMPLE.ORG")),
        "Failing getgrnam_r");
     is_string("TEST:0: retrieving membership of localgroup goodguys failed\n",
               errors, "...with correct error message");
@@ -190,11 +191,11 @@ main(void)
     set_passwd("boba-fett", 0);
     acls[0] = "deny:localgroup:badguys";
     acls[1] = NULL;
-    ok(!server_config_acl_permit(&rule, "boba-fett@EXAMPLE.ORG"),
+    ok(!server_config_acl_permit(&rule, USER_ONLY_REQUEST("boba-fett@EXAMPLE.ORG")),
        "Denied user");
     fake_queue_group(&badguys, 0);
     set_passwd("remi", 0);
-    ok(!server_config_acl_permit(&rule, "remi@EXAMPLE.ORG"),
+    ok(!server_config_acl_permit(&rule, USER_ONLY_REQUEST("remi@EXAMPLE.ORG")),
        "User not in denied group but also not allowed");
 
     /* Check that both deny and "allow" pragma work together */
@@ -204,17 +205,17 @@ main(void)
     acls[0] = "localgroup:goodguys";
     acls[1] = "deny:localgroup:badguys";
     acls[2] = NULL;
-    ok(server_config_acl_permit(&rule, "eagle@EXAMPLE.ORG"),
+    ok(server_config_acl_permit(&rule, USER_ONLY_REQUEST("eagle@EXAMPLE.ORG")),
        "User in allowed group plus a denied group");
     fake_queue_group(&goodguys, 0);
     fake_queue_group(&badguys, 0);
     set_passwd("darth-maul", 0);
-    ok(!server_config_acl_permit(&rule, "darth-maul@EXAMPLE.ORG"),
+    ok(!server_config_acl_permit(&rule, USER_ONLY_REQUEST("darth-maul@EXAMPLE.ORG")),
        "User in a denied group plus an allowed group");
     fake_queue_group(&goodguys, 0);
     fake_queue_group(&badguys, 0);
     set_passwd("anyoneelse", 0);
-    ok(!server_config_acl_permit(&rule, "anyoneelse@EXAMPLE.ORG"),
+    ok(!server_config_acl_permit(&rule, USER_ONLY_REQUEST("anyoneelse@EXAMPLE.ORG")),
        "User in neither denied nor allowed group");
 
     /* Clean up. */
