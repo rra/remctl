@@ -979,7 +979,7 @@ fail:
 static enum config_status
 acl_getgrnam(const char *group, struct group **grp, char **buffer)
 {
-    size_t buflen;
+    size_t buflen, buf_incr;
     int status, oerrno;
     struct group *result;
     enum config_status retval;
@@ -988,22 +988,27 @@ acl_getgrnam(const char *group, struct group **grp, char **buffer)
     *grp = NULL;
     *buffer = NULL;
 
-    /* Determine the size of the buffer for getgrnam_r. */
+    /* Determine the initial size of the buffer for getgrnam_r. */
     buflen = sysconf(_SC_GETGR_R_SIZE_MAX);
     if (buflen <= 0)
         buflen = BUFSIZ;
+    buf_incr = buflen;
     *buffer = xmalloc(buflen);
 
-    /* Get the group information, repeating on EINTR. */
+    /* Get the group information, retrying on EINTR or ERANGE. */
     *grp = xmalloc(sizeof(struct group));
     do {
         status = getgrnam_r(group, *grp, *buffer, buflen, &result);
-        if (status != 0 && status != EINTR) {
+        /* On ERANGE, expand the buffer size and retry */
+        if (status == ERANGE) {
+            buflen += buf_incr;
+            *buffer = xrealloc(*buffer, buflen);
+        } else if (status != 0 && status != EINTR) {
             errno = status;
             retval = CONFIG_ERROR;
             goto fail;
         }
-    } while (status == EINTR);
+    } while (status == EINTR || status == ERANGE);
 
     /* If not found, free all the memory and return success with NULL. */
     if (result == NULL) {
