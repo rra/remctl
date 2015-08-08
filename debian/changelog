@@ -2,6 +2,7 @@ remctl (3.9-2) UNRELEASED; urgency=medium
 
   * Add explicit build dependency on libmodule-build-perl, since it will
     soon no longer be provided by the perl package.  (Closes: #791666)
+  * Update standards version to 3.9.6 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Sat, 08 Aug 2015 10:21:48 -0700
 
