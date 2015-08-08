@@ -6,6 +6,7 @@ remctl (3.9-2) UNRELEASED; urgency=medium
     soon no longer be provided by the perl package.  (Closes: #791666)
   * Add debian/gbp.conf reflecting the branch layout of the default
     packaging repository.
+  * Refresh upstream signing key.
   * Update standards version to 3.9.6 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Sat, 08 Aug 2015 10:21:48 -0700
