@@ -1,5 +1,7 @@
 remctl (3.9-2) UNRELEASED; urgency=medium
 
+  * Build against libsystemd instead of libsystemd-daemon.  Thanks,
+    Michael Biebl.  (Closes: #779764)
   * Add explicit build dependency on libmodule-build-perl, since it will
     soon no longer be provided by the perl package.  (Closes: #791666)
   * Update standards version to 3.9.6 (no changes required).
