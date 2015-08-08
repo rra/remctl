@@ -1,4 +1,4 @@
-remctl (3.9-2) UNRELEASED; urgency=medium
+remctl (3.9-2) unstable; urgency=medium
 
   * Build against libsystemd instead of libsystemd-daemon.  Thanks,
     Michael Biebl.  (Closes: #779764)
@@ -9,7 +9,7 @@ remctl (3.9-2) UNRELEASED; urgency=medium
   * Refresh upstream signing key.
   * Update standards version to 3.9.6 (no changes required).
 
- -- Russ Allbery <rra@debian.org>  Sat, 08 Aug 2015 10:21:48 -0700
+ -- Russ Allbery <rra@debian.org>  Sat, 08 Aug 2015 11:16:49 -0700
 
 remctl (3.9-1) unstable; urgency=medium
 
