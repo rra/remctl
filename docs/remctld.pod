@@ -506,6 +506,12 @@ the authenticated client.
 
 [2.1] The IP address of the remote host.  This may be IPv4 or IPv6.
 
+=item REMOTE_EXPIRES
+
+[3.10] The time (in seconds since UNIX epoch) when the authenticated
+remote session will expire.  This will normally be the expiration time of
+the Kerberos ticket used to authenticate to the server.
+
 =item REMOTE_HOST
 
 [2.1] The hostname of the remote host, if it was available.  If reverse

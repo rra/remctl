@@ -52,6 +52,7 @@ struct client {
     gss_ctx_id_t context;       /* GSS-API context. */
     char *user;                 /* Name of the client as a string. */
     OM_uint32 flags;            /* Connection flags. */
+    time_t expires;             /* Expiration time of GSS-API session. */
     bool keepalive;             /* Whether keep-alive was set. */
     bool fatal;                 /* Whether a fatal error has occurred. */
 };

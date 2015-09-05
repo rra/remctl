@@ -2,6 +2,12 @@
 
 remctl 3.10 (unreleased)
 
+    The remctld server now sets the REMOTE_EXPIRES environment variable to
+    the time (in seconds since UNIX epoch) when the authenticated session
+    used to run a command will expire.  This will generally be the
+    expiration time of the Kerberos ticket used to authenticate to the
+    server.
+
     Simplify the Python RemctlError exception class.  The code in the
     exception class just duplicated the behavior of the parent Exception
     class and was unnecessary, and it interfered with pickling the
