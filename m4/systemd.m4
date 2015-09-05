@@ -16,6 +16,7 @@ dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2015 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2013, 2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
@@ -33,15 +34,22 @@ AC_DEFUN([RRA_WITH_SYSTEMD_UNITDIR],
     [AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
         [Directory for systemd service files])],
     [],
-    [with_systemdsystemunitdir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)])
+    [with_systemdsystemunitdir=`$PKG_CONFIG --variable=systemdsystemunitdir systemd`])
  AS_IF([test x"$with_systemdsystemunitdir" != xno],
     [AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])])
  AM_CONDITIONAL([HAVE_SYSTEMD],
     [test -n "$with_systemdsystemunitdir" -a x"$with_systemdsystemunitdir" != xno])])
 
-dnl Check for libsystemd-daemon and define SYSTEMD_DAEMON_{CFLAGS,LIBS} if it
-dnl is available.
+dnl Check for libsystemd or libsystemd-daemon and define SYSTEMD_{CFLAGS,LIBS}
+dnl if it is available.  This is called RRA_LIB_SYSTEMD_DAEMON_OPTIONAL since
+dnl it was originally written when libsystemd-daemon was separate, and only
+dnl checks for that library.  It may eventually make sense to retire this in
+dnl favor of a simple RRA_LIB_SYSTEMD_OPTIONAL that isn't backward-compatible.
 AC_DEFUN([RRA_LIB_SYSTEMD_DAEMON_OPTIONAL],
-[PKG_CHECK_EXISTS([libsystemd-daemon],
-    [PKG_CHECK_MODULES([SYSTEMD_DAEMON], [libsystemd-daemon])
-     AC_DEFINE([HAVE_SD_NOTIFY], 1, [Define if sd_notify is available.])])])
+[PKG_CHECK_EXISTS([libsystemd],
+    [PKG_CHECK_MODULES([SYSTEMD], [libsystemd])
+     AC_DEFINE([HAVE_SD_NOTIFY], 1, [Define if sd_notify is available.])],
+    [PKG_CHECK_EXISTS([libsystemd-daemon],
+        [PKG_CHECK_MODULES([SYSTEMD], [libsystemd-daemon])
+         AC_DEFINE([HAVE_SD_NOTIFY], 1,
+            [Define if sd_notify is available.])])])])

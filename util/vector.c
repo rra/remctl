@@ -70,9 +70,9 @@ cvector_new(void)
 
 
 /*
- * Resize a vector (using realloc to resize the table).  Maintain a minimum
- * allocated size of 1 so that the strings data element is never NULL.  This
- * simplifies other code.
+ * Resize a vector (using reallocarray to resize the table).  Maintain a
+ * minimum allocated size of 1 so that the strings data element is never NULL.
+ * This simplifies other code.
  */
 void
 vector_resize(struct vector *vector, size_t size)
@@ -457,10 +457,10 @@ cvector_split_space(char *string, struct cvector *vector)
 /*
  * Given a vector and a separator string, allocate and build a new string
  * composed of all the strings in the vector separated from each other by the
- * seperator string.  Caller is responsible for freeing.
+ * separator string.  Caller is responsible for freeing.
  */
 char *
-vector_join(const struct vector *vector, const char *seperator)
+vector_join(const struct vector *vector, const char *separator)
 {
     char *string;
     size_t i, size, seplen;
@@ -470,24 +470,30 @@ vector_join(const struct vector *vector, const char *seperator)
     if (vector->count == 0)
         return xstrdup("");
 
-    /* Determine the total size of the resulting string. */
-    seplen = strlen(seperator);
-    for (size = 0, i = 0; i < vector->count; i++)
+    /*
+     * Determine the total size of the resulting string.  Be careful of
+     * integer overflow while doing so.
+     */
+    seplen = strlen(separator);
+    for (size = 0, i = 0; i < vector->count; i++) {
+        assert(SIZE_MAX - size >= strlen(vector->strings[i]) + seplen + 1);
         size += strlen(vector->strings[i]);
+    }
+    assert(SIZE_MAX - size >= (vector->count - 1) * seplen + 1);
     size += (vector->count - 1) * seplen + 1;
 
     /* Allocate the memory and build up the string using strlcat. */
     string = xmalloc(size);
     strlcpy(string, vector->strings[0], size);
     for (i = 1; i < vector->count; i++) {
-        strlcat(string, seperator, size);
+        strlcat(string, separator, size);
         strlcat(string, vector->strings[i], size);
     }
     return string;
 }
 
 char *
-cvector_join(const struct cvector *vector, const char *seperator)
+cvector_join(const struct cvector *vector, const char *separator)
 {
     char *string;
     size_t i, size, seplen;
@@ -497,17 +503,23 @@ cvector_join(const struct cvector *vector, const char *seperator)
     if (vector->count == 0)
         return xstrdup("");
 
-    /* Determine the total size of the resulting string. */
-    seplen = strlen(seperator);
-    for (size = 0, i = 0; i < vector->count; i++)
+    /*
+     * Determine the total size of the resulting string.  Be careful of
+     * integer overflow while doing so.
+     */
+    seplen = strlen(separator);
+    for (size = 0, i = 0; i < vector->count; i++) {
+        assert(SIZE_MAX - size >= strlen(vector->strings[i]));
         size += strlen(vector->strings[i]);
+    }
+    assert(SIZE_MAX - size >= (vector->count - 1) * seplen + 1);
     size += (vector->count - 1) * seplen + 1;
 
     /* Allocate the memory and build up the string using strlcat. */
     string = xmalloc(size);
     strlcpy(string, vector->strings[0], size);
     for (i = 1; i < vector->count; i++) {
-        strlcat(string, seperator, size);
+        strlcat(string, separator, size);
         strlcat(string, vector->strings[i], size);
     }
     return string;

@@ -125,7 +125,7 @@ struct cvector *cvector_split_space(char *string, struct cvector *)
  * specified string as separator.  Returns a newly allocated string; caller is
  * responsible for freeing.
  */
-char *vector_join(const struct vector *, const char *seperator)
+char *vector_join(const struct vector *, const char *separator)
     __attribute__((__malloc__, __nonnull__, __warn_unused_result__));
 char *cvector_join(const struct cvector *, const char *separator)
     __attribute__((__malloc__, __nonnull__, __warn_unused_result__));

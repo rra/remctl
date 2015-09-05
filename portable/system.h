@@ -144,10 +144,10 @@ extern void *reallocarray(void *, size_t, size_t);
 #if !HAVE_SETENV
 extern int setenv(const char *, const char *, int);
 #endif
-#if !HAVE_STRLCAT
+#if !HAVE_DECL_STRLCAT
 extern size_t strlcat(char *, const char *, size_t);
 #endif
-#if !HAVE_STRLCPY
+#if !HAVE_DECL_STRLCPY
 extern size_t strlcpy(char *, const char *, size_t);
 #endif
 #if !HAVE_STRNDUP

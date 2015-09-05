@@ -9,31 +9,6 @@
 #
 # All the functions here assume that BUILD and SOURCE are set in the
 # environment.  This is normally done via the C TAP Harness runtests wrapper.
-#
-# The canonical version of this file is maintained in the rra-c-util package,
-# which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
-#
-# Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2013
-#     The Board of Trustees of the Leland Stanford Junior University
-#
-# Permission is hereby granted, free of charge, to any person obtaining a
-# copy of this software and associated documentation files (the "Software"),
-# to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
-# and/or sell copies of the Software, and to permit persons to whom the
-# Software is furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
 
 package Test::RRA::Automake;
 
@@ -87,7 +62,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '5.05';
+    $VERSION = '5.08';
 }
 
 # Perl directories to skip globally for perl_dirs.  We ignore the perl
@@ -126,7 +101,15 @@ sub automake_setup {
     my ($vol, $dirs) = File::Spec->splitpath($start, 1);
     my @dirs = File::Spec->splitdir($dirs);
     pop(@dirs);
-    if ($dirs[-1] eq File::Spec->updir) {
+
+    # Simplify relative paths at the end of the directory.
+    my $ups = 0;
+    my $i   = $#dirs;
+    while ($i > 2 && $dirs[$i] eq File::Spec->updir) {
+        $ups++;
+        $i--;
+    }
+    for (1 .. $ups) {
         pop(@dirs);
         pop(@dirs);
     }
@@ -196,7 +179,7 @@ sub perl_dirs {
 
     # Build the list of top-level directories to test.
     opendir(my $rootdir, q{.}) or BAIL_OUT("cannot open .: $!");
-    my @dirs = grep { -d $_ && !$skip{$_} } readdir($rootdir);
+    my @dirs = grep { -d && !$skip{$_} } readdir($rootdir);
     closedir($rootdir);
     @dirs = File::Spec->no_upwards(@dirs);
 
@@ -386,6 +369,8 @@ otherwise ignored.
 Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
+
+Copyright 2014 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2013 The Board of Trustees of the Leland Stanford Junior
 University

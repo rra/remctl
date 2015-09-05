@@ -193,12 +193,12 @@ server_remctld_SOURCES = portable/event-extra.c server/commands.c	    \
 	server/server-v2.c
 server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	\
 	$(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)		\
-	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS) $(SYSTEMD_DAEMON_CFLAGS)
+	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS) $(SYSTEMD_CFLAGS)
 server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
 	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
 server_remctld_LDADD = util/libutil.la portable/libportable.la	\
 	$(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)	\
-	$(LIBEVENT_LIBS) $(SYSTEMD_DAEMON_LIBS)
+	$(LIBEVENT_LIBS) $(SYSTEMD_LIBS)
 
 # Install the systemd unit file if systemd support was detected.
 if HAVE_SYSTEMD

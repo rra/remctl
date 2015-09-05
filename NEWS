@@ -29,6 +29,25 @@ remctl 3.10 (unreleased)
     that didn't have krb5_get_init_creds_opt_alloc, such as the included
     Kerberos in Solaris 10.
 
+    Update to rra-c-util 5.8:
+
+    * Add missing va_end to xasprintf implementation.
+    * Fix Perl test suite framework for new Automake relative paths.
+    * Avoid $() in the probe for systemd support for Solaris portability.
+    * Prefer libsystemd to libsystemd-daemon if it is available.
+    * Improve portability to Kerberos included in Solaris 10.
+    * Use appropriate warning flags with Clang (currently not warning clean).
+    * Check for integer overflow in vector_join.
+    * Avoid strlcpy in more of the portability code.
+    * Fix hidden visibility of some utility functions.
+    * Improve portability of socket error codes to Windows.
+
+    Update to C TAP Harness 3.4:
+
+    * Fix segfault in runtests with an empty test list.
+    * Display verbose test results with -v or C_TAP_VERBOSE.
+    * Support comments and blank lines in test lists.
+
 remctl 3.9 (2014-07-02)
 
     Add a new server ACL type, localgroup, which converts the principal to

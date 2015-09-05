@@ -258,6 +258,7 @@ x_asprintf(char **strp, const char *file, int line, const char *fmt, ...)
         status = vasprintf(strp, fmt, args_copy);
         va_end(args_copy);
     }
+    va_end(args);
 }
 #else /* !(HAVE_C99_VAMACROS || HAVE_GNU_VAMACROS) */
 void
@@ -280,5 +281,6 @@ x_asprintf(char **strp, const char *fmt, ...)
         status = vasprintf(strp, fmt, args_copy);
         va_end(args_copy);
     }
+    va_end(args);
 }
 #endif /* !(HAVE_C99_VAMACROS || HAVE_GNU_VAMACROS) */

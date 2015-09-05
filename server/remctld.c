@@ -120,7 +120,7 @@ usage(int status)
  * Just set the child_signaled global so that we know to reap the processes
  * later.
  */
-static RETSIGTYPE
+static void
 child_handler(int sig UNUSED)
 {
     child_signaled = 1;
@@ -132,7 +132,7 @@ child_handler(int sig UNUSED)
  * running in standalone mode.  Set the config_signaled global so that we do
  * this the next time through the processing loop.
  */
-static RETSIGTYPE
+static void
 config_handler(int sig UNUSED)
 {
     config_signaled = 1;
@@ -144,7 +144,7 @@ config_handler(int sig UNUSED)
  * standalone mode.  Set the exit_signaled global so that we exit cleanly the
  * next time through the processing loop.
  */
-static RETSIGTYPE
+static void
 exit_handler(int sig UNUSED)
 {
     exit_signaled = 1;

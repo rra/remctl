@@ -24,6 +24,7 @@ dnl AM_PROG_AR is required for Automake 1.12 by Libtool but not defined at all
 dnl (or needed) in Automake 1.11.  Work around this bug.
 AC_PROG_CC
 AC_USE_SYSTEM_EXTENSIONS
+RRA_PROG_CC_CLANG
 AC_SYS_LARGEFILE
 AM_PROG_CC_C_O
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
@@ -37,6 +38,12 @@ RRA_WITH_SYSTEMD_UNITDIR
 dnl Only used for the test suite.
 AC_ARG_VAR([PATH_FAKEROOT], [Path to fakeroot for the test suite])
 AC_PATH_PROG([PATH_FAKEROOT], [fakeroot])
+
+dnl Probes for networking libraries.
+AC_SEARCH_LIBS([gethostbyname], [nsl])
+AC_SEARCH_LIBS([socket], [socket], [],
+    [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], [],
+        [-lsocket])])
 
 dnl Kerberos portability checks.
 RRA_LIB_KRB5_OPTIONAL
@@ -93,13 +100,10 @@ RRA_LIB_PCRE_OPTIONAL
 AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
 
 dnl General C library and networking probes.
-AC_SEARCH_LIBS([gethostbyname], [nsl])
-AC_SEARCH_LIBS([socket], [socket], [],
-    [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], [],
-        [-lsocket])])
 AC_HEADER_STDBOOL
-AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/uio.h syslog.h])
-AC_CHECK_DECLS([snprintf, vsnprintf])
+AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/time.h \
+                  sys/uio.h syslog.h])
+AC_CHECK_DECLS([snprintf, strlcat, strlcpy, vsnprintf])
 AC_CHECK_DECLS([h_errno], [], [], [#include <netdb.h>])
 AC_CHECK_DECLS([inet_aton, inet_ntoa], [], [],
     [#include <sys/types.h>
@@ -140,7 +144,6 @@ AC_CHECK_FUNCS([getaddrinfo],
 AC_CHECK_FUNCS([getgrnam_r setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
                   mkstemp reallocarray setenv strlcat strlcpy strndup])
-AC_TYPE_SIGNAL
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.

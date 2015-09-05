@@ -19,6 +19,7 @@
  */
 
 #include <config.h>
+#include <portable/macros.h>
 #include <portable/system.h>
 
 #include <errno.h>
@@ -28,11 +29,14 @@
  * with the system versions.
  */
 #if TESTING
+# undef asprintf
+# undef vasprintf
 # define asprintf test_asprintf
 # define vasprintf test_vasprintf
 int test_asprintf(char **, const char *, ...)
     __attribute__((__format__(printf, 2, 3)));
-int test_vasprintf(char **, const char *, va_list);
+int test_vasprintf(char **, const char *, va_list)
+    __attribute__((__format__(printf, 2, 0)));
 #endif
 
 

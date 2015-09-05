@@ -4,9 +4,6 @@
 # configuration file to store some package-specific data.  This module loads
 # that configuration and provides the namespace for the configuration
 # settings.
-#
-# The canonical version of this file is maintained in the rra-c-util package,
-# which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 
 package Test::RRA::Config;
 
@@ -37,7 +34,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '5.05';
+    $VERSION = '5.08';
 }
 
 # If BUILD or SOURCE are set in the environment, look for data/perl.conf under
