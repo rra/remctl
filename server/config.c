@@ -6,6 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
+ * Copyright 2015 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
@@ -1214,21 +1215,21 @@ server_config_free(struct config *config)
 
 
 /*
- * Given the rule corresponding to the command and the principal
- * requesting access, see if the command is allowed.  Return true if so, false
+ * Given the rule corresponding to the command and the struct representing a
+ * client connection, see if the command is allowed.  Return true if so, false
  * otherwise.
  */
 bool
-server_config_acl_permit(const struct rule *rule, const char *user)
+server_config_acl_permit(const struct rule *rule, const struct client *client)
 {
     char **acls = rule->acls;
     size_t i;
     enum config_status status;
 
-    if (strcmp(acls[0], "ANYUSER") == 0)
+    if (strcmp(acls[0], "ANYUSER") == 0 && !client->anonymous)
         return true;
     for (i = 0; acls[i] != NULL; i++) {
-        status = acl_check(user, acls[i], ACL_SCHEME_FILE, rule->file,
+        status = acl_check(client->user, acls[i], ACL_SCHEME_FILE, rule->file,
                            rule->lineno);
         if (status == 0)
             return true;

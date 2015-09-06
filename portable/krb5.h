@@ -51,6 +51,33 @@
 #endif
 #include <stdlib.h>
 
+/* Heimdal: KRB5_WELLKNOWN_NAME, MIT: KRB5_WELLKNOWN_NAMESTR. */
+#ifndef KRB5_WELLKNOWN_NAME
+# ifdef KRB5_WELLKNOWN_NAMESTR
+#  define KRB5_WELLKNOWN_NAME KRB5_WELLKNOWN_NAMESTR
+# else
+#  define KRB5_WELLKNOWN_NAME "WELLKNOWN"
+# endif
+#endif
+
+/* Heimdal: KRB5_ANON_NAME, MIT: KRB5_ANONYMOUS_PRINCSTR. */
+#ifndef KRB5_ANON_NAME
+# ifdef KRB5_ANONYMOUS_PRINCSTR
+#  define KRB5_ANON_NAME KRB5_ANONYMOUS_PRINCSTR
+# else
+#  define KRB5_ANON_NAME "ANONYMOUS"
+# endif
+#endif
+
+/* Heimdal: KRB5_ANON_REALM, MIT: KRB5_ANONYMOUS_REALMSTR. */
+#ifndef KRB5_ANON_REALM
+# ifdef KRB5_ANONYMOUS_REALMSTR
+#  define KRB5_ANON_REALM KRB5_ANONYMOUS_REALMSTR
+# else
+#  define KRB5_ANON_REALM "WELLKNOWN:ANONYMOUS"
+# endif
+#endif
+
 BEGIN_DECLS
 
 /* Default to a hidden visibility for all portability functions. */

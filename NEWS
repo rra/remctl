@@ -8,6 +8,11 @@ remctl 3.10 (unreleased)
     expiration time of the Kerberos ticket used to authenticate to the
     server.
 
+    Anonymous authentication (such as via anonymous PKINIT) no longer
+    satisfies ANYUSER ACLs.  It's unlikely that existing installations
+    would have encountered anonymous authentication, since obtaining
+    service tickets with anonymous PKINIT is disabled by default.
+
     Simplify the Python RemctlError exception class.  The code in the
     exception class just duplicated the behavior of the parent Exception
     class and was unnecessary, and it interfered with pickling the
