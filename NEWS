@@ -30,6 +30,11 @@ remctl 3.10 (unreleased)
     warnings), which is not the default and is only supported with recent
     versions of gcc.  Thanks to Ken Dreyer for the report.
 
+    For the localgroup ACL scheme, dynamically resize the buffer passed to
+    getgrnam_r if the call fails due to ERANGE.  Users in large numbers of
+    local groups may require more space than the buffer size returned by
+    the sysconf call.  Patch from Hugh Cole-Baker.
+
     Fix test suite portability to systems with older versions of Kerberos
     that didn't have krb5_get_init_creds_opt_alloc, such as the included
     Kerberos in Solaris 10.
