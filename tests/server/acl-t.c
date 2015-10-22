@@ -49,8 +49,8 @@ acl_permit_anonymous(const struct rule *rule)
 {
     struct client client = {
         -1, NULL, NULL, 0, NULL,
-        KRB5_WELLKNOWN_NAME "/" KRB5_ANON_NAME "@" KRB5_ANON_REALM, true,
-        0, 0, false, false
+        (char *) (KRB5_WELLKNOWN_NAME "/" KRB5_ANON_NAME "@" KRB5_ANON_REALM),
+        true, 0, 0, false, false
     };
     return server_config_acl_permit(rule, &client);
 }
