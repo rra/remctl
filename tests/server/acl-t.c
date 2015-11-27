@@ -64,7 +64,7 @@ main(void)
     };
     const char *acls[5];
 
-    plan(71);
+    plan(78);
     if (chdir(getenv("SOURCE")) < 0)
         sysbail("can't chdir to SOURCE");
 
@@ -295,10 +295,37 @@ main(void)
     ok(!acl_permit(&rule, "period@EXAMPLE.ORG"), "invalid chars 2");
     ok(!acl_permit(&rule, "tilde@EXAMPLE.ORG"), "invalid chars 3");
 
-    /* Ensure that ANYUSER doesn't allow the anonymous identity. */
-    acls[0] = "ANYUSER";
+    /* Check anyuser:*. */
+    acls[0] = "anyuser:auth";
     acls[1] = NULL;
-    ok(!acl_permit_anonymous(&rule), "ANYUSER does not permit anonymous");
+    ok(acl_permit(&rule, "rra@EXAMPLE.ORG"), "anyuser:auth");
+    acls[0] = "anyuser:anonymous";
+    ok(acl_permit(&rule, "rra@EXAMPLE.ORG"), "anyuser:anonymous");
+    acls[0] = "ANYUSER";
+    ok(acl_permit(&rule, "rra@EXAMPLE.ORG"), "ANYUSER");
+
+    /*
+     * Ensure that anyuser:auth and ANYUSER don't allow the anonymous
+     * identity, but anyuser:anonymous does.
+     */
+    acls[0] = "anyuser:auth";
+    acls[1] = NULL;
+    ok(!acl_permit_anonymous(&rule), "anyuser:auth disallows anonymous");
+    acls[0] = "ANYUSER";
+    ok(!acl_permit_anonymous(&rule), "ANYUSER disallows anonymous");
+    acls[0] = "anyuser:anonymous";
+    ok(acl_permit_anonymous(&rule), "anyuser:anonymous allows anonymous");
+
+    /* Check error handling of unknown anyuser ACLs. */
+    acls[0] = "anyuser:foo";
+    acls[1] = NULL;
+    errors_capture();
+    ok(!acl_permit(&rule, "rra@EXAMPLE.ORG"), "invalid anyuser ACL");
+    is_string("TEST:0: invalid ACL value 'anyuser:foo'\n", errors,
+              "...with correct error.");
+    errors_uncapture();
+    free(errors);
+    errors = NULL;
 
     return 0;
 }

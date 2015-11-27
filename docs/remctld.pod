@@ -330,6 +330,9 @@ If I<method> is omitted, I<acl> must either begin with C</> or must not
 contain C<=>.  Otherwise, it will be parsed as an option instead.  If
 there is any ambiguity, prepend the I<method>.
 
+As a special exception for backward compatibility, the ACL C<ANYUSER>
+(case-sensitive) is treated as equivalent to C<anyuser:auth>.
+
 Each entry is checked in order, and access is granted as soon as an entry
 matches.  If no entry matches, access is denied.  The following methods
 may supported; however, be aware that the availability of several ACL
@@ -337,6 +340,31 @@ types depends on whether B<remctld> was built with that support.  Each ACL
 type is annotated with the version in which it was added.
 
 =over 4
+
+=item anyuser
+
+[3.10] Permit access to any user.  This comes in two forms:
+
+=over 4
+
+=item anyuser:auth
+
+Permit any authenticated user.  This means not only the local Kerberos
+realm but also any realm with which there is a cross-realm trust
+relationship.
+
+=item anyuser:anonymous
+
+Permit entirely anonymous users.  This means no authentication whatsoever
+is required to run the command.  Any client with network access to the
+server can run the command (using anonymous PKINIT), assuming that
+anonymous service tickets are enabled for the local Kerberos realm.
+
+=back
+
+For backwards compatibility, the ACL C<ANYUSER> is treated as identical to
+C<anyuser:auth>.  This was the only supported any-user ACL syntax prior to
+remctl 3.10.
 
 =item file
 

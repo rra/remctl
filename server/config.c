@@ -694,6 +694,29 @@ acl_check_princ(const struct client *client, const char *data,
 
 
 /*
+ * The ACL check operation for the anyuser method.  Takes the client
+ * information, the principal name we are checking against, and the
+ * referencing file name and line number.
+ *
+ * Returns CONFIG_SUCCESS if the user is authorized, CONFIG_NOMATCH if they
+ * aren't, and CONFIG_ERROR for an invalid argument to the anyuser ACL.
+ */
+static enum config_status
+acl_check_anyuser(const struct client *client, const char *data,
+                  const char *file, int lineno)
+{
+    if (strcmp(data, "auth") == 0)
+        return client->anonymous ? CONFIG_NOMATCH : CONFIG_SUCCESS;
+    else if (strcmp(data, "anonymous") == 0)
+        return CONFIG_SUCCESS;
+    else {
+        warn("%s:%d: invalid ACL value 'anyuser:%s'", file, lineno, data);
+        return CONFIG_ERROR;
+    }
+}
+
+
+/*
  * The ACL check operation for the deny method.  Takes the user to check, the
  * scheme:method we are checking against, and the referencing file name and
  * line number.
@@ -1109,6 +1132,7 @@ done:
 static const struct acl_scheme schemes[] = {
     { "file",       acl_check_file       },
     { "princ",      acl_check_princ      },
+    { "anyuser",    acl_check_anyuser    },
     { "deny",       acl_check_deny       },
 #ifdef HAVE_GPUT
     { "gput",       acl_check_gput       },
@@ -1150,11 +1174,11 @@ acl_check(const struct client *client, const char *entry, int def_index,
     char *prefix;
     const char *data;
 
-    /* First, check for ANYUSER. */
+    /* First, check for ANYUSER and map it to anyuser:auth. */
     if (strcmp(entry, "ANYUSER") == 0)
-        return client->anonymous ? CONFIG_NOMATCH : CONFIG_SUCCESS;
+        entry = "anyuser:auth";
 
-    /* Otherwise, parse the ACL entry for the scheme and dispatch. */
+    /* Parse the ACL entry for the scheme and dispatch. */
     data = strchr(entry, ':');
     if (data != NULL) {
         prefix = xstrndup(entry, data - entry);

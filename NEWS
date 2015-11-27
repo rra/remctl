@@ -2,6 +2,18 @@
 
 remctl 3.10 (unreleased)
 
+    Two new remctld ACLs are supported: anyuser:auth and
+    anyuser:anonymous.  The first is equivalent to ANYUSER, and indeed
+    ANYUSER is now treated as a backwards-compatibility alias for
+    anyuser:auth.  This permits any authenticated user in either the local
+    realm or any realm with which there is cross-realm trust.  The new
+    anyuser:anonymous ACL permits absolutely any user, even
+    unauthenticated users, allowing anyone with network access to the
+    server to run the command.  (Note, however, that actually running
+    commands anonymously requires anonymous PKINIT and anonymous service
+    tickets be enabled for the local Kerberos realm.  These are not common
+    configurations, particularly the second.)
+
     The remctld server now sets the REMOTE_EXPIRES environment variable to
     the time (in seconds since UNIX epoch) when the authenticated session
     used to run a command will expire.  This will generally be the
