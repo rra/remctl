@@ -9,10 +9,6 @@ Protocol:
    also introduces out-of-order responses and possible deadlocks to the
    protocol.  docs/protocol-v4 has an initial draft.
 
- * Support authentication via anonymous PKINIT.  This may already work,
-   but the asserted identity should be documented and it's not clear
-   whether this should match an ANYUSER ACL.
-
  * Add a capabilities command to the protocol so that the client can
    retrieve the list of supported commands rather than assuming based on
    the protocol version.

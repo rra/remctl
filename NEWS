@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.10 (unreleased)
+remctl 3.10 (2015-11-27)
 
     Two new remctld ACLs are supported: anyuser:auth and
     anyuser:anonymous.  The first is equivalent to ANYUSER, and indeed
