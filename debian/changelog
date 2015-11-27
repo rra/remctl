@@ -1,4 +1,4 @@
-remctl (3.10-1) UNRELEASED; urgency=medium
+remctl (3.10-1) unstable; urgency=medium
 
   * New upstream release.
     - New server ACLs anyuser:auth and anyuser:anonymous.  The latter
@@ -12,7 +12,7 @@ remctl (3.10-1) UNRELEASED; urgency=medium
     - Dynamically resize the buffer used for the localgroup ACL scheme,
       allowing support of users in large numbers of local groups.
 
- -- Russ Allbery <rra@debian.org>  Fri, 27 Nov 2015 15:15:40 -0800
+ -- Russ Allbery <rra@debian.org>  Fri, 27 Nov 2015 15:24:56 -0800
 
 remctl (3.9-2) unstable; urgency=medium
 
