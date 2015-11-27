@@ -6,6 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
+ * Copyright 2015 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
  *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
@@ -117,7 +118,7 @@ server_send_summary(struct client *client, struct config *config)
         rule = config->rules[i];
         if (strcmp(rule->subcommand, "ALL") != 0)
             continue;
-        if (!server_config_acl_permit(rule, client->user))
+        if (!server_config_acl_permit(rule, client))
             continue;
         if (rule->summary == NULL)
             continue;
@@ -400,7 +401,7 @@ server_run_command(struct client *client, struct config *config,
         server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
         goto done;
     }
-    if (!server_config_acl_permit(rule, user)) {
+    if (!server_config_acl_permit(rule, client)) {
         notice("access denied: user %s, command %s%s%s", user, command,
                (subcommand == NULL) ? "" : " ",
                (subcommand == NULL) ? "" : subcommand);

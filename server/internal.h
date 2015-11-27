@@ -2,6 +2,7 @@
  * Internal support functions for the remctld daemon.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -51,7 +52,9 @@ struct client {
     int protocol;               /* Protocol version number. */
     gss_ctx_id_t context;       /* GSS-API context. */
     char *user;                 /* Name of the client as a string. */
+    bool anonymous;             /* Whether the client is anonymous. */
     OM_uint32 flags;            /* Connection flags. */
+    time_t expires;             /* Expiration time of GSS-API session. */
     bool keepalive;             /* Whether keep-alive was set. */
     bool fatal;                 /* Whether a fatal error has occurred. */
 };
@@ -129,7 +132,7 @@ void server_log_command(struct iovec **, struct rule *, const char *user);
 /* Configuration file functions. */
 struct config *server_config_load(const char *file);
 void server_config_free(struct config *);
-bool server_config_acl_permit(const struct rule *, const char *user);
+bool server_config_acl_permit(const struct rule *, const struct client *);
 void server_config_set_gput_file(char *file);
 
 /* Running commands. */

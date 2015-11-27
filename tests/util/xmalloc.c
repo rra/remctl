@@ -34,7 +34,10 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include <sys/time.h>
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
+#include <time.h>
 
 /* Linux requires sys/time.h be included before sys/resource.h. */
 #include <sys/resource.h>
@@ -261,7 +264,7 @@ test_asprintf(size_t size)
 
 
 /* Wrapper around vasprintf to do the va_list stuff. */
-static void
+static void __attribute__((__format__(printf, 2, 3)))
 xvasprintf_wrapper(char **strp, const char *format, ...)
 {
     va_list args;

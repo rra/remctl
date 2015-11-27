@@ -8,7 +8,7 @@ dnl
 dnl See LICENSE for licensing terms.
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [3.9], [eagle@eyrie.org])
+AC_INIT([remctl], [3.10], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
@@ -24,6 +24,7 @@ dnl AM_PROG_AR is required for Automake 1.12 by Libtool but not defined at all
 dnl (or needed) in Automake 1.11.  Work around this bug.
 AC_PROG_CC
 AC_USE_SYSTEM_EXTENSIONS
+RRA_PROG_CC_CLANG
 AC_SYS_LARGEFILE
 AM_PROG_CC_C_O
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
@@ -38,13 +39,24 @@ dnl Only used for the test suite.
 AC_ARG_VAR([PATH_FAKEROOT], [Path to fakeroot for the test suite])
 AC_PATH_PROG([PATH_FAKEROOT], [fakeroot])
 
+dnl Probes for networking libraries.
+AC_SEARCH_LIBS([gethostbyname], [nsl])
+AC_SEARCH_LIBS([socket], [socket], [],
+    [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], [],
+        [-lsocket])])
+
 dnl Kerberos portability checks.
 RRA_LIB_KRB5_OPTIONAL
 AS_IF([test x"$rra_use_KRB5" != xfalse],
     [RRA_LIB_KRB5_SWITCH
-     AC_CHECK_FUNCS([krb5_get_init_creds_opt_set_default_flags \
+     AC_CHECK_FUNCS([krb5_get_init_creds_opt_alloc \
+         krb5_get_init_creds_opt_set_anonymous \
+         krb5_get_init_creds_opt_set_default_flags \
+         krb5_get_init_creds_opt_set_out_ccache \
          krb5_principal_get_realm \
          krb5_xfree])
+     AC_CHECK_FUNCS([krb5_get_init_creds_opt_free],
+        [RRA_FUNC_KRB5_GET_INIT_CREDS_OPT_FREE_ARGS])
      AC_CHECK_DECLS([krb5_kt_free_entry], [], [], [RRA_INCLUDES_KRB5])
      AC_LIBOBJ([krb5-extra])
      RRA_LIB_KRB5_RESTORE])
@@ -90,13 +102,10 @@ RRA_LIB_PCRE_OPTIONAL
 AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
 
 dnl General C library and networking probes.
-AC_SEARCH_LIBS([gethostbyname], [nsl])
-AC_SEARCH_LIBS([socket], [socket], [],
-    [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], [],
-        [-lsocket])])
 AC_HEADER_STDBOOL
-AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/uio.h syslog.h])
-AC_CHECK_DECLS([snprintf, vsnprintf])
+AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/time.h \
+                  sys/uio.h syslog.h])
+AC_CHECK_DECLS([snprintf, strlcat, strlcpy, vsnprintf])
 AC_CHECK_DECLS([h_errno], [], [], [#include <netdb.h>])
 AC_CHECK_DECLS([inet_aton, inet_ntoa], [], [],
     [#include <sys/types.h>
@@ -137,7 +146,6 @@ AC_CHECK_FUNCS([getaddrinfo],
 AC_CHECK_FUNCS([getgrnam_r setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
                   mkstemp reallocarray setenv strlcat strlcpy strndup])
-AC_TYPE_SIGNAL
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.
@@ -177,10 +185,6 @@ AC_ARG_ENABLE([ruby],
     [AC_HELP_STRING([--enable-ruby], [Build Ruby libremctl bindings])],
     [AS_IF([test x"$enableval" = xyes], [build_ruby=yes])])
 AM_CONDITIONAL([BUILD_RUBY], [test x"$build_ruby" = xyes])
-
-dnl Used to determine whether to add our GCC-specific warning suppression
-dnl flags to the language binding builds.
-AM_CONDITIONAL([GCC], [test x"$GCC" = xyes])
 
 dnl Used when building the Perl module.  Normally link against all the
 dnl dependencies that libremctl may need, but don't do so if

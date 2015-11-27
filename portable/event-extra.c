@@ -22,6 +22,7 @@
 
 #include <config.h>
 #include <portable/event.h>
+#include <portable/macros.h>
 #include <portable/system.h>
 
 /* Used for unused parameters to silence gcc warnings. */

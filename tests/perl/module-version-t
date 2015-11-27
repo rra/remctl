@@ -66,7 +66,7 @@ sub module_files {
             $File::Find::prune = 1;
             return;
         }
-        if ($_ =~ m{ [.] pm \z }xms) {
+        if (m{ [.] pm \z }xms) {
             push(@files, $File::Find::name);
         }
         return;
@@ -281,6 +281,8 @@ from the NEWS file.
 Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
+
+Copyright 2014 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2013 The Board of Trustees of the Leland Stanford Junior
 University

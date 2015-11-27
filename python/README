@@ -53,10 +53,10 @@ SIMPLIFIED INTERFACE
       * ValueError, TypeError: an invalid argument was supplied
       * RemctlProtocolError: an error occurred in the remctl communication
 
-      The value attribute (or string value) of the RemctlProtocolError
-      exception contains the string returned by the remctl library.  This
-      may be an internal error (such as a network error) or an error
-      returned by the remote server (such as an unknown command error).
+      The string value of the RemctlProtocolError exception contains the
+      string returned by the remctl library.  This may be an internal
+      error (such as a network error) or an error returned by the remote
+      server (such as an unknown command error).
 
   Here is an example using the simplified interface:
 
@@ -176,9 +176,9 @@ FULL INTERFACE
       * ValueError, TypeError: an invalid argument was supplied
       * RemctlError: a network or authentication error occurred
       
-      The value attribute (or string value) of the RemctlError exception
-      contains the string returned by the remctl library, the same as
-      would be returned by the error() method.
+      The string value of the RemctlError exception contains the string
+      returned by the remctl library, similar to what would be returned by
+      the error() method.
 
   Remctl.command(command)
       Send a command to the remote host.  There is no return value; an
@@ -202,9 +202,9 @@ FULL INTERFACE
       * RemctlError: a network or authentication error occurred
       * RemctlNotOpenedError: no connection currently open
 
-      The value attribute (or string value) of the RemctlError exception
-      contains the string returned by the remctl library, the same as
-      would be returned by the error() method.
+      The string value of the RemctlError exception contains the string
+      returned by the remctl library, the same as would be returned by the
+      error() method.
 
   Remctl.output()
       Reads an output token from the server and returns it as a tuple.  A
@@ -299,6 +299,7 @@ LICENSE
   Copyright 2008 Thomas L. Kula <kula@tproa.net>
   Copyright 2008, 2009, 2011, 2012
       The Board of Trustees of the Leland Stanford Junior University
+  Copyright 2014 Russ Allbery <eagle@eyrie.org>
 
   Copying and distribution of this file, with or without modification,
   are permitted in any medium without royalty provided the copyright

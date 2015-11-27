@@ -64,6 +64,8 @@ dnl Headers to include when probing for Kerberos library properties.
 AC_DEFUN([RRA_INCLUDES_KRB5], [[
 #if HAVE_KRB5_H
 # include <krb5.h>
+#elif HAVE_KERBEROSV5_KRB5_H
+# include <kerberosv5/krb5.h>
 #else
 # include <krb5/krb5.h>
 #endif
@@ -113,6 +115,23 @@ AC_DEFUN([_RRA_LIB_KRB5_CHECK_HEADER],
      AC_MSG_RESULT([yes])],
     [AC_MSG_RESULT([no])])])
 
+dnl Check for the com_err header.  Internal helper macro since we need
+dnl to do the same checks in multiple places.
+AC_DEFUN([_RRA_LIB_KRB5_CHECK_HEADER_COM_ERR],
+[AS_IF([test x"$rra_krb5_incroot" = x],
+    [AC_CHECK_HEADERS([et/com_err.h kerberosv5/com_err.h])],
+        [_RRA_LIB_KRB5_CHECK_HEADER([et/com_err.h])
+         _RRA_LIB_KRB5_CHECK_HEADER([kerberosv5/com_err.h])])])
+
+dnl Check for the main Kerberos header.  Internal helper macro since we need
+dnl to do the same checks in multiple places.
+AC_DEFUN([_RRA_LIB_KRB5_CHECK_HEADER_KRB5],
+[AS_IF([test x"$rra_krb5_incroot" = x],
+     [AC_CHECK_HEADERS([krb5.h kerberosv5/krb5.h krb5/krb5.h])],
+     [_RRA_LIB_KRB5_CHECK_HEADER([krb5.h])
+      _RRA_LIB_KRB5_CHECK_HEADER([kerberosv5/krb5.h])
+      _RRA_LIB_KRB5_CHECK_HEADER([krb5/krb5.h])])])
+
 dnl Does the appropriate library checks for reduced-dependency Kerberos
 dnl linkage.  The single argument, if true, says to fail if Kerberos could not
 dnl be found.
@@ -122,10 +141,7 @@ AC_DEFUN([_RRA_LIB_KRB5_REDUCED],
      [AS_IF([test x"$1" = xtrue],
          [AC_MSG_ERROR([cannot find usable Kerberos library])])])
  LIBS="$KRB5_LIBS $LIBS"
- AS_IF([test x"$rra_krb5_incroot" = x],
-     [AC_CHECK_HEADERS([krb5.h krb5/krb5.h])],
-     [_RRA_LIB_KRB5_CHECK_HEADER([krb5.h])
-      _RRA_LIB_KRB5_CHECK_HEADER([krb5/krb5.h])])
+ _RRA_LIB_KRB5_CHECK_HEADER_KRB5
  AC_CHECK_FUNCS([krb5_get_error_message],
      [AC_CHECK_FUNCS([krb5_free_error_message])],
      [AC_CHECK_FUNCS([krb5_get_error_string], [],
@@ -140,7 +156,7 @@ AC_DEFUN([_RRA_LIB_KRB5_REDUCED],
                      [AS_IF([test x"$1" = xtrue],
                          [AC_MSG_ERROR([cannot find usable com_err library])],
                          [KRB5_LIBS=""])])
-                  AC_CHECK_HEADERS([et/com_err.h])])])])])
+                  _RRA_LIB_KRB5_CHECK_HEADER_COM_ERR])])])])
  RRA_LIB_KRB5_RESTORE])
 
 dnl Does the appropriate library checks for Kerberos linkage when we don't
@@ -187,10 +203,7 @@ AC_DEFUN([_RRA_LIB_KRB5_MANUAL],
         [$rra_krb5_extra])],
     [-lasn1 -lcom_err -lcrypto $rra_krb5_extra])
  LIBS="$KRB5_LIBS $LIBS"
- AS_IF([test x"$rra_krb5_incroot" = x],
-     [AC_CHECK_HEADERS([krb5.h krb5/krb5.h])],
-     [_RRA_LIB_KRB5_CHECK_HEADER([krb5.h])
-      _RRA_LIB_KRB5_CHECK_HEADER([krb5/krb5.h])])
+ _RRA_LIB_KRB5_CHECK_HEADER_KRB5
  AC_CHECK_FUNCS([krb5_get_error_message],
      [AC_CHECK_FUNCS([krb5_free_error_message])],
      [AC_CHECK_FUNCS([krb5_get_error_string], [],
@@ -198,7 +211,7 @@ AC_DEFUN([_RRA_LIB_KRB5_MANUAL],
              [AC_CHECK_FUNCS([krb5_svc_get_msg],
                  [AC_CHECK_HEADERS([ibm_svc/krb5_svc.h], [], [],
                      [RRA_INCLUDES_KRB5])],
-                 [AC_CHECK_HEADERS([et/com_err.h])])])])])
+                 [_RRA_LIB_KRB5_CHECK_HEADER_COM_ERR])])])])
  RRA_LIB_KRB5_RESTORE])
 
 dnl Sanity-check the results of krb5-config and be sure we can really link a
@@ -222,10 +235,7 @@ AC_DEFUN([_RRA_LIB_KRB5_CONFIG],
 [RRA_KRB5_CONFIG([${rra_krb5_root}], [krb5], [KRB5],
     [_RRA_LIB_KRB5_CHECK([$1])
      RRA_LIB_KRB5_SWITCH
-     AS_IF([test x"$rra_krb5_incroot" = x],
-         [AC_CHECK_HEADERS([krb5.h krb5/krb5.h])],
-         [_RRA_LIB_KRB5_CHECK_HEADER([krb5.h])
-          _RRA_LIB_KRB5_CHECK_HEADER([krb5/krb5.h])])
+     _RRA_LIB_KRB5_CHECK_HEADER_KRB5
      AC_CHECK_FUNCS([krb5_get_error_message],
          [AC_CHECK_FUNCS([krb5_free_error_message])],
          [AC_CHECK_FUNCS([krb5_get_error_string], [],
@@ -233,7 +243,7 @@ AC_DEFUN([_RRA_LIB_KRB5_CONFIG],
                  [AC_CHECK_FUNCS([krb5_svc_get_msg],
                      [AC_CHECK_HEADERS([ibm_svc/krb5_svc.h], [], [],
                          [RRA_INCLUDES_KRB5])],
-                     [AC_CHECK_HEADERS([et/com_err.h])])])])])
+                     [_RRA_LIB_KRB5_CHECK_HEADER_COM_ERR])])])])
      RRA_LIB_KRB5_RESTORE],
     [_RRA_LIB_KRB5_PATHS
      _RRA_LIB_KRB5_MANUAL([$1])])])

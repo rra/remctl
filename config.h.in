@@ -55,6 +55,14 @@
    don't. */
 #undef HAVE_DECL_SNPRINTF
 
+/* Define to 1 if you have the declaration of `strlcat', and to 0 if you
+   don't. */
+#undef HAVE_DECL_STRLCAT
+
+/* Define to 1 if you have the declaration of `strlcpy', and to 0 if you
+   don't. */
+#undef HAVE_DECL_STRLCPY
+
 /* Define to 1 if you have the declaration of `vsnprintf', and to 0 if you
    don't. */
 #undef HAVE_DECL_VSNPRINTF
@@ -146,6 +154,12 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if you have the <kerberosv5/com_err.h> header file. */
+#undef HAVE_KERBEROSV5_COM_ERR_H
+
+/* Define to 1 if you have the <kerberosv5/krb5.h> header file. */
+#undef HAVE_KERBEROSV5_KRB5_H
+
 /* Define to enable Kerberos features. */
 #undef HAVE_KRB5
 
@@ -161,9 +175,26 @@
 /* Define to 1 if you have the `krb5_get_err_txt' function. */
 #undef HAVE_KRB5_GET_ERR_TXT
 
+/* Define to 1 if you have the `krb5_get_init_creds_opt_alloc' function. */
+#undef HAVE_KRB5_GET_INIT_CREDS_OPT_ALLOC
+
+/* Define to 1 if you have the `krb5_get_init_creds_opt_free' function. */
+#undef HAVE_KRB5_GET_INIT_CREDS_OPT_FREE
+
+/* Define if krb5_get_init_creds_opt_free takes two arguments. */
+#undef HAVE_KRB5_GET_INIT_CREDS_OPT_FREE_2_ARGS
+
+/* Define to 1 if you have the `krb5_get_init_creds_opt_set_anonymous'
+   function. */
+#undef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS
+
 /* Define to 1 if you have the `krb5_get_init_creds_opt_set_default_flags'
    function. */
 #undef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_DEFAULT_FLAGS
+
+/* Define to 1 if you have the `krb5_get_init_creds_opt_set_out_ccache'
+   function. */
+#undef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_OUT_CCACHE
 
 /* Define to 1 if you have the <krb5.h> header file. */
 #undef HAVE_KRB5_H
@@ -285,6 +316,9 @@
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
 
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
@@ -324,9 +358,6 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
-
-/* Define as the return type of signal handlers (`int' or `void'). */
-#undef RETSIGTYPE
 
 /* The size of `long', as computed by sizeof. */
 #undef SIZEOF_LONG

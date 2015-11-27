@@ -94,6 +94,7 @@
 /tests/server/accept-t
 /tests/server/acl-t
 /tests/server/acl/localgroup-t
+/tests/server/anonymous-t
 /tests/server/background-t
 /tests/server/bind-t
 /tests/server/config-t
