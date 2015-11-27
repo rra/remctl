@@ -1,3 +1,19 @@
+remctl (3.10-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+    - New server ACLs anyuser:auth and anyuser:anonymous.  The latter
+      allows access by anonymous clients if the KDC supports anonymous
+      service tickets.
+    - Server now sets the REMOTE_EXPIRES environment variable to the time
+      when the client credentials would expire.
+    - Anonymous users no longer satisfy ANYUSER (anyuser:auth).
+    - Simplify the Python RemctlError class (with some backward
+      incompatibilities).
+    - Dynamically resize the buffer used for the localgroup ACL scheme,
+      allowing support of users in large numbers of local groups.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 27 Nov 2015 15:15:40 -0800
+
 remctl (3.9-2) unstable; urgency=medium
 
   * Build against libsystemd instead of libsystemd-daemon.  Thanks,
