@@ -6,6 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
+ * Copyright 2015 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
  *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
@@ -18,6 +19,8 @@
 #include <portable/socket.h>
 #include <portable/system.h>
 #include <portable/uio.h>
+
+#include <time.h>
 
 #include <server/internal.h>
 #include <util/messages.h>
@@ -45,7 +48,7 @@ server_new_client(int fd, gss_cred_id_t creds)
     gss_OID doid;
     OM_uint32 major = 0;
     OM_uint32 minor = 0;
-    OM_uint32 acc_minor;
+    OM_uint32 acc_minor, time_rec;
     int flags, status;
     static const OM_uint32 req_gss_flags
         = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
@@ -116,7 +119,7 @@ server_new_client(int fd, gss_cred_id_t creds)
               (unsigned long) recv_tok.length);
         major = gss_accept_sec_context(&acc_minor, &client->context, creds,
                     &recv_tok, GSS_C_NO_CHANNEL_BINDINGS, &name, &doid,
-                    &send_tok, &client->flags, NULL, NULL);
+                    &send_tok, &client->flags, &time_rec, NULL);
         free(recv_tok.value);
 
         /* Send back a token if we need to. */
@@ -159,7 +162,10 @@ server_new_client(int fd, gss_cred_id_t creds)
         goto fail;
     }
     gss_release_name(&minor, &name);
+    if (gss_oid_equal(doid, GSS_C_NT_ANONYMOUS))
+        client->anonymous = true;
     client->user = xstrndup(name_buf.value, name_buf.length);
+    client->expires = time(NULL) + time_rec;
     gss_release_buffer(&minor, &name_buf);
     return client;
 

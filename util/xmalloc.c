@@ -12,7 +12,7 @@
  *      buffer = xmalloc(1024);
  *      xrealloc(buffer, 2048);
  *      free(buffer);
- *      buffer = xcalloc(1024);
+ *      buffer = xcalloc(1, 1024);
  *      free(buffer);
  *      buffer = xstrdup(string);
  *      free(buffer);
@@ -62,6 +62,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
+ * Copyright 2015 Russ Allbery <eagle@eyrie.org>
  * Copyright 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
@@ -258,6 +259,7 @@ x_asprintf(char **strp, const char *file, int line, const char *fmt, ...)
         status = vasprintf(strp, fmt, args_copy);
         va_end(args_copy);
     }
+    va_end(args);
 }
 #else /* !(HAVE_C99_VAMACROS || HAVE_GNU_VAMACROS) */
 void
@@ -280,5 +282,6 @@ x_asprintf(char **strp, const char *fmt, ...)
         status = vasprintf(strp, fmt, args_copy);
         va_end(args_copy);
     }
+    va_end(args);
 }
 #endif /* !(HAVE_C99_VAMACROS || HAVE_GNU_VAMACROS) */

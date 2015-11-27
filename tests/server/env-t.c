@@ -2,6 +2,7 @@
  * Test suite for environment variables set by the server.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006, 2009, 2010, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -71,12 +72,13 @@ main(void)
     struct kerberos_config *config;
     char *expected, *value;
     struct remctl *r;
+    time_t expires;
 
     /* Unless we have Kerberos available, we can't really do anything. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     remctld_start(config, "data/conf-simple", NULL);
 
-    plan(4);
+    plan(5);
 
     /* Run the tests. */
     r = remctl_new();
@@ -98,7 +100,11 @@ main(void)
     value = test_env(r, "REMOTE_HOST");
     ok(strcmp(value, "\n") == 0 || strstr(value, "localhost") != NULL,
        "value for REMOTE_HOST");
+    value = test_env(r, "REMOTE_EXPIRES");
+    expires = strtol(value, NULL, 10);
     free(value);
+    ok(expires > time(NULL), "REMOTE_EXPIRES is in the future (%lu)",
+       (unsigned long) expires);
 
     remctl_close(r);
     free(expected);

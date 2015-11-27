@@ -42,12 +42,41 @@
 #endif
 #include <portable/macros.h>
 
-#ifdef HAVE_KRB5_H
+#if defined(HAVE_KRB5_H)
 # include <krb5.h>
+#elif defined(HAVE_KERBEROSV5_KRB5_H)
+# include <kerberosv5/krb5.h>
 #else
 # include <krb5/krb5.h>
 #endif
 #include <stdlib.h>
+
+/* Heimdal: KRB5_WELLKNOWN_NAME, MIT: KRB5_WELLKNOWN_NAMESTR. */
+#ifndef KRB5_WELLKNOWN_NAME
+# ifdef KRB5_WELLKNOWN_NAMESTR
+#  define KRB5_WELLKNOWN_NAME KRB5_WELLKNOWN_NAMESTR
+# else
+#  define KRB5_WELLKNOWN_NAME "WELLKNOWN"
+# endif
+#endif
+
+/* Heimdal: KRB5_ANON_NAME, MIT: KRB5_ANONYMOUS_PRINCSTR. */
+#ifndef KRB5_ANON_NAME
+# ifdef KRB5_ANONYMOUS_PRINCSTR
+#  define KRB5_ANON_NAME KRB5_ANONYMOUS_PRINCSTR
+# else
+#  define KRB5_ANON_NAME "ANONYMOUS"
+# endif
+#endif
+
+/* Heimdal: KRB5_ANON_REALM, MIT: KRB5_ANONYMOUS_REALMSTR. */
+#ifndef KRB5_ANON_REALM
+# ifdef KRB5_ANONYMOUS_REALMSTR
+#  define KRB5_ANON_REALM KRB5_ANONYMOUS_REALMSTR
+# else
+#  define KRB5_ANON_REALM "WELLKNOWN:ANONYMOUS"
+# endif
+#endif
 
 BEGIN_DECLS
 
@@ -73,6 +102,23 @@ const char *krb5_get_error_message(krb5_context, krb5_error_code);
 #endif
 #ifndef HAVE_KRB5_FREE_ERROR_MESSAGE
 void krb5_free_error_message(krb5_context, const char *);
+#endif
+
+/*
+ * Both current MIT and current Heimdal prefer _opt_alloc and _opt_free, but
+ * older versions of both require allocating your own struct and calling
+ * _opt_init.
+ */
+#ifndef HAVE_KRB5_GET_INIT_CREDS_OPT_ALLOC
+krb5_error_code krb5_get_init_creds_opt_alloc(krb5_context,
+                                              krb5_get_init_creds_opt **);
+#endif
+#ifdef HAVE_KRB5_GET_INIT_CREDS_OPT_FREE
+# ifndef HAVE_KRB5_GET_INIT_CREDS_OPT_FREE_2_ARGS
+#  define krb5_get_init_creds_opt_free(c, o) krb5_get_init_creds_opt_free(o)
+# endif
+#else
+# define krb5_get_init_creds_opt_free(c, o) free(o)
 #endif
 
 /* Heimdal-specific. */

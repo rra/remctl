@@ -19,6 +19,8 @@
  * conflicts with the system version.
  */
 #if TESTING
+# undef snprintf
+# undef vsnprintf
 # define snprintf test_snprintf
 # define vsnprintf test_vsnprintf
 #endif

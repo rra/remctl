@@ -20,6 +20,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2014, 2015 Russ Allbery <eagle@eyrie.org>
  * Copyright 2009, 2011, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007, 2008
@@ -57,6 +58,7 @@
 #include <time.h>
 
 #include <util/fdflag.h>
+#include <util/macros.h>
 #include <util/messages.h>
 #include <util/network.h>
 #include <util/xmalloc.h>
@@ -95,17 +97,6 @@
 #else
 # define socket_xwrite(fd, b, s)        xwrite((fd), (b), (s))
 #endif
-
-/*
- * Windows requires a different errno code for a socket equivalent of EINVAL.
- * Use this macro to set the socket error to EINVAL.
- */
-#ifdef _WIN32
-# define socket_set_errno_einval()      socket_set_errno(WSAEINVAL)
-#else
-# define socket_set_errno_einval()      socket_set_errno(EINVAL)
-#endif
-
 
 /*
  * Set SO_REUSEADDR on a socket if possible (so that something new can listen
@@ -223,7 +214,8 @@ network_bind_ipv6(int type, const char *address, unsigned short port)
     fd = socket(PF_INET6, type, IPPROTO_IP);
     if (fd == INVALID_SOCKET) {
         if (socket_errno != EAFNOSUPPORT && socket_errno != EPROTONOSUPPORT)
-            syswarn("cannot create IPv6 socket for %s,%hu", address, port);
+            syswarn("cannot create IPv6 socket for %s, port %hu", address,
+                    port);
         return INVALID_SOCKET;
     }
     network_set_reuseaddr(fd);
@@ -248,9 +240,13 @@ network_bind_ipv6(int type, const char *address, unsigned short port)
      * exist on the system, but we gain the ability to bind to IPv6 addresses
      * that aren't yet configured.  Since IPv6 address configuration can take
      * unpredictable amounts of time during system setup, this is more robust.
+     *
+     * Ensure there is always a block here to avoid compiler warnings, since
+     * network_set_freebind() may expand into nothing.
      */
-    if (strcmp(address, "::") != 0)
+    if (strcmp(address, "::") != 0) {
         network_set_freebind(fd);
+    }
 
     /* Flesh out the socket and do the bind. */
     memset(&server, 0, sizeof(server));
@@ -274,7 +270,7 @@ network_bind_ipv6(int type, const char *address, unsigned short port)
 #else /* HAVE_INET6 */
 
 socket_type
-network_bind_ipv6(const char *address, unsigned short port)
+network_bind_ipv6(int type UNUSED, const char *address, unsigned short port)
 {
     warn("cannot bind %s, port %hu: IPv6 not supported", address, port);
     socket_set_errno(EPROTONOSUPPORT);
@@ -287,9 +283,9 @@ network_bind_ipv6(const char *address, unsigned short port)
 /*
  * Create and bind sockets for every local address, as determined by
  * getaddrinfo if IPv6 is available (otherwise, just use the IPv4 loopback
- * address).  Takes the port number, and then a pointer to an array of
- * integers and a pointer to a count of them.  Allocates a new array to hold
- * the file descriptors and stores the count in the third argument.
+ * address).  Takes the socket type and port number, and then a pointer to an
+ * array of integers and a pointer to a count of them.  Allocates a new array
+ * to hold the file descriptors and stores the count in the fourth argument.
  */
 #if HAVE_INET6
 
@@ -391,7 +387,7 @@ network_bind_all_free(socket_type *fds)
  * on any of those sockets and return the file descriptor that selects ready
  * for read.
  *
- * This is primarily intended for UDP services listening on mutliple file
+ * This is primarily intended for UDP services listening on multiple file
  * descriptors, and also provides part of the code for network_accept_any.
  * TCP services will probably want to use network_accept_any instead.
  *
@@ -471,7 +467,9 @@ network_accept_any(socket_type fds[], unsigned int count,
 static bool
 network_source(socket_type fd, int family, const char *source)
 {
-    if (source == NULL || strcmp(source, "all") == 0)
+    if (source == NULL)
+        return true;
+    if (strcmp(source, "all") == 0 || strcmp(source, "any") == 0)
         return true;
     if (family == AF_INET) {
         struct sockaddr_in saddr;
@@ -669,7 +667,7 @@ socket_xread(socket_type fd, void *buffer, size_t size)
 {
     size_t total;
     ssize_t status;
-    int count = 0;
+    unsigned int count = 0;
 
     /* Abort the read if we try 100 times with no forward progress. */
     for (total = 0, status = 0; total < size; total += status) {
@@ -953,6 +951,14 @@ network_addr_match(const char *a, const char *b, const char *mask)
 #ifdef HAVE_INET6
     struct in6_addr a6, b6;
 #endif
+
+    /*
+     * AIX 7.1 treats the empty string as equivalent to 0.0.0.0 and allows it
+     * to match, but it's too easy to get the empty string from some sort of
+     * syntax error.  Special-case the empty string to always return false.
+     */
+    if (a[0] == '\0' || b[0] == '\0')
+        return false;
 
     /*
      * If the addresses are IPv4, the mask may be in one of two forms.  It can

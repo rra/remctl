@@ -11,7 +11,7 @@ License: Expat
 
 Files: *
 Copyright: 1997, 2000-2002 Benjamin Sittler
-  2000-2002, 2004-2014 Russ Allbery <eagle@eyrie.org>
+  2000-2002, 2004-2015 Russ Allbery <eagle@eyrie.org>
   2001-2014 The Board of Trustees of the Leland Stanford Junior University
   2007 Marcus Watts <mdw@umich.edu>
   2008 Andrew Mortensen <admorten@umich.edu>
@@ -24,22 +24,23 @@ Copyright: 1997, 2000-2002 Benjamin Sittler
 License: Expat
 
 Files: Makefile.in
-Copyright: 1994-2013 Free Software Foundation, Inc.
+Copyright: 1994-2014 Free Software Foundation, Inc.
   2006-2014 The Board of Trustees of the Leland Stanford Junior University
 License: FSF-unlimited and Expat
 
 Files: aclocal.m4
-Copyright: 1996-2013 Free Software Foundation, Inc.
+Copyright: 1996-2015 Free Software Foundation, Inc.
   2004 Scott James Remnant <scott@netsplit.com>
+  2012-2015 Dan Nicholson <dbn.lists@gmail.com>
 License: FSF-unlimited, and GPL-2+ with Autoconf exception or Expat
 
 Files: build-aux/ar-lib build-aux/compile build-aux/depcomp
  build-aux/missing
-Copyright: 1996-2013 Free Software Foundation, Inc.
+Copyright: 1996-2014 Free Software Foundation, Inc.
 License: GPL-2+ with Autoconf exception or Expat
 
 Files: build-aux/config.guess build-aux/config.sub
-Copyright: 1992-2014 Free Software Foundation, Inc.
+Copyright: 1992-2015 Free Software Foundation, Inc.
 License: GPL-3+ with Autoconf exception or Expat
 
 Files: build-aux/install-sh
@@ -96,17 +97,18 @@ Copyright: 2002-2014
     The Board of Trustees of the Leland Stanford Junior University
   2006 Romain LENGLET
   2008 Thomas L. Kula <kula@tproa.net>
-  2010 Russ Allbery <eagle@eyrie.org>
+  2010, 2014 Russ Allbery <eagle@eyrie.org>
 License: all-permissive
  Copying and distribution of this file, with or without modification, are
  permitted in any medium without royalty provided the copyright notice and
  this notice are preserved.  This file is offered as-is, without any
  warranty.
 
-Files: m4/gput.m4 m4/gssapi.m4 m4/inet-ntoa.m4 m4/krb5-config.m4 m4/krb5.m4
- m4/ld-version.m4 m4/lib-depends.m4 m4/lib-helper.m4 m4/lib-pathname.m4
- m4/libevent.m4 m4/pcre.m4 m4/snprintf.m4 m4/systemd.m4 m4/vamacros.m4
-Copyright: 1999-2001, 2003 Russ Allbery <eagle@eyrie.org>
+Files: m4/clang.m4 m4/gput.m4 m4/gssapi.m4 m4/inet-ntoa.m4
+ m4/krb5-config.m4 m4/krb5.m4 m4/ld-version.m4 m4/lib-depends.m4
+ m4/lib-helper.m4 m4/lib-pathname.m4 m4/libevent.m4 m4/pcre.m4
+ m4/snprintf.m4 m4/systemd.m4 m4/vamacros.m4
+Copyright: 1999-2001, 2003, 2015 Russ Allbery <eagle@eyrie.org>
   2005-2014 The Board of Trustees of the Leland Stanford Junior University
   2008-2010 Free Software Foundation, Inc.
 License: unlimited
@@ -128,6 +130,7 @@ Files: m4/socket.m4 portable/socket.h util/fdflag.c util/fdflag.h
 Copyright: 1991, 1994-2003 The Internet Software Consortium and Rich Salz
   2004-2010 Internet Systems Consortium, Inc.
   2008-2014 The Board of Trustees of the Leland Stanford Junior University
+  2014-2015 Russ Allbery <eagle@eyrie.org>
 License: ISC
  Permission to use, copy, modify, and distribute this software for any
  purpose with or without fee is hereby granted, provided that the above
@@ -181,6 +184,7 @@ Files: python/_remctlmodule.c python/remctl.py.in python/setup.py.in
 Copyright: 2008 Thomas L. Kula <kula@tproa.net>
   2008, 2011-2012, 2014
     The Board of Trustees of the Leland Stanford Junior University
+  2014 Russ Allbery <eagle@eyrie.org>
 License: MIT-Kula
  Permission to use, copy, modify, and distribute this software and its
  documentation for any purpose and without fee is hereby granted,

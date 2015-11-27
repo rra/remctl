@@ -1,5 +1,75 @@
                        User-Visible remctl Changes
 
+remctl 3.10 (2015-11-27)
+
+    Two new remctld ACLs are supported: anyuser:auth and
+    anyuser:anonymous.  The first is equivalent to ANYUSER, and indeed
+    ANYUSER is now treated as a backwards-compatibility alias for
+    anyuser:auth.  This permits any authenticated user in either the local
+    realm or any realm with which there is cross-realm trust.  The new
+    anyuser:anonymous ACL permits absolutely any user, even
+    unauthenticated users, allowing anyone with network access to the
+    server to run the command.  (Note, however, that actually running
+    commands anonymously requires anonymous PKINIT and anonymous service
+    tickets be enabled for the local Kerberos realm.  These are not common
+    configurations, particularly the second.)
+
+    The remctld server now sets the REMOTE_EXPIRES environment variable to
+    the time (in seconds since UNIX epoch) when the authenticated session
+    used to run a command will expire.  This will generally be the
+    expiration time of the Kerberos ticket used to authenticate to the
+    server.
+
+    Anonymous authentication (such as via anonymous PKINIT) no longer
+    satisfies ANYUSER ACLs.  It's unlikely that existing installations
+    would have encountered anonymous authentication, since obtaining
+    service tickets with anonymous PKINIT is disabled by default.
+
+    Simplify the Python RemctlError exception class.  The code in the
+    exception class just duplicated the behavior of the parent Exception
+    class and was unnecessary, and it interfered with pickling the
+    exception.  This means that RemctlError exceptions, and any derived
+    from RemctlError, will no longer have a value attribute.  To get this
+    information, use the string value of the exception object, or call the
+    error() method on the remctl object.  Thanks to Andrew Deason for the
+    report.
+
+    Previous versions always passed the flags to disable certain warnings
+    to the language binding builds, even if warnings weren't otherwise
+    enabled.  As of remctl 3.9, that included a warning flag not supported
+    by old versions of gcc, breaking builds on RHEL 5.  Instead, only pass
+    the warning suppression flags when building with warnings (via make
+    warnings), which is not the default and is only supported with recent
+    versions of gcc.  Thanks to Ken Dreyer for the report.
+
+    For the localgroup ACL scheme, dynamically resize the buffer passed to
+    getgrnam_r if the call fails due to ERANGE.  Users in large numbers of
+    local groups may require more space than the buffer size returned by
+    the sysconf call.  Patch from Hugh Cole-Baker.
+
+    Fix test suite portability to systems with older versions of Kerberos
+    that didn't have krb5_get_init_creds_opt_alloc, such as the included
+    Kerberos in Solaris 10.
+
+    Update to rra-c-util 5.8:
+
+    * Add missing va_end to xasprintf implementation.
+    * Fix Perl test suite framework for new Automake relative paths.
+    * Avoid $() in the probe for systemd support for Solaris portability.
+    * Prefer libsystemd to libsystemd-daemon if it is available.
+    * Improve portability to Kerberos included in Solaris 10.
+    * Use appropriate warning flags with Clang (currently not warning clean).
+    * Check for integer overflow in vector_join.
+    * Avoid strlcpy in more of the portability code.
+    * Fix hidden visibility of some utility functions.
+    * Improve portability of socket error codes to Windows.
+
+    Update to C TAP Harness 3.4:
+
+    * Fix segfault in runtests with an empty test list.
+    * Display verbose test results with -v or C_TAP_VERBOSE.
+    * Support comments and blank lines in test lists.
+
 remctl 3.9 (2014-07-02)
 
     Add a new server ACL type, localgroup, which converts the principal to
@@ -20,8 +90,9 @@ remctl 3.9 (2014-07-02)
     connection instead of retrying the system call.
 
     Reset the SIGPIPE signal handler before running a command.  The server
-    sets SIGPIPE to SIG_IGN, which unlike all other signal handlers is
-    inherited across an exec.  Reset the handler to SIG_DFL so that
+    sets SIGPIPE to SIG_IGN, which meant that, since ignored signals are
+    inherited across an exec, the child process would inherit possibly
+    surprising SIGPIPE behavior.  Reset the handler to SIG_DFL so that
     commands get default SIGPIPE handling.
 
     Add version and compatibility information to all manual pages.

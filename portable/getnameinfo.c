@@ -28,8 +28,9 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
+#include <portable/macros.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <errno.h>
 
@@ -39,6 +40,7 @@
  * constants, but that should be okay (except possibly for gai_strerror).
  */
 #if TESTING
+# undef getnameinfo
 # define getnameinfo test_getnameinfo
 int test_getnameinfo(const struct sockaddr *, socklen_t, char *, socklen_t,
                      char *, socklen_t, int);
@@ -61,12 +63,15 @@ int test_getnameinfo(const struct sockaddr *, socklen_t, char *, socklen_t,
 static bool
 try_name(const char *name, char *node, socklen_t nodelen, int *status)
 {
+    size_t namelen;
+
     if (strchr(name, '.') == NULL)
         return false;
-    if (strlen(name) + 1 > (size_t) nodelen)
+    namelen = strlen(name);
+    if (namelen + 1 > (size_t) nodelen)
         *status = EAI_OVERFLOW;
     else {
-        strlcpy(node, name, nodelen);
+        memcpy(node, name, namelen + 1);
         *status = 0;
     }
     return true;
@@ -85,6 +90,7 @@ lookup_name(const struct in_addr *addr, char *node, socklen_t nodelen,
     char **alias;
     int status;
     char *name;
+    size_t namelen;
 
     /* Do the name lookup first unless told not to. */
     if (!(flags & NI_NUMERICHOST)) {
@@ -111,9 +117,10 @@ lookup_name(const struct in_addr *addr, char *node, socklen_t nodelen,
 
     /* Just convert the address to ASCII. */
     name = inet_ntoa(*addr);
-    if (strlen(name) + 1 > (size_t) nodelen)
+    namelen = strlen(name);
+    if (namelen + 1 > (size_t) nodelen)
         return EAI_OVERFLOW;
-    strlcpy(node, name, nodelen);
+    memcpy(node, name, namelen + 1);
     return 0;
 }
 
@@ -129,15 +136,17 @@ lookup_service(unsigned short port, char *service, socklen_t servicelen,
     struct servent *srv;
     const char *protocol;
     int status;
+    size_t namelen;
 
     /* Do the name lookup first unless told not to. */
     if (!(flags & NI_NUMERICSERV)) {
         protocol = (flags & NI_DGRAM) ? "udp" : "tcp";
         srv = getservbyport(htons(port), protocol);
         if (srv != NULL) {
-            if (strlen(srv->s_name) + 1 > (size_t) servicelen)
+            namelen = strlen(srv->s_name);
+            if (namelen + 1 > (size_t) servicelen)
                 return EAI_OVERFLOW;
-            strlcpy(service, srv->s_name, servicelen);
+            memcpy(service, srv->s_name, namelen + 1);
             return 0;
         }
     }

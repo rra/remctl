@@ -24,6 +24,7 @@ portable/strlcpy
 server/accept
 server/acl
 server/acl/localgroup
+server/anonymous
 server/bind
 server/config
 server/continue

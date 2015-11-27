@@ -27,6 +27,7 @@
 #include <util/macros.h>
 #include <util/messages.h>
 #include <util/protocol.h>
+#include <util/xmalloc.h>
 
 /*
  * We would like to use event_base_loopbreak and event_base_got_break, but the
@@ -226,6 +227,7 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
     socket_type stderr_fds[2]   = { INVALID_SOCKET, INVALID_SOCKET };
     socket_type fd;
     struct sigaction sa;
+    char *expires;
 
     /*
      * Socket pairs are used for communication with the child process that
@@ -335,6 +337,10 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
                 sysdie("cannot set REMOTE_HOST in environment");
         if (setenv("REMCTL_COMMAND", process->command, 1) < 0)
             sysdie("cannot set REMCTL_COMMAND in environment");
+        xasprintf(&expires, "%lu", (unsigned long) client->expires);
+        if (setenv("REMOTE_EXPIRES", expires, 1) < 0)
+            sysdie("cannot set REMOTE_EXPIRES in environment");
+        free(expires);
 
         /* Drop privileges if requested. */
         if (process->rule->user != NULL && process->rule->uid > 0) {

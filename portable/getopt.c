@@ -40,6 +40,11 @@
  * avoid conflicts with the system version.
  */
 #if TESTING
+# undef getopt
+# undef optind
+# undef opterr
+# undef optopt
+# undef optarg
 # define getopt test_getopt
 int test_getopt(int, char **, const char *);
 # define optind test_optind
