@@ -54,13 +54,9 @@
 static char *acl_gput_file = NULL;
 #endif
 
-/*
- * maximum length allowed when converting
- * principal to local name
- */
-#define REMCTL_KRB5_LOCALNAME_MAX_LEN sysconf(_SC_LOGIN_NAME_MAX) < 256 \
-                                      ? 256 \
-                                      : sysconf(_SC_LOGIN_NAME_MAX)
+/* Maximum length allowed when converting a principal to a local name. */
+#define REMCTL_KRB5_LOCALNAME_MAX_LEN \
+    (sysconf(_SC_LOGIN_NAME_MAX) < 256 ? 256 : sysconf(_SC_LOGIN_NAME_MAX))
 
 /* Return codes for configuration and ACL parsing. */
 enum config_status {
