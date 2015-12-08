@@ -7,9 +7,9 @@
  * so that clients don't have to care, but some functions (like continued
  * commands) will return unimplemented errors.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -45,8 +45,13 @@ internal_v1_commandv(struct remctl *r, const struct iovec *command,
 
     /* Allocate room for the total message: argc, {<length><arg>}+. */
     token.length = 4;
-    for (i = 0; i < count; i++)
+    for (i = 0; i < count; i++) {
+        if (token.length >= SIZE_MAX - 4 - command[i].iov_len) {
+            internal_set_error(r, "memory allocation too large");
+            return false;
+        }
         token.length += 4 + command[i].iov_len;
+    }
     token.value = malloc(token.length);
     if (token.value == NULL) {
         internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
@@ -68,7 +73,7 @@ internal_v1_commandv(struct remctl *r, const struct iovec *command,
 
     /* Send the result. */
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_SEND_MIC,
-                             &token, &major, &minor);
+                             &token, r->timeout, &major, &minor);
     if (status != TOKEN_OK) {
         internal_token_error(r, "sending token", status, major, minor);
         free(token.value);
@@ -113,12 +118,15 @@ internal_v1_output(struct remctl *r)
 
     /* Otherwise, we have to read the token from the server. */
     status = token_recv_priv(r->fd, r->context, &flags, &token,
-                             TOKEN_MAX_LENGTH, &major, &minor);
+                             TOKEN_MAX_LENGTH, r->timeout, &major, &minor);
     if (status != TOKEN_OK) {
         internal_token_error(r, "receiving token", status, major, minor);
-        if (status == TOKEN_FAIL_EOF) {
+        if (status == TOKEN_FAIL_EOF || status == TOKEN_FAIL_TIMEOUT) {
+            gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
+            r->context = GSS_C_NO_CONTEXT;
             socket_close(r->fd);
             r->fd = INVALID_SOCKET;
+            r->ready = false;
         }
         return NULL;
     }
@@ -179,6 +187,8 @@ internal_v1_output(struct remctl *r)
      * We can only do one round with protocol version one, so close the
      * connection now.
      */
+    gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
+    r->context = GSS_C_NO_CONTEXT;
     socket_close(r->fd);
     r->fd = INVALID_SOCKET;
     r->ready = false;

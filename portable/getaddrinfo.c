@@ -19,7 +19,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
  * in this work, whether granted under contract or by operation of law or
@@ -62,6 +62,9 @@ extern int h_errno;
  * constants, but that should be okay (except possibly for gai_strerror).
  */
 #if TESTING
+# undef gai_strerror
+# undef freeaddrinfo
+# undef getaddrinfo
 # define gai_strerror test_gai_strerror
 # define freeaddrinfo test_freeaddrinfo
 # define getaddrinfo  test_getaddrinfo
@@ -88,11 +91,12 @@ int test_getaddrinfo(const char *, const char *, const struct addrinfo *,
 
 /*
  * Value representing all of the hint flags set.  Linux uses flags up to
- * 0x0400, so be sure not to break when testing on that platform.
+ * 0x0400, and Mac OS X up to 0x1000, so be sure not to break when testing
+ * on these platforms.
  */
 #if TESTING
 # ifdef HAVE_GETADDRINFO
-#  define AI_INTERNAL_ALL 0x04ff
+#  define AI_INTERNAL_ALL 0x1fff
 # else
 #  define AI_INTERNAL_ALL 0x01ff
 # endif
@@ -152,10 +156,8 @@ freeaddrinfo(struct addrinfo *ai)
 
     while (ai != NULL) {
         next = ai->ai_next;
-        if (ai->ai_addr != NULL)
-            free(ai->ai_addr);
-        if (ai->ai_canonname != NULL)
-            free(ai->ai_canonname);
+        free(ai->ai_addr);
+        free(ai->ai_canonname);
         free(ai);
         ai = next;
     }
@@ -170,18 +172,18 @@ freeaddrinfo(struct addrinfo *ai)
  * of the string is consumed, and checking that the resulting number is
  * positive.
  */
-static int
+static bool
 convert_service(const char *string, long *result)
 {
     char *end;
 
     if (*string == '\0')
-        return 0;
+        return false;
     errno = 0;
     *result = strtol(string, &end, 10);
     if (errno != 0 || *end != '\0' || *result < 0)
-        return 0;
-    return 1;
+        return false;
+    return true;
 }
 
 
@@ -197,15 +199,17 @@ gai_addrinfo_new(int socktype, const char *canonical, struct in_addr addr,
                  unsigned short port)
 {
     struct addrinfo *ai;
+    struct sockaddr_in *sin;
 
     ai = malloc(sizeof(*ai));
     if (ai == NULL)
         return NULL;
-    ai->ai_addr = malloc(sizeof(struct sockaddr_in));
-    if (ai->ai_addr == NULL) {
+    sin = calloc(1, sizeof(struct sockaddr_in));
+    if (sin == NULL) {
         free(ai);
         return NULL;
     }
+    ai->ai_addr = (struct sockaddr *) sin;
     ai->ai_next = NULL;
     if (canonical == NULL)
         ai->ai_canonname = NULL;
@@ -216,16 +220,15 @@ gai_addrinfo_new(int socktype, const char *canonical, struct in_addr addr,
             return NULL;
         }
     }
-    memset(ai->ai_addr, 0, sizeof(struct sockaddr_in));
     ai->ai_flags = 0;
     ai->ai_family = AF_INET;
     ai->ai_socktype = socktype;
     ai->ai_protocol = (socktype == SOCK_DGRAM) ? IPPROTO_UDP : IPPROTO_TCP;
     ai->ai_addrlen = sizeof(struct sockaddr_in);
-    ((struct sockaddr_in *) ai->ai_addr)->sin_family = AF_INET;
-    ((struct sockaddr_in *) ai->ai_addr)->sin_addr = addr;
-    ((struct sockaddr_in *) ai->ai_addr)->sin_port = htons(port);
-    sin_set_length((struct sockaddr_in *) ai->ai_addr);
+    sin->sin_family = AF_INET;
+    sin->sin_addr = addr;
+    sin->sin_port = htons(port);
+    sin_set_length(sin);
     return ai;
 }
 

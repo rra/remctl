@@ -10,7 +10,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
- * Copyright 2008 Russ Allbery <rra@stanford.edu>
+ * Copyright 2008 Russ Allbery <eagle@eyrie.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,11 @@
  * avoid conflicts with the system version.
  */
 #if TESTING
+# undef getopt
+# undef optind
+# undef opterr
+# undef optopt
+# undef optarg
 # define getopt test_getopt
 int test_getopt(int, char **, const char *);
 # define optind test_optind
@@ -133,7 +138,7 @@ getopt(int argc, char *argv[], const char *optstring)
                             --i;
                             tmp = argv[i];
                             end = (charind == 0) ? optind - 1 : optind;
-                            for (k = i; k + 1 <= end; k++) {
+                            for (k = i; k < end; k++) {
                                 argv[k] = argv[k + 1];
                             }
                             argv[end] = tmp;

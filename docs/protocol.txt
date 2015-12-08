@@ -1,12 +1,14 @@
 
 
 
-remctl Protocol                                               R. Allbery
+
+                                                              R. Allbery
                                                      Stanford University
-                                                        October 31, 2011
+                                                            January 2014
 
 
               remctl: Remote Authenticated Command Service
+                        draft-allbery-remctl-00
 
 Abstract
 
@@ -17,101 +19,6 @@ Abstract
    the current (version 3) protocol and the older version 1 protocol are
    described.  The version 1 protocol should only be implemented for
    backward compatibility.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                         [Page 1]
-
-                                 remctl                     October 2011
-
-
-Table of Contents
-
-   1.  Basic Packet Format  . . . . . . . . . . . . . . . . . . . . .  3
-   2.  Network Protocol (version 3) . . . . . . . . . . . . . . . . .  4
-     2.1.  Session Sequence . . . . . . . . . . . . . . . . . . . . .  4
-     2.2.  Message Format . . . . . . . . . . . . . . . . . . . . . .  5
-     2.3.  Protocol Version Negotiation . . . . . . . . . . . . . . .  5
-     2.4.  MESSAGE_COMMAND  . . . . . . . . . . . . . . . . . . . . .  6
-     2.5.  MESSAGE_OUTPUT and MESSAGE_STATUS  . . . . . . . . . . . .  7
-     2.6.  MESSAGE_ERROR  . . . . . . . . . . . . . . . . . . . . . .  8
-     2.7.  MESSAGE_QUIT . . . . . . . . . . . . . . . . . . . . . . .  9
-     2.8.  MESSAGE_NOOP . . . . . . . . . . . . . . . . . . . . . . .  9
-   3.  Network Protocol (version 1) . . . . . . . . . . . . . . . . . 10
-   4.  Security Considerations  . . . . . . . . . . . . . . . . . . . 12
-   Appendix A.  Acknowledgements  . . . . . . . . . . . . . . . . . . 13
-   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 14
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                         [Page 2]
-
-                                 remctl                     October 2011
-
 
 1.  Basic Packet Format
 
@@ -140,9 +47,16 @@ Allbery                                                         [Page 2]
        0x40        TOKEN_PROTOCOL
 
    Only TOKEN_CONTEXT, TOKEN_CONTEXT_NEXT, TOKEN_DATA, and
-   TOKEN_PROTOCOL are used for packets for version 2 and of the
+   TOKEN_PROTOCOL are used for packets for versions 2 and 3 of the
    protocol.  The other flags are used only with the legacy version 1
    protocol.
+
+
+
+Allbery                   Expires July 5, 2014                  [Page 1]
+
+                                 remctl                     January 2014
+
 
    The length field is a four-octet length in network byte order,
    specifying the number of octets in the following data payload.
@@ -152,22 +66,6 @@ Allbery                                                         [Page 2]
    gss_wrap.  The length of the data passed to gss_wrap MUST NOT be
    larger than 65,536 octets (64KB), even if the underlying Kerberos
    implementation supports longer input buffers.
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                         [Page 3]
-
-                                 remctl                     October 2011
-
 
 2.  Network Protocol (version 3)
 
@@ -181,14 +79,14 @@ Allbery                                                         [Page 3]
        doesn't include TOKEN_PROTOCOL, it is speaking the version 1
        protocol, and the server MUST either drop the connection or fall
        back to the version 1 protocol.  This initial message is useless
-       in a pure version 2 protocol world and is done only for backward
-       compatibility with the version 1 protocol.
+       in a pure version 2 or 3 protocol world and is done only for
+       backward compatibility with the version 1 protocol.
 
-   2.  Client calls gss_init_sec_context and replies with the results
-       and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The client MUST
-       pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG as
-       requested flags and SHOULD pass GSS_C_REPLAY_FLAG and
-       GSS_C_SEQUENCE_FLAG.
+   2.  Client calls gss_init_sec_context and sends the results as the
+       message body with flags TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).
+       The client MUST pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and
+       GSS_C_INTEG_FLAG as requested flags to gss_init_sec_context and
+       SHOULD pass GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG.
 
    3.  Server replies with the results of gss_accept_sec_context and
        flags TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  If the server
@@ -208,6 +106,14 @@ Allbery                                                         [Page 3]
        from the flags, it is an considered an error and the connect MUST
        be dropped.  (This could be a down-negotiation attack.)  After
        the establishment of the security context, both client and server
+
+
+
+Allbery                   Expires July 5, 2014                  [Page 2]
+
+                                 remctl                     January 2014
+
+
        MUST confirm that GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and
        GSS_C_INTEG_FLAG are set in the resulting security context and
        MUST immediately close the connection if this is not the case.
@@ -217,14 +123,6 @@ Allbery                                                         [Page 3]
        commands are sent with flags TOKEN_DATA and TOKEN_PROTOCOL (0x44)
        and the data payload of all packets is protected with gss_wrap.
        The conf_req_flag parameter of gss_wrap MUST be set to non-zero,
-
-
-
-Allbery                                                         [Page 4]
-
-                                 remctl                     October 2011
-
-
        requesting both confidentiality and integrity services.
 
 2.2.  Message Format
@@ -254,11 +152,23 @@ Allbery                                                         [Page 4]
        7   MESSAGE_NOOP
 
    The first two message types are client messages and MUST NOT be sent
-   by the server.  The remaining message types are server messages and
-   MUST NOT by sent by the client.
+   by the server.  The remaining message types except for MESSAGE_NOOP
+   are server messages and MUST NOT by sent by the client.
 
    All of these message types were introduced in protocol version 2
    except for MESSAGE_NOOP, which is a protocol version 3 message.
+
+
+
+
+
+
+
+
+Allbery                   Expires July 5, 2014                  [Page 3]
+
+                                 remctl                     January 2014
+
 
 2.3.  Protocol Version Negotiation
 
@@ -272,14 +182,6 @@ Allbery                                                         [Page 4]
    The client MUST then either send only messages supported at that
    protocol version or lower or send MESSAGE_QUIT and close the
    connection.
-
-
-
-
-Allbery                                                         [Page 5]
-
-                                 remctl                     October 2011
-
 
    Currently, there are only two meaningful values for the highest
    supported version: 3, which indicates everything in this
@@ -303,40 +205,47 @@ Allbery                                                         [Page 5]
    the connection open (up to a timeout period) and wait for more
    commands.  This is similar to HTTP keep-alive.
 
-   If the continue status is 1, it indicates that there is more data
-   coming.  The server should accept the data sent, buffer or process
-   it, and wait for additional messages before responding.  If the the
-   continue status is 2, it indicates that this message is logically a
-   part of the previous message (which MUST have had a continue status
-   of 1 or 2) and still has more data coming.  If the continue status is
-   3, it says that this message is logically part of the previous
-   message, like 2, but it also says that this is the end of the
-   command.
+   If the continue status is 0, it indicates that this is the complete
+   command.  If the continue status is 1, it indicates that there is
+   more data coming.  The server should accept the data sent, buffer it,
+   and wait for additional messages before running the command or
+   otherwise responding.  If the the continue status is 2, it indicates
+   that this message is logically a part of the previous message (which
+   MUST have had a continue status of 1 or 2) and still has more data
+   coming.  If the continue status is 3, it says that this message is
+   logically part of the previous message, like 2, but it also says that
+   this is the end of the command.
 
    A continuation of a message starts with the keep-alive flag and
    continue status and then the next chunk of data.  To reconstruct a
+
+
+
+Allbery                   Expires July 5, 2014                  [Page 4]
+
+                                 remctl                     January 2014
+
+
    continued message, remove the first two octets from each chunk and
    concatenate the pieces together.  The result is the portion of a
-   MESSAGE_COMMAND starting with the number of arguments.  Messages may
-   be broken into multiple MESSAGE_COMMANDs even in the middle of the
-   number of arguments or an argument length.  In other words, the first
-   three octets of the number of arguments could be in the first
+   MESSAGE_COMMAND starting with the number of arguments.
+
+   The current implementation permits messages to be broken into
+   multiple MESSAGE_COMMANDs even in the middle of the number of
+   arguments or an argument length.  In other words, the first three
+   octets of the number of arguments could be in the first
    MESSAGE_COMMAND (with continue status 1) and the last octet would
    then be in the next MESSAGE_COMMAND (with continue status 2 or 3).
+   However, the client SHOULD NOT take advantage of this support and
+   SHOULD NOT split an argument count or argument length across multiple
+   messages, since this support may be dropped in a subsequent protocol
+   revision.
 
    For as long as the continue status is 1 or 2, the next message from
    the client MUST be either another MESSAGE_COMMAND with a continue
    status of 2 or 3 or a MESSAGE_QUIT.  In other words, other message
    types MUST NOT be intermixed with continued commands, but
    MESSAGE_QUIT may be sent by the client in the middle of a continued
-
-
-
-Allbery                                                         [Page 6]
-
-                                 remctl                     October 2011
-
-
    command to abort that command.  If the server receives MESSAGE_QUIT
    from the client before receiving a MESSAGE_COMMAND with a status of 3
    (indicating the end of the command), the command MUST be discarded
@@ -344,7 +253,7 @@ Allbery                                                         [Page 6]
 
    If a client sends an invalid sequence of MESSAGE_COMMAND messages
    that violate the continuation rules described above, the server
-   SHOULD reply with a MESSAGE_ERROR message, generally with either
+   SHOULD reply with a MESSAGE_ERROR message, generally with one of the
    ERROR_BAD_TOKEN, ERROR_UNKNOWN_MESSAGE, ERROR_BAD_COMMAND, or
    ERROR_UNEXPECTED_MESSAGE error codes.  It MUST discard the partial
    command without acting on it.  The client cannot correct an error in
@@ -364,6 +273,14 @@ Allbery                                                         [Page 6]
    one of those limits, the server MUST respond with MESSAGE_ERROR with
    an error code of ERROR_TOOMANY_ARGS or ERROR_TOOMUCH_DATA as
    appropriate.
+
+
+
+
+Allbery                   Expires July 5, 2014                  [Page 5]
+
+                                 remctl                     January 2014
+
 
 2.5.  MESSAGE_OUTPUT and MESSAGE_STATUS
 
@@ -385,14 +302,6 @@ Allbery                                                         [Page 6]
 
    MESSAGE_STATUS indicates the command has finished and returns the
    final exit stauts of the command.  Exit status is 0 for success and
-
-
-
-Allbery                                                         [Page 7]
-
-                                 remctl                     October 2011
-
-
    non-zero for failure, where the meaning of non-zero exit statuses is
    left to the application to define.  (This is identical to a Unix
    command exit status.)
@@ -415,6 +324,19 @@ Allbery                                                         [Page 7]
    The error code is a four-octet number in network byte order
    indicating the type of error.  The error code may be one of the
    following values:
+
+
+
+
+
+
+
+
+
+Allbery                   Expires July 5, 2014                  [Page 6]
+
+                                 remctl                     January 2014
+
 
        1  ERROR_INTERNAL           Internal server failure
        2  ERROR_BAD_TOKEN          Invalid format in token
@@ -441,14 +363,6 @@ Allbery                                                         [Page 7]
    immediately after sending the MESSAGE_ERROR response message.
    Otherwise, the server SHOULD still honor that flag, although the
    server MAY terminate the connection after an unreasonable number of
-
-
-
-Allbery                                                         [Page 8]
-
-                                 remctl                     October 2011
-
-
    errors.
 
 2.7.  MESSAGE_QUIT
@@ -475,34 +389,9 @@ Allbery                                                         [Page 8]
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                         [Page 9]
+Allbery                   Expires July 5, 2014                  [Page 7]
 
-                                 remctl                     October 2011
+                                 remctl                     January 2014
 
 
 3.  Network Protocol (version 1)
@@ -556,9 +445,9 @@ Allbery                                                         [Page 9]
 
 
 
-Allbery                                                        [Page 10]
+Allbery                   Expires July 5, 2014                  [Page 8]
 
-                                 remctl                     October 2011
+                                 remctl                     January 2014
 
 
    9.   Server runs the command, collects the output, and sends the
@@ -571,51 +460,6 @@ Allbery                                                        [Page 10]
         zero.
 
    10.  Server and client close connection.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                        [Page 11]
-
-                                 remctl                     October 2011
-
 
 4.  Security Considerations
 
@@ -647,32 +491,6 @@ Allbery                                                        [Page 11]
    so any context that didn't negotiate confidentiality and integrity
    services would fail later.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                        [Page 12]
-
-                                 remctl                     October 2011
-
-
 Appendix A.  Acknowledgements
 
    The original remctl protocol design was done by Anton Ushakov, with
@@ -683,51 +501,27 @@ Appendix A.  Acknowledgements
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                        [Page 13]
+Allbery                   Expires July 5, 2014                  [Page 9]
 
-                                 remctl                     October 2011
+                                 remctl                     January 2014
 
+
+Appendix B.  Additional License
+
+   This section supplements the Copyright Notice section at the start of
+   this document.  It states an additional copyright notice and grants a
+   much less restrictive license than the default IETF Trust license.
+   You may copy and distribute this document, with or without
+   modification, under your choice of the license specified in the
+   Copyright Notice section or the license below.
+
+   Copyright 2006, 2007, 2008, 2009, 2011, 2013, 2014 The Board of
+   Trustees of the Leland Stanford Junior University
+
+   Copying and distribution of this file, with or without modification,
+   are permitted in any medium without royalty provided the copyright
+   notice and this notice are preserved.  This file is offered as-is,
+   without any warranty.
 
 Author's Address
 
@@ -737,7 +531,7 @@ Author's Address
    Stanford, CA  94305-4136
    US
 
-   Email: rra@stanford.edu
+   Email: eagle@eyrie.org
    URI:   http://www.eyrie.org/~eagle/
 
 
@@ -763,22 +557,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Allbery                                                        [Page 14]
-
+Allbery                   Expires July 5, 2014                 [Page 10]

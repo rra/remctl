@@ -8,8 +8,8 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2002, 2004, 2005 Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009
+ * Copyright 2002, 2004, 2005, 2015 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2007, 2009, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -34,11 +34,10 @@
 #include <config.h>
 #include <portable/system.h>
 
+#include <tests/tap/macros.h>
 #include <tests/tap/messages.h>
-#include <util/concat.h>
-#include <util/macros.h>
+#include <tests/tap/string.h>
 #include <util/messages.h>
-#include <util/xmalloc.h>
 
 /* A global buffer into which message_log_buffer stores error messages. */
 char *errors = NULL;
@@ -48,19 +47,19 @@ char *errors = NULL;
  * An error handler that appends all errors to the errors global.  Used by
  * error_capture.
  */
-static void
-message_log_buffer(int len, const char *fmt, va_list args, int error UNUSED)
+static void __attribute__((__format__(printf, 2, 0)))
+message_log_buffer(int len UNUSED, const char *fmt, va_list args,
+                   int error UNUSED)
 {
     char *message;
 
-    message = xmalloc(len + 1);
-    vsnprintf(message, len + 1, fmt, args);
-    if (errors == NULL) {
-        errors = concat(message, "\n", (char *) 0);
-    } else {
+    bvasprintf(&message, fmt, args);
+    if (errors == NULL)
+        basprintf(&errors, "%s\n", message);
+    else {
         char *new_errors;
 
-        new_errors = concat(errors, message, "\n", (char *) 0);
+        basprintf(&new_errors, "%s%s\n", errors, message);
         free(errors);
         errors = new_errors;
     }
@@ -76,10 +75,8 @@ message_log_buffer(int len, const char *fmt, va_list args, int error UNUSED)
 void
 errors_capture(void)
 {
-    if (errors != NULL) {
-        free(errors);
-        errors = NULL;
-    }
+    free(errors);
+    errors = NULL;
     message_handlers_warn(1, message_log_buffer);
     message_handlers_notice(1, message_log_buffer);
 }

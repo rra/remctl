@@ -4,9 +4,9 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2002, 2004, 2005 Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2010, 2011
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2002, 2004, 2005, 2015 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2009, 2010, 2011, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -38,7 +38,6 @@
 
 #include <tests/tap/basic.h>
 #include <tests/tap/process.h>
-#include <util/concat.h>
 #include <util/macros.h>
 #include <util/messages.h>
 #include <util/xmalloc.h>
@@ -93,7 +92,8 @@ static void test11(void *data UNUSED) {
     sysdie("fatal");
 }
 
-static void log_msg(size_t len, const char *format, va_list args, int error) {
+static void __attribute__((__format__(printf, 2, 0)))
+log_msg(size_t len, const char *format, va_list args, int error) {
     fprintf(stderr, "%lu %d ", (unsigned long) len, error);
     vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
@@ -166,7 +166,7 @@ test_strerror(int status, const char *output, int error,
 {
     char *full_output, *name;
 
-    full_output = concat(output, ": ", strerror(error), "\n", (char *) NULL);
+    xasprintf(&full_output, "%s: %s\n", output, strerror(error));
     xasprintf(&name, "strerror %lu", testnum / 3 + 1);
     is_function_output(function, NULL, status, full_output, "%s", name);
     free(full_output);

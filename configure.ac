@@ -1,35 +1,111 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
-dnl Written by Russ Allbery <rra@stanford.edu>
-dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011
+dnl Written by Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012,
+dnl     2013, 2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl See LICENSE for licensing terms.
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [3.0], [rra@stanford.edu])
+AC_INIT([remctl], [3.10], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([1.11 check-news foreign silent-rules subdir-objects
+AM_INIT_AUTOMAKE([1.11 check-news dist-xz foreign silent-rules subdir-objects
     -Wall -Werror])
 AM_MAINTAINER_MODE
 
+dnl Detect unexpanded macros.
+m4_pattern_forbid([^PKG_])
+m4_pattern_forbid([^RRA_])
+
+dnl AM_PROG_AR is required for Automake 1.12 by Libtool but not defined at all
+dnl (or needed) in Automake 1.11.  Work around this bug.
 AC_PROG_CC
 AC_USE_SYSTEM_EXTENSIONS
+RRA_PROG_CC_CLANG
+AC_SYS_LARGEFILE
 AM_PROG_CC_C_O
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 RRA_LD_VERSION_SCRIPT
 
+dnl Support installation of systemd unit files.
+RRA_WITH_SYSTEMD_UNITDIR
+
+dnl Only used for the test suite.
+AC_ARG_VAR([PATH_FAKEROOT], [Path to fakeroot for the test suite])
+AC_PATH_PROG([PATH_FAKEROOT], [fakeroot])
+
+dnl Probes for networking libraries.
 AC_SEARCH_LIBS([gethostbyname], [nsl])
-AC_SEARCH_LIBS([socket], [socket], ,
+AC_SEARCH_LIBS([socket], [socket], [],
     [AC_CHECK_LIB([nsl], [socket], [LIBS="-lnsl -lsocket $LIBS"], [],
         [-lsocket])])
+
+dnl Kerberos portability checks.
+RRA_LIB_KRB5_OPTIONAL
+AS_IF([test x"$rra_use_KRB5" != xfalse],
+    [RRA_LIB_KRB5_SWITCH
+     AC_CHECK_FUNCS([krb5_get_init_creds_opt_alloc \
+         krb5_get_init_creds_opt_set_anonymous \
+         krb5_get_init_creds_opt_set_default_flags \
+         krb5_get_init_creds_opt_set_out_ccache \
+         krb5_principal_get_realm \
+         krb5_xfree])
+     AC_CHECK_FUNCS([krb5_get_init_creds_opt_free],
+        [RRA_FUNC_KRB5_GET_INIT_CREDS_OPT_FREE_ARGS])
+     AC_CHECK_DECLS([krb5_kt_free_entry], [], [], [RRA_INCLUDES_KRB5])
+     AC_LIBOBJ([krb5-extra])
+     RRA_LIB_KRB5_RESTORE])
+AM_CONDITIONAL([HAVE_KRB5], [test x"$rra_use_KRB5" = xtrue])
+
+dnl GSS-API portability checks.
 RRA_LIB_GSSAPI
+RRA_LIB_GSSAPI_SWITCH
+AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
+   [AC_CHECK_DECLS([gss_mech_krb5], [],
+       [AC_LIBOBJ([gssapi-mech])], [RRA_INCLUDES_GSSAPI])],
+   [RRA_INCLUDES_GSSAPI])
+AC_CHECK_FUNCS([gss_krb5_ccache_name gss_krb5_import_cred])
+RRA_LIB_GSSAPI_RESTORE
+
+dnl Check for libevent, used by the server.
+RRA_LIB_EVENT
+RRA_LIB_EVENT_SWITCH
+AC_CHECK_HEADERS([event2/event.h])
+AC_CHECK_TYPES([bufferevent_data_cb, bufferevent_event_cb, event_callback_fn,
+                evutil_socket_t],
+    [], [], [RRA_INCLUDES_EVENT])
+AC_CHECK_FUNCS([bufferevent_get_input \
+    bufferevent_read_buffer \
+    bufferevent_socket_new \
+    evbuffer_get_length \
+    event_base_got_break \
+    event_base_loopbreak \
+    event_free \
+    event_new \
+    event_set_fatal_callback \
+    libevent_global_shutdown])
+RRA_LIB_EVENT_RESTORE
+
+dnl Check for the systemd daemon support library.
+RRA_LIB_SYSTEMD_DAEMON_OPTIONAL
+
+dnl Check for the CMU GPUT library.
+RRA_LIB_GPUT
+
+dnl Check for regex libraries for pcre:* and regex:* ACL support.
+RRA_LIB_PCRE_OPTIONAL
+AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
+
+dnl General C library and networking probes.
 AC_HEADER_STDBOOL
-AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/uio.h syslog.h])
-AC_CHECK_DECLS([snprintf, vsnprintf])
+AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/time.h \
+                  sys/uio.h syslog.h])
+AC_CHECK_DECLS([snprintf, strlcat, strlcpy, vsnprintf])
 AC_CHECK_DECLS([h_errno], [], [], [#include <netdb.h>])
 AC_CHECK_DECLS([inet_aton, inet_ntoa], [], [],
     [#include <sys/types.h>
@@ -67,56 +143,9 @@ RRA_FUNC_SNPRINTF
 AC_CHECK_FUNCS([getaddrinfo],
     [RRA_FUNC_GETADDRINFO_ADDRCONFIG],
     [AC_LIBOBJ([getaddrinfo])])
-AC_CHECK_FUNCS([setrlimit setsid])
+AC_CHECK_FUNCS([getgrnam_r setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
-                  setenv strlcat strlcpy])
-AC_TYPE_SIGNAL
-
-dnl Additional GSS-API portability checks.
-RRA_LIB_GSSAPI_SWITCH
-AC_CHECK_HEADERS([gssapi/gssapi.h gssapi/gssapi_krb5.h])
-AC_CHECK_DECL([GSS_C_NT_USER_NAME],
-    [AC_DEFINE([HAVE_GSS_RFC_OIDS], 1,
-       [Define to 1 if the GSS-API library uses RFC-compliant OIDs.])], [],
-[[
-#ifdef HAVE_GSSAPI_GSSAPI_H
-# include <gssapi/gssapi.h>
-#else
-# include <gssapi.h>
-#endif
-]])
-AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
-    [AC_CHECK_DECLS([gss_mech_krb5], [],
-        [AC_LIBOBJ([gssapi-mech])],
-[[
-#ifdef HAVE_GSSAPI_GSSAPI_H
-# include <gssapi/gssapi.h>
-#else
-# include <gssapi.h>
-#endif
-#ifdef HAVE_GSSAPI_GSSAPI_KRB5_H
-# include <gssapi/gssapi_krb5.h>
-#endif
-]])],
-[[
-#ifdef HAVE_GSSAPI_GSSAPI_H
-# include <gssapi/gssapi.h>
-#else
-# include <gssapi.h>
-#endif
-#ifdef HAVE_GSSAPI_GSSAPI_KRB5_H
-# include <gssapi/gssapi_krb5.h>
-#endif
-]])
-AC_CHECK_FUNCS([gss_krb5_ccache_name])
-RRA_LIB_GSSAPI_RESTORE
-
-dnl Check for the CMU GPUT library.
-RRA_LIB_GPUT
-
-dnl Check for regex libraries for pcre:* and regex:* ACL support.
-RRA_LIB_PCRE_OPTIONAL
-AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
+                  mkstemp reallocarray setenv strlcat strlcpy strndup])
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.
@@ -125,6 +154,10 @@ AC_ARG_ENABLE([perl],
     [AC_HELP_STRING([--enable-perl], [Build Perl libremctl bindings])],
     [AS_IF([test x"$enableval" = xyes], [build_perl=yes])])
 AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
+AS_IF([test x"$build_perl" = xyes],
+    [AC_PATH_PROG([PERL], [perl])
+     PERL_LDFLAGS=`"$PERL" -MConfig -e 'print $Config{lddlflags}'`])
+AC_SUBST([PERL_LDFLAGS])
 
 dnl Whether to build the PHP bindings.  The dance required to be able to run
 dnl phpize before AC_OUTPUT sucks like a sucking thing.
@@ -153,14 +186,16 @@ AC_ARG_ENABLE([ruby],
     [AS_IF([test x"$enableval" = xyes], [build_ruby=yes])])
 AM_CONDITIONAL([BUILD_RUBY], [test x"$build_ruby" = xyes])
 
-dnl Used to determine whether to add our GCC-specific warning suppression
-dnl flags to the language binding builds.
-AM_CONDITIONAL([GCC], [test x"$GCC" = xyes])
+dnl Used when building the Perl module.  Normally link against all the
+dnl dependencies that libremctl may need, but don't do so if
+dnl --enable-reduced-depends was specified.
+AS_IF([test x"$rra_reduced_depends" = xtrue],
+    [DEPEND_LIBS=],
+    [DEPEND_LIBS="$GSSAPI_LDFLAGS $GSSAPI_LIBS $KRB5_LDFLAGS $KRB5_LIBS"])
+AC_SUBST([DEPEND_LIBS])
 
 AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
-AS_IF([test x"$build_perl" = xyes],
-    [AC_CONFIG_FILES([perl/Makefile.PL perl/Remctl.pm])
-     AC_CONFIG_FILES([perl/t/api.t], [chmod +x perl/t/api.t])])
+AC_CONFIG_FILES([tests/data/conf-simple])
 AS_IF([test x"$build_php" = xyes],
     [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])
 AS_IF([test x"$build_python" = xyes],
@@ -170,4 +205,6 @@ AS_IF([test x"$build_ruby" = xyes],
     [AC_CONFIG_FILES([ruby/extconf.rb ruby/test_remctl.rb])])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_COMMANDS([docs], [test -d docs || mkdir docs])
+AC_CONFIG_COMMANDS([tests/config],
+    [test -d tests/config || mkdir tests/config])
 AC_OUTPUT

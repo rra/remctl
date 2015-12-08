@@ -1,8 +1,8 @@
 /*
  * gss-tokens test suite.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2007, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -16,18 +16,20 @@
 #include <tests/tap/kerberos.h>
 #include <util/gss-tokens.h>
 
+/* From faketoken.c. */
 extern char send_buffer[2048];
 extern char recv_buffer[2048];
 extern size_t send_length;
 extern size_t recv_length;
 extern int send_flags;
 extern int recv_flags;
+extern bool fail_timeout;
 
 
 int
 main(void)
 {
-    const char *principal;
+    struct kerberos_config *config;
     gss_buffer_desc name_buf, server_tok, client_tok, *token_ptr;
     gss_name_t server_name, client_name;
     gss_ctx_id_t server_ctx, client_ctx;
@@ -36,17 +38,15 @@ main(void)
     int status, flags;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    principal = kerberos_setup();
-    if (principal == NULL)
-        skip_all("Kerberos tests not configured");
-    plan(26);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    plan(28);
 
     /*
      * We have to set up a context first in order to do this test, which is
      * rather annoying.
      */
-    name_buf.value = (char *) principal;
-    name_buf.length = strlen(principal) + 1;
+    name_buf.value = (char *) config->principal;
+    name_buf.length = strlen(config->principal) + 1;
     s_stat = gss_import_name(&s_min_stat, &name_buf, GSS_C_NT_USER_NAME,
                              &server_name);
     if (s_stat != GSS_S_COMPLETE)
@@ -82,7 +82,7 @@ main(void)
     /* Okay, we should now be able to send and receive a token. */
     server_tok.value = (char *) "hello";
     server_tok.length = 5;
-    status = token_send_priv(0, server_ctx, 3, &server_tok, &s_stat,
+    status = token_send_priv(0, server_ctx, 3, &server_tok, 0, &s_stat,
                              &s_min_stat);
     is_int(TOKEN_OK, status, "sent a token successfully");
     is_int(3, send_flags, "...with the right flags");
@@ -99,30 +99,19 @@ main(void)
     client_tok.value = NULL;
     server_tok.value = (char *) "hello";
     server_tok.length = 5;
-    status = token_send_priv(0, server_ctx, 3, &server_tok, &s_stat,
+    status = token_send_priv(0, server_ctx, 3, &server_tok, 0, &s_stat,
                              &s_min_stat);
     is_int(TOKEN_OK, status, "sent another token");
     memcpy(recv_buffer, send_buffer, send_length);
     recv_length = send_length;
     recv_flags = send_flags;
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024,
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024, 0,
                              &s_stat, &c_min_stat);
     is_int(TOKEN_OK, status, "received the token");
     is_int(5, client_tok.length, "...with the right length");
     ok(memcmp(client_tok.value, "hello", 5) == 0, "...and the right data");
     is_int(3, flags, "...and the right flags");
     gss_release_buffer(&c_min_stat, &client_tok);
-
-    /* Test receiving too large of a token. */
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 4, &s_stat,
-                             &s_min_stat);
-    is_int(TOKEN_FAIL_LARGE, status, "receiving too large of a token");
-
-    /* Test receiving a corrupt token. */
-    recv_length = 4;
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024,
-                             &s_stat, &s_min_stat);
-    is_int(TOKEN_FAIL_GSSAPI, status, "receiving a corrupt token");
 
     /*
      * Now, fake up a token to make sure that token_recv_priv is doing the
@@ -137,7 +126,7 @@ main(void)
     recv_length = server_tok.length;
     memcpy(recv_buffer, server_tok.value, server_tok.length);
     gss_release_buffer(&c_min_stat, &server_tok);
-    status = token_recv_priv(0, server_ctx, &flags, &server_tok, 1024,
+    status = token_recv_priv(0, server_ctx, &flags, &server_tok, 1024, 0,
                              &s_stat, &s_min_stat);
     is_int(TOKEN_OK, status, "received a fake token");
     is_int(5, flags, "...with the right flags");
@@ -154,13 +143,14 @@ main(void)
     memcpy(recv_buffer, client_tok.value, client_tok.length);
     recv_length = client_tok.length;
     recv_flags = TOKEN_MIC;
+    gss_release_buffer(&c_min_stat, &client_tok);
     status = token_send_priv(0, server_ctx, TOKEN_DATA | TOKEN_SEND_MIC,
-                             &server_tok, &s_stat, &s_min_stat);
+                             &server_tok, 0, &s_stat, &s_min_stat);
     is_int(TOKEN_OK, status, "sent protocol v1 token with MIC");
     memcpy(recv_buffer, send_buffer, send_length);
     recv_length = send_length;
     recv_flags = send_flags;
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024,
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024,0,
                              &c_stat, &c_min_stat);
     is_int(TOKEN_OK, status, "received protocol v1 token with MIC");
     is_int(TOKEN_DATA, flags, "...with the right flags");
@@ -172,6 +162,39 @@ main(void)
     s_stat = gss_verify_mic(&s_min_stat, server_ctx, &client_tok, &server_tok,
                             NULL);
     is_int(GSS_S_COMPLETE, s_stat, "...and would send correct MIC");
+    gss_release_buffer(&c_min_stat, &client_tok);
 
+    /*
+     * Test sending and receiving a token with a timeout.  This and the tests
+     * below must come last, and after any successful token test, because
+     * they will break the sequence numbers between the client and server and
+     * some older versions of Heimdal impose ordering regardless of the
+     * negotiation flags.
+     */
+    fail_timeout = true;
+    status = token_send_priv(0, client_ctx, 3, &server_tok, 1, &s_stat,
+                             &c_min_stat);
+    is_int(TOKEN_FAIL_TIMEOUT, status, "sending a token with timeout");
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024, 1,
+                             &s_stat, &c_min_stat);
+    is_int(TOKEN_FAIL_TIMEOUT, status, "receiving a token with timeout");
+    fail_timeout = false;
+
+    /* Test receiving too large of a token. */
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 4, 0,
+                             &s_stat, &s_min_stat);
+    is_int(TOKEN_FAIL_LARGE, status, "receiving too large of a token");
+
+    /* Test receiving a corrupt token. */
+    recv_length = 4;
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024, 0,
+                             &s_stat, &s_min_stat);
+    is_int(TOKEN_FAIL_GSSAPI, status, "receiving a corrupt token");
+
+    /* Clean up. */
+    gss_release_name(&s_min_stat, &client_name);
+    gss_release_name(&s_min_stat, &server_name);
+    gss_delete_sec_context(&c_min_stat, &client_ctx, GSS_C_NO_BUFFER);
+    gss_delete_sec_context(&s_min_stat, &server_ctx, GSS_C_NO_BUFFER);
     return 0;
 }

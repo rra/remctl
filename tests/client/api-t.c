@@ -1,32 +1,73 @@
 /*
  * Test suite for the high-level remctl library API.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010, 2011
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2007, 2009, 2010, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
 
 #include <config.h>
+#include <portable/socket.h>
 #include <portable/system.h>
 
-#include <signal.h>
-#ifdef HAVE_SYS_SELECT_H
-# include <sys/select.h>
-#endif
-#include <sys/time.h>
 #include <sys/uio.h>
-#include <sys/wait.h>
 
 #include <client/remctl.h>
 #include <client/internal.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
+#include <util/network.h>
 #include <util/protocol.h>
-#include <util/xmalloc.h>
+
+
+/*
+ * Run a single command and verify that the results are as expected.  This is
+ * used to test a successful connection after one of the varient versions of
+ * remctl_open.
+ */
+static void
+test_command(struct remctl *r)
+{
+    struct remctl_output *output = NULL;
+    static const char *test[] = { "test", "test", NULL };
+
+    /* Send a successful command. */
+    if (r == NULL)
+        ok_block(3, 0, "...remctl_open failed");
+    else {
+        ok(remctl_command(r, test), "remctl_command");
+        is_string("no error", remctl_error(r), "...still no error");
+        output = remctl_output(r);
+        ok(output != NULL, "first output token is not null");
+    }
+    if (output == NULL)
+        ok_block(4, 0, "...and has correct content");
+    else {
+        is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
+        is_int(12, output->length, "...and is right length");
+        if (output->data == NULL)
+            ok(0, "...and is right data");
+        else
+            ok(memcmp("hello world\n", output->data, 11) == 0,
+               "...and is right data");
+        is_int(1, output->stream, "...and is right stream");
+    }
+    if (r == NULL)
+        ok_block(3, false, "...remctl_open failed");
+    else {
+        output = remctl_output(r);
+        if (output == NULL)
+            ok_block(3, false, "second output token is not null");
+        else {
+            ok(output != NULL, "second output token is not null");
+            is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
+            is_int(0, output->status, "...and is right status");
+        }
+    }
+}
 
 
 /*
@@ -41,13 +82,14 @@ do_tests(const char *principal, int protocol)
     struct remctl *r;
     struct iovec *command;
     struct remctl_output *output;
-    const char *test[] = { "test", "test", NULL };
-    const char *error[] = { "test", "bad-command", NULL };
-    const char *no_service[] = { "all", NULL };
+    static const char *error[] = { "test", "bad-command", NULL };
+    static const char *no_service[] = { "all", NULL };
 
     /* Open the connection. */
     r = remctl_new();
     ok(r != NULL, "protocol %d: remctl_new", protocol);
+    if (r == NULL)
+        bail("remctl_new returned NULL");
     is_string("no error", remctl_error(r), "remctl_error with no error");
     r->protocol = protocol;
     ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
@@ -64,13 +106,21 @@ do_tests(const char *principal, int protocol)
     }
 
     /* Send a successful command. */
-    ok(remctl_command(r, test), "remctl_command");
+    test_command(r);
+
+    /* Send a successful command with remctl_commandv. */
+    command = bcalloc(2, sizeof(struct iovec));
+    command[0].iov_base = (char *) "test";
+    command[0].iov_len = 4;
+    command[1].iov_base = (char *) "test";
+    command[1].iov_len = 4;
+    ok(remctl_commandv(r, command, 2), "remctl_commandv");
     is_string("no error", remctl_error(r), "...still no error");
     output = remctl_output(r);
-    ok(output != NULL, "first output token is not null");
     if (output == NULL)
-        ok(0, "...and has correct content");
+        ok_block(5, false, "first output token is not null");
     else {
+        ok(output != NULL, "first output token is not null");
         is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
         is_int(12, output->length, "...and is right length");
         if (output->data == NULL)
@@ -81,37 +131,24 @@ do_tests(const char *principal, int protocol)
         is_int(1, output->stream, "...and is right stream");
     }
     output = remctl_output(r);
-    ok(output != NULL, "second output token is not null");
-    is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
-    is_int(0, output->status, "...and is right status");
-    command = xcalloc(2, sizeof(struct iovec));
-    command[0].iov_base = (char *) "test";
-    command[0].iov_len = 4;
-    command[1].iov_base = (char *) "test";
-    command[1].iov_len = 4;
-    ok(remctl_commandv(r, command, 2), "remctl_commandv");
-    is_string("no error", remctl_error(r), "...still no error");
-    output = remctl_output(r);
-    ok(output != NULL, "first output token is not null");
-    is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
-    is_int(12, output->length, "...and is right length");
-    if (output->data == NULL)
-        ok(0, "...and is right data");
-    else
-        ok(memcmp("hello world\n", output->data, 11) == 0,
-           "...and is right data");
-    is_int(1, output->stream, "...and is right stream");
-    output = remctl_output(r);
-    ok(output != NULL, "second output token is not null");
-    is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
-    is_int(0, output->status, "...and is right status");
+    if (output == NULL)
+        ok_block(3, false, "second output token is not null");
+    else {
+        ok(output != NULL, "second output token is not null");
+        is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
+        is_int(0, output->status, "...and is right status");
+    }
+    free(command);
 
     /* Send a failing command. */
     ok(remctl_command(r, error), "remctl_command of error command");
     is_string("no error", remctl_error(r), "...no error on send");
     output = remctl_output(r);
-    ok(output != NULL, "first output token is not null");
-    if (protocol == 1) {
+    if (output == NULL)
+        ok_block(protocol == 1 ? 8 : 5, false,
+                 "first output token is not null");
+    else if (protocol == 1) {
+        ok(output != NULL, "first output token is not null");
         is_int(REMCTL_OUT_OUTPUT, output->type,
                "...and is right protocol 1 type");
         is_int(16, output->length, "...and is right length");
@@ -122,10 +159,15 @@ do_tests(const char *principal, int protocol)
                "...and has the right error message");
         is_int(1, output->stream, "...and is right stream");
         output = remctl_output(r);
-        ok(output != NULL, "second output token is not null");
-        is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
-        is_int(-1, output->status, "...and is right status");
+        if (output == NULL)
+            ok_block(3, false, "second output token is not null");
+        else {
+            ok(output != NULL, "second output token is not null");
+            is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
+            is_int(-1, output->status, "...and is right status");
+        }
     } else {
+        ok(output != NULL, "first output token is not null");
         is_int(REMCTL_OUT_ERROR, output->type,
                "...and is right protocol 2 type");
         is_int(15, output->length, "...and is right length");
@@ -141,18 +183,26 @@ do_tests(const char *principal, int protocol)
     ok(remctl_command(r, no_service), "remctl_command with no service");
     is_string("no error", remctl_error(r), "...and no error");
     output = remctl_output(r);
-    ok(output != NULL, "...and non-null output token");
-    is_int(REMCTL_OUT_OUTPUT, output->type, "...of correct type");
-    is_int(12, output->length, "...and length");
-    if (output->data == NULL)
-        ok(0, "...and data");
-    else
-        ok(memcmp("hello world\n", output->data, 11) == 0, "...and data");
-    is_int(1, output->stream, "...and stream");
+    if (output == NULL)
+        ok_block(5, false, "...and non-null output token");
+    else {
+        ok(output != NULL, "...and non-null output token");
+        is_int(REMCTL_OUT_OUTPUT, output->type, "...of correct type");
+        is_int(12, output->length, "...and length");
+        if (output->data == NULL)
+            ok(0, "...and data");
+        else
+            ok(memcmp("hello world\n", output->data, 11) == 0, "...and data");
+        is_int(1, output->stream, "...and stream");
+    }
     output = remctl_output(r);
-    ok(output != NULL, "...and non-null second token");
-    is_int(REMCTL_OUT_STATUS, output->type, "...of right type");
-    is_int(0, output->status, "...and status");
+    if (output == NULL)
+        ok_block(3, false, "...and non-null second token");
+    else {
+        ok(output != NULL, "...and non-null second token");
+        is_int(REMCTL_OUT_STATUS, output->type, "...of right type");
+        is_int(0, output->status, "...and status");
+    }
 
     /* All done. */
     remctl_close(r);
@@ -160,29 +210,29 @@ do_tests(const char *principal, int protocol)
 }
 
 
+
 int
 main(void)
 {
-    const char *principal;
-    char *path, *config;
-    pid_t remctld;
+    struct kerberos_config *config;
     struct remctl_result *result;
-    const char *test[] = { "test", "test", NULL };
-    const char *error[] = { "test", "bad-command", NULL };
+    struct remctl *r;
+    struct addrinfo ai;
+    struct sockaddr_in sin;
+    int fd;
+    char *message, *p;
+    static const char *test[] = { "test", "test", NULL };
+    static const char *error[] = { "test", "bad-command", NULL };
 
-    if (chdir(getenv("SOURCE")) < 0)
-        bail("can't chdir to SOURCE");
-    principal = kerberos_setup();
-    if (principal == NULL)
-        skip_all("Kerberos tests not configured");
-    plan(102);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
+    /* Set up Kerberos and remctld. */
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", (char *) 0);
+
+    plan(141);
 
     /* Run the basic protocol tests. */
-    do_tests(principal, 1);
-    do_tests(principal, 2);
+    do_tests(config->principal, 1);
+    do_tests(config->principal, 2);
 
     /*
      * We don't have a way of forcing the simple protocol to use a particular
@@ -190,8 +240,10 @@ main(void)
      * with protocol v1, and this wrapper works with v2, everything should
      * have gotten tested.
      */
-    result = remctl("localhost", 14373, principal, test);
+    result = remctl("localhost", 14373, config->principal, test);
     ok(result != NULL, "basic remctl API works");
+    if (result == NULL)
+        bail("remctl returned NULL");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stderr_len, "...and no stderr");
     is_int(12, result->stdout_len, "...and correct stdout_len");
@@ -202,8 +254,10 @@ main(void)
            "...and correct data");
     ok(result->error == NULL, "...and no error");
     remctl_result_free(result);
-    result = remctl("localhost", 14373, principal, error);
+    result = remctl("localhost", 14373, config->principal, error);
     ok(result != NULL, "remctl API with error works");
+    if (result == NULL)
+        bail("remctl returned NULL");
     is_int(0, result->status, "...with correct status");
     is_int(0, result->stdout_len, "...and no stdout");
     is_int(0, result->stderr_len, "...and no stderr");
@@ -214,6 +268,65 @@ main(void)
                   "...and the right error string");
     remctl_result_free(result);
 
-    remctld_stop(remctld);
+    /* Test opening a connection from a struct sockaddr. */
+    memset(&sin, 0, sizeof(sin));
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons(14373);
+    sin.sin_addr.s_addr = htonl(0x7f000001UL);
+    r = remctl_new();
+    ok(remctl_open_sockaddr(r, NULL, (const struct sockaddr *) &sin,
+                            sizeof(sin), config->principal),
+       "remctl_open_sockaddr works");
+    is_string("no error", remctl_error(r), "...with no error");
+    test_command(r);
+    remctl_close(r);
+
+    /* Likewise from a struct addrinfo. */
+    memset(&ai, 0, sizeof(ai));
+    ai.ai_family = AF_INET;
+    ai.ai_socktype = SOCK_STREAM;
+    ai.ai_protocol = IPPROTO_TCP;
+    ai.ai_addrlen = sizeof(sin);
+    ai.ai_addr = (struct sockaddr *) &sin;
+    r = remctl_new();
+    ok(remctl_open_addrinfo(r, NULL, &ai, config->principal),
+       "remctl_open_addrinfo works");
+    is_string("no error", remctl_error(r), "...with no error");
+    test_command(r);
+    remctl_close(r);
+
+    /* Likewise from an already-open connection. */
+    fd = network_connect(&ai, NULL, 0);
+    if (fd == INVALID_SOCKET)
+        sysbail("cannot connect to localhost");
+    r = remctl_new();
+    ok(remctl_open_fd(r, NULL, fd, config->principal), "remctl_open_fd works");
+    is_string("no error", remctl_error(r), "...with no error");
+    test_command(r);
+    remctl_close(r);
+
+    /*
+     * Test the error message when doing port fallback to the legacy port and
+     * the connection fails.  The reported port should be the current port
+     * even though we try the legacy port second.  The IP address here is
+     * reserved for documentation purposes by RFC 5737 and should therefore
+     * never be running a remctl listener.
+     *
+     * We strip the system call error off of the error string before we check
+     * it since the translation may vary by system.
+     */
+    r = remctl_new();
+    ok(remctl_set_timeout(r, 1), "set one second timeout");
+    ok(!remctl_open(r, "192.0.2.1", 0, config->principal),
+       "remctl_open for 192.0.2.1 fails");
+    message = bstrdup(remctl_error(r));
+    p = strrchr(message, ':');
+    if (p != NULL)
+        *p = '\0';
+    is_string("cannot connect to 192.0.2.1 (port 4373)", message,
+              "...with correct error");
+    free(message);
+    remctl_close(r);
+
     return 0;
 }

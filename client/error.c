@@ -6,8 +6,8 @@
  * struct to something appropriate so that the next call to remctl_error will
  * return the appropriate details.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2008, 2010
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2007, 2008, 2010, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -34,8 +34,7 @@ internal_set_error(struct remctl *r, const char *format, ...)
     va_list args;
     int status;
 
-    if (r->error != NULL)
-        free(r->error);
+    free(r->error);
     va_start(args, format);
     status = vasprintf(&r->error, format, args);
     va_end(args);
@@ -57,10 +56,29 @@ void
 internal_gssapi_error(struct remctl *r, const char *error, OM_uint32 major,
                       OM_uint32 minor)
 {
-    if (r->error != NULL)
-        free(r->error);
+    free(r->error);
     r->error = gssapi_error_string(error, major, minor);
 }
+
+
+/*
+ * Internal function to set the remctl error message from a Kerberos error
+ * message.
+ */
+#ifdef HAVE_KRB5
+void
+internal_krb5_error(struct remctl *r, const char *error, krb5_error_code code)
+{
+    const char *message;
+
+    if (r->krb_ctx == NULL)
+        internal_set_error(r, "error %s: cannot create Kerberos context",
+                           error);
+    message = krb5_get_error_message(r->krb_ctx, code);
+    internal_set_error(r, "error %s: %s", error, message);
+    krb5_free_error_message(r->krb_ctx, message);
+}
+#endif
 
 
 /*
@@ -72,6 +90,8 @@ void
 internal_token_error(struct remctl *r, const char *error, int status,
                      OM_uint32 major, OM_uint32 minor)
 {
+    const char *message;
+
     switch (status) {
     case TOKEN_OK:
         internal_set_error(r, "error %s", error);
@@ -80,8 +100,8 @@ internal_token_error(struct remctl *r, const char *error, int status,
         internal_set_error(r, "error %s: %s", error, strerror(errno));
         break;
     case TOKEN_FAIL_SOCKET:
-        internal_set_error(r, "error %s: %s", error,
-                           socket_strerror(socket_errno));
+        message = socket_strerror(socket_errno);
+        internal_set_error(r, "error %s: %s", error, message);
         break;
     case TOKEN_FAIL_INVALID:
         internal_set_error(r, "error %s: invalid token format", error);
@@ -94,6 +114,9 @@ internal_token_error(struct remctl *r, const char *error, int status,
         break;
     case TOKEN_FAIL_GSSAPI:
         internal_gssapi_error(r, error, major, minor);
+        break;
+    case TOKEN_FAIL_TIMEOUT:
+        internal_set_error(r, "error %s: timed out", error);
         break;
     default:
         internal_set_error(r, "error %s: unknown error", error);

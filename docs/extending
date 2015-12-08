@@ -13,7 +13,7 @@ Introduction
     of additions.
 
     If you're considering extending remctl, please feel free to contact me
-    at rra@stanford.edu and let me know what you're planning and what
+    at eagle@eyrie.org and let me know what you're planning and what
     problem you're trying to solve.  I'm generally happy to offer advice
     and incorporate and maintain extensions in the base distribution, even
     if they're optional features that require external libraries to build.
@@ -152,8 +152,8 @@ Protocol
     with a version error, protocol commands with too high of a version.
     The client can also ask the server what version it supports.
 
-    Currently, the protocol version is two.  An initial draft of the
-    changes for protocol version three is available in docs/protocol-v3,
+    Currently, the protocol version is three.  An initial draft of the
+    changes for protocol version four is available in docs/protocol-v4,
     but may change prior to implementation.
 
     The remctl protocol is defined by docs/protocol.xml, which is
@@ -162,3 +162,13 @@ Protocol
 
     I would like to keep remctl interoperable, so please talk to me before
     making changes that would modify the protocol.
+
+License
+
+    Copyright 2009, 2011
+        The Board of Trustees of the Leland Stanford Junior University
+
+    Copying and distribution of this file, with or without modification,
+    are permitted in any medium without royalty provided the copyright
+    notice and this notice are preserved.  This file is offered as-is,
+    without any warranty.

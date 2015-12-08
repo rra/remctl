@@ -7,49 +7,33 @@ Protocol:
    re-engineering of the client loop and should wait for better
    configuration since we don't want to do this with every command.  It
    also introduces out-of-order responses and possible deadlocks to the
-   protocol.  docs/protocol-v3 has an initial draft.
+   protocol.  docs/protocol-v4 has an initial draft.
 
- * Support authentication via anonymous PKINIT.  This may already work,
-   but the asserted identity should be documented and it's not clear
-   whether this should match an ANYUSER ACL.
+ * Add a capabilities command to the protocol so that the client can
+   retrieve the list of supported commands rather than assuming based on
+   the protocol version.
+
+ * Support locating remctl services via SRV records, probably
+   _remctl._tcp.<hostname>.  This will need linking with a resolver
+   library that allows SRV queries.  libresolv and res_search is probably
+   the best approach, since that should be portable to any system.
+
+ * Modify the server to not allow MESSAGE_COMMAND split in the middle of a
+   length element and require that commands be split in the middle or at
+   the end of argument data.
 
 Server:
 
- * Add support for built-in command summaries.  A command of help with no
-   subcommand would provide a list of all commands that the authenticated
-   user is permitted to run.  To do this, add a configuration option of
-   summary=<arg> to the config syntax for commands that will display a
-   summary of their supported subcommands if given <arg>.  Then, for any
-   "<command> ANY" lines the user is authorized to run, run the binary
-   with "<arg>" as the arguments, and for any "<command> <subcommand>"
-   lines, run the binary with "<arg> <subcommand>" as the arguments,
-   returning the output.
-
- * Add support for in-depth help for a particular command.  A command of
-   "help <command>" would provide help for that command if the user was
-   authorized to run that command with its help subcommand, and a command
-   of "help <command> <subcommand>" would provide help for that command
-   and subcommand if the user is authorized to run both the help
-   subcommand and the specified one.  To implement, add a configuration
-   option of help=<arg> to the config syntax for commands that support
-   help, and then run the command with "<arg>" as the arguments for the
-   first case and "<arg> subcommand" as the arguments for the second
-   case.
-
- * Allow a more expressive configuration syntax that can set more options
-   per command.  Among the things we want to configure (besides the
-   logmask configuration we already have) are changing users before
-   running the command, specifying an argument to pass on standard input
-   (see below), or supporting things like LDAP ACLs.
-
  * Add a way of explicitly specifying the null command or subcommand in
-   the remctl configuration.
+   the remctl configuration annd then permit it rather than returning a
+   syntax error.
 
- * Maximum argument count and maximum data size in MESSAGE_COMMAND should
-   be configurable parameters of the server rather than hard-coded
-   values.  This may need to wait for better configuration parsing.
+ * Maximum argument count, maximum data size in MESSAGE_COMMAND, and
+   inactivity timeouts for commands should be configurable parameters of
+   the server rather than hard-coded values.
 
  * Support LDAP-based ACLs in addition to file system ACLs.
+   Probably need to support both entitlement and group-based ACLs.
 
  * Add support for external ACL checking programs.  If the program exits
    with a zero status, access is granted.  If it exits 1, access is not
@@ -61,29 +45,45 @@ Server:
    arguments.  However, it would also be good to support passing other
    arguments into the program as specified in the ACL file.
 
- * Possibly support binding to both the new and the old port in the
-   standalone server for backward compatibility (only if requested by
-   another flag).
-
  * Sort the files in a directory before processing them so that the order
-   is deterministic.  Affects both configuration (earlier entries
-   override later ones) and ACL rules in the presence of deny ACLs.
-
- * Provide a way to specify handling of the empty command and then permit
-   it rather than returning a syntax error.
+   is deterministic.  Affects both configuration (earlier entries override
+   later ones) and ACL rules in the presence of deny ACLs.
 
  * Add a timeout for commands after which the server kills the command.
-
- * Replace the global hour timeout with something based on idle time
-   between commands.  It's entirely reasonable for a protocol 2 client
-   to hold a connection open for hours.
 
  * The server should call gss_inquire_context to retrieve the mechanism
    OID and then pass that in to calls to gssapi_error_string rather than
    hard-coding the Kerberos v5 OID.
 
- * Support binding to a specified address or addresses given as
-   command-line options.
+ * Add option to mask all arguments.
+
+ * Track all the children spawned by remctld in stand-alone mode.  On
+   receipt of SIGTERM or SIGINT, send SIGUSR1 to all children.  In the
+   children, on receipt of SIGUSR1, exit as soon as the current command in
+   progress (if any) stops running.  (SIGTERM or SIGINT directly to a
+   child should kill it outright.)
+
+ * Support masking the argument following a particular string so that the
+   argument to a particular flag can be masked regardless of its location
+   on the command line.
+
+ * Add server support for persistent child processes that the server
+   communicates with over a UNIX domain socket.  The best protocol for
+   communication is probably FastCGI, since that will allow the child
+   processes to be written in a wide variety of languages and take
+   advantage of existing libraries.  This will probably require a new
+   implementation of the FastCGI server-side protocol.
+
+ * In long-running remctld processes, check for configuration file changes
+   and reload the configuration automatically.
+
+ * Consider dropping the client remctl connection when the client's
+   authentication credentials have expired.  Otherwise, remctld
+   potentially violates the security properties of the Kerberos protocol
+   by using authenticators beyond their stated lifetime.
+
+ * Move the core server protocol code into a library so that one can embed
+   a remctl server in other programs.
 
 Client:
 
@@ -91,9 +91,6 @@ Client:
 
  * Add readline support to the remctl client for multiple commands to the
    same server in the same authenticated session.
-
- * Support setting a timeout and failing the remctl call if the server
-   takes too long to connect or send back data.
 
  * Add an option that prompts the user, with echo disabled, for a piece of
    secure data, prompting twice to ensure both times match, and then sends
@@ -103,14 +100,10 @@ Client:
  * Allow sending the empty command in the command-line client once the
    server supports it.
 
- * Add support for specifying the bind address for client connections once
-   the library supports it.
+ * Allow multiple comma-separated hosts to be specified on the command
+   line, resulting in the remctl command being run on each host in turn.
 
 Client library:
-
- * Add a varient of open that takes a timeout.
-
- * Add support for specifying the bind address for client connections.
 
  * The client should ideally not specify an OID for the authentication
    mechanism and instead permit GSS-API to negotiate an appropriate
@@ -118,15 +111,47 @@ Client library:
    mechanism OID and then pass that in to calls to gssapi_error_string
    rather than hard-coding the Kerberos v5 OID.
 
-Build system:
+Perl library:
 
- * Incorporate a program that can generate a Kerberos ticket cache from
-   a keytab and use that for running the Kerberos tests instead of
-   requiring the user to generate a keytab.
+ * Add Net::Remctl::Backend support for obtaining a Kerberos ticket from a
+   given keytab file before running a command.
+
+ * Add Net::Remctl::Backend support for creating a PAG and obtaining AFS
+   tokens before running a command.
+
+ * Add support for per-command help (possibly extracted from the POD
+   documentation with some additional markup) to implement the help server
+   configuration.
+
+Language bindings:
+
+ * Incorporate the Go bindings for the client library.
+
+Documentation:
+
+ * Remove the description of the version 1 remctl protocol from the
+   current protocol specification and put it in its own, separate
+   specification document.  Most people will no longer care how this
+   works.
+
+ * Submit the remctl protocol as an IETF Internet-Draft.
+
+ * Document conventions for the configuration in the remctld manual.
 
 Portability layer:
 
  * Refactor getopt to be easier to understand and less deeply nested.
+
+Test suite:
+
+ * Incorporate a program that can generate a Kerberos ticket cache from a
+   keytab and use that for running the Kerberos tests instead of requiring
+   the user to generate a keytab.
+
+ * Add tests to ensure that no child processes of the remctld server are
+   still running when the test command finishes for cases like
+   server/timeout or server/invalid where we've previously stranded child
+   processes for long periods.
 
 Windows port:
 
@@ -135,27 +160,20 @@ Windows port:
    dependency on MIT Kerberos for Windows.  However, limitations
    surrounding realm trusts in the Kerberos implementation in versions of
    Windows prior to Vista would make this a less general solution.
+   Alternately, a separate client protocol implementation in .NET (either
+   C# or C++) may be easier than trying to build the current source base
+   on Windows with SSPI.
 
  * Support the remctl server.
 
 Java implementation:
 
- * Fix the coding style of the Java implementation to match the coding
-   style of the rest of remctl.
-
- * Consider reorganizing the java directory so that it already matches the
-   layout of an Apache Jakarta project rather than having ant tar shuffle
-   everything around.
-
- * Add a JUnit test suite for the Java implementation.
+ * Integrate the new Java client implementation.
 
  * Integrate the Java build into the rest of the build system so that it
    is enabled using an --enable-java flag similar to the bindings, finds
-   ant and a JAVA_HOME in configure, and does the JAR build in the main
-   Makefile using ant.
-
- * Consider eliminating the simple Makefile in the java directory and
-   requiring ant.
+   maven and a JAVA_HOME in configure, and does the JAR build in the main
+   Makefile using maven.
 
  * Java cannot obtain tickets from a ticket cache created using the
    k5.conf file included in the java directory using the current MIT

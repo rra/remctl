@@ -1,5 +1,424 @@
                        User-Visible remctl Changes
 
+remctl 3.10 (2015-11-27)
+
+    Two new remctld ACLs are supported: anyuser:auth and
+    anyuser:anonymous.  The first is equivalent to ANYUSER, and indeed
+    ANYUSER is now treated as a backwards-compatibility alias for
+    anyuser:auth.  This permits any authenticated user in either the local
+    realm or any realm with which there is cross-realm trust.  The new
+    anyuser:anonymous ACL permits absolutely any user, even
+    unauthenticated users, allowing anyone with network access to the
+    server to run the command.  (Note, however, that actually running
+    commands anonymously requires anonymous PKINIT and anonymous service
+    tickets be enabled for the local Kerberos realm.  These are not common
+    configurations, particularly the second.)
+
+    The remctld server now sets the REMOTE_EXPIRES environment variable to
+    the time (in seconds since UNIX epoch) when the authenticated session
+    used to run a command will expire.  This will generally be the
+    expiration time of the Kerberos ticket used to authenticate to the
+    server.
+
+    Anonymous authentication (such as via anonymous PKINIT) no longer
+    satisfies ANYUSER ACLs.  It's unlikely that existing installations
+    would have encountered anonymous authentication, since obtaining
+    service tickets with anonymous PKINIT is disabled by default.
+
+    Simplify the Python RemctlError exception class.  The code in the
+    exception class just duplicated the behavior of the parent Exception
+    class and was unnecessary, and it interfered with pickling the
+    exception.  This means that RemctlError exceptions, and any derived
+    from RemctlError, will no longer have a value attribute.  To get this
+    information, use the string value of the exception object, or call the
+    error() method on the remctl object.  Thanks to Andrew Deason for the
+    report.
+
+    Previous versions always passed the flags to disable certain warnings
+    to the language binding builds, even if warnings weren't otherwise
+    enabled.  As of remctl 3.9, that included a warning flag not supported
+    by old versions of gcc, breaking builds on RHEL 5.  Instead, only pass
+    the warning suppression flags when building with warnings (via make
+    warnings), which is not the default and is only supported with recent
+    versions of gcc.  Thanks to Ken Dreyer for the report.
+
+    For the localgroup ACL scheme, dynamically resize the buffer passed to
+    getgrnam_r if the call fails due to ERANGE.  Users in large numbers of
+    local groups may require more space than the buffer size returned by
+    the sysconf call.  Patch from Hugh Cole-Baker.
+
+    Fix test suite portability to systems with older versions of Kerberos
+    that didn't have krb5_get_init_creds_opt_alloc, such as the included
+    Kerberos in Solaris 10.
+
+    Update to rra-c-util 5.8:
+
+    * Add missing va_end to xasprintf implementation.
+    * Fix Perl test suite framework for new Automake relative paths.
+    * Avoid $() in the probe for systemd support for Solaris portability.
+    * Prefer libsystemd to libsystemd-daemon if it is available.
+    * Improve portability to Kerberos included in Solaris 10.
+    * Use appropriate warning flags with Clang (currently not warning clean).
+    * Check for integer overflow in vector_join.
+    * Avoid strlcpy in more of the portability code.
+    * Fix hidden visibility of some utility functions.
+    * Improve portability of socket error codes to Windows.
+
+    Update to C TAP Harness 3.4:
+
+    * Fix segfault in runtests with an empty test list.
+    * Display verbose test results with -v or C_TAP_VERBOSE.
+    * Support comments and blank lines in test lists.
+
+remctl 3.9 (2014-07-02)
+
+    Add a new server ACL type, localgroup, which converts the principal to
+    a local username with krb5_aname_to_localname and then checks whether
+    it is a member of a given local group.  Based on work by Remi Ferrand.
+
+    Use calloc in preference to calculating a malloc size with
+    multiplication everywhere, and reallocarray in preference to
+    calculating a realloc size.  In most places this caution was probably
+    not necessary, but uniformity is easier to audit and no one will ever
+    notice the speed difference between malloc and calloc.  Add explicit
+    overflow checks before every remaining malloc call with a calculated
+    size.
+
+    Fix incorrect handling of interruptions of network writes by signals
+    in the server.  Previous versions of remctld did not correctly handle
+    EINTR returns from select, read, and write and might abort the
+    connection instead of retrying the system call.
+
+    Reset the SIGPIPE signal handler before running a command.  The server
+    sets SIGPIPE to SIG_IGN, which meant that, since ignored signals are
+    inherited across an exec, the child process would inherit possibly
+    surprising SIGPIPE behavior.  Reset the handler to SIG_DFL so that
+    commands get default SIGPIPE handling.
+
+    Add version and compatibility information to all manual pages.
+    Command-line and configuration options, ACL methods, environment
+    variables, client library APIs, and other major features are now
+    annotated with the version of remctl in which they were added.
+
+    Update to rra-c-util 5.5:
+
+    * Use Lancaster Consensus environment variables to control tests.
+    * Work around perltidy bug that leaves behind stray log files.
+    * Use calloc or reallocarray for protection against integer overflows.
+    * Suppress warnings from Kerberos headers in non-system paths.
+
+    Update to C TAP Harness 3.1:
+
+    * Add breallocarray API for error-checked reallocarray in tests.
+    * Check for integer overflow on memory allocations.
+
+remctl 3.8 (2014-01-28)
+
+    The remctld server now uses libevent for the event loop that processes
+    output from a command.  This is primarily an internal change to
+    improve maintainability, but it does have some noticable if minor
+    benefits: primarily, no need to poll for child process exit every five
+    seconds, and therefore faster responsiveness and less resource usage
+    in each remctld process.  libevent 1.4.4 or later is now required to
+    build remctl.
+
+    Rather than capping the data returned by the server in one
+    MESSAGE_OUTPUT token at the rather arbitrary length of 65,000 octets,
+    send up to the maximum amount of data permitted by the protocol.  This
+    also slightly increases the maximum length of the output returned
+    under the version one protocol.
+
+    Fix a minor memory leak in the server when processing help commands.
+
+    Fix a GSS-API context leak in the remctl client when failing to send a
+    protocol version one token.
+
+    Use a temporary file and atomic rename when writing the server PID
+    file to avoid racing with a process monitor that tries to read the PID
+    out of the file before it's written.
+
+    Update to rra-c-util 5.2:
+
+    * Assume calloc initializes pointers to NULL.
+    * Assume free(NULL) is properly ignored.
+    * Suppress shell errors from systemd probes without pkg-config.
+    * Better logging and shutdown of subprocesses during testing.
+
+    Update to C TAP Harness 3.0:
+
+    * Reopen standard input to /dev/null when running a test list.
+    * Don't leak extraneous file descriptors to tests.
+
+remctl 3.7 (2014-01-06)
+
+    Fix a client memory leak when remctl_set_ccache is used with a
+    Kerberos library that supports gss_krb5_import_cred.  The credential
+    was never freed, leaking memory with each remctl client call, and a
+    Kerberos ticket cache struct could also be leaked in some situations.
+
+    Fix Net::Remctl::Backend argument count validation when one of the
+    arguments is coming from standard input.  The count of arguments was
+    previously not updated properly after splicing in the extra argument.
+
+    Add support for systemd.  If built on a system with systemd installed,
+    remctl will install (but not enable) systemd units to start remctld
+    via socket activation.  remctld will also notify systemd when its
+    initialization is complete if started by systemd with service
+    notification enabled.
+
+    Add support for upstart's expect stop daemon synchronization method.
+    When starting remctld in stand-alone mode with upstart, pass the new
+    -Z option to remctld, and it will raise SIGSTOP when ready to accept
+    connections, signaling to upstart that the daemon has fully started.
+
+    Work around a bug in the Module::Build version that comes with RHEL 5
+    in passing compiler and linker flags to the Perl module build.
+
+    Net::Remctl and related classes now check that the class argument is
+    not undef and croak if it is, rather than dereferencing a NULL
+    pointer.  Caught by clang --analyze.
+
+    Update to rra-c-util 5.1:
+
+    * Suppress a dummy symbol in the client library that could leak.
+    * Don't attempt to use Kerberos if no Kerberos error APIs were found.
+    * Improve error handling in xasprintf and xvasprintf.
+    * Check the return status of snprintf and vsnprintf properly.
+    * Preserve errno if snprintf fails in vasprintf replacement.
+    * Improve error handling of network_bind_* functions.
+    * vector_free and cvector_free now can be passed NULL.
+    * Abort remctl tests if the PID file already exists.
+
+    Update to C TAP Harness 2.4:
+
+    * Suppress lazy plans and test summaries if the test failed with bail.
+
+remctl 3.6 (2013-08-14)
+
+    If the client specifies a timeout, restart the wait for a nonblocking
+    connect when interrupted by a signal.  This can mean that a connect
+    can take longer than the timeout if interrupted; hopefully both
+    timeouts and catching signals are rare enough that this won't pose a
+    serious issue.
+
+    The help output from Net::Remctl::Backend now checks for commands
+    whose syntax is excessively long and does not let them influence the
+    formatting of the summary.  This keeps commands with a long syntax
+    from forcing all the summary output into a skinny column against the
+    right margin and allows proper help output for commands with a syntax
+    longer than 80 columns.
+
+    Fix compilation problems with Kerberos libraries that don't have
+    gss_krb5_import_cred, including Mac OS X and older Red Hat.  Patch
+    from Ken Dreyer.
+
+    Fix problems with PCRE detection on platforms that have the library
+    but not pcre-config or the pcre.h header file, such as Mac OS X.
+
+    Update to rra-c-util 4.9:
+
+    * Fix GCC warnings of casts that could increase alignment.
+    * Add a portable replacement for a missing strndup.
+
+    Update to C TAP Harness 2.2:
+
+    * bail and sysbail now exit with status 255 to match Test::More.
+
+remctl 3.5 (2013-06-28)
+
+    Fix a long-standing race condition in remctld (introduced in remctl
+    2.7) that could truncate large backend output if the backend program
+    exits immediately after sending that output.  On systems with pipe
+    buffers larger than 64KB, remctld could discard some buffered output
+    after determining that the child had exited.  remctld now polls for
+    and continues to process output from the child until no more is
+    immediately available, even after the child has exited.
+
+    If a Kerberos library and gss_krb5_import_cred are available at build
+    time, libremctl now uses them to implement remctl_set_ccache to avoid
+    affecting global program GSS-API state.  If those requirements are
+    met, remctl_set_ccache will only affect the remctl context on which
+    it's called.
+
+    The version numbers of the Net::Remctl and Net::Remctl::Backend Perl
+    modules now match the versions of the remctl package, but with at
+    least two digits for the minor version so that, for example, 3.9
+    (which becomes 3.09) and 3.10 will sort properly as numbers.  This
+    means that, from Perl's perspective, the version numbers have gone
+    backwards in this release relative to earlier 3.0 releases.  This is a
+    one-time adjustment to a more reliable versioning scheme.
+
+remctl 3.4 (2013-03-26)
+
+    Add new C APIs for establishing a remctl connection given a sockaddr,
+    a list of struct addrinfo, or an already-open socket.  Patch from
+    Jeffrey Hutzelman.
+
+    The Perl bindings now include a new module, Net::Remctl::Backend,
+    which handles the setup, dispatch, and help output for the recommended
+    style for remctl backend scripts written in Perl.  See its
+    documentation for more information.
+
+    Following Perl Best Practices, remove prototypes from all Net::Remctl
+    functions.  The confusion caused by changing context away from how
+    Perl normally works is not worth any diagnostic value.
+
+    The Net::Remctl Perl bindings now require Perl 5.8 or later (instead
+    of 5.006 in previous versions) and are now built with Module::Build
+    instead of ExtUtils::MakeMaker.  This should be transparent to anyone
+    not working with the source code, since Perl 5.8 was released in 2002,
+    but Module::Build and ExtUtils::CBuilder are now required to build
+    Net::Remctl.  They are included in Perl 5.10 or later and can be
+    installed separately for older versions of Perl.
+
+    Return an error if an empty command is passed into remctl_command
+    rather than attempting to malloc zero bytes.
+
+    Update to rra-c-util 4.8:
+
+    * Fix probing for Heimdal's libroken to work with older versions.
+    * Improve POD and Perl module tests.
+    * Cleanly passes clang --analyze.
+
+    Update to C TAP Harness 2.1:
+
+    * runtests now treats the command line as a list of tests by default.
+    * The full test executable path can now be passed to runtests -o.
+    * Improved harness output for tests with lazy plans.
+    * Improved harness output to a terminal for some abort cases.
+    * Flush harness output after each test even when not on a terminal.
+
+remctl 3.3 (2012-09-25)
+
+    Fix a file descriptor leak when checking ACL files.  This would cause
+    long-running remctld processes to eventually run out of available file
+    descriptors.
+
+    Fix some memory leaks when reloading the remctld configuration and
+    several memory leaks when closing or reusing client connections in
+    libremctl.
+
+    Don't create the remctld PID file until the network socket is bound
+    and listening.  This helps init scripts starting the daemon to know
+    when startup is complete and the service is available.
+
+    Remove prototypes from the Perl remctl() function.  With prototypes,
+    the connection and command information could not be provided via an
+    array, since the prototype forces it into scalar context.
+
+    Fix build dependencies for language bindings to work with parallel
+    builds and pass CPPFLAGS down to the language binding build systems.
+
+    Update to rra-c-util 4.6:
+
+    * Drop concat from the util library in favor of asprintf.
+    * Fail on any error in [bx]asprintf and [bx]vasprintf.
+
+remctl 3.2 (2012-06-19)
+
+    Add new summary option to the remctld configuration.  If remctld
+    receives a command of "help" with no arguments and no command by that
+    name has been defined, the server will look through the configuration
+    for any command with a summary option set, a subcommand of ALL, and
+    which the user would have been allowed to run.  If any such commands
+    are found, the server will run each with the subcommand specified by
+    the summary option, sending the results to the user.  This allows
+    display of a command summary to the user based on which commands that
+    user is authorized to run.  Written by Jon Robertson.
+
+    Add new help option to the remctld configuration.  If remctld receives
+    a command of "help" with either one or two arguments and no command by
+    that name has been defined, it takes the arguments to the command as a
+    command and subcommand and checks for an entry in the configuration
+    file that matches.  If such an entry is found, the help option is set
+    for that command, and the user is authorized to run it, remctld runs
+    the command, passing the value of the help option as the subcommand
+    and the arguments to help as additional arguments.  This permits a
+    standard interface to get additional help for a particular remctl
+    command.  Written by Jon Robertson.
+
+    remctld now always closes the client connection after low-level errors
+    reading or sending tokens.  Previously, it would attempt to continue
+    after some socket or GSS-API errors, which may have caused hanging
+    remctld processes in some circumstances.
+
+    Fix remctld segfault when the configuration does not define any
+    commands.  Thanks to Andrew Mortensen for the report.
+
+    Fix GSS-API header probes when configure was told to build with a
+    specific GSS-API library in a non-default path.  Previously, configure
+    still used the compiler to probe for the correct header names, which
+    could pick up incorrect headers from the default include path.  Thanks
+    to Jeffrey Hutzelman for the suggested solution.
+
+    Solaris can return ECONNRESET instead of EPIPE on write when the other
+    end of the network connection closes it.  Handle that error properly
+    in the remctld server.  Patch from Jeffrey Hutzelman.
+
+    Fix multiple portability issues in the test suite on Solaris and old
+    versions of Heimdal.  Thanks to Jeffrey Hutzelman for the series of
+    patches.
+
+    Update to rra-c-util 4.5:
+
+    * Pass --deps to krb5-config in the non-reduced-dependencies case.
+    * Silence __attribute__ warnings on more compilers.
+
+    Update to C TAP Harness 1.12:
+
+    * Only use feature-test macros when requested or built with gcc -ansi.
+    * Drop is_double from the C TAP library to avoid requiring -lm.
+    * Avoid using local in the shell libtap.sh library.
+    * Silence __attribute__ warnings on more compilers.
+
+remctl 3.1 (2012-02-29)
+
+    Add new remctl_set_timeout function to the remctl library API and the
+    Perl, PHP, Python, and Ruby bindings.  Call this function any time
+    after remctl_new to set a network timeout in seconds for all
+    subsequent operations.  The client must then receive a reply from the
+    server in no more than that number of seconds or will abort whatever
+    action is in progress with a timeout error.  The timeout also applies
+    to the initial connection if remctl_set_timeout is called before
+    remctl_open.
+
+    The remctld server now supports an additional configuration option,
+    user, which sets the user as which to run a command.  If this option
+    is set for a command configuration, remctld will run the command as
+    that user (including their primary and supplemental groups).  The user
+    may be specified as either a username or a UID.  Patch from Andrew
+    Mortensen.
+
+    The remctld server now imposes a one-hour timeout between messages
+    from the client rather than a one-hour limit on the entire session,
+    allowing clients to continue to send commands for as long as they stay
+    connected and not idle.
+
+    The PHP bindings no longer output a PHP warning if remctl_output
+    fails.  This was inconsistent with the other API calls (remctl_open
+    and remctl_command can also fail but didn't result in warnings), may
+    be expected and handled by the caller, and made testing difficult.
+
+    The internal _remctl.remctl_output function in the Python bindings now
+    returns an empty tuple on error instead of a bool.  This change will
+    not affect callers that only use the recommended public remctl
+    interface.
+
+    Update to rra-c-util 4.2:
+
+    * Fix error reporting for non-blocking connect.
+    * Fix network test when short listen queues don't cause timeout.
+    * Handle DNS failure in the getaddrinfo test suite.
+    * Ensure config.h is included for portable/stdbool.h.
+    * Fix compiler warnings when built with -D_FORTIFY_SOURCE=2.
+    * Add test wrappers around asprintf and vasprintf.
+
+    Update to C TAP Harness 1.10:
+
+    * Add test_tmpdir and test_tmpdir_free to TAP library.
+    * Add bstrndup function to the C TAP library.
+    * runtests now frees all allocated resources on exit.
+
 remctl 3.0 (2011-10-31)
 
     New protocol version 3, which introduces a new NOOP message.  When the

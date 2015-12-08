@@ -4,9 +4,9 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006
- *     Russ Allbery <rra@stanford.edu>
+ *     Russ Allbery <eagle@eyrie.org>
  * Copyright 2009, 2010
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 1995 Patrick Powell
@@ -26,7 +26,9 @@
  * Disable the requirement that format strings be literals.  We need variable
  * formats for easy testing.
  */
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 2) || defined(__clang__)
+# pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
 
 /*
  * Intentionally don't add the printf attribute here since we pass a

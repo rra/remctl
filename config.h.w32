@@ -4,6 +4,14 @@
  * platforms.  It's hand-tweaked to define the right symbols so that
  * remctl will build properly on Windows.  (This may include lying about
  * certain features that don't matter on a Windows build.)
+ *
+ * Written by Matthew Loar
+ * Copyright 2008, 2011 Matthew Loar
+ * Copyright 2009 Jeffrey Altman
+ * Copyright 2008, 2009, 2011
+ *     The Board of Trustees of the Leland Stanford Junior University
+ *
+ * See LICENSE for licensing terms.
  */
 
 /* Define to 1 if you have the declaration of `inet_ntoa', and to 0 if you

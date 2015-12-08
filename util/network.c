@@ -19,8 +19,9 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2009, 2011
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2014, 2015 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2009, 2011, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006, 2007, 2008
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -54,11 +55,14 @@
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
+#include <time.h>
 
 #include <util/fdflag.h>
+#include <util/macros.h>
 #include <util/messages.h>
 #include <util/network.h>
 #include <util/xmalloc.h>
+#include <util/xwrite.h>
 
 /* Macros to set the len attribute of sockaddrs. */
 #if HAVE_STRUCT_SOCKADDR_SA_LEN
@@ -74,6 +78,25 @@
 # define network_set_reuseaddr(fd)      /* empty */
 #endif
 
+/* If IPV6_V6ONLY isn't available, make calls to set_v6only go away. */
+#ifndef IPV6_V6ONLY
+# define network_set_v6only(fd)         /* empty */
+#endif
+
+/* If IP_FREEBIND isn't available, make calls to set_freebind go away. */
+#ifndef IP_FREEBIND
+# define network_set_freebind(fd)       /* empty */
+#endif
+
+/*
+ * Windows requires a different function when sending to sockets, but can't
+ * return short writes on blocking sockets.
+ */
+#ifdef _WIN32
+# define socket_xwrite(fd, b, s)        send((fd), (b), (s), 0)
+#else
+# define socket_xwrite(fd, b, s)        xwrite((fd), (b), (s))
+#endif
 
 /*
  * Set SO_REUSEADDR on a socket if possible (so that something new can listen
@@ -93,20 +116,52 @@ network_set_reuseaddr(socket_type fd)
 
 
 /*
+ * Set IPV6_V6ONLY on a socket if possible, since the IPv6 behavior is more
+ * consistent and easier to understand.
+ */
+#ifdef IPV6_V6ONLY
+static void
+network_set_v6only(socket_type fd)
+{
+    int flag = 1;
+
+    if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &flag, sizeof(flag)) < 0)
+        syswarn("cannot set IPv6 socket to v6only");
+}
+#endif
+
+
+/*
+ * Set IP_FREEBIND on a socket if possible, which allows binding servers to
+ * IPv6 addresses that may not have been set up yet.
+ */
+#ifdef IP_FREEBIND
+static void
+network_set_freebind(socket_type fd)
+{
+    int flag = 1;
+
+    if (setsockopt(fd, IPPROTO_IP, IP_FREEBIND, &flag, sizeof(flag)) < 0)
+        syswarn("cannot set IPv6 socket to free binding");
+}
+#endif
+
+
+/*
  * Create an IPv4 socket and bind it, returning the resulting file descriptor
  * (or INVALID_SOCKET on a failure).
  */
 socket_type
-network_bind_ipv4(const char *address, unsigned short port)
+network_bind_ipv4(int type, const char *address, unsigned short port)
 {
     socket_type fd;
     struct sockaddr_in server;
     struct in_addr addr;
 
     /* Create the socket. */
-    fd = socket(PF_INET, SOCK_STREAM, IPPROTO_IP);
+    fd = socket(PF_INET, type, IPPROTO_IP);
     if (fd == INVALID_SOCKET) {
-        syswarn("cannot create IPv4 socket for %s,%hu", address, port);
+        syswarn("cannot create IPv4 socket for %s, port %hu", address, port);
         return INVALID_SOCKET;
     }
     network_set_reuseaddr(fd);
@@ -121,12 +176,14 @@ network_bind_ipv4(const char *address, unsigned short port)
     server.sin_port = htons(port);
     if (!inet_aton(address, &addr)) {
         warn("invalid IPv4 address %s", address);
+        socket_set_errno_einval();
         return INVALID_SOCKET;
     }
     server.sin_addr = addr;
     sin_set_length(&server);
     if (bind(fd, (struct sockaddr *) &server, sizeof(server)) < 0) {
-        syswarn("cannot bind socket for %s,%hu", address, port);
+        syswarn("cannot bind socket for %s, port %hu", address, port);
+        socket_close(fd);
         return INVALID_SOCKET;
     }
     return fd;
@@ -145,21 +202,20 @@ network_bind_ipv4(const char *address, unsigned short port)
  * kernel doesn't support it.
  */
 #if HAVE_INET6
+
 socket_type
-network_bind_ipv6(const char *address, unsigned short port)
+network_bind_ipv6(int type, const char *address, unsigned short port)
 {
     socket_type fd;
     struct sockaddr_in6 server;
     struct in6_addr addr;
-#ifdef IPV6_V6ONLY
-    int flag;
-#endif
 
     /* Create the socket. */
-    fd = socket(PF_INET6, SOCK_STREAM, IPPROTO_IP);
+    fd = socket(PF_INET6, type, IPPROTO_IP);
     if (fd == INVALID_SOCKET) {
         if (socket_errno != EAFNOSUPPORT && socket_errno != EPROTONOSUPPORT)
-            syswarn("cannot create IPv6 socket for %s,%hu", address, port);
+            syswarn("cannot create IPv6 socket for %s, port %hu", address,
+                    port);
         return INVALID_SOCKET;
     }
     network_set_reuseaddr(fd);
@@ -171,11 +227,7 @@ network_bind_ipv6(const char *address, unsigned short port)
      * and requiring handling of mapped addresses).  Continue on if this
      * fails, however.
      */
-#ifdef IPV6_V6ONLY
-    flag = 1;
-    if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &flag, sizeof(flag)) < 0)
-        syswarn("cannot set IPv6 socket to v6only");
-#endif
+    network_set_v6only(fd);
 
     /* Accept "any" or "all" in the bind address to mean ::. */
     if (!strcmp(address, "any") || !strcmp(address, "all"))
@@ -188,14 +240,13 @@ network_bind_ipv6(const char *address, unsigned short port)
      * exist on the system, but we gain the ability to bind to IPv6 addresses
      * that aren't yet configured.  Since IPv6 address configuration can take
      * unpredictable amounts of time during system setup, this is more robust.
+     *
+     * Ensure there is always a block here to avoid compiler warnings, since
+     * network_set_freebind() may expand into nothing.
      */
-#ifdef IP_FREEBIND
     if (strcmp(address, "::") != 0) {
-        flag = 1;
-        if (setsockopt(fd, IPPROTO_IP, IP_FREEBIND, &flag, sizeof(flag)) < 0)
-            syswarn("cannot set IPv6 socket to free binding");
+        network_set_freebind(fd);
     }
-#endif
 
     /* Flesh out the socket and do the bind. */
     memset(&server, 0, sizeof(server));
@@ -203,42 +254,48 @@ network_bind_ipv6(const char *address, unsigned short port)
     server.sin6_port = htons(port);
     if (inet_pton(AF_INET6, address, &addr) < 1) {
         warn("invalid IPv6 address %s", address);
-        socket_close(fd);
+        socket_set_errno_einval();
         return INVALID_SOCKET;
     }
     server.sin6_addr = addr;
     sin6_set_length(&server);
     if (bind(fd, (struct sockaddr *) &server, sizeof(server)) < 0) {
-        syswarn("cannot bind socket for %s,%hu", address, port);
+        syswarn("cannot bind socket for %s, port %hu", address, port);
         socket_close(fd);
         return INVALID_SOCKET;
     }
     return fd;
 }
+
 #else /* HAVE_INET6 */
+
 socket_type
-network_bind_ipv6(const char *address, unsigned short port)
+network_bind_ipv6(int type UNUSED, const char *address, unsigned short port)
 {
-    warn("cannot bind %s,%hu: not built with IPv6 support", address, port);
+    warn("cannot bind %s, port %hu: IPv6 not supported", address, port);
+    socket_set_errno(EPROTONOSUPPORT);
     return INVALID_SOCKET;
 }
+
 #endif /* HAVE_INET6 */
 
 
 /*
  * Create and bind sockets for every local address, as determined by
  * getaddrinfo if IPv6 is available (otherwise, just use the IPv4 loopback
- * address).  Takes the port number, and then a pointer to an array of
- * integers and a pointer to a count of them.  Allocates a new array to hold
- * the file descriptors and stores the count in the third argument.
+ * address).  Takes the socket type and port number, and then a pointer to an
+ * array of integers and a pointer to a count of them.  Allocates a new array
+ * to hold the file descriptors and stores the count in the fourth argument.
  */
 #if HAVE_INET6
-void
-network_bind_all(unsigned short port, socket_type **fds, unsigned int *count)
+
+bool
+network_bind_all(int type, unsigned short port, socket_type **fds,
+                 unsigned int *count)
 {
     struct addrinfo hints, *addrs, *addr;
     unsigned int size;
-    int error;
+    int status;
     socket_type fd;
     char service[16], name[INET6_ADDRSTRLEN];
 
@@ -248,12 +305,18 @@ network_bind_all(unsigned short port, socket_type **fds, unsigned int *count)
     memset(&hints, 0, sizeof(hints));
     hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
     hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    snprintf(service, sizeof(service), "%hu", port);
-    error = getaddrinfo(NULL, service, &hints, &addrs);
-    if (error < 0) {
-        warn("getaddrinfo failed: %s", gai_strerror(error));
-        return;
+    hints.ai_socktype = type;
+    status = snprintf(service, sizeof(service), "%hu", port);
+    if (status < 0 || (size_t) status > sizeof(service)) {
+        warn("cannot convert port %hu to string", port);
+        socket_set_errno_einval();
+        return false;
+    }
+    status = getaddrinfo(NULL, service, &hints, &addrs);
+    if (status < 0) {
+        warn("getaddrinfo for %s failed: %s", service, gai_strerror(status));
+        socket_set_errno_einval();
+        return false;
     }
 
     /*
@@ -261,42 +324,48 @@ network_bind_all(unsigned short port, socket_type **fds, unsigned int *count)
      * assuming an IPv6 and IPv4 socket, and grow it by two when necessary.
      */
     size = 2;
-    *fds = xmalloc(size * sizeof(socket_type));
+    *fds = xcalloc(size, sizeof(socket_type));
     for (addr = addrs; addr != NULL; addr = addr->ai_next) {
         network_sockaddr_sprint(name, sizeof(name), addr->ai_addr);
         if (addr->ai_family == AF_INET)
-            fd = network_bind_ipv4(name, port);
+            fd = network_bind_ipv4(type, name, port);
         else if (addr->ai_family == AF_INET6)
-            fd = network_bind_ipv6(name, port);
+            fd = network_bind_ipv6(type, name, port);
         else
             continue;
         if (fd != INVALID_SOCKET) {
             if (*count >= size) {
                 size += 2;
-                *fds = xrealloc(*fds, size * sizeof(socket_type));
+                *fds = xreallocarray(*fds, size, sizeof(socket_type));
             }
             (*fds)[*count] = fd;
             (*count)++;
         }
     }
     freeaddrinfo(addrs);
+    return (*count > 0);
 }
+
 #else /* HAVE_INET6 */
-void
-network_bind_all(unsigned short port, socket_type **fds, unsigned int *count)
+
+bool
+network_bind_all(int type, unsigned short port, socket_type **fds,
+                 unsigned int *count)
 {
     socket_type fd;
 
-    fd = network_bind_ipv4("0.0.0.0", port);
-    if (fd >= 0) {
-        *fds = xmalloc(sizeof(socket_type));
-        *fds[0] = fd;
-        *count = 1;
-    } else {
+    fd = network_bind_ipv4(type, "0.0.0.0", port);
+    if (fd == INVALID_SOCKET) {
         *fds = NULL;
         *count = 0;
+        return false;
     }
+    *fds = xmalloc(sizeof(socket_type));
+    *fds[0] = fd;
+    *count = 1;
+    return true;
 }
+
 #endif /* HAVE_INET6 */
 
 
@@ -309,6 +378,52 @@ void
 network_bind_all_free(socket_type *fds)
 {
     free(fds);
+}
+
+
+/*
+ * Given an array of file descriptors and the length of that array (the same
+ * data that's returned by network_bind_all), wait for an incoming connection
+ * on any of those sockets and return the file descriptor that selects ready
+ * for read.
+ *
+ * This is primarily intended for UDP services listening on multiple file
+ * descriptors, and also provides part of the code for network_accept_any.
+ * TCP services will probably want to use network_accept_any instead.
+ *
+ * Returns the new socket on success or INVALID_SOCKET on failure.  Note that
+ * INVALID_SOCKET may be returned if the timeout is interrupted by a signal,
+ * which is not, precisely speaking, an error condition.  In this case, errno
+ * will be set to EINTR.
+ *
+ * This is not intended to be a replacement for a full event loop, just some
+ * simple shared code for UDP services.
+ */
+socket_type
+network_wait_any(socket_type fds[], unsigned int count)
+{
+    fd_set readfds;
+    socket_type maxfd, fd;
+    unsigned int i;
+    int status;
+
+    FD_ZERO(&readfds);
+    maxfd = -1;
+    for (i = 0; i < count; i++) {
+        FD_SET(fds[i], &readfds);
+        if (fds[i] > maxfd)
+            maxfd = fds[i];
+    }
+    status = select(maxfd + 1, &readfds, NULL, NULL, NULL);
+    if (status < 0)
+        return INVALID_SOCKET;
+    fd = INVALID_SOCKET;
+    for (i = 0; i < count; i++)
+        if (FD_ISSET(fds[i], &readfds)) {
+            fd = fds[i];
+            break;
+        }
+    return fd;
 }
 
 
@@ -334,27 +449,9 @@ socket_type
 network_accept_any(socket_type fds[], unsigned int count,
                    struct sockaddr *addr, socklen_t *addrlen)
 {
-    fd_set readfds;
-    socket_type maxfd, fd;
-    unsigned int i;
-    int status;
+    socket_type fd;
 
-    FD_ZERO(&readfds);
-    maxfd = -1;
-    for (i = 0; i < count; i++) {
-        FD_SET(fds[i], &readfds);
-        if (fds[i] > maxfd)
-            maxfd = fds[i];
-    }
-    status = select(maxfd + 1, &readfds, NULL, NULL, NULL);
-    if (status < 0)
-        return INVALID_SOCKET;
-    fd = INVALID_SOCKET;
-    for (i = 0; i < count; i++)
-        if (FD_ISSET(fds[i], &readfds)) {
-            fd = fds[i];
-            break;
-        }
+    fd = network_wait_any(fds, count);
     if (fd == INVALID_SOCKET)
         return INVALID_SOCKET;
     else
@@ -370,15 +467,19 @@ network_accept_any(socket_type fds[], unsigned int count,
 static bool
 network_source(socket_type fd, int family, const char *source)
 {
-    if (source == NULL || strcmp(source, "all") == 0)
+    if (source == NULL)
+        return true;
+    if (strcmp(source, "all") == 0 || strcmp(source, "any") == 0)
         return true;
     if (family == AF_INET) {
         struct sockaddr_in saddr;
 
         memset(&saddr, 0, sizeof(saddr));
         saddr.sin_family = AF_INET;
-        if (!inet_aton(source, &saddr.sin_addr))
+        if (!inet_aton(source, &saddr.sin_addr)) {
+            socket_set_errno_einval();
             return false;
+        }
         return bind(fd, (struct sockaddr *) &saddr, sizeof(saddr)) == 0;
     }
 #ifdef HAVE_INET6
@@ -387,19 +488,64 @@ network_source(socket_type fd, int family, const char *source)
 
         memset(&saddr, 0, sizeof(saddr));
         saddr.sin6_family = AF_INET6;
-        if (inet_pton(AF_INET6, source, &saddr.sin6_addr) < 1)
+        if (inet_pton(AF_INET6, source, &saddr.sin6_addr) < 1) {
+            socket_set_errno_einval();
             return false;
+        }
         return bind(fd, (struct sockaddr *) &saddr, sizeof(saddr)) == 0;
     }
 #endif
     else {
-#ifdef _WIN32
-        socket_set_errno(WSAEINVAL);
-#else
-        socket_set_errno(EINVAL);
-#endif
+        socket_set_errno(EAFNOSUPPORT);
         return false;
     }
+}
+
+
+/*
+ * Internal helper function that waits for a non-blocking connect to complete
+ * on a socket.  Takes the file descriptor and the timeout.  Returns 0 on a
+ * successful completion of the connect within the timeout and -1 on failure.
+ * On failure, sets the socket errno.
+ */
+static int
+connect_wait(socket_type fd, time_t timeout)
+{
+    int status, err;
+    socklen_t length;
+    struct timeval tv;
+    fd_set set;
+
+    /*
+     * Use select to poll the file descriptor.  Loop if interrupted by a
+     * caught signal.  This means we could wait for longer than the timeout
+     * when interrupted, but there's no good way of recovering the elapsed
+     * time that's worth the hassle.
+     */
+    do {
+        tv.tv_sec = timeout;
+        tv.tv_usec = 0;
+        FD_ZERO(&set);
+        FD_SET(fd, &set);
+        status = select(fd + 1, NULL, &set, NULL, &tv);
+    } while (status < 0 && socket_errno == EINTR);
+
+    /*
+     * If we timed out, set errno appropriately.  If the connection completes,
+     * retrieve the actual status from the socket.
+     */
+    if (status == 0 && !FD_ISSET(fd, &set)) {
+        status = -1;
+        socket_set_errno(ETIMEDOUT);
+    } else if (status > 0 && FD_ISSET(fd, &set)) {
+        length = sizeof(err);
+        status = getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &length);
+        if (status == 0) {
+            status = (err == 0) ? 0 : -1;
+            socket_set_errno(err);
+        }
+    }
+    return status;
 }
 
 
@@ -412,13 +558,10 @@ network_source(socket_type fd, int family, const char *source)
  * errno.
  */
 socket_type
-network_connect(struct addrinfo *ai, const char *source, time_t timeout)
+network_connect(const struct addrinfo *ai, const char *source, time_t timeout)
 {
     socket_type fd = INVALID_SOCKET;
-    int oerrno, status, err;
-    socklen_t len;
-    struct timeval tv;
-    fd_set set;
+    int oerrno, status;
 
     for (status = -1; status != 0 && ai != NULL; ai = ai->ai_next) {
         if (fd != INVALID_SOCKET)
@@ -433,23 +576,11 @@ network_connect(struct addrinfo *ai, const char *source, time_t timeout)
         else {
             fdflag_nonblocking(fd, true);
             status = connect(fd, ai->ai_addr, ai->ai_addrlen);
-            if (status < 0 && socket_errno == EINPROGRESS) {
-                tv.tv_sec = timeout;
-                tv.tv_usec = 0;
-                FD_ZERO(&set);
-                FD_SET(fd, &set);
-                status = select(fd + 1, NULL, &set, NULL, &tv);
-                if (status == 0 && !FD_ISSET(fd, &set)) {
-                    status = -1;
-                    socket_set_errno(ETIMEDOUT);
-                } else if (status > 0 && FD_ISSET(fd, &set)) {
-                    len = sizeof(err);
-                    status = getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
-                    if (status == 0)
-                        status = err;
-                }
-            }
+            if (status < 0 && socket_errno == EINPROGRESS)
+                status = connect_wait(fd, timeout);
+            oerrno = socket_errno;
             fdflag_nonblocking(fd, false);
+            socket_set_errno(oerrno);
         }
     }
     if (status == 0)
@@ -478,12 +609,18 @@ network_connect_host(const char *host, unsigned short port,
     struct addrinfo hints, *ai;
     char portbuf[16];
     socket_type fd;
-    int oerrno;
+    int status, oerrno;
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    snprintf(portbuf, sizeof(portbuf), "%d", port);
+    status = snprintf(portbuf, sizeof(portbuf), "%hu", port);
+    if (status > 0 && (size_t) status > sizeof(portbuf)) {
+        status = -1;
+        socket_set_errno_einval();
+    }
+    if (status < 0)
+        return INVALID_SOCKET;
     if (getaddrinfo(host, portbuf, &hints, &ai) != 0)
         return INVALID_SOCKET;
     fd = network_connect(ai, source, timeout);
@@ -517,6 +654,169 @@ network_client_create(int domain, int type, const char *source)
         return INVALID_SOCKET;
     }
     return fd;
+}
+
+
+/*
+ * Equivalent to read, but reads all the available data up to the buffer
+ * length, using multiple reads if needed and handling EINTR and EAGAIN.  If
+ * we get EOF before we get enough data, set the socket errno to EPIPE.
+ */
+static ssize_t
+socket_xread(socket_type fd, void *buffer, size_t size)
+{
+    size_t total;
+    ssize_t status;
+    unsigned int count = 0;
+
+    /* Abort the read if we try 100 times with no forward progress. */
+    for (total = 0, status = 0; total < size; total += status) {
+        if (++count > 100)
+            break;
+        status = socket_read(fd, (char *) buffer + total, size - total);
+        if (status > 0)
+            count = 0;
+        else if (status == 0)
+            break;
+        else {
+            if ((socket_errno != EINTR) && (socket_errno != EAGAIN))
+                break;
+            status = 0;
+        }
+    }
+    if (status == 0 && total < size)
+        socket_set_errno(EPIPE);
+    return (total < size) ? -1 : (ssize_t) total;
+}
+
+
+/*
+ * Read the specified number of bytes from the network, enforcing a timeout
+ * (in seconds).  We use select to wait for data to become available and then
+ * keep reading until either we time out or we've gotten all the data we're
+ * looking for.  timeout may be 0 to never time out.  Return true on success
+ * and false (setting socket_errno) on failure.
+ */
+bool
+network_read(socket_type fd, void *buffer, size_t total, time_t timeout)
+{
+    time_t start, now;
+    fd_set set;
+    struct timeval tv;
+    size_t got = 0;
+    ssize_t status;
+
+    /* If there's no timeout, do this the easy way. */
+    if (timeout == 0)
+        return (socket_xread(fd, buffer, total) >= 0);
+
+    /*
+     * The hard way.  We try to apply the timeout on the whole read.  If
+     * either select or read fails with EINTR, restart the loop, and rely on
+     * the overall timeout to limit how long we wait without forward
+     * progress.
+     */
+    start = time(NULL);
+    now = start;
+    do {
+        FD_ZERO(&set);
+        FD_SET(fd, &set);
+        tv.tv_sec = timeout - (now - start);
+        if (tv.tv_sec < 1)
+            tv.tv_sec = 1;
+        tv.tv_usec = 0;
+        status = select(fd + 1, &set, NULL, NULL, &tv);
+        if (status < 0) {
+            if (socket_errno == EINTR)
+                continue;
+            return false;
+        } else if (status == 0) {
+            socket_set_errno(ETIMEDOUT);
+            return false;
+        }
+        status = socket_read(fd, (char *) buffer + got, total - got);
+        if (status < 0) {
+            if (socket_errno == EINTR)
+                continue;
+            return false;
+        } else if (status == 0) {
+            socket_set_errno(EPIPE);
+            return false;
+        }
+        got += status;
+        if (got == total)
+            return true;
+        now = time(NULL);
+    } while (now - start < timeout);
+    socket_set_errno(ETIMEDOUT);
+    return false;
+}
+
+
+/*
+ * Write the specified number of bytes from the network, enforcing a timeout
+ * (in seconds).  We use select to wait for the socket to become available and
+ * then keep reading until either we time out or we've sent all the data.
+ * timeout may be 0 to never time out.  Return true on success and false
+ * (setting socket_errno) on failure.
+ */
+bool
+network_write(socket_type fd, const void *buffer, size_t total, time_t timeout)
+{
+    time_t start, now;
+    fd_set set;
+    struct timeval tv;
+    size_t sent = 0;
+    ssize_t status;
+    int err;
+
+    /* If there's no timeout, do this the easy way. */
+    if (timeout == 0)
+        return (socket_xwrite(fd, buffer, total) >= 0);
+
+    /* The hard way.  We try to apply the timeout on the whole write.  If
+     * either select or read fails with EINTR, restart the loop, and rely on
+     * the overall timeout to limit how long we wait without forward progress.
+     */
+    fdflag_nonblocking(fd, true);
+    start = time(NULL);
+    now = start;
+    do {
+        FD_ZERO(&set);
+        FD_SET(fd, &set);
+        tv.tv_sec = timeout - (now - start);
+        if (tv.tv_sec < 1)
+            tv.tv_sec = 1;
+        tv.tv_usec = 0;
+        status = select(fd + 1, NULL, &set, NULL, &tv);
+        if (status < 0) {
+            if (socket_errno == EINTR)
+                continue;
+            goto fail;
+        } else if (status == 0) {
+            socket_set_errno(ETIMEDOUT);
+            goto fail;
+        }
+        status = socket_write(fd, (const char *) buffer + sent, total - sent);
+        if (status < 0) {
+            if (socket_errno == EINTR)
+                continue;
+            goto fail;
+        }
+        sent += status;
+        if (sent == total) {
+            fdflag_nonblocking(fd, false);
+            return true;
+        }
+        now = time(NULL);
+    } while (now - start < timeout);
+    socket_set_errno(ETIMEDOUT);
+
+fail:
+    err = socket_errno;
+    fdflag_nonblocking(fd, false);
+    socket_set_errno(err);
+    return false;
 }
 
 
@@ -651,6 +951,14 @@ network_addr_match(const char *a, const char *b, const char *mask)
 #ifdef HAVE_INET6
     struct in6_addr a6, b6;
 #endif
+
+    /*
+     * AIX 7.1 treats the empty string as equivalent to 0.0.0.0 and allows it
+     * to match, but it's too easy to get the empty string from some sort of
+     * syntax error.  Special-case the empty string to always return false.
+     */
+    if (a[0] == '\0' || b[0] == '\0')
+        return false;
 
     /*
      * If the addresses are IPv4, the mask may be in one of two forms.  It can

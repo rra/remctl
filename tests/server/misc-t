@@ -2,8 +2,8 @@
 #
 # Test suite for various server functions.
 #
-# Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2006, 2007, 2009
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2006, 2007, 2009, 2012, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -11,20 +11,19 @@
 . "$SOURCE/tap/libtap.sh"
 . "$SOURCE/tap/kerberos.sh"
 . "$SOURCE/tap/remctl.sh"
-cd "$BUILD"
 
 # Test setup.
 kerberos_setup
 if [ $? != 0 ] ; then
     skip_all "Kerberos tests not configured"
 else
-    plan 6
+    plan 7
 fi
 remctl="$BUILD/../client/remctl"
 if [ ! -x "$remctl" ] ; then
     bail "can't locate remctl client binary"
 fi
-remctld_start "$BUILD/../server/remctld" "$SOURCE/data/conf-simple"
+remctld_start "$BUILD/../server/remctld" "$BUILD/data/conf-simple"
 
 # Run the tests.
 ok_program "file descriptors closed properly on server" 0 "Okay" \
@@ -39,11 +38,14 @@ ok_program "wildcard matching for the command" 0 "hello world" \
     "$remctl" -s "$principal" -p 14373 localhost foo bar
 ok_program "...but only matches that subcommand" 255 "Unknown command" \
     "$remctl" -s "$principal" -p 14373 localhost foo baz
+ok_program "server resets SIGPIPE handler before running client" 255 '' \
+    "$remctl" -s "$principal" -p 14373 localhost test sigpipe
 
 # Clean up.
-if [ -f "$BUILD/data/cmd-background.pid" ] ; then
-    kill `cat "$BUILD/data/cmd-background.pid"`
-    rm -f "$BUILD/data/cmd-background.pid"
+tmpdir=`test_tmpdir`
+if [ -f "$tmpdir/cmd-background.pid" ] ; then
+    kill `cat "$tmpdir/cmd-background.pid"`
+    rm -f "$tmpdir/cmd-background.pid"
 fi
 remctld_stop
 kerberos_cleanup

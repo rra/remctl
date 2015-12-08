@@ -6,23 +6,27 @@
  * between the v1 and v2 implementations.  One of the things it establishes is
  * what protocol is being used.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
- *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
+ *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
+#ifdef HAVE_KRB5
+# include <portable/krb5.h>
+#endif
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <errno.h>
 
 #include <client/internal.h>
 #include <client/remctl.h>
+#include <util/macros.h>
 #include <util/network.h>
 #include <util/protocol.h>
 #include <util/tokens.h>
@@ -33,7 +37,7 @@
  * network connection.  Returns the file descriptor if successful or
  * INVALID_SOCKET on failure.
  */
-static socket_type
+socket_type
 internal_connect(struct remctl *r, const char *host, unsigned short port)
 {
     struct addrinfo hints, *ai;
@@ -56,7 +60,7 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
                            gai_strerror(status));
         return INVALID_SOCKET;
     }
-    fd = network_connect(ai, r->source, 0);
+    fd = network_connect(ai, r->source, r->timeout);
     freeaddrinfo(ai);
     if (fd == INVALID_SOCKET) {
         internal_set_error(r, "cannot connect to %s (port %hu): %s", host,
@@ -84,24 +88,19 @@ internal_import_name(struct remctl *r, const char *host,
 {
     gss_buffer_desc name_buffer;
     char *defprinc = NULL;
-    size_t length;
     OM_uint32 major, minor;
     gss_OID oid;
 
     /*
-     * If principal is NULL, use host@<host>.  Don't use concat here since it
+     * If principal is NULL, use host@<host>.  Don't use xmalloc here since it
      * dies on failure and that's rude for a library.
      */
     if (principal == NULL) {
-        length = strlen("host@") + strlen(host) + 1;
-        defprinc = malloc(length);
-        if (defprinc == NULL) {
+        if (asprintf(&defprinc, "host@%s", host) < 0) {
             internal_set_error(r, "cannot allocate memory: %s",
                                strerror(errno));
             return false;
         }
-        strlcpy(defprinc, "host@", length);
-        strlcat(defprinc, host, length);
         principal = defprinc;
     }
 
@@ -116,8 +115,7 @@ internal_import_name(struct remctl *r, const char *host,
     else
         oid = GSS_C_NT_HOSTBASED_SERVICE;
     major = gss_import_name(&minor, &name_buffer, oid, name);
-    if (defprinc != NULL)
-        free(defprinc);
+    free(defprinc);
     if (major != GSS_S_COMPLETE) {
         internal_gssapi_error(r, "parsing name", major, minor);
         return false;
@@ -127,19 +125,63 @@ internal_import_name(struct remctl *r, const char *host,
 
 
 /*
+ * Import the client credentials from a designated Kerberos ticket cache.
+ *
+ * This code is used if we have Kerberos libraries available and the GSS-API
+ * implementation supports gss_krb5_import_cred.  In that case, we can tell
+ * GSS-API which ticket cache to use.  Otherwise, we have to either set a
+ * global GSS-API variable with gss_krb5_ccache_name or just use whatever the
+ * default is.  The other cases are handled in remctl_set_ccache.
+ */
+#if defined(HAVE_GSS_KRB5_IMPORT_CRED) && defined(HAVE_KRB5)
+static bool
+internal_set_cred(struct remctl *r, gss_cred_id_t *gss_cred)
+{
+    krb5_error_code code;
+    OM_uint32 major, minor;
+
+    if (r->krb_ctx == NULL) {
+        code = krb5_init_context(&r->krb_ctx);
+        if (code != 0) {
+            internal_krb5_error(r, "opening ticket cache", code);
+            return false;
+        }
+    }
+    if (r->krb_ccache != NULL)
+        krb5_cc_close(r->krb_ctx, r->krb_ccache);
+    code = krb5_cc_resolve(r->krb_ctx, r->ccache, &r->krb_ccache);
+    if (code != 0) {
+        internal_krb5_error(r, "opening ticket cache", code);
+        return false;
+    }
+    major = gss_krb5_import_cred(&minor, r->krb_ccache, NULL, NULL, gss_cred);
+    if (major != GSS_S_COMPLETE) {
+        internal_gssapi_error(r, "importing ticket cache", major, minor);
+        return false;
+    }
+    return true;
+}
+#else /* !HAVE_GSS_KRB5_IMPORT_CRED || !HAVE_KRB5 */
+static bool
+internal_set_cred(struct remctl *r UNUSED, gss_cred_id_t *gss_cred UNUSED)
+{
+    return false;
+}
+#endif /* !HAVE_GSS_KRB5_IMPORT_CRED */
+
+
+/*
  * Open a new connection to a server.  Returns true on success, false on
  * failure.  On failure, sets the error message appropriately.
  */
 bool
-internal_open(struct remctl *r, const char *host, unsigned short port,
-              const char *principal)
+internal_open(struct remctl *r, const char *host, const char *principal)
 {
     int status, flags;
-    bool port_fallback = false;
-    socket_type fd = INVALID_SOCKET;
     gss_buffer_desc send_tok, recv_tok, *token_ptr;
     gss_buffer_desc empty_token = { 0, (void *) "" };
     gss_name_t name = GSS_C_NO_NAME;
+    gss_cred_id_t gss_cred = GSS_C_NO_CREDENTIAL;
     gss_ctx_id_t gss_context = GSS_C_NO_CONTEXT;
     OM_uint32 major, minor, init_minor, gss_flags;
     static const OM_uint32 wanted_gss_flags
@@ -148,26 +190,14 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     static const OM_uint32 req_gss_flags
         = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
 
-    /*
-     * If port is 0, default to trying the standard port and then falling back
-     * on the old port.
-     */
-    if (port == 0) {
-        port = REMCTL_PORT;
-        port_fallback = true;
-    }
-
-    /* Make the network connection. */
-    fd = internal_connect(r, host, port);
-    if (fd == INVALID_SOCKET && port_fallback)
-        fd = internal_connect(r, host, REMCTL_PORT_OLD);
-    if (fd == INVALID_SOCKET)
-        goto fail;
-    r->fd = fd;
-
     /* Import the name. */
     if (!internal_import_name(r, host, principal, &name))
         goto fail;
+
+    /* If the user has specified a Kerberos ticket cache, import it. */
+    if (r->ccache != NULL)
+        if (!internal_set_cred(r, &gss_cred))
+            goto fail;
 
     /*
      * Default to protocol version two, but if some other protocol is already
@@ -178,14 +208,15 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
         r->protocol = 2;
 
     /* Send the initial negotiation token. */
-    status = token_send(fd, TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL,
-                        &empty_token);
+    status = token_send(r->fd, TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL,
+                        &empty_token, r->timeout);
     if (status != TOKEN_OK) {
         internal_token_error(r, "sending initial token", status, 0, 0);
         goto fail;
     }
 
-    /* Perform the context-establishment loop.
+    /*
+     * Perform the context-establishment loop.
      *
      * On each pass through the loop, token_ptr points to the token to send to
      * the server (or GSS_C_NO_BUFFER on the first pass).  Every generated
@@ -204,10 +235,9 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
      */
     token_ptr = GSS_C_NO_BUFFER;
     do {
-        major = gss_init_sec_context(&init_minor, GSS_C_NO_CREDENTIAL, 
-                    &gss_context, name, (const gss_OID) GSS_KRB5_MECHANISM,
-                    wanted_gss_flags, 0, NULL, token_ptr, NULL, &send_tok,
-                    &gss_flags, NULL);
+        major = gss_init_sec_context(&init_minor, gss_cred, &gss_context,
+                    name, (const gss_OID) GSS_KRB5_MECHANISM, wanted_gss_flags,
+                    0, NULL, token_ptr, NULL, &send_tok, &gss_flags, NULL);
         if (token_ptr != GSS_C_NO_BUFFER)
             free(recv_tok.value);
 
@@ -216,9 +246,9 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
             flags = TOKEN_CONTEXT;
             if (r->protocol > 1)
                 flags |= TOKEN_PROTOCOL;
-            status = token_send(fd, flags, &send_tok);
+            status = token_send(r->fd, flags, &send_tok, r->timeout);
             if (status != TOKEN_OK) {
-                internal_token_error(r, "sending token", status, major, minor);
+                internal_token_error(r, "sending token", status, 0, 0);
                 gss_release_buffer(&minor, &send_tok);
                 goto fail;
             }
@@ -234,7 +264,8 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
 
         /* If we're still expecting more, retrieve it. */
         if (major == GSS_S_CONTINUE_NEEDED) {
-            status = token_recv(fd, &flags, &recv_tok, TOKEN_MAX_LENGTH);
+            status = token_recv(r->fd, &flags, &recv_tok, TOKEN_MAX_LENGTH,
+                                r->timeout);
             if (status != TOKEN_OK) {
                 internal_token_error(r, "receiving token", status, major,
                                      minor);
@@ -262,14 +293,17 @@ internal_open(struct remctl *r, const char *host, unsigned short port,
     r->context = gss_context;
     r->ready = 0;
     gss_release_name(&minor, &name);
+    if (gss_cred != GSS_C_NO_CREDENTIAL)
+        gss_release_cred(&minor, &gss_cred);
     return true;
 
 fail:
-    if (fd != INVALID_SOCKET)
-        socket_close(fd);
+    socket_close(r->fd);
     r->fd = INVALID_SOCKET;
     if (name != GSS_C_NO_NAME)
         gss_release_name(&minor, &name);
+    if (gss_cred != GSS_C_NO_CREDENTIAL)
+        gss_release_cred(&minor, &gss_cred);
     if (gss_context != GSS_C_NO_CONTEXT)
         gss_delete_sec_context(&minor, &gss_context, GSS_C_NO_BUFFER);
     return false;

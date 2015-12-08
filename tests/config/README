@@ -1,0 +1,20 @@
+This directory contains configuration required to run the complete remctl
+test suite.  If there is no configuration in this directory, some of the
+tests will be skipped.  To enable the full test suite, create the
+following files:
+
+keytab
+
+    A valid Kerberos keytab for a principal, preferrably in your local
+    realm.  This will be used to test network interactions that require
+    Kerberos authentication.
+
+principal
+
+    The name of the Kerberos principal whose keys are stored in keytab on
+    a single line ending with a newline.
+
+If you are building in a different directory tree than the source tree,
+don't put the files in this directory.  Instead, after running configure,
+you will have an empty tests/config directory in your build tree.  Put the
+keytab and principal files in that directory instead.

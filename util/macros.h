@@ -4,7 +4,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
  * in this work, whether granted under contract or by operation of law or
@@ -28,6 +28,10 @@
  */
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 #define ARRAY_END(array)  (&(array)[ARRAY_SIZE(array)])
+
+/* Used to name the elements of the array passed to pipe. */
+#define PIPE_READ  0
+#define PIPE_WRITE 1
 
 /* Used for unused parameters to silence gcc warnings. */
 #define UNUSED __attribute__((__unused__))

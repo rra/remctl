@@ -4,22 +4,27 @@
  * These are the server protocol functions that can be shared between the v1
  * and v2 protocol.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
- *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2015 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
+ *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
 
 #include <config.h>
-#include <portable/system.h>
+#include <portable/event.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 #include <portable/uio.h>
+
+#include <time.h>
 
 #include <server/internal.h>
 #include <util/messages.h>
+#include <util/protocol.h>
 #include <util/tokens.h>
 #include <util/xmalloc.h>
 
@@ -43,7 +48,7 @@ server_new_client(int fd, gss_cred_id_t creds)
     gss_OID doid;
     OM_uint32 major = 0;
     OM_uint32 minor = 0;
-    OM_uint32 acc_minor;
+    OM_uint32 acc_minor, time_rec;
     int flags, status;
     static const OM_uint32 req_gss_flags
         = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
@@ -52,10 +57,6 @@ server_new_client(int fd, gss_cred_id_t creds)
     client = xcalloc(1, sizeof(struct client));
     client->fd = fd;
     client->context = GSS_C_NO_CONTEXT;
-    client->user = NULL;
-    client->output = NULL;
-    client->hostname = NULL;
-    client->ipaddress = NULL;
 
     /* Fill in hostname and IP address. */
     socklen = sizeof(ss);
@@ -83,7 +84,8 @@ server_new_client(int fd, gss_cred_id_t creds)
         free(buffer);
 
     /* Accept the initial (worthless) token. */
-    status = token_recv(client->fd, &flags, &recv_tok, TOKEN_MAX_LENGTH);
+    status = token_recv(client->fd, &flags, &recv_tok, TOKEN_MAX_LENGTH,
+                        TIMEOUT);
     if (status != TOKEN_OK) {
         warn_token("receiving initial token", status, major, minor);
         goto fail;
@@ -100,7 +102,8 @@ server_new_client(int fd, gss_cred_id_t creds)
 
     /* Now, do the real work of negotiating the context. */
     do {
-        status = token_recv(client->fd, &flags, &recv_tok, TOKEN_MAX_LENGTH);
+        status = token_recv(client->fd, &flags, &recv_tok, TOKEN_MAX_LENGTH,
+                            TIMEOUT);
         if (status != TOKEN_OK) {
             warn_token("receiving context token", status, major, minor);
             goto fail;
@@ -116,7 +119,7 @@ server_new_client(int fd, gss_cred_id_t creds)
               (unsigned long) recv_tok.length);
         major = gss_accept_sec_context(&acc_minor, &client->context, creds,
                     &recv_tok, GSS_C_NO_CHANNEL_BINDINGS, &name, &doid,
-                    &send_tok, &client->flags, NULL, NULL);
+                    &send_tok, &client->flags, &time_rec, NULL);
         free(recv_tok.value);
 
         /* Send back a token if we need to. */
@@ -126,7 +129,7 @@ server_new_client(int fd, gss_cred_id_t creds)
             flags = TOKEN_CONTEXT;
             if (client->protocol > 1)
                 flags |= TOKEN_PROTOCOL;
-            status = token_send(client->fd, flags, &send_tok);
+            status = token_send(client->fd, flags, &send_tok, TIMEOUT);
             if (status != TOKEN_OK) {
                 warn_token("sending context token", status, major, minor);
                 gss_release_buffer(&minor, &send_tok);
@@ -158,8 +161,11 @@ server_new_client(int fd, gss_cred_id_t creds)
         warn_gssapi("while displaying client name", major, minor);
         goto fail;
     }
-    major = gss_release_name(&minor, &name);
+    gss_release_name(&minor, &name);
+    if (gss_oid_equal(doid, GSS_C_NT_ANONYMOUS))
+        client->anonymous = true;
     client->user = xstrndup(name_buf.value, name_buf.length);
+    client->expires = time(NULL) + time_rec;
     gss_release_buffer(&minor, &name_buf);
     return client;
 
@@ -168,10 +174,8 @@ fail:
         gss_delete_sec_context(&minor, &client->context, GSS_C_NO_BUFFER);
     if (name != GSS_C_NO_NAME)
         gss_release_name(&minor, &name);
-    if (client->ipaddress != NULL)
-        free(client->ipaddress);
-    if (client->hostname != NULL)
-        free(client->hostname);
+    free(client->ipaddress);
+    free(client->hostname);
     free(client);
     return NULL;
 }
@@ -185,21 +189,18 @@ server_free_client(struct client *client)
 {
     OM_uint32 major, minor;
 
+    if (client == NULL)
+        return;
     if (client->context != GSS_C_NO_CONTEXT) {
         major = gss_delete_sec_context(&minor, &client->context, NULL);
         if (major != GSS_S_COMPLETE)
             warn_gssapi("while deleting context", major, minor);
     }
-    if (client->output != NULL)
-        free(client->output);
-    if (client->user != NULL)
-        free(client->user);
     if (client->fd >= 0)
         close(client->fd);
-    if (client->hostname != NULL)
-        free(client->hostname);
-    if (client->ipaddress != NULL)
-        free(client->ipaddress);
+    free(client->user);
+    free(client->hostname);
+    free(client->ipaddress);
     free(client);
 }
 
@@ -230,8 +231,8 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
         server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
         return NULL;
     }
-    if (argc > MAXCMDARGS) {
-        warn("too large argc %lu in request message", (unsigned long) argc);
+    if (argc > COMMAND_MAX_ARGS) {
+        warn("too large argc (%lu) in request message", (unsigned long) argc);
         server_send_error(client, ERROR_TOOMANY_ARGS, "Too many arguments");
         return NULL;
     }
@@ -274,8 +275,6 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
         }
         count++;
         p += arglen;
-        debug("arg %lu has length %lu", (unsigned long) count,
-              (unsigned long) arglen);
     }
     if (count != argc || p != buffer + length) {
         warn("argument count differs from arguments seen");
@@ -286,8 +285,7 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
     return argv;
 
 fail:
-    if (argv != NULL)
-        server_free_command(argv);
+    server_free_command(argv);
     return NULL;
 }
 
@@ -301,15 +299,19 @@ bool
 server_send_error(struct client *client, enum error_codes error,
                   const char *message)
 {
+    struct evbuffer *buf;
+    bool result;
+
     if (client->protocol > 1)
         return server_v2_send_error(client, error, message);
     else {
-        if (client->output != NULL)
-            free(client->output);
-        client->output = xmalloc(strlen(message) + 1);
-        memcpy(client->output, message, strlen(message));
-        client->output[strlen(message)] = '\n';
-        client->outlen = strlen(message) + 1;
-        return server_v1_send_output(client, -1);
+        buf = evbuffer_new();
+        if (buf == NULL)
+            die("internal error: cannot create output buffer");
+        if (evbuffer_add_printf(buf, "%s\n", message) < 0)
+            die("internal error: cannot add error message to buffer");
+        result = server_v1_send_output(client, buf, -1);
+        evbuffer_free(buf);
+        return result;
     }
 }

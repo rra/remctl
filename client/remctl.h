@@ -1,30 +1,35 @@
 /*
  * Public interface to remctl client library.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Based on prior work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2011
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * Permission to use, copy, modify, and distribute this software and its
- * documentation for any purpose and without fee is hereby granted, provided
- * that the above copyright notice appear in all copies and that both that
- * copyright notice and this permission notice appear in supporting
- * documentation, and that the name of Stanford University not be used in
- * advertising or publicity pertaining to distribution of the software without
- * specific, written prior permission.  Stanford University makes no
- * representations about the suitability of this software for any purpose.  It
- * is provided "as is" without express or implied warranty.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
 
 #ifndef REMCTL_H
 #define REMCTL_H 1
 
 #include <sys/types.h>          /* size_t */
+#include <time.h>               /* time_t */
 
 /*
  * Normally we treat this as an opaque struct and clients who want to use the
@@ -40,6 +45,10 @@ struct iovec {
 #else
 struct iovec;
 #endif
+
+/* Forward declarations of socket structs for alternate remctl_open APIs. */
+struct addrinfo;
+struct sockaddr;
 
 /*
  * BEGIN_DECLS is used at the beginning of declarations so that C++
@@ -119,6 +128,30 @@ int remctl_open(struct remctl *, const char *host, unsigned short port,
 void remctl_close(struct remctl *);
 
 /*
+ * Some alternate interfaces for opening connections.  In each of these,
+ * principal may be NULL, in which case host/<host> is used, as for the basic
+ * remctl_open.  If principal is not NULL, then host is not used and may be
+ * NULL.  Connections established using these interfaces do not support
+ * automatic connection reopening, which means they cannot be used to send
+ * more than one command to a v1 server.
+ */
+int remctl_open_addrinfo(struct remctl *r, const char *host,
+                         const struct addrinfo *ai, const char *principal);
+int remctl_open_sockaddr(struct remctl *r, const char *host,
+                         const struct sockaddr *addr, int addrlen,
+                         const char *principal);
+
+/* Windows uses a SOCKET type for sockets instead of an integer. */
+#ifdef _WIN32
+int remctl_open_fd(struct remctl *r, const char *host, SOCKET fd,
+                   const char *principal);
+#else
+int remctl_open_fd(struct remctl *r, const char *host, int fd,
+                   const char *principal);
+#endif
+
+
+/*
  * Set the Kerberos credential cache for client connections.  This must be
  * called before remctl_open.  Takes a string representing the Kerberos
  * credential cache name (the format may vary based on the underlying Kerberos
@@ -143,6 +176,16 @@ int remctl_set_ccache(struct remctl *, const char *);
  * get the error.
  */
 int remctl_set_source_ip(struct remctl *, const char *);
+
+/*
+ * Set the network timeout, which may be 0 to not use any timeout (the
+ * default).  If remctl_set_timeout is called before remctl_open, that timeout
+ * (in seconds) will be used for each network action, both connect and packet
+ * reads and writes.  Returns true on success, false on failure (only possible
+ * with an invalid timeout, such as a negative value).  On failure, use
+ * remctl_error to get the error.
+ */
+int remctl_set_timeout(struct remctl *, time_t);
 
 /*
  * Send a complete remote command.  Returns true on success, false on failure.

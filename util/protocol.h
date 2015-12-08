@@ -4,9 +4,9 @@
  * Various constants and values used throughout the remctl source.  This
  * should eventually move into a public header file.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Based on prior work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -18,6 +18,14 @@
 /* Maximum lengths from the protocol specification of tokens and data. */
 #define TOKEN_MAX_LENGTH        (1024 * 1024)
 #define TOKEN_MAX_DATA          (64 * 1024)
+
+/*
+ * Maximum data payload for a MESSAGE_OUTPUT message, which is TOKEN_MAX_DATA
+ * minus the overhead for MESSAGE_OUTPUT labeling.  This is slightly different
+ * in protocol one, which used a different message format.
+ */
+#define TOKEN_MAX_OUTPUT        (TOKEN_MAX_DATA - 1 - 1 - 1 - 4)
+#define TOKEN_MAX_OUTPUT_V1     (TOKEN_MAX_DATA - 4 - 4)
 
 /* Message types. */
 enum message_types {
@@ -45,7 +53,8 @@ enum error_codes {
     ERROR_ACCESS             = 6,  /* Access denied. */
     ERROR_TOOMANY_ARGS       = 7,  /* Argument count exceeds server limit. */
     ERROR_TOOMUCH_DATA       = 8,  /* Argument size exceeds server limit. */
-    ERROR_UNEXPECTED_MESSAGE = 9   /* Message type not valid now. */
+    ERROR_UNEXPECTED_MESSAGE = 9,  /* Message type not valid now. */
+    ERROR_NO_HELP            = 10  /* No help defined for this command. */
 };
 
 #endif /* UTIL_PROTOCOL_H */

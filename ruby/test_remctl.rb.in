@@ -1,7 +1,7 @@
-# test_remctl.rb -- Test suite for remctl Ruby bindings
+# Test suite for remctl Ruby bindings.
 #
-# Written by Russ Allbery <rra@stanford.edu>
-# Copyright 2010
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2010, 2012, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -12,51 +12,57 @@ require 'remctl'
 
 module Helpers
   def configured?
-    return File.exists? 'data/test.principal'
+    return File.exists? 'config/principal'
   end
 
   def get_principal
-    IO.readlines('data/test.principal').each do |line|
+    IO.readlines('config/principal').each do |line|
       return line.chomp
     end
   end
 
   def start_remctld
-    FileUtils.rm 'data/pid', :force => true
+    begin
+      FileUtils.mkdir 'tmp'
+    rescue Errno::EEXIST
+      nil
+    end
+    FileUtils.rm 'tmp/pid', :force => true
     @principal = get_principal
     fork do
-      $stdout.reopen('data/test.output', 'w')
-      $stderr.reopen('data/test.output', 'w')
+      $stdout.reopen('tmp/output', 'w')
+      $stderr.reopen('tmp/output', 'w')
       FileUtils.cd '@abs_top_srcdir@/tests'
       exec('@abs_top_builddir@/server/remctld', 'remctld', '-m',
            '-p', '14373', '-s', @principal, '-f', 'data/conf-simple',
-           '-P', '@abs_top_builddir@/tests/data/pid', '-d', '-S', '-F',
-           '-k', '@abs_top_builddir@/tests/data/test.keytab')
+           '-P', '@abs_top_builddir@/tests/tmp/pid', '-d', '-S', '-F',
+           '-k', '@abs_top_builddir@/tests/config/keytab')
     end
-    unless File.exists? 'data/pid' then sleep 1 end
+    unless File.exists? 'tmp/pid' then sleep 1 end
   end
 
   def stop_remctld
-    IO.readlines('data/pid').each do |pid|
+    IO.readlines('tmp/pid').each do |pid|
       pid.chomp!
       Process.kill('TERM', pid.to_i)
       Process.waitpid(pid.to_i)
+      FileUtils.rm 'tmp/pid', :force => true
       return
     end
   end
 
   def run_kinit
-    ENV['KRB5CCNAME'] = 'data/test.cache'
-    commands = ['kinit --no-afslog -k -t data/test.keytab ' + @principal,
-                'kinit -k -t data/test.keytab ' + @principal,
-                'kinit -t data/test.keytab ' + @principal,
-                'kinit -k -K data/test.keytab ' + @principal]
+    ENV['KRB5CCNAME'] = 'tmp/krb5cc_test'
+    commands = ['kinit --no-afslog -k -t config/keytab ' + @principal,
+                'kinit -k -t config/keytab ' + @principal,
+                'kinit -t config/keytab ' + @principal,
+                'kinit -k -K config/keytab ' + @principal]
     commands.each do |command|
-      if system(command + ' >/dev/null </dev/null')
+      if system(command + ' >/dev/null 2>&1 </dev/null')
         return true
       end
     end
-    unless File.exists? 'data/pid' then sleep 1 end
+    unless File.exists? 'tmp/pid' then sleep 1 end
     stop_remctld
     return false
   end
@@ -72,8 +78,13 @@ module Helpers
   def teardown
     if configured?
       stop_remctld
-      FileUtils.rm 'data/test.output'
-      FileUtils.rm 'data/test.cache', :force => true
+      FileUtils.rm 'tmp/output'
+      FileUtils.rm 'tmp/krb5cc_test', :force => true
+      begin
+        FileUtils.rmdir 'tmp'
+      rescue Errno::ENOENT
+        nil
+      end
     end
   end
 end
@@ -131,8 +142,8 @@ class TC_RemctlSimple < Test::Unit::TestCase
         raise
       end
     end
-    assert_raise ArgumentError do Remctl.default_port = 'foo' end
-    assert_raise ArgumentError do Remctl.default_port = -1 end
+    assert_raise ArgumentError, TypeError do Remctl.default_port = 'foo' end
+    assert_raise ArgumentError, RangeError do Remctl.default_port = -1 end
     assert_raise ArgumentError do
       begin
         Remctl.default_port = 65536
@@ -193,7 +204,7 @@ class TC_RemctlFull < Test::Unit::TestCase
     assert_raise Remctl::Error do
       Remctl.new('127.0.0.1', 14373, @principal)
     end
-    Remctl.ccache = 'data/test.cache'
+    Remctl.ccache = 'tmp/krb5cc_test'
     begin
       Remctl.new('127.0.0.1', 14373, @principal)
     rescue Remctl::Error
@@ -213,13 +224,47 @@ class TC_RemctlFull < Test::Unit::TestCase
     Remctl.source_ip = nil
   end
 
+  def test_full_timeout
+    unless configured? then return end
+
+    # Test the set_timeout method on an existing object.
+    r = Remctl.new('127.0.0.1', 14373, @principal)
+    r.set_timeout(1)
+    r.command('test', 'sleep')
+    assert_raise Remctl::Error do
+      begin
+        output = r.output
+      rescue Remctl::Error
+        assert_equal('error receiving token: timed out', $!.to_s)
+        raise
+      end
+    end
+    r.close
+
+    # Test the default timeout support.
+    Remctl.timeout = 1
+    r = Remctl.new('127.0.0.1', 14373, @principal)
+    r.command('test', 'sleep')
+    assert_raise Remctl::Error do
+      begin
+        output = r.output
+      rescue Remctl::Error
+        assert_equal('error receiving token: timed out', $!.to_s)
+        raise
+      end
+    end
+    r.close
+  end
+
   def test_full_errors
     unless configured? then return end
     assert_raise ArgumentError do Remctl.new end
     assert_raise TypeError do Remctl.new(1, 14373, @principal) end
-    assert_raise ArgumentError do Remctl.new('localhost', 'foo', @principal) end
+    assert_raise ArgumentError, TypeError do
+      Remctl.new('localhost', 'foo', @principal)
+    end
     assert_raise TypeError do Remctl.new('localhost', 14373, 1) end
-    assert_raise ArgumentError do Remctl.new('localhost', -1) end
+    assert_raise ArgumentError, RangeError do Remctl.new('localhost', -1) end
     assert_raise ArgumentError do Remctl.new('localhost', 65536) end
     assert_raise Remctl::Error do
       begin

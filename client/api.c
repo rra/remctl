@@ -9,25 +9,30 @@
  * We don't try to set up the portability glue to use bool in our public
  * headers.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011
- *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013,
+ *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
+#ifdef HAVE_KRB5
+# include <portable/krb5.h>
+#endif
 #include <portable/socket.h>
+#include <portable/system.h>
 #include <portable/uio.h>
 
 #include <errno.h>
+#include <time.h>
 
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <util/macros.h>
+#include <util/network.h>
 
 
 /*
@@ -85,16 +90,14 @@ internal_output_append(struct remctl_result *result,
         buffer = &result->stderr_buf;
         length = &result->stderr_len;
     } else if (output->type == REMCTL_OUT_OUTPUT) {
-        if (result->error != NULL)
-            free(result->error);
+        free(result->error);
         status = asprintf(&result->error, "bad output stream %d",
                           output->stream);
         if (status < 0)
             result->error = NULL;
         return false;
     } else {
-        if (result->error != NULL)
-            free(result->error);
+        free(result->error);
         result->error = strdup("internal error: bad output type");
         return false;
     }
@@ -112,8 +115,7 @@ internal_output_append(struct remctl_result *result,
         newlen++;
     newbuf = realloc(*buffer, newlen);
     if (newbuf == NULL) {
-        if (result->error != NULL)
-            free(result->error);
+        free(result->error);
         result->error = strdup("cannot allocate memory");
         return false;
     }
@@ -185,15 +187,12 @@ remctl(const char *host, unsigned short port, const char *principal,
 void
 remctl_result_free(struct remctl_result *result)
 {
-    if (result != NULL) {
-        if (result->error != NULL)
-            free(result->error);
-        if (result->stdout_buf != NULL)
-            free(result->stdout_buf);
-        if (result->stderr_buf != NULL)
-            free(result->stderr_buf);
-        free(result);
-    }
+    if (result == NULL)
+        return;
+    free(result->error);
+    free(result->stdout_buf);
+    free(result->stderr_buf);
+    free(result);
 }
 
 
@@ -213,13 +212,8 @@ remctl_new(void)
     r = calloc(1, sizeof(struct remctl));
     if (r == NULL)
         return NULL;
-    r->source = NULL;
     r->fd = INVALID_SOCKET;
-    r->host = NULL;
-    r->principal = NULL;
     r->context = GSS_C_NO_CONTEXT;
-    r->error = NULL;
-    r->output = NULL;
     return r;
 }
 
@@ -236,11 +230,26 @@ remctl_new(void)
  * not support setting the Kerberos ticket cache.  A reasonable fallback is to
  * set the KRB5CCNAME environment variable.
  *
- * Be aware that this function sets the Kerberos credential cache globally for
- * all uses of GSS-API by that process.  The GSS-API does not provide a way of
- * setting it only for one particular GSS-API context.
+ * If Kerberos libraries and the gss_krb5_import_cred function are available,
+ * this will be per-context.  Otherwise, be aware that this function sets the
+ * Kerberos credential cache globally for all uses of GSS-API by that process.
  */
-#ifdef HAVE_GSS_KRB5_CCACHE_NAME
+#if defined(HAVE_KRB5) && defined(HAVE_GSS_KRB5_IMPORT_CRED)
+int
+remctl_set_ccache(struct remctl *r, const char *ccache)
+{
+    char *copy;
+
+    copy = strdup(ccache);
+    if (copy == NULL) {
+        internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
+        return 0;
+    }
+    free(r->ccache);
+    r->ccache = copy;
+    return 1;
+}
+#elif defined(HAVE_GSS_KRB5_CCACHE_NAME)
 int
 remctl_set_ccache(struct remctl *r, const char *ccache)
 {
@@ -280,10 +289,44 @@ remctl_set_source_ip(struct remctl *r, const char *source)
         internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
         return 0;
     }
-    if (r->source != NULL)
-        free(r->source);
+    free(r->source);
     r->source = copy;
     return 1;
+}
+
+
+/*
+ * Set the network timeout in seconds, which may be 0 to not use any timeout
+ * (the default).  Returns true on success, false on an invalid timeout, such
+ * as a negative value.
+ */
+int
+remctl_set_timeout(struct remctl *r, time_t timeout)
+{
+    if (timeout < 0) {
+        internal_set_error(r, "invalid timeout %ld", (long) timeout);
+        return 0;
+    }
+    r->timeout = timeout;
+    return 1;
+}
+
+
+static void
+internal_reset(struct remctl *r)
+{
+    if (r->fd != -1) {
+        if (r->protocol > 1)
+            internal_v2_quit(r);
+        socket_close(r->fd);
+    }
+    free(r->error);
+    r->error = NULL;
+    if (r->output != NULL) {
+        internal_output_wipe(r->output);
+        free(r->output);
+        r->output = NULL;
+    }
 }
 
 
@@ -295,24 +338,114 @@ int
 remctl_open(struct remctl *r, const char *host, unsigned short port,
             const char *principal)
 {
-    if (r->fd != -1) {
-        if (r->protocol > 1)
-            internal_v2_quit(r);
-        socket_close(r->fd);
-    }
-    if (r->error != NULL) {
-        free(r->error);
-        r->error = NULL;
-    }
-    if (r->output != NULL) {
-        internal_output_wipe(r->output);
-        free(r->output);
-        r->output = NULL;
-    }
+    bool port_fallback = false;
+    socket_type fd = INVALID_SOCKET;
+    char *old_error;
+
+    /* Reset and reconfigure the client object. */
+    internal_reset(r);
     r->host = host;
     r->port = port;
     r->principal = principal;
-    return internal_open(r, host, port, principal);
+
+    /*
+     * If port is 0, default to trying the standard port and then falling back
+     * on the old port.
+     */
+    if (port == 0) {
+        port = REMCTL_PORT;
+        port_fallback = true;
+    }
+
+    /*
+     * Make the network connection.  If we're doing a fallback to the legacy
+     * port, preserve the error message from the initial connect and report
+     * it by preference to the error message for the legacy connect.
+     */
+    fd = internal_connect(r, host, port);
+    if (fd == INVALID_SOCKET && port_fallback) {
+        old_error = r->error;
+        r->error = NULL;
+        fd = internal_connect(r, host, REMCTL_PORT_OLD);
+        if (fd == INVALID_SOCKET) {
+            free(r->error);
+            r->error = old_error;
+        } else {
+            free(old_error);
+        }
+    }
+    if (fd == INVALID_SOCKET)
+        return false;
+    r->fd = fd;
+    return internal_open(r, host, principal);
+}
+
+
+/*
+ * Open a new remctl connection to a server, given the hostname, address
+ * information, and principal.  At least one of host or principal is required.
+ * Returns true on success and false on failure.
+ */
+int
+remctl_open_addrinfo(struct remctl *r, const char *host,
+                     const struct addrinfo *ai, const char *principal)
+{
+    socket_type fd = INVALID_SOCKET;
+
+    internal_reset(r);
+    r->host = NULL;
+    r->port = 0;
+    r->principal = principal;
+
+    /* Make the network connection. */
+    fd = network_connect(ai, r->source, r->timeout);
+    if (fd == INVALID_SOCKET) {
+        internal_set_error(r, "cannot connect: %s",
+                           socket_strerror(socket_errno));
+        return false;
+    }
+    r->fd = fd;
+    return internal_open(r, host, principal);
+}
+
+
+/*
+ * Open a new remctl connection to a server, given the hostname, socket
+ * address, and principal.  At least one of host or principal is required.
+ * Returns true on success and false on failure.
+ */
+int
+remctl_open_sockaddr(struct remctl *r, const char *host,
+                     const struct sockaddr *addr, int addrlen,
+                     const char *principal)
+{
+    struct addrinfo ai;
+
+    memset(&ai, 0, sizeof(ai));
+    ai.ai_family = addr->sa_family;
+    ai.ai_socktype = SOCK_STREAM;
+    ai.ai_protocol = IPPROTO_TCP;
+    ai.ai_addrlen = addrlen;
+    ai.ai_addr = (struct sockaddr *) addr;
+    return remctl_open_addrinfo(r, host, &ai, principal);
+}
+
+
+/*
+ * Open a new remctl connection to a server, given the hostname, socket,
+ * and principal.  At least one of host or principal is required.
+ * Returns true on success and false on failure.
+ */
+int
+remctl_open_fd(struct remctl *r, const char *host, socket_type fd,
+               const char *principal)
+{
+    internal_reset(r);
+    r->host = NULL;
+    r->port = 0;
+    r->principal = principal;
+    r->fd = fd;
+    return internal_open(r, host, principal);
 }
 
 
@@ -324,21 +457,43 @@ remctl_close(struct remctl *r)
 {
     OM_uint32 minor;
 
-    if (r != NULL) {
-        if (r->protocol > 1 && r->fd != -1)
-            internal_v2_quit(r);
-        if (r->source != NULL)
-            free(r->source);
-        if (r->fd != -1)
-            socket_close(r->fd);
-        if (r->error != NULL)
-            free(r->error);
-        if (r->output != NULL)
-            free(r->output);
-        if (r->context != GSS_C_NO_CONTEXT)
-            gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
-        free(r);
+    /* Allow the passed struct to already be NULL. */
+    if (r == NULL)
+        return;
+
+    /* If we have an open connection, shut it down. */
+    if (r->protocol > 1 && r->fd != -1)
+        internal_v2_quit(r);
+    if (r->fd != INVALID_SOCKET) {
+        shutdown(r->fd, SHUT_RDWR);
+        socket_close(r->fd);
     }
+    if (r->context != GSS_C_NO_CONTEXT)
+        gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
+
+    /* If we have a registered ticket cache, free those resources. */
+#ifdef HAVE_KRB5
+    if (r->krb_ctx != NULL) {
+        if (r->krb_ccache != NULL)
+            krb5_cc_close(r->krb_ctx, r->krb_ccache);
+        krb5_free_context(r->krb_ctx);
+    }
+#endif
+
+    /* Free remaining resources. */
+    free(r->source);
+    free(r->ccache);
+    free(r->error);
+    if (r->output != NULL) {
+        free(r->output->data);
+        free(r->output);
+    }
+    free(r);
+
+    /*
+     * Always shut down the Windows socket library since we initialized it in
+     * remctl_new.
+     */
     socket_shutdown();
 }
 
@@ -352,7 +507,7 @@ remctl_close(struct remctl *r)
 static bool
 internal_reopen(struct remctl *r)
 {
-    if (r->fd < 0) {
+    if (r->fd == INVALID_SOCKET) {
         if (r->host == NULL) {
             internal_set_error(r, "no connection open");
             return false;
@@ -360,10 +515,8 @@ internal_reopen(struct remctl *r)
         if (!remctl_open(r, r->host, r->port, r->principal))
             return false;
     }
-    if (r->error != NULL) {
-        free(r->error);
-        r->error = NULL;
-    }
+    free(r->error);
+    r->error = NULL;
     return true;
 }
 
@@ -386,7 +539,11 @@ remctl_command(struct remctl *r, const char **command)
 
     for (count = 0; command[count] != NULL; count++)
         ;
-    vector = malloc(sizeof(struct iovec) * count);
+    if (count == 0) {
+        internal_set_error(r, "cannot send empty command");
+        return 0;
+    }
+    vector = calloc(count, sizeof(struct iovec));
     if (vector == NULL) {
         internal_set_error(r, "cannot allocate memory: %s", strerror(errno));
         return 0;
@@ -444,15 +601,9 @@ internal_output_wipe(struct remctl_output *output)
 {
     if (output == NULL)
         return;
+    free(output->data);
+    memset(output, 0, sizeof(*output));
     output->type = REMCTL_OUT_DONE;
-    if (output->data != NULL) {
-        free(output->data);
-        output->data = NULL;
-    }
-    output->length = 0;
-    output->stream = 0;
-    output->status = 0;
-    output->error = 0;
 }
 
 
@@ -473,14 +624,12 @@ internal_output_wipe(struct remctl_output *output)
 struct remctl_output *
 remctl_output(struct remctl *r)
 {
-    if (r->fd < 0 && (r->protocol != 1 || r->host == NULL)) {
+    if (r->fd == INVALID_SOCKET && (r->protocol != 1 || r->host == NULL)) {
         internal_set_error(r, "no connection open");
         return NULL;
     }
-    if (r->error != NULL) {
-        free(r->error);
-        r->error = NULL;
-    }
+    free(r->error);
+    r->error = NULL;
     if (r->protocol == 1)
         return internal_v1_output(r);
     else

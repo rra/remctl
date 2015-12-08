@@ -27,6 +27,25 @@ remctl_new() returns a pointer to an opaque remctl struct on success and
 NULL on failure.  If it returns NULL, errno will be set to an appropriate
 error code (normally ENOMEM).
 
+=head1 COMPATIBILITY
+
+This interface has been provided by the remctl client library since its
+initial release in version 2.0.
+
+=head1 AUTHOR
+
+Russ Allbery <eagle@eyrie.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2007, 2009, 2014 The Board of Trustees of the Leland Stanford
+Junior University
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
+  
 =head1 SEE ALSO
 
 remctl_open(3), remctl_command(3), remctl_commandv(3), remctl_output(3),
@@ -35,9 +54,5 @@ remctl_close(3)
 The current version of the remctl library and complete details of the
 remctl protocol are available from its web page at
 L<http://www.eyrie.org/~eagle/software/remctl/>.
-
-=head1 AUTHOR
-
-Russ Allbery <rra@stanford.edu>
 
 =cut

@@ -6,8 +6,8 @@
  * and standard error as appropriate.
  *
  * Originally written by Anton Ushakov
- * Extensive modifications by Russ Allbery <rra@stanford.edu>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Extensive modifications by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -49,6 +49,19 @@ usage(int status)
 
 
 /*
+ * A wrapper around fwrite that checks the return status and reports an error
+ * if the write failed.  This is probably futile for stderr, since reporting
+ * the error will probably also fail, but we can try.
+ */
+static void
+fwrite_checked(const void *data, size_t size, size_t nmemb, FILE *stream)
+{
+    if (fwrite(data, size, nmemb, stream) != nmemb)
+        syswarn("local write of command output failed");
+}
+
+
+/*
  * Get the responses back from the server, taking appropriate action on each
  * one depending on its type.  Sets the errorcode parameter to the exit status
  * of the remote command, or to 1 if the remote command failed with an error.
@@ -66,17 +79,17 @@ process_response(struct remctl *r, int *errorcode)
         switch (out->type) {
         case REMCTL_OUT_OUTPUT:
             if (out->stream == 1)
-                fwrite(out->data, out->length, 1, stdout);
+                fwrite_checked(out->data, out->length, 1, stdout);
             else if (out->stream == 2)
-                fwrite(out->data, out->length, 1, stderr);
+                fwrite_checked(out->data, out->length, 1, stderr);
             else {
                 warn("unknown output stream %d", out->stream);
-                fwrite(out->data, out->length, 1, stderr);
+                fwrite_checked(out->data, out->length, 1, stderr);
             }
             break;
         case REMCTL_OUT_ERROR:
             *errorcode = 255;
-            fwrite(out->data, out->length, 1, stderr);
+            fwrite_checked(out->data, out->length, 1, stderr);
             fputc('\n', stderr);
             return true;
         case REMCTL_OUT_STATUS:

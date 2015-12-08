@@ -6,8 +6,9 @@
 **  RemctlServer.  The "name : value" style output is
 **  conveniently compatible with the expectations of t5.java .
 **
-**  Written by Marcus Watts <mdw@umich.edu>
-**  July 2007
+**  Copyright 2007 Marcus Watts <mdw@umich.edu>
+**
+**  See LICENSE for licensing terms.
 */
 
 import org.ietf.jgss.*;

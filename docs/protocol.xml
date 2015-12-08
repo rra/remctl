@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE rfc SYSTEM "rfc2629.dtd">
 <?rfc private="remctl Protocol" toc="yes" symrefs="yes"?>
-<rfc>
+<rfc category="info" docName="draft-allbery-remctl-00" ipr="trust200902">
   <front>
     <title abbrev="remctl">remctl: Remote Authenticated Command Service</title>
     <author initials='R.' surname='Allbery' fullname='Russ Allbery'>
@@ -12,11 +12,11 @@
           <city>Stanford</city> <region>CA</region>
           <code>94305-4136</code> <country>US</country>
         </postal>
-        <email>rra@stanford.edu</email>
+        <email>eagle@eyrie.org</email>
         <uri>http://www.eyrie.org/~eagle/</uri>
       </address>
     </author>
-    <date month='October' year='2011' />
+    <date month='January' year='2014' />
 
     <abstract>
       <t>This document specifies the remctl wire protocol, used to send
@@ -63,7 +63,7 @@
         </artwork>
 
         <postamble>Only TOKEN_CONTEXT, TOKEN_CONTEXT_NEXT, TOKEN_DATA, and
-        TOKEN_PROTOCOL are used for packets for version 2 and of the
+        TOKEN_PROTOCOL are used for packets for versions 2 and 3 of the
         protocol.  The other flags are used only with the legacy version 1
         protocol.</postamble>
       </figure>
@@ -89,15 +89,16 @@
             the client doesn't include TOKEN_PROTOCOL, it is speaking the
             version 1 protocol, and the server MUST either drop the
             connection or fall back to the version 1 protocol.  This
-            initial message is useless in a pure version 2 protocol world
-            and is done only for backward compatibility with the version 1
-            protocol.</t>
+            initial message is useless in a pure version 2 or 3 protocol
+            world and is done only for backward compatibility with the
+            version 1 protocol.</t>
 
-            <t>Client calls gss_init_sec_context and replies with the
-            results and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The
-            client MUST pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and
-            GSS_C_INTEG_FLAG as requested flags and SHOULD pass
-            GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG.</t>
+            <t>Client calls gss_init_sec_context and sends the results as
+            the message body with flags TOKEN_CONTEXT and TOKEN_PROTOCOL
+            (0x42).  The client MUST pass GSS_C_MUTUAL_FLAG,
+            GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG as requested flags to
+            gss_init_sec_context and SHOULD pass GSS_C_REPLAY_FLAG and
+            GSS_C_SEQUENCE_FLAG.</t>
 
             <t>Server replies with the results of gss_accept_sec_context
             and flags TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  If the
@@ -170,8 +171,9 @@
         </figure>
 
         <t>The first two message types are client messages and MUST NOT be
-        sent by the server.  The remaining message types are server messages
-        and MUST NOT by sent by the client.</t>
+        sent by the server.  The remaining message types except for
+        MESSAGE_NOOP are server messages and MUST NOT by sent by the
+        client.</t>
 
         <t>All of these message types were introduced in protocol version
         2 except for MESSAGE_NOOP, which is a protocol version 3
@@ -221,27 +223,33 @@
         SHOULD leave the connection open (up to a timeout period) and wait
         for more commands.  This is similar to HTTP keep-alive.</t>
 
-        <t>If the continue status is 1, it indicates that there is more
-        data coming.  The server should accept the data sent, buffer or
-        process it, and wait for additional messages before responding.
-        If the the continue status is 2, it indicates that this message is
-        logically a part of the previous message (which MUST have had a
-        continue status of 1 or 2) and still has more data coming.  If the
-        continue status is 3, it says that this message is logically part
-        of the previous message, like 2, but it also says that this is the
-        end of the command.</t>
+        <t>If the continue status is 0, it indicates that this is the
+        complete command.  If the continue status is 1, it indicates that
+        there is more data coming.  The server should accept the data
+        sent, buffer it, and wait for additional messages before running
+        the command or otherwise responding.  If the the continue status
+        is 2, it indicates that this message is logically a part of the
+        previous message (which MUST have had a continue status of 1 or 2)
+        and still has more data coming.  If the continue status is 3, it
+        says that this message is logically part of the previous message,
+        like 2, but it also says that this is the end of the command.</t>
 
         <t>A continuation of a message starts with the keep-alive flag and
         continue status and then the next chunk of data.  To reconstruct a
         continued message, remove the first two octets from each chunk and
         concatenate the pieces together.  The result is the portion of a
-        MESSAGE_COMMAND starting with the number of arguments.  Messages
-        may be broken into multiple MESSAGE_COMMANDs even in the middle of
-        the number of arguments or an argument length.  In other words,
-        the first three octets of the number of arguments could be in the
-        first MESSAGE_COMMAND (with continue status 1) and the last octet
-        would then be in the next MESSAGE_COMMAND (with continue status 2
-        or 3).</t>
+        MESSAGE_COMMAND starting with the number of arguments.</t>
+
+        <t>The current implementation permits messages to be broken into
+        multiple MESSAGE_COMMANDs even in the middle of the number of
+        arguments or an argument length.  In other words, the first three
+        octets of the number of arguments could be in the first
+        MESSAGE_COMMAND (with continue status 1) and the last octet would
+        then be in the next MESSAGE_COMMAND (with continue status 2 or 3).
+        However, the client SHOULD NOT take advantage of this support and
+        SHOULD NOT split an argument count or argument length across
+        multiple messages, since this support may be dropped in a
+        subsequent protocol revision.</t>
 
         <t>For as long as the continue status is 1 or 2, the next message
         from the client MUST be either another MESSAGE_COMMAND with a
@@ -256,12 +264,12 @@
         <t>If a client sends an invalid sequence of MESSAGE_COMMAND
         messages that violate the continuation rules described above, the
         server SHOULD reply with a MESSAGE_ERROR message, generally with
-        either ERROR_BAD_TOKEN, ERROR_UNKNOWN_MESSAGE, ERROR_BAD_COMMAND,
-        or ERROR_UNEXPECTED_MESSAGE error codes.  It MUST discard the
-        partial command without acting on it.  The client cannot correct
-        an error in a continued MESSAGE_COMMAND stream by resending the
-        previous part.  It MUST start again at the beginning with a
-        MESSAGE_COMMAND with a continue status of 0 or 1.</t>
+        one of the ERROR_BAD_TOKEN, ERROR_UNKNOWN_MESSAGE,
+        ERROR_BAD_COMMAND, or ERROR_UNEXPECTED_MESSAGE error codes.  It
+        MUST discard the partial command without acting on it.  The client
+        cannot correct an error in a continued MESSAGE_COMMAND stream by
+        resending the previous part.  It MUST start again at the beginning
+        with a MESSAGE_COMMAND with a continue status of 0 or 1.</t>
 
         <t>Number of arguments is a four-octet number in network byte
         order that gives the total number of command arguments.  For each
@@ -489,6 +497,23 @@
       with input from Russ Allbery and Roland Schemers.  Thank you to
       David Hoffman and Mike Newton for their review of the version 2
       remctl protocol.</t>
+    </section>
+
+    <section anchor='license' title='Additional License'>
+      <t>This section supplements the Copyright Notice section at the
+      start of this document.  It states an additional copyright notice
+      and grants a much less restrictive license than the default IETF
+      Trust license.  You may copy and distribute this document, with or
+      without modification, under your choice of the license specified in
+      the Copyright Notice section or the license below.</t>
+
+      <t>Copyright 2006, 2007, 2008, 2009, 2011, 2013, 2014 The Board of
+      Trustees of the Leland Stanford Junior University</t>
+
+      <t>Copying and distribution of this file, with or without
+      modification, are permitted in any medium without royalty provided
+      the copyright notice and this notice are preserved.  This file is
+      offered as-is, without any warranty.</t>
     </section>
   </back>
 </rfc>

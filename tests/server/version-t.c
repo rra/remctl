@@ -1,8 +1,8 @@
 /*
  * Test suite for version negotiation in the server.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2007, 2009, 2010, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -13,14 +13,12 @@
 #include <portable/gssapi.h>
 
 #include <signal.h>
-#include <sys/wait.h>
 
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
 #include <util/gss-tokens.h>
 #include <util/protocol.h>
 
@@ -36,24 +34,16 @@ static const char token[] = {
 int
 main(void)
 {
-    const char *principal;
-    char *config, *path;
+    struct kerberos_config *config;
     struct remctl *r;
-    pid_t remctld;
     OM_uint32 major, minor;
     int flags, status;
     gss_buffer_desc tok;
     struct sigaction sa;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    if (chdir(getenv("SOURCE")) < 0)
-        bail("can't chdir to SOURCE");
-    principal = kerberos_setup();
-    if (principal == NULL)
-        skip_all("Kerberos tests not configured");
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", NULL);
 
     plan(10);
 
@@ -66,18 +56,20 @@ main(void)
     /* Open the connection to the site. */
     r = remctl_new();
     ok(r != NULL, "remctl_new");
-    ok(remctl_open(r, "localhost", 14373, principal), "remctl_open");
+    if (r == NULL)
+        bail("remctl_new returned NULL");
+    ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
 
     /* Send the command token. */
     tok.length = sizeof(token);
     tok.value = (char *) token;
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
-                             &tok, &major, &minor);
+                             &tok, 0, &major, &minor);
     if (status != TOKEN_OK)
         bail("cannot send token");
 
     /* Accept the remote token. */
-    status = token_recv_priv(r->fd, r->context, &flags, &tok, 1024 * 64,
+    status = token_recv_priv(r->fd, r->context, &flags, &tok, 1024 * 64, 0,
                              &major, &minor);
     is_int(TOKEN_OK, status, "received token correctly");
     is_int(TOKEN_DATA | TOKEN_PROTOCOL, flags, "token had correct flags");
@@ -91,19 +83,19 @@ main(void)
      * hadn't closed the connection.
      */
     status = token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
-                             &tok, &major, &minor);
+                             &tok, 0, &major, &minor);
     is_int(TOKEN_OK, status, "connection is still open");
+    gss_release_buffer(&minor, &tok);
     if (status == TOKEN_OK) {
         status = token_recv_priv(r->fd, r->context, &flags, &tok, 1024 * 64,
-                                 &major, &minor);
+                                 0, &major, &minor);
         is_int(TOKEN_OK, status, "received token correctly");
+        gss_release_buffer(&minor, &tok);
     } else {
         ok(false, "unable to get reply to token");
     }
 
     /* Close things out. */
     remctl_close(r);
-
-    remctld_stop(remctld);
     return 0;
 }

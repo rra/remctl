@@ -23,6 +23,25 @@ longer valid.
 remctl_close() is always successful, even if it is unable to send a clean
 protocol quit command to the remote server.
 
+=head1 COMPATIBILITY
+
+This interface has been provided by the remctl client library since its
+initial release in version 2.0.
+
+=head1 AUTHOR
+
+Russ Allbery <eagle@eyrie.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2007, 2009, 2014 The Board of Trustees of the Leland Stanford
+Junior University
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
+  
 =head1 SEE ALSO
 
 remctl_new(3), remctl_open(3)
@@ -30,9 +49,5 @@ remctl_new(3), remctl_open(3)
 The current version of the remctl library and complete details of the
 remctl protocol are available from its web page at
 L<http://www.eyrie.org/~eagle/software/remctl/>.
-
-=head1 AUTHOR
-
-Russ Allbery <rra@stanford.edu>
 
 =cut

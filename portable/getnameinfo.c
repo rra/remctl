@@ -16,7 +16,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
  * in this work, whether granted under contract or by operation of law or
@@ -28,8 +28,9 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
+#include <portable/macros.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <errno.h>
 
@@ -39,6 +40,7 @@
  * constants, but that should be okay (except possibly for gai_strerror).
  */
 #if TESTING
+# undef getnameinfo
 # define getnameinfo test_getnameinfo
 int test_getnameinfo(const struct sockaddr *, socklen_t, char *, socklen_t,
                      char *, socklen_t, int);
@@ -58,18 +60,21 @@ int test_getnameinfo(const struct sockaddr *, socklen_t, char *, socklen_t,
  * period.  If it does, try to copy it into the provided node buffer and set
  * status accordingly, returning true.  If not, return false.
  */
-static int
+static bool
 try_name(const char *name, char *node, socklen_t nodelen, int *status)
 {
+    size_t namelen;
+
     if (strchr(name, '.') == NULL)
-        return 0;
-    if (strlen(name) + 1 > (size_t) nodelen)
+        return false;
+    namelen = strlen(name);
+    if (namelen + 1 > (size_t) nodelen)
         *status = EAI_OVERFLOW;
     else {
-        strlcpy(node, name, nodelen);
+        memcpy(node, name, namelen + 1);
         *status = 0;
     }
-    return 1;
+    return true;
 }
 
 
@@ -85,6 +90,7 @@ lookup_name(const struct in_addr *addr, char *node, socklen_t nodelen,
     char **alias;
     int status;
     char *name;
+    size_t namelen;
 
     /* Do the name lookup first unless told not to. */
     if (!(flags & NI_NUMERICHOST)) {
@@ -111,9 +117,10 @@ lookup_name(const struct in_addr *addr, char *node, socklen_t nodelen,
 
     /* Just convert the address to ASCII. */
     name = inet_ntoa(*addr);
-    if (strlen(name) + 1 > (size_t) nodelen)
+    namelen = strlen(name);
+    if (namelen + 1 > (size_t) nodelen)
         return EAI_OVERFLOW;
-    strlcpy(node, name, nodelen);
+    memcpy(node, name, namelen + 1);
     return 0;
 }
 
@@ -128,21 +135,25 @@ lookup_service(unsigned short port, char *service, socklen_t servicelen,
 {
     struct servent *srv;
     const char *protocol;
+    int status;
+    size_t namelen;
 
     /* Do the name lookup first unless told not to. */
     if (!(flags & NI_NUMERICSERV)) {
         protocol = (flags & NI_DGRAM) ? "udp" : "tcp";
         srv = getservbyport(htons(port), protocol);
         if (srv != NULL) {
-            if (strlen(srv->s_name) + 1 > (size_t) servicelen)
+            namelen = strlen(srv->s_name);
+            if (namelen + 1 > (size_t) servicelen)
                 return EAI_OVERFLOW;
-            strlcpy(service, srv->s_name, servicelen);
+            memcpy(service, srv->s_name, namelen + 1);
             return 0;
         }
     }
 
     /* Just convert the port number to ASCII. */
-    if ((socklen_t) snprintf(service, servicelen, "%hu", port) > servicelen)
+    status = snprintf(service, servicelen, "%hu", port);
+    if (status < 0 || (socklen_t) status > servicelen)
         return EAI_OVERFLOW;
     return 0;
 }
@@ -165,7 +176,7 @@ getnameinfo(const struct sockaddr *sa, socklen_t salen UNUSED, char *node,
     /* We only support AF_INET. */
     if (sa->sa_family != AF_INET)
         return EAI_FAMILY;
-    sin = (const struct sockaddr_in *) sa;
+    sin = (const struct sockaddr_in *) (const void *) sa;
 
     /* Name lookup. */
     if (node != NULL && nodelen > 0) {

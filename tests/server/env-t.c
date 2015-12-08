@@ -1,8 +1,9 @@
 /*
  * Test suite for environment variables set by the server.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2009, 2010
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2009, 2010, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -11,17 +12,12 @@
 #include <config.h>
 #include <portable/system.h>
 
-#include <signal.h>
-#include <sys/wait.h>
-
 #include <client/internal.h>
 #include <client/remctl.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
-#include <util/concat.h>
-#include <util/messages.h>
-#include <util/xmalloc.h>
+#include <tests/tap/string.h>
 
 
 /*
@@ -37,35 +33,32 @@ test_env(struct remctl *r, const char *variable)
 
     command[2] = variable;
     if (!remctl_command(r, command)) {
-        notice("# remctl error %s", remctl_error(r));
+        diag("remctl error %s", remctl_error(r));
         return NULL;
     }
     do {
         output = remctl_output(r);
         switch (output->type) {
         case REMCTL_OUT_OUTPUT:
-            value = xstrndup(output->data, output->length);
+            value = bstrndup(output->data, output->length);
             break;
         case REMCTL_OUT_STATUS:
             if (output->status != 0) {
-                if (value != NULL)
-                    free(value);
-                notice("# test env returned status %d", output->status);
+                free(value);
+                diag("test env returned status %d", output->status);
                 return NULL;
             }
             if (value == NULL)
-                value = xstrdup("");
+                value = bstrdup("");
             return value;
         case REMCTL_OUT_ERROR:
-            if (value != NULL)
-                free(value);
-            notice("# test env returned error: %.*s", (int) output->length,
-                   output->data);
+            free(value);
+            diag("test env returned error: %.*s", (int) output->length,
+                 output->data);
             return NULL;
         case REMCTL_OUT_DONE:
-            if (value != NULL)
-                free(value);
-            notice("# unexpected done token");
+            free(value);
+            diag("unexpected done token");
             return NULL;
         }
     } while (output->type == REMCTL_OUT_OUTPUT);
@@ -76,27 +69,22 @@ test_env(struct remctl *r, const char *variable)
 int
 main(void)
 {
-    const char *principal;
-    char *config, *path, *expected, *value;
+    struct kerberos_config *config;
+    char *expected, *value;
     struct remctl *r;
-    pid_t remctld;
+    time_t expires;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    if (chdir(getenv("SOURCE")) < 0)
-        bail("can't chdir to SOURCE");
-    principal = kerberos_setup();
-    if (principal == NULL)
-        skip_all("Kerberos tests not configured");
-    plan(4);
-    config = concatpath(getenv("SOURCE"), "data/conf-simple");
-    path = concatpath(getenv("BUILD"), "../server/remctld");
-    remctld = remctld_start(path, principal, config, NULL);
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
+    remctld_start(config, "data/conf-simple", NULL);
+
+    plan(5);
 
     /* Run the tests. */
     r = remctl_new();
-    if (!remctl_open(r, "localhost", 14373, principal))
+    if (!remctl_open(r, "localhost", 14373, config->principal))
         bail("cannot contact remctld");
-    expected = concat(principal, "\n", NULL);
+    basprintf(&expected, "%s\n", config->principal);
     value = test_env(r, "REMUSER");
     is_string(expected, value, "value for REMUSER");
     free(value);
@@ -104,14 +92,21 @@ main(void)
     is_string(expected, value, "value for REMOTE_USER");
     free(value);
     value = test_env(r, "REMOTE_ADDR");
-    is_string("127.0.0.1\n", value, "value for REMOTE_ADDR");
+    if (strcmp(value, "::1\n") == 0)
+        is_string("::1\n", value, "value for REMOTE_ADDR");
+    else
+        is_string("127.0.0.1\n", value, "value for REMOTE_ADDR");
     free(value);
     value = test_env(r, "REMOTE_HOST");
     ok(strcmp(value, "\n") == 0 || strstr(value, "localhost") != NULL,
        "value for REMOTE_HOST");
+    value = test_env(r, "REMOTE_EXPIRES");
+    expires = strtol(value, NULL, 10);
     free(value);
-    remctl_close(r);
+    ok(expires > time(NULL), "REMOTE_EXPIRES is in the future (%lu)",
+       (unsigned long) expires);
 
-    remctld_stop(remctld);
+    remctl_close(r);
+    free(expected);
     return 0;
 }

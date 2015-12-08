@@ -11,7 +11,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
  * in this work, whether granted under contract or by operation of law or
@@ -30,6 +30,7 @@
  * the system version.
  */
 #if TESTING
+# undef strlcpy
 # define strlcpy test_strlcpy
 size_t test_strlcpy(char *, const char *, size_t);
 #endif

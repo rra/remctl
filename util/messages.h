@@ -4,7 +4,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2008, 2010
+ * Copyright 2008, 2010, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -34,6 +34,7 @@
 #include <portable/macros.h>
 
 #include <stdarg.h>
+#include <stddef.h>
 
 BEGIN_DECLS
 
@@ -72,29 +73,36 @@ void message_handlers_warn(unsigned int count, ...);
 void message_handlers_die(unsigned int count, ...);
 
 /*
+ * Reset all message handlers back to the defaults and free any memory that
+ * was allocated by the other message_handlers_* functions.
+ */
+void message_handlers_reset(void);
+
+/*
  * Some useful handlers, intended to be passed to message_handlers_*.  All
  * handlers take the length of the formatted message, the format, a variadic
  * argument list, and the errno setting if any.
  */
 void message_log_stdout(size_t, const char *, va_list, int)
-    __attribute__((__nonnull__));
+    __attribute__((__format__(printf, 2, 0), __nonnull__));
 void message_log_stderr(size_t, const char *, va_list, int)
-    __attribute__((__nonnull__));
+    __attribute__((__format__(printf, 2, 0), __nonnull__));
 void message_log_syslog_debug(size_t, const char *, va_list, int)
-    __attribute__((__nonnull__));
+    __attribute__((__format__(printf, 2, 0), __nonnull__));
 void message_log_syslog_info(size_t, const char *, va_list, int)
-    __attribute__((__nonnull__));
+    __attribute__((__format__(printf, 2, 0), __nonnull__));
 void message_log_syslog_notice(size_t, const char *, va_list, int)
-    __attribute__((__nonnull__));
+    __attribute__((__format__(printf, 2, 0), __nonnull__));
 void message_log_syslog_warning(size_t, const char *, va_list, int)
-    __attribute__((__nonnull__));
+    __attribute__((__format__(printf, 2, 0), __nonnull__));
 void message_log_syslog_err(size_t, const char *, va_list, int)
-    __attribute__((__nonnull__));
+    __attribute__((__format__(printf, 2, 0), __nonnull__));
 void message_log_syslog_crit(size_t, const char *, va_list, int)
-    __attribute__((__nonnull__));
+    __attribute__((__format__(printf, 2, 0), __nonnull__));
 
 /* The type of a message handler. */
-typedef void (*message_handler_func)(size_t, const char *, va_list, int);
+typedef void (*message_handler_func)(size_t, const char *, va_list, int)
+    __attribute__((__format__(printf, 2, 0)));
 
 /* If non-NULL, called before exit and its return value passed to exit. */
 extern int (*message_fatal_cleanup)(void);

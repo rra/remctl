@@ -1,3 +1,11 @@
+// Windows resources for the remctl command-line client.
+//
+// Copyright 2008 Matthew Loar
+// Copyright 2008
+//     The Board of Trustees of the Leland Stanford Junior University
+//
+// See LICENSE for licensing terms.
+
 #include <config.h>
 #include <winver.h>
 #include <winresrc.h>
@@ -27,7 +35,7 @@ BEGIN
 	VALUE "FileDescription",	"remctl\0"
 	VALUE "FileVersion",		VERSION_MAJOR_STR ", " VERSION_MINOR_STR ", 0, 0\0"
 	VALUE "InternalName",		"REMCTL\0"
-	VALUE "LegalCopyright",		"Copyright 2002-2008 The Board of Trustees of the Leland Stanford Junior University.\0"
+	VALUE "LegalCopyright",		"Copyright 2002-2013 The Board of Trustees of the Leland Stanford Junior University\0"
 	VALUE "LegalTrademarks",	"\0"
 	VALUE "OriginalFilename",	"REMCTL.EXE\0"
 	VALUE "ProductName",		"remctl\0"

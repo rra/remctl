@@ -11,7 +11,7 @@
 # the source directory as its arguments and should be run from the php
 # directory.
 #
-# Written by Russ Allbery <rra@stanford.edu>
+# Written by Russ Allbery <eagle@eyrie.org>
 # Copyright 2008, 2009
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -53,10 +53,10 @@ done
 # Check whether we have a Kerberos configuration.  If we do, we'll start a
 # remctl daemon and obtain a local ticket cache, and then touch a file telling
 # PHP to do the tests that require authentication.
-if [ -f "$top/tests/data/test.keytab" ] ; then
+if [ -f "$top/tests/config/keytab" ] ; then
     rm -f remctl-test.pid
-    principal=`cat "$top/tests/data/test.principal"`
-    keytab="$top/tests/data/test.keytab"
+    principal=`cat "$top/tests/config/principal"`
+    keytab="$top/tests/config/keytab"
     ( cd "$source/tests" && "$top/server/remctld" -m -p 14373 \
         -s "$principal" -P "$top/php/remctl-test.pid" -f "data/conf-simple" \
         -d -S -F -k "$keytab" 2>&1 &) > remctl-test.out

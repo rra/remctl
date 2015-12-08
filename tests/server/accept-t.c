@@ -1,8 +1,8 @@
 /*
  * Test suite for the server connection negotiation code.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2007, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -64,7 +64,7 @@ make_connection(int protocol, const char *principal)
     flags = TOKEN_NOOP | TOKEN_CONTEXT_NEXT;
     if (protocol == 0 || protocol > 1)
         flags |= TOKEN_PROTOCOL;
-    if (token_send(fd, flags, &empty_token) != TOKEN_OK)
+    if (token_send(fd, flags, &empty_token, 0) != TOKEN_OK)
         sysdie("failure sending token");
 
     /* Perform the context-establishment loop. */
@@ -83,28 +83,30 @@ make_connection(int protocol, const char *principal)
                 flags |= TOKEN_PROTOCOL;
             if (protocol == 0)
                 protocol = 2;
-            if (token_send(fd, flags, &send_tok) != TOKEN_OK)
+            if (token_send(fd, flags, &send_tok, 0) != TOKEN_OK)
                 sysdie("failure sending token");
         }
         gss_release_buffer(&minor, &send_tok);
         if (major != GSS_S_COMPLETE && major != GSS_S_CONTINUE_NEEDED)
             die("failure initializing context");
         if (major == GSS_S_CONTINUE_NEEDED) {
-            if (token_recv(fd, &flags, &recv_tok, 64 * 1024) != TOKEN_OK)
+            if (token_recv(fd, &flags, &recv_tok, 64 * 1024, 0) != TOKEN_OK)
                 sysdie("failure receiving token");
             token_ptr = &recv_tok;
         }
     } while (major == GSS_S_CONTINUE_NEEDED);
 
-    /* All done.  Don't bother cleaning up, just exit. */
-    _exit(0);
+    /* All done. */
+    gss_delete_sec_context(&minor, &gss_context, GSS_C_NO_BUFFER);
+    gss_release_name(&minor, &name);
+    socket_close(fd);
 }
 
 
 int
 main(void)
 {
-    const char *principal;
+    struct kerberos_config *config;
     socket_type s, fd;
     int protocol;
     pid_t child;
@@ -114,9 +116,7 @@ main(void)
     const void *onaddr = &on;
 
     /* Unless we have Kerberos available, we can't really do anything. */
-    principal = kerberos_setup();
-    if (principal == NULL)
-        skip_all("Kerberos tests not configured");
+    config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
     plan(2 * 3);
 
     /* Set up address to which we're going to bind and start listening.. */
@@ -142,8 +142,11 @@ main(void)
         child = fork();
         if (child < 0)
             sysbail("cannot fork");
-        else if (child == 0)
-            make_connection(protocol, principal);
+        else if (child == 0) {
+            close(s);
+            make_connection(protocol, config->principal);
+            exit(0);
+        }
         alarm(1);
         fd = accept(s, NULL, 0);
         if (fd == INVALID_SOCKET)
@@ -159,6 +162,6 @@ main(void)
         server_free_client(client);
         waitpid(child, NULL, 0);
     }
-
+    socket_close(s);
     return 0;
 }

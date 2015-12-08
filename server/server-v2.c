@@ -3,18 +3,19 @@
  *
  * This is the server implementation of the new v2 protocol.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
 
 #include <config.h>
-#include <portable/system.h>
+#include <portable/event.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 #include <portable/uio.h>
 
 #include <server/internal.h>
@@ -30,15 +31,20 @@
  * (and logs a message on failure).
  */
 bool
-server_v2_send_output(struct client *client, int stream)
+server_v2_send_output(struct client *client, int stream,
+                      struct evbuffer *output)
 {
     gss_buffer_desc token;
+    size_t outlen;
     char *p;
     OM_uint32 tmp, major, minor;
     int status;
 
     /* Allocate room for the total message. */
-    token.length = 1 + 1 + 1 + 4 + client->outlen;
+    outlen = evbuffer_get_length(output);
+    if (outlen >= SIZE_MAX - 1 - 1 - 1 - 4)
+        die("internal error: memory allocation too large");
+    token.length = 1 + 1 + 1 + 4 + outlen;
     token.value = xmalloc(token.length);
 
     /*
@@ -52,14 +58,16 @@ server_v2_send_output(struct client *client, int stream)
     p++;
     *p = stream;
     p++;
-    tmp = htonl(client->outlen);
+    tmp = htonl(outlen);
     memcpy(p, &tmp, 4);
     p += 4;
-    memcpy(p, client->output, client->outlen);
+    if (evbuffer_remove(output, p, outlen) < 0)
+        die("internal error: cannot move data from output buffer");
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
-                 TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
+                             TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
+                             &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending output token", status, major, minor);
         free(token.value);
@@ -93,7 +101,8 @@ server_v2_send_status(struct client *client, int exit_status)
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
-                 TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
+                             TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
+                             &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending status token", status, major, minor);
         client->fatal = true;
@@ -118,6 +127,8 @@ server_v2_send_error(struct client *client, enum error_codes code,
     int status;
 
     /* Build the error token. */
+    if (strlen(message) >= SIZE_MAX - 1 - 1 - 4 - 4)
+        die("internal error: memory allocation too large");
     token.length = 1 + 1 + 4 + 4 + strlen(message);
     token.value = xmalloc(token.length);
     p = token.value;
@@ -135,7 +146,8 @@ server_v2_send_error(struct client *client, enum error_codes code,
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
-                 TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
+                             TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
+                             &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending error token", status, major, minor);
         free(token.value);
@@ -169,7 +181,8 @@ server_v2_send_version(struct client *client)
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
-                 TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
+                             TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
+                             &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending version token", status, major, minor);
         client->fatal = true;
@@ -200,7 +213,8 @@ server_v3_send_noop(struct client *client)
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
-                 TOKEN_DATA | TOKEN_PROTOCOL, &token, &major, &minor);
+                             TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
+                             &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("sending no-op token", status, major, minor);
         client->fatal = true;
@@ -223,12 +237,11 @@ server_v2_read_token(struct client *client, gss_buffer_t token)
     int status, flags;
     
     status = token_recv_priv(client->fd, client->context, &flags, token,
-                             TOKEN_MAX_LENGTH, &major, &minor);
+                             TOKEN_MAX_LENGTH, TIMEOUT, &major, &minor);
     if (status != TOKEN_OK) {
         warn_token("receiving token", status, major, minor);
-        if (status != TOKEN_FAIL_EOF)
-            if (!server_send_error(client, ERROR_BAD_TOKEN, "Invalid token"))
-                return TOKEN_FAIL_EOF;
+        if (status != TOKEN_FAIL_EOF && status != TOKEN_FAIL_SOCKET)
+            server_send_error(client, ERROR_BAD_TOKEN, "Invalid token");
     }
     return status;
 }
@@ -251,8 +264,10 @@ server_v2_read_continuation(struct client *client, gss_buffer_t token)
     char *p;
 
     status = server_v2_read_token(client, token);
-    if (status != TOKEN_OK)
+    if (status != TOKEN_OK) {
+        client->fatal = true;
         return false;
+    }
     p = token->value;
     if (p[0] != 2 && p[0] != 3) {
         server_v2_send_version(client);
@@ -326,6 +341,13 @@ server_v2_handle_command(struct client *client, struct config *config,
          */
         p += 4;
         length = token->length - (p - (char *) token->value);
+        if (length >= COMMAND_MAX_DATA - total) {
+            warn("total command length %lu exceeds %lu", length + total,
+                 COMMAND_MAX_DATA);
+            result = server_send_error(client, ERROR_TOOMUCH_DATA,
+                                       "Too much data");
+            goto fail;
+        }
         if (continued || buffer != NULL) {
             if (buffer == NULL)
                 buffer = xmalloc(length);
@@ -367,9 +389,8 @@ server_v2_handle_command(struct client *client, struct config *config,
     return !client->fatal;
 
 fail:
-    if (allocated)
-        free(buffer);
-    return result;
+    free(buffer);
+    return client->fatal ? false : result;
 }
 
 
@@ -430,10 +451,8 @@ server_v2_handle_messages(struct client *client, struct config *config)
     client->keepalive = true;
     do {
         status = server_v2_read_token(client, &token);
-        if (status == TOKEN_FAIL_EOF)
+        if (status != TOKEN_OK)
             break;
-        else if (status != TOKEN_OK)
-            continue;
         if (!server_v2_handle_token(client, config, &token)) {
             gss_release_buffer(&minor, &token);
             break;

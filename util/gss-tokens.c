@@ -8,17 +8,19 @@
  * and minor status to report errors.
  *
  * Originally written by Anton Ushakov
- * Extensive modifications by Russ Allbery <rra@stanford.edu>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+ * Extensive modifications by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See README for licensing terms.
+ * See LICENSE for licensing terms.
  */
 
 #include <config.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
 #include <portable/system.h>
+
+#include <time.h>
 
 #include <util/gss-tokens.h>
 #include <util/protocol.h>
@@ -31,8 +33,8 @@
 #if TESTING
 # define token_send fake_token_send
 # define token_recv fake_token_recv
-enum token_status token_send(int, int, gss_buffer_t);
-enum token_status token_recv(int, int *, gss_buffer_t, size_t);
+enum token_status token_send(int, int, gss_buffer_t, time_t);
+enum token_status token_recv(int, int *, gss_buffer_t, size_t, time_t);
 #endif
 
 
@@ -50,7 +52,7 @@ enum token_status token_recv(int, int *, gss_buffer_t, size_t);
 */
 enum token_status
 token_send_priv(socket_type fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
-                OM_uint32 *major, OM_uint32 *minor)
+                time_t timeout, OM_uint32 *major, OM_uint32 *minor)
 {
     gss_buffer_desc out, mic;
     int state, micflags;
@@ -61,12 +63,12 @@ token_send_priv(socket_type fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
     *major = gss_wrap(minor, ctx, 1, GSS_C_QOP_DEFAULT, tok, &state, &out);
     if (*major != GSS_S_COMPLETE)
         return TOKEN_FAIL_GSSAPI;
-    status = token_send(fd, flags, &out);
+    status = token_send(fd, flags, &out, timeout);
     gss_release_buffer(minor, &out);
     if (status != TOKEN_OK)
         return status;
     if ((flags & TOKEN_SEND_MIC) && !(flags & TOKEN_PROTOCOL)) {
-        status = token_recv(fd, &micflags, &mic, 10 * 1024);
+        status = token_recv(fd, &micflags, &mic, 10 * 1024, timeout);
         if (status != TOKEN_OK)
             return status;
         if (micflags != TOKEN_MIC) {
@@ -99,14 +101,14 @@ token_send_priv(socket_type fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
  */
 enum token_status
 token_recv_priv(socket_type fd, gss_ctx_id_t ctx, int *flags,
-                gss_buffer_t tok, size_t max, OM_uint32 *major,
-                OM_uint32 *minor)
+                gss_buffer_t tok, size_t max, time_t timeout,
+                OM_uint32 *major, OM_uint32 *minor)
 {
     gss_buffer_desc in, mic;
     int state;
     enum token_status status;
 
-    status = token_recv(fd, flags, &in, max);
+    status = token_recv(fd, flags, &in, max, timeout);
     if (status != TOKEN_OK)
         return status;
     *major = gss_unwrap(minor, ctx, &in, tok, &state, NULL);
@@ -119,7 +121,7 @@ token_recv_priv(socket_type fd, gss_ctx_id_t ctx, int *flags,
             gss_release_buffer(minor, tok);
             return TOKEN_FAIL_GSSAPI;
         }
-        status = token_send(fd, TOKEN_MIC, &mic);
+        status = token_send(fd, TOKEN_MIC, &mic, timeout);
         if (status != TOKEN_OK) {
             gss_release_buffer(minor, tok);
             gss_release_buffer(minor, &mic);

@@ -1,10 +1,10 @@
 /*
  * Internal support functions for the remctl client library.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  * Based on prior work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
- *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
+ *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
@@ -14,6 +14,9 @@
 
 #include <config.h>
 #include <portable/gssapi.h>
+#ifdef HAVE_KRB5
+# include <portable/krb5.h>
+#endif
 #include <portable/macros.h>
 #include <portable/socket.h>
 #include <portable/stdbool.h>
@@ -29,12 +32,20 @@ struct remctl {
     const char *principal;      /*   connection for each command.        */
     int protocol;               /* Protocol version. */
     char *source;               /* Source address for connection. */
+    time_t timeout;
+    char *ccache;               /* Path to client ticket cache. */
     socket_type fd;
     gss_ctx_id_t context;
     char *error;
     struct remctl_output *output;
     int status;
     bool ready;                 /* If true, we are expecting server output. */
+
+    /* Used to hold state for remctl_set_ccache. */
+#ifdef HAVE_KRB5
+    krb5_context krb_ctx;
+    krb5_ccache krb_ccache;
+#endif
 };
 
 BEGIN_DECLS
@@ -46,15 +57,21 @@ BEGIN_DECLS
 void internal_set_error(struct remctl *, const char *, ...);
 void internal_gssapi_error(struct remctl *, const char *error,
                            OM_uint32 major, OM_uint32 minor);
+#ifdef HAVE_KRB5
+void internal_krb5_error(struct remctl *, const char *error,
+                         krb5_error_code code);
+#endif
 void internal_token_error(struct remctl *, const char *error, int status,
                           OM_uint32 major, OM_uint32 minor);
 
 /* Wipe and free the output token. */
 void internal_output_wipe(struct remctl_output *);
 
+/* Establish a network connection */
+socket_type internal_connect(struct remctl *, const char *, unsigned short);
+
 /* General connection opening and negotiation function. */
-bool internal_open(struct remctl *, const char *host, unsigned short port,
-                   const char *principal);
+bool internal_open(struct remctl *, const char *host, const char *principal);
 
 /* Send a protocol v1 command. */
 bool internal_v1_commandv(struct remctl *, const struct iovec *command,

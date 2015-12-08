@@ -1,0 +1,100 @@
+# -*- conf -*-
+#
+# Default configuration for perlcritic.  Be sure to copy this into the source
+# for packages that run perlcritic tests automatically during the build for
+# reproducible test results.
+#
+# This file has been updated to match perlcritic 1.118.
+#
+# The canonical version of this file is maintained in the rra-c-util package,
+# which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+#
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2011, 2012, 2013
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
+severity = 1
+verbose  = %f:%l:%c: [%p] %m (%e, Severity: %s)\n
+
+# I prefer this policy (a lot, actually), but other people in my group at
+# Stanford really didn't like it, so this is my compromise to agree with a
+# group coding style.
+[-CodeLayout::ProhibitParensWithBuiltins]
+
+# Stanford's coding style allows postfix unless for flow control.  There
+# doesn't appear to be any way to allow it only for flow control (the logic
+# for "if" and "when" appears to be special-cased), so we have to allow unless
+# globally.
+[ControlStructures::ProhibitPostfixControls]
+allow = unless
+
+# This is handled with a separate test case that uses Test::Spelling.
+[-Documentation::PodSpelling]
+
+# Pod::Man and Pod::Text fixed this bug years ago.  I know, I maintain them.
+[-Documentation::RequirePodLinksIncludeText]
+
+# The POD sections Perl::Critic wants are incompatible with the POD template
+# from perlpodstyle, which is what I use for my POD documentation.
+[-Documentation::RequirePodSections]
+
+# This problem was fixed in Perl 5.14, which now properly preserves the value
+# of $@ even if destructors run at exit from the eval block.
+[-ErrorHandling::RequireCheckingReturnValueOfEval]
+
+# The default of 9 is too small and forces weird code contortions.
+[InputOutput::RequireBriefOpen]
+lines = 25
+
+# This is correct 80% of the time, but it isn't correct for a lot of scripts
+# inside packages, where maintaining $VERSION isn't worth the effort.
+# Unfortunately, there's no way to override it, so it gets turned off
+# globally.
+[-Modules::RequireVersionVar]
+
+# This sounds interesting but is actually useless.  Any large blocks of
+# literal text, which does not add to the complexity of the regex, will set it
+# off.
+[-RegularExpressions::ProhibitComplexRegexes]
+
+# I generally don't want to require Readonly as a prerequisite for all my Perl
+# modules.
+[-ValuesAndExpressions::ProhibitConstantPragma]
+
+# A good idea, but there are too many places where this would be more
+# confusing than helpful.  Pull out numbers if one might change them
+# independent of the algorithm, but don't do so for mathematical formulae.
+[-ValuesAndExpressions::ProhibitMagicNumbers]
+
+# Increase this to six digits so that I'm not told to add underscores to
+# port numbers (which is just silly).
+[ValuesAndExpressions::RequireNumberSeparators]
+min_value = 100000
+
+# Text::Wrap has a broken interface that requires use of package variables.
+[Variables::ProhibitPackageVars]
+add_packages = Text::Wrap
+
+# use English was one of the worst ideas in the history of Perl.  It makes the
+# code slightly more readable for amateurs at the cost of confusing
+# experienced Perl programmers and sending people in futile quests for where
+# these magical global variables are defined.
+[-Variables::ProhibitPunctuationVars]

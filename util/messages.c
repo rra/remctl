@@ -53,8 +53,8 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2008, 2009, 2010
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2008, 2009, 2010, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright (c) 2004, 2005, 2006
  *     by Internet Systems Consortium, Inc. ("ISC")
@@ -131,7 +131,7 @@ message_handlers(message_handler_func **list, unsigned int count, va_list args)
 
     if (*list != stdout_handlers && *list != stderr_handlers)
         free(*list);
-    *list = xmalloc(sizeof(message_handler_func) * (count + 1));
+    *list = xcalloc(count + 1, sizeof(message_handler_func));
     for (i = 0; i < count; i++)
         (*list)[i] = (message_handler_func) va_arg(args, message_handler_func);
     (*list)[count] = NULL;
@@ -157,6 +157,31 @@ HANDLER_FUNCTION(debug)
 HANDLER_FUNCTION(notice)
 HANDLER_FUNCTION(warn)
 HANDLER_FUNCTION(die)
+
+
+/*
+ * Reset all handlers back to the defaults and free all allocated memory.
+ * This is primarily useful for programs that undergo comprehensive memory
+ * allocation analysis.
+ */
+void
+message_handlers_reset(void)
+{
+    free(debug_handlers);
+    debug_handlers = NULL;
+    if (notice_handlers != stdout_handlers) {
+        free(notice_handlers);
+        notice_handlers = stdout_handlers;
+    }
+    if (warn_handlers != stderr_handlers) {
+        free(warn_handlers);
+        warn_handlers = stderr_handlers;
+    }
+    if (die_handlers != stderr_handlers) {
+        free(die_handlers);
+        die_handlers = stderr_handlers;
+    }
+}
 
 
 /*
@@ -200,10 +225,11 @@ message_log_stderr(size_t len UNUSED, const char *fmt, va_list args, int err)
  * This needs further attention on Windows.  For example, it currently doesn't
  * log the errno information.
  */
-static void
+static void __attribute__((__format__(printf, 3, 0)))
 message_log_syslog(int pri, size_t len, const char *fmt, va_list args, int err)
 {
     char *buffer;
+    int status;
 
     buffer = malloc(len + 1);
     if (buffer == NULL) {
@@ -211,7 +237,12 @@ message_log_syslog(int pri, size_t len, const char *fmt, va_list args, int err)
                 (unsigned long) len + 1, __FILE__, __LINE__, strerror(errno));
         exit(message_fatal_cleanup ? (*message_fatal_cleanup)() : 1);
     }
-    vsnprintf(buffer, len + 1, fmt, args);
+    status = vsnprintf(buffer, len + 1, fmt, args);
+    if (status < 0) {
+        warn("failed to format output with vsnprintf in syslog handler");
+        free(buffer);
+        return;
+    }
 #ifdef _WIN32
     {
         HANDLE eventlog;

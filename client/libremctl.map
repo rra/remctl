@@ -8,10 +8,14 @@ REMCTL_1.0 {
         remctl_new;
         remctl_noop;
         remctl_open;
+        remctl_open_addrinfo;
+        remctl_open_fd;
+        remctl_open_sockaddr;
         remctl_output;
         remctl_result_free;
         remctl_set_ccache;
         remctl_set_source_ip;
+        remctl_set_timeout;
 
     local:
         *;

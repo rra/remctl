@@ -7,7 +7,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Written by Russ Allbery <rra@stanford.edu>
+ * Written by Russ Allbery <eagle@eyrie.org>
  *
  * The authors hereby relinquish any claim to any copyright that they may have
  * in this work, whether granted under contract or by operation of law or
@@ -19,19 +19,26 @@
  */
 
 #include <config.h>
+#include <portable/macros.h>
 #include <portable/system.h>
+
+#include <errno.h>
 
 /*
  * If we're running the test suite, rename the functions to avoid conflicts
  * with the system versions.
  */
 #if TESTING
+# undef asprintf
+# undef vasprintf
 # define asprintf test_asprintf
 # define vasprintf test_vasprintf
 int test_asprintf(char **, const char *, ...)
     __attribute__((__format__(printf, 2, 3)));
-int test_vasprintf(char **, const char *, va_list);
+int test_vasprintf(char **, const char *, va_list)
+    __attribute__((__format__(printf, 2, 0)));
 #endif
+
 
 int
 asprintf(char **strp, const char *fmt, ...)
@@ -45,11 +52,12 @@ asprintf(char **strp, const char *fmt, ...)
     return status;
 }
 
+
 int
 vasprintf(char **strp, const char *fmt, va_list args)
 {
     va_list args_copy;
-    int status, needed;
+    int status, needed, oerrno;
 
     va_copy(args_copy, args);
     needed = vsnprintf(NULL, 0, fmt, args_copy);
@@ -65,8 +73,10 @@ vasprintf(char **strp, const char *fmt, va_list args)
     if (status >= 0)
         return status;
     else {
+        oerrno = errno;
         free(*strp);
         *strp = NULL;
+        errno = oerrno;
         return status;
     }
 }

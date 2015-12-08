@@ -1,8 +1,8 @@
 /*
  * Test suite for the client connection negotiation code.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2006, 2007, 2009, 2010
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2007, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -25,6 +25,7 @@
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
+#include <tests/tap/string.h>
 #include <util/messages.h>
 #include <util/tokens.h>
 
@@ -38,7 +39,7 @@
  * version 1 and then goes back to version 2.
  */
 static void
-accept_connection(int protocol)
+accept_connection(const char *pidfile, int protocol)
 {
     struct sockaddr_in saddr;
     socket_type s, conn;
@@ -64,7 +65,7 @@ accept_connection(int protocol)
         sysdie("error binding socket");
     if (listen(s, 1) < 0)
         sysdie("error listening to socket");
-    fd = open("data/pid", O_CREAT | O_TRUNC, 0666);
+    fd = open(pidfile, O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd < 0)
         sysdie("cannot create sentinal");
     close(fd);
@@ -73,14 +74,14 @@ accept_connection(int protocol)
         sysdie("error accepting connection");
 
     /* Now do the context negotiation. */
-    if (token_recv(conn, &flags, &recv_tok, 64 * 1024) != TOKEN_OK)
+    if (token_recv(conn, &flags, &recv_tok, 64 * 1024, 0) != TOKEN_OK)
         die("cannot recv initial token");
     if (flags != (TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL))
         die("bad flags on initial token");
     wanted_flags = TOKEN_CONTEXT | TOKEN_PROTOCOL;
     context = GSS_C_NO_CONTEXT;
     do {
-        if (token_recv(conn, &flags, &recv_tok, 64 * 1024) != TOKEN_OK)
+        if (token_recv(conn, &flags, &recv_tok, 64 * 1024, 0) != TOKEN_OK)
             die("cannot recv subsequent token");
         if (flags != wanted_flags)
             die("bad flags on subsequent token");
@@ -96,22 +97,25 @@ accept_connection(int protocol)
                 flags |= TOKEN_PROTOCOL;
             else if (protocol == 0)
                 protocol = 2;
-            if (token_send(conn, flags, &send_tok) != TOKEN_OK)
+            if (token_send(conn, flags, &send_tok, 0) != TOKEN_OK)
                 die("cannot send subsequent token");
             gss_release_buffer(&minor, &send_tok);
         }
     } while (major == GSS_S_CONTINUE_NEEDED);
 
-    /* All done.  Don't bother cleaning up, just exit. */
-    _exit(0);
+    /* All done.  Clean up memory. */
+    gss_release_name(&minor, &client);
+    gss_delete_sec_context(&minor, &context, GSS_C_NO_BUFFER);
+    socket_close(conn);
+    socket_close(s);
 }
 
 
 int
 main(void)
 {
-    const char *principal;
-    char *p;
+    struct kerberos_config *config;
+    char *p, *path, *pidfile;
     const char *error;
     struct remctl *r;
     int protocol;
@@ -119,8 +123,6 @@ main(void)
     struct timeval tv;
 
     plan(5 * 3 + 3);
-    if (chdir(getenv("BUILD")) < 0)
-        sysbail("can't chdir to BUILD");
 
     /*
      * Now, check that the right thing happens when we try to connect to a
@@ -144,8 +146,8 @@ main(void)
     remctl_close(r);
 
     /* Unless we have Kerberos available, we can't really do anything else. */
-    principal = kerberos_setup();
-    if (principal == NULL) {
+    config = kerberos_setup(TAP_KRB_NEEDS_NONE);
+    if (config->principal == NULL) {
         skip_block(5 * 3, "Kerberos tests not configured");
         return 0;
     }
@@ -156,21 +158,27 @@ main(void)
      * test.  Each time, we're going to check that we got a context and that
      * we negotiated the appropriate protocol.
      */
+    path = test_tmpdir();
+    basprintf(&pidfile, "%s/pid", path);
     for (protocol = 0; protocol <= 2; protocol++) {
-        r = remctl_new();
         child = fork();
         if (child < 0)
             sysbail("cannot fork");
-        else if (child == 0)
-            accept_connection(protocol);
+        else if (child == 0) {
+            test_tmpdir_free(path);
+            accept_connection(pidfile, protocol);
+            free(pidfile);
+            exit(0);
+        }
         alarm(1);
-        while (access("data/pid", F_OK) < 0) {
+        while (access(pidfile, F_OK) < 0) {
             tv.tv_sec = 0;
             tv.tv_usec = 50000;
             select(0, NULL, NULL, NULL, &tv);
         }
         alarm(0);
-        if (!remctl_open(r, "127.0.0.1", 14373, principal)) {
+        r = remctl_new();
+        if (!remctl_open(r, "127.0.0.1", 14373, config->principal)) {
             notice("# open error: %s", remctl_error(r));
             ok_block(5, 0, "protocol %d", protocol);
         } else {
@@ -179,12 +187,14 @@ main(void)
                    "negotiated correct protocol");
             is_string(r->host, "127.0.0.1", "host is correct");
             is_int(r->port, 14373, "port is correct");
-            is_string(r->principal, principal, "principal is correct");
+            is_string(r->principal, config->principal, "principal is correct");
         }
         remctl_close(r);
         waitpid(child, NULL, 0);
-        unlink("data/pid");
+        unlink(pidfile);
     }
+    free(pidfile);
+    test_tmpdir_free(path);
 
     return 0;
 }

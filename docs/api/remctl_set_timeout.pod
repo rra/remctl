@@ -1,0 +1,62 @@
+=for stopwords
+remctl API Allbery timeout
+
+=head1 NAME
+
+remctl_set_timeout - Set timeout for subsequent remctl client operations
+
+=head1 SYNOPSIS
+
+#include <remctl.h>
+
+int B<remctl_set_timeout>(struct remctl *I<r>, time_t I<timeout>);
+
+=head1 DESCRIPTION
+
+remctl_set_timeout() sets the timeout for connections and commands to
+I<timeout>, which should be an integer number of seconds.  I<timeout> may
+be 0 to clear a timeout that was previously set and restore the default
+behavior of having no timeout.  All subsequent operations on the given
+struct remctl argument will be subject to this timeout, including
+remctl_open() if called prior to calling remctl_open().
+
+The timeout is a timeout on network activity from the server, not on a
+complete operation.  So, for example, a timeout of ten seconds just
+requires that the server send some data every ten seconds.  If the server
+sends only tiny amounts of data at a time, the complete operation could
+take much longer than ten seconds without triggering the timeout.
+
+=head1 RETURN VALUE
+
+remctl_set_timeout() returns true on success and false on failure.  The
+only failure case is if I<timeout> is negative.  On failure, the caller
+should call remctl_error() to retrieve the error message.
+
+=head1 COMPATIBILITY
+
+This interface was added in version 3.1.
+
+=head1 AUTHOR
+
+Russ Allbery <eagle@eyrie.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2012, 2014 The Board of Trustees of the Leland Stanford Junior
+University
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
+  
+=head1 SEE ALSO
+
+remctl_new(3), remctl_command(3), remctl_open(3), remctl_output(3),
+remctl_error(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=cut

@@ -101,16 +101,24 @@ FULL INTERFACE
 
       To override the credential cache used by GSS-API, assign the
       credential cache (as a string) to Remctl.ccache before calling
-      Remctl.new.  Be aware that this will usually change the default
-      credential cache for all uses of GSS-API in the same process,
-      including other remctl objects, rather than just this remctl object
-      due to a limitation in the GSS-API.  Some GSS-API implementations do
-      not support setting the credential cache, in which case Remctl.new
-      will throw a Remctl::Error exception if this variable is set.
+      Remctl.new.  If the remctl client library was built against a
+      Kerberos library and the GSS-API library supported
+      gss_krb5_import_cred, this will only affect subsequently-created
+      Remctl objects.  Otherwise, this will change the default credential
+      cache for all uses of GSS-API in the same process, including other
+      remctl objects, rather than just this remctl object due to a
+      limitation in the GSS-API.  Some GSS-API implementations do not
+      support setting the credential cache, in which case Remctl.new will
+      throw a Remctl::Error exception if this variable is set.
 
       Normally, the source IP used to connect to the server is assigned by
       the kernel.  To use a specific source IP, assign that IP address (as
       a string) to Remctl.source_ip before calling Remctl.new.
+
+      To set a default timeout for any newly-created Remctl objects,
+      assign the timeout (in seconds) to Remctl.timeout before calling
+      Remctl.new.  See below under r.set_timeout for more information
+      about how the timeout is interpreted.
 
       Exceptions:
 
@@ -202,6 +210,29 @@ FULL INTERFACE
       * Remctl::Error: a network or authentication error occurred
       * Remctl::NotOpen: no connection currently open
 
+  r.set_timeout(timeout)
+      Sets the timeout for connections and commands.  All subsequent
+      operations on this object will be subject to this timeout, including
+      reopen().
+
+      Arguments:
+
+      * timeout (required): long, the timeout in seconds or 0
+
+      If the timeout is 0, this clears any timeout that was previously
+      set.
+
+      The timeout is a timeout on network activity from the server, not on
+      a complete operation.  So, for example, a timeout of ten seconds
+      just requires that the server send some data every ten seconds.  If
+      the server sends only tiny amounts of data at a time, the complete
+      operation could take much longer than ten seconds without triggering
+      the timeout.
+
+      Exceptions:
+
+      * RemctlError: the timeout was negative
+
   r.close()
       Close a connection.  After calling this method, #reopen must be
       called for this object before sending any further commands.  The
@@ -222,3 +253,13 @@ HISTORY
   The original implementation was written by Anthony Martinez
   <twopir@nmt.edu> in 2010.  As of remctl 2.16 it is part of the stock
   remctl distribution.
+
+LICENSE
+
+  Copyright 2010, 2011, 2012 The Board of Trustees of the Leland Stanford
+  Junior University
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.  This file is offered as-is,
+  without any warranty.

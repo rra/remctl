@@ -1,8 +1,8 @@
 /*
  * Test suite for the server configuration parsing.
  *
- * Written by Russ Allbery <rra@stanford.edu>
- * Copyright 2007, 2009, 2010, 2011
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2007, 2009, 2010, 2011, 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -37,6 +37,9 @@ test_error(const char *file, const char *expected)
         *p = '\0';
     }
     is_string(expected, errors, "...with the right error");
+    errors_uncapture();
+    free(errors);
+    errors = NULL;
 }
 
 
@@ -45,12 +48,14 @@ main(void)
 {
     struct config *config;
 
-    plan(45);
+    plan(49);
     if (chdir(getenv("SOURCE")) < 0)
         sysbail("can't chdir to SOURCE");
 
     config = server_config_load("data/conf-test");
     ok(config != NULL, "config loaded");
+    if (config == NULL)
+        bail("server_config_load returned NULL");
     is_int(4, config->count, "with right count");
 
     is_string("test", config->rules[0]->command, "command 1");
@@ -78,6 +83,8 @@ main(void)
     is_int(0, config->rules[2]->logmask[3], "...and three logmask values");
     is_string("ANYUSER", config->rules[2]->acls[0], "acl 3");
     ok(config->rules[2]->acls[1] == NULL, "...and only one acl");
+    is_string("data/cmd-hello", config->rules[2]->summary, "summary 3");
+    is_string("data/command-hello", config->rules[2]->help, "help 3");
 
     is_string("foo", config->rules[3]->command, "command 4");
     is_string("ALL", config->rules[3]->subcommand, "subcommand 4");
@@ -87,6 +94,7 @@ main(void)
     is_string("data/acl-simple", config->rules[3]->acls[1], "acl 4 2");
     is_string("data/acl-simple", config->rules[3]->acls[187], "acl 4 188");
     ok(config->rules[3]->acls[188] == NULL, "...and 188 total ACLs");
+    server_config_free(config);
 
     /* Now test for errors. */
     test_error("data/configs/bad-option-1",
@@ -104,6 +112,8 @@ main(void)
     test_error("data/configs/bad-include-1",
                "data/configs/bad-include-1:1: included file /no/th/ing not"
                " found\n");
+    test_error("data/configs/bad-user-1",
+               "data/configs/bad-user-1:1: invalid user value nonexistent\n");
 
     return 0;
 }

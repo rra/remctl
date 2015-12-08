@@ -8,8 +8,7 @@
 #
 # Currently, only the Sun Java JDK is supported (1.4.2, 5, or 6).
 #
-# Originally written by Marcus Watts <mdw@umich.edu>
-# Copyright 2007 Marcus Watts
+# Copyright 2007 Marcus Watts <mdw@umich.edu>
 # Copyright 2007, 2008
 #     The Board of Trustees of the Leland Stanford Junior University
 #

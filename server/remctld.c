@@ -6,17 +6,19 @@
  * running as a stand-alone daemon and managing its own network connections.
  *
  * Written by Anton Ushakov
- * Extensive modifications by Russ Allbery <rra@stanford.edu>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011
+ * Extensive modifications by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
 
 #include <config.h>
-#include <portable/system.h>
+#include <portable/event.h>
 #include <portable/gssapi.h>
+#include <portable/sd-daemon.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <signal.h>
 #include <syslog.h>
@@ -54,7 +56,9 @@ static const char usage_message[] = "\
 Usage: remctld <options>\n\
 \n\
 Options:\n\
+    -b <addr>     Bind to a specific address (may be given multiple times)\n\
     -d            Log verbose debugging information\n\
+    -F            Run in the foreground instead of forking and exiting\n\
     -f <file>     Config file (default: " CONFIG_FILE ")\n\
     -h            Display this help\n\
     -m            Stand-alone daemon mode, meant mostly for testing\n\
@@ -63,20 +67,22 @@ Options:\n\
     -S            Log to standard output/error rather than syslog\n\
     -s <service>  Service principal to use (default: host/<host>)\n\
     -v            Display the version of remctld\n\
+    -Z            Raise SIGSTOP once ready for connections\n\
 \n\
 Supported ACL methods: file, princ, deny";
 
 /* Structure used to store program options. */
 struct options {
-    bool foreground;
-    bool standalone;
-    bool log_stdout;
-    bool debug;
-    unsigned short port;
-    char *service;
-    const char *config_path;
-    const char *pid_path;
-    struct vector *bindaddrs;
+    bool debug;                 /* -d: log verbose debugging information */
+    bool foreground;            /* -F: run in the foreground */
+    bool log_stdout;            /* -S: log to standard output and error */
+    bool standalone;            /* -m: run in stand-alone daemon mode */
+    bool suspend;               /* -Z: raise SIGSTOP when ready */
+    unsigned short port;        /* -p: port on which to listen */
+    char *service;              /* -s: service principal to use */
+    const char *config_path;    /* -f: path to the configuration file */
+    const char *pid_path;       /* -P: path to the PID file to write */
+    struct vector *bindaddrs;   /* -b: bind to a specific address */
 };
 
 
@@ -95,6 +101,9 @@ usage(int status)
 #ifdef HAVE_GPUT
     fprintf(output, ", gput");
 #endif
+#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
+    fprintf(output, ", localgroup");
+#endif
 #ifdef HAVE_PCRE
     fprintf(output, ", pcre");
 #endif
@@ -111,7 +120,7 @@ usage(int status)
  * Just set the child_signaled global so that we know to reap the processes
  * later.
  */
-static RETSIGTYPE
+static void
 child_handler(int sig UNUSED)
 {
     child_signaled = 1;
@@ -123,7 +132,7 @@ child_handler(int sig UNUSED)
  * running in standalone mode.  Set the config_signaled global so that we do
  * this the next time through the processing loop.
  */
-static RETSIGTYPE
+static void
 config_handler(int sig UNUSED)
 {
     config_signaled = 1;
@@ -135,10 +144,45 @@ config_handler(int sig UNUSED)
  * standalone mode.  Set the exit_signaled global so that we exit cleanly the
  * next time through the processing loop.
  */
-static RETSIGTYPE
+static void
 exit_handler(int sig UNUSED)
 {
     exit_signaled = 1;
+}
+
+
+/*
+ * The logging callback for libevent.  We hook this into our message system so
+ * that libevent messages are handled the same way as our other internal
+ * messages.  This function should be passed to event_set_log_callback at the
+ * start of libevent initialization.
+ */
+static void
+event_log_callback(int severity, const char *message)
+{
+    switch (severity) {
+    case EVENT_LOG_DEBUG:
+        debug("%s", message);
+        break;
+    case EVENT_LOG_MSG:
+        notice("%s", message);
+        break;
+    default:
+        warn("%s", message);
+        break;
+    }
+}
+
+
+/*
+ * The fatal callback for libevent.  Convert this to die, so that it's logged
+ * the same as our other messages.  This function should be passed to
+ * event_set_fatal_callback at the start of libevent initialization.
+ */
+static void
+event_fatal_callback(int err)
+{
+    die("fatal libevent error (%d)", err);
 }
 
 
@@ -185,7 +229,7 @@ acquire_creds(char *service, gss_cred_id_t *creds)
  * completed, either successfully or unsuccessfully.
  */
 static void
-server_handle_connection(int fd, struct config *config, gss_cred_id_t creds)
+handle_connection(int fd, struct config *config, gss_cred_id_t creds)
 {
     struct client *client;
 
@@ -219,7 +263,7 @@ server_handle_connection(int fd, struct config *config, gss_cred_id_t creds)
  * a non-zero exit status.
  */
 static void
-server_log_child(pid_t pid, int status)
+log_child(pid_t pid, int status)
 {
     if (WIFEXITED(status)) {
         if (WEXITSTATUS(status) != 0)
@@ -257,6 +301,99 @@ is_ipv6(const char *string UNUSED)
 
 
 /*
+ * Bind the listening socket or sockets on which we accept requests and return
+ * a list of sockets in the fds parameter.  Return a count of sockets in the
+ * count parameter.
+ *
+ * Handle the socket activation case where the socket has already been set up
+ * for us by systemd and, in that case, just return the already-configured
+ * socket.
+ */
+static void
+bind_sockets(struct options *options, socket_type **fds,
+             unsigned int *count)
+{
+    int status;
+    size_t i;
+    const char *addr;
+    socket_type fd;
+
+    /* Check whether systemd has already bound the sockets. */
+    status = sd_listen_fds(true);
+    if (status < 0)
+        die("using systemd-bound sockets failed: %s", strerror(-status));
+    if (status > 0) {
+        *fds = xcalloc(status, sizeof(socket_type));
+        for (i = 0; i < (size_t) status; i++)
+            (*fds)[i] = SD_LISTEN_FDS_START + i;
+        *count = status;
+        return;
+    }
+
+    /*
+     * We have to do the work ourselves.  If there is no bind address, bind to
+     * all local sockets, which will normally result in two file descriptors
+     * on which to listen.
+     */
+    if (options->bindaddrs->count == 0) {
+        if (!network_bind_all(SOCK_STREAM, options->port, fds, count))
+            sysdie("cannot bind any sockets");
+        for (i = 0; i < *count; i++)
+            if (listen((*fds)[i], 5) < 0)
+                sysdie("error listening on socket");
+        return;
+    }
+
+    /*
+     * Otherwise, we have to iterate through all the bind addresses, bind them
+     * using the appropriate function, and listen on each.
+     */
+    *count = options->bindaddrs->count;
+    *fds = xcalloc(*count, sizeof(socket_type));
+    for (i = 0; i < options->bindaddrs->count; i++) {
+        addr = options->bindaddrs->strings[i];
+        if (is_ipv6(addr))
+            fd = network_bind_ipv6(SOCK_STREAM, addr, options->port);
+        else
+            fd = network_bind_ipv4(SOCK_STREAM, addr, options->port);
+        if (fd == INVALID_SOCKET)
+            sysdie("cannot bind to address %s, port %hu", addr, options->port);
+        if (listen(fd, 5) < 0)
+            sysdie("error listening on socket");
+        (*fds)[i] = fd;
+    }
+}
+
+
+/*
+ * Write a PID to a file.  This is done via atomic replacement so that the
+ * file never exists with no content.  Note that there is no locking and no
+ * verification that an existing PID has exited.
+ */
+static void
+write_pidfile(pid_t pid, const char *path)
+{
+    char *template;
+    FILE *pid_file;
+    int fd;
+
+    xasprintf(&template, "%s.XXXXXX", path);
+    fd = mkstemp(template);
+    if (fd < 0)
+        sysdie("cannot create temporary PID file %s", template);
+    pid_file = fdopen(fd, "w");
+    if (pid_file == NULL)
+        sysdie("cannot reopen temporary PID file %s", template);
+    if (fprintf(pid_file, "%ld\n", (long) pid) < 0)
+        sysdie("cannot write to temporary PID file %s", template);
+    fclose(pid_file);
+    if (rename(template, path) < 0)
+        sysdie("cannot rename temporary PID file to %s", path);
+    free(template);
+}
+
+
+/*
  * Run as a daemon.  This is the main dispatch loop, which listens for network
  * connections, forks a child to process each connection, and reaps the
  * children when they're done.  This is only used in standalone mode; when run
@@ -269,16 +406,13 @@ server_daemon(struct options *options, struct config *config,
     socket_type s;
     unsigned int nfds, i;
     socket_type *fds;
-    const char *addr;
     pid_t child;
     int status;
     struct sigaction sa, oldsa;
     struct sockaddr_storage ss;
     socklen_t sslen;
     char ip[INET6_ADDRSTRLEN];
-
-    /* We're running as a daemon, so don't self-destruct. */
-    alarm(0);
+    OM_uint32 minor;
 
     /* Set up a SIGCHLD handler so that we know when to reap children. */
     memset(&sa, 0, sizeof(sa));
@@ -298,31 +432,28 @@ server_daemon(struct options *options, struct config *config,
     if (sigaction(SIGHUP, &sa, NULL) < 0)
         sysdie("cannot set SIGHUP handler");
 
+    /* Bind to the network sockets and configure listening addresses. */
+    bind_sockets(options, &fds, &nfds);
+
+    /*
+     * Set up our PID file now that we're ready to accept connections, so that
+     * the PID file isn't created until clients can connect.
+     */
+    if (options->pid_path != NULL)
+        write_pidfile(getpid(), options->pid_path);
+
     /* Log a starting message. */
     notice("starting");
 
-    /* Bind to the network sockets and configure listening addresses. */
-    if (options->bindaddrs->count == 0) {
-        nfds = 0;
-        network_bind_all(options->port, &fds, &nfds);
-        if (nfds == 0)
-            sysdie("cannot bind any sockets");
-    } else {
-        nfds = options->bindaddrs->count;
-        fds = xmalloc(nfds * sizeof(socket_type));
-        for (i = 0; i < options->bindaddrs->count; i++) {
-            addr = options->bindaddrs->strings[i];
-            if (is_ipv6(addr))
-                fds[i] = network_bind_ipv6(addr, options->port);
-            else
-                fds[i] = network_bind_ipv4(addr, options->port);
-            if (fds[i] == INVALID_SOCKET)
-                sysdie("cannot bind to address %s", addr);
-        }
-    }
-    for (i = 0; i < nfds; i++)
-        if (listen(fds[i], 5) < 0)
-            sysdie("error listening on socket (fd %d)", fds[i]);
+    /* Indicate to systemd that we're ready to answer requests. */
+    status = sd_notify(true, "READY=1");
+    if (status < 0)
+        warn("cannot notify systemd of startup: %s", strerror(-status));
+
+    /* Indicate to upstart that we're ready to answer requests. */
+    if (options->suspend)
+        if (raise(SIGSTOP) < 0)
+            syswarn("cannot notify upstart of startup");
 
     /*
      * The main processing loop.  Each time through the loop, check to see if
@@ -334,11 +465,11 @@ server_daemon(struct options *options, struct config *config,
      * processes, so you may want to set system resource limits to prevent an
      * attacker from consuming all available processes.
      */
-    do {
+    while (1) {
         if (child_signaled) {
             child_signaled = 0;
             while ((child = waitpid(0, &status, WNOHANG)) > 0)
-                server_log_child(child, status);
+                log_child(child, status);
             if (child < 0 && errno != ECHILD)
                 sysdie("waitpid failed");
         }
@@ -352,9 +483,7 @@ server_daemon(struct options *options, struct config *config,
         }
         if (exit_signaled) {
             notice("signal received, exiting");
-            if (options->pid_path != NULL)
-                unlink(options->pid_path);
-            exit(0);
+            break;
         }
         sslen = sizeof(ss);
         s = network_accept_any(fds, nfds, (struct sockaddr *) &ss, &sslen);
@@ -372,18 +501,35 @@ server_daemon(struct options *options, struct config *config,
         } else if (child == 0) {
             for (i = 0; i < nfds; i++)
                 close(fds[i]);
+            network_bind_all_free(fds);
             if (sigaction(SIGCHLD, &oldsa, NULL) < 0)
                 syswarn("cannot reset SIGCHLD handler");
-            server_handle_connection(s, config, creds);
+            handle_connection(s, config, creds);
+            if (creds != GSS_C_NO_CREDENTIAL)
+                gss_release_cred(&minor, &creds);
             if (options->log_stdout)
                 fflush(stdout);
+            server_config_free(config);
+            vector_free(options->bindaddrs);
+            libevent_global_shutdown();
+            message_handlers_reset();
             exit(0);
         } else {
             close(s);
             network_sockaddr_sprint(ip, sizeof(ip), (struct sockaddr *) &ss);
             debug("child %lu for %s", (unsigned long) child, ip);
         }
-    } while (1);
+    }
+
+    /*
+     * Clean up resources at the end of the loop.  This is not strictly
+     * necessary, but it helps valgrind testing.
+     */
+    if (options->pid_path != NULL)
+        unlink(options->pid_path);
+    for (i = 0; i < nfds; i++)
+        close(fds[i]);
+    network_bind_all_free(fds);
 }
 
 
@@ -397,18 +543,11 @@ int
 main(int argc, char *argv[])
 {
     struct options options;
-    FILE *pid_file;
     int option;
     struct sigaction sa;
     gss_cred_id_t creds = GSS_C_NO_CREDENTIAL;
     OM_uint32 minor;
     struct config *config;
-
-    /*
-     * Since we are normally called from tcpserver or inetd, prevent clients
-     * from holding on to us forever by dying after an hour.
-     */
-    alarm(60 * 60);
 
     /* Ignore SIGPIPE errors from our children. */
     memset(&sa, 0, sizeof(sa));
@@ -416,19 +555,21 @@ main(int argc, char *argv[])
     if (sigaction(SIGPIPE, &sa, NULL) < 0)
         sysdie("cannot set SIGPIPE handler");
 
-    /* Establish identity. */
+    /* Establish identity for logging. */
     message_program_name = "remctld";
+
+    /* Initialize the logging and fatal callbacks for libevent. */
+    event_set_log_callback(event_log_callback);
+    event_set_fatal_callback(event_fatal_callback);
 
     /* Initialize options. */
     memset(&options, 0, sizeof(options));
     options.port = 4373;
-    options.service = NULL;
-    options.pid_path = NULL;
     options.config_path = CONFIG_FILE;
     options.bindaddrs = vector_new();
 
     /* Parse options. */
-    while ((option = getopt(argc, argv, "b:dFf:hk:mP:p:Ss:v")) != EOF) {
+    while ((option = getopt(argc, argv, "b:dFf:hk:mP:p:Ss:vZ")) != EOF) {
         switch (option) {
         case 'b':
             vector_add(options.bindaddrs, optarg);
@@ -468,6 +609,9 @@ main(int argc, char *argv[])
             printf("remctld %s\n", PACKAGE_VERSION);
             exit(0);
             break;
+        case 'Z':
+            options.suspend = true;
+            break;
         default:
             usage(1);
             break;
@@ -477,14 +621,17 @@ main(int argc, char *argv[])
     /* Check arguments for consistency. */
     if (options.bindaddrs->count > 0 && !options.standalone)
         die("-b only makes sense in combination with -m");
+    if (options.suspend && !options.standalone)
+        die("-Z only makes sense in combination with -m");
 
     /* Daemonize if told to do so. */
     if (options.standalone && !options.foreground)
-        daemon(0, options.log_stdout);
+        if (daemon(0, options.log_stdout) != 0)
+            sysdie("cannot daemonize");
 
     /*
      * Set up syslog unless stdout/stderr was requested.  Set up debug logging
-     * if requestsed.
+     * if requested.
      */
     if (options.log_stdout) {
         if (options.debug)
@@ -509,22 +656,9 @@ main(int argc, char *argv[])
      * keep its default value of GSS_C_NO_CREDENTIAL, which means support
      * anything that's in the keytab.
      */
-    if (options.service != NULL) {
+    if (options.service != NULL)
         if (!acquire_creds(options.service, &creds))
             die("unable to acquire creds, aborting");
-    }
-
-    /*
-     * Set up our PID file now after we've daemonized, since we may have
-     * changed PIDs in the process.
-     */
-    if (options.standalone && options.pid_path != NULL) {
-        pid_file = fopen(options.pid_path, "w");
-        if (pid_file == NULL)
-            sysdie("cannot create PID file %s", options.pid_path);
-        fprintf(pid_file, "%ld\n", (long) getpid());
-        fclose(pid_file);
-    }
 
     /*
      * If we're not running as a daemon, just process the connection.
@@ -532,12 +666,16 @@ main(int argc, char *argv[])
      * incoming connection.
      */
     if (!options.standalone)
-        server_handle_connection(0, config, creds);
+        handle_connection(STDIN_FILENO, config, creds);
     else
         server_daemon(&options, config, creds);
 
-    /* Clean up and exit.  We only reach here in regular mode. */
+    /* Clean up and exit. */
+    server_config_free(config);
     if (creds != GSS_C_NO_CREDENTIAL)
         gss_release_cred(&minor, &creds);
+    vector_free(options.bindaddrs);
+    libevent_global_shutdown();
+    message_handlers_reset();
     return 0;
 }
