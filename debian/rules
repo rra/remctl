@@ -1,83 +1,59 @@
 #!/usr/bin/make -f
 
-# Add additional hardening features.  +pie not added for right now since it
-# needs testing to ensure it doesn't break the shared library and module
-# builds.
+# Add hardening build flags.  We have to omit PIE because it breaks the Perl
+# module build (and probably the other interpretors as well).
 export DEB_BUILD_MAINT_OPTIONS = hardening=+bindnow
 
-# Get CFLAGS for rebuilding the remctl client binary and Perl and Python
-# modules.
-CFLAGS := $(shell dpkg-buildflags --get CFLAGS)
+# Link with --as-needed so that the remctl client library doesn't inherit
+# the shared library dependencies of libremctl.
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
-# The primary Python version, used to ensure that we run the test suite with
-# the module built for the default version of Python.  These are passed into
-# the upstream make via overrides of dh_auto_test and dh_auto_install.  Just
-# exporting them in the environment doesn't work for some reason.
-PYTHON_INSTALL := --install-layout=deb
-PYTHON_VERSION := $(shell pyversions -dv)
+# The additional flags to pass to Build.PL, picked up by the upstream build
+# system.
+export REMCTL_PERL_FLAGS := --installdirs vendor --create_packlist 0
+
+# The supported Python versions and the additional Python flags, picked up
+# by the upstream build system.
+export REMCTL_PYTHON_INSTALL  := --install-layout=deb
+export REMCTL_PYTHON_VERSIONS := $(shell pyversions -s)
 
 %:
-	dh $@ --with python2
+	dh $@ --with python2,autoreconf
+
+override_dh_autoreconf:
+	dh_autoreconf --as-needed
 
 override_dh_auto_configure:
 	dh_auto_configure -- --sysconfdir=/etc/remctl \
 	    --enable-reduced-depends --enable-perl --enable-php \
 	    --enable-python --enable-ruby
 
-# We rebuild the remctl client because Automake and Libtool combine to force
-# remctl to be linked against all the dependencies of libremctl, which
-# creates unnecessary dependencies.  Ones that probably won't matter, mind,
-# but let's do this right anyway.
-#
-# We rebuild the Perl module to encode the right installation paths, since
-# otherwise it defaults to using the local site module path.
-#
-# We rebuild the Python module so that we have builds for each of the
-# supported versions of Python.
-#
 # For the first pass, build the Ruby 1.8 extension.  We'll go back and build
 # the extension for 1.9.1.
 override_dh_auto_build:
-	dh_auto_build -- RUBY=ruby1.8
-	cd $(CURDIR)/perl && $(MAKE) clean && perl Makefile.PL \
-	    INSTALLDIRS=vendor
-	cd $(CURDIR)/perl && $(MAKE) OPTIMIZE="$(CFLAGS)"
-	gcc $(CFLAGS) -o client/.libs/remctl client/remctl.o \
-	    client/.libs/libremctl.so util/.libs/libutil.a
-	set -e; cd python && for v in `pyversions -vs` ; do \
-	    CFLAGS="$(CFLAGS)" python$$v setup.py build ; \
-	done
+	dh_auto_build -- REMCTL_RUBY=ruby1.8
 
 override_dh_auto_test:
-	LD_LIBRARY_PATH='$(CURDIR)/client/.libs' dh_auto_test \
-	    -- PYTHON_VERSION=$(PYTHON_VERSION) RUBY=ruby1.8
-	echo '=== Special test run for debugging kfreebsd-amd64 ==='
-	tests/runtests -o util/network
+	dh_auto_test -- REMCTL_RUBY=ruby1.8
 
 # After installing the build for the default version of Ruby, go back and
 # rebuild for the newer version.
 override_dh_auto_install:
-	dh_auto_install -- PYTHON_INSTALL=$(PYTHON_INSTALL) \
-	    RUBYARCHDIR='$$(archdir)$$(target_prefix)'
+	dh_auto_install -- RUBYARCHDIR='$$(archdir)$$(target_prefix)'
 	cd ruby && $(MAKE) distclean
-	dh_auto_build -- RUBY=ruby1.9.1
+	dh_auto_build -- REMCTL_RUBY=ruby1.9.1
 	cd ruby && $(MAKE) install DESTDIR='$(CURDIR)/debian/tmp' \
 	    RUBYARCHDIR='$$(archdir)$$(target_prefix)'
 
-# Override install to check for missing installed files and to do the proper
-# Python module installation.
+# Override install to check for missing installed files.
 override_dh_install:
-	set -e; cd python && for v in `pyversions -vs` ; do \
-	    python$$v setup.py install --install-layout=deb \
-		--root $(CURDIR)/debian/tmp ; \
-	done
 	dh_install --fail-missing -Xlibremctl.la
 
 override_dh_installchangelogs:
 	dh_installchangelogs NEWS
 
 override_dh_makeshlibs:
-	dh_makeshlibs -V 'libremctl1 (>= 3.0)'
+	dh_makeshlibs -V 'libremctl1 (>= 3.3)'
 
 override_dh_gencontrol:
 	dh_gencontrol -- -V"php:Depends=phpapi-`php-config5 --phpapi`"

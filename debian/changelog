@@ -86,7 +86,33 @@ remctl (3.10-1~ubuntu12.04+1) UNRELEASED; urgency=medium
       incompatibilities).
     - Dynamically resize the buffer used for the localgroup ACL scheme,
       allowing support of users in large numbers of local groups.
-
+  * Patch the upstream build system to provide more hooks for Perl and
+    Python builds and make use of them, removing all the complexity in
+    debian/rules to selectively rebuild parts of the source.  As a side
+    effect, fix application of the hardening flags to all of the
+    interpretor modules.
+  * Use dh-autoreconf to rebuild the Autotools build system, and link with
+    --as-needed to remove the additional unnecessarily library
+    dependencies for the client.  Remove the workaround of relinking the
+    binary, which removed the hardening flags.
+  * Pass the hardening flags into the Perl and Python module rebuilds.
+  * Depend on debhelper (>= 9) now that V9 is no longer experimental and
+    remove now-unneeded Lintian override.
+  * Remove the special additional test run for kfreebsd-amd64.  The
+    problem has been located and corrected upstream.
+  * Add additional Perl modules required to run the full module test suite
+    to Build-Depends.
+  * Add necessary keyring and watch configuration for uscan to verify
+    PGP signatures on new upstream releases.
+  * Update the watch file to download *.tar.xz distributions by default.
+  * Add a Lintian override for the dual-licensed protocol specification.
+  * Build-Depend on krb5-config to get enough of a Kerberos configuration
+    for some test cases that are KDC-independent to run.
+  * Add explicit build dependency on libmodule-build-perl, since it will
+    soon no longer be provided by the perl package.
+  * Update standards version to 3.9.6.
+    - Add branch information to Vcs-Git.
+  
  -- Russ Allbery <rra@debian.org>  Tue, 08 Dec 2015 14:28:53 -0800
 
 remctl (3.0-5) unstable; urgency=low

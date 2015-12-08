@@ -2,13 +2,32 @@ Source: remctl
 Section: net
 Priority: optional
 Maintainer: Russ Allbery <rra@debian.org>
-Build-Depends: debhelper (>= 8.1.3~), dpkg-dev (>= 1.14.9), libkrb5-dev,
- libpcre3-dev, libtest-pod-perl, perl, php5-cli, php5-dev, python-all-dev,
- ruby1.8, ruby1.8-dev, ruby1.9.1, ruby1.9.1-dev
+Build-Depends: debhelper (>= 9),
+ dh-autoreconf,
+ dpkg-dev (>= 1.14.9),
+ krb5-config,
+ libevent-dev,
+ libkrb5-dev,
+ libmodule-build-perl,
+ libpcre3-dev,
+ libperl-critic-perl,
+ libtest-pod-perl,
+ libtest-minimumversion-perl,
+ libtest-pod-coverage-perl,
+ libtest-strict-perl,
+ libtest-synopsis-perl,
+ perl,
+ php5-cli,
+ php5-dev,
+ python-all-dev,
+ ruby1.8,
+ ruby1.8-dev,
+ ruby1.9.1,
+ ruby1.9.1-dev
 XS-Python-Version: >= 2.6
-Standards-Version: 3.9.2
+Standards-Version: 3.9.6
 Homepage: http://www.eyrie.org/~eagle/software/remctl/
-Vcs-Git: git://git.eyrie.org/kerberos/remctl.git
+Vcs-Git: git://git.eyrie.org/kerberos/remctl.git -b precise
 Vcs-Browser: http://git.eyrie.org/?p=kerberos/remctl.git
 
 Package: libremctl1
@@ -85,7 +104,9 @@ Description: Perl client for Kerberos-authenticated command execution
  authorized to run that command.
  .
  This package contains the Net::Remctl Perl library, which provides native
- Perl bindings for the libremctl client library.
+ Perl bindings for the libremctl client library.  It also contains the
+ Net::Remctl::Backend module, which assists in writing remctl backends in
+ Perl.
 
 Package: php5-remctl
 Section: php

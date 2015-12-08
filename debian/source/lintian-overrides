@@ -1,0 +1,6 @@
+# -*- conf -*-
+
+# Upstream has dual-licensed these files under the IETF license and an
+# all-permissive license.  See the Additional License section.
+remctl source: license-problem-non-free-RFC-BCP78 docs/protocol.html
+remctl source: license-problem-non-free-RFC-BCP78 docs/protocol.txt
