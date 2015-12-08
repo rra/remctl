@@ -1,3 +1,94 @@
+remctl (3.10-1~ubuntu12.04+1) UNRELEASED; urgency=medium
+
+  * Forked package for Ubuntu precise based on 3.0-5 Debian packaging.
+  * New upstream release:
+    - New remctl_set_timeout function and corresponding API in all the
+      language bindings to set a timeout on all further network operations
+      on that client connection.
+    - remctld supports a user configuration option to run a program as a
+      specific user (with supplemental groups).
+    - remctld's timeout is now one hour between messages instead of a
+      total limit of one hour for the connection.
+    - PHP's remctl_output no longer warns on failure.
+    - Python's _remctl.remctl_output returns an empty tuple on error.
+    - Fix error reporting for non-blocking connect.
+    - If remctld receives a help command with no arguments and no help
+      command is explicitly defined, it will look for commands to which
+      the current user has access and for which the summary option is set
+      and run them with the argument given by the summary option,
+      collecting the output and sending it back to the client.
+    - If remctld receives a help command with one or two arguments and a
+      command entry exists matching those arguments, the user has access
+      to run it, and the help option is set, the command is run with the
+      help option as the subcommand.
+    - Always close the server's connection to the client on low-level
+      network and GSS-API errors.
+    - Fix remctld segfault when the configuration does not define any
+      commands.
+    - Fix a file descriptor leak when checking ACL files.
+    - Fix memory leaks in remctld and libremctl.
+    - Don't create the PID file in remctld until the network socket is set
+      up and listening.
+    - Remove prototypes from the Perl remctl() function to allow passing
+      in parameters via an array.
+    - New C APIs for establishing a remctl connection given a sockaddr, a
+      list of struct addrinfo, or an already open socket.
+    - New Net::Remctl::Backend Perl module to aid writing remctl backend
+      scripts.
+    - Remove all prototypes from Net::Remctl functions.
+    - Return an error if an empty command is passed to remctl_command.
+    - Fix a long-standing race condition in remctld that could truncate
+      large backend output.
+    - remctl_set_ccache is now threadsafe when built against a GSS-API
+      library that supports gss_krb5_import_cred.
+    - The Net::Remctl and Net::Remctl::Backend Perl module versions have
+      gone backwards from Perl's perspective to bring them in-line with
+      the package version (3.4 -> 3.05).  This is a one-time adjustment
+      to a more reliable versioning scheme.
+    - Fix test suite issues with newer Linux kernels.
+    - For client calls with a timeout, restart waiting for a non-blocking
+      connect if the select call is interrupted by a signal.
+    - Better Net::Remctl::Backend help formatting for commands with long
+      syntax.
+    - Fix client memory leak when remctl_set_ccache is used.
+    - Fix Net::Remctl::Backend argument count validation when one of the
+      arguments is coming from standard input.
+    - remctld in stand-alone mode now supports systemd status notification
+      and socket activation and, with -Z, upstart status notification.  By
+      default, remctld is still spawned from inetd, so this only affects
+      users who change the default configuration.  Sample systemd and
+      upstart configurations are included in /usr/share/doc/remctl-server.
+    - Net::Remctl classes now fail cleanly if the object is undef.
+    - remctld now uses libevent for the process event loop, which removes
+      the need to poll for child exit and will make the server faster and
+      more responsive.
+    - Fill each MESSAGE_OUTPUT message from the server with the maximum
+      allowed data per the protocol, rather than capping it artificially
+      at 65000 octets.
+    - Fix a minor server memory leak when processing help commands.
+    - Fix a minor client memory leak on errors with protocol one commands.
+    - Write out the server PID file atomically.
+    - New server ACL type, localgroup, which converts the principal to a
+      local username and then checks for membership in a local group.
+    - Fix incorrect handling of interruptions of network writes by signals
+      in the server.
+    - Prefer calloc and reallocarray when allocating memory with
+      multiplication.
+    - Restore the SIGPIPE handler before running a command.
+    - Add version and compatibility information to all manual pages.
+    - New server ACLs anyuser:auth and anyuser:anonymous.  The latter
+      allows access by anonymous clients if the KDC supports anonymous
+      service tickets.
+    - Server now sets the REMOTE_EXPIRES environment variable to the time
+      when the client credentials would expire.
+    - Anonymous users no longer satisfy ANYUSER (anyuser:auth).
+    - Simplify the Python RemctlError class (with some backward
+      incompatibilities).
+    - Dynamically resize the buffer used for the localgroup ACL scheme,
+      allowing support of users in large numbers of local groups.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 08 Dec 2015 14:28:53 -0800
+
 remctl (3.0-5) unstable; urgency=low
 
   * Fix the skip count for the network utility test suite, fixing a
