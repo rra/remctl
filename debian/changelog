@@ -110,6 +110,7 @@ remctl (3.10-1~ubuntu12.04+1) UNRELEASED; urgency=medium
     for some test cases that are KDC-independent to run.
   * Add explicit build dependency on libmodule-build-perl, since it will
     soon no longer be provided by the perl package.
+  * Switch to xz compression for the upstream and Debian tarballs.
   * Update standards version to 3.9.6.
     - Add branch information to Vcs-Git.
   
