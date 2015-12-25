@@ -51,7 +51,7 @@ remctl 3.10 (2015-11-27)
     that didn't have krb5_get_init_creds_opt_alloc, such as the included
     Kerberos in Solaris 10.
 
-    Update to rra-c-util 5.8:
+    Update to rra-c-util 5.9:
 
     * Add missing va_end to xasprintf implementation.
     * Fix Perl test suite framework for new Automake relative paths.
