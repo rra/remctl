@@ -7,7 +7,12 @@
 #
 # See LICENSE for licensing terms.
 
+%if 0%{?sles_version:1}
+%define relsuffix sles%{sles_version}
+%else
 %define rel %(cat /etc/redhat-release | cut -d ' ' -f 7 | cut -d'.' -f1)
+%define relsuffix EL%{rel}
+%endif
 # this is needed for Stanford packaging automation
 %define vers 3.10
 
@@ -29,8 +34,8 @@
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
 Version: %{vers}
-Release: 1.EL%{rel}
-%if %{rel} >= 4
+Release: 1.%{relsuffix}
+%if 0%{?rel} >= 4 || 0%{?sles_version:1}
 License: MIT
 %else
 Copyright: MIT
@@ -54,7 +59,11 @@ BuildRequires: php-devel
 %if %{buildruby}
 BuildRequires: ruby, ruby-devel
 %endif
+%if 0%{?sles_version:1}
+Distribution: SUSE Linux Enterprise %{sles_version}
+%else
 Distribution: EL
+%endif
 
 %ifarch i386
 BuildArch: i686
@@ -62,18 +71,18 @@ BuildArch: i686
 
 %if %{buildphp}
 # RHEL 5/6 compatibility for PHP
-%if %{rel} == 5
+%if 0%{?rel} == 5
 %global php_apiver %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
 %{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
 %endif
-%if %{rel} == 5 || %{rel} == 6
+%if 0%{?rel} == 5 || 0%{?rel} == 6
 %{!?php_inidir: %{expand: %%global php_inidir %{_sysconfdir}/php.d }}
 %endif
 %endif
 
 %if %{buildpython}
 # RHEL 5 compatibility for Python
-%if %{rel} == 5
+%if 0%{?rel} == 5
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 %endif
@@ -81,10 +90,10 @@ BuildArch: i686
 
 %if %{buildruby}
 # RHEL 5/6 compatibility for Ruby
-%if %{rel} == 5
+%if 0%{?rel} == 5
 %{!?ruby_vendorarchdir: %global ruby_vendorarchdir %(ruby -rrbconfig -e 'puts Config::CONFIG["sitearchdir"] ')}
 %endif
-%if %{rel} == 6
+%if 0%{?rel} == 6
 %{!?ruby_vendorarchdir: %global ruby_vendorarchdir %(ruby -rrbconfig -e 'puts Config::CONFIG["vendorarchdir"] ')}
 %endif
 %endif
@@ -146,7 +155,7 @@ This package contains the client program (remctl) and the client libraries.
 Summary: PHP interface to remctl
 Group: Development/Libraries
 Requires: %{name}-client = %{version}-%{release}
-%if %{rel} == 5
+%if 0%{?rel} == 5
 Requires:     php-api = %{php_apiver}
 %else
 Requires:     php(zend-abi) = %{php_zend_api}
@@ -186,7 +195,7 @@ This package contains the Python remctl client library.
 Summary: Ruby interface to remctl
 Group: Development/Libraries
 Requires: %{name}-client = %{version}-%{release}
-%if %{rel} <= 6
+%if 0%{?rel} <= 6
 Requires: ruby(abi) = 1.8
 %else
 Requires: ruby(abi) = 1.9.1
@@ -242,7 +251,7 @@ options="$options --enable-python"
 %if %{buildperl}
 export PATH="/usr/kerberos/bin:/sbin:/bin:/usr/sbin:$PATH"
 export REMCTL_PERL_FLAGS="--installdirs=vendor"
-%if %{rel} >= 6
+%if 0%{?rel} >= 6
 export REMCTL_PERL_FLAGS="$REMCTL_PERL_FLAGS --prefix=/usr"
 %endif
 %endif
@@ -288,6 +297,15 @@ chmod 755 %{buildroot}/usr/share/doc/remctl-php-%{vers}
 mkdir -p %{buildroot}%{php_inidir}
 install -m 0644 -p php/remctl.ini %{buildroot}%{php_inidir}
 %endif
+%if 0%{?sles_version:1}
+mkdir -p %{buildroot}/etc/sysconfig/SuSEfirewall2.d/services
+cat <<EOF >%{buildroot}/etc/sysconfig/SuSEfirewall2.d/services/remctld
+## Name: Remctl Server
+## Description: Open ports for Kerberos-authenticated command execution
+
+TCP="remctl"
+EOF
+%endif
 
 %files devel
 %defattr(-, root, root)
@@ -314,13 +332,16 @@ install -m 0644 -p php/remctl.ini %{buildroot}%{php_inidir}
 %config(noreplace) /etc/remctl/remctl.conf
 %dir /etc/remctl/acl/
 %dir /etc/remctl/conf.d/
+%if 0%{?sles_version:1}
+/etc/sysconfig/SuSEfirewall2.d/services/remctld
+%endif
 
 %if %{buildpython}
 %files python
 %defattr(-, root, root)
 %{python_sitearch}/_remctl.so
 %{python_sitearch}/remctl.py*
-%if %{rel} != 5
+%if 0%{?rel} != 5
 %{python_sitearch}/pyremctl-%{version}-*.egg-info
 %endif
 %doc NEWS TODO
