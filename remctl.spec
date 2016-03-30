@@ -41,7 +41,7 @@ Group: System Environment/Daemons
 Vendor: Stanford University
 Packager: Russ Allbery <eagle@eyrie.org>
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: krb5-devel, libgcrypt
+BuildRequires: krb5-devel, libgcrypt, libevent-devel
 %if %{buildperl}
 BuildRequires: perl(Module::Build)
 %endif
