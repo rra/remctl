@@ -395,7 +395,7 @@ fi
 - update to 3.4, and merged some changes from ktdreyer in EPEL spec
 - split out perl, php, ruby
 
-* Fri Jul 17 2012 Darren Patterson <darrenp1@stanford.edu> 3.2-2
+* Tue Jul 17 2012 Darren Patterson <darrenp1@stanford.edu> 3.2-2
 - spec fixes for build issues around perl and lib dirs
 - move perl to vendor_perl on EL6
 - re-add missing devel package
