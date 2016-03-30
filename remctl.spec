@@ -9,7 +9,7 @@
 
 %define rel %(cat /etc/redhat-release | cut -d ' ' -f 7 | cut -d'.' -f1)
 # this is needed for Stanford packaging automation
-%define vers 3.4
+%define vers 3.10
 
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
 %{!?buildperl:%define buildperl 1}
