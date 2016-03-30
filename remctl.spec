@@ -9,10 +9,17 @@
 
 %if 0%{?sles_version:1}
 %define relsuffix sles%{sles_version}
+%if %{sles_version} >= 12
+%define with_systemd 1
+%endif
 %else
 %define rel %(cat /etc/redhat-release | cut -d ' ' -f 7 | cut -d'.' -f1)
 %define relsuffix EL%{rel}
+%if %{rel} >= 7
+%define with_systemd 1
 %endif
+%endif
+
 # this is needed for Stanford packaging automation
 %define vers 3.10
 
@@ -60,8 +67,14 @@ BuildRequires: php-devel
 BuildRequires: ruby, ruby-devel
 %endif
 %if 0%{?sles_version:1}
+%if 0%{?with_systemd:1}
+BuildRequires: systemd-rpm-macros
+%endif
 Distribution: SUSE Linux Enterprise %{sles_version}
 %else
+%if 0%{?with_systemd:1}
+BuildRequires: systemd-units
+%endif
 Distribution: EL
 %endif
 
@@ -110,6 +123,7 @@ that command.
 %package server
 Summary: Server for Kerberos-authenticated command execution
 Group: System Environment/Daemons
+%{?systemd_requires}
 
 %description server
 remctl is a client/server protocol for executing specific commands on a
@@ -266,8 +280,10 @@ options="$options RUBYARCHDIR=%{buildroot}%{ruby_vendorarchdir}"
 %endif
 make install DESTDIR=%{buildroot} INSTALL="install -p" \
     INSTALLDIRS=vendor $options
+%if !0%{?with_systemd:1}
 mkdir -p %{buildroot}/etc/xinetd.d
 install -c -m 0644 examples/xinetd %{buildroot}/etc/xinetd.d/remctl
+%endif
 mkdir -p %{buildroot}/etc/remctl/acl
 mkdir -p %{buildroot}/etc/remctl/conf.d
 mkdir -p %{buildroot}/usr/share/doc/remctl-{server,client}-%{vers}
@@ -328,12 +344,18 @@ EOF
 %{_sbindir}/*
 %doc NEWS README TODO
 %doc %{_mandir}/*/remctld.*
+%if !0%{?with_systemd:1}
 %config /etc/xinetd.d/remctl
+%endif
 %config(noreplace) /etc/remctl/remctl.conf
 %dir /etc/remctl/acl/
 %dir /etc/remctl/conf.d/
 %if 0%{?sles_version:1}
 /etc/sysconfig/SuSEfirewall2.d/services/remctld
+%endif
+%if 0%{?with_systemd:1}
+%{_unitdir}/remctld.service
+%{_unitdir}/remctld.socket
 %endif
 
 %if %{buildpython}
@@ -375,6 +397,17 @@ EOF
 %{ruby_vendorarchdir}/remctl.so
 %endif
 
+%if 0%{?with_systemd:1} && 0%{?rel:1}
+%preun server
+%systemd_preun remctld.service
+%endif
+%if 0%{?with_systemd:1} && 0%{?sles_version:1}
+%pre server
+%service_add_pre remctld.service
+%preun server
+%service_del_preun remctld.service
+%endif
+
 %post client -p /sbin/ldconfig
 
 %post server 
@@ -386,10 +419,18 @@ if [ "$1" = 1 ] ; then
     else
         echo 'remctl    4373/tcp' >> /etc/services
     fi
+%if !0%{?with_systemd:1}
     if [ -f /var/run/xinetd.pid ] ; then
         kill -HUP `cat /var/run/xinetd.pid`
     fi
+%endif
 fi
+%if 0%{?with_systemd:1} && 0%{?rel:1}
+%systemd_post remctld.service
+%endif
+%if 0%{?with_systemd:1} && 0%{?sles_version:1}
+%service_add_post remctld.service
+%endif
 
 %postun client -p /sbin/ldconfig
 
@@ -402,11 +443,20 @@ if [ "$1" = 0 ] ; then
             grep -v "^remctl" /etc/services > /etc/services.tmp
             mv -f /etc/services.tmp /etc/services
         fi
+%if !0%{?with_systemd:1}
         if [ -f /var/run/xinetd.pid ] ; then
             kill -HUP `cat /var/run/xinetd.pid`
         fi
+%endif
     fi
 fi
+%if 0%{?with_systemd:1} && 0%{?rel:1}
+%systemd_postun_with_restart remctld.service
+%endif
+%if 0%{?with_systemd:1} && 0%{?sles_version:1}
+%service_del_postun remctld.service
+%endif
+
 
 %clean
 %{__rm} -rf %{buildroot}
