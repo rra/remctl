@@ -105,7 +105,7 @@ cache_init_anonymous(krb5_context ctx, const char *principal)
     retval = krb5_cc_initialize(ctx, ccache, creds.client);
     if (retval != 0)
         bail_krb5(ctx, retval, "cannot initialize ticket cache");
-    retval = krb5_cc_store_cred(c, ccache, &creds);
+    retval = krb5_cc_store_cred(ctx, ccache, &creds);
     if (retval != 0)
         bail_krb5(ctx, retval, "cannot store credentials");
 #  endif /* !HAVE_KRB5_GET_INIT_CREDS_OPT_SET_OUT_CCACHE */
