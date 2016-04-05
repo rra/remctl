@@ -27,7 +27,7 @@
  * Kerberos errors resort in an abort instead.
  */
 #ifdef HAVE_KRB5
-# ifndef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS
+# if !defined(HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS) || !defined(HAVE_KRB5_INIT_CREDS_SET_PASSWORD)
 
 static char *
 cache_init_anonymous(krb5_context ctx UNUSED, const char *principal UNUSED)

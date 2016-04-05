@@ -54,6 +54,7 @@ AS_IF([test x"$rra_use_KRB5" != xfalse],
          krb5_get_init_creds_opt_set_anonymous \
          krb5_get_init_creds_opt_set_default_flags \
          krb5_get_init_creds_opt_set_out_ccache \
+         krb5_init_creds_set_password \
          krb5_principal_get_realm \
          krb5_xfree])
      AC_CHECK_FUNCS([krb5_get_init_creds_opt_free],
