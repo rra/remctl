@@ -2,7 +2,7 @@
  * Test suite for the server ACL checking.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2015 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
  * Copyright 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
@@ -65,8 +65,8 @@ main(void)
     const char *acls[5];
 
     plan(78);
-    if (chdir(getenv("SOURCE")) < 0)
-        sysbail("can't chdir to SOURCE");
+    if (chdir(getenv("C_TAP_SOURCE")) < 0)
+        sysbail("can't chdir to C_TAP_SOURCE");
 
     rule.file = (char *) "TEST";
     rule.acls = (char **) acls;

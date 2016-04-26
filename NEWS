@@ -1,5 +1,17 @@
                        User-Visible remctl Changes
 
+remctl 3.11 (unreleased)
+
+    Update to rra-c-util 6.0:
+
+    * Remove all remaining uses of strlcpy and strlcat.
+    * Fix the Perl docs/synopsis.t test to be less UNIX-specific.
+    * Make util/network/server-t more robust against missing IPv6.
+
+    Update to C TAP Harness 4.0:
+
+    * Use C_TAP_SOURCE and C_TAP_BUILD instead of SOURCE and BUILD.
+
 remctl 3.10 (2015-11-27)
 
     Two new remctld ACLs are supported: anyuser:auth and

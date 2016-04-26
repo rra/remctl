@@ -105,7 +105,7 @@ dnl General C library and networking probes.
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/time.h \
                   sys/uio.h syslog.h])
-AC_CHECK_DECLS([snprintf, strlcat, strlcpy, vsnprintf])
+AC_CHECK_DECLS([snprintf, vsnprintf])
 AC_CHECK_DECLS([h_errno], [], [], [#include <netdb.h>])
 AC_CHECK_DECLS([inet_aton, inet_ntoa], [], [],
     [#include <sys/types.h>
@@ -145,7 +145,7 @@ AC_CHECK_FUNCS([getaddrinfo],
     [AC_LIBOBJ([getaddrinfo])])
 AC_CHECK_FUNCS([getgrnam_r setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
-                  mkstemp reallocarray setenv strlcat strlcpy strndup])
+                  mkstemp reallocarray setenv strndup])
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.

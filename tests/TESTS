@@ -19,8 +19,6 @@ portable/inet_ntop
 portable/mkstemp
 portable/setenv
 portable/snprintf
-portable/strlcat
-portable/strlcpy
 server/accept
 server/acl
 server/acl/localgroup
