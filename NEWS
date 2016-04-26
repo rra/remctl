@@ -2,6 +2,15 @@
 
 remctl 3.11 (unreleased)
 
+    The PHP bindings have been ported to PHP 7, based on work by Nish
+    Aravamudan.  The PHP 7 API is sufficiently different that this was
+    done by forking the PHP code and creating a new version for PHP 7 and
+    later, chosing which extension to compile based on the discovered
+    version of PHP.  Currently, there is no functionality difference, but
+    the PHP 5 extension should be considered frozen and may not get any
+    new features.  It will eventually be removed in a future version of
+    remctl when PHP 7 is sufficiently widespread.
+
     Rename the script to bootstrap from a Git checkout to bootstrap,
     matching the emerging consensus in the Autoconf world.
 
