@@ -2,6 +2,9 @@
 
 remctl 3.11 (unreleased)
 
+    Rename the script to bootstrap from a Git checkout to bootstrap,
+    matching the emerging consensus in the Autoconf world.
+
     Update to rra-c-util 6.0:
 
     * Remove all remaining uses of strlcpy and strlcat.
