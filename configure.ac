@@ -70,7 +70,7 @@ AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
    [AC_CHECK_DECLS([gss_mech_krb5], [],
        [AC_LIBOBJ([gssapi-mech])], [RRA_INCLUDES_GSSAPI])],
    [RRA_INCLUDES_GSSAPI])
-AC_CHECK_FUNCS([gss_krb5_ccache_name gss_krb5_import_cred])
+AC_CHECK_FUNCS([gss_krb5_ccache_name gss_krb5_import_cred gss_oid_equal])
 RRA_LIB_GSSAPI_RESTORE
 
 dnl Check for libevent, used by the server.
