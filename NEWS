@@ -14,6 +14,10 @@ remctl 3.11 (unreleased)
     Rename the script to bootstrap from a Git checkout to bootstrap,
     matching the emerging consensus in the Autoconf world.
 
+    Multiple fixes and improvements to the RPM spec file from Jeffrey
+    Hutzelman: systemd support, SLES support, add the missing
+    libevent-devel dependency, fix the version, and fix an invalid date.
+
     Update to rra-c-util 6.0:
 
     * Remove all remaining uses of strlcpy and strlcat.
