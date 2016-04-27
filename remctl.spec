@@ -21,7 +21,7 @@
 %endif
 
 # this is needed for Stanford packaging automation
-%define vers 3.10
+%define vers 3.11
 
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
 %{!?buildperl:%define buildperl 1}
