@@ -126,8 +126,6 @@ check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
 	tests/portable/mkstemp-t$(EXEEXT) \
 	tests/portable/setenv-t$(EXEEXT) \
 	tests/portable/snprintf-t$(EXEEXT) \
-	tests/portable/strlcat-t$(EXEEXT) \
-	tests/portable/strlcpy-t$(EXEEXT) \
 	tests/server/accept-t$(EXEEXT) tests/server/acl-t$(EXEEXT) \
 	tests/server/acl/localgroup-t$(EXEEXT) \
 	tests/server/anonymous-t$(EXEEXT) tests/server/bind-t$(EXEEXT) \
@@ -465,20 +463,6 @@ tests_portable_snprintf_t_OBJECTS =  \
 	$(am_tests_portable_snprintf_t_OBJECTS)
 tests_portable_snprintf_t_DEPENDENCIES = tests/tap/libtap.a \
 	portable/libportable.la
-am_tests_portable_strlcat_t_OBJECTS =  \
-	tests/portable/strlcat-t.$(OBJEXT) \
-	tests/portable/strlcat.$(OBJEXT)
-tests_portable_strlcat_t_OBJECTS =  \
-	$(am_tests_portable_strlcat_t_OBJECTS)
-tests_portable_strlcat_t_DEPENDENCIES = tests/tap/libtap.a \
-	portable/libportable.la
-am_tests_portable_strlcpy_t_OBJECTS =  \
-	tests/portable/strlcpy-t.$(OBJEXT) \
-	tests/portable/strlcpy.$(OBJEXT)
-tests_portable_strlcpy_t_OBJECTS =  \
-	$(am_tests_portable_strlcpy_t_OBJECTS)
-tests_portable_strlcpy_t_DEPENDENCIES = tests/tap/libtap.a \
-	portable/libportable.la
 tests_runtests_SOURCES = tests/runtests.c
 tests_runtests_OBJECTS = tests/tests_runtests-runtests.$(OBJEXT)
 tests_runtests_LDADD = $(LDADD)
@@ -794,9 +778,7 @@ SOURCES = $(tests_tap_libtap_a_SOURCES) $(client_libremctl_la_SOURCES) \
 	$(tests_portable_inet_ntop_t_SOURCES) \
 	$(tests_portable_mkstemp_t_SOURCES) \
 	$(tests_portable_setenv_t_SOURCES) \
-	$(tests_portable_snprintf_t_SOURCES) \
-	$(tests_portable_strlcat_t_SOURCES) \
-	$(tests_portable_strlcpy_t_SOURCES) tests/runtests.c \
+	$(tests_portable_snprintf_t_SOURCES) tests/runtests.c \
 	$(tests_server_accept_t_SOURCES) $(tests_server_acl_t_SOURCES) \
 	$(tests_server_acl_localgroup_t_SOURCES) \
 	tests/server/anonymous-t.c tests/server/bind-t.c \
@@ -835,9 +817,7 @@ DIST_SOURCES = $(tests_tap_libtap_a_SOURCES) \
 	$(tests_portable_inet_ntop_t_SOURCES) \
 	$(tests_portable_mkstemp_t_SOURCES) \
 	$(tests_portable_setenv_t_SOURCES) \
-	$(tests_portable_snprintf_t_SOURCES) \
-	$(tests_portable_strlcat_t_SOURCES) \
-	$(tests_portable_strlcpy_t_SOURCES) tests/runtests.c \
+	$(tests_portable_snprintf_t_SOURCES) tests/runtests.c \
 	$(tests_server_accept_t_SOURCES) $(tests_server_acl_t_SOURCES) \
 	$(tests_server_acl_localgroup_t_SOURCES) \
 	tests/server/anonymous-t.c tests/server/bind-t.c \
@@ -916,8 +896,6 @@ am__DIST_COMMON = $(dist_man_MANS) $(srcdir)/Makefile.in \
 	$(top_srcdir)/portable/reallocarray.c \
 	$(top_srcdir)/portable/setenv.c \
 	$(top_srcdir)/portable/snprintf.c \
-	$(top_srcdir)/portable/strlcat.c \
-	$(top_srcdir)/portable/strlcpy.c \
 	$(top_srcdir)/portable/strndup.c \
 	$(top_srcdir)/python/remctl.py.in \
 	$(top_srcdir)/python/setup.py.in \
@@ -999,6 +977,7 @@ LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
@@ -1117,9 +1096,9 @@ PERL_FILES = perl/Build.PL perl/MANIFEST perl/MANIFEST.SKIP		   \
 	perl/t/style/coverage.t perl/t/style/critic.t			   \
 	perl/t/style/minimum-version.t perl/t/style/strict.t perl/typemap
 
-PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
-	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
-	php/tests/005.phpt php/tests/006.phpt
+PHP_FILES = php/README php/php_remctl.c php/php5_remctl.c php/test-wrapper \
+	php/tests/001.phpt php/tests/002.phpt php/tests/003.phpt	   \
+	php/tests/004.phpt php/tests/005.phpt php/tests/006.phpt
 
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 RUBY_FILES = ruby/README ruby/remctl.c
@@ -1131,26 +1110,26 @@ PERL_DIRECTORIES = perl perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
 	perl/t/lib/Test perl/t/style
 
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
-	client/libremctl.map client/libremctl.rc client/libremctl.sym	    \
-	client/remctl.rc config.h.w32 configure.cmd docs/api/remctl.pod	    \
-	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
-	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
-	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
-	docs/api/remctl_output.pod docs/api/remctl_set_ccache.pod	    \
-	docs/api/remctl_set_source_ip.pod docs/api/remctl_set_timeout.pod   \
-	docs/design.html docs/extending docs/protocol-v4 docs/protocol.txt  \
-	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
-	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
-	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
-	java/.classpath java/.project java/Makefile java/README		    \
-	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
-	java/org/eyrie/eagle/remctl/Remctl.java				    \
+EXTRA_DIST = .gitignore LICENSE Makefile.w32 bootstrap			    \
+	client/libremctl.pc.in client/libremctl.map client/libremctl.rc	    \
+	client/libremctl.sym client/remctl.rc config.h.w32 configure.cmd    \
+	docs/api/remctl.pod docs/api/remctl_close.pod			    \
+	docs/api/remctl_command.pod docs/api/remctl_error.pod		    \
+	docs/api/remctl_new.pod docs/api/remctl_noop.pod		    \
+	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
+	docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.pod    \
+	docs/api/remctl_set_timeout.pod docs/design.html docs/extending	    \
+	docs/protocol-v4 docs/protocol.txt docs/protocol.html		    \
+	docs/protocol.xml docs/remctl.pod docs/remctld.8.in		    \
+	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
+	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
+	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf    \
+	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java   \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
 	server/README systemd/remctld.service.in systemd/remctld.socket	    \
-	tests/HOWTO tests/TESTS tests/client/remctl-t tests/config/README   \
+	tests/README tests/TESTS tests/client/remctl-t tests/config/README  \
 	tests/data/acl-bad-include tests/data/acl-bad-syntax		    \
 	tests/data/acl-nonexistant tests/data/acl-recursive		    \
 	tests/data/acl-simple tests/data/acl-too-long			    \
@@ -1170,7 +1149,8 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/perl/module-version-t tests/tap/kerberos.sh		    \
 	tests/tap/libtap.sh tests/tap/perl/Test/RRA.pm			    \
 	tests/tap/perl/Test/RRA/Automake.pm				    \
-	tests/tap/perl/Test/RRA/Config.pm tests/tap/remctl.sh		    \
+	tests/tap/perl/Test/RRA/Config.pm				    \
+	tests/tap/perl/Test/RRA/ModuleVersion.pm tests/tap/remctl.sh	    \
 	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
 	$(PYTHON_FILES) $(RUBY_FILES)
 
@@ -1304,8 +1284,8 @@ PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
 check_LIBRARIES = tests/tap/libtap.a
-tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
-	-DBUILD='"$(abs_top_builddir)/tests"'
+tests_runtests_CPPFLAGS = -DC_TAP_SOURCE='"$(abs_top_srcdir)/tests"' \
+	-DC_TAP_BUILD='"$(abs_top_builddir)/tests"'
 
 tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests		\
 	-DPATH_FAKEROOT='"$(PATH_FAKEROOT)"'			\
@@ -1404,14 +1384,6 @@ tests_portable_snprintf_t_SOURCES = tests/portable/snprintf-t.c \
 	tests/portable/snprintf.c
 
 tests_portable_snprintf_t_LDADD = tests/tap/libtap.a portable/libportable.la
-tests_portable_strlcat_t_SOURCES = tests/portable/strlcat-t.c \
-	tests/portable/strlcat.c
-
-tests_portable_strlcat_t_LDADD = tests/tap/libtap.a portable/libportable.la
-tests_portable_strlcpy_t_SOURCES = tests/portable/strlcpy-t.c \
-	tests/portable/strlcpy.c
-
-tests_portable_strlcpy_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
 tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
@@ -2116,22 +2088,6 @@ tests/portable/snprintf.$(OBJEXT): tests/portable/$(am__dirstamp) \
 tests/portable/snprintf-t$(EXEEXT): $(tests_portable_snprintf_t_OBJECTS) $(tests_portable_snprintf_t_DEPENDENCIES) $(EXTRA_tests_portable_snprintf_t_DEPENDENCIES) tests/portable/$(am__dirstamp)
 	@rm -f tests/portable/snprintf-t$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(tests_portable_snprintf_t_OBJECTS) $(tests_portable_snprintf_t_LDADD) $(LIBS)
-tests/portable/strlcat-t.$(OBJEXT): tests/portable/$(am__dirstamp) \
-	tests/portable/$(DEPDIR)/$(am__dirstamp)
-tests/portable/strlcat.$(OBJEXT): tests/portable/$(am__dirstamp) \
-	tests/portable/$(DEPDIR)/$(am__dirstamp)
-
-tests/portable/strlcat-t$(EXEEXT): $(tests_portable_strlcat_t_OBJECTS) $(tests_portable_strlcat_t_DEPENDENCIES) $(EXTRA_tests_portable_strlcat_t_DEPENDENCIES) tests/portable/$(am__dirstamp)
-	@rm -f tests/portable/strlcat-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_portable_strlcat_t_OBJECTS) $(tests_portable_strlcat_t_LDADD) $(LIBS)
-tests/portable/strlcpy-t.$(OBJEXT): tests/portable/$(am__dirstamp) \
-	tests/portable/$(DEPDIR)/$(am__dirstamp)
-tests/portable/strlcpy.$(OBJEXT): tests/portable/$(am__dirstamp) \
-	tests/portable/$(DEPDIR)/$(am__dirstamp)
-
-tests/portable/strlcpy-t$(EXEEXT): $(tests_portable_strlcpy_t_OBJECTS) $(tests_portable_strlcpy_t_DEPENDENCIES) $(EXTRA_tests_portable_strlcpy_t_DEPENDENCIES) tests/portable/$(am__dirstamp)
-	@rm -f tests/portable/strlcpy-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_portable_strlcpy_t_OBJECTS) $(tests_portable_strlcpy_t_LDADD) $(LIBS)
 tests/$(am__dirstamp):
 	@$(MKDIR_P) tests
 	@: > tests/$(am__dirstamp)
@@ -2436,8 +2392,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/server_remctld-event-extra.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/setenv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/snprintf.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/strlcat.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/strlcpy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/strndup.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/commands.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/config.Po@am__quote@
@@ -2490,10 +2444,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/setenv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/snprintf-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/snprintf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/strlcat-t.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/strlcat.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/strlcpy-t.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/strlcpy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/accept-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/acl-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/anonymous-t.Po@am__quote@

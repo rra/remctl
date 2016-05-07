@@ -9,6 +9,7 @@
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2016 Russ Allbery <eagle@eyrie.org>
 # Copyright 2009, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -30,6 +31,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+. "${C_TAP_SOURCE}/tap/libtap.sh"
+
 # Start remctld.  Takes the path to remctld, which may be found via configure,
 # and the path to the configuration file.
 remctld_start () {
@@ -45,7 +48,7 @@ remctld_start () {
         ( "$VALGRIND" --log-file=valgrind.%p --leak-check=full "$1" -m \
           -p 14373 -s "$tap_principal" -P "$tap_pidfile" -f "$2" -d -S -F \
           -k "$tap_keytab" &)
-        [ -f "$BUILD/data/remctld.pid" ] || sleep 5
+        [ -f "$tap_pidfile" ] || sleep 5
     else
         ( "$1" -m -p 14373 -s "$tap_principal" -P "$tap_pidfile" -f "$2" \
           -d -S -F -k "$tap_keytab" &)

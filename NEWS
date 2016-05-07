@@ -1,5 +1,36 @@
                        User-Visible remctl Changes
 
+remctl 3.11 (2016-05-07)
+
+    The PHP bindings have been ported to PHP 7, based on work by Nish
+    Aravamudan.  The PHP 7 API is sufficiently different that this was
+    done by forking the PHP code and creating a new version for PHP 7 and
+    later, chosing which extension to compile based on the discovered
+    version of PHP.  Currently, there is no functionality difference, but
+    the PHP 5 extension should be considered frozen and may not get any
+    new features.  It will eventually be removed in a future version of
+    remctl when PHP 7 is sufficiently widespread.
+
+    Rename the script to bootstrap from a Git checkout to bootstrap,
+    matching the emerging consensus in the Autoconf world.
+
+    Fix numerous portability issues to various versions of Heimdal, thanks
+    to multiple patches from Jeffrey Hutzelman.
+
+    Multiple fixes and improvements to the RPM spec file from Jeffrey
+    Hutzelman: systemd support, SLES support, add the missing
+    libevent-devel dependency, fix the version, and fix an invalid date.
+
+    Update to rra-c-util 6.0:
+
+    * Remove all remaining uses of strlcpy and strlcat.
+    * Fix the Perl docs/synopsis.t test to be less UNIX-specific.
+    * Make util/network/server-t more robust against missing IPv6.
+
+    Update to C TAP Harness 4.0:
+
+    * Use C_TAP_SOURCE and C_TAP_BUILD instead of SOURCE and BUILD.
+
 remctl 3.10 (2015-11-27)
 
     Two new remctld ACLs are supported: anyuser:auth and
@@ -51,7 +82,7 @@ remctl 3.10 (2015-11-27)
     that didn't have krb5_get_init_creds_opt_alloc, such as the included
     Kerberos in Solaris 10.
 
-    Update to rra-c-util 5.8:
+    Update to rra-c-util 5.9:
 
     * Add missing va_end to xasprintf implementation.
     * Fix Perl test suite framework for new Automake relative paths.

@@ -23,6 +23,7 @@
 #define PORTABLE_GSSAPI_H 1
 
 #include <config.h>
+#include <portable/system.h>
 
 #ifdef HAVE_GSSAPI_GSSAPI_H
 # include <gssapi/gssapi.h>
@@ -51,6 +52,16 @@
 extern const gss_OID_desc * const gss_mech_krb5;
 # endif
 # define GSS_KRB5_MECHANISM gss_mech_krb5
+#endif
+
+/*
+ * Older versions of Heimdal are missing gss_oid_equal.  Replace with an
+ * expression to check the struct members directly.
+ */
+#ifndef HAVE_GSS_OID_EQUAL
+# define gss_oid_equal(x, y)                                    \
+    ((x)->length == (y)->length &&                              \
+     memcmp((x)->elements, (y)->elements, (x)->length) == 0)
 #endif
 
 #endif /* PORTABLE_GSSAPI_H */
