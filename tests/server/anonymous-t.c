@@ -1,7 +1,7 @@
 /*
  * Test suite for anonymous authentication.
  *
- * Copyright 2015 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
  *
  * See LICENSE for licensing terms.
  */
@@ -25,9 +25,16 @@
  * that we can get a service ticket for the provided principal, and return the
  * name of the Kerberos ticket cache on success and NULL on failure.  Internal
  * Kerberos errors resort in an abort instead.
+ *
+ * Some older versions of Heimdal not only can't do PKINIT, but also crash
+ * when krb5_get_init_creds_password is called with no password or prompter.
+ * Heimdal versions which avoid the crash have krb5_init_creds_set_password,
+ * as do all versions of MIT Kerberos which support PKINIT.  So, disable the
+ * anonymous tests if that function is not present.
  */
 #ifdef HAVE_KRB5
-# ifndef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS
+# if !defined(HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS) \
+    || !defined(HAVE_KRB5_INIT_CREDS_SET_PASSWORD)
 
 static char *
 cache_init_anonymous(krb5_context ctx UNUSED, const char *principal UNUSED)
@@ -105,7 +112,7 @@ cache_init_anonymous(krb5_context ctx, const char *principal)
     retval = krb5_cc_initialize(ctx, ccache, creds.client);
     if (retval != 0)
         bail_krb5(ctx, retval, "cannot initialize ticket cache");
-    retval = krb5_cc_store_cred(c, ccache, &creds);
+    retval = krb5_cc_store_cred(ctx, ccache, &creds);
     if (retval != 0)
         bail_krb5(ctx, retval, "cannot store credentials");
 #  endif /* !HAVE_KRB5_GET_INIT_CREDS_OPT_SET_OUT_CCACHE */

@@ -55,14 +55,6 @@
    don't. */
 #undef HAVE_DECL_SNPRINTF
 
-/* Define to 1 if you have the declaration of `strlcat', and to 0 if you
-   don't. */
-#undef HAVE_DECL_STRLCAT
-
-/* Define to 1 if you have the declaration of `strlcpy', and to 0 if you
-   don't. */
-#undef HAVE_DECL_STRLCPY
-
 /* Define to 1 if you have the declaration of `vsnprintf', and to 0 if you
    don't. */
 #undef HAVE_DECL_VSNPRINTF
@@ -133,6 +125,9 @@
 /* Define to 1 if you have the `gss_krb5_import_cred' function. */
 #undef HAVE_GSS_KRB5_IMPORT_CRED
 
+/* Define to 1 if you have the `gss_oid_equal' function. */
+#undef HAVE_GSS_OID_EQUAL
+
 /* Define to 1 if the GSS-API library uses RFC-compliant OIDs. */
 #undef HAVE_GSS_RFC_OIDS
 
@@ -162,6 +157,9 @@
 
 /* Define to enable Kerberos features. */
 #undef HAVE_KRB5
+
+/* Define to 1 if you have the `krb5_free_default_realm' function. */
+#undef HAVE_KRB5_FREE_DEFAULT_REALM
 
 /* Define to 1 if you have the `krb5_free_error_message' function. */
 #undef HAVE_KRB5_FREE_ERROR_MESSAGE
@@ -198,6 +196,9 @@
 
 /* Define to 1 if you have the <krb5.h> header file. */
 #undef HAVE_KRB5_H
+
+/* Define to 1 if you have the `krb5_init_creds_set_password' function. */
+#undef HAVE_KRB5_INIT_CREDS_SET_PASSWORD
 
 /* Define to 1 if you have the <krb5/krb5.h> header file. */
 #undef HAVE_KRB5_KRB5_H
@@ -280,12 +281,6 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* Define to 1 if you have the `strlcat' function. */
-#undef HAVE_STRLCAT
-
-/* Define to 1 if you have the `strlcpy' function. */
-#undef HAVE_STRLCPY
-
 /* Define to 1 if you have the `strndup' function. */
 #undef HAVE_STRNDUP
 
@@ -334,8 +329,7 @@
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Name of package */

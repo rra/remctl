@@ -7,9 +7,21 @@
 #
 # See LICENSE for licensing terms.
 
+%if 0%{?sles_version:1}
+%define relsuffix sles%{sles_version}
+%if %{sles_version} >= 12
+%define with_systemd 1
+%endif
+%else
 %define rel %(cat /etc/redhat-release | cut -d ' ' -f 7 | cut -d'.' -f1)
+%define relsuffix EL%{rel}
+%if %{rel} >= 7
+%define with_systemd 1
+%endif
+%endif
+
 # this is needed for Stanford packaging automation
-%define vers 3.4
+%define vers 3.11
 
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
 %{!?buildperl:%define buildperl 1}
@@ -29,8 +41,8 @@
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
 Version: %{vers}
-Release: 1.EL%{rel}
-%if %{rel} >= 4
+Release: 1.%{relsuffix}
+%if 0%{?rel} >= 4 || 0%{?sles_version:1}
 License: MIT
 %else
 Copyright: MIT
@@ -41,7 +53,7 @@ Group: System Environment/Daemons
 Vendor: Stanford University
 Packager: Russ Allbery <eagle@eyrie.org>
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: krb5-devel, libgcrypt
+BuildRequires: krb5-devel, libgcrypt, libevent-devel
 %if %{buildperl}
 BuildRequires: perl(Module::Build)
 %endif
@@ -54,7 +66,17 @@ BuildRequires: php-devel
 %if %{buildruby}
 BuildRequires: ruby, ruby-devel
 %endif
+%if 0%{?sles_version:1}
+%if 0%{?with_systemd:1}
+BuildRequires: systemd-rpm-macros
+%endif
+Distribution: SUSE Linux Enterprise %{sles_version}
+%else
+%if 0%{?with_systemd:1}
+BuildRequires: systemd-units
+%endif
 Distribution: EL
+%endif
 
 %ifarch i386
 BuildArch: i686
@@ -62,18 +84,18 @@ BuildArch: i686
 
 %if %{buildphp}
 # RHEL 5/6 compatibility for PHP
-%if %{rel} == 5
+%if 0%{?rel} == 5
 %global php_apiver %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
 %{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
 %endif
-%if %{rel} == 5 || %{rel} == 6
+%if 0%{?rel} == 5 || 0%{?rel} == 6
 %{!?php_inidir: %{expand: %%global php_inidir %{_sysconfdir}/php.d }}
 %endif
 %endif
 
 %if %{buildpython}
 # RHEL 5 compatibility for Python
-%if %{rel} == 5
+%if 0%{?rel} == 5
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 %endif
@@ -81,10 +103,10 @@ BuildArch: i686
 
 %if %{buildruby}
 # RHEL 5/6 compatibility for Ruby
-%if %{rel} == 5
+%if 0%{?rel} == 5
 %{!?ruby_vendorarchdir: %global ruby_vendorarchdir %(ruby -rrbconfig -e 'puts Config::CONFIG["sitearchdir"] ')}
 %endif
-%if %{rel} == 6
+%if 0%{?rel} == 6
 %{!?ruby_vendorarchdir: %global ruby_vendorarchdir %(ruby -rrbconfig -e 'puts Config::CONFIG["vendorarchdir"] ')}
 %endif
 %endif
@@ -101,6 +123,7 @@ that command.
 %package server
 Summary: Server for Kerberos-authenticated command execution
 Group: System Environment/Daemons
+%{?systemd_requires}
 
 %description server
 remctl is a client/server protocol for executing specific commands on a
@@ -146,7 +169,7 @@ This package contains the client program (remctl) and the client libraries.
 Summary: PHP interface to remctl
 Group: Development/Libraries
 Requires: %{name}-client = %{version}-%{release}
-%if %{rel} == 5
+%if 0%{?rel} == 5
 Requires:     php-api = %{php_apiver}
 %else
 Requires:     php(zend-abi) = %{php_zend_api}
@@ -186,7 +209,7 @@ This package contains the Python remctl client library.
 Summary: Ruby interface to remctl
 Group: Development/Libraries
 Requires: %{name}-client = %{version}-%{release}
-%if %{rel} <= 6
+%if 0%{?rel} <= 6
 Requires: ruby(abi) = 1.8
 %else
 Requires: ruby(abi) = 1.9.1
@@ -242,7 +265,7 @@ options="$options --enable-python"
 %if %{buildperl}
 export PATH="/usr/kerberos/bin:/sbin:/bin:/usr/sbin:$PATH"
 export REMCTL_PERL_FLAGS="--installdirs=vendor"
-%if %{rel} >= 6
+%if 0%{?rel} >= 6
 export REMCTL_PERL_FLAGS="$REMCTL_PERL_FLAGS --prefix=/usr"
 %endif
 %endif
@@ -257,8 +280,10 @@ options="$options RUBYARCHDIR=%{buildroot}%{ruby_vendorarchdir}"
 %endif
 make install DESTDIR=%{buildroot} INSTALL="install -p" \
     INSTALLDIRS=vendor $options
+%if !0%{?with_systemd:1}
 mkdir -p %{buildroot}/etc/xinetd.d
 install -c -m 0644 examples/xinetd %{buildroot}/etc/xinetd.d/remctl
+%endif
 mkdir -p %{buildroot}/etc/remctl/acl
 mkdir -p %{buildroot}/etc/remctl/conf.d
 mkdir -p %{buildroot}/usr/share/doc/remctl-{server,client}-%{vers}
@@ -288,6 +313,15 @@ chmod 755 %{buildroot}/usr/share/doc/remctl-php-%{vers}
 mkdir -p %{buildroot}%{php_inidir}
 install -m 0644 -p php/remctl.ini %{buildroot}%{php_inidir}
 %endif
+%if 0%{?sles_version:1}
+mkdir -p %{buildroot}/etc/sysconfig/SuSEfirewall2.d/services
+cat <<EOF >%{buildroot}/etc/sysconfig/SuSEfirewall2.d/services/remctld
+## Name: Remctl Server
+## Description: Open ports for Kerberos-authenticated command execution
+
+TCP="remctl"
+EOF
+%endif
 
 %files devel
 %defattr(-, root, root)
@@ -310,17 +344,26 @@ install -m 0644 -p php/remctl.ini %{buildroot}%{php_inidir}
 %{_sbindir}/*
 %doc NEWS README TODO
 %doc %{_mandir}/*/remctld.*
+%if !0%{?with_systemd:1}
 %config /etc/xinetd.d/remctl
+%endif
 %config(noreplace) /etc/remctl/remctl.conf
 %dir /etc/remctl/acl/
 %dir /etc/remctl/conf.d/
+%if 0%{?sles_version:1}
+/etc/sysconfig/SuSEfirewall2.d/services/remctld
+%endif
+%if 0%{?with_systemd:1}
+%{_unitdir}/remctld.service
+%{_unitdir}/remctld.socket
+%endif
 
 %if %{buildpython}
 %files python
 %defattr(-, root, root)
 %{python_sitearch}/_remctl.so
 %{python_sitearch}/remctl.py*
-%if %{rel} != 5
+%if 0%{?rel} != 5
 %{python_sitearch}/pyremctl-%{version}-*.egg-info
 %endif
 %doc NEWS TODO
@@ -354,6 +397,17 @@ install -m 0644 -p php/remctl.ini %{buildroot}%{php_inidir}
 %{ruby_vendorarchdir}/remctl.so
 %endif
 
+%if 0%{?with_systemd:1} && 0%{?rel:1}
+%preun server
+%systemd_preun remctld.service
+%endif
+%if 0%{?with_systemd:1} && 0%{?sles_version:1}
+%pre server
+%service_add_pre remctld.service
+%preun server
+%service_del_preun remctld.service
+%endif
+
 %post client -p /sbin/ldconfig
 
 %post server 
@@ -365,10 +419,18 @@ if [ "$1" = 1 ] ; then
     else
         echo 'remctl    4373/tcp' >> /etc/services
     fi
+%if !0%{?with_systemd:1}
     if [ -f /var/run/xinetd.pid ] ; then
         kill -HUP `cat /var/run/xinetd.pid`
     fi
+%endif
 fi
+%if 0%{?with_systemd:1} && 0%{?rel:1}
+%systemd_post remctld.service
+%endif
+%if 0%{?with_systemd:1} && 0%{?sles_version:1}
+%service_add_post remctld.service
+%endif
 
 %postun client -p /sbin/ldconfig
 
@@ -381,21 +443,36 @@ if [ "$1" = 0 ] ; then
             grep -v "^remctl" /etc/services > /etc/services.tmp
             mv -f /etc/services.tmp /etc/services
         fi
+%if !0%{?with_systemd:1}
         if [ -f /var/run/xinetd.pid ] ; then
             kill -HUP `cat /var/run/xinetd.pid`
         fi
+%endif
     fi
 fi
+%if 0%{?with_systemd:1} && 0%{?rel:1}
+%systemd_postun_with_restart remctld.service
+%endif
+%if 0%{?with_systemd:1} && 0%{?sles_version:1}
+%service_del_postun remctld.service
+%endif
+
 
 %clean
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Sat May 7 2016 Russ Allbery <eagle@eyrie.org> 3.11-1
+- update to 3.11
+- add systemd support
+- support SLES
+- add libevent dependency
+
 * Thu Apr 11 2013 Darren Patterson <darrenp1@stanford.edu> 3.4-1
 - update to 3.4, and merged some changes from ktdreyer in EPEL spec
 - split out perl, php, ruby
 
-* Fri Jul 17 2012 Darren Patterson <darrenp1@stanford.edu> 3.2-2
+* Tue Jul 17 2012 Darren Patterson <darrenp1@stanford.edu> 3.2-2
 - spec fixes for build issues around perl and lib dirs
 - move perl to vendor_perl on EL6
 - re-add missing devel package

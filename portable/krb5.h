@@ -83,6 +83,15 @@ BEGIN_DECLS
 /* Default to a hidden visibility for all portability functions. */
 #pragma GCC visibility push(hidden)
 
+/*
+ * MIT-specific.  The Heimdal documentation says to use free(), but that
+ * doesn't actually make sense since the memory is allocated inside the
+ * Kerberos library.  Use krb5_xfree instead.
+ */
+#ifndef HAVE_KRB5_FREE_DEFAULT_REALM
+# define krb5_free_default_realm(c, r) krb5_xfree(r)
+#endif
+
 /* Heimdal: krb5_xfree, MIT: krb5_free_unparsed_name. */
 #ifdef HAVE_KRB5_XFREE
 # define krb5_free_unparsed_name(c, p) krb5_xfree(p)

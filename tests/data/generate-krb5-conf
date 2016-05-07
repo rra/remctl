@@ -9,6 +9,7 @@
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2016 Russ Allbery <eagle@eyrie.org>
 # Copyright 2006, 2007, 2008, 2010, 2011
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -33,8 +34,8 @@
 set -e
 
 # Load the test library.
-. "$SOURCE/tap/libtap.sh"
-cd "$BUILD"
+. "$C_TAP_SOURCE/tap/libtap.sh"
+cd "$C_TAP_BUILD"
 
 # If there is no default realm specified on the command line, we leave the
 # realm information alone.

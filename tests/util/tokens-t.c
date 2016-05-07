@@ -144,8 +144,8 @@ main(void)
     alarm(20);
 
     plan(12);
-    if (chdir(getenv("BUILD")) < 0)
-        sysbail("can't chdir to BUILD");
+    if (chdir(getenv("C_TAP_BUILD")) < 0)
+        sysbail("can't chdir to C_TAP_BUILD");
 
     unlink("server-ready");
     child = fork();

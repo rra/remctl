@@ -9,6 +9,7 @@
 # which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2016 Russ Allbery <eagle@eyrie.org>
 # Copyright 2009, 2010, 2011, 2012
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -30,8 +31,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-# We use test_tmpdir.
-. "${SOURCE}/tap/libtap.sh"
+. "${C_TAP_SOURCE}/tap/libtap.sh"
 
 # Set up Kerberos, including the ticket cache environment variable.  Bail out
 # if not successful, return 0 if successful, and return 1 if Kerberos is not

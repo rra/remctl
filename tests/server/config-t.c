@@ -49,8 +49,8 @@ main(void)
     struct config *config;
 
     plan(49);
-    if (chdir(getenv("SOURCE")) < 0)
-        sysbail("can't chdir to SOURCE");
+    if (chdir(getenv("C_TAP_SOURCE")) < 0)
+        sysbail("can't chdir to C_TAP_SOURCE");
 
     config = server_config_load("data/conf-test");
     ok(config != NULL, "config loaded");
