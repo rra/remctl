@@ -1,5 +1,7 @@
-remctl (3.10-2) UNRELEASED; urgency=medium
+remctl (3.11-1) UNRELEASED; urgency=medium
 
+  * New upstream release.
+    - Port to PHP 7.  (Closes: #821713)
   * Switch to the DEP-14 branch layout and update debian/gbp.conf and
     Vcs-Git accordingly.
 
