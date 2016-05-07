@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.11 (unreleased)
+remctl 3.11 (2016-05-07)
 
     The PHP bindings have been ported to PHP 7, based on work by Nish
     Aravamudan.  The PHP 7 API is sufficiently different that this was

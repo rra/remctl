@@ -462,6 +462,12 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Sat May 7 2016 Russ Allbery <eagle@eyrie.org> 3.11-1
+- update to 3.11
+- add systemd support
+- support SLES
+- add libevent dependency
+
 * Thu Apr 11 2013 Darren Patterson <darrenp1@stanford.edu> 3.4-1
 - update to 3.4, and merged some changes from ktdreyer in EPEL spec
 - split out perl, php, ruby
