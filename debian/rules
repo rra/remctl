@@ -18,7 +18,7 @@ export REMCTL_PYTHON_INSTALL  := --install-layout=deb
 export REMCTL_PYTHON_VERSIONS := $(shell pyversions -s)
 
 %:
-	dh $@ --parallel --with python2,autoreconf,ruby
+	dh $@ --parallel --with python2,autoreconf,ruby,php
 
 override_dh_autoreconf:
 	dh_autoreconf --as-needed
@@ -42,6 +42,3 @@ override_dh_installchangelogs:
 
 override_dh_makeshlibs:
 	dh_makeshlibs -V 'libremctl1 (>= 3.1)'
-
-override_dh_gencontrol:
-	dh_gencontrol -- -V"php:Depends=phpapi-`php-config5 --phpapi`"

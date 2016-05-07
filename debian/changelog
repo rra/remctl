@@ -2,6 +2,10 @@ remctl (3.11-1) UNRELEASED; urgency=medium
 
   * New upstream release.
     - Port to PHP 7.  (Closes: #821713)
+  * Convert packaging to use dh_php and build php-remctl instead of
+    php5-remctl (and provide php7.0-remctl).  There is no upgrade path
+    defined from php5-remctl, since that seems to be the way other PHP
+    packages are being handled during the upgrade.
   * Switch to the DEP-14 branch layout and update debian/gbp.conf and
     Vcs-Git accordingly.
 
