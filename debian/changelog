@@ -1,4 +1,4 @@
-remctl (3.11-1) UNRELEASED; urgency=medium
+remctl (3.11-1) unstable; urgency=medium
 
   * New upstream release.
     - Port to PHP 7.  (Closes: #821713)
@@ -10,7 +10,7 @@ remctl (3.11-1) UNRELEASED; urgency=medium
     Vcs-Git accordingly.
   * Belatedly bump shlibs for interfaces added in remctl 3.3.
 
- -- Russ Allbery <rra@debian.org>  Sat, 07 May 2016 14:39:15 -0700
+ -- Russ Allbery <rra@debian.org>  Sat, 07 May 2016 15:15:46 -0700
 
 remctl (3.10-1) unstable; urgency=medium
 
