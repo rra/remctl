@@ -52,9 +52,9 @@ PERL_FILES = perl/Build.PL perl/MANIFEST perl/MANIFEST.SKIP		   \
 	perl/t/docs/pod.t perl/t/docs/synopsis.t perl/t/lib/Test/Remctl.pm \
 	perl/t/style/coverage.t perl/t/style/critic.t			   \
 	perl/t/style/minimum-version.t perl/t/style/strict.t perl/typemap
-PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
-	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
-	php/tests/005.phpt php/tests/006.phpt
+PHP_FILES = php/README php/php_remctl.c php/php5_remctl.c php/test-wrapper \
+	php/tests/001.phpt php/tests/002.phpt php/tests/003.phpt	   \
+	php/tests/004.phpt php/tests/005.phpt php/tests/006.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 RUBY_FILES = ruby/README ruby/remctl.c
 
@@ -104,7 +104,8 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 bootstrap			    \
 	tests/perl/module-version-t tests/tap/kerberos.sh		    \
 	tests/tap/libtap.sh tests/tap/perl/Test/RRA.pm			    \
 	tests/tap/perl/Test/RRA/Automake.pm				    \
-	tests/tap/perl/Test/RRA/Config.pm tests/tap/remctl.sh		    \
+	tests/tap/perl/Test/RRA/Config.pm				    \
+	tests/tap/perl/Test/RRA/ModuleVersion.pm tests/tap/remctl.sh	    \
 	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
 	$(PYTHON_FILES) $(RUBY_FILES)
 
