@@ -8,6 +8,7 @@ remctl (3.11-1) UNRELEASED; urgency=medium
     packages are being handled during the upgrade.
   * Switch to the DEP-14 branch layout and update debian/gbp.conf and
     Vcs-Git accordingly.
+  * Belatedly bump shlibs for interfaces added in remctl 3.3.
 
  -- Russ Allbery <rra@debian.org>  Sat, 07 May 2016 14:39:15 -0700
 

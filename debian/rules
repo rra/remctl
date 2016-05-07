@@ -41,4 +41,4 @@ override_dh_installchangelogs:
 	dh_installchangelogs NEWS
 
 override_dh_makeshlibs:
-	dh_makeshlibs -V 'libremctl1 (>= 3.1)'
+	dh_makeshlibs -V 'libremctl1 (>= 3.3)'
