@@ -65,26 +65,26 @@ PERL_DIRECTORIES = perl perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
 	perl/t/lib/Test perl/t/style
 
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
-	client/libremctl.map client/libremctl.rc client/libremctl.sym	    \
-	client/remctl.rc config.h.w32 configure.cmd docs/api/remctl.pod	    \
-	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
-	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
-	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
-	docs/api/remctl_output.pod docs/api/remctl_set_ccache.pod	    \
-	docs/api/remctl_set_source_ip.pod docs/api/remctl_set_timeout.pod   \
-	docs/design.html docs/extending docs/protocol-v4 docs/protocol.txt  \
-	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
-	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
-	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
-	java/.classpath java/.project java/Makefile java/README		    \
-	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
-	java/org/eyrie/eagle/remctl/Remctl.java				    \
+EXTRA_DIST = .gitignore LICENSE Makefile.w32 bootstrap			    \
+	client/libremctl.pc.in client/libremctl.map client/libremctl.rc	    \
+	client/libremctl.sym client/remctl.rc config.h.w32 configure.cmd    \
+	docs/api/remctl.pod docs/api/remctl_close.pod			    \
+	docs/api/remctl_command.pod docs/api/remctl_error.pod		    \
+	docs/api/remctl_new.pod docs/api/remctl_noop.pod		    \
+	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
+	docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.pod    \
+	docs/api/remctl_set_timeout.pod docs/design.html docs/extending	    \
+	docs/protocol-v4 docs/protocol.txt docs/protocol.html		    \
+	docs/protocol.xml docs/remctl.pod docs/remctld.8.in		    \
+	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
+	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
+	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf    \
+	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java   \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
 	server/README systemd/remctld.service.in systemd/remctld.socket	    \
-	tests/HOWTO tests/TESTS tests/client/remctl-t tests/config/README   \
+	tests/README tests/TESTS tests/client/remctl-t tests/config/README  \
 	tests/data/acl-bad-include tests/data/acl-bad-syntax		    \
 	tests/data/acl-nonexistant tests/data/acl-recursive		    \
 	tests/data/acl-simple tests/data/acl-too-long			    \
