@@ -18,7 +18,7 @@ export REMCTL_PYTHON_INSTALL  := --install-layout=deb
 export REMCTL_PYTHON_VERSIONS := $(shell pyversions -s)
 
 %:
-	dh $@ --parallel --with python2,autoreconf,ruby,php
+	dh $@ --parallel --with python2,autoreconf,ruby
 
 override_dh_autoreconf:
 	dh_autoreconf --as-needed
@@ -36,6 +36,7 @@ override_dh_auto_configure:
 override_dh_install:
 	dh_install --fail-missing -Xlibremctl.la -Xusr/local/lib
 	dh_ruby --install
+	dh_php -pphp-remctl
 
 override_dh_installchangelogs:
 	dh_installchangelogs NEWS
