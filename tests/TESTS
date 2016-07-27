@@ -33,6 +33,7 @@ server/help
 server/invalid
 server/logging
 server/misc
+server/shell-misc
 server/ssh-parse
 server/stdin
 server/streaming

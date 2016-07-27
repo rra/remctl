@@ -8,10 +8,6 @@
  *
  * This file handles parsing of the user's command and the main control flow.
  *
- * Note that, because there's no good way to pass command-line options into a
- * shell, it's not possible to reconfigure the configuration file path used by
- * remctl-shell.
- *
  * Written by Russ Allbery
  * Copyright 2016 Dropbox, Inc.
  *
@@ -36,6 +32,7 @@ Usage: remctl-shell [-dhS] -c <command>\n\
 Options:\n\
     -c <command>  Specifies the command to run\n\
     -d            Log verbose debugging information\n\
+    -f <file>     Config file (default: " CONFIG_FILE ")\n\
     -h            Display this help\n\
     -S            Log to standard output/error rather than syslog\n\
 \n\
@@ -70,8 +67,10 @@ main(int argc, char *argv[])
     int option, status;
     bool debug = false;
     bool log_stdout = false;
+    bool quiet = false;
     struct sigaction sa;
     const char *command_string = NULL;
+    const char *config_path = CONFIG_FILE;
     struct iovec **command;
     struct client *client;
     struct config *config;
@@ -93,7 +92,7 @@ main(int argc, char *argv[])
      * Parse options.  Since we're being run as a shell, there isn't all that
      * much here.
      */
-    while ((option = getopt(argc, argv, "dc:hS")) != EOF) {
+    while ((option = getopt(argc, argv, "dc:f:hqS")) != EOF) {
         switch (option) {
         case 'c':
             command_string = optarg;
@@ -101,8 +100,14 @@ main(int argc, char *argv[])
         case 'd':
             debug = true;
             break;
+        case 'f':
+            config_path = optarg;
+            break;
         case 'h':
             usage(0);
+            break;
+        case 'q':
+            quiet = true;
             break;
         case 'S':
             log_stdout = true;
@@ -128,11 +133,13 @@ main(int argc, char *argv[])
         if (debug)
             message_handlers_debug(1, message_log_syslog_debug);
     }
+    if (quiet)
+        message_handlers_notice(0);
 
     /* Read the configuration file. */
-    config = server_config_load(CONFIG_FILE);
+    config = server_config_load(config_path);
     if (config == NULL)
-        die("cannot read configuration file %s", CONFIG_FILE);
+        die("cannot read configuration file %s", config_path);
 
     /* Create the client struct based on the ssh environment. */
     client = server_ssh_new_client();
