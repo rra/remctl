@@ -1,6 +1,8 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2016 Dropbox, Inc.
+# Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
 # Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -229,9 +231,13 @@ dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3		    \
 	docs/api/remctl_output.3 docs/api/remctl_set_ccache.3		    \
 	docs/api/remctl_set_source_ip.3 docs/api/remctl_set_timeout.3	    \
 	docs/remctl.1
-man_MANS = docs/remctld.8
+man_MANS = docs/remctl-shell.8 docs/remctld.8
 
 # Substitute the system configuration path into the manual page.
+docs/remctl-shell.8: $(srcdir)/docs/remctl-shell.8.in
+	[ -d docs ] || mkdir docs
+	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \
+	    < $(srcdir)/docs/remctl-shell.8.in > $@
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
 	[ -d docs ] || mkdir docs
 	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \

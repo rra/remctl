@@ -4,6 +4,7 @@
 /client/remctl
 /docs/protocol.html
 /docs/protocol.txt
+/docs/remctl-shell.8.in
 /docs/remctld.8.in
 /java/build.xml
 /java/local.properties
