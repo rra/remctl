@@ -341,30 +341,30 @@ warnings:
 	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
-check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t   \
-	tests/client/large-t tests/client/open-t tests/client/source-ip-t  \
-	tests/client/timeout-t tests/data/cmd-background		   \
-	tests/data/cmd-closed tests/data/cmd-large-output		   \
-	tests/data/cmd-sigpipe tests/data/cmd-stdin			   \
-	tests/data/cmd-streaming tests/data/cmd-user			   \
-	tests/portable/asprintf-t tests/portable/daemon-t		   \
-	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	   \
-	tests/portable/getopt-t tests/portable/inet_aton-t		   \
-	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		   \
-	tests/portable/mkstemp-t tests/portable/setenv-t		   \
-	tests/portable/snprintf-t tests/server/accept-t tests/server/acl-t \
-	tests/server/acl/localgroup-t tests/server/anonymous-t		   \
-	tests/server/bind-t tests/server/config-t tests/server/continue-t  \
-	tests/server/empty-t tests/server/env-t tests/server/errors-t	   \
-	tests/server/help-t tests/server/invalid-t tests/server/logging-t  \
-	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t  \
-	tests/server/summary-t tests/server/user-t tests/server/version-t  \
-	tests/util/buffer-t tests/util/fdflag-t tests/util/gss-tokens-t	   \
-	tests/util/messages-krb5-t tests/util/messages-t		   \
-	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	   \
-	tests/util/network/client-t tests/util/network/server-t		   \
-	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	   \
-	tests/util/xwrite-t
+check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
+	tests/client/large-t tests/client/open-t tests/client/source-ip-t   \
+	tests/client/timeout-t tests/data/cmd-background		    \
+	tests/data/cmd-closed tests/data/cmd-large-output		    \
+	tests/data/cmd-sigpipe tests/data/cmd-stdin			    \
+	tests/data/cmd-streaming tests/data/cmd-user			    \
+	tests/portable/asprintf-t tests/portable/daemon-t		    \
+	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	    \
+	tests/portable/getopt-t tests/portable/inet_aton-t		    \
+	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		    \
+	tests/portable/mkstemp-t tests/portable/setenv-t		    \
+	tests/portable/snprintf-t tests/server/accept-t tests/server/acl-t  \
+	tests/server/acl/localgroup-t tests/server/anonymous-t		    \
+	tests/server/bind-t tests/server/config-t tests/server/continue-t   \
+	tests/server/empty-t tests/server/env-t tests/server/errors-t	    \
+	tests/server/help-t tests/server/invalid-t tests/server/logging-t   \
+	tests/server/noop-t tests/server/ssh-parse-t tests/server/stdin-t   \
+	tests/server/streaming-t tests/server/summary-t tests/server/user-t \
+	tests/server/version-t tests/util/buffer-t tests/util/fdflag-t	    \
+	tests/util/gss-tokens-t tests/util/messages-krb5-t		    \
+	tests/util/messages-t tests/util/network/addr-ipv4-t		    \
+	tests/util/network/addr-ipv6-t tests/util/network/client-t	    \
+	tests/util/network/server-t tests/util/tokens-t tests/util/vector-t \
+	tests/util/xmalloc tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DC_TAP_SOURCE='"$(abs_top_srcdir)/tests"' \
 	-DC_TAP_BUILD='"$(abs_top_builddir)/tests"'
@@ -381,7 +381,8 @@ tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 # Used for server tests.
 SERVER_FILES = portable/event-extra.c server/commands.c server/config.c	\
 	server/event-util.c server/generic.c server/logging.c		\
-	server/process.c server/server-v1.c server/server-v2.c
+	server/process.c server/server-v1.c server/server-v2.c		\
+	server/server-ssh.c
 
 # All of the test programs.
 tests_client_api_t_LDFLAGS = $(KRB5_LDFLAGS)
@@ -501,6 +502,11 @@ tests_server_noop_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 tests_server_noop_t_LDADD = client/libremctl.la tests/tap/libtap.a	    \
 	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) \
 	$(PCRE_LIBS) $(LIBEVENT_LIBS)
+tests_server_ssh_parse_t_SOURCES = tests/server/ssh-parse-t.c $(SERVER_FILES)
+tests_server_ssh_parse_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
+	$(LIBEVENT_LDFLAGS)
+tests_server_ssh_parse_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
 tests_server_stdin_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)

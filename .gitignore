@@ -105,6 +105,7 @@
 /tests/server/invalid-t
 /tests/server/logging-t
 /tests/server/noop-t
+/tests/server/ssh-parse-t
 /tests/server/stdin-t
 /tests/server/streaming-t
 /tests/server/summary-t

@@ -60,11 +60,12 @@ server_ssh_parse_command(const char *command)
     args = vector_new();
     arg = buffer_new();
     state = SEPARATOR;
-    for (p = command; p != '\0'; p++) {
+    for (p = command; *p != '\0'; p++) {
         if (*p == '\\' && p[1] != '\0') {
             buffer_append(arg, p + 1, 1);
             if (state == SEPARATOR)
                 state = ARG;
+            p++;
             continue;
         }
         switch (state) {
