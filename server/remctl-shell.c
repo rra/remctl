@@ -34,11 +34,14 @@ Options:\n\
     -d            Log verbose debugging information\n\
     -f <file>     Config file (default: " CONFIG_FILE ")\n\
     -h            Display this help\n\
+    -q            Suppress informational logging (such as the command run)\n\
     -S            Log to standard output/error rather than syslog\n\
 \n\
 This is meant to be used as the shell for a dedicated account and handles\n\
 incoming commands via ssh.  It must be run under ssh or with the same\n\
-environment variables ssh would set.\n";
+environment variables ssh would set.\n\
+\n\
+Supported ACL methods: file, princ, deny";
 
 
 /*
@@ -53,6 +56,19 @@ usage(int status)
     if (status != 0)
         fprintf(output, "\n");
     fprintf(output, usage_message);
+#ifdef HAVE_GPUT
+    fprintf(output, ", gput");
+#endif
+#if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
+    fprintf(output, ", localgroup");
+#endif
+#ifdef HAVE_PCRE
+    fprintf(output, ", pcre");
+#endif
+#ifdef HAVE_REGCOMP
+    fprintf(output, ", regex");
+#endif
+    fprintf(output, "\n");
     exit(status);
 }
 
@@ -92,7 +108,7 @@ main(int argc, char *argv[])
      * Parse options.  Since we're being run as a shell, there isn't all that
      * much here.
      */
-    while ((option = getopt(argc, argv, "dc:f:hqS")) != EOF) {
+    while ((option = getopt(argc, argv, "c:df:hqS")) != EOF) {
         switch (option) {
         case 'c':
             command_string = optarg;
