@@ -36,6 +36,7 @@ Options:\n\
     -h            Display this help\n\
     -q            Suppress informational logging (such as the command run)\n\
     -S            Log to standard output/error rather than syslog\n\
+    -v            Display the version of remctld\n\
 \n\
 This is meant to be used as the shell for a dedicated account and handles\n\
 incoming commands via ssh.  It must be run under ssh or with the same\n\
@@ -127,6 +128,10 @@ main(int argc, char *argv[])
             break;
         case 'S':
             log_stdout = true;
+            break;
+        case 'v':
+            printf("remctl-shell %s\n", PACKAGE_VERSION);
+            exit(0);
             break;
         default:
             warn("unknown option -%c", optopt);
