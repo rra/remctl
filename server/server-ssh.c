@@ -238,9 +238,9 @@ server_ssh_new_client(void)
     user = getenv("REMCTL_USER");
     if (user == NULL)
         die("REMCTL_USER must be set in the environment via authorized_keys");
-    ssh_client = getenv("SSH_CLIENT");
+    ssh_client = getenv("SSH_CONNECTION");
     if (ssh_client == NULL)
-        die("SSH_CLIENT not set (remctl-shell must be run via ssh)");
+        die("SSH_CONNECTION not set (remctl-shell must be run via ssh)");
     client_info = vector_split_space(ssh_client, NULL);
 
     /* Create basic client struct. */
