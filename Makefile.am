@@ -134,12 +134,12 @@ portable_libportable_la_SOURCES = portable/dummy.c portable/event.h	\
 	portable/sd-daemon.h portable/socket.h portable/stdbool.h	\
 	portable/system.h portable/uio.h
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
-util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
-	util/gss-errors.h util/gss-tokens.c util/gss-tokens.h util/macros.h \
-	util/messages.c util/messages.h util/network.c util/network.h	    \
-	util/protocol.h util/tokens.c util/tokens.h util/vector.c	    \
-	util/vector.h util/xmalloc.c util/xmalloc.h util/xwrite.c	    \
-	util/xwrite.h
+util_libutil_la_SOURCES = util/buffer.c util/buffer.h util/fdflag.c	    \
+	util/fdflag.h util/gss-errors.c util/gss-errors.h util/gss-tokens.c \
+	util/gss-tokens.h util/macros.h util/messages.c util/messages.h	    \
+	util/network.c util/network.h util/protocol.h util/tokens.c	    \
+	util/tokens.h util/vector.c util/vector.h util/xmalloc.c	    \
+	util/xmalloc.h util/xwrite.c util/xwrite.h
 util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
 util_libutil_la_LIBADD = $(GSSAPI_LIBS)
 
@@ -182,16 +182,16 @@ client_remctl_SOURCES = client/remctl.c
 client_remctl_LDADD = client/libremctl.la util/libutil.la \
 	portable/libportable.la
 
-# The remctld server.  We include portable/event-extra.c directly in the
-# sources for the server instead of including it in libportable to avoid
-# introducing a libevent dependency in libremctl, since apparently the
-# linker isn't smart enough to figure out that the event functions are
-# hidden and never called and optimize them out.
-sbin_PROGRAMS = server/remctld
-server_remctld_SOURCES = portable/event-extra.c server/commands.c	    \
-	server/config.c server/generic.c server/logging.c server/internal.h \
-	server/process.c server/remctld.c server/server-v1.c		    \
-	server/server-v2.c
+# The remctld and remctl-shell servers.  We include portable/event-extra.c
+# directly in the sources for the server instead of including it in
+# libportable to avoid introducing a libevent dependency in libremctl, since
+# apparently the linker isn't smart enough to figure out that the event
+# functions are hidden and never called and optimize them out.
+sbin_PROGRAMS = server/remctld server/remctl-shell
+server_remctld_SOURCES = portable/event-extra.c server/commands.c	\
+	server/config.c server/event-util.c server/generic.c		\
+	server/logging.c server/internal.h server/process.c		\
+	server/remctld.c server/server-v1.c server/server-v2.c
 server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	\
 	$(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)		\
 	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS) $(SYSTEMD_CFLAGS)
@@ -200,6 +200,16 @@ server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
 server_remctld_LDADD = util/libutil.la portable/libportable.la	\
 	$(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)	\
 	$(LIBEVENT_LIBS) $(SYSTEMD_LIBS)
+server_remctl_shell_SOURCES = portable/event-extra.c server/commands.c	\
+	server/config.c server/event-util.c server/logging.c		\
+	server/internal.h server/process.c server/remctl-shell.c	\
+	server/server-ssh.c
+server_remctl_shell_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\" \
+	$(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS)
+server_remctl_shell_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)	\
+	$(LIBEVENT_LDFLAGS)
+server_remctl_shell_LDADD = util/libutil.la portable/libportable.la \
+	$(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
 
 # Install the systemd unit file if systemd support was detected.
 if HAVE_SYSTEMD
@@ -349,7 +359,7 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t   \
 	tests/server/help-t tests/server/invalid-t tests/server/logging-t  \
 	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t  \
 	tests/server/summary-t tests/server/user-t tests/server/version-t  \
-	tests/util/fdflag-t tests/util/gss-tokens-t			   \
+	tests/util/buffer-t tests/util/fdflag-t tests/util/gss-tokens-t	   \
 	tests/util/messages-krb5-t tests/util/messages-t		   \
 	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	   \
 	tests/util/network/client-t tests/util/network/server-t		   \
@@ -370,8 +380,8 @@ tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 
 # Used for server tests.
 SERVER_FILES = portable/event-extra.c server/commands.c server/config.c	\
-	server/generic.c server/logging.c server/process.c		\
-	server/server-v1.c server/server-v2.c
+	server/event-util.c server/generic.c server/logging.c		\
+	server/process.c server/server-v1.c server/server-v2.c
 
 # All of the test programs.
 tests_client_api_t_LDFLAGS = $(KRB5_LDFLAGS)
@@ -508,6 +518,8 @@ tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 tests_server_version_t_LDADD = client/libremctl.la tests/tap/libtap.a	    \
 	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) \
 	$(PCRE_LIBS)
+tests_util_buffer_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la
 tests_util_fdflag_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_util_gss_tokens_t_SOURCES = tests/util/faketoken.c \
