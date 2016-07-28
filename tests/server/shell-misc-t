@@ -33,12 +33,26 @@ ok_program 'value for REMUSER' 0 "$REMCTL_USER" \
     "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test env REMUSER'
 ok_program 'value for REMOTE_USER' 0 "$REMCTL_USER" \
     "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test env REMOTE_USER'
-ok_program 'value for REMOTE_HOST' 0 '' \
-    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test env REMOTE_HOST'
 ok_program 'value for REMOTE_ADDR' 0 '127.0.0.1' \
     "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test env REMOTE_ADDR'
 ok_program 'value for REMOTE_EXPIRES' 0 '0' \
     "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test env REMOTE_EXPIRES'
+
+# Remote host requires a bit more effort, since it can be one of a number of
+# values.  Don't bother with all the ok_program checks, and just check the
+# output.
+command='test env REMOTE_HOST'
+hostname=`"$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c "$command" 2>&1`
+status=$?
+ok 'return status for REMOTE_HOST' [ $status -eq 0 ]
+if [ -z "$hostname" ]; then
+    ok 'value for REMOTE_HOST' true
+elif echo "$hostname" | grep -q localhost; then
+    ok 'value for REMOTE_HOST' true
+else
+    diag "env REMOTE_HOST: $hostname"
+    ok 'value for REMOTE_HOST' false
+fi
 
 # Test some of the general server properties.  This code is mostly also tested
 # by the regular server tests, but it's good verification that the shell

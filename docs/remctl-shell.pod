@@ -202,13 +202,11 @@ noted in each description.
 
 =over 4
 
-=item REMOTE_USER
+=item REMCTL_COMMAND
 
-=item REMUSER
-
-[3.12] Set to the value of REMCTL_CLIENT as set in the environment of
-B<remctl-shell>. This should be set security via F<authorized_keys> as
-discussed above.
+[3.12] The command string that caused this command to be run.  This
+variable will contain only the command, not the subcommand or any
+additional arguments (which are passed as command arguments).
 
 =item REMOTE_ADDR
 
@@ -223,11 +221,23 @@ meaningful concept for ssh authentication via public key, and regardless
 is not communicated by B<sshd> to the shell.  It is therefore always set
 to C<0> by B<remctl-shell>.
 
-=item REMCTL_COMMAND
+=item REMOTE_HOST
 
-[3.12] The command string that caused this command to be run.  This
-variable will contain only the command, not the subcommand or any
-additional arguments (which are passed as command arguments).
+[3.12] The hostname of the remote host, if it was available.  If reverse
+name resolution failed, this environment variable will not be set.
+
+This is determined via a simple reverse DNS lookup and should be
+considered under the control of the client.  remctl commands should treat
+it with skepticism and not use it for anything other than logging
+purposes.
+
+=item REMOTE_USER
+
+=item REMUSER
+
+[3.12] Set to the value of REMCTL_CLIENT as set in the environment of
+B<remctl-shell>. This should be set security via F<authorized_keys> as
+discussed above.
 
 =back
 

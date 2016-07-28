@@ -13,6 +13,7 @@
  
 #include <config.h>
 #include <portable/event.h>
+#include <portable/socket.h>
 #include <portable/system.h>
 
 #include <ctype.h>
@@ -233,6 +234,10 @@ server_ssh_new_client(void)
     struct client *client;
     const char *ssh_client, *user;
     struct vector *client_info;
+    struct addrinfo hints;
+    struct addrinfo *result;
+    char *buffer;
+    int status;
 
     /* Parse client identity from ssh environment variables. */
     user = getenv("REMCTL_USER");
@@ -250,6 +255,22 @@ server_ssh_new_client(void)
     client->ipaddress = xstrdup(client_info->strings[0]);
     client->protocol = 3;
     client->user = xstrdup(user);
+
+    /* Get the remote hostname. */
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    status = getaddrinfo(client->ipaddress, NULL, &hints, &result);
+    if (status == 0) {
+        buffer = xmalloc(NI_MAXHOST);
+        status = getnameinfo(result->ai_addr, result->ai_addrlen, buffer,
+                             NI_MAXHOST, NULL, 0, NI_NAMEREQD);
+        if (status == 0)
+            client->hostname = buffer;
+        else
+            free(buffer);
+        freeaddrinfo(result);
+    }
 
     /* Add ssh protocol callbacks. */
     client->setup = command_setup;

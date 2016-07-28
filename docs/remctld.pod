@@ -523,12 +523,11 @@ B<remctld> (annotated with the version at which they were added):
 
 =over 4
 
-=item REMOTE_USER
+=item REMCTL_COMMAND
 
-=item REMUSER
-
-[1.0 for REMUSER, 2.1 for REMOTE_USER] Set to the Kerberos principal of
-the authenticated client.
+[2.16] The command string that caused this command to be run.  This
+variable will contain only the command, not the subcommand or any
+additional arguments (which are passed as command arguments).
 
 =item REMOTE_ADDR
 
@@ -545,11 +544,17 @@ the Kerberos ticket used to authenticate to the server.
 [2.1] The hostname of the remote host, if it was available.  If reverse
 name resolution failed, this environment variable will not be set.
 
-=item REMCTL_COMMAND
+This is determined via a simple reverse DNS lookup and should be
+considered under the control of the client.  remctl commands should treat
+it with skepticism and not use it for anything other than logging
+purposes.
 
-[2.16] The command string that caused this command to be run.  This
-variable will contain only the command, not the subcommand or any
-additional arguments (which are passed as command arguments).
+=item REMOTE_USER
+
+=item REMUSER
+
+[1.0 for REMUSER, 2.1 for REMOTE_USER] Set to the Kerberos principal of
+the authenticated client.
 
 =back
 
