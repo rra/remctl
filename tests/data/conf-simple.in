@@ -16,7 +16,7 @@ test-summary ALL @abs_top_srcdir@/tests/data/cmd-help \
     summary=summary \
     help=help ANYUSER
 empty EMPTY @abs_top_srcdir@/tests/data/cmd-argv ANYUSER
-sudo foo /some/program stdin=2 sudo=testuser ANYUSER
+sudo foo /some/program stdin=3 sudo=testuser ANYUSER
 all ALL @abs_top_srcdir@/tests/data/cmd-hello ANYUSER
 ALL bar @abs_top_srcdir@/tests/data/cmd-hello ANYUSER
 
