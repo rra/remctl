@@ -26,11 +26,9 @@ main(void)
     /* Suppress normal logging. */
     message_handlers_notice(0);
 
-    /* The tests are actually done by the command we run. */
-    if (chdir(getenv("C_TAP_SOURCE")) < 0)
-        sysbail("can't chdir to C_TAP_SOURCE");
-
     /* Load the test configuration. */
+    if (chdir(getenv("C_TAP_BUILD")) < 0)
+        sysbail("can't chdir to C_TAP_BUILD");
     config = server_config_load("data/conf-simple");
     if (config == NULL)
         bail("server_config_load returned NULL");
