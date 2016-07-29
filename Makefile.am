@@ -526,7 +526,7 @@ tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 tests_server_sudo_t_SOURCES = tests/server/sudo-t.c $(SERVER_FILES)
 tests_server_sudo_t_CPPFLAGS = \
-	-DPATH_SUDO='"$(abs_top_builddir)/tests/data/fake-sudo"'
+	-DPATH_SUDO='"$(abs_top_srcdir)/tests/data/fake-sudo"'
 tests_server_sudo_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
 tests_server_sudo_t_LDADD = tests/tap/libtap.a util/libutil.la	 \
