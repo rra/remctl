@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.12 (unreleased)
+remctl 3.12 (2016-07-29)
 
     Add a new server implementation, remctl-shell.  This does not use the
     remctl protocol; instead, it is meant to be run via ssh by being
