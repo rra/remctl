@@ -90,6 +90,12 @@ user identities that look like Kerberos principal names is strongly
 recommended, since it may make it easier to use some of the ACL methods
 intended for the normal remctl server.
 
+Since this relies on setting environment variables via C<authorized_keys>,
+you unfortunately have to enable C<PermitUserEnvironment> in
+F<sshd_config> (this is not the default) by adding:
+
+    PermitUserEnvironment yes
+
 B<remctl-shell> will not make use of forwarded connections or agents, and
 will not pass them along to the processes they run, so all such ssh
 options should normally be disabled for defense in depth security.
@@ -282,6 +288,11 @@ normally run as that user and the C<user> configuration option will not
 work.  The easiest way to run commands as other users is to have the
 underlying command use B<sudo> or some other user switching mechanism,
 which will normally require additional local configuration.
+
+User environment setting has to be enabled in B<sshd> by setting the
+non-default C<PermitUserEnvironment> configuration option.  A future
+version of B<remctl-shell> may use forced commands with an argument
+instead of a shell to avoid this.
 
 =head1 AUTHOR
 
