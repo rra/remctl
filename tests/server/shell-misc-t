@@ -10,7 +10,7 @@
 . "${C_TAP_SOURCE}/tap/libtap.sh"
 
 # Declare plan.
-plan 14
+plan 15
 
 # Find the remctl-shell binary.
 shell="${C_TAP_BUILD}/../server/remctl-shell"
