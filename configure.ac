@@ -35,6 +35,10 @@ RRA_LD_VERSION_SCRIPT
 dnl Support installation of systemd unit files.
 RRA_WITH_SYSTEMD_UNITDIR
 
+dnl Find a sudo binary for the sudo remctld configuration option.
+AC_ARG_VAR([PATH_SUDO], [Path to sudo for executing commands])
+AC_PATH_PROG([PATH_SUDO], [sudo])
+
 dnl Only used for the test suite.
 AC_ARG_VAR([PATH_FAKEROOT], [Path to fakeroot for the test suite])
 AC_PATH_PROG([PATH_FAKEROOT], [fakeroot])

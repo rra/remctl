@@ -82,8 +82,8 @@ main(void)
 {
     const char *acls[5];
     const struct rule rule = {
-        (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL,
-        NULL, (char **) acls
+        (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0,
+        NULL, NULL, NULL
     };
 
     plan(2);
@@ -128,8 +128,8 @@ main(void)
     char long_principal[VERY_LONG_PRINCIPAL];
     const char *acls[5];
     const struct rule rule = {
-        (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL,
-        NULL, (char **) acls
+        (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0,
+        NULL, NULL, (char **) acls
     };
 
     plan(16);

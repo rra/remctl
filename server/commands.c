@@ -194,24 +194,38 @@ create_argv_command(struct rule *rule, struct process *process,
     /* Get ready to assemble the argv of the command. */
     for (count = 0; argv[count] != NULL; count++)
         ;
-    req_argv = xcalloc(count + 1, sizeof(char *));
+    if (rule->sudo_user == NULL)
+        req_argv = xcalloc(count + 1, sizeof(char *));
+    else
+        req_argv = xcalloc(count + 5, sizeof(char *));
 
     /*
-     * Get the real program name, and use it as the first argument in argv
-     * passed to the command.  Then build the rest of the argv for the
-     * command, splicing out the argument we're passing on stdin (if any).
+     * Without sudo, get the real program name, and use it as the first
+     * argument in argv passed to the command.  With sudo, use it as the first
+     * argument.  Then build the rest of the argv for the command, splicing
+     * out the argument we're passing on stdin (if any).
      */
-    program = strrchr(rule->program, '/');
-    if (program == NULL)
-        program = rule->program;
-    else
-        program++;
-    req_argv[0] = xstrdup(program);
+    if (rule->sudo_user != NULL) {
+        req_argv[0] = xstrdup(PATH_SUDO);
+        req_argv[1] = xstrdup("-u");
+        req_argv[2] = xstrdup(rule->sudo_user);
+        req_argv[3] = xstrdup("--");
+        req_argv[4] = rule->program;
+        j = 5;
+    } else {
+        program = strrchr(rule->program, '/');
+        if (program == NULL)
+            program = rule->program;
+        else
+            program++;
+        req_argv[0] = xstrdup(program);
+        j = 1;
+    }
     if (rule->stdin_arg == -1)
         stdin_arg = count - 1;
     else
         stdin_arg = (size_t) rule->stdin_arg;
-    for (i = 1, j = 1; i < count; i++) {
+    for (i = 1; i < count; i++) {
         const char *data = argv[i]->iov_base;
         size_t length = argv[i]->iov_len;
 

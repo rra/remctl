@@ -153,6 +153,7 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
     socket_type stderr_fds[2]   = { INVALID_SOCKET, INVALID_SOCKET };
     socket_type fd;
     struct sigaction sa;
+    const char *argv0;
     char *expires;
 
     /*
@@ -282,8 +283,13 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
          * Run the command.  On error, we intentionally don't reveal
          * information about the command we ran.
          */
-        if (execv(process->rule->program, process->argv) < 0)
+        if (process->rule->sudo_user == NULL)
+            argv0 = process->rule->program;
+        else
+            argv0 = PATH_SUDO;
+        if (execv(argv0, process->argv) < 0)
             sysdie("cannot execute command");
+        break;
 
     /* In the parent.  Close the other sides of the socket pairs. */
     default:

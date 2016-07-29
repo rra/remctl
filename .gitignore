@@ -109,6 +109,7 @@
 /tests/server/ssh-parse-t
 /tests/server/stdin-t
 /tests/server/streaming-t
+/tests/server/sudo-t
 /tests/server/summary-t
 /tests/server/user-t
 /tests/server/version-t

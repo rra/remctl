@@ -194,9 +194,10 @@ server_remctld_SOURCES = portable/event-extra.c server/commands.c	\
 	server/config.c server/event-util.c server/generic.c		\
 	server/logging.c server/internal.h server/process.c		\
 	server/remctld.c server/server-v1.c server/server-v2.c
-server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	\
-	$(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)		\
-	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS) $(SYSTEMD_CFLAGS)
+server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	  \
+	-DPATH_SUDO='"$(PATH_SUDO)"' $(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS)  \
+	$(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS)		  \
+	$(SYSTEMD_CFLAGS)
 server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
 	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
 server_remctld_LDADD = util/libutil.la portable/libportable.la	\
@@ -207,7 +208,8 @@ server_remctl_shell_SOURCES = portable/event-extra.c server/commands.c	\
 	server/internal.h server/process.c server/remctl-shell.c	\
 	server/server-ssh.c
 server_remctl_shell_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\" \
-	$(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS)
+	-DPATH_SUDO='"$(PATH_SUDO)"' $(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS)	   \
+	$(LIBEVENT_CPPFLAGS)
 server_remctl_shell_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)	\
 	$(LIBEVENT_LDFLAGS)
 server_remctl_shell_LDADD = util/libutil.la portable/libportable.la \
@@ -364,13 +366,14 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
 	tests/server/empty-t tests/server/env-t tests/server/errors-t	    \
 	tests/server/help-t tests/server/invalid-t tests/server/logging-t   \
 	tests/server/noop-t tests/server/ssh-parse-t tests/server/stdin-t   \
-	tests/server/streaming-t tests/server/summary-t tests/server/user-t \
-	tests/server/version-t tests/util/buffer-t tests/util/fdflag-t	    \
-	tests/util/gss-tokens-t tests/util/messages-krb5-t		    \
-	tests/util/messages-t tests/util/network/addr-ipv4-t		    \
-	tests/util/network/addr-ipv6-t tests/util/network/client-t	    \
-	tests/util/network/server-t tests/util/tokens-t tests/util/vector-t \
-	tests/util/xmalloc tests/util/xwrite-t
+	tests/server/streaming-t tests/server/sudo-t tests/server/summary-t \
+	tests/server/user-t tests/server/version-t tests/util/buffer-t	    \
+	tests/util/fdflag-t tests/util/gss-tokens-t			    \
+	tests/util/messages-krb5-t tests/util/messages-t		    \
+	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	    \
+	tests/util/network/client-t tests/util/network/server-t		    \
+	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	    \
+	tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DC_TAP_SOURCE='"$(abs_top_srcdir)/tests"' \
 	-DC_TAP_BUILD='"$(abs_top_builddir)/tests"'
@@ -519,6 +522,14 @@ tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 tests_server_streaming_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_server_sudo_t_SOURCES = tests/server/sudo-t.c $(SERVER_FILES)
+tests_server_sudo_t_CPPFLAGS = \
+	-DPATH_SUDO='"$(abs_top_builddir)/tests/data/fake-sudo"'
+tests_server_sudo_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
+	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
+tests_server_sudo_t_LDADD = tests/tap/libtap.a util/libutil.la	 \
+	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) \
+	$(PCRE_LIBS) $(LIBEVENT_LIBS)
 tests_server_summary_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_summary_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)

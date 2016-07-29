@@ -37,6 +37,7 @@ server/shell-misc
 server/ssh-parse
 server/stdin
 server/streaming
+server/sudo
 server/summary
 server/user
 server/version

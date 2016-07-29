@@ -282,6 +282,20 @@ option_stdin(struct rule *rule, char *value, const char *name, size_t lineno)
 
 
 /*
+ * Parse the sudo configuration option.  The value is just stored and passed
+ * verbatim to sudo as the -u option.  Returns CONFIG_SUCCESS on success and
+ * CONFIG_ERROR on error.
+ */
+static enum config_status
+option_sudo(struct rule *rule, char *value, const char *name UNUSED,
+            size_t lineno UNUSED)
+{
+    rule->sudo_user = value;
+    return CONFIG_SUCCESS;
+}
+
+
+/*
  * Parse the user configuration option.  Verifies that the value is either a
  * UID or a username, stores the user in the configuration rule struct, and
  * looks up the UID and primary GID and stores that in the configuration
@@ -345,6 +359,7 @@ static const struct config_option options[] = {
     { "help",    option_help    },
     { "logmask", option_logmask },
     { "stdin",   option_stdin   },
+    { "sudo",    option_sudo    },
     { "summary", option_summary },
     { "user",    option_user    },
     { NULL,      NULL           }

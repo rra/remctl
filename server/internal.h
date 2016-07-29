@@ -46,6 +46,14 @@ struct process;
  */
 #define TIMEOUT (60 * 60)
 
+/*
+ * Normally set by the build system, but don't fail to compile if it's not
+ * defined since it makes the build rules for the test suite irritating.
+ */
+#ifndef PATH_SUDO
+# define PATH_SUDO "sudo"
+#endif
+
 /* Holds the information about a client connection. */
 struct client {
     int fd;                     /* File descriptor of client connection. */
@@ -81,6 +89,7 @@ struct rule {
     unsigned int *logmask;      /* Zero-terminated list of args to mask. */
     long stdin_arg;             /* Arg to pass on stdin, -1 for last. */
     char *user;                 /* Run executable as user. */
+    char *sudo_user;            /* Run executable as user with sudo. */
     uid_t uid;                  /* Run executable with this UID. */
     gid_t gid;                  /* Run executable with this GID. */
     char *summary;              /* Argument that gives a command summary. */
