@@ -208,12 +208,12 @@ server_remctl_shell_SOURCES = portable/event-extra.c server/commands.c	\
 	server/internal.h server/process.c server/remctl-shell.c	\
 	server/server-ssh.c
 server_remctl_shell_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\" \
-	-DPATH_SUDO='"$(PATH_SUDO)"' $(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS)	   \
-	$(LIBEVENT_CPPFLAGS)
-server_remctl_shell_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS)	\
-	$(LIBEVENT_LDFLAGS)
+	-DPATH_SUDO='"$(PATH_SUDO)"' $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)	   \
+	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS)
+server_remctl_shell_LDFLAGS = $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
+	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
 server_remctl_shell_LDADD = util/libutil.la portable/libportable.la \
-	$(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
+	$(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
 
 # Install the systemd unit file if systemd support was detected.
 if HAVE_SYSTEMD
