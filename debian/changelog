@@ -12,6 +12,7 @@ remctl (3.12-1) unstable; urgency=medium
     doesn't have to be installed when building the package.
   * Switch to the new comment character for php-remctl.ini.
   * Switch to https for all package metadata URLs.
+  * Update standards version to 3.9.8 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Fri, 29 Jul 2016 13:14:04 -0700
 
