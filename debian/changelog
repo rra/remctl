@@ -1,4 +1,4 @@
-remctl (3.12-1) UNRELEASED; urgency=medium
+remctl (3.12-1) unstable; urgency=medium
 
   * New upstream release.
     - New server implementation, remctl-shell, included in the
@@ -11,7 +11,7 @@ remctl (3.12-1) UNRELEASED; urgency=medium
   * Hard-code the path to sudo in the build so that the sudo package
     doesn't have to be installed when building the package.
 
- -- Russ Allbery <rra@debian.org>  Fri, 29 Jul 2016 11:39:59 -0700
+ -- Russ Allbery <rra@debian.org>  Fri, 29 Jul 2016 13:14:04 -0700
 
 remctl (3.11-1) unstable; urgency=medium
 
