@@ -16,9 +16,11 @@ test-summary ALL /home/eagle/data/dist/remctl/tests/data/cmd-help \
     summary=summary \
     help=help ANYUSER
 empty EMPTY /home/eagle/data/dist/remctl/tests/data/cmd-argv ANYUSER
+sudo foo /some/program stdin=3 sudo=testuser ANYUSER
 all ALL /home/eagle/data/dist/remctl/tests/data/cmd-hello ANYUSER
 ALL bar /home/eagle/data/dist/remctl/tests/data/cmd-hello ANYUSER
 
+# Copyright 2016 Dropbox, Inc.
 # Copyright 2013, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #

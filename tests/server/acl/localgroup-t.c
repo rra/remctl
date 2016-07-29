@@ -5,6 +5,7 @@
  *
  * Written by Remi Ferrand <remi.ferrand@cc.in2p3.fr>
  * Revisions by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2016 Dropbox, Inc.
  * Copyright 2015 Russ Allbery <eagle@eyrie.org>
  * Copyright 2014 IN2P3 Computing Centre - CNRS
  * Copyright 2014
@@ -67,7 +68,8 @@ static bool
 acl_permit(const struct rule *rule, const char *user)
 {
     struct client client = {
-        -1, NULL, NULL, 0, NULL, (char *) user, false, 0, 0, false, false
+        -1, -1, NULL, NULL, 0, NULL, (char *) user, false, 0, 0, false, false,
+        NULL, NULL, NULL
     };
     return server_config_acl_permit(rule, &client);
 }
@@ -80,8 +82,8 @@ main(void)
 {
     const char *acls[5];
     const struct rule rule = {
-        (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL,
-        NULL, (char **) acls
+        (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0,
+        NULL, NULL, NULL
     };
 
     plan(2);
@@ -126,8 +128,8 @@ main(void)
     char long_principal[VERY_LONG_PRINCIPAL];
     const char *acls[5];
     const struct rule rule = {
-        (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL,
-        NULL, (char **) acls
+        (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0,
+        NULL, NULL, (char **) acls
     };
 
     plan(16);

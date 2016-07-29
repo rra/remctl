@@ -2,6 +2,7 @@
  * Test suite for the server ACL checking.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2016 Dropbox, Inc.
  * Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
  * Copyright 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -35,7 +36,8 @@ static bool
 acl_permit(const struct rule *rule, const char *user)
 {
     struct client client = {
-        -1, NULL, NULL, 0, NULL, (char *) user, false, 0, 0, false, false
+        -1, -1, NULL, NULL, 0, NULL, (char *) user, false, 0, 0, false, false,
+        NULL, NULL, NULL
     };
     return server_config_acl_permit(rule, &client);
 }
@@ -54,7 +56,8 @@ acl_permit_anonymous(const struct rule *rule)
 {
     static char *pname = NULL;
     struct client client = {
-        -1, NULL, NULL, 0, NULL, NULL, true, 0, 0, false, false
+        -1, -1, NULL, NULL, 0, NULL, NULL, true, 0, 0, false, false, NULL,
+        NULL, NULL
     };
 
     if (pname == NULL)
@@ -69,7 +72,8 @@ int
 main(void)
 {
     struct rule rule = {
-        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, NULL, NULL
+        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0, NULL,
+        NULL, NULL
     };
     const char *acls[5];
 

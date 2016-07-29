@@ -6,6 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
+ * Copyright 2016 Dropbox, Inc.
  * Copyright 2015 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
  *     2014 The Board of Trustees of the Leland Stanford Junior University
@@ -161,15 +162,12 @@ server_send_summary(struct client *client, struct config *config)
         status_all = (int) WEXITSTATUS(process.status);
     else
         status_all = -1;
-    if (ok_any) {
-        if (client->protocol == 1)
-            server_v1_send_output(client, output, status_all);
-        else
-            server_v2_send_status(client, status_all);
-    } else {
+    if (ok_any)
+        client->finish(client, output, status_all);
+    else {
         notice("summary request from user %s, but no defined summaries",
                client->user);
-        server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
+        client->error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
     }
     if (output != NULL)
         evbuffer_free(output);
@@ -196,24 +194,38 @@ create_argv_command(struct rule *rule, struct process *process,
     /* Get ready to assemble the argv of the command. */
     for (count = 0; argv[count] != NULL; count++)
         ;
-    req_argv = xcalloc(count + 1, sizeof(char *));
+    if (rule->sudo_user == NULL)
+        req_argv = xcalloc(count + 1, sizeof(char *));
+    else
+        req_argv = xcalloc(count + 5, sizeof(char *));
 
     /*
-     * Get the real program name, and use it as the first argument in argv
-     * passed to the command.  Then build the rest of the argv for the
-     * command, splicing out the argument we're passing on stdin (if any).
+     * Without sudo, get the real program name, and use it as the first
+     * argument in argv passed to the command.  With sudo, use it as the first
+     * argument.  Then build the rest of the argv for the command, splicing
+     * out the argument we're passing on stdin (if any).
      */
-    program = strrchr(rule->program, '/');
-    if (program == NULL)
-        program = rule->program;
-    else
-        program++;
-    req_argv[0] = xstrdup(program);
+    if (rule->sudo_user != NULL) {
+        req_argv[0] = xstrdup(PATH_SUDO);
+        req_argv[1] = xstrdup("-u");
+        req_argv[2] = xstrdup(rule->sudo_user);
+        req_argv[3] = xstrdup("--");
+        req_argv[4] = rule->program;
+        j = 5;
+    } else {
+        program = strrchr(rule->program, '/');
+        if (program == NULL)
+            program = rule->program;
+        else
+            program++;
+        req_argv[0] = xstrdup(program);
+        j = 1;
+    }
     if (rule->stdin_arg == -1)
         stdin_arg = count - 1;
     else
         stdin_arg = (size_t) rule->stdin_arg;
-    for (i = 1, j = 1; i < count; i++) {
+    for (i = 1; i < count; i++) {
         const char *data = argv[i]->iov_base;
         size_t length = argv[i]->iov_len;
 
@@ -278,21 +290,16 @@ create_argv_help(const char *path, const char *command, const char *subcommand)
  * Process an incoming command.  Check the configuration files and the ACL
  * file, and if appropriate, forks off the command.  Takes the argument vector
  * and the user principal, and a buffer into which to put the output from the
- * executable or any error message.  Returns 0 on success and a negative
- * integer on failure.
+ * executable or any error message.  Returns the exit status of the command.
  *
  * Using the command and the subcommand, the following argument, a lookup in
- * the conf data structure is done to find the command executable and acl
- * file.  If the conf file, and subsequently the conf data structure contains
- * an entry for this command with subcommand equal to "ALL", that is a
- * wildcard match for any given subcommand.  The first argument is then
- * replaced with the actual program name to be executed.
- *
- * After checking the acl permissions, the process forks and the child execv's
- * the command with pipes arranged to gather output. The parent waits for the
- * return code and gathers stdout and stderr pipes.
+ * the configuration data structure is done to find the command executable and
+ * ACL file.  If the configuration contains an entry for this command with
+ * subcommand equal to "ALL", that is a wildcard match for any given
+ * subcommand.  The first argument is then replaced with the actual program
+ * name to be executed.
  */
-void
+int
 server_run_command(struct client *client, struct config *config,
                    struct iovec **argv)
 {
@@ -302,6 +309,7 @@ server_run_command(struct client *client, struct config *config,
     struct rule *rule = NULL;
     char **req_argv = NULL;
     size_t i;
+    int status = -1;
     bool ok = false;
     bool help = false;
     const char *user = client->user;
@@ -317,7 +325,7 @@ server_run_command(struct client *client, struct config *config,
      */
     if (argv[0] == NULL) {
         notice("empty command from user %s", user);
-        server_send_error(client, ERROR_BAD_COMMAND, "Invalid command token");
+        client->error(client, ERROR_BAD_COMMAND, "Invalid command token");
         goto done;
     }
 
@@ -326,8 +334,7 @@ server_run_command(struct client *client, struct config *config,
         if (memchr(argv[i]->iov_base, '\0', argv[i]->iov_len)) {
             notice("%s from user %s contains nul octet",
                    (i == 0) ? "command" : "subcommand", user);
-            server_send_error(client, ERROR_BAD_COMMAND,
-                              "Invalid command token");
+            client->error(client, ERROR_BAD_COMMAND, "Invalid command token");
             goto done;
         }
     }
@@ -351,8 +358,8 @@ server_run_command(struct client *client, struct config *config,
         if (argv[1] != NULL && argv[2] != NULL && argv[3] != NULL) {
             notice("help command from user %s has more than three arguments",
                    user);
-            server_send_error(client, ERROR_TOOMANY_ARGS,
-                              "Too many arguments for help command");
+            client->error(client, ERROR_TOOMANY_ARGS,
+                          "Too many arguments for help command");
         }
 
         if (subcommand == NULL) {
@@ -381,8 +388,7 @@ server_run_command(struct client *client, struct config *config,
         if (memchr(argv[i]->iov_base, '\0', argv[i]->iov_len)) {
             notice("argument %lu from user %s contains nul octet",
                    (unsigned long) i, user);
-            server_send_error(client, ERROR_BAD_COMMAND,
-                              "Invalid command token");
+            client->error(client, ERROR_BAD_COMMAND, "Invalid command token");
             goto done;
         }
     }
@@ -398,14 +404,14 @@ server_run_command(struct client *client, struct config *config,
         notice("unknown command %s%s%s from user %s", command,
                (subcommand == NULL) ? "" : " ",
                (subcommand == NULL) ? "" : subcommand, user);
-        server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
+        client->error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
         goto done;
     }
     if (!server_config_acl_permit(rule, client)) {
         notice("access denied: user %s, command %s%s%s", user, command,
                (subcommand == NULL) ? "" : " ",
                (subcommand == NULL) ? "" : subcommand);
-        server_send_error(client, ERROR_ACCESS, "Access denied");
+        client->error(client, ERROR_ACCESS, "Access denied");
         goto done;
     }
 
@@ -417,8 +423,8 @@ server_run_command(struct client *client, struct config *config,
         if (rule->help == NULL) {
             notice("command %s from user %s has no defined help",
                    command, user);
-            server_send_error(client, ERROR_NO_HELP,
-                              "No help defined for command");
+            client->error(client, ERROR_NO_HELP,
+                          "No help defined for command");
             goto done;
         } else {
             free(subcommand);
@@ -442,11 +448,9 @@ server_run_command(struct client *client, struct config *config,
             process.status = (signed int) WEXITSTATUS(process.status);
         else
             process.status = -1;
-        if (client->protocol == 1)
-            server_v1_send_output(client, process.output, process.status);
-        else
-            server_v2_send_status(client, process.status);
+        client->finish(client, process.output, process.status);
     }
+    status = process.status;
 
  done:
     free(command);
@@ -461,6 +465,7 @@ server_run_command(struct client *client, struct config *config,
         evbuffer_free(process.input);
     if (process.output != NULL)
         evbuffer_free(process.output);
+    return status;
 }
 
 

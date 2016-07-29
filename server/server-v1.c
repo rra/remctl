@@ -7,6 +7,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
+ * Copyright 2016 Dropbox, Inc.
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -22,8 +23,79 @@
 
 #include <server/internal.h>
 #include <util/gss-tokens.h>
+#include <util/macros.h>
 #include <util/messages.h>
 #include <util/xmalloc.h>
+
+
+/*
+ * Discard all data in the evbuffer.  This handler is used with protocol
+ * version one when we've already read as much data as we can return to the
+ * remctl client.
+ */
+static void
+handle_output_discard(struct bufferevent *bev, void *data UNUSED)
+{
+    size_t length;
+    struct evbuffer *buf;
+
+    buf = bufferevent_get_input(bev);
+    length = evbuffer_get_length(buf);
+    if (evbuffer_drain(buf, length) < 0)
+        sysdie("internal error: cannot discard extra output");
+}
+
+
+/*
+ * Callback used to handle filling the output buffer with protocol version
+ * one.  When this happens, we pull all of the data out into a separate
+ * evbuffer and then change our read callback to handle_output_discard, which
+ * just drains (discards) all subsequent data from the process.
+ */
+static void
+handle_output_full(struct bufferevent *bev, void *data)
+{
+    struct process *process = data;
+    bufferevent_data_cb writecb;
+
+    process->output = evbuffer_new();
+    if (process->output == NULL)
+        die("internal error: cannot create discard evbuffer");
+    if (bufferevent_read_buffer(bev, process->output) < 0)
+        die("internal error: cannot move data into output buffer");
+
+    /*
+     * Change the output callback.  We need to be sure not to dump our input
+     * callback if it exists.
+     *
+     * After we see all the output that we can send to the client, we no
+     * longer care about error and EOF events, but if we set the callback to
+     * NULL here, we cause segfaults in libevent 1.4.x when we have both read
+     * and EOF events in the same event loop.  So keep the error event handler
+     * since it doesn't hurt anything.  This can safely be set to NULL once we
+     * require libevent 2.x.
+     */
+    writecb = (process->input == NULL) ? NULL : server_handle_input_end;
+    bufferevent_setcb(bev, handle_output_discard, writecb,
+                      server_handle_io_event, data);
+}
+
+
+/*
+ * Set up handling of a child process with the v1 protocol.  Takes the process
+ * struct sets up the necessary event loop hooks.
+ */
+void
+server_v1_command_setup(struct process *process)
+{
+    bufferevent_data_cb writecb;
+
+    writecb = (process->input == NULL) ? NULL : server_handle_input_end;
+    bufferevent_setcb(process->inout, handle_output_full, writecb,
+                      server_handle_io_event, process);
+    bufferevent_setwatermark(process->inout, EV_READ, TOKEN_MAX_OUTPUT_V1,
+                             TOKEN_MAX_OUTPUT_V1);
+}
 
 
 /*
@@ -73,6 +145,29 @@ server_v1_send_output(struct client *client, struct evbuffer *output,
 
 
 /*
+ * Given the client struct, an error code, and an error message, send a
+ * protocol v1 error token to the client.  Returns true on success, false on
+ * failure (and logs a message on failure).
+ */
+bool
+server_v1_send_error(struct client *client, enum error_codes code UNUSED,
+                     const char *message)
+{
+    struct evbuffer *buf;
+    bool result;
+
+    buf = evbuffer_new();
+    if (buf == NULL)
+        die("internal error: cannot create output buffer");
+    if (evbuffer_add_printf(buf, "%s\n", message) < 0)
+        die("internal error: cannot add error message to buffer");
+    result = server_v1_send_output(client, buf, -1);
+    evbuffer_free(buf);
+    return result;
+}
+
+
+/*
  * Takes the client struct and the server configuration and handles a client
  * request.  Reads a command from the client, checks the ACL, runs the command
  * if appropriate, and sends any output back to the client.
@@ -91,9 +186,9 @@ server_v1_handle_messages(struct client *client, struct config *config)
     if (status != TOKEN_OK) {
         warn_token("receiving command token", status, major, minor);
         if (status == TOKEN_FAIL_LARGE)
-            server_send_error(client, ERROR_TOOMUCH_DATA, "Too much data");
+            client->error(client, ERROR_TOOMUCH_DATA, "Too much data");
         else if (status != TOKEN_FAIL_EOF)
-            server_send_error(client, ERROR_BAD_TOKEN, "Invalid token");
+            client->error(client, ERROR_BAD_TOKEN, "Invalid token");
         return;
     }
 
@@ -101,7 +196,7 @@ server_v1_handle_messages(struct client *client, struct config *config)
     if (token.length > TOKEN_MAX_DATA) {
         warn("command data length %lu exceeds 64KB",
              (unsigned long) token.length);
-        server_send_error(client, ERROR_TOOMUCH_DATA, "Too much data");
+        client->error(client, ERROR_TOOMUCH_DATA, "Too much data");
         gss_release_buffer(&minor, &token);
         return;
     }
