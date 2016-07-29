@@ -12,6 +12,10 @@
 # Declare plan.
 plan 15
 
+# Clean any leaked environment variables.
+unset REMCTL_USER
+unset SSH_CONNECTION
+
 # Find the remctl-shell binary.
 shell="${C_TAP_BUILD}/../server/remctl-shell"
 
