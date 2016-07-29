@@ -6,6 +6,7 @@
  * with the child process.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2016 Dropbox, Inc.
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
  *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
@@ -48,13 +49,16 @@
 
 
 /*
- * Callback for events in input or output handling.  This means either an
- * error or EOF.  On EOF or an EPIPE or ECONNRESET error, just deactivate the
- * bufferevent.  On other errors, send an error message to the client and then
- * break out of the event loop.
+ * Callback for events in input or output handling while running a process.
+ * This means either an error or EOF.  On EOF or an EPIPE or ECONNRESET error,
+ * just deactivate the bufferevent.  On other errors, send an error message to
+ * the client and then break out of the event loop.
+ *
+ * This has to be public so that it can be referenced by the setup code for
+ * the various protocols.
  */
-static void
-handle_io_event(struct bufferevent *bev, short events, void *data)
+void
+server_handle_io_event(struct bufferevent *bev, short events, void *data)
 {
     struct process *process = data;
     struct client *client = process->client;
@@ -81,7 +85,7 @@ handle_io_event(struct bufferevent *bev, short events, void *data)
         syswarn("read from process failed");
     else
         syswarn("write to standard input failed");
-    server_send_error(client, ERROR_INTERNAL, "Internal failure");
+    client->error(client, ERROR_INTERNAL, "Internal failure");
     process->saw_error = true;
     event_base_loopbreak(process->loop);
 }
@@ -90,94 +94,17 @@ handle_io_event(struct bufferevent *bev, short events, void *data)
 /*
  * Callback when all stdin data has been sent.  We only have a callback to
  * shut down our end of the socketpair so that the process gets EOF on its
- * next read.
+ * next read.  Also has to be public so that it can be referenced in the
+ * per-protocol startup callbacks.
  */
-static void
-handle_input_end(struct bufferevent *bev, void *data)
+void
+server_handle_input_end(struct bufferevent *bev, void *data)
 {
     struct process *process = data;
 
     bufferevent_disable(bev, EV_WRITE);
     if (shutdown(process->stdinout_fd, SHUT_WR) < 0)
         sysdie("cannot shut down input side of process socket pair");
-}
-
-
-/*
- * Callback used to handle output from a process (protocol version two or
- * later).  We use the same handler for both standard output and standard
- * error and check the bufferevent to determine which stream we're seeing.
- *
- * When called, note that we saw some output, which is a flag to continue
- * processing when running the event loop after the child has exited.
- */
-static void
-handle_output(struct bufferevent *bev, void *data)
-{
-    int stream;
-    struct evbuffer *buf;
-    struct process *process = data;
-
-    process->saw_output = true;
-    stream = (bev == process->inout) ? 1 : 2;
-    buf = bufferevent_get_input(bev);
-    if (!server_v2_send_output(process->client, stream, buf)) {
-        process->saw_error = true;
-        event_base_loopbreak(process->loop);
-    }
-}
-
-
-/*
- * Discard all data in the evbuffer.  This handler is used with protocol
- * version one when we've already read as much data as we can return to the
- * remctl client.
- */
-static void
-handle_output_discard(struct bufferevent *bev, void *data UNUSED)
-{
-    size_t length;
-    struct evbuffer *buf;
-
-    buf = bufferevent_get_input(bev);
-    length = evbuffer_get_length(buf);
-    if (evbuffer_drain(buf, length) < 0)
-        sysdie("internal error: cannot discard extra output");
-}
-
-
-/*
- * Callback used to handle filling the output buffer with protocol version
- * one.  When this happens, we pull all of the data out into a separate
- * evbuffer and then change our read callback to handle_output_discard, which
- * just drains (discards) all subsequent data from the process.
- */
-static void
-handle_output_full(struct bufferevent *bev, void *data)
-{
-    struct process *process = data;
-    bufferevent_data_cb writecb;
-
-    process->output = evbuffer_new();
-    if (process->output == NULL)
-        die("internal error: cannot create discard evbuffer");
-    if (bufferevent_read_buffer(bev, process->output) < 0)
-        die("internal error: cannot move data into output buffer");
-
-    /*
-     * Change the output callback.  We need to be sure not to dump our input
-     * callback if it exists.
-     *
-     * After we see all the output that we can send to the client, we no
-     * longer care about error and EOF events, but if we set the callback to
-     * NULL here, we cause segfaults in libevent 1.4.x when we have both read
-     * and EOF events in the same event loop.  So keep the error event handler
-     * since it doesn't hurt anything.  This can safely be set to NULL once we
-     * require libevent 2.x.
-     */
-    writecb = (process->input == NULL) ? NULL : handle_input_end;
-    bufferevent_setcb(bev, handle_output_discard, writecb, handle_io_event,
-                      data);
 }
 
 
@@ -222,11 +149,11 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
     struct process *process = data;
     struct client *client = process->client;
     struct event_base *loop = process->loop;
-    bufferevent_data_cb writecb = NULL;
     socket_type stdinout_fds[2] = { INVALID_SOCKET, INVALID_SOCKET };
     socket_type stderr_fds[2]   = { INVALID_SOCKET, INVALID_SOCKET };
     socket_type fd;
     struct sigaction sa;
+    const char *argv0;
     char *expires;
 
     /*
@@ -356,8 +283,13 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
          * Run the command.  On error, we intentionally don't reveal
          * information about the command we ran.
          */
-        if (execv(process->rule->program, process->argv) < 0)
+        if (process->rule->sudo_user == NULL)
+            argv0 = process->rule->program;
+        else
+            argv0 = PATH_SUDO;
+        if (execv(argv0, process->argv) < 0)
             sysdie("cannot execute command");
+        break;
 
     /* In the parent.  Close the other sides of the socket pairs. */
     default:
@@ -372,16 +304,18 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
     }
 
     /*
-     * Set up a bufferevent to consume output from the process.
+     * Set up bufferevents to send input to and consume output from the
+     * process.  There are two possibilities here.
      *
-     * There are two possibilities here.  For protocol version two, we use two
-     * bufferevents, one for standard input and output and one for standard
-     * error, that turn each chunk of data into a MESSAGE_OUTPUT token to the
-     * client.  For protocol version one, we use a single bufferevent, which
-     * sends standard intput and collects both standard output and standard
-     * error, queuing it to send on process exit.  In this case, stdinout_fd
-     * gets both streams, since there's no point in distinguishing, and we
-     * only need one bufferevent.
+     * For protocol version two, we use two bufferevents, one for standard
+     * input and output and one for standard error, that turn each chunk of
+     * data into a MESSAGE_OUTPUT token to the client.
+     *
+     * For protocol version one, we use a single bufferevent, which sends
+     * standard intput and collects both standard output and standard error,
+     * queuing it to send on process exit.  In this case, stdinout_fd gets
+     * both streams, since there's no point in distinguishing, and we only
+     * need one bufferevent.
      */
     fdflag_nonblocking(stdinout_fds[0], true);
     process->inout = bufferevent_socket_new(loop, process->stdinout_fd, 0);
@@ -390,29 +324,19 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
     if (process->input == NULL)
         bufferevent_enable(process->inout, EV_READ);
     else {
-        writecb = handle_input_end;
         bufferevent_enable(process->inout, EV_READ | EV_WRITE);
         if (bufferevent_write_buffer(process->inout, process->input) < 0)
             die("internal error: cannot queue input for process");
     }
-    if (client->protocol == 1) {
-        bufferevent_setcb(process->inout, handle_output_full, writecb,
-                          handle_io_event, process);
-        bufferevent_setwatermark(process->inout, EV_READ, TOKEN_MAX_OUTPUT_V1,
-                                 TOKEN_MAX_OUTPUT_V1);
-    } else {
-        bufferevent_setcb(process->inout, handle_output, writecb,
-                          handle_io_event, process);
-        bufferevent_setwatermark(process->inout, EV_READ, 0, TOKEN_MAX_OUTPUT);
+    if (client->protocol > 1) {
         fdflag_nonblocking(stderr_fds[0], true);
         process->err = bufferevent_socket_new(loop, process->stderr_fd, 0);
         if (process->err == NULL)
             die("internal error: cannot create stderr bufferevent");
-        bufferevent_enable(process->err, EV_READ);
-        bufferevent_setcb(process->err, handle_output, NULL,
-                          handle_io_event, process);
-        bufferevent_setwatermark(process->err, EV_READ, 0, TOKEN_MAX_OUTPUT);
     }
+
+    /* Set up the event hooks for the different protocols. */
+    client->setup(process);
     return;
 
 fail:
@@ -424,7 +348,7 @@ fail:
         close(stderr_fds[0]);
     if (stderr_fds[1] != INVALID_SOCKET)
         close(stderr_fds[1]);
-    server_send_error(client, ERROR_INTERNAL, "Internal failure");
+    client->error(client, ERROR_INTERNAL, "Internal failure");
     process->saw_error = true;
     event_base_loopbreak(process->loop);
 }

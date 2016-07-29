@@ -1,5 +1,25 @@
                        User-Visible remctl Changes
 
+remctl 3.12 (2016-07-29)
+
+    Add a new server implementation, remctl-shell.  This does not use the
+    remctl protocol; instead, it is meant to be run via ssh by being
+    configured as the shell of a dedicated user.  It interprets a command
+    it was given as a remctl command, using the same configuration and
+    authorization checking as the normal remctl server.  This can be
+    useful to introduce remctl into an environment that has ssh public key
+    authentication instead of Kerberos.  remctl-shell has some significant
+    limitations inherited from ssh and requires some setup to use.  See
+    its manual page for more information.
+
+    Add a new configuration option, sudo, which tells remctld and
+    remctl-shell to run the command as a different user using sudo.  The
+    path to the sudo binary is determined when remctld is compiled.
+    Normally, it's more convenient to use the existing user option, but it
+    relies on remctld running as root.  If running the daemon as a
+    non-root user, or when running remctl-shell as a non-root user, this
+    option may work better.
+
 remctl 3.11 (2016-05-07)
 
     The PHP bindings have been ported to PHP 7, based on work by Nish

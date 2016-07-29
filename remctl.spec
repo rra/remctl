@@ -231,7 +231,9 @@ This package contains the Ruby remctl client library.
 %package perl
 Summary: Perl library for Kerberos-authenticated command execution
 Group: Applications/Internet
+%if 0%{?sles_version:1} == 0
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+%endif
 Requires: %{name}-client = %{version}-%{release}
 
 %description perl

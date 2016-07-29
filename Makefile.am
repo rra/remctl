@@ -1,6 +1,8 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2016 Dropbox, Inc.
+# Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
 # Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -75,11 +77,12 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 bootstrap			    \
 	docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.pod    \
 	docs/api/remctl_set_timeout.pod docs/design.html docs/extending	    \
 	docs/protocol-v4 docs/protocol.txt docs/protocol.html		    \
-	docs/protocol.xml docs/remctl.pod docs/remctld.8.in		    \
-	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
-	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
-	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf    \
-	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java   \
+	docs/protocol.xml docs/remctl.pod docs/remctl-shell.8.in	    \
+	docs/remctl-shell.pod docs/remctld.8.in docs/remctld.pod	    \
+	examples/remctl.conf examples/remctld.xml examples/rsh-wrapper	    \
+	examples/xinetd java/.classpath java/.project java/Makefile	    \
+	java/README java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf	    \
+	java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java		    \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
@@ -99,11 +102,12 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 bootstrap			    \
 	tests/data/configs/bad-include-1 tests/data/configs/bad-logmask-2   \
 	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4   \
 	tests/data/configs/bad-option-1 tests/data/configs/bad-user-1	    \
-	tests/data/perl.conf tests/data/generate-krb5-conf tests/data/gput  \
+	tests/data/fake-sudo tests/data/perl.conf			    \
+	tests/data/generate-krb5-conf tests/data/gput			    \
 	tests/data/valgrind.supp tests/docs/pod-spelling-t tests/docs/pod-t \
-	tests/perl/module-version-t tests/tap/kerberos.sh		    \
-	tests/tap/libtap.sh tests/tap/perl/Test/RRA.pm			    \
-	tests/tap/perl/Test/RRA/Automake.pm				    \
+	tests/server/shell-misc-t tests/perl/module-version-t		    \
+	tests/tap/kerberos.sh tests/tap/libtap.sh			    \
+	tests/tap/perl/Test/RRA.pm tests/tap/perl/Test/RRA/Automake.pm	    \
 	tests/tap/perl/Test/RRA/Config.pm				    \
 	tests/tap/perl/Test/RRA/ModuleVersion.pm tests/tap/remctl.sh	    \
 	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
@@ -134,12 +138,12 @@ portable_libportable_la_SOURCES = portable/dummy.c portable/event.h	\
 	portable/sd-daemon.h portable/socket.h portable/stdbool.h	\
 	portable/system.h portable/uio.h
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
-util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h util/gss-errors.c	    \
-	util/gss-errors.h util/gss-tokens.c util/gss-tokens.h util/macros.h \
-	util/messages.c util/messages.h util/network.c util/network.h	    \
-	util/protocol.h util/tokens.c util/tokens.h util/vector.c	    \
-	util/vector.h util/xmalloc.c util/xmalloc.h util/xwrite.c	    \
-	util/xwrite.h
+util_libutil_la_SOURCES = util/buffer.c util/buffer.h util/fdflag.c	    \
+	util/fdflag.h util/gss-errors.c util/gss-errors.h util/gss-tokens.c \
+	util/gss-tokens.h util/macros.h util/messages.c util/messages.h	    \
+	util/network.c util/network.h util/protocol.h util/tokens.c	    \
+	util/tokens.h util/vector.c util/vector.h util/xmalloc.c	    \
+	util/xmalloc.h util/xwrite.c util/xwrite.h
 util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS)
 util_libutil_la_LIBADD = $(GSSAPI_LIBS)
 
@@ -182,24 +186,36 @@ client_remctl_SOURCES = client/remctl.c
 client_remctl_LDADD = client/libremctl.la util/libutil.la \
 	portable/libportable.la
 
-# The remctld server.  We include portable/event-extra.c directly in the
-# sources for the server instead of including it in libportable to avoid
-# introducing a libevent dependency in libremctl, since apparently the
-# linker isn't smart enough to figure out that the event functions are
-# hidden and never called and optimize them out.
-sbin_PROGRAMS = server/remctld
-server_remctld_SOURCES = portable/event-extra.c server/commands.c	    \
-	server/config.c server/generic.c server/logging.c server/internal.h \
-	server/process.c server/remctld.c server/server-v1.c		    \
-	server/server-v2.c
-server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	\
-	$(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)		\
-	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS) $(SYSTEMD_CFLAGS)
+# The remctld and remctl-shell servers.  We include portable/event-extra.c
+# directly in the sources for the server instead of including it in
+# libportable to avoid introducing a libevent dependency in libremctl, since
+# apparently the linker isn't smart enough to figure out that the event
+# functions are hidden and never called and optimize them out.
+sbin_PROGRAMS = server/remctld server/remctl-shell
+server_remctld_SOURCES = portable/event-extra.c server/commands.c	\
+	server/config.c server/event-util.c server/generic.c		\
+	server/logging.c server/internal.h server/process.c		\
+	server/remctld.c server/server-v1.c server/server-v2.c
+server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	  \
+	-DPATH_SUDO='"$(PATH_SUDO)"' $(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS)  \
+	$(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS)		  \
+	$(SYSTEMD_CFLAGS)
 server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
 	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
 server_remctld_LDADD = util/libutil.la portable/libportable.la	\
 	$(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)	\
 	$(LIBEVENT_LIBS) $(SYSTEMD_LIBS)
+server_remctl_shell_SOURCES = portable/event-extra.c server/commands.c	\
+	server/config.c server/event-util.c server/logging.c		\
+	server/internal.h server/process.c server/remctl-shell.c	\
+	server/server-ssh.c
+server_remctl_shell_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\" \
+	-DPATH_SUDO='"$(PATH_SUDO)"' $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)	   \
+	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS)
+server_remctl_shell_LDFLAGS = $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
+	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
+server_remctl_shell_LDADD = util/libutil.la portable/libportable.la \
+	$(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
 
 # Install the systemd unit file if systemd support was detected.
 if HAVE_SYSTEMD
@@ -219,9 +235,13 @@ dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3		    \
 	docs/api/remctl_output.3 docs/api/remctl_set_ccache.3		    \
 	docs/api/remctl_set_source_ip.3 docs/api/remctl_set_timeout.3	    \
 	docs/remctl.1
-man_MANS = docs/remctld.8
+man_MANS = docs/remctl-shell.8 docs/remctld.8
 
 # Substitute the system configuration path into the manual page.
+docs/remctl-shell.8: $(srcdir)/docs/remctl-shell.8.in
+	[ -d docs ] || mkdir docs
+	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \
+	    < $(srcdir)/docs/remctl-shell.8.in > $@
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
 	[ -d docs ] || mkdir docs
 	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \
@@ -240,17 +260,17 @@ install-data-hook:
 	rm -f $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
 	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
 
-CLEANFILES = client/libremctl.pc docs/remctld.8 perl/t/lib/Test/RRA.pm	\
-	perl/t/lib/Test/RRA/Automake.pm perl/t/lib/Test/RRA/Config.pm	\
-	stamp-python systemd/remctld.service
+CLEANFILES = client/libremctl.pc docs/remctl-shell.8 docs/remctld.8	   \
+	perl/t/lib/Test/RRA.pm perl/t/lib/Test/RRA/Automake.pm		   \
+	perl/t/lib/Test/RRA/Config.pm stamp-python systemd/remctld.service
 DISTCLEANFILES = perl/Makefile python/MANIFEST
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile		   \
 	build-aux/config.guess build-aux/config.sub build-aux/depcomp	   \
 	build-aux/install-sh build-aux/ltmain.sh build-aux/missing	   \
 	config.h.in config.h.in~ configure docs/api/*.3 docs/protocol.html \
-	docs/protocol.txt docs/remctl.1 docs/remctld.8.in		   \
-	m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4	   \
-	m4/lt~obsolete.m4
+	docs/protocol.txt docs/remctl.1 docs/remctl-shell.8.in		   \
+	docs/remctld.8.in m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4	   \
+	m4/ltversion.m4 m4/lt~obsolete.m4
 
 # Also clean the perl, php, and ruby directories if needed and clean up
 # after Python.
@@ -331,29 +351,30 @@ warnings:
 	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
-check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t   \
-	tests/client/large-t tests/client/open-t tests/client/source-ip-t  \
-	tests/client/timeout-t tests/data/cmd-background		   \
-	tests/data/cmd-closed tests/data/cmd-large-output		   \
-	tests/data/cmd-sigpipe tests/data/cmd-stdin			   \
-	tests/data/cmd-streaming tests/data/cmd-user			   \
-	tests/portable/asprintf-t tests/portable/daemon-t		   \
-	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	   \
-	tests/portable/getopt-t tests/portable/inet_aton-t		   \
-	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		   \
-	tests/portable/mkstemp-t tests/portable/setenv-t		   \
-	tests/portable/snprintf-t tests/server/accept-t tests/server/acl-t \
-	tests/server/acl/localgroup-t tests/server/anonymous-t		   \
-	tests/server/bind-t tests/server/config-t tests/server/continue-t  \
-	tests/server/empty-t tests/server/env-t tests/server/errors-t	   \
-	tests/server/help-t tests/server/invalid-t tests/server/logging-t  \
-	tests/server/noop-t tests/server/stdin-t tests/server/streaming-t  \
-	tests/server/summary-t tests/server/user-t tests/server/version-t  \
-	tests/util/fdflag-t tests/util/gss-tokens-t			   \
-	tests/util/messages-krb5-t tests/util/messages-t		   \
-	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	   \
-	tests/util/network/client-t tests/util/network/server-t		   \
-	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	   \
+check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
+	tests/client/large-t tests/client/open-t tests/client/source-ip-t   \
+	tests/client/timeout-t tests/data/cmd-background		    \
+	tests/data/cmd-closed tests/data/cmd-large-output		    \
+	tests/data/cmd-sigpipe tests/data/cmd-stdin			    \
+	tests/data/cmd-streaming tests/data/cmd-user			    \
+	tests/portable/asprintf-t tests/portable/daemon-t		    \
+	tests/portable/getaddrinfo-t tests/portable/getnameinfo-t	    \
+	tests/portable/getopt-t tests/portable/inet_aton-t		    \
+	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		    \
+	tests/portable/mkstemp-t tests/portable/setenv-t		    \
+	tests/portable/snprintf-t tests/server/accept-t tests/server/acl-t  \
+	tests/server/acl/localgroup-t tests/server/anonymous-t		    \
+	tests/server/bind-t tests/server/config-t tests/server/continue-t   \
+	tests/server/empty-t tests/server/env-t tests/server/errors-t	    \
+	tests/server/help-t tests/server/invalid-t tests/server/logging-t   \
+	tests/server/noop-t tests/server/ssh-parse-t tests/server/stdin-t   \
+	tests/server/streaming-t tests/server/sudo-t tests/server/summary-t \
+	tests/server/user-t tests/server/version-t tests/util/buffer-t	    \
+	tests/util/fdflag-t tests/util/gss-tokens-t			    \
+	tests/util/messages-krb5-t tests/util/messages-t		    \
+	tests/util/network/addr-ipv4-t tests/util/network/addr-ipv6-t	    \
+	tests/util/network/client-t tests/util/network/server-t		    \
+	tests/util/tokens-t tests/util/vector-t tests/util/xmalloc	    \
 	tests/util/xwrite-t
 check_LIBRARIES = tests/tap/libtap.a
 tests_runtests_CPPFLAGS = -DC_TAP_SOURCE='"$(abs_top_srcdir)/tests"' \
@@ -370,8 +391,9 @@ tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 
 # Used for server tests.
 SERVER_FILES = portable/event-extra.c server/commands.c server/config.c	\
-	server/generic.c server/logging.c server/process.c		\
-	server/server-v1.c server/server-v2.c
+	server/event-util.c server/generic.c server/logging.c		\
+	server/process.c server/server-v1.c server/server-v2.c		\
+	server/server-ssh.c
 
 # All of the test programs.
 tests_client_api_t_LDFLAGS = $(KRB5_LDFLAGS)
@@ -491,12 +513,25 @@ tests_server_noop_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 tests_server_noop_t_LDADD = client/libremctl.la tests/tap/libtap.a	    \
 	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) \
 	$(PCRE_LIBS) $(LIBEVENT_LIBS)
+tests_server_ssh_parse_t_SOURCES = tests/server/ssh-parse-t.c $(SERVER_FILES)
+tests_server_ssh_parse_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
+	$(LIBEVENT_LDFLAGS)
+tests_server_ssh_parse_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
 tests_server_stdin_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 tests_server_streaming_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+tests_server_sudo_t_SOURCES = tests/server/sudo-t.c $(SERVER_FILES)
+tests_server_sudo_t_CPPFLAGS = \
+	-DPATH_SUDO='"$(abs_top_srcdir)/tests/data/fake-sudo"'
+tests_server_sudo_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
+	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
+tests_server_sudo_t_LDADD = tests/tap/libtap.a util/libutil.la	 \
+	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) \
+	$(PCRE_LIBS) $(LIBEVENT_LIBS)
 tests_server_summary_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_summary_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
@@ -508,6 +543,8 @@ tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 tests_server_version_t_LDADD = client/libremctl.la tests/tap/libtap.a	    \
 	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) \
 	$(PCRE_LIBS)
+tests_util_buffer_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la
 tests_util_fdflag_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_util_gss_tokens_t_SOURCES = tests/util/faketoken.c \

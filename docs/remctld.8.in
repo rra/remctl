@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "REMCTLD 8"
-.TH REMCTLD 8 "2016-05-07" "3.11" "remctl"
+.TH REMCTLD 8 "2016-07-29" "3.12" "remctl"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -394,6 +394,21 @@ command line.  Only at most one argument may be passed on standard input
 to the command.  Be aware that even if the \fIsubcommand\fR is the designated
 argument to pass on standard input (\f(CW\*(C`stdin=1\*(C'\fR), the \fIsubcommand\fR may not
 contain \s-1NUL\s0 characters.
+.IP "sudo=(\fIusername\fR | #\fIuid\fR)" 4
+.IX Item "sudo=(username | #uid)"
+[3.12] Run this command as the specified user using \fBsudo\fR.  This is
+exactly equivalent to prepending \f(CW\*(C`sudo \-u \f(CIusername\f(CW \-\-\*(C'\fR to the command
+before running it.  The path to \fBsudo\fR is determined when \fBremctld\fR is
+built.
+.Sp
+The \fIuser\fR option is simpler and easier if \fBremctld\fR is running as root.
+However, it may be desirable in some configurations to run \fBremctld\fR as a
+non-root user, and \fBremctl-shell\fR (which shares the same configuration
+files) usually runs as a non-root user.  In those cases, this option can
+be used to use \fBsudo\fR to switch users before running the command.
+.Sp
+Since the argument is passed verbatim to \fBsudo\fR's \fB\-u\fR option, you can
+specify a numeric \s-1UID\s0 by prepending it with \f(CW\*(C`#\*(C'\fR.
 .IP "summary=\fIarg\fR" 4
 .IX Item "summary=arg"
 [3.2] Specifies the argument for this command that will print a usage
@@ -613,14 +628,11 @@ cleared by \fBremctld\fR before running any commands.
 .PP
 The following environment variables will be set for any commands run via
 \&\fBremctld\fR (annotated with the version at which they were added):
-.IP "\s-1REMOTE_USER\s0" 4
-.IX Item "REMOTE_USER"
-.PD 0
-.IP "\s-1REMUSER\s0" 4
-.IX Item "REMUSER"
-.PD
-[1.0 for \s-1REMUSER, 2.1\s0 for \s-1REMOTE_USER\s0] Set to the Kerberos principal of
-the authenticated client.
+.IP "\s-1REMCTL_COMMAND\s0" 4
+.IX Item "REMCTL_COMMAND"
+[2.16] The command string that caused this command to be run.  This
+variable will contain only the command, not the subcommand or any
+additional arguments (which are passed as command arguments).
 .IP "\s-1REMOTE_ADDR\s0" 4
 .IX Item "REMOTE_ADDR"
 [2.1] The \s-1IP\s0 address of the remote host.  This may be IPv4 or IPv6.
@@ -633,11 +645,19 @@ the Kerberos ticket used to authenticate to the server.
 .IX Item "REMOTE_HOST"
 [2.1] The hostname of the remote host, if it was available.  If reverse
 name resolution failed, this environment variable will not be set.
-.IP "\s-1REMCTL_COMMAND\s0" 4
-.IX Item "REMCTL_COMMAND"
-[2.16] The command string that caused this command to be run.  This
-variable will contain only the command, not the subcommand or any
-additional arguments (which are passed as command arguments).
+.Sp
+This is determined via a simple reverse \s-1DNS\s0 lookup and should be
+considered under the control of the client.  remctl commands should treat
+it with skepticism and not use it for anything other than logging
+purposes.
+.IP "\s-1REMOTE_USER\s0" 4
+.IX Item "REMOTE_USER"
+.PD 0
+.IP "\s-1REMUSER\s0" 4
+.IX Item "REMUSER"
+.PD
+[1.0 for \s-1REMUSER, 2.1\s0 for \s-1REMOTE_USER\s0] Set to the Kerberos principal of
+the authenticated client.
 .PP
 If the \fB\-k\fR flag is used, \fBremctld\fR will also set \s-1KRB5_KTNAME\s0 to the
 provided keytab path.  This is primarily for communication with the

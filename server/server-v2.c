@@ -5,6 +5,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
+ * Copyright 2016 Dropbox, Inc.
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -20,6 +21,7 @@
 
 #include <server/internal.h>
 #include <util/gss-tokens.h>
+#include <util/macros.h>
 #include <util/messages.h>
 #include <util/xmalloc.h>
 
@@ -30,7 +32,7 @@
  * buffer in the client struct.  Returns true on success, false on failure
  * (and logs a message on failure).
  */
-bool
+static bool
 server_v2_send_output(struct client *client, int stream,
                       struct evbuffer *output)
 {
@@ -80,12 +82,59 @@ server_v2_send_output(struct client *client, int stream,
 
 
 /*
+ * Callback used to handle output from a process (protocol version two or
+ * later).  We use the same handler for both standard output and standard
+ * error and check the bufferevent to determine which stream we're seeing.
+ *
+ * When called, note that we saw some output, which is a flag to continue
+ * processing when running the event loop after the child has exited.
+ */
+static void
+handle_output(struct bufferevent *bev, void *data)
+{
+    int stream;
+    struct evbuffer *buf;
+    struct process *process = data;
+
+    process->saw_output = true;
+    stream = (bev == process->inout) ? 1 : 2;
+    buf = bufferevent_get_input(bev);
+    if (!server_v2_send_output(process->client, stream, buf)) {
+        process->saw_error = true;
+        event_base_loopbreak(process->loop);
+    }
+}
+
+
+/*
+ * Set up handling of a child process with the v2 protocol.  Takes the process
+ * struct and sets up the necessary event loop hooks.
+ */
+void
+server_v2_command_setup(struct process *process)
+{
+    bufferevent_data_cb writecb;
+
+    writecb = (process->input == NULL) ? NULL : server_handle_input_end;
+    bufferevent_setcb(process->inout, handle_output, writecb,
+                      server_handle_io_event, process);
+    bufferevent_setwatermark(process->inout, EV_READ, 0, TOKEN_MAX_OUTPUT);
+    bufferevent_enable(process->err, EV_READ);
+    bufferevent_setcb(process->err, handle_output, NULL,
+                      server_handle_io_event, process);
+    bufferevent_setwatermark(process->err, EV_READ, 0, TOKEN_MAX_OUTPUT);
+}
+
+
+/*
  * Given the client struct and the exit status, send a protocol v2 status
  * token to the client.  Returns true on success, false on failure (and logs a
- * message on failure).
+ * message on failure).  Takes an ignored buffer argument for call
+ * compatibility with protocol v1.
  */
 bool
-server_v2_send_status(struct client *client, int exit_status)
+server_v2_command_finish(struct client *client, struct evbuffer *output UNUSED,
+                         int exit_status)
 {
     gss_buffer_desc token;
     char buffer[1 + 1 + 1];
@@ -241,7 +290,7 @@ server_v2_read_token(struct client *client, gss_buffer_t token)
     if (status != TOKEN_OK) {
         warn_token("receiving token", status, major, minor);
         if (status != TOKEN_FAIL_EOF && status != TOKEN_FAIL_SOCKET)
-            server_send_error(client, ERROR_BAD_TOKEN, "Invalid token");
+            client->error(client, ERROR_BAD_TOKEN, "Invalid token");
     }
     return status;
 }
@@ -278,8 +327,7 @@ server_v2_read_continuation(struct client *client, gss_buffer_t token)
         return false;
     } else if (p[1] != MESSAGE_COMMAND) {
         warn("unexpected message type %d from client", (int) p[1]);
-        server_send_error(client, ERROR_UNEXPECTED_MESSAGE,
-                          "Unexpected message");
+        client->error(client, ERROR_UNEXPECTED_MESSAGE, "Unexpected message");
         return false;
     }
     return true;
@@ -320,16 +368,16 @@ server_v2_handle_command(struct client *client, struct config *config,
         if (token->length > TOKEN_MAX_DATA) {
             warn("command data length %lu exceeds 64KB",
                  (unsigned long) token->length);
-            result = server_send_error(client, ERROR_TOOMUCH_DATA,
-                                       "Too much data");
+            result = client->error(client, ERROR_TOOMUCH_DATA,
+                                   "Too much data");
             goto fail;
         }
 
         /* Make sure the continuation is sane. */
         if ((p[3] == 1 && continued) || (p[3] > 1 && !continued) || p[3] > 3) {
             warn("bad continue status %d", (int) p[3]);
-            result = server_send_error(client, ERROR_BAD_COMMAND,
-                                       "Invalid command token");
+            result = client->error(client, ERROR_BAD_COMMAND,
+                                   "Invalid command token");
             goto fail;
         }
         continued = (p[3] == 1 || p[3] == 2);
@@ -344,8 +392,8 @@ server_v2_handle_command(struct client *client, struct config *config,
         if (length >= COMMAND_MAX_DATA - total) {
             warn("total command length %lu exceeds %lu", length + total,
                  COMMAND_MAX_DATA);
-            result = server_send_error(client, ERROR_TOOMUCH_DATA,
-                                       "Too much data");
+            result = client->error(client, ERROR_TOOMUCH_DATA,
+                                   "Too much data");
             goto fail;
         }
         if (continued || buffer != NULL) {
@@ -426,8 +474,8 @@ server_v2_handle_token(struct client *client, struct config *config,
         break;
     default:
         warn("unknown message type %d from client", (int) p[1]);
-        result = server_send_error(client, ERROR_UNKNOWN_MESSAGE,
-                                   "Unknown message");
+        result = client->error(client, ERROR_UNKNOWN_MESSAGE,
+                               "Unknown message");
         break;
     }
     return result;

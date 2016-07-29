@@ -33,11 +33,15 @@ server/help
 server/invalid
 server/logging
 server/misc
+server/shell-misc
+server/ssh-parse
 server/stdin
 server/streaming
+server/sudo
 server/summary
 server/user
 server/version
+util/buffer
 util/gss-tokens
 util/messages
 util/messages-krb5

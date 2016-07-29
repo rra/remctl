@@ -1,11 +1,12 @@
 /*
- * Server implementation of generic protocol functions.
+ * Server implementation of generic GSS-API protocol functions.
  *
- * These are the server protocol functions that can be shared between the v1
- * and v2 protocol.
+ * These are the server protocol functions that can use GSS-API but can be
+ * shared between the v1 and v2 protocol.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
+ * Copyright 2016 Dropbox, Inc.
  * Copyright 2015 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
  *     2014 The Board of Trustees of the Leland Stanford Junior University
@@ -155,6 +156,17 @@ server_new_client(int fd, gss_cred_id_t creds)
         }
     }
 
+    /* Based on the protocol, set up the callbacks. */
+    if (client->protocol == 1) {
+        client->setup = server_v1_command_setup;
+        client->finish = server_v1_send_output;
+        client->error = server_v1_send_error;
+    } else {
+        client->setup = server_v2_command_setup;
+        client->finish = server_v2_command_finish;
+        client->error = server_v2_send_error;
+    }
+
     /* Get the display version of the client name and store it. */
     major = gss_display_name(&minor, name, &name_buf, &doid);
     if (major != GSS_S_COMPLETE) {
@@ -206,8 +218,8 @@ server_free_client(struct client *client)
 
 
 /*
- * Receives a command token payload and builds an argv structure for it,
- * returning that as NULL-terminated array of pointers to struct iovecs.
+ * Parses a complete command token payload and builds an argv structure for
+ * it, returning that as NULL-terminated array of pointers to struct iovecs.
  * Takes the client struct, a pointer to the beginning of the payload
  * (starting with the argument count), and the length of the payload.  If
  * there are any problems with the request, sends an error token, logs the
@@ -228,17 +240,17 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
     debug("argc is %lu", (unsigned long) argc);
     if (argc == 0) {
         warn("command with no arguments");
-        server_send_error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
+        client->error(client, ERROR_UNKNOWN_COMMAND, "Unknown command");
         return NULL;
     }
     if (argc > COMMAND_MAX_ARGS) {
         warn("too large argc (%lu) in request message", (unsigned long) argc);
-        server_send_error(client, ERROR_TOOMANY_ARGS, "Too many arguments");
+        client->error(client, ERROR_TOOMANY_ARGS, "Too many arguments");
         return NULL;
     }
     if (length - (p - buffer) < 4 * argc) {
         warn("command data too short");
-        server_send_error(client, ERROR_BAD_COMMAND, "Invalid command token");
+        client->error(client, ERROR_BAD_COMMAND, "Invalid command token");
         return NULL;
     }
     argv = xcalloc(argc + 1, sizeof(struct iovec *));
@@ -252,8 +264,7 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
     while (p <= buffer + length - 4) {
         if (count >= argc) {
             warn("sent more arguments than argc %lu", (unsigned long) argc);
-            server_send_error(client, ERROR_BAD_COMMAND,
-                              "Invalid command token");
+            client->error(client, ERROR_BAD_COMMAND, "Invalid command token");
             goto fail;
         }
         memcpy(&tmp, p, 4);
@@ -261,8 +272,7 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
         p += 4;
         if ((length - (p - buffer)) < arglen) {
             warn("command data invalid");
-            server_send_error(client, ERROR_BAD_COMMAND,
-                              "Invalid command token");
+            client->error(client, ERROR_BAD_COMMAND, "Invalid command token");
             goto fail;
         }
         argv[count] = xmalloc(sizeof(struct iovec));
@@ -278,7 +288,7 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
     }
     if (count != argc || p != buffer + length) {
         warn("argument count differs from arguments seen");
-        server_send_error(client, ERROR_BAD_COMMAND, "Invalid command token");
+        client->error(client, ERROR_BAD_COMMAND, "Invalid command token");
         goto fail;
     }
     argv[count] = NULL;
@@ -287,31 +297,4 @@ server_parse_command(struct client *client, const char *buffer, size_t length)
 fail:
     server_free_command(argv);
     return NULL;
-}
-
-
-/*
- * Send an error back to the client.  Takes the client struct, the error code,
- * and the message to send and dispatches to the appropriate protocol-specific
- * function.  Returns true on success, false on failure.
- */
-bool
-server_send_error(struct client *client, enum error_codes error,
-                  const char *message)
-{
-    struct evbuffer *buf;
-    bool result;
-
-    if (client->protocol > 1)
-        return server_v2_send_error(client, error, message);
-    else {
-        buf = evbuffer_new();
-        if (buf == NULL)
-            die("internal error: cannot create output buffer");
-        if (evbuffer_add_printf(buf, "%s\n", message) < 0)
-            die("internal error: cannot add error message to buffer");
-        result = server_v1_send_output(client, buf, -1);
-        evbuffer_free(buf);
-        return result;
-    }
 }
