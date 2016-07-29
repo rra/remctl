@@ -77,11 +77,12 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 bootstrap			    \
 	docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.pod    \
 	docs/api/remctl_set_timeout.pod docs/design.html docs/extending	    \
 	docs/protocol-v4 docs/protocol.txt docs/protocol.html		    \
-	docs/protocol.xml docs/remctl.pod docs/remctld.8.in		    \
-	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
-	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
-	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf    \
-	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java   \
+	docs/protocol.xml docs/remctl.pod docs/remctl-shell.8.in	    \
+	docs/remctl-shell.pod docs/remctld.8.in docs/remctld.pod	    \
+	examples/remctl.conf examples/remctld.xml examples/rsh-wrapper	    \
+	examples/xinetd java/.classpath java/.project java/Makefile	    \
+	java/README java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf	    \
+	java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java		    \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
@@ -101,11 +102,12 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 bootstrap			    \
 	tests/data/configs/bad-include-1 tests/data/configs/bad-logmask-2   \
 	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4   \
 	tests/data/configs/bad-option-1 tests/data/configs/bad-user-1	    \
-	tests/data/perl.conf tests/data/generate-krb5-conf tests/data/gput  \
+	tests/data/fake-sudo tests/data/perl.conf			    \
+	tests/data/generate-krb5-conf tests/data/gput			    \
 	tests/data/valgrind.supp tests/docs/pod-spelling-t tests/docs/pod-t \
-	tests/perl/module-version-t tests/tap/kerberos.sh		    \
-	tests/tap/libtap.sh tests/tap/perl/Test/RRA.pm			    \
-	tests/tap/perl/Test/RRA/Automake.pm				    \
+	tests/server/shell-misc-t tests/perl/module-version-t		    \
+	tests/tap/kerberos.sh tests/tap/libtap.sh			    \
+	tests/tap/perl/Test/RRA.pm tests/tap/perl/Test/RRA/Automake.pm	    \
 	tests/tap/perl/Test/RRA/Config.pm				    \
 	tests/tap/perl/Test/RRA/ModuleVersion.pm tests/tap/remctl.sh	    \
 	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
