@@ -1,5 +1,17 @@
                        User-Visible remctl Changes
 
+remctl 3.12 (unreleased)
+
+    Add a new server implementation, remctl-shell.  This does not use the
+    remctl protocol; instead, it is meant to be run via ssh by being
+    configured as the shell of a dedicated user.  It interprets a command
+    it was given as a remctl command, using the same configuration and
+    authorization checking as the normal remctl server.  This can be
+    useful to introduce remctl into an environment that has ssh public key
+    authentication instead of Kerberos.  remctl-shell has some significant
+    limitations inherited from ssh and requires some setup to use.  See
+    its manual page for more information.
+
 remctl 3.11 (2016-05-07)
 
     The PHP bindings have been ported to PHP 7, based on work by Nish
