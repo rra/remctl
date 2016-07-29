@@ -260,17 +260,17 @@ install-data-hook:
 	rm -f $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
 	$(LN_S) remctl_open.3 $(DESTDIR)$(man3dir)/remctl_open_sockaddr.3
 
-CLEANFILES = client/libremctl.pc docs/remctld.8 perl/t/lib/Test/RRA.pm	\
-	perl/t/lib/Test/RRA/Automake.pm perl/t/lib/Test/RRA/Config.pm	\
-	stamp-python systemd/remctld.service
+CLEANFILES = client/libremctl.pc docs/remctl-shell.8 docs/remctld.8	   \
+	perl/t/lib/Test/RRA.pm perl/t/lib/Test/RRA/Automake.pm		   \
+	perl/t/lib/Test/RRA/Config.pm stamp-python systemd/remctld.service
 DISTCLEANFILES = perl/Makefile python/MANIFEST
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile		   \
 	build-aux/config.guess build-aux/config.sub build-aux/depcomp	   \
 	build-aux/install-sh build-aux/ltmain.sh build-aux/missing	   \
 	config.h.in config.h.in~ configure docs/api/*.3 docs/protocol.html \
-	docs/protocol.txt docs/remctl.1 docs/remctld.8.in		   \
-	m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4	   \
-	m4/lt~obsolete.m4
+	docs/protocol.txt docs/remctl.1 docs/remctl-shell.8.in		   \
+	docs/remctld.8.in m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4	   \
+	m4/ltversion.m4 m4/lt~obsolete.m4
 
 # Also clean the perl, php, and ruby directories if needed and clean up
 # after Python.
