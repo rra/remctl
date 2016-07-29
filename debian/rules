@@ -28,7 +28,7 @@ override_dh_auto_configure:
 	    --sysconfdir=/etc/remctl					\
 	    --with-systemdsystemunitdir=/lib/systemd/system		\
 	    --enable-reduced-depends --enable-perl --enable-php		\
-	    --enable-python x--enable-ruby
+	    --enable-python --enable-ruby
 
 # Override install to check for missing installed files.  Ignore the Ruby
 # module installed in usr/local/lib by the upstream build system.  Run
