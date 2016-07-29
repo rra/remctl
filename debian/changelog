@@ -1,3 +1,16 @@
+remctl (3.12-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+    - New server implementation, remctl-shell, included in the
+      remctl-server package, which is meant to be run as the shell of a
+      dedicated user via ssh and supports the same configuration as
+      remctld.  (This may eventually move into a separate package; if you
+      would like to see that, file a bug.)
+    - New server configuration option, sudo, which says to change users
+      with sudo when running the command.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 29 Jul 2016 11:39:59 -0700
+
 remctl (3.11-1) unstable; urgency=medium
 
   * New upstream release.
