@@ -19,13 +19,13 @@ set -e
 plan 10
 
 # Check the arguments.
-ok 'argument 1' [ "$1" = '-u' ]
-ok 'argument 2' [ "$2" = 'testuser' ]
-ok 'argument 3' [ "$3" = '--' ]
-ok 'argument 4' [ "$4" = '/some/program' ]
-ok 'argument 5' [ "$5" = 'foo' ]
-ok 'argument 6' [ "$6" = 'bar' ]
-ok 'argument 7' [ "$7" = 'baz' ]
+ok "argument 1: $1" [ "$1" = '-u' ]
+ok "argument 2: $2" [ "$2" = 'testuser' ]
+ok "argument 3: $3" [ "$3" = '--' ]
+ok "argument 4: $4" [ "$4" = '/some/program' ]
+ok "argument 5: $5" [ "$5" = 'foo' ]
+ok "argument 6: $6" [ "$6" = 'bar' ]
+ok "argument 7: $7" [ "$7" = 'baz' ]
 
 # Check standard input.
 ok 'standard input' [ "`cat`" = 'stdin' ]
