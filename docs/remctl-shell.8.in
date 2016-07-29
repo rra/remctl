@@ -227,6 +227,14 @@ user identities that look like Kerberos principal names is strongly
 recommended, since it may make it easier to use some of the \s-1ACL\s0 methods
 intended for the normal remctl server.
 .PP
+Since this relies on setting environment variables via \f(CW\*(C`authorized_keys\*(C'\fR,
+you unfortunately have to enable \f(CW\*(C`PermitUserEnvironment\*(C'\fR in
+\&\fIsshd_config\fR (this is not the default) by adding:
+.PP
+.Vb 1
+\&    PermitUserEnvironment yes
+.Ve
+.PP
 \&\fBremctl-shell\fR will not make use of forwarded connections or agents, and
 will not pass them along to the processes they run, so all such ssh
 options should normally be disabled for defense in depth security.
@@ -398,6 +406,11 @@ normally run as that user and the \f(CW\*(C`user\*(C'\fR configuration option wi
 work.  The easiest way to run commands as other users is to have the
 underlying command use \fBsudo\fR or some other user switching mechanism,
 which will normally require additional local configuration.
+.PP
+User environment setting has to be enabled in \fBsshd\fR by setting the
+non-default \f(CW\*(C`PermitUserEnvironment\*(C'\fR configuration option.  A future
+version of \fBremctl-shell\fR may use forced commands with an argument
+instead of a shell to avoid this.
 .SH "AUTHOR"
 .IX Header "AUTHOR"
 \&\fBremctl-shell\fR was written by Russ Allbery <eagle@eyrie.org>.  Many
