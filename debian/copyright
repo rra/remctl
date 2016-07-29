@@ -159,7 +159,7 @@ Files: portable/asprintf.c portable/daemon.c portable/dummy.c
  tests/portable/inet_ntop-t.c tests/portable/mkstemp-t.c
  tests/portable/setenv-t.c tests/util/buffer-t.c tests/util/vector-t.c
  util/macros.h util/vector.c util/vector.h
-Copyright: no copyright notice, see License
+Copyright: no copyright notice, see License for details
 License: rra-public-domain
  The authors hereby relinquish any claim to any copyright that they may
  have in this work, whether granted under contract or by operation of law
