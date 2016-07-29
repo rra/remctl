@@ -91,7 +91,7 @@ Files: docs/api/remctl.3 docs/api/remctl.pod docs/api/remctl_close.3
  docs/remctl-shell.8.in docs/remctl-shell.pod docs/remctl.1 docs/remctl.pod
  docs/remctld.8.in docs/remctld.pod examples/remctl.conf
  examples/rsh-wrapper java/README php/README python/README ruby/README
- server/README tests/README tests/data/acl-too-long tests/data/conf-simple
+ server/README tests/README tests/data/acl-too-long
  tests/data/conf-simple.in
 Copyright: 2002-2014
     The Board of Trustees of the Leland Stanford Junior University
