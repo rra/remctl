@@ -24,10 +24,11 @@ override_dh_autoreconf:
 	dh_autoreconf --as-needed
 
 override_dh_auto_configure:
-	dh_auto_configure --parallel -- --sysconfdir=/etc/remctl	\
+	dh_auto_configure --parallel -- PATH_SUDO=/usr/bin/sudo		\
+	    --sysconfdir=/etc/remctl					\
 	    --with-systemdsystemunitdir=/lib/systemd/system		\
 	    --enable-reduced-depends --enable-perl --enable-php		\
-	    --enable-python --enable-ruby
+	    --enable-python x--enable-ruby
 
 # Override install to check for missing installed files.  Ignore the Ruby
 # module installed in usr/local/lib by the upstream build system.  Run
