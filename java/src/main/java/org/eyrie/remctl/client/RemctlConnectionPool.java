@@ -22,7 +22,6 @@ public class RemctlConnectionPool extends GenericObjectPool {
     /**
      * Creates a RemctlConnection pool with some intelligent defaults settings.
      * 
-     * <p>
      * <ul>
      * <li>maxWait: 10 seconds</li>
      * <li>minEvictableIdleTimeMillis: 10 minutes</li>

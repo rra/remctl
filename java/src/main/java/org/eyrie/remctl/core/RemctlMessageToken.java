@@ -78,7 +78,7 @@ public abstract class RemctlMessageToken implements RemctlToken {
     /**
      * Writes the type-specific data to <code>DataOutputStream</code>. This method is designed to be overridden by child
      * classes of <code>RemctlMessageToken</code> so that child classes don't have to implement the rest of
-     * {@link #write(OutputStream)}.
+     * {@link #write()}.
      * 
      * @param stream
      *            Output stream to which to write the token data
