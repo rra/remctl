@@ -1,5 +1,15 @@
                        User-Visible remctl Changes
 
+remctl 3.13 (unreleased)
+
+    The summary configuration option is now allowed for commands with
+    subcommands other than ALL.  When generating a help summary (done in
+    response to the command "help" with no arguments), command lines with
+    a subcommand and a summary option will be run with two arguments: the
+    value of the summary option and then the subcommand.  This allows
+    proper generation of command summaries even for users who only have
+    access to a few subcommands of a command.  Patch from Remi Ferrand.
+
 remctl 3.12 (2016-07-29)
 
     Add a new server implementation, remctl-shell.  This does not use the
