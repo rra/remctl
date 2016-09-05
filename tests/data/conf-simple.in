@@ -15,6 +15,9 @@ test sigpipe @abs_top_builddir@/tests/data/cmd-sigpipe ANYUSER
 test-summary ALL @abs_top_srcdir@/tests/data/cmd-help \
     summary=summary \
     help=help ANYUSER
+test-summary-with-subcommand subcommand @abs_top_srcdir@/tests/data/cmd-help \
+    summary=summary \
+    help=help ANYUSER
 empty EMPTY @abs_top_srcdir@/tests/data/cmd-argv ANYUSER
 sudo foo /some/program stdin=3 sudo=testuser ANYUSER
 all ALL @abs_top_srcdir@/tests/data/cmd-hello ANYUSER
