@@ -53,6 +53,8 @@ if [ -z "$hostname" ]; then
     ok 'value for REMOTE_HOST' true
 elif echo "$hostname" | grep -q localhost; then
     ok 'value for REMOTE_HOST' true
+elif echo "$hostname" | grep -q "`hostname`"; then
+    ok 'value for REMOTE_HOST' true
 else
     diag "env REMOTE_HOST: $hostname"
     ok 'value for REMOTE_HOST' false
