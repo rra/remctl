@@ -28,6 +28,11 @@ public class RemctlException extends RuntimeException {
 
     /**
      * {@link RuntimeException#RuntimeException(String, Throwable)}.
+     *
+     * @param msg
+     *            The detail message
+     * @param t
+     *            The root cause
      */
     public RemctlException(final String msg, final Throwable t) {
         super(msg, t);

@@ -14,13 +14,13 @@ import org.slf4j.LoggerFactory;
  * Allows invoking the Java remctl client from the command line.
  * <p>
  * During development this can be run with
+ * </p>
  * 
  * <pre>
  * mvn exec:java -Djava.security.auth.login.config=gss_jaas.conf \
  *  -Dexec.mainClass=org.eyrie.remctl.client.RemctlClientCli -Dexec.args="[args]"
  * </pre>
  * 
- * </p>
  * <p>
  * Java and Keberos sometimes don't get along together. Here are some things to try:
  * 
