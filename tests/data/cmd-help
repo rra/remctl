@@ -5,7 +5,7 @@ help)
     subhelp)    echo "subhelp text" ;;
     *)          echo "help text" ;;
     esac ;;
-summary) 
+summary)
     case "$2" in
     subcommand) echo "subcommand summary" ;;
     *)          echo "summary text" ;;

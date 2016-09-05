@@ -2,6 +2,7 @@
  * Test suite for the server using the summary command.
  *
  * Written by Jon Robertson <jonrober@stanford.edu>
+ * Copyright 2016 Russ Allbery <eagle@eyrie.org>
  * Copyright 2012, 2013, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -25,6 +26,7 @@ main(void)
     struct kerberos_config *config;
     struct remctl_result *result;
     struct process *remctld;
+    const char *expected;
     const char *test[] = { "help", NULL };
 
     /* Unless we have Kerberos available, we can't really do anything. */
@@ -44,7 +46,8 @@ main(void)
     if (result->stdout_buf == NULL)
         ok(0, "...and correct data");
     else {
-        ok(memcmp("summary text\nsubcommand summary\n", result->stdout_buf, 32) == 0,
+        expected = "summary text\nsubcommand summary\n";
+        ok(memcmp(expected, result->stdout_buf, 32) == 0,
            "...and correct data");
     }
     is_string(NULL, result->error, "...and no error");

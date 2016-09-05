@@ -93,6 +93,7 @@ server_send_summary(struct client *client, struct config *config)
 {
     char *path = NULL;
     char *program;
+    const char *subcommand;
     struct rule *rule = NULL;
     size_t i;
     char **req_argv = NULL;
@@ -126,7 +127,8 @@ server_send_summary(struct client *client, struct config *config)
         /*
          * Get the real program name, and use it as the first argument in
          * argv passed to the command.  Then add the summary command to the
-         * argv and pass off to be executed.
+         * argv.  If a subcommand is also specified, add that as an argument
+         * after the summary command.
          */
         path = rule->program;
         req_argv = xcalloc(4, sizeof(char *));
@@ -135,26 +137,16 @@ server_send_summary(struct client *client, struct config *config)
             program = path;
         else
             program++;
-	
         req_argv[0] = program;
         req_argv[1] = rule->summary;
-
-        if ( (strcmp(rule->subcommand, "ALL") == 0) 
-            || (strcmp(rule->subcommand, "EMPTY") == 0) )
-        {
+        subcommand = rule->subcommand;
+        if (strcmp(subcommand, "ALL") == 0 || strcmp(subcommand, "EMPTY") == 0)
             req_argv[2] = NULL;
-        }
-        else {
-            /*
-             * Github issue #3:
-             * If a subcommand is specified, use it
-             * to create a subcommand specialized summary.
-             */
-            req_argv[2] = rule->subcommand;
-        }
-        
+        else
+            req_argv[2] = subcommand;
         req_argv[3] = NULL;
 
+        /* Pass the command off to be executed. */
         process.command = rule->summary;
         process.argv = req_argv;
         process.rule = rule;
