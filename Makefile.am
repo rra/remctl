@@ -12,8 +12,12 @@
 # situations and aren't normally set.  We want to honor them if they're set
 # in the environment, as well as via make arguments.
 #
-# REMCTL_PERL_FLAGS are additional flags to pass to Makefile.PL when
-# building the Makefile.
+# REMCTL_PROGRAM_CFLAGS and REMCTL_PROGRAM_LDFLAGS are additional flags to
+# pass to the builds of programs (remctld, remctl, remctl-shell) but not
+# libraries.  This is provided as a hook to pass -fPIE for hardening.
+#
+# REMCTL_PERL_FLAGS are additional flags to pass to Build.PL when building
+# the Makefile.
 #
 # REMCTL_PYTHON_INSTALL adds additional flags to the setup.py install
 # command.  REMCTL_PYTHON_VERSIONS, if set, is a space-separated list of
@@ -24,6 +28,8 @@
 # REMCTL_RUBY controls which Ruby interpretor is used to do the build.
 # REMCTL_RUBY_FLAGS are additional flags to pass to extconf.rb when building
 # the Makefile.
+REMCTL_PROGRAM_CFLAGS  ?=
+REMCTL_PROGRAM_LDFLAGS ?=
 REMCTL_PERL_FLAGS      ?=
 REMCTL_PYTHON_INSTALL  ?=
 REMCTL_PYTHON_VERSIONS ?= python
@@ -181,9 +187,11 @@ client/libremctl.pc: $(srcdir)/client/libremctl.pc.in
 
 # The remctl command-line client.
 bin_PROGRAMS = client/remctl
+client_remctl_CFLAGS = $(REMCTL_PROGRAM_CFLAGS) $(AM_CFLAGS)
 client_remctl_SOURCES = client/remctl.c
 client_remctl_LDADD = client/libremctl.la util/libutil.la \
 	portable/libportable.la
+client_remctl_LDFLAGS = $(REMCTL_PROGRAM_LDFLAGS) $(AM_LDFLAGS)
 
 # The remctld and remctl-shell servers.  We include portable/event-extra.c
 # directly in the sources for the server instead of including it in
@@ -199,8 +207,10 @@ server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	  \
 	-DPATH_SUDO='"$(PATH_SUDO)"' $(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS)  \
 	$(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS)		  \
 	$(SYSTEMD_CFLAGS)
+server_remctld_CFLAGS = $(REMCTL_PROGRAM_CFLAGS) $(AM_CFLAGS)
 server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
-	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
+	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS) $(REMCTL_PROGRAM_LDFLAGS)	   \
+	$(AM_LDFLAGS)
 server_remctld_LDADD = util/libutil.la portable/libportable.la	\
 	$(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)	\
 	$(LIBEVENT_LIBS) $(SYSTEMD_LIBS)
@@ -211,8 +221,10 @@ server_remctl_shell_SOURCES = portable/event-extra.c server/commands.c	\
 server_remctl_shell_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\" \
 	-DPATH_SUDO='"$(PATH_SUDO)"' $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)	   \
 	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS)
-server_remctl_shell_LDFLAGS = $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
-	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
+server_remctl_shell_CFLAGS = $(REMCTL_PROGRAM_CFLAGS) $(AM_CFLAGS)
+server_remctl_shell_LDFLAGS = $(KRB5_LDFLAGS) $(GPUT_LDFLAGS)		\
+	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS) $(REMCTL_PROGRAM_LDFLAGS)	\
+	$(AM_LDFAGS)
 server_remctl_shell_LDADD = util/libutil.la portable/libportable.la \
 	$(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
 

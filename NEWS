@@ -10,6 +10,15 @@ remctl 3.13 (unreleased)
     proper generation of command summaries even for users who only have
     access to a few subcommands of a command.  Patch from Remi Ferrand.
 
+    The build system now supports new REMCTL_PROGRAM_CFLAGS and
+    REMCTL_PROGRAM_LDFLAGS variables that can be set at build time to pass
+    in additional arguments when compiling and linking programs (like
+    remctl and remctld) but not libraries and, more importantly, language
+    bindings.  This can be used in distribution builds to pass in -fPIE
+    for additional binary hardening.  (CFLAGS and LDFLAGS cannot be used
+    since -fPIE breaks the builds of the dynamic modules for langauges
+    like Perl.)
+
     Update to rra-c-util 6.1:
 
     * Correct return-value checks for snprintf.
