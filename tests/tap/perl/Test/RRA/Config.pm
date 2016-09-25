@@ -34,7 +34,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '6.00';
+    $VERSION = '6.01';
 }
 
 # If C_TAP_BUILD or C_TAP_SOURCE are set in the environment, look for
@@ -43,7 +43,7 @@ BEGIN {
 # Perl tests embedded in a larger distribution.  Don't use Test::RRA::Automake
 # since it may not exist.
 our $PATH;
-for my $base ($ENV{C_TAP_BUILD}, $ENV{C_TAP_SOURCE}, 't', 'tests') {
+for my $base ($ENV{C_TAP_BUILD}, $ENV{C_TAP_SOURCE}, './t', './tests') {
     next if !defined($base);
     my $path = "$base/data/perl.conf";
     if (-r $path) {
@@ -70,7 +70,7 @@ our @STRICT_PREREQ;
 # Load the configuration.
 if (!do($PATH)) {
     my $error = $@ || $! || 'loading file did not return true';
-    BAIL_OUT("cannot load data/perl.conf: $error");
+    BAIL_OUT("cannot load $PATH: $error");
 }
 
 1;

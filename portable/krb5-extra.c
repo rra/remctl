@@ -49,7 +49,10 @@
  * This string is returned for unknown error messages.  We use a static
  * variable so that we can be sure not to free it.
  */
+#if !defined(HAVE_KRB5_GET_ERROR_MESSAGE) \
+    || !defined(HAVE_KRB5_FREE_ERROR_MESSAGE)
 static const char error_unknown[] = "unknown error";
+#endif
 
 
 #ifndef HAVE_KRB5_GET_ERROR_MESSAGE

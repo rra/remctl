@@ -21,7 +21,7 @@
 
 #include <tests/tap/basic.h>
 
-const char *test_inet_ntoa(const struct in_addr);
+char *test_inet_ntoa(struct in_addr);
 
 
 static void

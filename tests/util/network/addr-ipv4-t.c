@@ -136,7 +136,7 @@ main(void)
     flaglen = sizeof(flag);
     is_int(0, getsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &flag, &flaglen),
            "Getting SO_REUSEADDR works");
-    is_int(1, flag, "...and it is set");
+    ok(flag, "...and it is set");
 #else
     skip_block(2, "SO_REUSEADDR not supported");
 #endif

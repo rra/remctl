@@ -10,6 +10,11 @@ remctl 3.13 (unreleased)
     proper generation of command summaries even for users who only have
     access to a few subcommands of a command.  Patch from Remi Ferrand.
 
+    Update to rra-c-util 6.1:
+
+    * Correct return-value checks for snprintf.
+    * Adjust Test::RRA::Config for new load path behavior in Perl 5.22.2.
+
 remctl 3.12 (2016-07-29)
 
     Add a new server implementation, remctl-shell.  This does not use the
