@@ -47,4 +47,5 @@ main(void)
     server_ssh_free_client(client);
     server_config_free(config);
     libevent_global_shutdown();
+    return 0;
 }
