@@ -67,7 +67,7 @@ PERL_DIRECTORIES = perl perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
 	perl/t/lib/Test perl/t/style
 
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = .gitignore LICENSE Makefile.w32 bootstrap			    \
+EXTRA_DIST = .gitignore .travis.yaml LICENSE Makefile.w32 bootstrap	    \
 	client/libremctl.pc.in client/libremctl.map client/libremctl.rc	    \
 	client/libremctl.sym client/remctl.rc config.h.w32 configure.cmd    \
 	docs/api/remctl.pod docs/api/remctl_close.pod			    \

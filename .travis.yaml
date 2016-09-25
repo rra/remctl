@@ -1,0 +1,16 @@
+sudo: required
+dist: trusty
+
+language: c
+compiler:
+  - gcc
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y libevent-dev libkrb5-dev libmodule-build-perl libpcre3-dev libsystemd-dev libtest-pod-perl libtest-minimumversion-perl libtest-pod-coverage-perl libtest-strict-perl libtest-synopsis-perl perl php-cli pkg-config python-all-dev ruby-all-dev
+env: AUTHOR_TESTING=1
+script: ./autogen && ./configure --with-perl --with-php --with-python --with-ruby && make warnings && make check
+
+branches:
+  only:
+    - master
