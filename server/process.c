@@ -281,13 +281,15 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
 
         /*
          * Run the command.  On error, we intentionally don't reveal
-         * information about the command we ran.
+         * information about the command we ran.  We have to cast away const
+         * because the prototype for execv is historically incorrect even
+         * though it doesn't modify its arguments.
          */
         if (process->rule->sudo_user == NULL)
             argv0 = process->rule->program;
         else
             argv0 = PATH_SUDO;
-        if (execv(argv0, process->argv) < 0)
+        if (execv(argv0, (char **) process->argv) < 0)
             sysdie("cannot execute command");
         break;
 

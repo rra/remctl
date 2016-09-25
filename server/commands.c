@@ -96,7 +96,7 @@ server_send_summary(struct client *client, struct config *config)
     const char *subcommand;
     struct rule *rule = NULL;
     size_t i;
-    char **req_argv = NULL;
+    const char **req_argv = NULL;
     bool ok_any = false;
     int status_all = 0;
     struct process process;
@@ -447,7 +447,7 @@ server_run_command(struct client *client, struct config *config,
 
     /* Now actually execute the program. */
     process.command = command;
-    process.argv = req_argv;
+    process.argv = (const char **) req_argv;
     process.rule = rule;
     ok = server_process_run(&process);
     if (ok) {
