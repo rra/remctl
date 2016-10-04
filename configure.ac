@@ -26,7 +26,7 @@ dnl AM_PROG_AR is required for Automake 1.12 by Libtool but not defined at all
 dnl (or needed) in Automake 1.11.  Work around this bug.
 AC_PROG_CC
 AC_USE_SYSTEM_EXTENSIONS
-RRA_PROG_CC_CLANG
+RRA_PROG_CC_WARNINGS_FLAGS
 AC_SYS_LARGEFILE
 AM_PROG_CC_C_O
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])

@@ -274,9 +274,11 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
             if (initgroups(process->rule->user, process->rule->gid) != 0)
                 sysdie("cannot initgroups for %s\n", process->rule->user);
             if (setgid(process->rule->gid) != 0)
-                sysdie("cannot setgid to %d\n", process->rule->gid);
+                sysdie("cannot setgid to %lu\n",
+                       (unsigned long) process->rule->gid);
             if (setuid(process->rule->uid) != 0)
-                sysdie("cannot setuid to %d\n", process->rule->uid);
+                sysdie("cannot setuid to %lu\n",
+                       (unsigned long) process->rule->uid);
         }
 
         /*

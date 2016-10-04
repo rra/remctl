@@ -19,7 +19,7 @@
 /*
  * Check a struct iovec against a string.
  */
-static bool
+static bool __attribute__((__format__(printf, 3, 4)))
 is_iovec_string(const char *wanted, const struct iovec *seen,
                 const char *format, ...)
 {

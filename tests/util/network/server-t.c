@@ -404,7 +404,7 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
         fd = fds[i];
         if (listen(fd, 1) < 0)
             sysbail("cannot listen to socket %d", fd);
-        ok(fd != INVALID_SOCKET, "all address server test (part %d)", i + 1);
+        ok(fd != INVALID_SOCKET, "all address server test (part %u)", i + 1);
 
         /* Get the socket type to determine what type of client to run. */
         saddr = get_sockaddr(fd);

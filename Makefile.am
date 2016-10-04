@@ -322,23 +322,6 @@ distclean-local: clean-local
 	    cd ruby && $(MAKE) distclean ;		\
 	fi
 
-# A set of flags for warnings.  Add -O because gcc won't find some warnings
-# without optimization turned on.  Desirable warnings that can't be turned
-# on due to other problems:
-#
-#     -Wconversion	http://bugs.debian.org/488884 (htons warnings)
-#
-# Last checked against gcc 4.8.2 (2014-04-12).  -D_FORTIFY_SOURCE=2 enables
-# warn_unused_result attribute markings on glibc functions on Linux, which
-# catches a few more issues.
-WARNINGS = -g -O -fstrict-overflow -fstrict-aliasing -D_FORTIFY_SOURCE=2    \
-	-Wall -Wextra -Wendif-labels -Wformat=2 -Winit-self -Wswitch-enum   \
-	-Wstrict-overflow=5 -Wfloat-equal -Wdeclaration-after-statement	    \
-	-Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align	    \
-	-Wwrite-strings -Wjump-misses-init -Wlogical-op -Wstrict-prototypes \
-	-Wold-style-definition -Wmissing-prototypes -Wnormalized=nfc	    \
-	-Wpacked -Wredundant-decls -Wnested-externs -Winline -Wvla -Werror
-
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code otherwise generates them.
 PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs			\
@@ -352,13 +335,13 @@ PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
 
 warnings:
-	$(MAKE) V=0 CFLAGS='$(WARNINGS)'		\
-	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)'	\
-	    PERL_CFLAGS_EXTRA='$(PERL_WARNINGS)'	\
-	    PHP_CFLAGS_EXTRA='$(PHP_WARNINGS)'		\
-	    PYTHON_CFLAGS_EXTRA='$(PYTHON_WARNINGS)'	\
+	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
+	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)'		\
+	    PERL_CFLAGS_EXTRA='$(PERL_WARNINGS)'		\
+	    PHP_CFLAGS_EXTRA='$(PHP_WARNINGS)'			\
+	    PYTHON_CFLAGS_EXTRA='$(PYTHON_WARNINGS)'		\
 	    RUBY_CFLAGS_EXTRA='$(RUBY_WARNINGS)'
-	$(MAKE) V=0 CFLAGS='$(WARNINGS)' \
+	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)' \
 	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
