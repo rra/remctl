@@ -251,7 +251,8 @@ man_MANS = docs/remctl-shell.8 docs/remctld.8
 # Substitute the system configuration path into the manual page.
 docs/remctl-shell.8: $(srcdir)/docs/remctl-shell.8.in
 	[ -d docs ] || mkdir docs
-	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \
+	sed -e 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%'	\
+	    -e 's%\(\\f(CI\)*\@sbindir\(\\fI\)*\@%$(sbindir)%'		\
 	    < $(srcdir)/docs/remctl-shell.8.in > $@
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
 	[ -d docs ] || mkdir docs

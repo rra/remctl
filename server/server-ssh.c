@@ -6,6 +6,7 @@
  * configuration and command running code.
  *
  * Written by Russ Allbery
+ * Copyright 2016 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
  *
  * See LICENSE for licensing terms.
@@ -226,13 +227,15 @@ send_error(struct client *client, enum error_codes code UNUSED,
 /*
  * Create a client struct for a remctl-shell invocation based on the ssh
  * environment.  Abort here if the expected ssh environment variables aren't
- * set.  Caller is responsible for freeing the allocated client struct.
+ * set.  Caller is responsible for freeing the allocated client struct.  If
+ * the provided user is not NULL, the user is taken from the REMCTL_USER
+ * environment variable.
  */
 struct client *
-server_ssh_new_client(void)
+server_ssh_new_client(const char *user)
 {
     struct client *client;
-    const char *ssh_client, *user;
+    const char *ssh_client;
     struct vector *client_info;
     struct addrinfo hints;
     struct addrinfo *result;
@@ -240,7 +243,8 @@ server_ssh_new_client(void)
     int status;
 
     /* Parse client identity from ssh environment variables. */
-    user = getenv("REMCTL_USER");
+    if (user == NULL)
+        user = getenv("REMCTL_USER");
     if (user == NULL)
         die("REMCTL_USER must be set in the environment via authorized_keys");
     ssh_client = getenv("SSH_CONNECTION");

@@ -9,6 +9,7 @@
  * This file handles parsing of the user's command and the main control flow.
  *
  * Written by Russ Allbery
+ * Copyright 2016 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
  *
  * See LICENSE for licensing terms.
@@ -27,7 +28,8 @@
 
 /* Usage message. */
 static const char usage_message[] = "\
-Usage: remctl-shell [-dhS] -c <command>\n\
+Usage: remctl-shell [-dhqSv] [-f <file>] -c <command>\n\
+       remctl-shell [-dqS] [-f <file>] <user>\n\
 \n\
 Options:\n\
     -c <command>  Specifies the command to run\n\
@@ -38,9 +40,9 @@ Options:\n\
     -S            Log to standard output/error rather than syslog\n\
     -v            Display the version of remctld\n\
 \n\
-This is meant to be used as the shell for a dedicated account and handles\n\
-incoming commands via ssh.  It must be run under ssh or with the same\n\
-environment variables ssh would set.\n\
+This is meant to be used as the shell or forced command for a dedicated\n\
+account, and handles incoming commands via ssh.  It must be run under ssh\n\
+or with the same environment variables ssh would set.\n\
 \n\
 Supported ACL methods: file, princ, deny";
 
@@ -87,6 +89,7 @@ main(int argc, char *argv[])
     bool quiet = false;
     struct sigaction sa;
     const char *command_string = NULL;
+    const char *user = NULL;
     const char *config_path = CONFIG_FILE;
     struct iovec **command;
     struct client *client;
@@ -139,8 +142,26 @@ main(int argc, char *argv[])
             break;
         }
     }
-    if (command_string == NULL)
-        die("no command specified");
+    argc -= optind;
+    argv += optind;
+
+    /*
+     * If no command string was specified, the user must be specified as a
+     * command-line argument and we'll get the command string from the
+     * SSH_ORIGINAL_COMMAND environment variable.  If a command string was
+     * specified, there must be no argument.
+     */
+    if (command_string == NULL) {
+        if (argc != 1)
+            usage(1);
+        user = argv[0];
+        command_string = getenv("SSH_ORIGINAL_COMMAND");
+        if (command_string == NULL)
+            die("SSH_ORIGINAL_COMMAND not set in the environment");
+    } else {
+        if (argc > 0)
+            usage(1);
+    }
 
     /* Set up logging. */
     if (log_stdout) {
@@ -163,7 +184,7 @@ main(int argc, char *argv[])
         die("cannot read configuration file %s", config_path);
 
     /* Create the client struct based on the ssh environment. */
-    client = server_ssh_new_client();
+    client = server_ssh_new_client(user);
 
     /* Parse and execute the command. */
     command = server_ssh_parse_command(command_string);

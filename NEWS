@@ -2,6 +2,11 @@
 
 remctl 3.13 (unreleased)
 
+    remctl-shell now also supports being run as a forced command from
+    authorized_keys (or other methods).  This may be preferrable to using
+    it as a shell since it doesn't require setting non-standard sshd
+    options.
+
     The summary configuration option is now allowed for commands with
     subcommands other than ALL.  When generating a help summary (done in
     response to the command "help" with no arguments), command lines with

@@ -184,7 +184,7 @@ bool server_v2_send_error(struct client *, enum error_codes, const char *);
 void server_v2_handle_messages(struct client *, struct config *);
 
 /* ssh protocol functions. */
-struct client *server_ssh_new_client(void);
+struct client *server_ssh_new_client(const char *user);
 void server_ssh_free_client(struct client *);
 struct iovec **server_ssh_parse_command(const char *);
 
