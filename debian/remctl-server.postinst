@@ -1,0 +1,16 @@
+#! /bin/sh
+# postinst script for remctl
+
+set -e
+
+if [ "$1" = "configure" ] || [ "$1" = "reconfigure" ] ; then
+    # Only try to add the inetd line on an initial installation.
+    if [ -z "$2" ] || [ x"$2" = x"<unknown>" ] ; then
+        update-inetd --add \
+        'remctl\t\tstream\ttcp\tnowait\troot\t/usr/sbin/tcpd /usr/sbin/remctld'
+    fi
+fi
+
+#DEBHELPER#
+
+exit 0

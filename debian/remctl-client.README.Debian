@@ -1,0 +1,14 @@
+remctl-client for Debian
+------------------------
+
+This package contains only the remctl command-line client.  For usage
+information, see the man page.  For the remctld server, install the
+remctl-server package.  The Perl interface to the remctl library is
+available as the libnet-remctl-perl package.
+
+The remctl Java client isn't included in this package since it requires
+the (currently non-free) Sun Java JDK.  You can get it from the source
+package.  Run apt-get source remctl-client and then look in the java
+subdirectory.
+
+ -- Russ Allbery <rra@debian.org>, Sun, 26 Aug 2007 13:38:38 -0700
