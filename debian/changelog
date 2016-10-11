@@ -5,6 +5,7 @@ remctl (3.13-1) UNRELEASED; urgency=medium
     - The summary configuration option is now allowed for commands with
       subcommands other than ALL, passing in two arguments to the summary
       command.
+  * Build the standalone binaries with -fPIE.
 
  -- Russ Allbery <rra@debian.org>  Mon, 10 Oct 2016 19:23:31 -0700
 
