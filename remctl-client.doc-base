@@ -1,0 +1,15 @@
+Document: remctl-protocol
+Title: remctl Protocol
+Author: Russ Allbery
+Abstract: Describes the remctl wire protocol, used to send commands and
+ arguments to a remote system and receive the results of executing that
+ command.  This protocol uses GSS-API and Kerberos v5 for authentication,
+ confidentiality, and integrity protection.
+Section: Network/Communication
+
+Format: HTML
+Index: /usr/share/doc/remctl-client/protocol.html
+Files: /usr/share/doc/remctl-client/protocol.html
+
+Format: Text
+Files: /usr/share/doc/remctl-client/protocol.txt.gz
