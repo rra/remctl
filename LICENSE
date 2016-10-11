@@ -110,6 +110,27 @@ License: all-permissive
  this notice are preserved.  This file is offered as-is, without any
  warranty.
 
+Files: m4/cc-flags.m4 m4/socket.m4 portable/socket.h util/buffer.c
+ util/buffer.h util/fdflag.c util/fdflag.h util/messages.c util/messages.h
+ util/network.c util/network.h util/xmalloc.c util/xmalloc.h util/xwrite.c
+ util/xwrite.h
+Copyright: 1991, 1994-2003 The Internet Software Consortium and Rich Salz
+  2004-2010, 2016 Internet Systems Consortium, Inc.
+  2008-2014 The Board of Trustees of the Leland Stanford Junior University
+  2014-2016 Russ Allbery <eagle@eyrie.org>
+License: ISC
+ Permission to use, copy, modify, and distribute this software for any
+ purpose with or without fee is hereby granted, provided that the above
+ copyright notice and this permission notice appear in all copies.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
+ SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
 Files: m4/clang.m4 m4/gput.m4 m4/gssapi.m4 m4/inet-ntoa.m4
  m4/krb5-config.m4 m4/krb5.m4 m4/ld-version.m4 m4/lib-depends.m4
  m4/lib-helper.m4 m4/lib-pathname.m4 m4/libevent.m4 m4/pcre.m4
@@ -129,26 +150,6 @@ License: FSF-unlimited, and GPL-2+ with Libtool exception or Expat
 Files: m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 m4/lt~obsolete.m4
 Copyright: 2004-2005, 2007-2009, 2011-2015 Free Software Foundation, Inc.
 License: FSF-unlimited
-
-Files: m4/socket.m4 portable/socket.h util/buffer.c util/buffer.h
- util/fdflag.c util/fdflag.h util/messages.c util/messages.h util/network.c
- util/network.h util/xmalloc.c util/xmalloc.h util/xwrite.c util/xwrite.h
-Copyright: 1991, 1994-2003 The Internet Software Consortium and Rich Salz
-  2004-2010 Internet Systems Consortium, Inc.
-  2008-2014 The Board of Trustees of the Leland Stanford Junior University
-  2014-2016 Russ Allbery <eagle@eyrie.org>
-License: ISC
- Permission to use, copy, modify, and distribute this software for any
- purpose with or without fee is hereby granted, provided that the above
- copyright notice and this permission notice appear in all copies.
- .
- THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
- REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
- SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 Files: portable/asprintf.c portable/daemon.c portable/dummy.c
  portable/event-extra.c portable/event.h portable/getaddrinfo.c

@@ -3,7 +3,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
- * Copyright 2015 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006, 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -114,8 +114,8 @@ struct process {
     struct client *client;      /* Pointer to corresponding remctl client. */
 
     /* Command input. */
-    char *command;              /* The remctl command run by the user. */
-    char **argv;                /* argv for running the command. */
+    const char *command;        /* The remctl command run by the user. */
+    const char **argv;          /* argv for running the command. */
     struct rule *rule;          /* Configuration rule for the command. */
     struct evbuffer *input;     /* Buffer of input to process. */
 
@@ -184,7 +184,7 @@ bool server_v2_send_error(struct client *, enum error_codes, const char *);
 void server_v2_handle_messages(struct client *, struct config *);
 
 /* ssh protocol functions. */
-struct client *server_ssh_new_client(void);
+struct client *server_ssh_new_client(const char *user);
 void server_ssh_free_client(struct client *);
 struct iovec **server_ssh_parse_command(const char *);
 

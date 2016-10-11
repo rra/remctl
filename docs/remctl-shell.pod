@@ -1,5 +1,5 @@
 =for stopwords
-remctl -dhqSv ACL Allbery GSS-API REMUSER nul remctld sshd subcommand
+remctl -dqS -dhqSv ACL Allbery GSS-API REMUSER nul remctld sshd subcommand
 
 =head1 NAME
 
@@ -9,15 +9,17 @@ remctl-shell - Restricted shell that mimics a remctl server
 
 remctl-shell [B<-dhqSv>] [B<-f> I<config>] B<-c> I<command>
 
+remctl-shell [B<-dqS>] [B<-f> I<config>] I<user>
+
 =head1 DESCRIPTION
 
 B<remctl-shell> is a restricted shell that mimics the behavior of the
 B<remctld> server without using the remctl protocol, GSS-API, or Kerberos.
-It's intended to be run via ssh as the shell for a special user (by
-convention, C<remctl>, although the shell itself doesn't care), with an
-F<authorized_keys> file that specifies the user identity corresponding to
-each key that is allowed to run remctl commands.  All access control then
-works as normal.
+It's intended to be run via ssh as either the shell or the forced command
+for a special user (by convention, C<remctl>, although B<remctl-shell>
+doesn't care), with an F<authorized_keys> file that specifies the user
+identity corresponding to each key that is allowed to run remctl commands.
+All access control then works as normal.
 
 The output of the command ran is returned on standard output and standard
 error, like a normal command run via ssh, and the exit status of
@@ -37,8 +39,9 @@ Since B<remctl-shell> is designed to be run by a potentially untrusted
 user as a shell, normally all error messages and logging is done via
 syslog and not sent to standard error.  See the B<-S>, B<-d>, and B<-q>
 options when running it manually to debug problems.  (When running
-manually, you will also normally need to set the REMCTL_USER and
-SSH_CONNECTION environment variables.)
+manually, you will also normally need to set the SSH_CONNECTION
+environment variable and either REMCTL_USER or SSH_ORIGINAL_COMMAND
+depending on how you invoke it.)
 
 =head2 Quoting and Command Limitations
 
@@ -71,24 +74,56 @@ creating the command to send to the remote server.  It may be less
 confusing to get in the habit of quoting the entire command.
 
 Also be aware that the full command is passed via command line arguments,
-which means there is a tight limit on the length of the whole command plus
-arguments.  Expect to have problems if the total command length exceeds
-1000 characters.  For the same reason, binary data including nul
-characters cannot be passed via B<remctl-shell>.  (The regular remctl
-protocol supports arbitrary-length arguments, limited only by server-side
-configuration and available server memory, and supports arbitrary binary
-data in arguments.)
+which means, when invoking B<remctl-shell> as a shell, there is a tight
+limit on the length of the whole command plus arguments.  Expect to have
+problems if the total command length exceeds 1000 characters.  For the
+same reason, binary data including nul characters cannot be passed via
+B<remctl-shell>.  Invoking it as a forced command may work around these
+limitations by putting the command into the environment instead, but there
+may still be restrictions on that.  (The regular remctl protocol supports
+arbitrary-length arguments, limited only by server-side configuration and
+available server memory, and supports arbitrary binary data in arguments.)
 
 =head2 C<authorized_keys> Configuration
 
 B<remctl-shell> is intended for use via ssh using C<authorized_keys> to
 manage authentication.  (If you have Kerberos available, it's generally
 better to use the normal B<remctld> server and native remctl protocol.)
-The C<authorized_keys> configuration must be set up to associate each key
-with an identity by setting the REMCTL_USER environment variable.  Using
-user identities that look like Kerberos principal names is strongly
-recommended, since it may make it easier to use some of the ACL methods
-intended for the normal remctl server.
+
+There are two ways to set up B<remctl-shell>: either by specifying forced
+commands, or by configuring B<remctl-shell> as the shell of the account.
+The forced command approach is recommended, since it doesn't require
+setting a non-default F<sshd_config> option.
+
+=head3 Using forced commands
+
+For the role account that you want to use to run remctl commands
+(C<remctl> by convention), create an F<authorized_keys> file listing
+everyone who should be able to run commands.  Before each key, set the
+C<command> option like the below:
+
+    command="@sbindir@/remctl-shell example@EXAMPLE.ORG"
+
+where the argument to B<remctl-shell> is the identity matching the ssh key
+on that line.  A more complete example of a line in F<authorized_keys>:
+
+    command=="@sbindir@/remctl-shell example@EXAMPLE.ORG",\
+    no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,\
+    no-X11-forwarding ssh-rsa AAAAB3NzaC1yc2EA... \
+    example@some-host.example.org
+
+Backslashes and line breaks were added for clarity.  The actual entry
+should be a single long line.  For more information on the other settings
+here, see L<Examples> below.
+
+=head3 Using a shell
+
+When running B<remctl-shell> as the shell of the account, instead of using
+forced commands, the F<authorized_keys> configuration must be set up to
+associate each key with an identity by setting the REMCTL_USER environment
+variable.  Using user identities that look like Kerberos principal names
+is strongly recommended, since it may make it easier to use some of the
+ACL methods intended for the normal remctl server.
 
 Since this relies on setting environment variables via C<authorized_keys>,
 you unfortunately have to enable C<PermitUserEnvironment> in
@@ -96,9 +131,13 @@ F<sshd_config> (this is not the default) by adding:
 
     PermitUserEnvironment yes
 
+=head3 Other options
+
 B<remctl-shell> will not make use of forwarded connections or agents, and
 will not pass them along to the processes they run, so all such ssh
 options should normally be disabled for defense in depth security.
+
+=head3 Examples
 
 Here is a recommended line in C<authorized_keys> for the account managed
 by B<remctl-shell>, with appropriate restrictions and an example of how to
@@ -121,10 +160,12 @@ pair, as used in the ACLs in your remctl configuration.
 
 =head1 OPTIONS
 
-B<remctl-shell> is normally only run with the B<-c> option since it's
-intended for use as a shell.  However, it does support some other options
-for testing, and one can use a small wrapper program as the configured
-shell that passes additional options into B<remctl-shell> if needed.
+B<remctl-shell> is normally only run with either the B<-c> option or with
+a user, since it's intended for use as a shell or forced command.
+However, it does support some other options for testing, which may be
+useful in F<authorized_keys>.  If using it as a shell, one can use a small
+wrapper program as the configured shell that passes additional options
+into B<remctl-shell> if needed.
 
 The start of each option description is annotated with the version of
 B<remctl-shell> in which that option was added with its current meaning.
@@ -138,8 +179,9 @@ B<remctl-shell>.  B<remctl-shell> will then parse it into separate
 arguments using an algorithm similar to that used by a shell.  See the
 above discussion of quoting for more information.
 
-The start of each option description is annotated with the version of
-B<remctl-shell> in which that option was added with its current meaning.
+This is mandatory when using B<remctl-shell> as a shell.  If using it as a
+forced command, pass the user on the command line instead and do not use
+this option.
 
 =item B<-d>
 
@@ -185,11 +227,12 @@ when it is invoked, or it exits with an error and doesn't do anything.
 
 =item REMCTL_USER
 
-The user used for logging and to make authorization decisions.  The
-security of all B<remctl-shell> authorization checks is based on the
-accuracy of this environment variable, so be sure that it is set
-correctly.  The best way to do this is via C<environment> stanzas in
-F<authorized_keys> as described above.
+The user used for logging and to make authorization decisions, unless that
+was passed on the command line.  The security of all B<remctl-shell>
+authorization checks is based on the accuracy of this environment
+variable, so be sure that it is set correctly.  The best way to do this is
+via C<environment> stanzas in F<authorized_keys> as described above.  If
+the user is passed on the command line, this is ignored.
 
 =item SSH_CONNECTION
 
@@ -198,6 +241,11 @@ the local and remote IP addresses and ports of the ssh connection.
 B<remctl-shell> expects the first space-separated token in this
 environment variable to be the IP address of the client.  It then uses
 that to set REMOTE_ADDR in the environment of any commands it runs.
+
+=item SSH_ORIGINAL_COMMAND
+
+When run as a forced command, the command run by the user is taken from
+this environment variable, which is set by B<sshd>.
 
 =back
 
@@ -251,15 +299,20 @@ Note that REMOTE_HOST is not set by B<remctl-shell>, at least currently.
 
 =head1 EXAMPLES
 
-Typically, B<remctl-shell> will be set as the shell for a dedicated user,
-normally C<remctl>, via the normal mechanism for local account creation.
-That account should be configured with an ssh F<authorized_keys> file as
-discussed above.  B<remctl-shell> will then be invoked with:
+Typically, B<remctl-shell> will either be run as a forced command or set
+as the shell for a dedicated user, normally C<remctl>, via the normal
+mechanism for local account creation.  That account should be configured
+with an ssh F<authorized_keys> file as discussed above.  B<remctl-shell>
+will then be invoked with:
 
     remctl-shell -c 'command subcommand argument'
 
-by B<sshd> for each incoming connection from a user that has a key in the
-F<authorized_keys> file.
+(if used as a shell) or with:
+
+    remctl-shell user@EXAMPLE.ORG
+
+(if used as a forced command) by B<sshd> for each incoming connection from
+a user that has a key in the F<authorized_keys> file.
 
 If you need to run a command manually for debugging, you can run the same
 command as above, but it's often more useful to send errors to standard
@@ -269,11 +322,17 @@ error instead of to syslog.  You can do that with:
 
 If you don't want to see the normal command logging, add the B<-q> option
 as well.  You can test an alternate configuration file by specifying it
-with the B<-f> option.
+with the B<-f> option.  You will need to set SSH_CONNECTION and either
+REMCTL_USER (if using B<-c>) or SSH_ORIGINAL_COMMAND (if passing the user
+on the command line).
 
 =head1 COMPATIBILITY
 
 B<remctl-shell> was added in the remctl 3.12 release.
+
+The forced command mode where the user can be passed on the command line
+and the command retrieved from SSH_ORIGINAL_COMMAND was added in the
+remctl 3.13 release.
 
 =head1 CAVEATS
 
@@ -301,6 +360,8 @@ thanks to Dropbox, Inc. for providing the time to write the initial
 implementation during Dropbox's annual Hack Week.
 
 =head1 COPYRIGHT AND LICENSE
+
+Copyright 2016 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2016 Dropbox, Inc.
 

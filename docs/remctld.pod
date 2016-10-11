@@ -307,23 +307,20 @@ specify a numeric UID by prepending it with C<#>.
 
 =item summary=I<arg>
 
-[3.2] Specifies the argument for this command that will print a usage
+[3.13] Specifies the argument for this command that will print a usage
 summary to standard output.
 
 If remctld receives the command C<help> with no arguments, and no C<help>
 command is defined in the configuration file, the server will look through
 the configuration for any command with a C<summary> option set.  If this
-option is set, the I<subcommand> is C<ALL>, and the user is authorized to
-run the command, the server will run the specified I<executable> with the
-argument I<arg>, sending the output back to the user.  It will do this for
-every command in the configuration that meets the above criteria.
+option is set, and the user is authorized to run the command, the server
+will run the specified I<executable> with the argument I<arg>, sending the
+output back to the user.  It will do this for every command in the
+configuration that meets the above criteria.
 
 This allows display of a summary of available commands to the user based
 on which commands that user is authorized to run.  It's a lightweight form
 of service discovery.  Also see the C<help> option.
-
-As mentioned above, this option is only meaningful on configuration lines
-with a I<subcommand> of C<ALL>.
 
 =item user=(I<username> | I<uid>)
 

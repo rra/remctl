@@ -37,7 +37,7 @@ main(void)
     command = server_ssh_parse_command("sudo foo bar stdin baz");
     putenv((char *) "REMCTL_USER=test@EXAMPLE.ORG");
     putenv((char *) "SSH_CONNECTION=127.0.0.1 34537 127.0.0.1 4373");
-    client = server_ssh_new_client();
+    client = server_ssh_new_client(NULL);
 
     /* Run the command. */
     server_run_command(client, config, command);
@@ -47,4 +47,5 @@ main(void)
     server_ssh_free_client(client);
     server_config_free(config);
     libevent_global_shutdown();
+    return 0;
 }

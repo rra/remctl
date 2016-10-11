@@ -1636,6 +1636,7 @@ AC_SUBST([am__tar])
 AC_SUBST([am__untar])
 ]) # _AM_PROG_TAR
 
+m4_include([m4/cc-flags.m4])
 m4_include([m4/clang.m4])
 m4_include([m4/gput.m4])
 m4_include([m4/gssapi.m4])

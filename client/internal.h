@@ -54,7 +54,8 @@ BEGIN_DECLS
 #pragma GCC visibility push(hidden)
 
 /* Helper functions to set errors. */
-void internal_set_error(struct remctl *, const char *, ...);
+void internal_set_error(struct remctl *, const char *, ...)
+    __attribute__((__format__(printf, 2, 3), __nonnull__));
 void internal_gssapi_error(struct remctl *, const char *error,
                            OM_uint32 major, OM_uint32 minor);
 #ifdef HAVE_KRB5
