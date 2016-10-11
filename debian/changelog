@@ -1,3 +1,13 @@
+remctl (3.13-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+    - remctl-shell now supports being run as a forced command.
+    - The summary configuration option is now allowed for commands with
+      subcommands other than ALL, passing in two arguments to the summary
+      command.
+
+ -- Russ Allbery <rra@debian.org>  Mon, 10 Oct 2016 19:23:31 -0700
+
 remctl (3.12-1) unstable; urgency=medium
 
   * New upstream release.
