@@ -1,4 +1,4 @@
-remctl (3.13-1) UNRELEASED; urgency=medium
+remctl (3.13-1) unstable; urgency=medium
 
   * New upstream release.
     - remctl-shell now supports being run as a forced command.
