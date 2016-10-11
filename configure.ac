@@ -1,6 +1,8 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2016 Dropbox, Inc.
+dnl Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012,
 dnl     2013, 2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
@@ -8,7 +10,7 @@ dnl
 dnl See LICENSE for licensing terms.
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [3.10], [eagle@eyrie.org])
+AC_INIT([remctl], [3.13], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
@@ -24,7 +26,7 @@ dnl AM_PROG_AR is required for Automake 1.12 by Libtool but not defined at all
 dnl (or needed) in Automake 1.11.  Work around this bug.
 AC_PROG_CC
 AC_USE_SYSTEM_EXTENSIONS
-RRA_PROG_CC_CLANG
+RRA_PROG_CC_WARNINGS_FLAGS
 AC_SYS_LARGEFILE
 AM_PROG_CC_C_O
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
@@ -34,6 +36,10 @@ RRA_LD_VERSION_SCRIPT
 
 dnl Support installation of systemd unit files.
 RRA_WITH_SYSTEMD_UNITDIR
+
+dnl Find a sudo binary for the sudo remctld configuration option.
+AC_ARG_VAR([PATH_SUDO], [Path to sudo for executing commands])
+AC_PATH_PROG([PATH_SUDO], [sudo])
 
 dnl Only used for the test suite.
 AC_ARG_VAR([PATH_FAKEROOT], [Path to fakeroot for the test suite])
@@ -49,10 +55,12 @@ dnl Kerberos portability checks.
 RRA_LIB_KRB5_OPTIONAL
 AS_IF([test x"$rra_use_KRB5" != xfalse],
     [RRA_LIB_KRB5_SWITCH
-     AC_CHECK_FUNCS([krb5_get_init_creds_opt_alloc \
+     AC_CHECK_FUNCS([krb5_free_default_realm \
+         krb5_get_init_creds_opt_alloc \
          krb5_get_init_creds_opt_set_anonymous \
          krb5_get_init_creds_opt_set_default_flags \
          krb5_get_init_creds_opt_set_out_ccache \
+         krb5_init_creds_set_password \
          krb5_principal_get_realm \
          krb5_xfree])
      AC_CHECK_FUNCS([krb5_get_init_creds_opt_free],
@@ -69,7 +77,7 @@ AC_CHECK_DECLS([GSS_KRB5_MECHANISM], [],
    [AC_CHECK_DECLS([gss_mech_krb5], [],
        [AC_LIBOBJ([gssapi-mech])], [RRA_INCLUDES_GSSAPI])],
    [RRA_INCLUDES_GSSAPI])
-AC_CHECK_FUNCS([gss_krb5_ccache_name gss_krb5_import_cred])
+AC_CHECK_FUNCS([gss_krb5_ccache_name gss_krb5_import_cred gss_oid_equal])
 RRA_LIB_GSSAPI_RESTORE
 
 dnl Check for libevent, used by the server.
@@ -105,7 +113,7 @@ dnl General C library and networking probes.
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/time.h \
                   sys/uio.h syslog.h])
-AC_CHECK_DECLS([snprintf, strlcat, strlcpy, vsnprintf])
+AC_CHECK_DECLS([snprintf, vsnprintf])
 AC_CHECK_DECLS([h_errno], [], [], [#include <netdb.h>])
 AC_CHECK_DECLS([inet_aton, inet_ntoa], [], [],
     [#include <sys/types.h>
@@ -145,7 +153,7 @@ AC_CHECK_FUNCS([getaddrinfo],
     [AC_LIBOBJ([getaddrinfo])])
 AC_CHECK_FUNCS([getgrnam_r setrlimit setsid])
 AC_REPLACE_FUNCS([asprintf daemon getnameinfo getopt inet_aton inet_ntop \
-                  mkstemp reallocarray setenv strlcat strlcpy strndup])
+                  mkstemp reallocarray setenv strndup])
 
 dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.

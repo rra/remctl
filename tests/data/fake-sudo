@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# Test running a command under sudo.
+#
+# Checks that all the right arguments were passed in to correctly use sudo if
+# this program had been sudo.  Used by the server/sudo test.
+#
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2016 Dropbox, Inc.
+#
+# See LICENSE for licensing terms.
+
+set -e
+
+# Load the test library.
+. "$C_TAP_SOURCE/tap/libtap.sh"
+
+# Specify the plan.
+plan 10
+
+# Check the arguments.
+ok "argument 1: $1" [ "$1" = '-u' ]
+ok "argument 2: $2" [ "$2" = 'testuser' ]
+ok "argument 3: $3" [ "$3" = '--' ]
+ok "argument 4: $4" [ "$4" = '/some/program' ]
+ok "argument 5: $5" [ "$5" = 'foo' ]
+ok "argument 6: $6" [ "$6" = 'bar' ]
+ok "argument 7: $7" [ "$7" = 'baz' ]
+
+# Check standard input.
+ok 'standard input' [ "`cat`" = 'stdin' ]
+
+# Check environment variables.
+ok 'REMOTE_USER' [ "$REMOTE_USER" = 'test@EXAMPLE.ORG' ]
+ok 'REMOTE_ADDR' [ "$REMOTE_ADDR" = '127.0.0.1' ]
+
+# Return a status of 0.
+exit 0

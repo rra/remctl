@@ -17,6 +17,8 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2016 Dropbox, Inc.
+# Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
 # Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -105,7 +107,7 @@ host_triplet = @host@
 @HAVE_KRB5_TRUE@am__append_2 = $(KRB5_LDFLAGS)
 @HAVE_KRB5_TRUE@am__append_3 = $(KRB5_LIBS)
 bin_PROGRAMS = client/remctl$(EXEEXT)
-sbin_PROGRAMS = server/remctld$(EXEEXT)
+sbin_PROGRAMS = server/remctld$(EXEEXT) server/remctl-shell$(EXEEXT)
 check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
 	tests/client/ccache-t$(EXEEXT) tests/client/large-t$(EXEEXT) \
 	tests/client/open-t$(EXEEXT) tests/client/source-ip-t$(EXEEXT) \
@@ -126,8 +128,6 @@ check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
 	tests/portable/mkstemp-t$(EXEEXT) \
 	tests/portable/setenv-t$(EXEEXT) \
 	tests/portable/snprintf-t$(EXEEXT) \
-	tests/portable/strlcat-t$(EXEEXT) \
-	tests/portable/strlcpy-t$(EXEEXT) \
 	tests/server/accept-t$(EXEEXT) tests/server/acl-t$(EXEEXT) \
 	tests/server/acl/localgroup-t$(EXEEXT) \
 	tests/server/anonymous-t$(EXEEXT) tests/server/bind-t$(EXEEXT) \
@@ -136,11 +136,12 @@ check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
 	tests/server/env-t$(EXEEXT) tests/server/errors-t$(EXEEXT) \
 	tests/server/help-t$(EXEEXT) tests/server/invalid-t$(EXEEXT) \
 	tests/server/logging-t$(EXEEXT) tests/server/noop-t$(EXEEXT) \
+	tests/server/ssh-parse-t$(EXEEXT) \
 	tests/server/stdin-t$(EXEEXT) \
-	tests/server/streaming-t$(EXEEXT) \
+	tests/server/streaming-t$(EXEEXT) tests/server/sudo-t$(EXEEXT) \
 	tests/server/summary-t$(EXEEXT) tests/server/user-t$(EXEEXT) \
-	tests/server/version-t$(EXEEXT) tests/util/fdflag-t$(EXEEXT) \
-	tests/util/gss-tokens-t$(EXEEXT) \
+	tests/server/version-t$(EXEEXT) tests/util/buffer-t$(EXEEXT) \
+	tests/util/fdflag-t$(EXEEXT) tests/util/gss-tokens-t$(EXEEXT) \
 	tests/util/messages-krb5-t$(EXEEXT) \
 	tests/util/messages-t$(EXEEXT) \
 	tests/util/network/addr-ipv4-t$(EXEEXT) \
@@ -167,11 +168,12 @@ check_PROGRAMS = tests/runtests$(EXEEXT) tests/client/api-t$(EXEEXT) \
 @BUILD_RUBY_TRUE@am__append_11 = install-data-local-ruby
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/clang.m4 \
-	$(top_srcdir)/m4/gput.m4 $(top_srcdir)/m4/gssapi.m4 \
-	$(top_srcdir)/m4/inet-ntoa.m4 $(top_srcdir)/m4/krb5-config.m4 \
-	$(top_srcdir)/m4/krb5.m4 $(top_srcdir)/m4/ld-version.m4 \
-	$(top_srcdir)/m4/lib-depends.m4 $(top_srcdir)/m4/lib-helper.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/cc-flags.m4 \
+	$(top_srcdir)/m4/clang.m4 $(top_srcdir)/m4/gput.m4 \
+	$(top_srcdir)/m4/gssapi.m4 $(top_srcdir)/m4/inet-ntoa.m4 \
+	$(top_srcdir)/m4/krb5-config.m4 $(top_srcdir)/m4/krb5.m4 \
+	$(top_srcdir)/m4/ld-version.m4 $(top_srcdir)/m4/lib-depends.m4 \
+	$(top_srcdir)/m4/lib-helper.m4 \
 	$(top_srcdir)/m4/lib-pathname.m4 $(top_srcdir)/m4/libevent.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
 	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
@@ -264,15 +266,17 @@ portable_libportable_la_OBJECTS =  \
 @HAVE_KRB5_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
 util_libutil_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
-am__util_libutil_la_SOURCES_DIST = util/fdflag.c util/fdflag.h \
-	util/gss-errors.c util/gss-errors.h util/gss-tokens.c \
-	util/gss-tokens.h util/macros.h util/messages.c \
-	util/messages.h util/network.c util/network.h util/protocol.h \
-	util/tokens.c util/tokens.h util/vector.c util/vector.h \
-	util/xmalloc.c util/xmalloc.h util/xwrite.c util/xwrite.h \
-	util/messages-krb5.c util/messages-krb5.h
+am__util_libutil_la_SOURCES_DIST = util/buffer.c util/buffer.h \
+	util/fdflag.c util/fdflag.h util/gss-errors.c \
+	util/gss-errors.h util/gss-tokens.c util/gss-tokens.h \
+	util/macros.h util/messages.c util/messages.h util/network.c \
+	util/network.h util/protocol.h util/tokens.c util/tokens.h \
+	util/vector.c util/vector.h util/xmalloc.c util/xmalloc.h \
+	util/xwrite.c util/xwrite.h util/messages-krb5.c \
+	util/messages-krb5.h
 @HAVE_KRB5_TRUE@am__objects_1 = util/util_libutil_la-messages-krb5.lo
-am_util_libutil_la_OBJECTS = util/util_libutil_la-fdflag.lo \
+am_util_libutil_la_OBJECTS = util/util_libutil_la-buffer.lo \
+	util/util_libutil_la-fdflag.lo \
 	util/util_libutil_la-gss-errors.lo \
 	util/util_libutil_la-gss-tokens.lo \
 	util/util_libutil_la-messages.lo \
@@ -285,14 +289,36 @@ util_libutil_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_CFLAGS) $(CFLAGS) $(util_libutil_la_LDFLAGS) $(LDFLAGS) \
 	-o $@
 PROGRAMS = $(bin_PROGRAMS) $(sbin_PROGRAMS)
-am_client_remctl_OBJECTS = client/remctl.$(OBJEXT)
+am_client_remctl_OBJECTS = client/client_remctl-remctl.$(OBJEXT)
 client_remctl_OBJECTS = $(am_client_remctl_OBJECTS)
 client_remctl_DEPENDENCIES = client/libremctl.la util/libutil.la \
 	portable/libportable.la
+client_remctl_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(client_remctl_CFLAGS) \
+	$(CFLAGS) $(client_remctl_LDFLAGS) $(LDFLAGS) -o $@
+am_server_remctl_shell_OBJECTS =  \
+	portable/server_remctl_shell-event-extra.$(OBJEXT) \
+	server/server_remctl_shell-commands.$(OBJEXT) \
+	server/server_remctl_shell-config.$(OBJEXT) \
+	server/server_remctl_shell-event-util.$(OBJEXT) \
+	server/server_remctl_shell-logging.$(OBJEXT) \
+	server/server_remctl_shell-process.$(OBJEXT) \
+	server/server_remctl_shell-remctl-shell.$(OBJEXT) \
+	server/server_remctl_shell-server-ssh.$(OBJEXT)
+server_remctl_shell_OBJECTS = $(am_server_remctl_shell_OBJECTS)
+server_remctl_shell_DEPENDENCIES = util/libutil.la \
+	portable/libportable.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+server_remctl_shell_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(server_remctl_shell_CFLAGS) $(CFLAGS) \
+	$(server_remctl_shell_LDFLAGS) $(LDFLAGS) -o $@
 am_server_remctld_OBJECTS =  \
 	portable/server_remctld-event-extra.$(OBJEXT) \
 	server/server_remctld-commands.$(OBJEXT) \
 	server/server_remctld-config.$(OBJEXT) \
+	server/server_remctld-event-util.$(OBJEXT) \
 	server/server_remctld-generic.$(OBJEXT) \
 	server/server_remctld-logging.$(OBJEXT) \
 	server/server_remctld-process.$(OBJEXT) \
@@ -306,8 +332,8 @@ server_remctld_DEPENDENCIES = util/libutil.la portable/libportable.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 server_remctld_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(AM_CFLAGS) $(CFLAGS) $(server_remctld_LDFLAGS) $(LDFLAGS) -o \
-	$@
+	$(server_remctld_CFLAGS) $(CFLAGS) $(server_remctld_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_client_api_t_SOURCES = tests/client/api-t.c
 tests_client_api_t_OBJECTS = tests/client/api-t.$(OBJEXT)
 tests_client_api_t_DEPENDENCIES = client/libremctl.la \
@@ -465,28 +491,15 @@ tests_portable_snprintf_t_OBJECTS =  \
 	$(am_tests_portable_snprintf_t_OBJECTS)
 tests_portable_snprintf_t_DEPENDENCIES = tests/tap/libtap.a \
 	portable/libportable.la
-am_tests_portable_strlcat_t_OBJECTS =  \
-	tests/portable/strlcat-t.$(OBJEXT) \
-	tests/portable/strlcat.$(OBJEXT)
-tests_portable_strlcat_t_OBJECTS =  \
-	$(am_tests_portable_strlcat_t_OBJECTS)
-tests_portable_strlcat_t_DEPENDENCIES = tests/tap/libtap.a \
-	portable/libportable.la
-am_tests_portable_strlcpy_t_OBJECTS =  \
-	tests/portable/strlcpy-t.$(OBJEXT) \
-	tests/portable/strlcpy.$(OBJEXT)
-tests_portable_strlcpy_t_OBJECTS =  \
-	$(am_tests_portable_strlcpy_t_OBJECTS)
-tests_portable_strlcpy_t_DEPENDENCIES = tests/tap/libtap.a \
-	portable/libportable.la
 tests_runtests_SOURCES = tests/runtests.c
 tests_runtests_OBJECTS = tests/tests_runtests-runtests.$(OBJEXT)
 tests_runtests_LDADD = $(LDADD)
 am__objects_2 = portable/event-extra.$(OBJEXT) \
 	server/commands.$(OBJEXT) server/config.$(OBJEXT) \
-	server/generic.$(OBJEXT) server/logging.$(OBJEXT) \
-	server/process.$(OBJEXT) server/server-v1.$(OBJEXT) \
-	server/server-v2.$(OBJEXT)
+	server/event-util.$(OBJEXT) server/generic.$(OBJEXT) \
+	server/logging.$(OBJEXT) server/process.$(OBJEXT) \
+	server/server-v1.$(OBJEXT) server/server-v2.$(OBJEXT) \
+	server/server-ssh.$(OBJEXT)
 am_tests_server_accept_t_OBJECTS = tests/server/accept-t.$(OBJEXT) \
 	$(am__objects_2)
 tests_server_accept_t_OBJECTS = $(am_tests_server_accept_t_OBJECTS)
@@ -624,6 +637,17 @@ tests_server_noop_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_server_noop_t_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_tests_server_ssh_parse_t_OBJECTS =  \
+	tests/server/ssh-parse-t.$(OBJEXT) $(am__objects_2)
+tests_server_ssh_parse_t_OBJECTS =  \
+	$(am_tests_server_ssh_parse_t_OBJECTS)
+tests_server_ssh_parse_t_DEPENDENCIES = tests/tap/libtap.a \
+	util/libutil.la portable/libportable.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+tests_server_ssh_parse_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_ssh_parse_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
 tests_server_stdin_t_SOURCES = tests/server/stdin-t.c
 tests_server_stdin_t_OBJECTS = tests/server/stdin-t.$(OBJEXT)
 tests_server_stdin_t_DEPENDENCIES = client/libremctl.la \
@@ -641,6 +665,28 @@ tests_server_streaming_t_DEPENDENCIES = client/libremctl.la \
 tests_server_streaming_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_server_streaming_t_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__objects_3 = portable/tests_server_sudo_t-event-extra.$(OBJEXT) \
+	server/tests_server_sudo_t-commands.$(OBJEXT) \
+	server/tests_server_sudo_t-config.$(OBJEXT) \
+	server/tests_server_sudo_t-event-util.$(OBJEXT) \
+	server/tests_server_sudo_t-generic.$(OBJEXT) \
+	server/tests_server_sudo_t-logging.$(OBJEXT) \
+	server/tests_server_sudo_t-process.$(OBJEXT) \
+	server/tests_server_sudo_t-server-v1.$(OBJEXT) \
+	server/tests_server_sudo_t-server-v2.$(OBJEXT) \
+	server/tests_server_sudo_t-server-ssh.$(OBJEXT)
+am_tests_server_sudo_t_OBJECTS =  \
+	tests/server/tests_server_sudo_t-sudo-t.$(OBJEXT) \
+	$(am__objects_3)
+tests_server_sudo_t_OBJECTS = $(am_tests_server_sudo_t_OBJECTS)
+tests_server_sudo_t_DEPENDENCIES = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+tests_server_sudo_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tests_server_sudo_t_LDFLAGS) \
 	$(LDFLAGS) -o $@
 tests_server_summary_t_SOURCES = tests/server/summary-t.c
 tests_server_summary_t_OBJECTS = tests/server/summary-t.$(OBJEXT)
@@ -670,6 +716,10 @@ tests_server_version_t_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(tests_server_version_t_LDFLAGS) \
 	$(LDFLAGS) -o $@
+tests_util_buffer_t_SOURCES = tests/util/buffer-t.c
+tests_util_buffer_t_OBJECTS = tests/util/buffer-t.$(OBJEXT)
+tests_util_buffer_t_DEPENDENCIES = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la
 tests_util_fdflag_t_SOURCES = tests/util/fdflag-t.c
 tests_util_fdflag_t_OBJECTS = tests/util/fdflag-t.$(OBJEXT)
 tests_util_fdflag_t_DEPENDENCIES = tests/tap/libtap.a util/libutil.la \
@@ -777,47 +827,7 @@ am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(tests_tap_libtap_a_SOURCES) $(client_libremctl_la_SOURCES) \
 	$(portable_libportable_la_SOURCES) $(util_libutil_la_SOURCES) \
-	$(client_remctl_SOURCES) $(server_remctld_SOURCES) \
-	tests/client/api-t.c tests/client/ccache-t.c \
-	tests/client/large-t.c tests/client/open-t.c \
-	tests/client/source-ip-t.c tests/client/timeout-t.c \
-	tests/data/cmd-background.c tests/data/cmd-closed.c \
-	tests/data/cmd-large-output.c tests/data/cmd-sigpipe.c \
-	tests/data/cmd-stdin.c tests/data/cmd-streaming.c \
-	tests/data/cmd-user.c $(tests_portable_asprintf_t_SOURCES) \
-	$(tests_portable_daemon_t_SOURCES) \
-	$(tests_portable_getaddrinfo_t_SOURCES) \
-	$(tests_portable_getnameinfo_t_SOURCES) \
-	$(tests_portable_getopt_t_SOURCES) \
-	$(tests_portable_inet_aton_t_SOURCES) \
-	$(tests_portable_inet_ntoa_t_SOURCES) \
-	$(tests_portable_inet_ntop_t_SOURCES) \
-	$(tests_portable_mkstemp_t_SOURCES) \
-	$(tests_portable_setenv_t_SOURCES) \
-	$(tests_portable_snprintf_t_SOURCES) \
-	$(tests_portable_strlcat_t_SOURCES) \
-	$(tests_portable_strlcpy_t_SOURCES) tests/runtests.c \
-	$(tests_server_accept_t_SOURCES) $(tests_server_acl_t_SOURCES) \
-	$(tests_server_acl_localgroup_t_SOURCES) \
-	tests/server/anonymous-t.c tests/server/bind-t.c \
-	$(tests_server_config_t_SOURCES) tests/server/continue-t.c \
-	tests/server/empty-t.c tests/server/env-t.c \
-	tests/server/errors-t.c tests/server/help-t.c \
-	tests/server/invalid-t.c $(tests_server_logging_t_SOURCES) \
-	tests/server/noop-t.c tests/server/stdin-t.c \
-	tests/server/streaming-t.c tests/server/summary-t.c \
-	tests/server/user-t.c tests/server/version-t.c \
-	tests/util/fdflag-t.c $(tests_util_gss_tokens_t_SOURCES) \
-	tests/util/messages-krb5-t.c tests/util/messages-t.c \
-	tests/util/network/addr-ipv4-t.c \
-	tests/util/network/addr-ipv6-t.c tests/util/network/client-t.c \
-	tests/util/network/server-t.c tests/util/tokens-t.c \
-	tests/util/vector-t.c tests/util/xmalloc.c \
-	$(tests_util_xwrite_t_SOURCES)
-DIST_SOURCES = $(tests_tap_libtap_a_SOURCES) \
-	$(client_libremctl_la_SOURCES) \
-	$(portable_libportable_la_SOURCES) \
-	$(am__util_libutil_la_SOURCES_DIST) $(client_remctl_SOURCES) \
+	$(client_remctl_SOURCES) $(server_remctl_shell_SOURCES) \
 	$(server_remctld_SOURCES) tests/client/api-t.c \
 	tests/client/ccache-t.c tests/client/large-t.c \
 	tests/client/open-t.c tests/client/source-ip-t.c \
@@ -835,9 +845,7 @@ DIST_SOURCES = $(tests_tap_libtap_a_SOURCES) \
 	$(tests_portable_inet_ntop_t_SOURCES) \
 	$(tests_portable_mkstemp_t_SOURCES) \
 	$(tests_portable_setenv_t_SOURCES) \
-	$(tests_portable_snprintf_t_SOURCES) \
-	$(tests_portable_strlcat_t_SOURCES) \
-	$(tests_portable_strlcpy_t_SOURCES) tests/runtests.c \
+	$(tests_portable_snprintf_t_SOURCES) tests/runtests.c \
 	$(tests_server_accept_t_SOURCES) $(tests_server_acl_t_SOURCES) \
 	$(tests_server_acl_localgroup_t_SOURCES) \
 	tests/server/anonymous-t.c tests/server/bind-t.c \
@@ -845,10 +853,53 @@ DIST_SOURCES = $(tests_tap_libtap_a_SOURCES) \
 	tests/server/empty-t.c tests/server/env-t.c \
 	tests/server/errors-t.c tests/server/help-t.c \
 	tests/server/invalid-t.c $(tests_server_logging_t_SOURCES) \
-	tests/server/noop-t.c tests/server/stdin-t.c \
-	tests/server/streaming-t.c tests/server/summary-t.c \
+	tests/server/noop-t.c $(tests_server_ssh_parse_t_SOURCES) \
+	tests/server/stdin-t.c tests/server/streaming-t.c \
+	$(tests_server_sudo_t_SOURCES) tests/server/summary-t.c \
 	tests/server/user-t.c tests/server/version-t.c \
-	tests/util/fdflag-t.c $(tests_util_gss_tokens_t_SOURCES) \
+	tests/util/buffer-t.c tests/util/fdflag-t.c \
+	$(tests_util_gss_tokens_t_SOURCES) \
+	tests/util/messages-krb5-t.c tests/util/messages-t.c \
+	tests/util/network/addr-ipv4-t.c \
+	tests/util/network/addr-ipv6-t.c tests/util/network/client-t.c \
+	tests/util/network/server-t.c tests/util/tokens-t.c \
+	tests/util/vector-t.c tests/util/xmalloc.c \
+	$(tests_util_xwrite_t_SOURCES)
+DIST_SOURCES = $(tests_tap_libtap_a_SOURCES) \
+	$(client_libremctl_la_SOURCES) \
+	$(portable_libportable_la_SOURCES) \
+	$(am__util_libutil_la_SOURCES_DIST) $(client_remctl_SOURCES) \
+	$(server_remctl_shell_SOURCES) $(server_remctld_SOURCES) \
+	tests/client/api-t.c tests/client/ccache-t.c \
+	tests/client/large-t.c tests/client/open-t.c \
+	tests/client/source-ip-t.c tests/client/timeout-t.c \
+	tests/data/cmd-background.c tests/data/cmd-closed.c \
+	tests/data/cmd-large-output.c tests/data/cmd-sigpipe.c \
+	tests/data/cmd-stdin.c tests/data/cmd-streaming.c \
+	tests/data/cmd-user.c $(tests_portable_asprintf_t_SOURCES) \
+	$(tests_portable_daemon_t_SOURCES) \
+	$(tests_portable_getaddrinfo_t_SOURCES) \
+	$(tests_portable_getnameinfo_t_SOURCES) \
+	$(tests_portable_getopt_t_SOURCES) \
+	$(tests_portable_inet_aton_t_SOURCES) \
+	$(tests_portable_inet_ntoa_t_SOURCES) \
+	$(tests_portable_inet_ntop_t_SOURCES) \
+	$(tests_portable_mkstemp_t_SOURCES) \
+	$(tests_portable_setenv_t_SOURCES) \
+	$(tests_portable_snprintf_t_SOURCES) tests/runtests.c \
+	$(tests_server_accept_t_SOURCES) $(tests_server_acl_t_SOURCES) \
+	$(tests_server_acl_localgroup_t_SOURCES) \
+	tests/server/anonymous-t.c tests/server/bind-t.c \
+	$(tests_server_config_t_SOURCES) tests/server/continue-t.c \
+	tests/server/empty-t.c tests/server/env-t.c \
+	tests/server/errors-t.c tests/server/help-t.c \
+	tests/server/invalid-t.c $(tests_server_logging_t_SOURCES) \
+	tests/server/noop-t.c $(tests_server_ssh_parse_t_SOURCES) \
+	tests/server/stdin-t.c tests/server/streaming-t.c \
+	$(tests_server_sudo_t_SOURCES) tests/server/summary-t.c \
+	tests/server/user-t.c tests/server/version-t.c \
+	tests/util/buffer-t.c tests/util/fdflag-t.c \
+	$(tests_util_gss_tokens_t_SOURCES) \
 	tests/util/messages-krb5-t.c tests/util/messages-t.c \
 	tests/util/network/addr-ipv4-t.c \
 	tests/util/network/addr-ipv6-t.c tests/util/network/client-t.c \
@@ -916,8 +967,6 @@ am__DIST_COMMON = $(dist_man_MANS) $(srcdir)/Makefile.in \
 	$(top_srcdir)/portable/reallocarray.c \
 	$(top_srcdir)/portable/setenv.c \
 	$(top_srcdir)/portable/snprintf.c \
-	$(top_srcdir)/portable/strlcat.c \
-	$(top_srcdir)/portable/strlcpy.c \
 	$(top_srcdir)/portable/strndup.c \
 	$(top_srcdir)/python/remctl.py.in \
 	$(top_srcdir)/python/setup.py.in \
@@ -999,6 +1048,7 @@ LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
@@ -1019,6 +1069,7 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_FAKEROOT = @PATH_FAKEROOT@
 PATH_KRB5_CONFIG = @PATH_KRB5_CONFIG@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PATH_SUDO = @PATH_SUDO@
 PCRE_CONFIG = @PCRE_CONFIG@
 PCRE_CPPFLAGS = @PCRE_CPPFLAGS@
 PCRE_LDFLAGS = @PCRE_LDFLAGS@
@@ -1037,6 +1088,7 @@ STRIP = @STRIP@
 SYSTEMD_CFLAGS = @SYSTEMD_CFLAGS@
 SYSTEMD_LIBS = @SYSTEMD_LIBS@
 VERSION = @VERSION@
+WARNINGS_CFLAGS = @WARNINGS_CFLAGS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -1117,9 +1169,9 @@ PERL_FILES = perl/Build.PL perl/MANIFEST perl/MANIFEST.SKIP		   \
 	perl/t/style/coverage.t perl/t/style/critic.t			   \
 	perl/t/style/minimum-version.t perl/t/style/strict.t perl/typemap
 
-PHP_FILES = php/README php/php_remctl.c php/test-wrapper php/tests/001.phpt \
-	php/tests/002.phpt php/tests/003.phpt php/tests/004.phpt	    \
-	php/tests/005.phpt php/tests/006.phpt
+PHP_FILES = php/README php/php_remctl.c php/php5_remctl.c php/test-wrapper \
+	php/tests/001.phpt php/tests/002.phpt php/tests/003.phpt	   \
+	php/tests/004.phpt php/tests/005.phpt php/tests/006.phpt
 
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
 RUBY_FILES = ruby/README ruby/remctl.c
@@ -1131,26 +1183,27 @@ PERL_DIRECTORIES = perl perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
 	perl/t/lib/Test perl/t/style
 
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
-	client/libremctl.map client/libremctl.rc client/libremctl.sym	    \
-	client/remctl.rc config.h.w32 configure.cmd docs/api/remctl.pod	    \
-	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
-	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
-	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
-	docs/api/remctl_output.pod docs/api/remctl_set_ccache.pod	    \
-	docs/api/remctl_set_source_ip.pod docs/api/remctl_set_timeout.pod   \
-	docs/design.html docs/extending docs/protocol-v4 docs/protocol.txt  \
-	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
-	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
-	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
-	java/.classpath java/.project java/Makefile java/README		    \
-	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
-	java/org/eyrie/eagle/remctl/Remctl.java				    \
+EXTRA_DIST = .gitignore .travis.yml LICENSE Makefile.w32 bootstrap	    \
+	client/libremctl.pc.in client/libremctl.map client/libremctl.rc	    \
+	client/libremctl.sym client/remctl.rc config.h.w32 configure.cmd    \
+	docs/api/remctl.pod docs/api/remctl_close.pod			    \
+	docs/api/remctl_command.pod docs/api/remctl_error.pod		    \
+	docs/api/remctl_new.pod docs/api/remctl_noop.pod		    \
+	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
+	docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.pod    \
+	docs/api/remctl_set_timeout.pod docs/design.html docs/extending	    \
+	docs/protocol-v4 docs/protocol.txt docs/protocol.html		    \
+	docs/protocol.xml docs/remctl.pod docs/remctl-shell.8.in	    \
+	docs/remctl-shell.pod docs/remctld.8.in docs/remctld.pod	    \
+	examples/remctl.conf examples/remctld.xml examples/rsh-wrapper	    \
+	examples/xinetd java/.classpath java/.project java/Makefile	    \
+	java/README java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf	    \
+	java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java		    \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
 	server/README systemd/remctld.service.in systemd/remctld.socket	    \
-	tests/HOWTO tests/TESTS tests/client/remctl-t tests/config/README   \
+	tests/README tests/TESTS tests/client/remctl-t tests/config/README  \
 	tests/data/acl-bad-include tests/data/acl-bad-syntax		    \
 	tests/data/acl-nonexistant tests/data/acl-recursive		    \
 	tests/data/acl-simple tests/data/acl-too-long			    \
@@ -1160,17 +1213,18 @@ EXTRA_DIST = .gitignore LICENSE Makefile.w32 autogen client/libremctl.pc.in \
 	tests/data/acls/val~id tests/data/acls2/valid-4 tests/data/cmd-argv \
 	tests/data/cmd-env tests/data/cmd-hello tests/data/cmd-help	    \
 	tests/data/cmd-sleep tests/data/cmd-status			    \
-	tests/data/conf-nosummary tests/data/conf-simple		    \
-	tests/data/conf-test tests/data/configs/bad-logmask-1		    \
-	tests/data/configs/bad-include-1 tests/data/configs/bad-logmask-2   \
-	tests/data/configs/bad-logmask-3 tests/data/configs/bad-logmask-4   \
-	tests/data/configs/bad-option-1 tests/data/configs/bad-user-1	    \
+	tests/data/conf-nosummary tests/data/conf-test			    \
+	tests/data/configs/bad-logmask-1 tests/data/configs/bad-include-1   \
+	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
+	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
+	tests/data/configs/bad-user-1 tests/data/fake-sudo		    \
 	tests/data/perl.conf tests/data/generate-krb5-conf tests/data/gput  \
 	tests/data/valgrind.supp tests/docs/pod-spelling-t tests/docs/pod-t \
-	tests/perl/module-version-t tests/tap/kerberos.sh		    \
-	tests/tap/libtap.sh tests/tap/perl/Test/RRA.pm			    \
-	tests/tap/perl/Test/RRA/Automake.pm				    \
-	tests/tap/perl/Test/RRA/Config.pm tests/tap/remctl.sh		    \
+	tests/server/shell-misc-t tests/perl/module-version-t		    \
+	tests/tap/kerberos.sh tests/tap/libtap.sh			    \
+	tests/tap/perl/Test/RRA.pm tests/tap/perl/Test/RRA/Automake.pm	    \
+	tests/tap/perl/Test/RRA/Config.pm				    \
+	tests/tap/perl/Test/RRA/ModuleVersion.pm tests/tap/remctl.sh	    \
 	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
 	$(PYTHON_FILES) $(RUBY_FILES)
 
@@ -1198,13 +1252,13 @@ portable_libportable_la_SOURCES = portable/dummy.c portable/event.h	\
 	portable/system.h portable/uio.h
 
 portable_libportable_la_LIBADD = $(LTLIBOBJS)
-util_libutil_la_SOURCES = util/fdflag.c util/fdflag.h \
-	util/gss-errors.c util/gss-errors.h util/gss-tokens.c \
-	util/gss-tokens.h util/macros.h util/messages.c \
-	util/messages.h util/network.c util/network.h util/protocol.h \
-	util/tokens.c util/tokens.h util/vector.c util/vector.h \
-	util/xmalloc.c util/xmalloc.h util/xwrite.c util/xwrite.h \
-	$(am__append_1)
+util_libutil_la_SOURCES = util/buffer.c util/buffer.h util/fdflag.c \
+	util/fdflag.h util/gss-errors.c util/gss-errors.h \
+	util/gss-tokens.c util/gss-tokens.h util/macros.h \
+	util/messages.c util/messages.h util/network.c util/network.h \
+	util/protocol.h util/tokens.c util/tokens.h util/vector.c \
+	util/vector.h util/xmalloc.c util/xmalloc.h util/xwrite.c \
+	util/xwrite.h $(am__append_1)
 util_libutil_la_LDFLAGS = $(GSSAPI_LDFLAGS) $(am__append_2)
 util_libutil_la_LIBADD = $(GSSAPI_LIBS) $(am__append_3)
 @HAVE_KRB5_TRUE@util_libutil_la_CPPFLAGS = $(KRB5_CPPFLAGS)
@@ -1225,25 +1279,47 @@ include_HEADERS = client/remctl.h
 # pkg-config configuration for the library.
 pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = client/libremctl.pc
+client_remctl_CFLAGS = $(REMCTL_PROGRAM_CFLAGS) $(AM_CFLAGS)
 client_remctl_SOURCES = client/remctl.c
 client_remctl_LDADD = client/libremctl.la util/libutil.la \
 	portable/libportable.la
 
-server_remctld_SOURCES = portable/event-extra.c server/commands.c	    \
-	server/config.c server/generic.c server/logging.c server/internal.h \
-	server/process.c server/remctld.c server/server-v1.c		    \
-	server/server-v2.c
+client_remctl_LDFLAGS = $(REMCTL_PROGRAM_LDFLAGS) $(AM_LDFLAGS)
+server_remctld_SOURCES = portable/event-extra.c server/commands.c	\
+	server/config.c server/event-util.c server/generic.c		\
+	server/logging.c server/internal.h server/process.c		\
+	server/remctld.c server/server-v1.c server/server-v2.c
 
-server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	\
-	$(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)		\
-	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS) $(SYSTEMD_CFLAGS)
+server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	  \
+	-DPATH_SUDO='"$(PATH_SUDO)"' $(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS)  \
+	$(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS)		  \
+	$(SYSTEMD_CFLAGS)
 
+server_remctld_CFLAGS = $(REMCTL_PROGRAM_CFLAGS) $(AM_CFLAGS)
 server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
-	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
+	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS) $(REMCTL_PROGRAM_LDFLAGS)	   \
+	$(AM_LDFLAGS)
 
 server_remctld_LDADD = util/libutil.la portable/libportable.la	\
 	$(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)	\
 	$(LIBEVENT_LIBS) $(SYSTEMD_LIBS)
+
+server_remctl_shell_SOURCES = portable/event-extra.c server/commands.c	\
+	server/config.c server/event-util.c server/logging.c		\
+	server/internal.h server/process.c server/remctl-shell.c	\
+	server/server-ssh.c
+
+server_remctl_shell_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\" \
+	-DPATH_SUDO='"$(PATH_SUDO)"' $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)	   \
+	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS)
+
+server_remctl_shell_CFLAGS = $(REMCTL_PROGRAM_CFLAGS) $(AM_CFLAGS)
+server_remctl_shell_LDFLAGS = $(KRB5_LDFLAGS) $(GPUT_LDFLAGS)		\
+	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS) $(REMCTL_PROGRAM_LDFLAGS)	\
+	$(AM_LDFAGS)
+
+server_remctl_shell_LDADD = util/libutil.la portable/libportable.la \
+	$(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
 
 
 # Install the systemd unit file if systemd support was detected.
@@ -1257,37 +1333,19 @@ dist_man_MANS = docs/api/remctl.3 docs/api/remctl_close.3		    \
 	docs/api/remctl_set_source_ip.3 docs/api/remctl_set_timeout.3	    \
 	docs/remctl.1
 
-man_MANS = docs/remctld.8
-CLEANFILES = client/libremctl.pc docs/remctld.8 perl/t/lib/Test/RRA.pm	\
-	perl/t/lib/Test/RRA/Automake.pm perl/t/lib/Test/RRA/Config.pm	\
-	stamp-python systemd/remctld.service
+man_MANS = docs/remctl-shell.8 docs/remctld.8
+CLEANFILES = client/libremctl.pc docs/remctl-shell.8 docs/remctld.8	   \
+	perl/t/lib/Test/RRA.pm perl/t/lib/Test/RRA/Automake.pm		   \
+	perl/t/lib/Test/RRA/Config.pm stamp-python systemd/remctld.service
 
 DISTCLEANFILES = perl/Makefile python/MANIFEST
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile		   \
 	build-aux/config.guess build-aux/config.sub build-aux/depcomp	   \
 	build-aux/install-sh build-aux/ltmain.sh build-aux/missing	   \
 	config.h.in config.h.in~ configure docs/api/*.3 docs/protocol.html \
-	docs/protocol.txt docs/remctl.1 docs/remctld.8.in		   \
-	m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4	   \
-	m4/lt~obsolete.m4
-
-
-# A set of flags for warnings.  Add -O because gcc won't find some warnings
-# without optimization turned on.  Desirable warnings that can't be turned
-# on due to other problems:
-#
-#     -Wconversion	http://bugs.debian.org/488884 (htons warnings)
-#
-# Last checked against gcc 4.8.2 (2014-04-12).  -D_FORTIFY_SOURCE=2 enables
-# warn_unused_result attribute markings on glibc functions on Linux, which
-# catches a few more issues.
-WARNINGS = -g -O -fstrict-overflow -fstrict-aliasing -D_FORTIFY_SOURCE=2    \
-	-Wall -Wextra -Wendif-labels -Wformat=2 -Winit-self -Wswitch-enum   \
-	-Wstrict-overflow=5 -Wfloat-equal -Wdeclaration-after-statement	    \
-	-Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align	    \
-	-Wwrite-strings -Wjump-misses-init -Wlogical-op -Wstrict-prototypes \
-	-Wold-style-definition -Wmissing-prototypes -Wnormalized=nfc	    \
-	-Wpacked -Wredundant-decls -Wnested-externs -Winline -Wvla -Werror
+	docs/protocol.txt docs/remctl.1 docs/remctl-shell.8.in		   \
+	docs/remctld.8.in m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4	   \
+	m4/ltversion.m4 m4/lt~obsolete.m4
 
 
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
@@ -1304,8 +1362,8 @@ PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
 check_LIBRARIES = tests/tap/libtap.a
-tests_runtests_CPPFLAGS = -DSOURCE='"$(abs_top_srcdir)/tests"' \
-	-DBUILD='"$(abs_top_builddir)/tests"'
+tests_runtests_CPPFLAGS = -DC_TAP_SOURCE='"$(abs_top_srcdir)/tests"' \
+	-DC_TAP_BUILD='"$(abs_top_builddir)/tests"'
 
 tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests		\
 	-DPATH_FAKEROOT='"$(PATH_FAKEROOT)"'			\
@@ -1321,8 +1379,9 @@ tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h	\
 
 # Used for server tests.
 SERVER_FILES = portable/event-extra.c server/commands.c server/config.c	\
-	server/generic.c server/logging.c server/process.c		\
-	server/server-v1.c server/server-v2.c
+	server/event-util.c server/generic.c server/logging.c		\
+	server/process.c server/server-v1.c server/server-v2.c		\
+	server/server-ssh.c
 
 
 # All of the test programs.
@@ -1404,14 +1463,6 @@ tests_portable_snprintf_t_SOURCES = tests/portable/snprintf-t.c \
 	tests/portable/snprintf.c
 
 tests_portable_snprintf_t_LDADD = tests/tap/libtap.a portable/libportable.la
-tests_portable_strlcat_t_SOURCES = tests/portable/strlcat-t.c \
-	tests/portable/strlcat.c
-
-tests_portable_strlcat_t_LDADD = tests/tap/libtap.a portable/libportable.la
-tests_portable_strlcpy_t_SOURCES = tests/portable/strlcpy-t.c \
-	tests/portable/strlcpy.c
-
-tests_portable_strlcpy_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
 tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
@@ -1492,6 +1543,13 @@ tests_server_noop_t_LDADD = client/libremctl.la tests/tap/libtap.a	    \
 	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) \
 	$(PCRE_LIBS) $(LIBEVENT_LIBS)
 
+tests_server_ssh_parse_t_SOURCES = tests/server/ssh-parse-t.c $(SERVER_FILES)
+tests_server_ssh_parse_t_LDFLAGS = $(GPUT_LDFLAGS) $(PCRE_LDFLAGS) \
+	$(LIBEVENT_LDFLAGS)
+
+tests_server_ssh_parse_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
+
 tests_server_stdin_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
@@ -1499,6 +1557,17 @@ tests_server_stdin_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 tests_server_streaming_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
+
+tests_server_sudo_t_SOURCES = tests/server/sudo-t.c $(SERVER_FILES)
+tests_server_sudo_t_CPPFLAGS = \
+	-DPATH_SUDO='"$(abs_top_srcdir)/tests/data/fake-sudo"'
+
+tests_server_sudo_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
+	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
+
+tests_server_sudo_t_LDADD = tests/tap/libtap.a util/libutil.la	 \
+	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) \
+	$(PCRE_LIBS) $(LIBEVENT_LIBS)
 
 tests_server_summary_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_summary_t_LDADD = client/libremctl.la tests/tap/libtap.a \
@@ -1514,6 +1583,9 @@ tests_server_version_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 tests_server_version_t_LDADD = client/libremctl.la tests/tap/libtap.a	    \
 	util/libutil.la portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS) \
 	$(PCRE_LIBS)
+
+tests_util_buffer_t_LDADD = tests/tap/libtap.a util/libutil.la \
+	portable/libportable.la
 
 tests_util_fdflag_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
@@ -1766,6 +1838,8 @@ util/$(am__dirstamp):
 util/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) util/$(DEPDIR)
 	@: > util/$(DEPDIR)/$(am__dirstamp)
+util/util_libutil_la-buffer.lo: util/$(am__dirstamp) \
+	util/$(DEPDIR)/$(am__dirstamp)
 util/util_libutil_la-fdflag.lo: util/$(am__dirstamp) \
 	util/$(DEPDIR)/$(am__dirstamp)
 util/util_libutil_la-gss-errors.lo: util/$(am__dirstamp) \
@@ -1896,13 +1970,13 @@ clean-sbinPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-client/remctl.$(OBJEXT): client/$(am__dirstamp) \
+client/client_remctl-remctl.$(OBJEXT): client/$(am__dirstamp) \
 	client/$(DEPDIR)/$(am__dirstamp)
 
 client/remctl$(EXEEXT): $(client_remctl_OBJECTS) $(client_remctl_DEPENDENCIES) $(EXTRA_client_remctl_DEPENDENCIES) client/$(am__dirstamp)
 	@rm -f client/remctl$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(client_remctl_OBJECTS) $(client_remctl_LDADD) $(LIBS)
-portable/server_remctld-event-extra.$(OBJEXT):  \
+	$(AM_V_CCLD)$(client_remctl_LINK) $(client_remctl_OBJECTS) $(client_remctl_LDADD) $(LIBS)
+portable/server_remctl_shell-event-extra.$(OBJEXT):  \
 	portable/$(am__dirstamp) portable/$(DEPDIR)/$(am__dirstamp)
 server/$(am__dirstamp):
 	@$(MKDIR_P) server
@@ -1910,9 +1984,31 @@ server/$(am__dirstamp):
 server/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) server/$(DEPDIR)
 	@: > server/$(DEPDIR)/$(am__dirstamp)
+server/server_remctl_shell-commands.$(OBJEXT): server/$(am__dirstamp) \
+	server/$(DEPDIR)/$(am__dirstamp)
+server/server_remctl_shell-config.$(OBJEXT): server/$(am__dirstamp) \
+	server/$(DEPDIR)/$(am__dirstamp)
+server/server_remctl_shell-event-util.$(OBJEXT):  \
+	server/$(am__dirstamp) server/$(DEPDIR)/$(am__dirstamp)
+server/server_remctl_shell-logging.$(OBJEXT): server/$(am__dirstamp) \
+	server/$(DEPDIR)/$(am__dirstamp)
+server/server_remctl_shell-process.$(OBJEXT): server/$(am__dirstamp) \
+	server/$(DEPDIR)/$(am__dirstamp)
+server/server_remctl_shell-remctl-shell.$(OBJEXT):  \
+	server/$(am__dirstamp) server/$(DEPDIR)/$(am__dirstamp)
+server/server_remctl_shell-server-ssh.$(OBJEXT):  \
+	server/$(am__dirstamp) server/$(DEPDIR)/$(am__dirstamp)
+
+server/remctl-shell$(EXEEXT): $(server_remctl_shell_OBJECTS) $(server_remctl_shell_DEPENDENCIES) $(EXTRA_server_remctl_shell_DEPENDENCIES) server/$(am__dirstamp)
+	@rm -f server/remctl-shell$(EXEEXT)
+	$(AM_V_CCLD)$(server_remctl_shell_LINK) $(server_remctl_shell_OBJECTS) $(server_remctl_shell_LDADD) $(LIBS)
+portable/server_remctld-event-extra.$(OBJEXT):  \
+	portable/$(am__dirstamp) portable/$(DEPDIR)/$(am__dirstamp)
 server/server_remctld-commands.$(OBJEXT): server/$(am__dirstamp) \
 	server/$(DEPDIR)/$(am__dirstamp)
 server/server_remctld-config.$(OBJEXT): server/$(am__dirstamp) \
+	server/$(DEPDIR)/$(am__dirstamp)
+server/server_remctld-event-util.$(OBJEXT): server/$(am__dirstamp) \
 	server/$(DEPDIR)/$(am__dirstamp)
 server/server_remctld-generic.$(OBJEXT): server/$(am__dirstamp) \
 	server/$(DEPDIR)/$(am__dirstamp)
@@ -2116,22 +2212,6 @@ tests/portable/snprintf.$(OBJEXT): tests/portable/$(am__dirstamp) \
 tests/portable/snprintf-t$(EXEEXT): $(tests_portable_snprintf_t_OBJECTS) $(tests_portable_snprintf_t_DEPENDENCIES) $(EXTRA_tests_portable_snprintf_t_DEPENDENCIES) tests/portable/$(am__dirstamp)
 	@rm -f tests/portable/snprintf-t$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(tests_portable_snprintf_t_OBJECTS) $(tests_portable_snprintf_t_LDADD) $(LIBS)
-tests/portable/strlcat-t.$(OBJEXT): tests/portable/$(am__dirstamp) \
-	tests/portable/$(DEPDIR)/$(am__dirstamp)
-tests/portable/strlcat.$(OBJEXT): tests/portable/$(am__dirstamp) \
-	tests/portable/$(DEPDIR)/$(am__dirstamp)
-
-tests/portable/strlcat-t$(EXEEXT): $(tests_portable_strlcat_t_OBJECTS) $(tests_portable_strlcat_t_DEPENDENCIES) $(EXTRA_tests_portable_strlcat_t_DEPENDENCIES) tests/portable/$(am__dirstamp)
-	@rm -f tests/portable/strlcat-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_portable_strlcat_t_OBJECTS) $(tests_portable_strlcat_t_LDADD) $(LIBS)
-tests/portable/strlcpy-t.$(OBJEXT): tests/portable/$(am__dirstamp) \
-	tests/portable/$(DEPDIR)/$(am__dirstamp)
-tests/portable/strlcpy.$(OBJEXT): tests/portable/$(am__dirstamp) \
-	tests/portable/$(DEPDIR)/$(am__dirstamp)
-
-tests/portable/strlcpy-t$(EXEEXT): $(tests_portable_strlcpy_t_OBJECTS) $(tests_portable_strlcpy_t_DEPENDENCIES) $(EXTRA_tests_portable_strlcpy_t_DEPENDENCIES) tests/portable/$(am__dirstamp)
-	@rm -f tests/portable/strlcpy-t$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tests_portable_strlcpy_t_OBJECTS) $(tests_portable_strlcpy_t_LDADD) $(LIBS)
 tests/$(am__dirstamp):
 	@$(MKDIR_P) tests
 	@: > tests/$(am__dirstamp)
@@ -2158,6 +2238,8 @@ server/commands.$(OBJEXT): server/$(am__dirstamp) \
 	server/$(DEPDIR)/$(am__dirstamp)
 server/config.$(OBJEXT): server/$(am__dirstamp) \
 	server/$(DEPDIR)/$(am__dirstamp)
+server/event-util.$(OBJEXT): server/$(am__dirstamp) \
+	server/$(DEPDIR)/$(am__dirstamp)
 server/generic.$(OBJEXT): server/$(am__dirstamp) \
 	server/$(DEPDIR)/$(am__dirstamp)
 server/logging.$(OBJEXT): server/$(am__dirstamp) \
@@ -2167,6 +2249,8 @@ server/process.$(OBJEXT): server/$(am__dirstamp) \
 server/server-v1.$(OBJEXT): server/$(am__dirstamp) \
 	server/$(DEPDIR)/$(am__dirstamp)
 server/server-v2.$(OBJEXT): server/$(am__dirstamp) \
+	server/$(DEPDIR)/$(am__dirstamp)
+server/server-ssh.$(OBJEXT): server/$(am__dirstamp) \
 	server/$(DEPDIR)/$(am__dirstamp)
 
 tests/server/accept-t$(EXEEXT): $(tests_server_accept_t_OBJECTS) $(tests_server_accept_t_DEPENDENCIES) $(EXTRA_tests_server_accept_t_DEPENDENCIES) tests/server/$(am__dirstamp)
@@ -2263,6 +2347,12 @@ tests/server/noop-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 tests/server/noop-t$(EXEEXT): $(tests_server_noop_t_OBJECTS) $(tests_server_noop_t_DEPENDENCIES) $(EXTRA_tests_server_noop_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/noop-t$(EXEEXT)
 	$(AM_V_CCLD)$(tests_server_noop_t_LINK) $(tests_server_noop_t_OBJECTS) $(tests_server_noop_t_LDADD) $(LIBS)
+tests/server/ssh-parse-t.$(OBJEXT): tests/server/$(am__dirstamp) \
+	tests/server/$(DEPDIR)/$(am__dirstamp)
+
+tests/server/ssh-parse-t$(EXEEXT): $(tests_server_ssh_parse_t_OBJECTS) $(tests_server_ssh_parse_t_DEPENDENCIES) $(EXTRA_tests_server_ssh_parse_t_DEPENDENCIES) tests/server/$(am__dirstamp)
+	@rm -f tests/server/ssh-parse-t$(EXEEXT)
+	$(AM_V_CCLD)$(tests_server_ssh_parse_t_LINK) $(tests_server_ssh_parse_t_OBJECTS) $(tests_server_ssh_parse_t_LDADD) $(LIBS)
 tests/server/stdin-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
@@ -2275,6 +2365,33 @@ tests/server/streaming-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 tests/server/streaming-t$(EXEEXT): $(tests_server_streaming_t_OBJECTS) $(tests_server_streaming_t_DEPENDENCIES) $(EXTRA_tests_server_streaming_t_DEPENDENCIES) tests/server/$(am__dirstamp)
 	@rm -f tests/server/streaming-t$(EXEEXT)
 	$(AM_V_CCLD)$(tests_server_streaming_t_LINK) $(tests_server_streaming_t_OBJECTS) $(tests_server_streaming_t_LDADD) $(LIBS)
+tests/server/tests_server_sudo_t-sudo-t.$(OBJEXT):  \
+	tests/server/$(am__dirstamp) \
+	tests/server/$(DEPDIR)/$(am__dirstamp)
+portable/tests_server_sudo_t-event-extra.$(OBJEXT):  \
+	portable/$(am__dirstamp) portable/$(DEPDIR)/$(am__dirstamp)
+server/tests_server_sudo_t-commands.$(OBJEXT): server/$(am__dirstamp) \
+	server/$(DEPDIR)/$(am__dirstamp)
+server/tests_server_sudo_t-config.$(OBJEXT): server/$(am__dirstamp) \
+	server/$(DEPDIR)/$(am__dirstamp)
+server/tests_server_sudo_t-event-util.$(OBJEXT):  \
+	server/$(am__dirstamp) server/$(DEPDIR)/$(am__dirstamp)
+server/tests_server_sudo_t-generic.$(OBJEXT): server/$(am__dirstamp) \
+	server/$(DEPDIR)/$(am__dirstamp)
+server/tests_server_sudo_t-logging.$(OBJEXT): server/$(am__dirstamp) \
+	server/$(DEPDIR)/$(am__dirstamp)
+server/tests_server_sudo_t-process.$(OBJEXT): server/$(am__dirstamp) \
+	server/$(DEPDIR)/$(am__dirstamp)
+server/tests_server_sudo_t-server-v1.$(OBJEXT):  \
+	server/$(am__dirstamp) server/$(DEPDIR)/$(am__dirstamp)
+server/tests_server_sudo_t-server-v2.$(OBJEXT):  \
+	server/$(am__dirstamp) server/$(DEPDIR)/$(am__dirstamp)
+server/tests_server_sudo_t-server-ssh.$(OBJEXT):  \
+	server/$(am__dirstamp) server/$(DEPDIR)/$(am__dirstamp)
+
+tests/server/sudo-t$(EXEEXT): $(tests_server_sudo_t_OBJECTS) $(tests_server_sudo_t_DEPENDENCIES) $(EXTRA_tests_server_sudo_t_DEPENDENCIES) tests/server/$(am__dirstamp)
+	@rm -f tests/server/sudo-t$(EXEEXT)
+	$(AM_V_CCLD)$(tests_server_sudo_t_LINK) $(tests_server_sudo_t_OBJECTS) $(tests_server_sudo_t_LDADD) $(LIBS)
 tests/server/summary-t.$(OBJEXT): tests/server/$(am__dirstamp) \
 	tests/server/$(DEPDIR)/$(am__dirstamp)
 
@@ -2299,6 +2416,12 @@ tests/util/$(am__dirstamp):
 tests/util/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) tests/util/$(DEPDIR)
 	@: > tests/util/$(DEPDIR)/$(am__dirstamp)
+tests/util/buffer-t.$(OBJEXT): tests/util/$(am__dirstamp) \
+	tests/util/$(DEPDIR)/$(am__dirstamp)
+
+tests/util/buffer-t$(EXEEXT): $(tests_util_buffer_t_OBJECTS) $(tests_util_buffer_t_DEPENDENCIES) $(EXTRA_tests_util_buffer_t_DEPENDENCIES) tests/util/$(am__dirstamp)
+	@rm -f tests/util/buffer-t$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_util_buffer_t_OBJECTS) $(tests_util_buffer_t_LDADD) $(LIBS)
 tests/util/fdflag-t.$(OBJEXT): tests/util/$(am__dirstamp) \
 	tests/util/$(DEPDIR)/$(am__dirstamp)
 
@@ -2416,9 +2539,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@client/$(DEPDIR)/api.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@client/$(DEPDIR)/client-v1.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@client/$(DEPDIR)/client-v2.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@client/$(DEPDIR)/client_remctl-remctl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@client/$(DEPDIR)/error.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@client/$(DEPDIR)/open.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@client/$(DEPDIR)/remctl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/asprintf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/daemon.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/dummy.Plo@am__quote@
@@ -2433,27 +2556,46 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/krb5-extra.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/mkstemp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/reallocarray.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/server_remctl_shell-event-extra.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/server_remctld-event-extra.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/setenv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/snprintf.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/strlcat.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/strlcpy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/strndup.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@portable/$(DEPDIR)/tests_server_sudo_t-event-extra.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/commands.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/config.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/event-util.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/generic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/logging.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/process.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server-ssh.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server-v1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server-v2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctl_shell-commands.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctl_shell-config.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctl_shell-event-util.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctl_shell-logging.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctl_shell-process.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctl_shell-remctl-shell.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctl_shell-server-ssh.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctld-commands.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctld-config.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctld-event-util.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctld-generic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctld-logging.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctld-process.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctld-remctld.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctld-server-v1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/server_remctld-server-v2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/tests_server_sudo_t-commands.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/tests_server_sudo_t-config.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/tests_server_sudo_t-event-util.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/tests_server_sudo_t-generic.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/tests_server_sudo_t-logging.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/tests_server_sudo_t-process.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/tests_server_sudo_t-server-ssh.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/tests_server_sudo_t-server-v1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@server/$(DEPDIR)/tests_server_sudo_t-server-v2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/tests_runtests-runtests.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/client/$(DEPDIR)/api-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/client/$(DEPDIR)/ccache-t.Po@am__quote@
@@ -2490,10 +2632,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/setenv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/snprintf-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/snprintf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/strlcat-t.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/strlcat.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/strlcpy-t.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@tests/portable/$(DEPDIR)/strlcpy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/accept-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/acl-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/anonymous-t.Po@am__quote@
@@ -2507,9 +2645,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/invalid-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/logging-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/noop-t.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/ssh-parse-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/stdin-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/streaming-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/summary-t.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/tests_server_sudo_t-sudo-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/user-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/$(DEPDIR)/version-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/server/acl/$(DEPDIR)/fake-getgrnam.Po@am__quote@
@@ -2521,6 +2661,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/tap/$(DEPDIR)/tests_tap_libtap_a-process.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/tap/$(DEPDIR)/tests_tap_libtap_a-remctl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/tap/$(DEPDIR)/tests_tap_libtap_a-string.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/util/$(DEPDIR)/buffer-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/$(DEPDIR)/faketoken.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/$(DEPDIR)/fakewrite.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/$(DEPDIR)/fdflag-t.Po@am__quote@
@@ -2537,6 +2678,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/network/$(DEPDIR)/addr-ipv6-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/network/$(DEPDIR)/client-t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/util/network/$(DEPDIR)/server-t.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-buffer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-fdflag.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-gss-errors.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@util/$(DEPDIR)/util_libutil_la-gss-tokens.Plo@am__quote@
@@ -2656,6 +2798,13 @@ tests/tap/tests_tap_libtap_a-string.obj: tests/tap/string.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_tap_libtap_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/tap/tests_tap_libtap_a-string.obj `if test -f 'tests/tap/string.c'; then $(CYGPATH_W) 'tests/tap/string.c'; else $(CYGPATH_W) '$(srcdir)/tests/tap/string.c'; fi`
 
+util/util_libutil_la-buffer.lo: util/buffer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util/util_libutil_la-buffer.lo -MD -MP -MF util/$(DEPDIR)/util_libutil_la-buffer.Tpo -c -o util/util_libutil_la-buffer.lo `test -f 'util/buffer.c' || echo '$(srcdir)/'`util/buffer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) util/$(DEPDIR)/util_libutil_la-buffer.Tpo util/$(DEPDIR)/util_libutil_la-buffer.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util/buffer.c' object='util/util_libutil_la-buffer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util/util_libutil_la-buffer.lo `test -f 'util/buffer.c' || echo '$(srcdir)/'`util/buffer.c
+
 util/util_libutil_la-fdflag.lo: util/fdflag.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util/util_libutil_la-fdflag.lo -MD -MP -MF util/$(DEPDIR)/util_libutil_la-fdflag.Tpo -c -o util/util_libutil_la-fdflag.lo `test -f 'util/fdflag.c' || echo '$(srcdir)/'`util/fdflag.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) util/$(DEPDIR)/util_libutil_la-fdflag.Tpo util/$(DEPDIR)/util_libutil_la-fdflag.Plo
@@ -2726,131 +2875,271 @@ util/util_libutil_la-messages-krb5.lo: util/messages-krb5.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(util_libutil_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util/util_libutil_la-messages-krb5.lo `test -f 'util/messages-krb5.c' || echo '$(srcdir)/'`util/messages-krb5.c
 
+client/client_remctl-remctl.o: client/remctl.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(client_remctl_CFLAGS) $(CFLAGS) -MT client/client_remctl-remctl.o -MD -MP -MF client/$(DEPDIR)/client_remctl-remctl.Tpo -c -o client/client_remctl-remctl.o `test -f 'client/remctl.c' || echo '$(srcdir)/'`client/remctl.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) client/$(DEPDIR)/client_remctl-remctl.Tpo client/$(DEPDIR)/client_remctl-remctl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='client/remctl.c' object='client/client_remctl-remctl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(client_remctl_CFLAGS) $(CFLAGS) -c -o client/client_remctl-remctl.o `test -f 'client/remctl.c' || echo '$(srcdir)/'`client/remctl.c
+
+client/client_remctl-remctl.obj: client/remctl.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(client_remctl_CFLAGS) $(CFLAGS) -MT client/client_remctl-remctl.obj -MD -MP -MF client/$(DEPDIR)/client_remctl-remctl.Tpo -c -o client/client_remctl-remctl.obj `if test -f 'client/remctl.c'; then $(CYGPATH_W) 'client/remctl.c'; else $(CYGPATH_W) '$(srcdir)/client/remctl.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) client/$(DEPDIR)/client_remctl-remctl.Tpo client/$(DEPDIR)/client_remctl-remctl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='client/remctl.c' object='client/client_remctl-remctl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(client_remctl_CFLAGS) $(CFLAGS) -c -o client/client_remctl-remctl.obj `if test -f 'client/remctl.c'; then $(CYGPATH_W) 'client/remctl.c'; else $(CYGPATH_W) '$(srcdir)/client/remctl.c'; fi`
+
+portable/server_remctl_shell-event-extra.o: portable/event-extra.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT portable/server_remctl_shell-event-extra.o -MD -MP -MF portable/$(DEPDIR)/server_remctl_shell-event-extra.Tpo -c -o portable/server_remctl_shell-event-extra.o `test -f 'portable/event-extra.c' || echo '$(srcdir)/'`portable/event-extra.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) portable/$(DEPDIR)/server_remctl_shell-event-extra.Tpo portable/$(DEPDIR)/server_remctl_shell-event-extra.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='portable/event-extra.c' object='portable/server_remctl_shell-event-extra.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o portable/server_remctl_shell-event-extra.o `test -f 'portable/event-extra.c' || echo '$(srcdir)/'`portable/event-extra.c
+
+portable/server_remctl_shell-event-extra.obj: portable/event-extra.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT portable/server_remctl_shell-event-extra.obj -MD -MP -MF portable/$(DEPDIR)/server_remctl_shell-event-extra.Tpo -c -o portable/server_remctl_shell-event-extra.obj `if test -f 'portable/event-extra.c'; then $(CYGPATH_W) 'portable/event-extra.c'; else $(CYGPATH_W) '$(srcdir)/portable/event-extra.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) portable/$(DEPDIR)/server_remctl_shell-event-extra.Tpo portable/$(DEPDIR)/server_remctl_shell-event-extra.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='portable/event-extra.c' object='portable/server_remctl_shell-event-extra.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o portable/server_remctl_shell-event-extra.obj `if test -f 'portable/event-extra.c'; then $(CYGPATH_W) 'portable/event-extra.c'; else $(CYGPATH_W) '$(srcdir)/portable/event-extra.c'; fi`
+
+server/server_remctl_shell-commands.o: server/commands.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-commands.o -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-commands.Tpo -c -o server/server_remctl_shell-commands.o `test -f 'server/commands.c' || echo '$(srcdir)/'`server/commands.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-commands.Tpo server/$(DEPDIR)/server_remctl_shell-commands.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/commands.c' object='server/server_remctl_shell-commands.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-commands.o `test -f 'server/commands.c' || echo '$(srcdir)/'`server/commands.c
+
+server/server_remctl_shell-commands.obj: server/commands.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-commands.obj -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-commands.Tpo -c -o server/server_remctl_shell-commands.obj `if test -f 'server/commands.c'; then $(CYGPATH_W) 'server/commands.c'; else $(CYGPATH_W) '$(srcdir)/server/commands.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-commands.Tpo server/$(DEPDIR)/server_remctl_shell-commands.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/commands.c' object='server/server_remctl_shell-commands.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-commands.obj `if test -f 'server/commands.c'; then $(CYGPATH_W) 'server/commands.c'; else $(CYGPATH_W) '$(srcdir)/server/commands.c'; fi`
+
+server/server_remctl_shell-config.o: server/config.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-config.o -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-config.Tpo -c -o server/server_remctl_shell-config.o `test -f 'server/config.c' || echo '$(srcdir)/'`server/config.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-config.Tpo server/$(DEPDIR)/server_remctl_shell-config.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/config.c' object='server/server_remctl_shell-config.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-config.o `test -f 'server/config.c' || echo '$(srcdir)/'`server/config.c
+
+server/server_remctl_shell-config.obj: server/config.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-config.obj -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-config.Tpo -c -o server/server_remctl_shell-config.obj `if test -f 'server/config.c'; then $(CYGPATH_W) 'server/config.c'; else $(CYGPATH_W) '$(srcdir)/server/config.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-config.Tpo server/$(DEPDIR)/server_remctl_shell-config.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/config.c' object='server/server_remctl_shell-config.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-config.obj `if test -f 'server/config.c'; then $(CYGPATH_W) 'server/config.c'; else $(CYGPATH_W) '$(srcdir)/server/config.c'; fi`
+
+server/server_remctl_shell-event-util.o: server/event-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-event-util.o -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-event-util.Tpo -c -o server/server_remctl_shell-event-util.o `test -f 'server/event-util.c' || echo '$(srcdir)/'`server/event-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-event-util.Tpo server/$(DEPDIR)/server_remctl_shell-event-util.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/event-util.c' object='server/server_remctl_shell-event-util.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-event-util.o `test -f 'server/event-util.c' || echo '$(srcdir)/'`server/event-util.c
+
+server/server_remctl_shell-event-util.obj: server/event-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-event-util.obj -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-event-util.Tpo -c -o server/server_remctl_shell-event-util.obj `if test -f 'server/event-util.c'; then $(CYGPATH_W) 'server/event-util.c'; else $(CYGPATH_W) '$(srcdir)/server/event-util.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-event-util.Tpo server/$(DEPDIR)/server_remctl_shell-event-util.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/event-util.c' object='server/server_remctl_shell-event-util.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-event-util.obj `if test -f 'server/event-util.c'; then $(CYGPATH_W) 'server/event-util.c'; else $(CYGPATH_W) '$(srcdir)/server/event-util.c'; fi`
+
+server/server_remctl_shell-logging.o: server/logging.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-logging.o -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-logging.Tpo -c -o server/server_remctl_shell-logging.o `test -f 'server/logging.c' || echo '$(srcdir)/'`server/logging.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-logging.Tpo server/$(DEPDIR)/server_remctl_shell-logging.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/logging.c' object='server/server_remctl_shell-logging.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-logging.o `test -f 'server/logging.c' || echo '$(srcdir)/'`server/logging.c
+
+server/server_remctl_shell-logging.obj: server/logging.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-logging.obj -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-logging.Tpo -c -o server/server_remctl_shell-logging.obj `if test -f 'server/logging.c'; then $(CYGPATH_W) 'server/logging.c'; else $(CYGPATH_W) '$(srcdir)/server/logging.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-logging.Tpo server/$(DEPDIR)/server_remctl_shell-logging.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/logging.c' object='server/server_remctl_shell-logging.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-logging.obj `if test -f 'server/logging.c'; then $(CYGPATH_W) 'server/logging.c'; else $(CYGPATH_W) '$(srcdir)/server/logging.c'; fi`
+
+server/server_remctl_shell-process.o: server/process.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-process.o -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-process.Tpo -c -o server/server_remctl_shell-process.o `test -f 'server/process.c' || echo '$(srcdir)/'`server/process.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-process.Tpo server/$(DEPDIR)/server_remctl_shell-process.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/process.c' object='server/server_remctl_shell-process.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-process.o `test -f 'server/process.c' || echo '$(srcdir)/'`server/process.c
+
+server/server_remctl_shell-process.obj: server/process.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-process.obj -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-process.Tpo -c -o server/server_remctl_shell-process.obj `if test -f 'server/process.c'; then $(CYGPATH_W) 'server/process.c'; else $(CYGPATH_W) '$(srcdir)/server/process.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-process.Tpo server/$(DEPDIR)/server_remctl_shell-process.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/process.c' object='server/server_remctl_shell-process.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-process.obj `if test -f 'server/process.c'; then $(CYGPATH_W) 'server/process.c'; else $(CYGPATH_W) '$(srcdir)/server/process.c'; fi`
+
+server/server_remctl_shell-remctl-shell.o: server/remctl-shell.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-remctl-shell.o -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-remctl-shell.Tpo -c -o server/server_remctl_shell-remctl-shell.o `test -f 'server/remctl-shell.c' || echo '$(srcdir)/'`server/remctl-shell.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-remctl-shell.Tpo server/$(DEPDIR)/server_remctl_shell-remctl-shell.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/remctl-shell.c' object='server/server_remctl_shell-remctl-shell.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-remctl-shell.o `test -f 'server/remctl-shell.c' || echo '$(srcdir)/'`server/remctl-shell.c
+
+server/server_remctl_shell-remctl-shell.obj: server/remctl-shell.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-remctl-shell.obj -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-remctl-shell.Tpo -c -o server/server_remctl_shell-remctl-shell.obj `if test -f 'server/remctl-shell.c'; then $(CYGPATH_W) 'server/remctl-shell.c'; else $(CYGPATH_W) '$(srcdir)/server/remctl-shell.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-remctl-shell.Tpo server/$(DEPDIR)/server_remctl_shell-remctl-shell.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/remctl-shell.c' object='server/server_remctl_shell-remctl-shell.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-remctl-shell.obj `if test -f 'server/remctl-shell.c'; then $(CYGPATH_W) 'server/remctl-shell.c'; else $(CYGPATH_W) '$(srcdir)/server/remctl-shell.c'; fi`
+
+server/server_remctl_shell-server-ssh.o: server/server-ssh.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-server-ssh.o -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-server-ssh.Tpo -c -o server/server_remctl_shell-server-ssh.o `test -f 'server/server-ssh.c' || echo '$(srcdir)/'`server/server-ssh.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-server-ssh.Tpo server/$(DEPDIR)/server_remctl_shell-server-ssh.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/server-ssh.c' object='server/server_remctl_shell-server-ssh.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-server-ssh.o `test -f 'server/server-ssh.c' || echo '$(srcdir)/'`server/server-ssh.c
+
+server/server_remctl_shell-server-ssh.obj: server/server-ssh.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -MT server/server_remctl_shell-server-ssh.obj -MD -MP -MF server/$(DEPDIR)/server_remctl_shell-server-ssh.Tpo -c -o server/server_remctl_shell-server-ssh.obj `if test -f 'server/server-ssh.c'; then $(CYGPATH_W) 'server/server-ssh.c'; else $(CYGPATH_W) '$(srcdir)/server/server-ssh.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctl_shell-server-ssh.Tpo server/$(DEPDIR)/server_remctl_shell-server-ssh.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/server-ssh.c' object='server/server_remctl_shell-server-ssh.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctl_shell_CPPFLAGS) $(CPPFLAGS) $(server_remctl_shell_CFLAGS) $(CFLAGS) -c -o server/server_remctl_shell-server-ssh.obj `if test -f 'server/server-ssh.c'; then $(CYGPATH_W) 'server/server-ssh.c'; else $(CYGPATH_W) '$(srcdir)/server/server-ssh.c'; fi`
+
 portable/server_remctld-event-extra.o: portable/event-extra.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT portable/server_remctld-event-extra.o -MD -MP -MF portable/$(DEPDIR)/server_remctld-event-extra.Tpo -c -o portable/server_remctld-event-extra.o `test -f 'portable/event-extra.c' || echo '$(srcdir)/'`portable/event-extra.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT portable/server_remctld-event-extra.o -MD -MP -MF portable/$(DEPDIR)/server_remctld-event-extra.Tpo -c -o portable/server_remctld-event-extra.o `test -f 'portable/event-extra.c' || echo '$(srcdir)/'`portable/event-extra.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) portable/$(DEPDIR)/server_remctld-event-extra.Tpo portable/$(DEPDIR)/server_remctld-event-extra.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='portable/event-extra.c' object='portable/server_remctld-event-extra.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o portable/server_remctld-event-extra.o `test -f 'portable/event-extra.c' || echo '$(srcdir)/'`portable/event-extra.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o portable/server_remctld-event-extra.o `test -f 'portable/event-extra.c' || echo '$(srcdir)/'`portable/event-extra.c
 
 portable/server_remctld-event-extra.obj: portable/event-extra.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT portable/server_remctld-event-extra.obj -MD -MP -MF portable/$(DEPDIR)/server_remctld-event-extra.Tpo -c -o portable/server_remctld-event-extra.obj `if test -f 'portable/event-extra.c'; then $(CYGPATH_W) 'portable/event-extra.c'; else $(CYGPATH_W) '$(srcdir)/portable/event-extra.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT portable/server_remctld-event-extra.obj -MD -MP -MF portable/$(DEPDIR)/server_remctld-event-extra.Tpo -c -o portable/server_remctld-event-extra.obj `if test -f 'portable/event-extra.c'; then $(CYGPATH_W) 'portable/event-extra.c'; else $(CYGPATH_W) '$(srcdir)/portable/event-extra.c'; fi`
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) portable/$(DEPDIR)/server_remctld-event-extra.Tpo portable/$(DEPDIR)/server_remctld-event-extra.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='portable/event-extra.c' object='portable/server_remctld-event-extra.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o portable/server_remctld-event-extra.obj `if test -f 'portable/event-extra.c'; then $(CYGPATH_W) 'portable/event-extra.c'; else $(CYGPATH_W) '$(srcdir)/portable/event-extra.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o portable/server_remctld-event-extra.obj `if test -f 'portable/event-extra.c'; then $(CYGPATH_W) 'portable/event-extra.c'; else $(CYGPATH_W) '$(srcdir)/portable/event-extra.c'; fi`
 
 server/server_remctld-commands.o: server/commands.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-commands.o -MD -MP -MF server/$(DEPDIR)/server_remctld-commands.Tpo -c -o server/server_remctld-commands.o `test -f 'server/commands.c' || echo '$(srcdir)/'`server/commands.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-commands.o -MD -MP -MF server/$(DEPDIR)/server_remctld-commands.Tpo -c -o server/server_remctld-commands.o `test -f 'server/commands.c' || echo '$(srcdir)/'`server/commands.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-commands.Tpo server/$(DEPDIR)/server_remctld-commands.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/commands.c' object='server/server_remctld-commands.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-commands.o `test -f 'server/commands.c' || echo '$(srcdir)/'`server/commands.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-commands.o `test -f 'server/commands.c' || echo '$(srcdir)/'`server/commands.c
 
 server/server_remctld-commands.obj: server/commands.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-commands.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-commands.Tpo -c -o server/server_remctld-commands.obj `if test -f 'server/commands.c'; then $(CYGPATH_W) 'server/commands.c'; else $(CYGPATH_W) '$(srcdir)/server/commands.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-commands.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-commands.Tpo -c -o server/server_remctld-commands.obj `if test -f 'server/commands.c'; then $(CYGPATH_W) 'server/commands.c'; else $(CYGPATH_W) '$(srcdir)/server/commands.c'; fi`
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-commands.Tpo server/$(DEPDIR)/server_remctld-commands.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/commands.c' object='server/server_remctld-commands.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-commands.obj `if test -f 'server/commands.c'; then $(CYGPATH_W) 'server/commands.c'; else $(CYGPATH_W) '$(srcdir)/server/commands.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-commands.obj `if test -f 'server/commands.c'; then $(CYGPATH_W) 'server/commands.c'; else $(CYGPATH_W) '$(srcdir)/server/commands.c'; fi`
 
 server/server_remctld-config.o: server/config.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-config.o -MD -MP -MF server/$(DEPDIR)/server_remctld-config.Tpo -c -o server/server_remctld-config.o `test -f 'server/config.c' || echo '$(srcdir)/'`server/config.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-config.o -MD -MP -MF server/$(DEPDIR)/server_remctld-config.Tpo -c -o server/server_remctld-config.o `test -f 'server/config.c' || echo '$(srcdir)/'`server/config.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-config.Tpo server/$(DEPDIR)/server_remctld-config.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/config.c' object='server/server_remctld-config.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-config.o `test -f 'server/config.c' || echo '$(srcdir)/'`server/config.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-config.o `test -f 'server/config.c' || echo '$(srcdir)/'`server/config.c
 
 server/server_remctld-config.obj: server/config.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-config.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-config.Tpo -c -o server/server_remctld-config.obj `if test -f 'server/config.c'; then $(CYGPATH_W) 'server/config.c'; else $(CYGPATH_W) '$(srcdir)/server/config.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-config.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-config.Tpo -c -o server/server_remctld-config.obj `if test -f 'server/config.c'; then $(CYGPATH_W) 'server/config.c'; else $(CYGPATH_W) '$(srcdir)/server/config.c'; fi`
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-config.Tpo server/$(DEPDIR)/server_remctld-config.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/config.c' object='server/server_remctld-config.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-config.obj `if test -f 'server/config.c'; then $(CYGPATH_W) 'server/config.c'; else $(CYGPATH_W) '$(srcdir)/server/config.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-config.obj `if test -f 'server/config.c'; then $(CYGPATH_W) 'server/config.c'; else $(CYGPATH_W) '$(srcdir)/server/config.c'; fi`
+
+server/server_remctld-event-util.o: server/event-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-event-util.o -MD -MP -MF server/$(DEPDIR)/server_remctld-event-util.Tpo -c -o server/server_remctld-event-util.o `test -f 'server/event-util.c' || echo '$(srcdir)/'`server/event-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-event-util.Tpo server/$(DEPDIR)/server_remctld-event-util.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/event-util.c' object='server/server_remctld-event-util.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-event-util.o `test -f 'server/event-util.c' || echo '$(srcdir)/'`server/event-util.c
+
+server/server_remctld-event-util.obj: server/event-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-event-util.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-event-util.Tpo -c -o server/server_remctld-event-util.obj `if test -f 'server/event-util.c'; then $(CYGPATH_W) 'server/event-util.c'; else $(CYGPATH_W) '$(srcdir)/server/event-util.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-event-util.Tpo server/$(DEPDIR)/server_remctld-event-util.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/event-util.c' object='server/server_remctld-event-util.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-event-util.obj `if test -f 'server/event-util.c'; then $(CYGPATH_W) 'server/event-util.c'; else $(CYGPATH_W) '$(srcdir)/server/event-util.c'; fi`
 
 server/server_remctld-generic.o: server/generic.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-generic.o -MD -MP -MF server/$(DEPDIR)/server_remctld-generic.Tpo -c -o server/server_remctld-generic.o `test -f 'server/generic.c' || echo '$(srcdir)/'`server/generic.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-generic.o -MD -MP -MF server/$(DEPDIR)/server_remctld-generic.Tpo -c -o server/server_remctld-generic.o `test -f 'server/generic.c' || echo '$(srcdir)/'`server/generic.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-generic.Tpo server/$(DEPDIR)/server_remctld-generic.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/generic.c' object='server/server_remctld-generic.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-generic.o `test -f 'server/generic.c' || echo '$(srcdir)/'`server/generic.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-generic.o `test -f 'server/generic.c' || echo '$(srcdir)/'`server/generic.c
 
 server/server_remctld-generic.obj: server/generic.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-generic.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-generic.Tpo -c -o server/server_remctld-generic.obj `if test -f 'server/generic.c'; then $(CYGPATH_W) 'server/generic.c'; else $(CYGPATH_W) '$(srcdir)/server/generic.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-generic.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-generic.Tpo -c -o server/server_remctld-generic.obj `if test -f 'server/generic.c'; then $(CYGPATH_W) 'server/generic.c'; else $(CYGPATH_W) '$(srcdir)/server/generic.c'; fi`
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-generic.Tpo server/$(DEPDIR)/server_remctld-generic.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/generic.c' object='server/server_remctld-generic.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-generic.obj `if test -f 'server/generic.c'; then $(CYGPATH_W) 'server/generic.c'; else $(CYGPATH_W) '$(srcdir)/server/generic.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-generic.obj `if test -f 'server/generic.c'; then $(CYGPATH_W) 'server/generic.c'; else $(CYGPATH_W) '$(srcdir)/server/generic.c'; fi`
 
 server/server_remctld-logging.o: server/logging.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-logging.o -MD -MP -MF server/$(DEPDIR)/server_remctld-logging.Tpo -c -o server/server_remctld-logging.o `test -f 'server/logging.c' || echo '$(srcdir)/'`server/logging.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-logging.o -MD -MP -MF server/$(DEPDIR)/server_remctld-logging.Tpo -c -o server/server_remctld-logging.o `test -f 'server/logging.c' || echo '$(srcdir)/'`server/logging.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-logging.Tpo server/$(DEPDIR)/server_remctld-logging.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/logging.c' object='server/server_remctld-logging.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-logging.o `test -f 'server/logging.c' || echo '$(srcdir)/'`server/logging.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-logging.o `test -f 'server/logging.c' || echo '$(srcdir)/'`server/logging.c
 
 server/server_remctld-logging.obj: server/logging.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-logging.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-logging.Tpo -c -o server/server_remctld-logging.obj `if test -f 'server/logging.c'; then $(CYGPATH_W) 'server/logging.c'; else $(CYGPATH_W) '$(srcdir)/server/logging.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-logging.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-logging.Tpo -c -o server/server_remctld-logging.obj `if test -f 'server/logging.c'; then $(CYGPATH_W) 'server/logging.c'; else $(CYGPATH_W) '$(srcdir)/server/logging.c'; fi`
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-logging.Tpo server/$(DEPDIR)/server_remctld-logging.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/logging.c' object='server/server_remctld-logging.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-logging.obj `if test -f 'server/logging.c'; then $(CYGPATH_W) 'server/logging.c'; else $(CYGPATH_W) '$(srcdir)/server/logging.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-logging.obj `if test -f 'server/logging.c'; then $(CYGPATH_W) 'server/logging.c'; else $(CYGPATH_W) '$(srcdir)/server/logging.c'; fi`
 
 server/server_remctld-process.o: server/process.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-process.o -MD -MP -MF server/$(DEPDIR)/server_remctld-process.Tpo -c -o server/server_remctld-process.o `test -f 'server/process.c' || echo '$(srcdir)/'`server/process.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-process.o -MD -MP -MF server/$(DEPDIR)/server_remctld-process.Tpo -c -o server/server_remctld-process.o `test -f 'server/process.c' || echo '$(srcdir)/'`server/process.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-process.Tpo server/$(DEPDIR)/server_remctld-process.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/process.c' object='server/server_remctld-process.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-process.o `test -f 'server/process.c' || echo '$(srcdir)/'`server/process.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-process.o `test -f 'server/process.c' || echo '$(srcdir)/'`server/process.c
 
 server/server_remctld-process.obj: server/process.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-process.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-process.Tpo -c -o server/server_remctld-process.obj `if test -f 'server/process.c'; then $(CYGPATH_W) 'server/process.c'; else $(CYGPATH_W) '$(srcdir)/server/process.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-process.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-process.Tpo -c -o server/server_remctld-process.obj `if test -f 'server/process.c'; then $(CYGPATH_W) 'server/process.c'; else $(CYGPATH_W) '$(srcdir)/server/process.c'; fi`
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-process.Tpo server/$(DEPDIR)/server_remctld-process.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/process.c' object='server/server_remctld-process.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-process.obj `if test -f 'server/process.c'; then $(CYGPATH_W) 'server/process.c'; else $(CYGPATH_W) '$(srcdir)/server/process.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-process.obj `if test -f 'server/process.c'; then $(CYGPATH_W) 'server/process.c'; else $(CYGPATH_W) '$(srcdir)/server/process.c'; fi`
 
 server/server_remctld-remctld.o: server/remctld.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-remctld.o -MD -MP -MF server/$(DEPDIR)/server_remctld-remctld.Tpo -c -o server/server_remctld-remctld.o `test -f 'server/remctld.c' || echo '$(srcdir)/'`server/remctld.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-remctld.o -MD -MP -MF server/$(DEPDIR)/server_remctld-remctld.Tpo -c -o server/server_remctld-remctld.o `test -f 'server/remctld.c' || echo '$(srcdir)/'`server/remctld.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-remctld.Tpo server/$(DEPDIR)/server_remctld-remctld.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/remctld.c' object='server/server_remctld-remctld.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-remctld.o `test -f 'server/remctld.c' || echo '$(srcdir)/'`server/remctld.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-remctld.o `test -f 'server/remctld.c' || echo '$(srcdir)/'`server/remctld.c
 
 server/server_remctld-remctld.obj: server/remctld.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-remctld.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-remctld.Tpo -c -o server/server_remctld-remctld.obj `if test -f 'server/remctld.c'; then $(CYGPATH_W) 'server/remctld.c'; else $(CYGPATH_W) '$(srcdir)/server/remctld.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-remctld.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-remctld.Tpo -c -o server/server_remctld-remctld.obj `if test -f 'server/remctld.c'; then $(CYGPATH_W) 'server/remctld.c'; else $(CYGPATH_W) '$(srcdir)/server/remctld.c'; fi`
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-remctld.Tpo server/$(DEPDIR)/server_remctld-remctld.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/remctld.c' object='server/server_remctld-remctld.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-remctld.obj `if test -f 'server/remctld.c'; then $(CYGPATH_W) 'server/remctld.c'; else $(CYGPATH_W) '$(srcdir)/server/remctld.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-remctld.obj `if test -f 'server/remctld.c'; then $(CYGPATH_W) 'server/remctld.c'; else $(CYGPATH_W) '$(srcdir)/server/remctld.c'; fi`
 
 server/server_remctld-server-v1.o: server/server-v1.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-server-v1.o -MD -MP -MF server/$(DEPDIR)/server_remctld-server-v1.Tpo -c -o server/server_remctld-server-v1.o `test -f 'server/server-v1.c' || echo '$(srcdir)/'`server/server-v1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-server-v1.o -MD -MP -MF server/$(DEPDIR)/server_remctld-server-v1.Tpo -c -o server/server_remctld-server-v1.o `test -f 'server/server-v1.c' || echo '$(srcdir)/'`server/server-v1.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-server-v1.Tpo server/$(DEPDIR)/server_remctld-server-v1.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/server-v1.c' object='server/server_remctld-server-v1.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-server-v1.o `test -f 'server/server-v1.c' || echo '$(srcdir)/'`server/server-v1.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-server-v1.o `test -f 'server/server-v1.c' || echo '$(srcdir)/'`server/server-v1.c
 
 server/server_remctld-server-v1.obj: server/server-v1.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-server-v1.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-server-v1.Tpo -c -o server/server_remctld-server-v1.obj `if test -f 'server/server-v1.c'; then $(CYGPATH_W) 'server/server-v1.c'; else $(CYGPATH_W) '$(srcdir)/server/server-v1.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-server-v1.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-server-v1.Tpo -c -o server/server_remctld-server-v1.obj `if test -f 'server/server-v1.c'; then $(CYGPATH_W) 'server/server-v1.c'; else $(CYGPATH_W) '$(srcdir)/server/server-v1.c'; fi`
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-server-v1.Tpo server/$(DEPDIR)/server_remctld-server-v1.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/server-v1.c' object='server/server_remctld-server-v1.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-server-v1.obj `if test -f 'server/server-v1.c'; then $(CYGPATH_W) 'server/server-v1.c'; else $(CYGPATH_W) '$(srcdir)/server/server-v1.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-server-v1.obj `if test -f 'server/server-v1.c'; then $(CYGPATH_W) 'server/server-v1.c'; else $(CYGPATH_W) '$(srcdir)/server/server-v1.c'; fi`
 
 server/server_remctld-server-v2.o: server/server-v2.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-server-v2.o -MD -MP -MF server/$(DEPDIR)/server_remctld-server-v2.Tpo -c -o server/server_remctld-server-v2.o `test -f 'server/server-v2.c' || echo '$(srcdir)/'`server/server-v2.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-server-v2.o -MD -MP -MF server/$(DEPDIR)/server_remctld-server-v2.Tpo -c -o server/server_remctld-server-v2.o `test -f 'server/server-v2.c' || echo '$(srcdir)/'`server/server-v2.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-server-v2.Tpo server/$(DEPDIR)/server_remctld-server-v2.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/server-v2.c' object='server/server_remctld-server-v2.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-server-v2.o `test -f 'server/server-v2.c' || echo '$(srcdir)/'`server/server-v2.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-server-v2.o `test -f 'server/server-v2.c' || echo '$(srcdir)/'`server/server-v2.c
 
 server/server_remctld-server-v2.obj: server/server-v2.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/server_remctld-server-v2.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-server-v2.Tpo -c -o server/server_remctld-server-v2.obj `if test -f 'server/server-v2.c'; then $(CYGPATH_W) 'server/server-v2.c'; else $(CYGPATH_W) '$(srcdir)/server/server-v2.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -MT server/server_remctld-server-v2.obj -MD -MP -MF server/$(DEPDIR)/server_remctld-server-v2.Tpo -c -o server/server_remctld-server-v2.obj `if test -f 'server/server-v2.c'; then $(CYGPATH_W) 'server/server-v2.c'; else $(CYGPATH_W) '$(srcdir)/server/server-v2.c'; fi`
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/server_remctld-server-v2.Tpo server/$(DEPDIR)/server_remctld-server-v2.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/server-v2.c' object='server/server_remctld-server-v2.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/server_remctld-server-v2.obj `if test -f 'server/server-v2.c'; then $(CYGPATH_W) 'server/server-v2.c'; else $(CYGPATH_W) '$(srcdir)/server/server-v2.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(server_remctld_CPPFLAGS) $(CPPFLAGS) $(server_remctld_CFLAGS) $(CFLAGS) -c -o server/server_remctld-server-v2.obj `if test -f 'server/server-v2.c'; then $(CYGPATH_W) 'server/server-v2.c'; else $(CYGPATH_W) '$(srcdir)/server/server-v2.c'; fi`
 
 tests/tests_runtests-runtests.o: tests/runtests.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_runtests_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/tests_runtests-runtests.o -MD -MP -MF tests/$(DEPDIR)/tests_runtests-runtests.Tpo -c -o tests/tests_runtests-runtests.o `test -f 'tests/runtests.c' || echo '$(srcdir)/'`tests/runtests.c
@@ -2865,6 +3154,160 @@ tests/tests_runtests-runtests.obj: tests/runtests.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/runtests.c' object='tests/tests_runtests-runtests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_runtests_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/tests_runtests-runtests.obj `if test -f 'tests/runtests.c'; then $(CYGPATH_W) 'tests/runtests.c'; else $(CYGPATH_W) '$(srcdir)/tests/runtests.c'; fi`
+
+tests/server/tests_server_sudo_t-sudo-t.o: tests/server/sudo-t.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/server/tests_server_sudo_t-sudo-t.o -MD -MP -MF tests/server/$(DEPDIR)/tests_server_sudo_t-sudo-t.Tpo -c -o tests/server/tests_server_sudo_t-sudo-t.o `test -f 'tests/server/sudo-t.c' || echo '$(srcdir)/'`tests/server/sudo-t.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/server/$(DEPDIR)/tests_server_sudo_t-sudo-t.Tpo tests/server/$(DEPDIR)/tests_server_sudo_t-sudo-t.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/server/sudo-t.c' object='tests/server/tests_server_sudo_t-sudo-t.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/server/tests_server_sudo_t-sudo-t.o `test -f 'tests/server/sudo-t.c' || echo '$(srcdir)/'`tests/server/sudo-t.c
+
+tests/server/tests_server_sudo_t-sudo-t.obj: tests/server/sudo-t.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/server/tests_server_sudo_t-sudo-t.obj -MD -MP -MF tests/server/$(DEPDIR)/tests_server_sudo_t-sudo-t.Tpo -c -o tests/server/tests_server_sudo_t-sudo-t.obj `if test -f 'tests/server/sudo-t.c'; then $(CYGPATH_W) 'tests/server/sudo-t.c'; else $(CYGPATH_W) '$(srcdir)/tests/server/sudo-t.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/server/$(DEPDIR)/tests_server_sudo_t-sudo-t.Tpo tests/server/$(DEPDIR)/tests_server_sudo_t-sudo-t.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/server/sudo-t.c' object='tests/server/tests_server_sudo_t-sudo-t.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/server/tests_server_sudo_t-sudo-t.obj `if test -f 'tests/server/sudo-t.c'; then $(CYGPATH_W) 'tests/server/sudo-t.c'; else $(CYGPATH_W) '$(srcdir)/tests/server/sudo-t.c'; fi`
+
+portable/tests_server_sudo_t-event-extra.o: portable/event-extra.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT portable/tests_server_sudo_t-event-extra.o -MD -MP -MF portable/$(DEPDIR)/tests_server_sudo_t-event-extra.Tpo -c -o portable/tests_server_sudo_t-event-extra.o `test -f 'portable/event-extra.c' || echo '$(srcdir)/'`portable/event-extra.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) portable/$(DEPDIR)/tests_server_sudo_t-event-extra.Tpo portable/$(DEPDIR)/tests_server_sudo_t-event-extra.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='portable/event-extra.c' object='portable/tests_server_sudo_t-event-extra.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o portable/tests_server_sudo_t-event-extra.o `test -f 'portable/event-extra.c' || echo '$(srcdir)/'`portable/event-extra.c
+
+portable/tests_server_sudo_t-event-extra.obj: portable/event-extra.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT portable/tests_server_sudo_t-event-extra.obj -MD -MP -MF portable/$(DEPDIR)/tests_server_sudo_t-event-extra.Tpo -c -o portable/tests_server_sudo_t-event-extra.obj `if test -f 'portable/event-extra.c'; then $(CYGPATH_W) 'portable/event-extra.c'; else $(CYGPATH_W) '$(srcdir)/portable/event-extra.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) portable/$(DEPDIR)/tests_server_sudo_t-event-extra.Tpo portable/$(DEPDIR)/tests_server_sudo_t-event-extra.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='portable/event-extra.c' object='portable/tests_server_sudo_t-event-extra.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o portable/tests_server_sudo_t-event-extra.obj `if test -f 'portable/event-extra.c'; then $(CYGPATH_W) 'portable/event-extra.c'; else $(CYGPATH_W) '$(srcdir)/portable/event-extra.c'; fi`
+
+server/tests_server_sudo_t-commands.o: server/commands.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-commands.o -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-commands.Tpo -c -o server/tests_server_sudo_t-commands.o `test -f 'server/commands.c' || echo '$(srcdir)/'`server/commands.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-commands.Tpo server/$(DEPDIR)/tests_server_sudo_t-commands.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/commands.c' object='server/tests_server_sudo_t-commands.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-commands.o `test -f 'server/commands.c' || echo '$(srcdir)/'`server/commands.c
+
+server/tests_server_sudo_t-commands.obj: server/commands.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-commands.obj -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-commands.Tpo -c -o server/tests_server_sudo_t-commands.obj `if test -f 'server/commands.c'; then $(CYGPATH_W) 'server/commands.c'; else $(CYGPATH_W) '$(srcdir)/server/commands.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-commands.Tpo server/$(DEPDIR)/tests_server_sudo_t-commands.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/commands.c' object='server/tests_server_sudo_t-commands.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-commands.obj `if test -f 'server/commands.c'; then $(CYGPATH_W) 'server/commands.c'; else $(CYGPATH_W) '$(srcdir)/server/commands.c'; fi`
+
+server/tests_server_sudo_t-config.o: server/config.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-config.o -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-config.Tpo -c -o server/tests_server_sudo_t-config.o `test -f 'server/config.c' || echo '$(srcdir)/'`server/config.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-config.Tpo server/$(DEPDIR)/tests_server_sudo_t-config.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/config.c' object='server/tests_server_sudo_t-config.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-config.o `test -f 'server/config.c' || echo '$(srcdir)/'`server/config.c
+
+server/tests_server_sudo_t-config.obj: server/config.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-config.obj -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-config.Tpo -c -o server/tests_server_sudo_t-config.obj `if test -f 'server/config.c'; then $(CYGPATH_W) 'server/config.c'; else $(CYGPATH_W) '$(srcdir)/server/config.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-config.Tpo server/$(DEPDIR)/tests_server_sudo_t-config.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/config.c' object='server/tests_server_sudo_t-config.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-config.obj `if test -f 'server/config.c'; then $(CYGPATH_W) 'server/config.c'; else $(CYGPATH_W) '$(srcdir)/server/config.c'; fi`
+
+server/tests_server_sudo_t-event-util.o: server/event-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-event-util.o -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-event-util.Tpo -c -o server/tests_server_sudo_t-event-util.o `test -f 'server/event-util.c' || echo '$(srcdir)/'`server/event-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-event-util.Tpo server/$(DEPDIR)/tests_server_sudo_t-event-util.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/event-util.c' object='server/tests_server_sudo_t-event-util.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-event-util.o `test -f 'server/event-util.c' || echo '$(srcdir)/'`server/event-util.c
+
+server/tests_server_sudo_t-event-util.obj: server/event-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-event-util.obj -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-event-util.Tpo -c -o server/tests_server_sudo_t-event-util.obj `if test -f 'server/event-util.c'; then $(CYGPATH_W) 'server/event-util.c'; else $(CYGPATH_W) '$(srcdir)/server/event-util.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-event-util.Tpo server/$(DEPDIR)/tests_server_sudo_t-event-util.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/event-util.c' object='server/tests_server_sudo_t-event-util.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-event-util.obj `if test -f 'server/event-util.c'; then $(CYGPATH_W) 'server/event-util.c'; else $(CYGPATH_W) '$(srcdir)/server/event-util.c'; fi`
+
+server/tests_server_sudo_t-generic.o: server/generic.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-generic.o -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-generic.Tpo -c -o server/tests_server_sudo_t-generic.o `test -f 'server/generic.c' || echo '$(srcdir)/'`server/generic.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-generic.Tpo server/$(DEPDIR)/tests_server_sudo_t-generic.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/generic.c' object='server/tests_server_sudo_t-generic.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-generic.o `test -f 'server/generic.c' || echo '$(srcdir)/'`server/generic.c
+
+server/tests_server_sudo_t-generic.obj: server/generic.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-generic.obj -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-generic.Tpo -c -o server/tests_server_sudo_t-generic.obj `if test -f 'server/generic.c'; then $(CYGPATH_W) 'server/generic.c'; else $(CYGPATH_W) '$(srcdir)/server/generic.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-generic.Tpo server/$(DEPDIR)/tests_server_sudo_t-generic.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/generic.c' object='server/tests_server_sudo_t-generic.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-generic.obj `if test -f 'server/generic.c'; then $(CYGPATH_W) 'server/generic.c'; else $(CYGPATH_W) '$(srcdir)/server/generic.c'; fi`
+
+server/tests_server_sudo_t-logging.o: server/logging.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-logging.o -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-logging.Tpo -c -o server/tests_server_sudo_t-logging.o `test -f 'server/logging.c' || echo '$(srcdir)/'`server/logging.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-logging.Tpo server/$(DEPDIR)/tests_server_sudo_t-logging.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/logging.c' object='server/tests_server_sudo_t-logging.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-logging.o `test -f 'server/logging.c' || echo '$(srcdir)/'`server/logging.c
+
+server/tests_server_sudo_t-logging.obj: server/logging.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-logging.obj -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-logging.Tpo -c -o server/tests_server_sudo_t-logging.obj `if test -f 'server/logging.c'; then $(CYGPATH_W) 'server/logging.c'; else $(CYGPATH_W) '$(srcdir)/server/logging.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-logging.Tpo server/$(DEPDIR)/tests_server_sudo_t-logging.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/logging.c' object='server/tests_server_sudo_t-logging.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-logging.obj `if test -f 'server/logging.c'; then $(CYGPATH_W) 'server/logging.c'; else $(CYGPATH_W) '$(srcdir)/server/logging.c'; fi`
+
+server/tests_server_sudo_t-process.o: server/process.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-process.o -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-process.Tpo -c -o server/tests_server_sudo_t-process.o `test -f 'server/process.c' || echo '$(srcdir)/'`server/process.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-process.Tpo server/$(DEPDIR)/tests_server_sudo_t-process.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/process.c' object='server/tests_server_sudo_t-process.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-process.o `test -f 'server/process.c' || echo '$(srcdir)/'`server/process.c
+
+server/tests_server_sudo_t-process.obj: server/process.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-process.obj -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-process.Tpo -c -o server/tests_server_sudo_t-process.obj `if test -f 'server/process.c'; then $(CYGPATH_W) 'server/process.c'; else $(CYGPATH_W) '$(srcdir)/server/process.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-process.Tpo server/$(DEPDIR)/tests_server_sudo_t-process.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/process.c' object='server/tests_server_sudo_t-process.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-process.obj `if test -f 'server/process.c'; then $(CYGPATH_W) 'server/process.c'; else $(CYGPATH_W) '$(srcdir)/server/process.c'; fi`
+
+server/tests_server_sudo_t-server-v1.o: server/server-v1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-server-v1.o -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-server-v1.Tpo -c -o server/tests_server_sudo_t-server-v1.o `test -f 'server/server-v1.c' || echo '$(srcdir)/'`server/server-v1.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-server-v1.Tpo server/$(DEPDIR)/tests_server_sudo_t-server-v1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/server-v1.c' object='server/tests_server_sudo_t-server-v1.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-server-v1.o `test -f 'server/server-v1.c' || echo '$(srcdir)/'`server/server-v1.c
+
+server/tests_server_sudo_t-server-v1.obj: server/server-v1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-server-v1.obj -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-server-v1.Tpo -c -o server/tests_server_sudo_t-server-v1.obj `if test -f 'server/server-v1.c'; then $(CYGPATH_W) 'server/server-v1.c'; else $(CYGPATH_W) '$(srcdir)/server/server-v1.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-server-v1.Tpo server/$(DEPDIR)/tests_server_sudo_t-server-v1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/server-v1.c' object='server/tests_server_sudo_t-server-v1.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-server-v1.obj `if test -f 'server/server-v1.c'; then $(CYGPATH_W) 'server/server-v1.c'; else $(CYGPATH_W) '$(srcdir)/server/server-v1.c'; fi`
+
+server/tests_server_sudo_t-server-v2.o: server/server-v2.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-server-v2.o -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-server-v2.Tpo -c -o server/tests_server_sudo_t-server-v2.o `test -f 'server/server-v2.c' || echo '$(srcdir)/'`server/server-v2.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-server-v2.Tpo server/$(DEPDIR)/tests_server_sudo_t-server-v2.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/server-v2.c' object='server/tests_server_sudo_t-server-v2.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-server-v2.o `test -f 'server/server-v2.c' || echo '$(srcdir)/'`server/server-v2.c
+
+server/tests_server_sudo_t-server-v2.obj: server/server-v2.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-server-v2.obj -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-server-v2.Tpo -c -o server/tests_server_sudo_t-server-v2.obj `if test -f 'server/server-v2.c'; then $(CYGPATH_W) 'server/server-v2.c'; else $(CYGPATH_W) '$(srcdir)/server/server-v2.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-server-v2.Tpo server/$(DEPDIR)/tests_server_sudo_t-server-v2.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/server-v2.c' object='server/tests_server_sudo_t-server-v2.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-server-v2.obj `if test -f 'server/server-v2.c'; then $(CYGPATH_W) 'server/server-v2.c'; else $(CYGPATH_W) '$(srcdir)/server/server-v2.c'; fi`
+
+server/tests_server_sudo_t-server-ssh.o: server/server-ssh.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-server-ssh.o -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-server-ssh.Tpo -c -o server/tests_server_sudo_t-server-ssh.o `test -f 'server/server-ssh.c' || echo '$(srcdir)/'`server/server-ssh.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-server-ssh.Tpo server/$(DEPDIR)/tests_server_sudo_t-server-ssh.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/server-ssh.c' object='server/tests_server_sudo_t-server-ssh.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-server-ssh.o `test -f 'server/server-ssh.c' || echo '$(srcdir)/'`server/server-ssh.c
+
+server/tests_server_sudo_t-server-ssh.obj: server/server-ssh.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT server/tests_server_sudo_t-server-ssh.obj -MD -MP -MF server/$(DEPDIR)/tests_server_sudo_t-server-ssh.Tpo -c -o server/tests_server_sudo_t-server-ssh.obj `if test -f 'server/server-ssh.c'; then $(CYGPATH_W) 'server/server-ssh.c'; else $(CYGPATH_W) '$(srcdir)/server/server-ssh.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) server/$(DEPDIR)/tests_server_sudo_t-server-ssh.Tpo server/$(DEPDIR)/tests_server_sudo_t-server-ssh.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='server/server-ssh.c' object='server/tests_server_sudo_t-server-ssh.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_server_sudo_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o server/tests_server_sudo_t-server-ssh.obj `if test -f 'server/server-ssh.c'; then $(CYGPATH_W) 'server/server-ssh.c'; else $(CYGPATH_W) '$(srcdir)/server/server-ssh.c'; fi`
 
 tests/util/tests_util_messages_krb5_t-messages-krb5-t.o: tests/util/messages-krb5-t.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_util_messages_krb5_t_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/util/tests_util_messages_krb5_t-messages-krb5-t.o -MD -MP -MF tests/util/$(DEPDIR)/tests_util_messages_krb5_t-messages-krb5-t.Tpo -c -o tests/util/tests_util_messages_krb5_t-messages-krb5-t.o `test -f 'tests/util/messages-krb5-t.c' || echo '$(srcdir)/'`tests/util/messages-krb5-t.c
@@ -3513,8 +3956,12 @@ uninstall-man: uninstall-man1 uninstall-man3 uninstall-man8
 # situations and aren't normally set.  We want to honor them if they're set
 # in the environment, as well as via make arguments.
 #
-# REMCTL_PERL_FLAGS are additional flags to pass to Makefile.PL when
-# building the Makefile.
+# REMCTL_PROGRAM_CFLAGS and REMCTL_PROGRAM_LDFLAGS are additional flags to
+# pass to the builds of programs (remctld, remctl, remctl-shell) but not
+# libraries.  This is provided as a hook to pass -fPIE for hardening.
+#
+# REMCTL_PERL_FLAGS are additional flags to pass to Build.PL when building
+# the Makefile.
 #
 # REMCTL_PYTHON_INSTALL adds additional flags to the setup.py install
 # command.  REMCTL_PYTHON_VERSIONS, if set, is a space-separated list of
@@ -3525,6 +3972,8 @@ uninstall-man: uninstall-man1 uninstall-man3 uninstall-man8
 # REMCTL_RUBY controls which Ruby interpretor is used to do the build.
 # REMCTL_RUBY_FLAGS are additional flags to pass to extconf.rb when building
 # the Makefile.
+REMCTL_PROGRAM_CFLAGS  ?=
+REMCTL_PROGRAM_LDFLAGS ?=
 REMCTL_PERL_FLAGS      ?=
 REMCTL_PYTHON_INSTALL  ?=
 REMCTL_PYTHON_VERSIONS ?= python
@@ -3549,6 +3998,11 @@ systemd/remctld.service: $(srcdir)/systemd/remctld.service.in
 	    $(srcdir)/systemd/remctld.service.in > $@
 
 # Substitute the system configuration path into the manual page.
+docs/remctl-shell.8: $(srcdir)/docs/remctl-shell.8.in
+	[ -d docs ] || mkdir docs
+	sed -e 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%'	\
+	    -e 's%\(\\f(CI\)*\@sbindir\(\\fI\)*\@%$(sbindir)%'		\
+	    < $(srcdir)/docs/remctl-shell.8.in > $@
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
 	[ -d docs ] || mkdir docs
 	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \
@@ -3607,13 +4061,13 @@ distclean-local: clean-local
 	fi
 
 warnings:
-	$(MAKE) V=0 CFLAGS='$(WARNINGS)'		\
-	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)'	\
-	    PERL_CFLAGS_EXTRA='$(PERL_WARNINGS)'	\
-	    PHP_CFLAGS_EXTRA='$(PHP_WARNINGS)'		\
-	    PYTHON_CFLAGS_EXTRA='$(PYTHON_WARNINGS)'	\
+	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
+	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)'		\
+	    PERL_CFLAGS_EXTRA='$(PERL_WARNINGS)'		\
+	    PHP_CFLAGS_EXTRA='$(PHP_WARNINGS)'			\
+	    PYTHON_CFLAGS_EXTRA='$(PYTHON_WARNINGS)'		\
 	    RUBY_CFLAGS_EXTRA='$(RUBY_WARNINGS)'
-	$(MAKE) V=0 CFLAGS='$(WARNINGS)' \
+	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)' \
 	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)' $(check_PROGRAMS)
 
 check-local: $(check_PROGRAMS)

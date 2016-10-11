@@ -5,7 +5,7 @@
  * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2005, 2013 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2005, 2013, 2016 Russ Allbery <eagle@eyrie.org>
  * Copyright 2009, 2010, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -37,6 +37,7 @@
 #include <signal.h>
 
 #include <tests/tap/basic.h>
+#include <util/fdflag.h>
 #include <util/macros.h>
 #include <util/messages.h>
 #include <util/network.h>
@@ -54,21 +55,50 @@
 static bool
 ipv6_works(void)
 {
-    socket_type fd;
+    socket_type fd, client, server;
 
-    /* Create the socket.  If this works, ipv6 is supported. */
+    /*
+     * Create the socket and then try to connect to it with a short timeout
+     * and accept it on the server side.  If this works, IPv6 is supported.
+     */
     fd = network_bind_ipv6(SOCK_STREAM, "::1", 11119);
     if (fd != INVALID_SOCKET) {
-        close(fd);
-        return true;
+        fdflag_nonblocking(fd, true);
+        client = network_connect_host("::1", 11119, NULL, 1);
+        if (client == INVALID_SOCKET) {
+            close(fd);
+            if (socket_errno == ETIMEDOUT || socket_errno == ENETUNREACH)
+                return false;
+        } else {
+            server = accept(fd, NULL, NULL);
+            close(fd);
+            if (server == INVALID_SOCKET) {
+                close(client);
+
+                /*
+                 * Written as two separate if statements because gcc with
+                 * -Werror=logical-op warns about identical expressions, and
+                 * EAGAIN and EWOULDBLOCK are the same number on Linux (but
+                 * not on some other platforms).
+                 */
+                if (socket_errno == EAGAIN)
+                    return false;
+                if (socket_errno == EWOULDBLOCK)
+                    return false;
+            } else {
+                close(server);
+                close(client);
+                return true;
+            }
+        }
     }
 
     /* IPv6 not recognized, indicating no support. */
-    if (errno == EAFNOSUPPORT || errno == EPROTONOSUPPORT)
+    if (socket_errno == EAFNOSUPPORT || socket_errno == EPROTONOSUPPORT)
         return false;
 
     /* IPv6 is recognized but we can't actually use it. */
-    if (errno == EADDRNOTAVAIL)
+    if (socket_errno == EADDRNOTAVAIL)
         return false;
 
     /*
@@ -187,9 +217,16 @@ test_server_accept(socket_type fd)
 {
     socket_type client;
 
+    /* If there are firewalls that block connections, we could hang here. */
+    alarm(5);
+
+    /* Accept the connection and writes from the client. */
     client = accept(fd, NULL, NULL);
     test_server_connection(client);
     socket_close(fd);
+
+    /* Cancel the alarm. */
+    alarm(0);
 }
 
 
@@ -212,6 +249,10 @@ test_server_accept_any(socket_type fds[], unsigned int count)
     struct sockaddr *saddr;
     socklen_t slen;
 
+    /* If there are firewalls that block connections, we could hang here. */
+    alarm(5);
+
+    /* Accept the connection and writes from the client. */
     slen = sizeof(struct sockaddr_storage);
     saddr = bcalloc(1, slen);
     client = network_accept_any(fds, count, saddr, &slen);
@@ -223,6 +264,9 @@ test_server_accept_any(socket_type fds[], unsigned int count)
     free(saddr);
     for (i = 0; i < count; i++)
         socket_close(fds[i]);
+
+    /* Cancel the alarm. */
+    alarm(0);
 }
 
 
@@ -360,7 +404,7 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
         fd = fds[i];
         if (listen(fd, 1) < 0)
             sysbail("cannot listen to socket %d", fd);
-        ok(fd != INVALID_SOCKET, "all address server test (part %d)", i + 1);
+        ok(fd != INVALID_SOCKET, "all address server test (part %u)", i + 1);
 
         /* Get the socket type to determine what type of client to run. */
         saddr = get_sockaddr(fd);
@@ -415,6 +459,7 @@ test_any(void)
 
     if (!network_bind_all(SOCK_STREAM, 11119, &fds, &count))
         sysbail("cannot create or bind socket");
+    ok(1, "network_accept_any test");
     for (i = 0; i < count; i++)
         if (listen(fds[i], 1) < 0)
             sysbail("cannot listen to socket %d", fds[i]);
@@ -500,7 +545,7 @@ int
 main(void)
 {
     /* Set up the plan. */
-    plan(42);
+    plan(43);
 
     /* Test network_bind functions. */
     test_ipv4(NULL);

@@ -4,6 +4,7 @@
 /client/remctl
 /docs/protocol.html
 /docs/protocol.txt
+/docs/remctl-shell.8.in
 /docs/remctld.8.in
 /java/build.xml
 /java/local.properties
@@ -56,6 +57,7 @@
 /ruby/test_remctl.rb
 /remctl-*.tar.gz
 /remctl-*.tar.xz
+/server/remctl-shell
 /server/remctld
 /stamp-h1
 /stamp-python
@@ -88,8 +90,6 @@
 /tests/portable/mkstemp-t
 /tests/portable/setenv-t
 /tests/portable/snprintf-t
-/tests/portable/strlcat-t
-/tests/portable/strlcpy-t
 /tests/runtests
 /tests/server/accept-t
 /tests/server/acl-t
@@ -106,11 +106,14 @@
 /tests/server/invalid-t
 /tests/server/logging-t
 /tests/server/noop-t
+/tests/server/ssh-parse-t
 /tests/server/stdin-t
 /tests/server/streaming-t
+/tests/server/sudo-t
 /tests/server/summary-t
 /tests/server/user-t
 /tests/server/version-t
+/tests/util/buffer-t
 /tests/util/fdflag-t
 /tests/util/gss-tokens-t
 /tests/util/messages-krb5-t

@@ -10,6 +10,21 @@ that you can further restrict access via /etc/hosts.allow and
 under some other network server, comment out the invocation in
 /etc/inetd.conf and it won't be readded by upgrades of this package.
 
+Example systemd unit files to start remctld with socket activation are
+included in /usr/share/doc/remctl-server/examples.  To start remctld this
+way on a system using systemd, first disable running it through inetd as
+described above, and then:
+
+    cp /usr/share/doc/remctl-server/examples/remctld.{service,socket} \
+        /etc/systemd/system
+    systemctl daemon-reload
+    systemctl enable remctld
+    systemctl start remctld.socket
+
+A sample upstart configuration is included in the same directory.  To use
+it, similarly disable running remctld through inetd and then copy it to
+/etc/init/remctl.conf.
+
 You don't have to run remctld as root, but of course will need to do so if
 you want it to run any programs that need root privileges or want to run
 programs that change to various different user identities.  By default it
@@ -25,4 +40,4 @@ The remctl protocol documentation is included in the remctl-client
 package.  To see it, install remctl-client and look in
 /usr/share/doc/remctl-client.
 
- -- Russ Allbery <rra@debian.org>, Mon, 24 Aug 2009 16:04:30 -0700
+ -- Russ Allbery <rra@debian.org>, Mon,  6 Jan 2014 12:58:25 -0800

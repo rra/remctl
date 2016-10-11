@@ -289,25 +289,38 @@ to the command.  Be aware that even if the I<subcommand> is the designated
 argument to pass on standard input (C<stdin=1>), the I<subcommand> may not
 contain NUL characters.
 
+=item sudo=(I<username> | #I<uid>)
+
+[3.12] Run this command as the specified user using B<sudo>.  This is
+exactly equivalent to prepending C<sudo -u I<username> --> to the command
+before running it.  The path to B<sudo> is determined when B<remctld> is
+built.
+
+The I<user> option is simpler and easier if B<remctld> is running as root.
+However, it may be desirable in some configurations to run B<remctld> as a
+non-root user, and B<remctl-shell> (which shares the same configuration
+files) usually runs as a non-root user.  In those cases, this option can
+be used to use B<sudo> to switch users before running the command.
+
+Since the argument is passed verbatim to B<sudo>'s B<-u> option, you can
+specify a numeric UID by prepending it with C<#>.
+
 =item summary=I<arg>
 
-[3.2] Specifies the argument for this command that will print a usage
+[3.13] Specifies the argument for this command that will print a usage
 summary to standard output.
 
 If remctld receives the command C<help> with no arguments, and no C<help>
 command is defined in the configuration file, the server will look through
 the configuration for any command with a C<summary> option set.  If this
-option is set, the I<subcommand> is C<ALL>, and the user is authorized to
-run the command, the server will run the specified I<executable> with the
-argument I<arg>, sending the output back to the user.  It will do this for
-every command in the configuration that meets the above criteria.
+option is set, and the user is authorized to run the command, the server
+will run the specified I<executable> with the argument I<arg>, sending the
+output back to the user.  It will do this for every command in the
+configuration that meets the above criteria.
 
 This allows display of a summary of available commands to the user based
 on which commands that user is authorized to run.  It's a lightweight form
 of service discovery.  Also see the C<help> option.
-
-As mentioned above, this option is only meaningful on configuration lines
-with a I<subcommand> of C<ALL>.
 
 =item user=(I<username> | I<uid>)
 
@@ -523,12 +536,11 @@ B<remctld> (annotated with the version at which they were added):
 
 =over 4
 
-=item REMOTE_USER
+=item REMCTL_COMMAND
 
-=item REMUSER
-
-[1.0 for REMUSER, 2.1 for REMOTE_USER] Set to the Kerberos principal of
-the authenticated client.
+[2.16] The command string that caused this command to be run.  This
+variable will contain only the command, not the subcommand or any
+additional arguments (which are passed as command arguments).
 
 =item REMOTE_ADDR
 
@@ -545,11 +557,17 @@ the Kerberos ticket used to authenticate to the server.
 [2.1] The hostname of the remote host, if it was available.  If reverse
 name resolution failed, this environment variable will not be set.
 
-=item REMCTL_COMMAND
+This is determined via a simple reverse DNS lookup and should be
+considered under the control of the client.  remctl commands should treat
+it with skepticism and not use it for anything other than logging
+purposes.
 
-[2.16] The command string that caused this command to be run.  This
-variable will contain only the command, not the subcommand or any
-additional arguments (which are passed as command arguments).
+=item REMOTE_USER
+
+=item REMUSER
+
+[1.0 for REMUSER, 2.1 for REMOTE_USER] Set to the Kerberos principal of
+the authenticated client.
 
 =back
 

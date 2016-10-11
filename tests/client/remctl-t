@@ -3,14 +3,15 @@
 # Test suite for the remctl command-line client.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2016 Russ Allbery <eagle@eyrie.org>
 # Copyright 2006, 2007, 2009, 2011, 2012, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
 
-. "$SOURCE/tap/libtap.sh"
-. "$SOURCE/tap/kerberos.sh"
-. "$SOURCE/tap/remctl.sh"
+. "${C_TAP_SOURCE}/tap/libtap.sh"
+. "${C_TAP_SOURCE}/tap/kerberos.sh"
+. "${C_TAP_SOURCE}/tap/remctl.sh"
 
 # Test setup.
 kerberos_setup
@@ -19,11 +20,11 @@ if [ $? != 0 ] ; then
 else
     plan 14
 fi
-remctl="$BUILD/../client/remctl"
+remctl="$C_TAP_BUILD/../client/remctl"
 if [ ! -x "$remctl" ] ; then
     bail "can't locate remctl client binary"
 fi
-remctld_start "$BUILD/../server/remctld" "$BUILD/data/conf-simple"
+remctld_start "$C_TAP_BUILD/../server/remctld" "$C_TAP_BUILD/data/conf-simple"
 
 # Now, we can finally run our tests.
 ok_program "basic" 0 "hello world" \

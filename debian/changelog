@@ -1,4 +1,33 @@
-remctl (3.10-1~ubuntu12.04+1) UNRELEASED; urgency=medium
+remctl (3.13-1~ubuntu12.04+1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+    - remctl-shell now supports being run as a forced command.
+    - The summary configuration option is now allowed for commands with
+      subcommands other than ALL, passing in two arguments to the summary
+      command.
+    - New server implementation, remctl-shell, included in the
+      remctl-server package, which is meant to be run as the shell of a
+      dedicated user via ssh and supports the same configuration as
+      remctld.  (This may eventually move into a separate package; if you
+      would like to see that, file a bug.)
+    - New server configuration option, sudo, which says to change users
+      with sudo when running the command.
+    - Port to PHP 7.  (Closes: #821713)
+  * Build the standalone binaries with -fPIE.
+  * New upstream release.
+  * Hard-code the path to sudo in the build so that the sudo package
+    doesn't have to be installed when building the package.
+  * Switch to the new comment character for php-remctl.ini.
+  * Switch to https for all package metadata URLs.
+  * Remove now-unneeded source Lintian override.
+  * Update standards version to 3.9.8 (no changes required).
+  * Switch to the DEP-14 branch layout and update debian/gbp.conf and
+    Vcs-Git accordingly.
+  * Belatedly bump shlibs for interfaces added in remctl 3.3.
+
+ -- Russ Allbery <rra@debian.org>  Sat, 07 May 2016 15:15:46 -0700
+
+remctl (3.10-1~ubuntu12.04+1) precise-backports; urgency=medium
 
   * Forked package for Ubuntu precise based on 3.0-5 Debian packaging.
   * New upstream release:
@@ -12,19 +41,6 @@ remctl (3.10-1~ubuntu12.04+1) UNRELEASED; urgency=medium
     - PHP's remctl_output no longer warns on failure.
     - Python's _remctl.remctl_output returns an empty tuple on error.
     - Fix error reporting for non-blocking connect.
-    - If remctld receives a help command with no arguments and no help
-      command is explicitly defined, it will look for commands to which
-      the current user has access and for which the summary option is set
-      and run them with the argument given by the summary option,
-      collecting the output and sending it back to the client.
-    - If remctld receives a help command with one or two arguments and a
-      command entry exists matching those arguments, the user has access
-      to run it, and the help option is set, the command is run with the
-      help option as the subcommand.
-    - Always close the server's connection to the client on low-level
-      network and GSS-API errors.
-    - Fix remctld segfault when the configuration does not define any
-      commands.
     - Fix a file descriptor leak when checking ACL files.
     - Fix memory leaks in remctld and libremctl.
     - Don't create the PID file in remctld until the network socket is set
@@ -86,20 +102,6 @@ remctl (3.10-1~ubuntu12.04+1) UNRELEASED; urgency=medium
       incompatibilities).
     - Dynamically resize the buffer used for the localgroup ACL scheme,
       allowing support of users in large numbers of local groups.
-  * Patch the upstream build system to provide more hooks for Perl and
-    Python builds and make use of them, removing all the complexity in
-    debian/rules to selectively rebuild parts of the source.  As a side
-    effect, fix application of the hardening flags to all of the
-    interpretor modules.
-  * Use dh-autoreconf to rebuild the Autotools build system, and link with
-    --as-needed to remove the additional unnecessarily library
-    dependencies for the client.  Remove the workaround of relinking the
-    binary, which removed the hardening flags.
-  * Pass the hardening flags into the Perl and Python module rebuilds.
-  * Depend on debhelper (>= 9) now that V9 is no longer experimental and
-    remove now-unneeded Lintian override.
-  * Remove the special additional test run for kfreebsd-amd64.  The
-    problem has been located and corrected upstream.
   * Add additional Perl modules required to run the full module test suite
     to Build-Depends.
   * Add necessary keyring and watch configuration for uscan to verify

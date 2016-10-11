@@ -44,9 +44,9 @@ BEGIN_DECLS
  * an error code to get the Kerberos error.
  */
 void die_krb5(krb5_context, krb5_error_code, const char *, ...)
-    __attribute__((__nonnull__, __noreturn__, __format__(printf, 3, 4)));
+    __attribute__((__nonnull__(3), __noreturn__, __format__(printf, 3, 4)));
 void warn_krb5(krb5_context, krb5_error_code, const char *, ...)
-    __attribute__((__nonnull__, __format__(printf, 3, 4)));
+    __attribute__((__nonnull__(3), __format__(printf, 3, 4)));
 
 /* Undo default visibility change. */
 #pragma GCC visibility pop

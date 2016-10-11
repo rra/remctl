@@ -1,5 +1,85 @@
                        User-Visible remctl Changes
 
+remctl 3.13 (2016-10-10)
+
+    remctl-shell now also supports being run as a forced command from
+    authorized_keys (or other methods).  This may be preferrable to using
+    it as a shell since it doesn't require setting non-standard sshd
+    options.
+
+    The summary configuration option is now allowed for commands with
+    subcommands other than ALL.  When generating a help summary (done in
+    response to the command "help" with no arguments), command lines with
+    a subcommand and a summary option will be run with two arguments: the
+    value of the summary option and then the subcommand.  This allows
+    proper generation of command summaries even for users who only have
+    access to a few subcommands of a command.  Patch from Remi Ferrand.
+
+    The build system now supports new REMCTL_PROGRAM_CFLAGS and
+    REMCTL_PROGRAM_LDFLAGS variables that can be set at build time to pass
+    in additional arguments when compiling and linking programs (like
+    remctl and remctld) but not libraries and, more importantly, language
+    bindings.  This can be used in distribution builds to pass in -fPIE
+    for additional binary hardening.  (CFLAGS and LDFLAGS cannot be used
+    since -fPIE breaks the builds of the dynamic modules for langauges
+    like Perl.)
+
+    Update to rra-c-util 6.1:
+
+    * Correct return-value checks for snprintf.
+    * Adjust Test::RRA::Config for new load path behavior in Perl 5.22.2.
+
+remctl 3.12 (2016-07-29)
+
+    Add a new server implementation, remctl-shell.  This does not use the
+    remctl protocol; instead, it is meant to be run via ssh by being
+    configured as the shell of a dedicated user.  It interprets a command
+    it was given as a remctl command, using the same configuration and
+    authorization checking as the normal remctl server.  This can be
+    useful to introduce remctl into an environment that has ssh public key
+    authentication instead of Kerberos.  remctl-shell has some significant
+    limitations inherited from ssh and requires some setup to use.  See
+    its manual page for more information.
+
+    Add a new configuration option, sudo, which tells remctld and
+    remctl-shell to run the command as a different user using sudo.  The
+    path to the sudo binary is determined when remctld is compiled.
+    Normally, it's more convenient to use the existing user option, but it
+    relies on remctld running as root.  If running the daemon as a
+    non-root user, or when running remctl-shell as a non-root user, this
+    option may work better.
+
+remctl 3.11 (2016-05-07)
+
+    The PHP bindings have been ported to PHP 7, based on work by Nish
+    Aravamudan.  The PHP 7 API is sufficiently different that this was
+    done by forking the PHP code and creating a new version for PHP 7 and
+    later, chosing which extension to compile based on the discovered
+    version of PHP.  Currently, there is no functionality difference, but
+    the PHP 5 extension should be considered frozen and may not get any
+    new features.  It will eventually be removed in a future version of
+    remctl when PHP 7 is sufficiently widespread.
+
+    Rename the script to bootstrap from a Git checkout to bootstrap,
+    matching the emerging consensus in the Autoconf world.
+
+    Fix numerous portability issues to various versions of Heimdal, thanks
+    to multiple patches from Jeffrey Hutzelman.
+
+    Multiple fixes and improvements to the RPM spec file from Jeffrey
+    Hutzelman: systemd support, SLES support, add the missing
+    libevent-devel dependency, fix the version, and fix an invalid date.
+
+    Update to rra-c-util 6.0:
+
+    * Remove all remaining uses of strlcpy and strlcat.
+    * Fix the Perl docs/synopsis.t test to be less UNIX-specific.
+    * Make util/network/server-t more robust against missing IPv6.
+
+    Update to C TAP Harness 4.0:
+
+    * Use C_TAP_SOURCE and C_TAP_BUILD instead of SOURCE and BUILD.
+
 remctl 3.10 (2015-11-27)
 
     Two new remctld ACLs are supported: anyuser:auth and
@@ -51,7 +131,7 @@ remctl 3.10 (2015-11-27)
     that didn't have krb5_get_init_creds_opt_alloc, such as the included
     Kerberos in Solaris 10.
 
-    Update to rra-c-util 5.8:
+    Update to rra-c-util 5.9:
 
     * Add missing va_end to xasprintf implementation.
     * Fix Perl test suite framework for new Automake relative paths.

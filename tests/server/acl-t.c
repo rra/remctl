@@ -2,7 +2,8 @@
  * Test suite for the server ACL checking.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2015 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2016 Dropbox, Inc.
+ * Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
  * Copyright 2007, 2008, 2009, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
@@ -23,6 +24,7 @@
 #include <server/internal.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/messages.h>
+#include <tests/tap/string.h>
 
 
 /*
@@ -34,7 +36,8 @@ static bool
 acl_permit(const struct rule *rule, const char *user)
 {
     struct client client = {
-        -1, NULL, NULL, 0, NULL, (char *) user, false, 0, 0, false, false
+        -1, -1, NULL, NULL, 0, NULL, (char *) user, false, 0, 0, false, false,
+        NULL, NULL, NULL
     };
     return server_config_acl_permit(rule, &client);
 }
@@ -43,15 +46,24 @@ acl_permit(const struct rule *rule, const char *user)
 /*
  * Calls server_config_acl_permit with the anonymous identity and anonymous
  * set to true.
+ *
+ * Heimdal's KRB5_WELLKNOWN_NAME and related constants expand to a literal in
+ * parentheses, which means they cannot be concatenated by the preprocessor
+ * and the string cannot be constructed at compile time.
  */
 static bool
 acl_permit_anonymous(const struct rule *rule)
 {
+    static char *pname = NULL;
     struct client client = {
-        -1, NULL, NULL, 0, NULL,
-        (char *) (KRB5_WELLKNOWN_NAME "/" KRB5_ANON_NAME "@" KRB5_ANON_REALM),
-        true, 0, 0, false, false
+        -1, -1, NULL, NULL, 0, NULL, NULL, true, 0, 0, false, false, NULL,
+        NULL, NULL
     };
+
+    if (pname == NULL)
+        basprintf(&pname, "%s/%s@%s", KRB5_WELLKNOWN_NAME, KRB5_ANON_NAME,
+                  KRB5_ANON_REALM);
+    client.user = pname;
     return server_config_acl_permit(rule, &client);
 }
 
@@ -60,13 +72,14 @@ int
 main(void)
 {
     struct rule rule = {
-        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, 0, NULL, NULL, NULL
+        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0, NULL,
+        NULL, NULL
     };
     const char *acls[5];
 
     plan(78);
-    if (chdir(getenv("SOURCE")) < 0)
-        sysbail("can't chdir to SOURCE");
+    if (chdir(getenv("C_TAP_SOURCE")) < 0)
+        sysbail("can't chdir to C_TAP_SOURCE");
 
     rule.file = (char *) "TEST";
     rule.acls = (char **) acls;

@@ -486,7 +486,7 @@ rb_remctl_type_intern(enum remctl_output_type type)
     for (i = 0; OUTPUT_TYPE[i].name != NULL; i++)
         if (OUTPUT_TYPE[i].type == type)
             return ID2SYM(rb_intern(OUTPUT_TYPE[i].name));
-    rb_bug("Fell off the end while looking up remctl output type %d!\n", type);
+    rb_bug("Fell off the end while looking up remctl output type %u!\n", type);
 }
 
 
