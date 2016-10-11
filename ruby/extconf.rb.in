@@ -1,0 +1,29 @@
+# Extension setup for libremctl Ruby bindings.  -*- ruby -*-
+#
+# Original implementation by Anthony M. Martinez <twopir@nmt.edu>
+# Some subsequent updates by Russ Allbery <eagle@eyrie.org>
+# Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
+# Copyright 2010
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
+
+# This hack is to force the extension to build against the local client
+# library rather than some other library already installed on the system.
+require 'rbconfig'
+require 'mkmf'
+
+# We add $CFLAGS to the contents of $CPPFLAGS since otherwise we lose the
+# Ruby $CFLAGS.  The build system overrides CFLAGS with make warnings.
+# This is really a bug in Ruby; CFLAGS is a user variable that the user
+# should be able to set at build time without losing information.
+$INCFLAGS = "-I@abs_top_srcdir@ #{$INCFLAGS}"
+$CPPFLAGS << " #{$CFLAGS} @CPPFLAGS@"
+$LDFLAGS  = "-L@abs_top_srcdir@/client/.libs -lremctl @LDFLAGS@ #{$LDFLAGS}"
+
+# Intentionally do not check for libremctl here.  We're forcing the link
+# with LDFLAGS above, and mkmf is apparently too stupid to use $LDFLAGS
+# when searching for a shared library and fails unless libremctl is
+# already installed in the system locations.
+
+create_makefile('remctl')

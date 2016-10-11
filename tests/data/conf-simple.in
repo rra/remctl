@@ -1,0 +1,32 @@
+test test @abs_top_srcdir@/tests/data/cmd-hello ANYUSER
+test status @abs_top_srcdir@/tests/data/cmd-status ANYUSER
+test nonexistent /cmd-nonexistent ANYUSER
+test noauth @abs_top_srcdir@/tests/data/cmd-hello data/acl-nonexistent
+test noacl @abs_top_srcdir@/tests/data/cmd-hello data/acl-no-such-file
+test streaming @abs_top_builddir@/tests/data/cmd-streaming ANYUSER
+test env @abs_top_srcdir@/tests/data/cmd-env ANYUSER
+test argv @abs_top_srcdir@/tests/data/cmd-argv ANYUSER
+test closed @abs_top_builddir@/tests/data/cmd-closed ANYUSER
+test background @abs_top_builddir@/tests/data/cmd-background ANYUSER
+test stdin @abs_top_builddir@/tests/data/cmd-stdin stdin=last ANYUSER
+test sleep @abs_top_srcdir@/tests/data/cmd-sleep ANYUSER
+test large-output @abs_top_builddir@/tests/data/cmd-large-output ANYUSER
+test sigpipe @abs_top_builddir@/tests/data/cmd-sigpipe ANYUSER
+test-summary ALL @abs_top_srcdir@/tests/data/cmd-help \
+    summary=summary help=help ANYUSER
+test-subcommand-summary subcommand @abs_top_srcdir@/tests/data/cmd-help \
+    summary=summary ANYUSER
+empty EMPTY @abs_top_srcdir@/tests/data/cmd-argv ANYUSER
+sudo foo /some/program stdin=3 sudo=testuser ANYUSER
+all ALL @abs_top_srcdir@/tests/data/cmd-hello ANYUSER
+ALL bar @abs_top_srcdir@/tests/data/cmd-hello ANYUSER
+
+# Copyright 2016 Russ Allbery <eagle@eyrie.org>
+# Copyright 2016 Dropbox, Inc.
+# Copyright 2013, 2014
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.

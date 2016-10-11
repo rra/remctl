@@ -1,0 +1,13 @@
+#!/bin/sh
+case "$2" in
+REMUSER)        echo "$REMUSER" ;;
+REMOTE_USER)    echo "$REMOTE_USER" ;;
+REMOTE_HOST)    echo "$REMOTE_HOST" ;;
+REMOTE_ADDR)    echo "$REMOTE_ADDR" ;;
+REMOTE_EXPIRES) echo "$REMOTE_EXPIRES" ;;
+*)
+    echo "Unknown environment variable $2" >&2
+    exit 1
+    ;;
+esac
+exit 0

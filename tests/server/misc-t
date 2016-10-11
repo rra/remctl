@@ -1,0 +1,51 @@
+#!/bin/sh
+#
+# Test suite for various server functions.
+#
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2006, 2007, 2009, 2012, 2014
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
+
+. "${C_TAP_SOURCE}/tap/libtap.sh"
+. "${C_TAP_SOURCE}/tap/kerberos.sh"
+. "${C_TAP_SOURCE}/tap/remctl.sh"
+
+# Test setup.
+kerberos_setup
+if [ $? != 0 ] ; then
+    skip_all "Kerberos tests not configured"
+else
+    plan 7
+fi
+remctl="$C_TAP_BUILD/../client/remctl"
+if [ ! -x "$remctl" ] ; then
+    bail "can't locate remctl client binary"
+fi
+remctld_start "$C_TAP_BUILD/../server/remctld" "$C_TAP_BUILD/data/conf-simple"
+
+# Run the tests.
+ok_program "file descriptors closed properly on server" 0 "Okay" \
+    "$remctl" -s "$principal" -p 14373 localhost test closed
+ok_program "server returns despite background process" 0 "Parent" \
+    "$remctl" -s "$principal" -p 14373 localhost test background
+ok_program "matching and argv passing for EMPTY" 0 "0" \
+    "$remctl" -s "$principal" -p 14373 localhost empty
+ok_program "...but the empty argument does not match" 255 "Unknown command" \
+    "$remctl" -s "$principal" -p 14373 localhost empty ''
+ok_program "wildcard matching for the command" 0 "hello world" \
+    "$remctl" -s "$principal" -p 14373 localhost foo bar
+ok_program "...but only matches that subcommand" 255 "Unknown command" \
+    "$remctl" -s "$principal" -p 14373 localhost foo baz
+ok_program "server resets SIGPIPE handler before running client" 255 '' \
+    "$remctl" -s "$principal" -p 14373 localhost test sigpipe
+
+# Clean up.
+tmpdir=`test_tmpdir`
+if [ -f "$tmpdir/cmd-background.pid" ] ; then
+    kill `cat "$tmpdir/cmd-background.pid"`
+    rm -f "$tmpdir/cmd-background.pid"
+fi
+remctld_stop
+kerberos_cleanup

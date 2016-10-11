@@ -1,0 +1,639 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head profile="http://www.w3.org/2006/03/hcard http://dublincore.org/documents/2008/08/04/dc-html/">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
+
+  <title>remctl: Remote Authenticated Command Service</title>
+
+  <style type="text/css" title="Xml2Rfc (sans serif)">
+  /*<![CDATA[*/
+	  a {
+	  text-decoration: none;
+	  }
+      /* info code from SantaKlauss at http://www.madaboutstyle.com/tooltip2.html */
+      a.info {
+          /* This is the key. */
+          position: relative;
+          z-index: 24;
+          text-decoration: none;
+      }
+      a.info:hover {
+          z-index: 25;
+          color: #FFF; background-color: #900;
+      }
+      a.info span { display: none; }
+      a.info:hover span.info {
+          /* The span will display just on :hover state. */
+          display: block;
+          position: absolute;
+          font-size: smaller;
+          top: 2em; left: -5em; width: 15em;
+          padding: 2px; border: 1px solid #333;
+          color: #900; background-color: #EEE;
+          text-align: left;
+      }
+	  a.smpl {
+	  color: black;
+	  }
+	  a:hover {
+	  text-decoration: underline;
+	  }
+	  a:active {
+	  text-decoration: underline;
+	  }
+	  address {
+	  margin-top: 1em;
+	  margin-left: 2em;
+	  font-style: normal;
+	  }
+	  body {
+	  color: black;
+	  font-family: verdana, helvetica, arial, sans-serif;
+	  font-size: 10pt;
+	  max-width: 55em;
+	  
+	  }
+	  cite {
+	  font-style: normal;
+	  }
+	  dd {
+	  margin-right: 2em;
+	  }
+	  dl {
+	  margin-left: 2em;
+	  }
+	
+	  ul.empty {
+	  list-style-type: none;
+	  }
+	  ul.empty li {
+	  margin-top: .5em;
+	  }
+	  dl p {
+	  margin-left: 0em;
+	  }
+	  dt {
+	  margin-top: .5em;
+	  }
+	  h1 {
+	  font-size: 14pt;
+	  line-height: 21pt;
+	  page-break-after: avoid;
+	  }
+	  h1.np {
+	  page-break-before: always;
+	  }
+	  h1 a {
+	  color: #333333;
+	  }
+	  h2 {
+	  font-size: 12pt;
+	  line-height: 15pt;
+	  page-break-after: avoid;
+	  }
+	  h3, h4, h5, h6 {
+	  font-size: 10pt;
+	  page-break-after: avoid;
+	  }
+	  h2 a, h3 a, h4 a, h5 a, h6 a {
+	  color: black;
+	  }
+	  img {
+	  margin-left: 3em;
+	  }
+	  li {
+	  margin-left: 2em;
+	  margin-right: 2em;
+	  }
+	  ol {
+	  margin-left: 2em;
+	  margin-right: 2em;
+	  }
+	  ol p {
+	  margin-left: 0em;
+	  }
+	  p {
+	  margin-left: 2em;
+	  margin-right: 2em;
+	  }
+	  pre {
+	  margin-left: 3em;
+	  background-color: lightyellow;
+	  padding: .25em;
+	  }
+	  pre.text2 {
+	  border-style: dotted;
+	  border-width: 1px;
+	  background-color: #f0f0f0;
+	  width: 69em;
+	  }
+	  pre.inline {
+	  background-color: white;
+	  padding: 0em;
+	  }
+	  pre.text {
+	  border-style: dotted;
+	  border-width: 1px;
+	  background-color: #f8f8f8;
+	  width: 69em;
+	  }
+	  pre.drawing {
+	  border-style: solid;
+	  border-width: 1px;
+	  background-color: #f8f8f8;
+	  padding: 2em;
+	  }
+	  table {
+	  margin-left: 2em;
+	  }
+	  table.tt {
+	  vertical-align: top;
+	  }
+	  table.full {
+	  border-style: outset;
+	  border-width: 1px;
+	  }
+	  table.headers {
+	  border-style: outset;
+	  border-width: 1px;
+	  }
+	  table.tt td {
+	  vertical-align: top;
+	  }
+	  table.full td {
+	  border-style: inset;
+	  border-width: 1px;
+	  }
+	  table.tt th {
+	  vertical-align: top;
+	  }
+	  table.full th {
+	  border-style: inset;
+	  border-width: 1px;
+	  }
+	  table.headers th {
+	  border-style: none none inset none;
+	  border-width: 1px;
+	  }
+	  table.left {
+	  margin-right: auto;
+	  }
+	  table.right {
+	  margin-left: auto;
+	  }
+	  table.center {
+	  margin-left: auto;
+	  margin-right: auto;
+	  }
+	  caption {
+	  caption-side: bottom;
+	  font-weight: bold;
+	  font-size: 9pt;
+	  margin-top: .5em;
+	  }
+	
+	  table.header {
+	  border-spacing: 1px;
+	  width: 95%;
+	  font-size: 10pt;
+	  color: white;
+	  }
+	  td.top {
+	  vertical-align: top;
+	  }
+	  td.topnowrap {
+	  vertical-align: top;
+	  white-space: nowrap; 
+	  }
+	  table.header td {
+	  background-color: gray;
+	  width: 50%;
+	  }
+	  table.header a {
+	  color: white;
+	  }
+	  td.reference {
+	  vertical-align: top;
+	  white-space: nowrap;
+	  padding-right: 1em;
+	  }
+	  thead {
+	  display:table-header-group;
+	  }
+	  ul.toc, ul.toc ul {
+	  list-style: none;
+	  margin-left: 1.5em;
+	  margin-right: 0em;
+	  padding-left: 0em;
+	  }
+	  ul.toc li {
+	  line-height: 150%;
+	  font-weight: bold;
+	  font-size: 10pt;
+	  margin-left: 0em;
+	  margin-right: 0em;
+	  }
+	  ul.toc li li {
+	  line-height: normal;
+	  font-weight: normal;
+	  font-size: 9pt;
+	  margin-left: 0em;
+	  margin-right: 0em;
+	  }
+	  li.excluded {
+	  font-size: 0pt;
+	  }
+	  ul p {
+	  margin-left: 0em;
+	  }
+	
+	  .comment {
+	  background-color: yellow;
+	  }
+	  .center {
+	  text-align: center;
+	  }
+	  .error {
+	  color: red;
+	  font-style: italic;
+	  font-weight: bold;
+	  }
+	  .figure {
+	  font-weight: bold;
+	  text-align: center;
+	  font-size: 9pt;
+	  }
+	  .filename {
+	  color: #333333;
+	  font-weight: bold;
+	  font-size: 12pt;
+	  line-height: 21pt;
+	  text-align: center;
+	  }
+	  .fn {
+	  font-weight: bold;
+	  }
+	  .hidden {
+	  display: none;
+	  }
+	  .left {
+	  text-align: left;
+	  }
+	  .right {
+	  text-align: right;
+	  }
+	  .title {
+	  color: #990000;
+	  font-size: 18pt;
+	  line-height: 18pt;
+	  font-weight: bold;
+	  text-align: center;
+	  margin-top: 36pt;
+	  }
+	  .vcardline {
+	  display: block;
+	  }
+	  .warning {
+	  font-size: 14pt;
+	  background-color: yellow;
+	  }
+	
+	
+	  @media print {
+	  .noprint {
+		display: none;
+	  }
+	
+	  a {
+		color: black;
+		text-decoration: none;
+	  }
+	
+	  table.header {
+		width: 90%;
+	  }
+	
+	  td.header {
+		width: 50%;
+		color: black;
+		background-color: white;
+		vertical-align: top;
+		font-size: 12pt;
+	  }
+	
+	  ul.toc a::after {
+		content: leader('.') target-counter(attr(href), page);
+	  }
+	
+	  ul.ind li li a {
+		content: target-counter(attr(href), page);
+	  }
+	
+	  .print2col {
+		column-count: 2;
+		-moz-column-count: 2;
+		column-fill: auto;
+	  }
+	  }
+	
+	  @page {
+	  @top-left {
+		   content: "Internet-Draft"; 
+	  } 
+	  @top-right {
+		   content: "December 2010"; 
+	  } 
+	  @top-center {
+		   content: "Abbreviated Title";
+	  } 
+	  @bottom-left {
+		   content: "Doe"; 
+	  } 
+	  @bottom-center {
+		   content: "Expires June 2011"; 
+	  } 
+	  @bottom-right {
+		   content: "[Page " counter(page) "]"; 
+	  } 
+	  }
+	
+	  @page:first { 
+		@top-left {
+		  content: normal;
+		}
+		@top-right {
+		  content: normal;
+		}
+		@top-center {
+		  content: normal;
+		}
+	  }
+  /*]]>*/
+  </style>
+
+  <link href="#rfc.toc" rel="Contents"/>
+<link href="#rfc.section.1" rel="Chapter" title="1 Basic Packet Format"/>
+<link href="#rfc.section.2" rel="Chapter" title="2 Network Protocol (version 3)"/>
+<link href="#rfc.section.2.1" rel="Chapter" title="2.1 Session Sequence"/>
+<link href="#rfc.section.2.2" rel="Chapter" title="2.2 Message Format"/>
+<link href="#rfc.section.2.3" rel="Chapter" title="2.3 Protocol Version Negotiation"/>
+<link href="#rfc.section.2.4" rel="Chapter" title="2.4 MESSAGE_COMMAND"/>
+<link href="#rfc.section.2.5" rel="Chapter" title="2.5 MESSAGE_OUTPUT and MESSAGE_STATUS"/>
+<link href="#rfc.section.2.6" rel="Chapter" title="2.6 MESSAGE_ERROR"/>
+<link href="#rfc.section.2.7" rel="Chapter" title="2.7 MESSAGE_QUIT"/>
+<link href="#rfc.section.2.8" rel="Chapter" title="2.8 MESSAGE_NOOP"/>
+<link href="#rfc.section.3" rel="Chapter" title="3 Network Protocol (version 1)"/>
+<link href="#rfc.section.4" rel="Chapter" title="4 Security Considerations"/>
+<link href="#rfc.appendix.A" rel="Chapter" title="A Acknowledgements"/>
+<link href="#rfc.appendix.B" rel="Chapter" title="B Additional License"/>
+<link href="#rfc.authors" rel="Chapter"/>
+
+
+  <meta name="generator" content="xml2rfc version 2.5.1 - http://tools.ietf.org/tools/xml2rfc" />
+  <link rel="schema.dct" href="http://purl.org/dc/terms/" />
+
+  <meta name="dct.creator" content="Allbery, R." />
+  <meta name="dct.identifier" content="urn:ietf:id:draft-allbery-remctl-00" />
+  <meta name="dct.issued" scheme="ISO8601" content="2014-1" />
+  <meta name="dct.abstract" content="This document specifies the remctl wire protocol, used to send commands and arguments to a remote system and receive the results of executing that command.  The protocol uses GSS-API and Kerberos v5 for authentication, confidentiality, and integrity protection.  Both the current (version 3) protocol and the older version 1 protocol are described.  The version 1 protocol should only be implemented for backward compatibility." />
+  <meta name="description" content="This document specifies the remctl wire protocol, used to send commands and arguments to a remote system and receive the results of executing that command.  The protocol uses GSS-API and Kerberos v5 for authentication, confidentiality, and integrity protection.  Both the current (version 3) protocol and the older version 1 protocol are described.  The version 1 protocol should only be implemented for backward compatibility." />
+
+</head>
+
+<body>
+
+  <table class="header">
+    <tbody>
+    
+    	<tr>
+  <td class="left"></td>
+  <td class="right">R. Allbery</td>
+</tr>
+<tr>
+  <td class="left"></td>
+  <td class="right">Stanford University</td>
+</tr>
+<tr>
+  <td class="left"></td>
+  <td class="right">January 2014</td>
+</tr>
+
+    	
+    </tbody>
+  </table>
+
+  <p class="title">remctl: Remote Authenticated Command Service<br />
+  <span class="filename">draft-allbery-remctl-00</span></p>
+  
+  <h1 id="rfc.abstract">
+  <a href="#rfc.abstract">Abstract</a>
+</h1>
+<p>This document specifies the remctl wire protocol, used to send commands and arguments to a remote system and receive the results of executing that command.  The protocol uses GSS-API and Kerberos v5 for authentication, confidentiality, and integrity protection.  Both the current (version 3) protocol and the older version 1 protocol are described.  The version 1 protocol should only be implemented for backward compatibility.</p>
+<h1 id="rfc.section.1"><a href="#rfc.section.1">1.</a> <a href="#format" id="format">Basic Packet Format</a></h1>
+<p id="rfc.section.1.p.1">The remctl network protocol consists of data packets sent from a client to a server or a server to a client over a TCP connection.  The remctl protocol may be used over any port, but the IANA-registered port and the RECOMMENDED default for the protocol is 4373.  Each data packet has the following format:</p>
+<pre>
+    1 octet     flags
+    4 octets    length
+    &lt;length&gt;    data payload
+        </pre>
+<p id="rfc.section.1.p.2">The total size of each token, including the five octet prefix, MUST NOT be larger than 1,048,576 octets (1MB).</p>
+<p>The flag octet contains one or more of the following values, combined with binary xor:</p>
+<pre>
+    0x01        TOKEN_NOOP
+    0x02        TOKEN_CONTEXT
+    0x04        TOKEN_DATA
+    0x08        TOKEN_MIC
+    0x10        TOKEN_CONTEXT_NEXT
+    0x20        TOKEN_SEND_MIC
+    0x40        TOKEN_PROTOCOL
+        </pre>
+<p>Only TOKEN_CONTEXT, TOKEN_CONTEXT_NEXT, TOKEN_DATA, and TOKEN_PROTOCOL are used for packets for versions 2 and 3 of the protocol.  The other flags are used only with the legacy version 1 protocol.</p>
+<p id="rfc.section.1.p.3">The length field is a four-octet length in network byte order, specifying the number of octets in the following data payload.</p>
+<p id="rfc.section.1.p.4">The data payload is empty, the results of gss_accept_sec_context, the results of gss_init_sec_context, or a data payload protected with gss_wrap.  The length of the data passed to gss_wrap MUST NOT be larger than 65,536 octets (64KB), even if the underlying Kerberos implementation supports longer input buffers.</p>
+<h1 id="rfc.section.2"><a href="#rfc.section.2">2.</a> <a href="#proto3" id="proto3">Network Protocol (version 3)</a></h1>
+<h1 id="rfc.section.2.1"><a href="#rfc.section.2.1">2.1.</a> <a href="#packet" id="packet">Session Sequence</a></h1>
+<p id="rfc.section.2.1.p.1">A remctl connection is always initiated by a client opening a TCP connection to a server.  The protocol then proceeds as follows: </p>
+
+<ol>
+  <li>Client sends message with an empty payload and flags TOKEN_NOOP, TOKEN_CONTEXT_NEXT, and TOKEN_PROTOCOL (0x51).  If the client doesn't include TOKEN_PROTOCOL, it is speaking the version 1 protocol, and the server MUST either drop the connection or fall back to the version 1 protocol.  This initial message is useless in a pure version 2 or 3 protocol world and is done only for backward compatibility with the version 1 protocol.</li>
+  <li>Client calls gss_init_sec_context and sends the results as the message body with flags TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The client MUST pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG as requested flags to gss_init_sec_context and SHOULD pass GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG.</li>
+  <li>Server replies with the results of gss_accept_sec_context and flags TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  If the server doesn't include TOKEN_PROTOCOL in the flags, it is speaking the version 1 protocol, and the client MUST either drop the connection or fall back to the version 1 protocol.</li>
+  <li>Client passes data to gss_init_sec_context and replies with the results and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The client must pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG as requested flags and SHOULD pass GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG.</li>
+  <li>Server and client repeat, passing in the payload from the last packet from the other side, for as long as GSS-API indicates that continuation is required.  If either side drops TOKEN_PROTOCOL from the flags, it is an considered an error and the connect MUST be dropped.  (This could be a down-negotiation attack.)  After the establishment of the security context, both client and server MUST confirm that GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG are set in the resulting security context and MUST immediately close the connection if this is not the case.</li>
+  <li>After the security context has been established, the client and server exchange commands and responses as described below.  All commands are sent with flags TOKEN_DATA and TOKEN_PROTOCOL (0x44) and the data payload of all packets is protected with gss_wrap.  The conf_req_flag parameter of gss_wrap MUST be set to non-zero, requesting both confidentiality and integrity services.</li>
+</ol>
+
+<p> </p>
+<h1 id="rfc.section.2.2"><a href="#rfc.section.2.2">2.2.</a> <a href="#messages" id="messages">Message Format</a></h1>
+<p id="rfc.section.2.2.p.1">All client and server messages will use the following format inside the data payload.  This is the format of the message before passing it to gss_wrap for confidentiality and integrity protection.</p>
+<pre>
+    1 octet     protocol version
+    1 octet     message type
+    &lt;command-specific data&gt;
+          </pre>
+<p id="rfc.section.2.2.p.2">The protocol version sent for all messages should be 2 with the exception of MESSAGE_NOOP, which should have a protocol version of 3.  The version 1 protocol does not use this message format, and therefore a protocol version of 1 is invalid.  See below for protocol version negotiation.</p>
+<p>The message type is one of the following constants:</p>
+<pre>
+    1   MESSAGE_COMMAND
+    2   MESSAGE_QUIT
+    3   MESSAGE_OUTPUT
+    4   MESSAGE_STATUS
+    5   MESSAGE_ERROR
+    6   MESSAGE_VERSION
+    7   MESSAGE_NOOP
+          </pre>
+<p id="rfc.section.2.2.p.3">The first two message types are client messages and MUST NOT be sent by the server.  The remaining message types except for MESSAGE_NOOP are server messages and MUST NOT by sent by the client.</p>
+<p id="rfc.section.2.2.p.4">All of these message types were introduced in protocol version 2 except for MESSAGE_NOOP, which is a protocol version 3 message.</p>
+<h1 id="rfc.section.2.3"><a href="#rfc.section.2.3">2.3.</a> <a href="#negotiation" id="negotiation">Protocol Version Negotiation</a></h1>
+<p id="rfc.section.2.3.p.1">If the server ever receives a message from a client that claims a protocol version higher than the server supports, the server MUST otherwise ignore the contents of the message and SHOULD respond with a message type of MESSAGE_VERSION and the following message payload:</p>
+<pre>
+    1 octet     highest supported version
+          </pre>
+<p id="rfc.section.2.3.p.2">The client MUST then either send only messages supported at that protocol version or lower or send MESSAGE_QUIT and close the connection.</p>
+<p id="rfc.section.2.3.p.3">Currently, there are only two meaningful values for the highest supported version: 3, which indicates everything in this specification is supported, or 2, which indicates that everything except MESSAGE_NOOP is supported.</p>
+<h1 id="rfc.section.2.4"><a href="#rfc.section.2.4">2.4.</a> <a href="#command" id="command">MESSAGE_COMMAND</a></h1>
+<p id="rfc.section.2.4.p.1">Most client messages will be of type MESSAGE_COMMAND, which has the following format:</p>
+<pre>
+    1 octet     keep-alive flag
+    1 octet     continue status
+    4 octets    number of arguments
+    4 octets    argument length
+    &lt;length&gt;    argument
+    ...
+          </pre>
+<p id="rfc.section.2.4.p.2">If the keep-alive flag is 0, the server SHOULD close the connection after processing the command.  If it is 1, the server SHOULD leave the connection open (up to a timeout period) and wait for more commands.  This is similar to HTTP keep-alive.</p>
+<p id="rfc.section.2.4.p.3">If the continue status is 0, it indicates that this is the complete command.  If the continue status is 1, it indicates that there is more data coming.  The server should accept the data sent, buffer it, and wait for additional messages before running the command or otherwise responding.  If the the continue status is 2, it indicates that this message is logically a part of the previous message (which MUST have had a continue status of 1 or 2) and still has more data coming.  If the continue status is 3, it says that this message is logically part of the previous message, like 2, but it also says that this is the end of the command.</p>
+<p id="rfc.section.2.4.p.4">A continuation of a message starts with the keep-alive flag and continue status and then the next chunk of data.  To reconstruct a continued message, remove the first two octets from each chunk and concatenate the pieces together.  The result is the portion of a MESSAGE_COMMAND starting with the number of arguments.</p>
+<p id="rfc.section.2.4.p.5">The current implementation permits messages to be broken into multiple MESSAGE_COMMANDs even in the middle of the number of arguments or an argument length.  In other words, the first three octets of the number of arguments could be in the first MESSAGE_COMMAND (with continue status 1) and the last octet would then be in the next MESSAGE_COMMAND (with continue status 2 or 3).  However, the client SHOULD NOT take advantage of this support and SHOULD NOT split an argument count or argument length across multiple messages, since this support may be dropped in a subsequent protocol revision.</p>
+<p id="rfc.section.2.4.p.6">For as long as the continue status is 1 or 2, the next message from the client MUST be either another MESSAGE_COMMAND with a continue status of 2 or 3 or a MESSAGE_QUIT.  In other words, other message types MUST NOT be intermixed with continued commands, but MESSAGE_QUIT may be sent by the client in the middle of a continued command to abort that command.  If the server receives MESSAGE_QUIT from the client before receiving a MESSAGE_COMMAND with a status of 3 (indicating the end of the command), the command MUST be discarded and not executed.</p>
+<p id="rfc.section.2.4.p.7">If a client sends an invalid sequence of MESSAGE_COMMAND messages that violate the continuation rules described above, the server SHOULD reply with a MESSAGE_ERROR message, generally with one of the ERROR_BAD_TOKEN, ERROR_UNKNOWN_MESSAGE, ERROR_BAD_COMMAND, or ERROR_UNEXPECTED_MESSAGE error codes.  It MUST discard the partial command without acting on it.  The client cannot correct an error in a continued MESSAGE_COMMAND stream by resending the previous part.  It MUST start again at the beginning with a MESSAGE_COMMAND with a continue status of 0 or 1.</p>
+<p id="rfc.section.2.4.p.8">Number of arguments is a four-octet number in network byte order that gives the total number of command arguments.  For each argument, there is then a length and argument data pair, where the length is a four-octet number in network byte order indicating the number of octets of data in the following argument.  Argument length may be 0.  Commands with no arguments are permitted by the protocol.</p>
+<p id="rfc.section.2.4.p.9">Servers may impose limits on the number of arguments and the size of argument data to limit resource usage.  If the client message exceeds one of those limits, the server MUST respond with MESSAGE_ERROR with an error code of ERROR_TOOMANY_ARGS or ERROR_TOOMUCH_DATA as appropriate.</p>
+<h1 id="rfc.section.2.5"><a href="#rfc.section.2.5">2.5.</a> <a href="#output" id="output">MESSAGE_OUTPUT and MESSAGE_STATUS</a></h1>
+<p id="rfc.section.2.5.p.1">The server response to MESSAGE_COMMAND is zero or more MESSAGE_OUTPUT messages followed by either a MESSAGE_STATUS or a MESSAGE_ERROR response.  Each MESSAGE_OUTPUT message has the following format:</p>
+<pre>
+    1 octet     output stream
+    4 octets    output length
+    &lt;length&gt;    output
+          </pre>
+<p id="rfc.section.2.5.p.2">The output stream is either 1 for standard output or 2 for standard error.  Output length is a four-octet number in network byte order that specifies the length of the following output data.</p>
+<p id="rfc.section.2.5.p.3">The MESSAGE_STATUS message has the following format:</p>
+<pre>
+    1 octet     exit status
+          </pre>
+<p id="rfc.section.2.5.p.4">MESSAGE_STATUS indicates the command has finished and returns the final exit stauts of the command.  Exit status is 0 for success and non-zero for failure, where the meaning of non-zero exit statuses is left to the application to define.  (This is identical to a Unix command exit status.)</p>
+<p id="rfc.section.2.5.p.5">Unless the MESSAGE_COMMAND message from the client had the keep-alive flag set to 1, the server MUST close the network connection immediately after sending the MESSAGE_STATUS response message.</p>
+<h1 id="rfc.section.2.6"><a href="#rfc.section.2.6">2.6.</a> <a href="#error" id="error">MESSAGE_ERROR</a></h1>
+<p id="rfc.section.2.6.p.1">At any point before sending MESSAGE_STATUS, the server may respond with MESSAGE_ERROR if some error occurred.  This can be the first response after a MESSAGE_COMMAND, or it may be sent after one or more MESSAGE_OUTPUT messages.  The format of MESSAGE_ERROR is as follows:</p>
+<pre>
+    4 octets    error code
+    4 octets    message length
+    &lt;length&gt;    error message
+          </pre>
+<p id="rfc.section.2.6.p.2">The error code is a four-octet number in network byte order indicating the type of error.  The error code may be one of the following values:</p>
+<pre>
+    1  ERROR_INTERNAL           Internal server failure
+    2  ERROR_BAD_TOKEN          Invalid format in token
+    3  ERROR_UNKNOWN_MESSAGE    Unknown message type
+    4  ERROR_BAD_COMMAND        Invalid command format in token
+    5  ERROR_UNKNOWN_COMMAND    Unknown command
+    6  ERROR_ACCESS             Access denied
+    7  ERROR_TOOMANY_ARGS       Argument count exceeds server limit
+    8  ERROR_TOOMUCH_DATA       Argument size exceeds server limit
+    9  ERROR_UNEXPECTED_MESSAGE Message type not valid now
+          </pre>
+<p id="rfc.section.2.6.p.3">Additional error codes may be added without changing the version of the remctl protocol, so clients MUST accept error codes other than the ones above.</p>
+<p id="rfc.section.2.6.p.4">The message length is a four-octet number in network byte order that specifies the length in octets of the following error message.  The error message is a free-form informational message intended for human consumption and MUST NOT be interpreted by an automated process.  Software should instead use the error code.</p>
+<p id="rfc.section.2.6.p.5">Unless the MESSAGE_COMMAND message from the client had the keep-alive flag set to 1, the server MUST close the network connection immediately after sending the MESSAGE_ERROR response message.  Otherwise, the server SHOULD still honor that flag, although the server MAY terminate the connection after an unreasonable number of errors.</p>
+<h1 id="rfc.section.2.7"><a href="#rfc.section.2.7">2.7.</a> <a href="#quit" id="quit">MESSAGE_QUIT</a></h1>
+<p id="rfc.section.2.7.p.1">MESSAGE_QUIT is a way of terminating the connection cleanly if the client asked for keep-alive and then decided not to use it.  There is no message body.  Upon receiving this message, the server MUST immediately close the connection.</p>
+<h1 id="rfc.section.2.8"><a href="#rfc.section.2.8">2.8.</a> <a href="#noop" id="noop">MESSAGE_NOOP</a></h1>
+<p id="rfc.section.2.8.p.1">MESSAGE_NOOP provides a way for a client to keep the connection open to a remctl server, including through firewall session timeouts and similar network constraints that require periodic activity, without sending new commands.  There is no body.  When the client sends a MESSAGE_NOOP message, the server replies with a MESSAGE_NOOP message.</p>
+<p id="rfc.section.2.8.p.2">Note that MESSAGE_NOOP was introduced in protocol version 3 and therefore should be marked accordingly.  Clients should be prepared for older servers to reply with MESSAGE_VERSION instead of MESSAGE_NOOP.</p>
+<h1 id="rfc.section.3"><a href="#rfc.section.3">3.</a> <a href="#proto1" id="proto1">Network Protocol (version 1)</a></h1>
+<p id="rfc.section.3.p.1">The old network protocol supported only 64KB of data payload, only a single command and response, and had some additional unnecessary protocol components.  It SHOULD NOT be used by clients, but MAY be supported by servers for backward compatibility.  It is recognized by the server and client by the lack of TOKEN_PROTOCOL in the flags of the initial security context negotiation.</p>
+<p id="rfc.section.3.p.2">The old protocol always uses the following steps: </p>
+
+<ol>
+  <li>Client opens TCP connection to server.</li>
+  <li>Client sends message with flags TOKEN_NOOP and TOKEN_CONTEXT_NEXT and an empty payload.</li>
+  <li>Client calls gss_init_sec_context and sends message with the results and flags TOKEN_CONTEXT.  The client MUST pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG as requested flags and SHOULD pass GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG, although the version one protocol does not check the results of this negotiation.</li>
+  <li>Server replies with the results of gss_accept_sec_context and flags TOKEN_CONTEXT.</li>
+  <li>Client calls gss_init_sec_context again with the data from the server and replies with the results and flags TOKEN_CONTEXT, using the same requested flags as described above.</li>
+  <li>Server and client repeat, passing in the payload from the last packet from the other side, for as long as GSS-API indicates that continuation is required.  Each of these packets have only TOKEN_CONTEXT set in the flags.</li>
+  <li>Client sends command with flags TOKEN_DATA and TOKEN_SEND_MIC and the following payload format:  four-octet number of arguments, and then for each argument, a four-octet length and then the argument value.  All numbers are in network type order.  The payload MUST be protected with gss_wrap and the conf_req_flag parameter of gss_wrap MUST be set to non-zero, requesting both confidentiality and integrity services.</li>
+  <li>Server accepts and decrypts data, generates a MIC with gss_get_mic, and sends the MIC back to the client with flags TOKEN_MIC.  This is the only packet that isn't encrypted with gss_wrap.  Client receives and then SHOULD verify this MIC.</li>
+  <li>Server runs the command, collects the output, and sends the output back with flags TOKEN_DATA and the following payload format:  four-octet exit status, four-octet data length, data.  All numbers are in network byte order.  The exit status is 0 if there were no errors and non-zero otherwise, where the meaning of non-zero values are defined by the application.  The payload MUST be protected with gss_wrap with a conf_req_flag set to non-zero.</li>
+  <li>Server and client close connection.</li>
+</ol>
+
+<p> </p>
+<h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#security" id="security">Security Considerations</a></h1>
+<p id="rfc.section.4.p.1">It would be preferrable to insist on replay and sequence protection (GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG) for all contexts, but some older Kerberos GSS-API implementations don't support this and hence it is not mandatory in the protocol.  Clients SHOULD always request replay and sequence protection, however, and servers MAY require such protection be negotiated.</p>
+<p id="rfc.section.4.p.2">The old protocol doesn't provide integrity protection for the flags, but since it always follows the same fixed sequence of operations, this should pose no security concerns in practice.  The new protocol only uses the flag field outside of the encrypted section of the packet for initial negotiation and closes the connection if the flags aren't what was expected (avoiding a down-negotiation attack).</p>
+<p id="rfc.section.4.p.3">In the old protocol, the server calculated and sent a MIC back to the client, which then verified that the command as received by the server was correct.  Not only does GSS-API already provide integrity protection, but this verification also happens after the server has already started running the command.  It has been dropped in the new protocol.</p>
+<p id="rfc.section.4.p.4">The old protocol doesn't require the client and server check the results of the GSS-API flag negotiation, although all old protocol clients passed GSS_C_MUTUAL_FLAG.  However, the old protocol requires gss_wrap be used for all payload with conf_req_flag set to non-zero, so any context that didn't negotiate confidentiality and integrity services would fail later.</p>
+<h1 id="rfc.appendix.A"><a href="#rfc.appendix.A">Appendix A.</a> <a href="#credits" id="credits">Acknowledgements</a></h1>
+<p id="rfc.section.A.p.1">The original remctl protocol design was done by Anton Ushakov, with input from Russ Allbery and Roland Schemers.  Thank you to David Hoffman and Mike Newton for their review of the version 2 remctl protocol.</p>
+<h1 id="rfc.appendix.B"><a href="#rfc.appendix.B">Appendix B.</a> <a href="#license" id="license">Additional License</a></h1>
+<p id="rfc.section.B.p.1">This section supplements the Copyright Notice section at the start of this document.  It states an additional copyright notice and grants a much less restrictive license than the default IETF Trust license.  You may copy and distribute this document, with or without modification, under your choice of the license specified in the Copyright Notice section or the license below.</p>
+<p id="rfc.section.B.p.2">Copyright 2006, 2007, 2008, 2009, 2011, 2013, 2014 The Board of Trustees of the Leland Stanford Junior University</p>
+<p id="rfc.section.B.p.3">Copying and distribution of this file, with or without modification, are permitted in any medium without royalty provided the copyright notice and this notice are preserved.  This file is offered as-is, without any warranty.</p>
+<h1 id="rfc.authors">
+  <a href="#rfc.authors">Author's Address</a>
+</h1>
+<div class="avoidbreak">
+  <address class="vcard">
+	<span class="vcardline">
+	  <span class="fn">Russ Allbery</span> 
+	  <span class="n hidden">
+		<span class="family-name">Allbery</span>
+	  </span>
+	</span>
+	<span class="org vcardline">Stanford University</span>
+	<span class="adr">
+	  <span class="vcardline">255 Panama Street, MC 4136</span>
+
+	  <span class="vcardline">
+		<span class="locality">Stanford</span>,  
+		<span class="region">CA</span> 
+		<span class="code">94305-4136</span>
+	  </span>
+	  <span class="country-name vcardline">US</span>
+	</span>
+	<span class="vcardline">EMail: <a href="mailto:eagle@eyrie.org">eagle@eyrie.org</a></span>
+
+<span class="vcardline">URI: <a href="http://www.eyrie.org/~eagle/">http://www.eyrie.org/~eagle/</a></span>
+
+  </address>
+</div>
+  
+  <hr class="noprint" />
+  <h1 class="np" id="rfc.toc"><a href="#rfc.toc">Table of Contents</a></h1>
+  <ul class="toc">
+
+  	<li>1.   <a href="#rfc.section.1">Basic Packet Format</a></li>
+<li>2.   <a href="#rfc.section.2">Network Protocol (version 3)</a></li>
+<ul><li>2.1.   <a href="#rfc.section.2.1">Session Sequence</a></li>
+<li>2.2.   <a href="#rfc.section.2.2">Message Format</a></li>
+<li>2.3.   <a href="#rfc.section.2.3">Protocol Version Negotiation</a></li>
+<li>2.4.   <a href="#rfc.section.2.4">MESSAGE_COMMAND</a></li>
+<li>2.5.   <a href="#rfc.section.2.5">MESSAGE_OUTPUT and MESSAGE_STATUS</a></li>
+<li>2.6.   <a href="#rfc.section.2.6">MESSAGE_ERROR</a></li>
+<li>2.7.   <a href="#rfc.section.2.7">MESSAGE_QUIT</a></li>
+<li>2.8.   <a href="#rfc.section.2.8">MESSAGE_NOOP</a></li>
+</ul><li>3.   <a href="#rfc.section.3">Network Protocol (version 1)</a></li>
+<li>4.   <a href="#rfc.section.4">Security Considerations</a></li>
+<li>Appendix A.   <a href="#rfc.appendix.A">Acknowledgements</a></li>
+<li>Appendix B.   <a href="#rfc.appendix.B">Additional License</a></li>
+<li><a href="#rfc.authors">Author's Address</a></li>
+
+
+  </ul>
+
+  
+
+</body>
+</html>

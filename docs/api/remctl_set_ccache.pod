@@ -1,0 +1,99 @@
+=for stopwords
+remctl API Allbery const ccache GSS-API KRB5CCNAME
+
+=head1 NAME
+
+remctl_set_ccache - Set credential cache for remctl client connections
+
+=head1 SYNOPSIS
+
+#include <remctl.h>
+
+int B<remctl_set_ccache>(struct remctl *I<r>, const char *I<ccache>);
+
+=head1 DESCRIPTION
+
+remctl_set_ccache() tells the the remctl client library to use I<ccache>
+as the credential cache for authentication to a remctl server.  It will
+affect any subsequent remctl_open() calls on the same struct remctl object
+(and may have broader effects; see L<WARNINGS> below).  I<ccache> is
+normally a path to a file in the file system that holds Kerberos
+credentials, but may take other values depending on the underlying
+Kerberos implementation used by GSS-API.
+
+Calling this function will normally override any KRB5CCNAME environment
+setting.  If the caller wishes to honor that setting, it should either not
+call this function or check whether that environment variable is set
+first.
+
+=head1 RETURN VALUE
+
+remctl_set_ccache() returns true on success and false on failure.  On
+failure, the caller should call remctl_error() to retrieve the error
+message.
+
+This function will always return failure if the underlying GSS-API
+implementation against which the remctl client library was compiled does
+not support setting the Kerberos credential cache.  The caller should be
+prepared for that.  Falling back on setting the KRB5CCNAME environment
+variable is often a reasonable choice.
+
+=head1 EXAMPLES
+
+Here's an example of attempting to use this function to set a ticket cache
+location and falling back on setting KRB5CCNAME in the environment if this
+function is not supported.
+
+    struct remctl r;
+
+    r = remctl_new();
+    if (r != NULL)
+        if (!remctl_set_ccache(r, "/tmp/krb5cc_example"))
+            putenv("KRB5CCNAME=/tmp/krb5cc_example");
+
+This assumes that any failure is due to lack of support from the
+underlying library rather than some other cause.
+
+=head1 COMPATIBILITY
+
+This interface was added in version 3.0, but that version would always
+change the ticket cache used by all GSS-API calls in the same process.
+Support for the gss_krb5_import_cred() method of isolating the changed
+ticket cache to only this remctl client object was added in version 3.5.
+
+=head1 WARNINGS
+
+The effect of this function is only localized to this specific remctl
+client context if the remctl client library was built against a Kerberos
+as well as GSS-API library and the GSS-API library supported
+gss_krb5_import_cred().  Otherwise, it falls back to calling
+gss_krb5_ccache_name(), which sets the credential cache used by the
+underlying GSS-API library for every GSS-API operation in the current
+execution context (process or thread), not just for this remctl object or
+even just for remctl operations.  This function may therefore change
+global execution state and may affect other GSS-API operations done
+elsewhere in the same process.
+
+=head1 AUTHOR
+
+Russ Allbery <eagle@eyrie.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2011, 2013, 2014 The Board of Trustees of the Leland Stanford
+Junior University
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
+  
+=head1 SEE ALSO
+
+remctl_new(3), remctl_open(3), remctl_error(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=cut

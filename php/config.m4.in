@@ -1,0 +1,25 @@
+dnl remctl PECL extension for PHP configuration.
+dnl -*- autoconf -*-
+dnl
+dnl Provides additional configuration hooks for the PHP module build system.
+dnl This file is used by the phpize frameowrk.
+dnl
+dnl Originally written by Andrew Mortensen <admorten@umich.edu>, 2008
+dnl Copyright 2015 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2008 Andrew Mortensen <admorten@umich.edu>
+dnl Copyright 2008
+dnl     The Board of Trustees of the Leland Stanford Junior University
+dnl
+dnl See LICENSE for licensing terms.
+
+PHP_ARG_ENABLE([remctl], [whether to enable remctl PHP extension],
+    [AC_HELP_STRING([--enable-remctl], [Enable recmtl PHP extension])], [yes])
+
+dnl The @...@ variables are substituted by the top-level configure.  Yes, this
+dnl is a little odd, but it seems to work.
+AS_IF([test "$PHP_REMCTL" != no],
+    [AS_CASE([`$PHP_CONFIG --version`],
+        [5*], [PHP_NEW_EXTENSION([remctl], [php5_remctl.c], [$ext_shared])],
+        [*],  [PHP_NEW_EXTENSION([remctl], [php_remctl.c], [$ext_shared])])
+     PHP_ADD_INCLUDE([@abs_top_srcdir@])
+     LDFLAGS="$LDFLAGS -L@abs_top_builddir@/client/.libs -lremctl"])

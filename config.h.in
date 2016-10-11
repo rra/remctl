@@ -1,0 +1,406 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to 1 if you have the `asprintf' function. */
+#undef HAVE_ASPRINTF
+
+/* Define if your IN6_ARE_ADDR_EQUAL macro is broken. */
+#undef HAVE_BROKEN_IN6_ARE_ADDR_EQUAL
+
+/* Define to 1 if the system has the type `bufferevent_data_cb'. */
+#undef HAVE_BUFFEREVENT_DATA_CB
+
+/* Define to 1 if the system has the type `bufferevent_event_cb'. */
+#undef HAVE_BUFFEREVENT_EVENT_CB
+
+/* Define to 1 if you have the `bufferevent_get_input' function. */
+#undef HAVE_BUFFEREVENT_GET_INPUT
+
+/* Define to 1 if you have the `bufferevent_read_buffer' function. */
+#undef HAVE_BUFFEREVENT_READ_BUFFER
+
+/* Define to 1 if you have the `bufferevent_socket_new' function. */
+#undef HAVE_BUFFEREVENT_SOCKET_NEW
+
+/* Define if the compiler supports C99 variadic macros. */
+#undef HAVE_C99_VAMACROS
+
+/* Define to 1 if you have the `daemon' function. */
+#undef HAVE_DAEMON
+
+/* Define to 1 if you have the declaration of `GSS_KRB5_MECHANISM', and to 0
+   if you don't. */
+#undef HAVE_DECL_GSS_KRB5_MECHANISM
+
+/* Define to 1 if you have the declaration of `gss_mech_krb5', and to 0 if you
+   don't. */
+#undef HAVE_DECL_GSS_MECH_KRB5
+
+/* Define to 1 if you have the declaration of `h_errno', and to 0 if you
+   don't. */
+#undef HAVE_DECL_H_ERRNO
+
+/* Define to 1 if you have the declaration of `inet_aton', and to 0 if you
+   don't. */
+#undef HAVE_DECL_INET_ATON
+
+/* Define to 1 if you have the declaration of `inet_ntoa', and to 0 if you
+   don't. */
+#undef HAVE_DECL_INET_NTOA
+
+/* Define to 1 if you have the declaration of `krb5_kt_free_entry', and to 0
+   if you don't. */
+#undef HAVE_DECL_KRB5_KT_FREE_ENTRY
+
+/* Define to 1 if you have the declaration of `snprintf', and to 0 if you
+   don't. */
+#undef HAVE_DECL_SNPRINTF
+
+/* Define to 1 if you have the declaration of `vsnprintf', and to 0 if you
+   don't. */
+#undef HAVE_DECL_VSNPRINTF
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <et/com_err.h> header file. */
+#undef HAVE_ET_COM_ERR_H
+
+/* Define to 1 if you have the `evbuffer_get_length' function. */
+#undef HAVE_EVBUFFER_GET_LENGTH
+
+/* Define to 1 if you have the <event2/event.h> header file. */
+#undef HAVE_EVENT2_EVENT_H
+
+/* Define to 1 if you have the `event_base_got_break' function. */
+#undef HAVE_EVENT_BASE_GOT_BREAK
+
+/* Define to 1 if you have the `event_base_loopbreak' function. */
+#undef HAVE_EVENT_BASE_LOOPBREAK
+
+/* Define to 1 if the system has the type `event_callback_fn'. */
+#undef HAVE_EVENT_CALLBACK_FN
+
+/* Define to 1 if you have the `event_free' function. */
+#undef HAVE_EVENT_FREE
+
+/* Define to 1 if you have the `event_new' function. */
+#undef HAVE_EVENT_NEW
+
+/* Define to 1 if you have the `event_set_fatal_callback' function. */
+#undef HAVE_EVENT_SET_FATAL_CALLBACK
+
+/* Define to 1 if the system has the type `evutil_socket_t'. */
+#undef HAVE_EVUTIL_SOCKET_T
+
+/* Define to 1 if you have the `getaddrinfo' function. */
+#undef HAVE_GETADDRINFO
+
+/* Define if the AI_ADDRCONFIG flag works with getaddrinfo. */
+#undef HAVE_GETADDRINFO_ADDRCONFIG
+
+/* Define to 1 if you have the `getgrnam_r' function. */
+#undef HAVE_GETGRNAM_R
+
+/* Define to 1 if you have the `getnameinfo' function. */
+#undef HAVE_GETNAMEINFO
+
+/* Define to 1 if you have the `getopt' function. */
+#undef HAVE_GETOPT
+
+/* Define if the compiler supports GNU-style variadic macros. */
+#undef HAVE_GNU_VAMACROS
+
+/* Define to 1 if the CMU GPUT library is present */
+#undef HAVE_GPUT
+
+/* Define to 1 if you have the <gssapi/gssapi.h> header file. */
+#undef HAVE_GSSAPI_GSSAPI_H
+
+/* Define to 1 if you have the <gssapi/gssapi_krb5.h> header file. */
+#undef HAVE_GSSAPI_GSSAPI_KRB5_H
+
+/* Define to 1 if you have the `gss_krb5_ccache_name' function. */
+#undef HAVE_GSS_KRB5_CCACHE_NAME
+
+/* Define to 1 if you have the `gss_krb5_import_cred' function. */
+#undef HAVE_GSS_KRB5_IMPORT_CRED
+
+/* Define to 1 if you have the `gss_oid_equal' function. */
+#undef HAVE_GSS_OID_EQUAL
+
+/* Define to 1 if the GSS-API library uses RFC-compliant OIDs. */
+#undef HAVE_GSS_RFC_OIDS
+
+/* Define to 1 if you have the <ibm_svc/krb5_svc.h> header file. */
+#undef HAVE_IBM_SVC_KRB5_SVC_H
+
+/* Define to 1 if IPv6 library interfaces are available. */
+#undef HAVE_INET6
+
+/* Define to 1 if you have the `inet_aton' function. */
+#undef HAVE_INET_ATON
+
+/* Define if your system has a working inet_ntoa function. */
+#undef HAVE_INET_NTOA
+
+/* Define to 1 if you have the `inet_ntop' function. */
+#undef HAVE_INET_NTOP
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <kerberosv5/com_err.h> header file. */
+#undef HAVE_KERBEROSV5_COM_ERR_H
+
+/* Define to 1 if you have the <kerberosv5/krb5.h> header file. */
+#undef HAVE_KERBEROSV5_KRB5_H
+
+/* Define to enable Kerberos features. */
+#undef HAVE_KRB5
+
+/* Define to 1 if you have the `krb5_free_default_realm' function. */
+#undef HAVE_KRB5_FREE_DEFAULT_REALM
+
+/* Define to 1 if you have the `krb5_free_error_message' function. */
+#undef HAVE_KRB5_FREE_ERROR_MESSAGE
+
+/* Define to 1 if you have the `krb5_get_error_message' function. */
+#undef HAVE_KRB5_GET_ERROR_MESSAGE
+
+/* Define to 1 if you have the `krb5_get_error_string' function. */
+#undef HAVE_KRB5_GET_ERROR_STRING
+
+/* Define to 1 if you have the `krb5_get_err_txt' function. */
+#undef HAVE_KRB5_GET_ERR_TXT
+
+/* Define to 1 if you have the `krb5_get_init_creds_opt_alloc' function. */
+#undef HAVE_KRB5_GET_INIT_CREDS_OPT_ALLOC
+
+/* Define to 1 if you have the `krb5_get_init_creds_opt_free' function. */
+#undef HAVE_KRB5_GET_INIT_CREDS_OPT_FREE
+
+/* Define if krb5_get_init_creds_opt_free takes two arguments. */
+#undef HAVE_KRB5_GET_INIT_CREDS_OPT_FREE_2_ARGS
+
+/* Define to 1 if you have the `krb5_get_init_creds_opt_set_anonymous'
+   function. */
+#undef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS
+
+/* Define to 1 if you have the `krb5_get_init_creds_opt_set_default_flags'
+   function. */
+#undef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_DEFAULT_FLAGS
+
+/* Define to 1 if you have the `krb5_get_init_creds_opt_set_out_ccache'
+   function. */
+#undef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_OUT_CCACHE
+
+/* Define to 1 if you have the <krb5.h> header file. */
+#undef HAVE_KRB5_H
+
+/* Define to 1 if you have the `krb5_init_creds_set_password' function. */
+#undef HAVE_KRB5_INIT_CREDS_SET_PASSWORD
+
+/* Define to 1 if you have the <krb5/krb5.h> header file. */
+#undef HAVE_KRB5_KRB5_H
+
+/* Define to 1 if you have the `krb5_principal_get_realm' function. */
+#undef HAVE_KRB5_PRINCIPAL_GET_REALM
+
+/* Define to 1 if you have the `krb5_svc_get_msg' function. */
+#undef HAVE_KRB5_SVC_GET_MSG
+
+/* Define to 1 if you have the `krb5_xfree' function. */
+#undef HAVE_KRB5_XFREE
+
+/* Define if libevent is available. */
+#undef HAVE_LIBEVENT
+
+/* Define to 1 if you have the `libevent_global_shutdown' function. */
+#undef HAVE_LIBEVENT_GLOBAL_SHUTDOWN
+
+/* Define to 1 if the system has the type 'long long int'. */
+#undef HAVE_LONG_LONG_INT
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mkstemp' function. */
+#undef HAVE_MKSTEMP
+
+/* Define to 1 if the PCRE library is present. */
+#undef HAVE_PCRE
+
+/* Define to 1 if you have the <pcre.h> header file. */
+#undef HAVE_PCRE_H
+
+/* Define to 1 if you have the `reallocarray' function. */
+#undef HAVE_REALLOCARRAY
+
+/* Define to 1 if you have the `regcomp' function. */
+#undef HAVE_REGCOMP
+
+/* Define if <sys/socket.h> defines the SA_LEN macro. */
+#undef HAVE_SA_LEN
+
+/* Define if sd_notify is available. */
+#undef HAVE_SD_NOTIFY
+
+/* Define to 1 if you have the `setenv' function. */
+#undef HAVE_SETENV
+
+/* Define to 1 if you have the `setrlimit' function. */
+#undef HAVE_SETRLIMIT
+
+/* Define to 1 if you have the `setsid' function. */
+#undef HAVE_SETSID
+
+/* Define to 1 if the system has the type `sig_atomic_t'. */
+#undef HAVE_SIG_ATOMIC_T
+
+/* Define if your system has a working snprintf function. */
+#undef HAVE_SNPRINTF
+
+/* Define to 1 if the system has the type `socklen_t'. */
+#undef HAVE_SOCKLEN_T
+
+/* Define to 1 if the system has the type `ssize_t'. */
+#undef HAVE_SSIZE_T
+
+/* Define to 1 if stdbool.h conforms to C99. */
+#undef HAVE_STDBOOL_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strndup' function. */
+#undef HAVE_STRNDUP
+
+/* Define to 1 if the system has the type `struct sockaddr_in6'. */
+#undef HAVE_STRUCT_SOCKADDR_IN6
+
+/* Define to 1 if `sa_len' is a member of `struct sockaddr'. */
+#undef HAVE_STRUCT_SOCKADDR_SA_LEN
+
+/* Define to 1 if the system has the type `struct sockaddr_storage'. */
+#undef HAVE_STRUCT_SOCKADDR_STORAGE
+
+/* Define to 1 if `ss_family' is a member of `struct sockaddr_storage'. */
+#undef HAVE_STRUCT_SOCKADDR_STORAGE_SS_FAMILY
+
+/* Define to 1 if you have the <syslog.h> header file. */
+#undef HAVE_SYSLOG_H
+
+/* Define to 1 if you have the <sys/bitypes.h> header file. */
+#undef HAVE_SYS_BITYPES_H
+
+/* Define to 1 if you have the <sys/filio.h> header file. */
+#undef HAVE_SYS_FILIO_H
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+#undef HAVE_SYS_SELECT_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/uio.h> header file. */
+#undef HAVE_SYS_UIO_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if the system has the type 'unsigned long long int'. */
+#undef HAVE_UNSIGNED_LONG_LONG_INT
+
+/* Define to 1 if the system has the type `_Bool'. */
+#undef HAVE__BOOL
+
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
+#undef LT_OBJDIR
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* The size of `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Enable extensions on AIX 3, Interix.  */
+#ifndef _ALL_SOURCE
+# undef _ALL_SOURCE
+#endif
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# undef _GNU_SOURCE
+#endif
+/* Enable threading extensions on Solaris.  */
+#ifndef _POSIX_PTHREAD_SEMANTICS
+# undef _POSIX_PTHREAD_SEMANTICS
+#endif
+/* Enable extensions on HP NonStop.  */
+#ifndef _TANDEM_SOURCE
+# undef _TANDEM_SOURCE
+#endif
+/* Enable general extensions on Solaris.  */
+#ifndef __EXTENSIONS__
+# undef __EXTENSIONS__
+#endif
+
+
+/* Version number of package */
+#undef VERSION
+
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
+
+/* Define to 1 if on MINIX. */
+#undef _MINIX
+
+/* Define to 2 if the system does not provide POSIX.1 features except with
+   this defined. */
+#undef _POSIX_1_SOURCE
+
+/* Define to 1 if you need to in order for `stat' and other things to work. */
+#undef _POSIX_SOURCE

@@ -1,0 +1,74 @@
+# A test configuration file with a few weird features to stress the
+# parser.
+#
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2007, 2012
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# See LICENSE for licensing terms.
+
+
+  test \
+foo\
+ data/cmd-hello		data/acl-nonexistent \
+
+# This line is not continued
+test bar data/cmd-hello logmask=4 \
+data/acl-nonexistent \
+\
+   \
+data/acl-no-such-file
+test baz data/cmd-hello logmask=4,5,7 summary=data/cmd-hello \
+help=data/command-hello ANYUSER
+
+# The next line is actually commented out \
+foo bar data/cmd-foo ANYUSER
+
+foo ALL data/cmd-bar \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple \
+  data/acl-simple data/acl-simple data/acl-simple data/acl-simple

@@ -1,0 +1,265 @@
+                         Ruby interface to remctl
+
+OVERVIEW
+
+  The Ruby interface to remctl provides Ruby bindings to the libremctl
+  client library plus a high-level interface that translates the libremctl
+  API into something closer to idiomatic Ruby.
+
+  This module provides two interfaces: a simple interface in Ruby that
+  performs a single call to a remctl server and returns the result as an
+  object; and a full interface in Ruby which provides more control over
+  the connection, returns individual output tokens, and allows multiple
+  commands to be sent via the same connection.
+
+REQUIREMENTS
+
+  The module has been tested with Ruby 1.8 and 1.9.1 and may not work with
+  older (or newer) versions of Ruby.
+
+SIMPLIFIED INTERFACE
+
+  Remctl.remctl(host, *args)
+      Runs a command on the remote system and returns an object containing
+      the results.
+
+      Arguments:
+
+      * host: string, the host to connect to
+      * args: array containing strings making up the command
+
+      In order to change the port or principal used, assign to
+      Remctl.default_port and Remctl.default_principal.  These default to
+      0 and nil, meaning to respect the library defaults: port 4373 then
+      fall back to attempting the legacy 4444 port, and a principal of
+      host/<host>, with the realm determined by the domain-realm mapping.
+
+      args must be an array of things which respond to #to_s.
+
+      Returns an object of type Remctl::Result with the following
+      attributes:
+
+      * stdout: string, the standard output from the command
+      * stderr: string, the standard error from the command
+      * status: integer, the exit status of the command
+
+      Exceptions:
+
+      * ArgumentError, TypeError: an invalid argument was supplied
+      * NoMemError: memory allocation failed while making the call
+      * Remctl::Error: an error occurred in the remctl communication
+
+      The message attribute (or string value) of the Remctl::Error
+      exception contains the string returned by the remctl library.  This
+      may be an internal error (such as a network error) or an error
+      returned by the remote server (such as an unknown command error).
+
+  Here is an example using the simplified interface:
+
+      require 'remctl'
+      command = %w{testing 1 2 3}
+      result = Remctl.remctl("foo.example.com", *command)
+      if result.stdout != "":
+          puts "stdout: #{result.stdout}"
+      if result.stderr != "":
+          puts "stderr: #{result.stderr}"
+      puts "exit status: #{result.status}"
+
+FULL INTERFACE
+
+  The full remctl interface requires the user to do more bookkeeping, but
+  provides more flexibility and visibility into what is happening at a
+  protocol level.  It allows issuing multiple commands on the same
+  persistent connection (provided that the remote server supports protocol
+  version two; if it doesn't, the library will transparently fall back to
+  opening a connection for each command).
+
+  To use the full interface, first create a connection object with
+  Remctl.new and then call the #command method to issue a command.  Read
+  output tokens with #output until a status token has been received.  Then
+  the command is complete and another command can be issued.
+
+  Remctl.new(host, port, principal)
+      The constructor.  Create a new Remctl object.  The host argument is
+      required.  port and principal default to Remctl.default_port and
+      Remctl.default_principal respectively.
+
+      Arguments:
+
+      * host (required): string, the host to connect to
+      * port (optional): unsigned short, the port to connect to
+      * principal (optional): string, authentication identity of host
+
+      This method immediately connects to the server.  It raises
+      ArgumentError in the event that the port is out of range and
+      Remctl::Error in case of a protocol error.
+
+      If port is not given, the library default is used (try 4373 first
+      and fall back to attempting the legacy 4444 port).  If principal is
+      not given, the library default (host/<host> with the realm
+      determined by the domain-realm mapping) is used.
+
+      To override the credential cache used by GSS-API, assign the
+      credential cache (as a string) to Remctl.ccache before calling
+      Remctl.new.  If the remctl client library was built against a
+      Kerberos library and the GSS-API library supported
+      gss_krb5_import_cred, this will only affect subsequently-created
+      Remctl objects.  Otherwise, this will change the default credential
+      cache for all uses of GSS-API in the same process, including other
+      remctl objects, rather than just this remctl object due to a
+      limitation in the GSS-API.  Some GSS-API implementations do not
+      support setting the credential cache, in which case Remctl.new will
+      throw a Remctl::Error exception if this variable is set.
+
+      Normally, the source IP used to connect to the server is assigned by
+      the kernel.  To use a specific source IP, assign that IP address (as
+      a string) to Remctl.source_ip before calling Remctl.new.
+
+      To set a default timeout for any newly-created Remctl objects,
+      assign the timeout (in seconds) to Remctl.timeout before calling
+      Remctl.new.  See below under r.set_timeout for more information
+      about how the timeout is interpreted.
+
+      Exceptions:
+
+      * ArgumentError, TypeError: an invalid argument was supplied
+      * NoMemError: memory allocation failed while allocating the object
+      * Remctl::Error: a network or authentication error occurred
+
+      The message attribute (or string value) of the Remctl::Error
+      exception contains the string returned by the remctl library
+      remctl_error() function.
+
+  All further methods below must be called on a Remctl object as returned
+  or yielded by the constructor.
+
+  r.command(*args)
+      Send a command to the remote host.  There is no return value; an
+      exception is thrown on any error.
+
+      The Remctl object must already be connected.  The command may, under
+      the remctl protocol, contain any character, but be aware that most
+      remctl servers will reject commands or arguments containing ASCII 0
+      (NUL) unless that argument is configured on the server to be passed
+      via standard input.
+
+      Arguments:
+
+      * args (required): An array of arguments.  Each must respond to
+        #to_s.
+
+      Exceptions:
+
+      * TypeError: an invalid argument was supplied
+      * Remctl::Error: a network or authentication error occurred
+      * Remctl::NotOpen: no connection currently open
+
+      The message attribute (or string value) of the Remctl::Error
+      exception contains the string returned by the remctl library.
+
+  r.output()
+      Reads an output token from the server and returns it as an array.  A
+      command will result in either one error token or zero or more output
+      tokens followed by a status token.  The output is complete as soon
+      as any token other than an output token has been received, but the
+      module will keep returning done tokens to the caller for as long as
+      #output is called without another call to #command.
+
+      The members of the returned array are, in order:
+
+      * type: symbol, :output, :status, :error, or :done
+      * output: string, the returned output or error
+      * stream: integer, 1 for stdout or 2 for stderr for an output token
+      * status: integer, exit status of command for a status token
+      * error: integer, remctl protocol error for an error token
+
+      The array always has 5 elements.  The other members of the array may
+      be nil depending on the type of token.  Output tokens will have
+      output and stream information, error tokens will have output and
+      error information, and status tokens will have status information.
+      Done tokens will return nil for all other elements.
+
+      For error tokens, error holds the numeric error code (see the remctl
+      protocol specification), which is the recommended value for programs
+      to check when looking for specific errors.  output will contain an
+      English text translation of the error code and the exact text may
+      change.
+
+      Exceptions:
+
+      * Remctl::Error: a network or authentication error occurred
+      * Remctl::NotOpen: no connection currently open
+
+      Errors from the server are returned as an error token, not as an
+      exception.
+
+  r.noop()
+      Send a NOOP message to the server and read the reply.  This is
+      primarily used to keep a connection to a remctl server alive, such
+      as through a firewall with a session timeout, while waiting to issue
+      further commands.  Returns true on success, false on failure.
+
+      The NOOP message requires protocol version 3 support in the server,
+      so the caller should be prepared for this function to fail,
+      indicating that the connection could not be kept alive and possibly
+      that it was closed by the server.  In this case, the client will
+      need to explicitly reopen the connection with open().
+
+      Exceptions:
+
+      * Remctl::Error: a network or authentication error occurred
+      * Remctl::NotOpen: no connection currently open
+
+  r.set_timeout(timeout)
+      Sets the timeout for connections and commands.  All subsequent
+      operations on this object will be subject to this timeout, including
+      reopen().
+
+      Arguments:
+
+      * timeout (required): long, the timeout in seconds or 0
+
+      If the timeout is 0, this clears any timeout that was previously
+      set.
+
+      The timeout is a timeout on network activity from the server, not on
+      a complete operation.  So, for example, a timeout of ten seconds
+      just requires that the server send some data every ten seconds.  If
+      the server sends only tiny amounts of data at a time, the complete
+      operation could take much longer than ten seconds without triggering
+      the timeout.
+
+      Exceptions:
+
+      * RemctlError: the timeout was negative
+
+  r.close()
+      Close a connection.  After calling this method, #reopen must be
+      called for this object before sending any further commands.  The
+      connection will also be automatically closed when the object is
+      destroyed, so calling this method is often not necessary.
+
+  r.reopen()
+      Close the connection, reopen it, and authenticate.  Returns self.
+      Raises Remctl::Error in the event that remctl_open() fails.
+
+      Exceptions:
+
+      * NoMemError: memory allocation failed while making the call
+      * Remctl::Error: a network or authentication error occurred
+
+HISTORY
+
+  The original implementation was written by Anthony Martinez
+  <twopir@nmt.edu> in 2010.  As of remctl 2.16 it is part of the stock
+  remctl distribution.
+
+LICENSE
+
+  Copyright 2010, 2011, 2012 The Board of Trustees of the Leland Stanford
+  Junior University
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.  This file is offered as-is,
+  without any warranty.
