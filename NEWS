@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.13 (unreleased)
+remctl 3.13 (2016-10-10)
 
     remctl-shell now also supports being run as a forced command from
     authorized_keys (or other methods).  This may be preferrable to using
