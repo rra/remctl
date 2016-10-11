@@ -52,7 +52,11 @@ import java.security.PrivilegedExceptionAction;
 
 
 public class RemctlClient extends Remctl {
-	private String servicePrincipal;
+
+	private String servicePrincipal; // server identity given by client
+
+	private String serviceName; // GSS server (name, type) we will use
+	private Oid serviceNameType;
 
 	private Writer out, err;
 
@@ -193,13 +197,30 @@ public class RemctlClient extends Remctl {
 		out = p_out;
 		err = p_err;
 
-		InetAddress hostAddress = InetAddress.getByName(host);
-		String hostName = hostAddress.getCanonicalHostName().toLowerCase();
-		if (this.servicePrincipal == null) 
-			this.servicePrincipal = "host/"+hostName;
+		/* Determine the server identity. If the user passed a
+		 * servicePrincipal, use it verbatim and leave the name type null
+		 * to select the system default interpretation (which will
+		 * generally by a Kerberos principal name). If the user did not
+		 * specify, our default is the hostbased-service name
+		 * "host@<hostname>", which Kerberos will map to a principal name
+		 * using the configured policy regarding name/realm mapping,
+		 * canonicalization, and so forth. Note that we do *NOT*
+		 * canonicalize or otherwise transform the hostname. Applications
+		 * should pass the user's intent unchanged to GSSAPI and let the
+		 * system configuration do what it's intended to do -- e.g. in MIT
+		 * Kerberos the krb5.conf 'rnds' parameter controls whether
+		 * reverse-address mapping is done on hostnames; we should not
+		 * override that.
+		 */
+		if (this.servicePrincipal == null) {
+			serviceName = "host@" + host;
+			serviceNameType = GSSName.NT_HOSTBASED_SERVICE;
+		} else {
+			serviceName = "host/" + host;
+		}
 
 		/* Make the socket: */
-		socket =    new Socket(hostName, port != 0 ? port : DEFAULT_PORT);
+		socket =    new Socket(host, port != 0 ? port : DEFAULT_PORT);
 		inStream =  new DataInputStream(
 				new BufferedInputStream(socket.getInputStream(),8192));
 		outStream = new DataOutputStream(
@@ -323,13 +344,9 @@ public class RemctlClient extends Remctl {
 		GSSManager manager = GSSManager.getInstance();
 
 		/*
-		 * Create a GSSName out of the service name. The null
-		 * indicates that this application does not wish to make
-		 * any claims about the syntax of this name and that the
-		 * underlying mechanism should try to parse it as per whatever
-		 * default syntax it chooses.
+		 * Create the GSSName for the server.
 		 */
-		GSSName serverName = manager.createName(servicePrincipal, null);
+		GSSName serverName = manager.createName(serviceName, serviceNameType);
 
 		/*
 		 * Create a GSSContext for mutual authentication with the

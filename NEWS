@@ -1,5 +1,34 @@
                        User-Visible remctl Changes
 
+remctl 3.13 (2016-10-10)
+
+    remctl-shell now also supports being run as a forced command from
+    authorized_keys (or other methods).  This may be preferrable to using
+    it as a shell since it doesn't require setting non-standard sshd
+    options.
+
+    The summary configuration option is now allowed for commands with
+    subcommands other than ALL.  When generating a help summary (done in
+    response to the command "help" with no arguments), command lines with
+    a subcommand and a summary option will be run with two arguments: the
+    value of the summary option and then the subcommand.  This allows
+    proper generation of command summaries even for users who only have
+    access to a few subcommands of a command.  Patch from Remi Ferrand.
+
+    The build system now supports new REMCTL_PROGRAM_CFLAGS and
+    REMCTL_PROGRAM_LDFLAGS variables that can be set at build time to pass
+    in additional arguments when compiling and linking programs (like
+    remctl and remctld) but not libraries and, more importantly, language
+    bindings.  This can be used in distribution builds to pass in -fPIE
+    for additional binary hardening.  (CFLAGS and LDFLAGS cannot be used
+    since -fPIE breaks the builds of the dynamic modules for langauges
+    like Perl.)
+
+    Update to rra-c-util 6.1:
+
+    * Correct return-value checks for snprintf.
+    * Adjust Test::RRA::Config for new load path behavior in Perl 5.22.2.
+
 remctl 3.12 (2016-07-29)
 
     Add a new server implementation, remctl-shell.  This does not use the

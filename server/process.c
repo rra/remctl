@@ -274,20 +274,24 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
             if (initgroups(process->rule->user, process->rule->gid) != 0)
                 sysdie("cannot initgroups for %s\n", process->rule->user);
             if (setgid(process->rule->gid) != 0)
-                sysdie("cannot setgid to %d\n", process->rule->gid);
+                sysdie("cannot setgid to %lu\n",
+                       (unsigned long) process->rule->gid);
             if (setuid(process->rule->uid) != 0)
-                sysdie("cannot setuid to %d\n", process->rule->uid);
+                sysdie("cannot setuid to %lu\n",
+                       (unsigned long) process->rule->uid);
         }
 
         /*
          * Run the command.  On error, we intentionally don't reveal
-         * information about the command we ran.
+         * information about the command we ran.  We have to cast away const
+         * because the prototype for execv is historically incorrect even
+         * though it doesn't modify its arguments.
          */
         if (process->rule->sudo_user == NULL)
             argv0 = process->rule->program;
         else
             argv0 = PATH_SUDO;
-        if (execv(argv0, process->argv) < 0)
+        if (execv(argv0, (char **) process->argv) < 0)
             sysdie("cannot execute command");
         break;
 

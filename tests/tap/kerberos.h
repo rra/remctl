@@ -108,11 +108,11 @@ void kerberos_cleanup_conf(void);
 
 /* Bail out with an error, appending the Kerberos error message. */
 void bail_krb5(krb5_context, krb5_error_code, const char *format, ...)
-    __attribute__((__noreturn__, __nonnull__, __format__(printf, 3, 4)));
+    __attribute__((__noreturn__, __nonnull__(3), __format__(printf, 3, 4)));
 
 /* Report a diagnostic with Kerberos error to stderr prefixed with #. */
 void diag_krb5(krb5_context, krb5_error_code, const char *format, ...)
-    __attribute__((__nonnull__, __format__(printf, 3, 4)));
+    __attribute__((__nonnull__(3), __format__(printf, 3, 4)));
 
 /*
  * Given a Kerberos context and the path to a keytab, retrieve the principal

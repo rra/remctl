@@ -7,7 +7,7 @@
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
  * Copyright 2016 Dropbox, Inc.
- * Copyright 2015 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
  *     2014 The Board of Trustees of the Leland Stanford Junior University
  *
@@ -93,9 +93,10 @@ server_send_summary(struct client *client, struct config *config)
 {
     char *path = NULL;
     char *program;
+    const char *subcommand;
     struct rule *rule = NULL;
     size_t i;
-    char **req_argv = NULL;
+    const char **req_argv = NULL;
     bool ok_any = false;
     int status_all = 0;
     struct process process;
@@ -117,8 +118,6 @@ server_send_summary(struct client *client, struct config *config)
         memset(&process, 0, sizeof(process));
         process.client = client;
         rule = config->rules[i];
-        if (strcmp(rule->subcommand, "ALL") != 0)
-            continue;
         if (!server_config_acl_permit(rule, client))
             continue;
         if (rule->summary == NULL)
@@ -128,10 +127,11 @@ server_send_summary(struct client *client, struct config *config)
         /*
          * Get the real program name, and use it as the first argument in
          * argv passed to the command.  Then add the summary command to the
-         * argv and pass off to be executed.
+         * argv.  If a subcommand is also specified, add that as an argument
+         * after the summary command.
          */
         path = rule->program;
-        req_argv = xcalloc(3, sizeof(char *));
+        req_argv = xcalloc(4, sizeof(char *));
         program = strrchr(path, '/');
         if (program == NULL)
             program = path;
@@ -139,7 +139,14 @@ server_send_summary(struct client *client, struct config *config)
             program++;
         req_argv[0] = program;
         req_argv[1] = rule->summary;
-        req_argv[2] = NULL;
+        subcommand = rule->subcommand;
+        if (strcmp(subcommand, "ALL") == 0 || strcmp(subcommand, "EMPTY") == 0)
+            req_argv[2] = NULL;
+        else
+            req_argv[2] = subcommand;
+        req_argv[3] = NULL;
+
+        /* Pass the command off to be executed. */
         process.command = rule->summary;
         process.argv = req_argv;
         process.rule = rule;
@@ -440,7 +447,7 @@ server_run_command(struct client *client, struct config *config,
 
     /* Now actually execute the program. */
     process.command = command;
-    process.argv = req_argv;
+    process.argv = (const char **) req_argv;
     process.rule = rule;
     ok = server_process_run(&process);
     if (ok) {

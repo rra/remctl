@@ -74,7 +74,16 @@ ipv6_works(void)
             close(fd);
             if (server == INVALID_SOCKET) {
                 close(client);
-                if (socket_errno == EAGAIN || socket_errno == EWOULDBLOCK)
+
+                /*
+                 * Written as two separate if statements because gcc with
+                 * -Werror=logical-op warns about identical expressions, and
+                 * EAGAIN and EWOULDBLOCK are the same number on Linux (but
+                 * not on some other platforms).
+                 */
+                if (socket_errno == EAGAIN)
+                    return false;
+                if (socket_errno == EWOULDBLOCK)
                     return false;
             } else {
                 close(server);
@@ -395,7 +404,7 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
         fd = fds[i];
         if (listen(fd, 1) < 0)
             sysbail("cannot listen to socket %d", fd);
-        ok(fd != INVALID_SOCKET, "all address server test (part %d)", i + 1);
+        ok(fd != INVALID_SOCKET, "all address server test (part %u)", i + 1);
 
         /* Get the socket type to determine what type of client to run. */
         saddr = get_sockaddr(fd);
@@ -450,6 +459,7 @@ test_any(void)
 
     if (!network_bind_all(SOCK_STREAM, 11119, &fds, &count))
         sysbail("cannot create or bind socket");
+    ok(1, "network_accept_any test");
     for (i = 0; i < count; i++)
         if (listen(fds[i], 1) < 0)
             sysbail("cannot listen to socket %d", fds[i]);
@@ -535,7 +545,7 @@ int
 main(void)
 {
     /* Set up the plan. */
-    plan(42);
+    plan(43);
 
     /* Test network_bind functions. */
     test_ipv4(NULL);

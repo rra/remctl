@@ -12,8 +12,12 @@
 # situations and aren't normally set.  We want to honor them if they're set
 # in the environment, as well as via make arguments.
 #
-# REMCTL_PERL_FLAGS are additional flags to pass to Makefile.PL when
-# building the Makefile.
+# REMCTL_PROGRAM_CFLAGS and REMCTL_PROGRAM_LDFLAGS are additional flags to
+# pass to the builds of programs (remctld, remctl, remctl-shell) but not
+# libraries.  This is provided as a hook to pass -fPIE for hardening.
+#
+# REMCTL_PERL_FLAGS are additional flags to pass to Build.PL when building
+# the Makefile.
 #
 # REMCTL_PYTHON_INSTALL adds additional flags to the setup.py install
 # command.  REMCTL_PYTHON_VERSIONS, if set, is a space-separated list of
@@ -24,6 +28,8 @@
 # REMCTL_RUBY controls which Ruby interpretor is used to do the build.
 # REMCTL_RUBY_FLAGS are additional flags to pass to extconf.rb when building
 # the Makefile.
+REMCTL_PROGRAM_CFLAGS  ?=
+REMCTL_PROGRAM_LDFLAGS ?=
 REMCTL_PERL_FLAGS      ?=
 REMCTL_PYTHON_INSTALL  ?=
 REMCTL_PYTHON_VERSIONS ?= python
@@ -67,7 +73,7 @@ PERL_DIRECTORIES = perl perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
 	perl/t/lib/Test perl/t/style
 
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = .gitignore LICENSE Makefile.w32 bootstrap			    \
+EXTRA_DIST = .gitignore .travis.yml LICENSE Makefile.w32 bootstrap	    \
 	client/libremctl.pc.in client/libremctl.map client/libremctl.rc	    \
 	client/libremctl.sym client/remctl.rc config.h.w32 configure.cmd    \
 	docs/api/remctl.pod docs/api/remctl_close.pod			    \
@@ -181,9 +187,11 @@ client/libremctl.pc: $(srcdir)/client/libremctl.pc.in
 
 # The remctl command-line client.
 bin_PROGRAMS = client/remctl
+client_remctl_CFLAGS = $(REMCTL_PROGRAM_CFLAGS) $(AM_CFLAGS)
 client_remctl_SOURCES = client/remctl.c
 client_remctl_LDADD = client/libremctl.la util/libutil.la \
 	portable/libportable.la
+client_remctl_LDFLAGS = $(REMCTL_PROGRAM_LDFLAGS) $(AM_LDFLAGS)
 
 # The remctld and remctl-shell servers.  We include portable/event-extra.c
 # directly in the sources for the server instead of including it in
@@ -199,8 +207,10 @@ server_remctld_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\"	  \
 	-DPATH_SUDO='"$(PATH_SUDO)"' $(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS)  \
 	$(GPUT_CPPFLAGS) $(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS)		  \
 	$(SYSTEMD_CFLAGS)
+server_remctld_CFLAGS = $(REMCTL_PROGRAM_CFLAGS) $(AM_CFLAGS)
 server_remctld_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
-	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
+	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS) $(REMCTL_PROGRAM_LDFLAGS)	   \
+	$(AM_LDFLAGS)
 server_remctld_LDADD = util/libutil.la portable/libportable.la	\
 	$(GSSAPI_LIBS) $(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS)	\
 	$(LIBEVENT_LIBS) $(SYSTEMD_LIBS)
@@ -211,8 +221,10 @@ server_remctl_shell_SOURCES = portable/event-extra.c server/commands.c	\
 server_remctl_shell_CPPFLAGS = -DCONFIG_FILE=\"$(sysconfdir)/remctl.conf\" \
 	-DPATH_SUDO='"$(PATH_SUDO)"' $(KRB5_CPPFLAGS) $(GPUT_CPPFLAGS)	   \
 	$(PCRE_CPPFLAGS) $(LIBEVENT_CPPFLAGS)
-server_remctl_shell_LDFLAGS = $(KRB5_LDFLAGS) $(GPUT_LDFLAGS) \
-	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
+server_remctl_shell_CFLAGS = $(REMCTL_PROGRAM_CFLAGS) $(AM_CFLAGS)
+server_remctl_shell_LDFLAGS = $(KRB5_LDFLAGS) $(GPUT_LDFLAGS)		\
+	$(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS) $(REMCTL_PROGRAM_LDFLAGS)	\
+	$(AM_LDFAGS)
 server_remctl_shell_LDADD = util/libutil.la portable/libportable.la \
 	$(KRB5_LIBS) $(GPUT_LIBS) $(PCRE_LIBS) $(LIBEVENT_LIBS)
 
@@ -239,7 +251,8 @@ man_MANS = docs/remctl-shell.8 docs/remctld.8
 # Substitute the system configuration path into the manual page.
 docs/remctl-shell.8: $(srcdir)/docs/remctl-shell.8.in
 	[ -d docs ] || mkdir docs
-	sed 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%' \
+	sed -e 's%\(\\f(CI\)*\@sysconfdir\(\\fI\)*\@%$(sysconfdir)%'	\
+	    -e 's%\(\\f(CI\)*\@sbindir\(\\fI\)*\@%$(sbindir)%'		\
 	    < $(srcdir)/docs/remctl-shell.8.in > $@
 docs/remctld.8: $(srcdir)/docs/remctld.8.in
 	[ -d docs ] || mkdir docs
@@ -310,23 +323,6 @@ distclean-local: clean-local
 	    cd ruby && $(MAKE) distclean ;		\
 	fi
 
-# A set of flags for warnings.  Add -O because gcc won't find some warnings
-# without optimization turned on.  Desirable warnings that can't be turned
-# on due to other problems:
-#
-#     -Wconversion	http://bugs.debian.org/488884 (htons warnings)
-#
-# Last checked against gcc 4.8.2 (2014-04-12).  -D_FORTIFY_SOURCE=2 enables
-# warn_unused_result attribute markings on glibc functions on Linux, which
-# catches a few more issues.
-WARNINGS = -g -O -fstrict-overflow -fstrict-aliasing -D_FORTIFY_SOURCE=2    \
-	-Wall -Wextra -Wendif-labels -Wformat=2 -Winit-self -Wswitch-enum   \
-	-Wstrict-overflow=5 -Wfloat-equal -Wdeclaration-after-statement	    \
-	-Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align	    \
-	-Wwrite-strings -Wjump-misses-init -Wlogical-op -Wstrict-prototypes \
-	-Wold-style-definition -Wmissing-prototypes -Wnormalized=nfc	    \
-	-Wpacked -Wredundant-decls -Wnested-externs -Winline -Wvla -Werror
-
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code otherwise generates them.
 PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs			\
@@ -340,13 +336,13 @@ PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
 
 warnings:
-	$(MAKE) V=0 CFLAGS='$(WARNINGS)'		\
-	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)'	\
-	    PERL_CFLAGS_EXTRA='$(PERL_WARNINGS)'	\
-	    PHP_CFLAGS_EXTRA='$(PHP_WARNINGS)'		\
-	    PYTHON_CFLAGS_EXTRA='$(PYTHON_WARNINGS)'	\
+	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
+	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)'		\
+	    PERL_CFLAGS_EXTRA='$(PERL_WARNINGS)'		\
+	    PHP_CFLAGS_EXTRA='$(PHP_WARNINGS)'			\
+	    PYTHON_CFLAGS_EXTRA='$(PYTHON_WARNINGS)'		\
 	    RUBY_CFLAGS_EXTRA='$(RUBY_WARNINGS)'
-	$(MAKE) V=0 CFLAGS='$(WARNINGS)' \
+	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)' \
 	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.

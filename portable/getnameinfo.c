@@ -153,7 +153,7 @@ lookup_service(unsigned short port, char *service, socklen_t servicelen,
 
     /* Just convert the port number to ASCII. */
     status = snprintf(service, servicelen, "%hu", port);
-    if (status < 0 || (socklen_t) status > servicelen)
+    if (status < 0 || (socklen_t) status >= servicelen)
         return EAI_OVERFLOW;
     return 0;
 }
