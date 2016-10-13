@@ -1,5 +1,6 @@
 remctl (3.13-1~ubuntu12.04+1) UNRELEASED; urgency=medium
 
+  * Forked package for Ubuntu precise based on 3.0-5 Debian packaging.
   * New upstream release.
     - remctl-shell now supports being run as a forced command.
     - The summary configuration option is now allowed for commands with
