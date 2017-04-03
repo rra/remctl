@@ -107,7 +107,7 @@ C<command> option like the below:
 where the argument to B<remctl-shell> is the identity matching the ssh key
 on that line.  A more complete example of a line in F<authorized_keys>:
 
-    command=="@sbindir@/remctl-shell example@EXAMPLE.ORG",\
+    command="@sbindir@/remctl-shell example@EXAMPLE.ORG",\
     no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,\
     no-X11-forwarding ssh-rsa AAAAB3NzaC1yc2EA... \
     example@some-host.example.org
@@ -290,7 +290,7 @@ purposes.
 =item REMUSER
 
 [3.12] Set to the value of REMCTL_CLIENT as set in the environment of
-B<remctl-shell>. This should be set security via F<authorized_keys> as
+B<remctl-shell>. This should be set securely via F<authorized_keys> as
 discussed above.
 
 =back
