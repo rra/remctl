@@ -77,7 +77,7 @@ Also be aware that the full command is passed via command line arguments,
 which means, when invoking B<remctl-shell> as a shell, there is a tight
 limit on the length of the whole command plus arguments.  Expect to have
 problems if the total command length exceeds 1000 characters.  For the
-same reason, binary data including nul characters cannot be passed via
+same reason, binary data including null characters cannot be passed via
 B<remctl-shell>.  Invoking it as a forced command may work around these
 limitations by putting the command into the environment instead, but there
 may still be restrictions on that.  (The regular remctl protocol supports
