@@ -347,6 +347,7 @@ EOF
 %{_sbindir}/*
 %doc CHANGELOG.md README TODO
 %doc %{_mandir}/*/remctld.*
+%doc %{_mandir}/*/remctl-shell.*
 %if !0%{?with_systemd:1}
 %config /etc/xinetd.d/remctl
 %endif
