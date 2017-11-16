@@ -54,7 +54,7 @@ Group: System Environment/Daemons
 Vendor: Stanford University
 Packager: Russ Allbery <eagle@eyrie.org>
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: krb5-devel, libgcrypt, libevent-devel
+BuildRequires: krb5-devel, libgcrypt, libevent-devel, fakeroot
 %if %{buildperl}
 BuildRequires: perl(Module::Build)
 %endif
@@ -65,7 +65,7 @@ BuildRequires: python-devel, python
 BuildRequires: php-devel
 %endif
 %if %{buildruby}
-BuildRequires: ruby, ruby-devel
+BuildRequires: ruby, ruby-devel, rubygem-minitest
 %endif
 %if 0%{?sles_version:1}
 %if 0%{?with_systemd:1}
@@ -325,6 +325,15 @@ cat <<EOF >%{buildroot}/etc/sysconfig/SuSEfirewall2.d/services/remctld
 TCP="remctl"
 EOF
 %endif
+
+%check
+# Use rpmbuild option "--define 'test_princ'" to set the principal name
+# Use rpmbuild option "--define 'test_keytab'" to specify the keytab location
+%if 0%{?test_princ:%{?test_keytab:1}}
+ln -s $(realpath '%{test_keytab}') tests/config/keytab
+echo '%{test_princ}'  > tests/config/principal
+%endif
+make check
 
 %files devel
 %defattr(-, root, root)
