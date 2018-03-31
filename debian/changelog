@@ -1,3 +1,10 @@
+remctl (3.13-1+deb9u1) stretch-security; urgency=high
+
+  * Apply upstream patch to fix use-after-free vulnerability in the
+    remctld server for commands using the sudo configuration option.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 30 Mar 2018 19:45:33 -0700
+
 remctl (3.13-1) unstable; urgency=medium
 
   * New upstream release.
