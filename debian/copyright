@@ -7,7 +7,7 @@ License: Expat
 
 Files: *
 Copyright: 1997, 2000-2002 Benjamin Sittler
-  2000-2002, 2004-2016 Russ Allbery <eagle@eyrie.org>
+  2000-2002, 2004-2018 Russ Allbery <eagle@eyrie.org>
   2001-2014 The Board of Trustees of the Leland Stanford Junior University
   2007 Marcus Watts <mdw@umich.edu>
   2008 Andrew Mortensen <admorten@umich.edu>
@@ -21,25 +21,25 @@ Copyright: 1997, 2000-2002 Benjamin Sittler
 License: Expat
 
 Files: Makefile.in
-Copyright: 1994-2014 Free Software Foundation, Inc.
+Copyright: 1994-2017 Free Software Foundation, Inc.
   2006-2014 The Board of Trustees of the Leland Stanford Junior University
   2015-2016 Russ Allbery <eagle@eyrie.org>
   2016 Dropbox, Inc.
 License: FSF-unlimited and Expat
 
 Files: aclocal.m4
-Copyright: 1996-2016 Free Software Foundation, Inc.
+Copyright: 1996-2017 Free Software Foundation, Inc.
   2004 Scott James Remnant <scott@netsplit.com>
   2012-2015 Dan Nicholson <dbn.lists@gmail.com>
 License: FSF-unlimited, and GPL-2+ with Autoconf exception or Expat
 
 Files: build-aux/ar-lib build-aux/compile build-aux/depcomp
  build-aux/missing
-Copyright: 1996-2014 Free Software Foundation, Inc.
+Copyright: 1996-2017 Free Software Foundation, Inc.
 License: GPL-2+ with Autoconf exception or Expat
 
 Files: build-aux/config.guess build-aux/config.sub
-Copyright: 1992-2016 Free Software Foundation, Inc.
+Copyright: 1992-2018 Free Software Foundation, Inc.
 License: GPL-3+ with Autoconf exception or Expat
 
 Files: build-aux/install-sh
@@ -160,7 +160,7 @@ Files: portable/asprintf.c portable/daemon.c portable/dummy.c
  tests/portable/inet_ntop-t.c tests/portable/mkstemp-t.c
  tests/portable/setenv-t.c tests/util/buffer-t.c tests/util/vector-t.c
  util/macros.h util/vector.c util/vector.h
-Copyright: no copyright notice, see License for more details
+Copyright: no copyright notice, see License below
 License: rra-public-domain
  The authors hereby relinquish any claim to any copyright that they may
  have in this work, whether granted under contract or by operation of law
