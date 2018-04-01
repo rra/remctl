@@ -6,7 +6,8 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2002-2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -48,6 +49,12 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
     char *p;
     OM_uint32 data, major, minor;
     int status;
+
+    /* Check that the number of arguments isn't too high to represent. */
+    if (count > UINT32_MAX) {
+        internal_set_error(r, "too many arguments to command");
+        return false;
+    }
 
     /* Determine the total length of the message. */
     length = 4;
@@ -108,7 +115,7 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
 
         /* Argument count if we haven't sent anything yet. */
         if (sent == 0) {
-            data = htonl(count);
+            data = htonl((OM_uint32) count);
             memcpy(p, &data, 4);
             p += 4;
             sent += 4;
@@ -126,7 +133,12 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
             if (offset == 0) {
                 if (left < 4 || (left < 5 && command[iov].iov_len > 0))
                     break;
-                data = htonl(command[iov].iov_len);
+                if (command[iov].iov_len > UINT32_MAX) {
+                    internal_set_error(r, "command component too long");
+                    free(token.value);
+                    return false;
+                }
+                data = htonl((OM_uint32) command[iov].iov_len);
                 memcpy(p, &data, 4);
                 p += 4;
                 sent += 4;

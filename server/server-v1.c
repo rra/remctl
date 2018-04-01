@@ -7,8 +7,9 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
+ * Copyright 2002-2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -115,7 +116,7 @@ server_v1_send_output(struct client *client, struct evbuffer *output,
 
     /* Allocate room for the total message. */
     outlen = evbuffer_get_length(output);
-    if (outlen >= SIZE_MAX - 4 - 4)
+    if (outlen >= UINT32_MAX - 4 - 4)
         die("internal error: memory allocation too large");
     token.length = 4 + 4 + outlen;
     token.value = xmalloc(token.length);
@@ -125,7 +126,7 @@ server_v1_send_output(struct client *client, struct evbuffer *output,
     tmp = htonl(exit_status);
     memcpy(p, &tmp, 4);
     p += 4;
-    tmp = htonl(outlen);
+    tmp = htonl((OM_uint32) outlen);
     memcpy(p, &tmp, 4);
     p += 4;
     if (evbuffer_remove(output, p, outlen) < 0)

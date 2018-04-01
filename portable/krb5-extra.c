@@ -7,17 +7,19 @@
  * Kerberos libraries are fully capable, this file will be skipped.
  *
  * The canonical version of this file is maintained in the rra-c-util package,
- * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2010-2012, 2014
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
- * The authors hereby relinquish any claim to any copyright that they may have
- * in this work, whether granted under contract or by operation of law or
- * international treaty, and hereby commit to the public, at large, that they
- * shall not, at any time in the future, seek to enforce any copyright in this
- * work against any person or entity, or prevent any person or entity from
- * copying, publishing, distributing or creating derivative works of this
- * work.
+ * Copying and distribution of this file, with or without modification, are
+ * permitted in any medium without royalty provided the copyright notice and
+ * this notice are preserved.  This file is offered as-is, without any
+ * warranty.
+ *
+ * SPDX-License-Identifier: FSFAP
  */
 
 #include <config.h>
@@ -65,7 +67,7 @@ static const char error_unknown[] = "unknown error";
 const char *
 krb5_get_error_message(krb5_context ctx UNUSED, krb5_error_code code UNUSED)
 {
-    const char *msg = NULL;
+    const char *msg;
 
 # if defined(HAVE_KRB5_GET_ERROR_STRING)
     msg = krb5_get_error_string(ctx);

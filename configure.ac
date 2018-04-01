@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2015-2016 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2016 Dropbox, Inc.
 dnl Copyright 2002-2008, 2010-2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
@@ -19,7 +19,7 @@ AM_MAINTAINER_MODE
 
 dnl Detect unexpanded macros.
 m4_pattern_forbid([^PKG_])
-m4_pattern_forbid([^RRA_])
+m4_pattern_forbid([^_?RRA_])
 
 dnl AM_PROG_AR is required for Automake 1.12 by Libtool but not defined at all
 dnl (or needed) in Automake 1.11.  Work around this bug.
@@ -124,6 +124,7 @@ AC_CHECK_MEMBERS([struct sockaddr.sa_len], [], [],
     [#include <sys/types.h>
      #include <sys/socket.h>])
 AC_TYPE_LONG_LONG_INT
+AC_TYPE_UINT32_T
 AC_CHECK_TYPES([sig_atomic_t], [], [],
     [#include <sys/types.h>
      #include <signal.h>])
@@ -144,7 +145,6 @@ AC_CHECK_TYPES([struct sockaddr_storage],
     [#include <sys/types.h>
      #include <sys/socket.h>])
 RRA_MACRO_IN6_ARE_ADDR_EQUAL
-RRA_MACRO_SA_LEN
 RRA_FUNC_INET_NTOA
 RRA_FUNC_SNPRINTF
 AC_CHECK_FUNCS([getaddrinfo],

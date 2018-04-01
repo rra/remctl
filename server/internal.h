@@ -2,9 +2,9 @@
  * Internal support functions for the remctld daemon.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
- * Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2007, 2008, 2009, 2010, 2012, 2014
+ * Copyright 2006-2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -81,7 +81,7 @@ struct client {
 /* Holds the configuration for a single command. */
 struct rule {
     char *file;                 /* Config file name. */
-    int lineno;                 /* Config file line number. */
+    size_t lineno;              /* Config file line number. */
     struct vector *line;        /* The split configuration line. */
     char *command;              /* Command (first argument). */
     char *subcommand;           /* Subcommand (second argument). */

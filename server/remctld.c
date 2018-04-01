@@ -7,7 +7,8 @@
  *
  * Written by Anton Ushakov
  * Extensive modifications by Russ Allbery <eagle@eyrie.org>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2011, 2012, 2014
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2002-2008, 2010-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -278,7 +279,7 @@ static void
 bind_sockets(struct options *options, socket_type **fds,
              unsigned int *count)
 {
-    int status;
+    int status, fd_index;
     size_t i;
     const char *addr;
     socket_type fd;
@@ -289,8 +290,8 @@ bind_sockets(struct options *options, socket_type **fds,
         die("using systemd-bound sockets failed: %s", strerror(-status));
     if (status > 0) {
         *fds = xcalloc(status, sizeof(socket_type));
-        for (i = 0; i < (size_t) status; i++)
-            (*fds)[i] = SD_LISTEN_FDS_START + i;
+        for (fd_index = 0; fd_index < status; fd_index++)
+            (*fds)[fd_index] = SD_LISTEN_FDS_START + fd_index;
         *count = status;
         return;
     }
@@ -303,8 +304,8 @@ bind_sockets(struct options *options, socket_type **fds,
     if (options->bindaddrs->count == 0) {
         if (!network_bind_all(SOCK_STREAM, options->port, fds, count))
             sysdie("cannot bind any sockets");
-        for (i = 0; i < *count; i++)
-            if (listen((*fds)[i], 5) < 0)
+        for (fd_index = 0; fd_index < (int) *count; fd_index++)
+            if (listen((*fds)[fd_index], 5) < 0)
                 sysdie("error listening on socket");
         return;
     }
@@ -313,7 +314,7 @@ bind_sockets(struct options *options, socket_type **fds,
      * Otherwise, we have to iterate through all the bind addresses, bind them
      * using the appropriate function, and listen on each.
      */
-    *count = options->bindaddrs->count;
+    *count = (unsigned int) options->bindaddrs->count;
     *fds = xcalloc(*count, sizeof(socket_type));
     for (i = 0; i < options->bindaddrs->count; i++) {
         addr = options->bindaddrs->strings[i];
@@ -509,6 +510,8 @@ main(int argc, char *argv[])
 {
     struct options options;
     int option;
+    long tmp_port;
+    char *end;
     struct sigaction sa;
     gss_cred_id_t creds = GSS_C_NO_CREDENTIAL;
     OM_uint32 minor;
@@ -562,7 +565,10 @@ main(int argc, char *argv[])
             options.pid_path = optarg;
             break;
         case 'p':
-            options.port = atoi(optarg);
+            tmp_port = strtol(optarg, &end, 10);
+            if (*end != '\0' || tmp_port < 1 || tmp_port > (1L << 16) - 1)
+                die("invalid port number %ld", tmp_port);
+            options.port = (unsigned short) tmp_port;
             break;
         case 'S':
             options.log_stdout = true;

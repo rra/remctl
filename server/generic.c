@@ -6,10 +6,10 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
+ * Copyright 2015, 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
- * Copyright 2015 Russ Allbery <eagle@eyrie.org>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
- *     2014 The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2002-2010, 2012-2014
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
@@ -41,8 +41,7 @@ server_new_client(int fd, gss_cred_id_t creds)
 {
     struct client *client;
     struct sockaddr_storage ss;
-    socklen_t socklen;
-    size_t length;
+    socklen_t socklen, buflen;
     char *buffer;
     gss_buffer_desc send_tok, recv_tok, name_buf;
     gss_name_t name = GSS_C_NO_NAME;
@@ -65,19 +64,19 @@ server_new_client(int fd, gss_cred_id_t creds)
         syswarn("cannot get peer address");
         goto fail;
     }
-    length = INET6_ADDRSTRLEN;
-    buffer = xmalloc(length);
+    buflen = INET6_ADDRSTRLEN;
+    buffer = xmalloc(buflen);
     client->ipaddress = buffer;
-    status = getnameinfo((struct sockaddr *) &ss, socklen, buffer, length,
+    status = getnameinfo((struct sockaddr *) &ss, socklen, buffer, buflen,
                          NULL, 0, NI_NUMERICHOST);
     if (status != 0) {
         syswarn("cannot translate IP address of client: %s",
                 gai_strerror(status));
         goto fail;
     }
-    length = NI_MAXHOST;
-    buffer = xmalloc(length);
-    status = getnameinfo((struct sockaddr *) &ss, socklen, buffer, length,
+    buflen = NI_MAXHOST;
+    buffer = xmalloc(buflen);
+    status = getnameinfo((struct sockaddr *) &ss, socklen, buffer, buflen,
                          NULL, 0, NI_NAMEREQD);
     if (status == 0)
         client->hostname = buffer;

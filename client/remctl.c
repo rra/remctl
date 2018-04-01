@@ -121,6 +121,8 @@ main(int argc, char *argv[])
     struct addrinfo hints, *ai;
     const char *source = NULL;
     const char *service_name = NULL;
+    char *end;
+    long tmp_port;
     unsigned short port = 0;
     struct remctl *r;
     int errorcode = 0;
@@ -149,7 +151,10 @@ main(int argc, char *argv[])
             usage(0);
             break;
         case 'p':
-            port = atoi(optarg);
+            tmp_port = strtol(optarg, &end, 10);
+            if (*end != '\0' || tmp_port < 1 || tmp_port > (1L << 16) - 1)
+                die("invalid port number %ld", tmp_port);
+            port = (unsigned short) tmp_port;
             break;
         case 's':
             service_name = optarg;

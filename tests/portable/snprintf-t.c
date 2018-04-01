@@ -2,12 +2,11 @@
  * snprintf test suite.
  *
  * The canonical version of this file is maintained in the rra-c-util package,
- * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006
- *     Russ Allbery <eagle@eyrie.org>
- * Copyright 2009, 2010
+ * Copyright 2000-2006, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2009-2010
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 1995 Patrick Powell
  * Copyright 2001 Hrvoje Niksic
@@ -15,6 +14,8 @@
  * This code is based on code written by Patrick Powell (papowell@astart.com)
  * It may be used for any purpose as long as this notice remains intact
  * on all source code distributions
+ *
+ * There is no SPDX-License-Identifier registered for this license.
  */
 
 #include <config.h>
@@ -159,7 +160,7 @@ main(void)
                 &count, string, &lcount);
     is_int(0, count, "correct output from two %%n");
     is_int(31, lcount, "correct output from long %%ln");
-    test_format(true, "(null)", 6, "%s", NULL);
+    test_format(true, "(null)", 6, "%s", (char *) NULL);
 
     for (i = 0; fp_formats[i] != NULL; i++)
         for (j = 0; j < ARRAY_SIZE(fp_nums); j++) {

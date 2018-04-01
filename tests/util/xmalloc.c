@@ -2,10 +2,10 @@
  * Test suite for xmalloc and family.
  *
  * The canonical version of this file is maintained in the rra-c-util package,
- * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2000, 2001, 2006 Russ Allbery <eagle@eyrie.org>
- * Copyright 2008, 2012, 2013, 2014
+ * Copyright 2000-2001, 2006, 2017 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2008, 2012-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -25,6 +25,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
+ *
+ * SPDX-License-Identifier: MIT
  */
 
 #line 1 "xmalloc.c"
@@ -50,7 +52,7 @@
  * A customized error handler for checking xmalloc's support of them.  Prints
  * out the error message and exits with status 1.
  */
-static void
+static void __attribute__((__noreturn__))
 test_handler(const char *function, size_t size, const char *file, int line)
 {
     die("%s %lu %s %d", function, (unsigned long) size, file, line);
@@ -327,7 +329,7 @@ main(int argc, char *argv[])
     code = argv[1][0];
     if (isupper(code)) {
         xmalloc_error_handler = test_handler;
-        code = tolower(code);
+        code = (unsigned char) tolower(code);
     }
 
     /*
@@ -390,9 +392,7 @@ main(int argc, char *argv[])
     case 'n': exit(test_strndup(size) ? willfail : 1);
     case 'a': exit(test_asprintf(size) ? willfail : 1);
     case 'v': exit(test_vasprintf(size) ? willfail : 1);
-    default:
-        die("Unknown mode %c", argv[1][0]);
-        break;
+    default:  die("Unknown mode %c", argv[1][0]);
     }
     exit(1);
 }

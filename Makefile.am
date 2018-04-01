@@ -1,9 +1,9 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
 # Copyright 2016 Dropbox, Inc.
-# Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
-# Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
+# Copyright 2006-2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -567,8 +567,8 @@ tests_util_tokens_t_LDADD = tests/tap/libtap.a util/libutil.la \
 tests_util_vector_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_util_xmalloc_LDADD = util/libutil.la portable/libportable.la
-tests_util_xwrite_t_SOURCES = tests/util/fakewrite.c tests/util/xwrite.c \
-	tests/util/xwrite-t.c
+tests_util_xwrite_t_SOURCES = tests/util/fakewrite.c tests/util/fakewrite.h \
+	tests/util/xwrite.c tests/util/xwrite-t.c
 tests_util_xwrite_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 

@@ -1,13 +1,10 @@
 /*
- * Utility functions to test message handling.
+ * Testing interface to fake write functions.
  *
- * The canonical version of this file is maintained in the rra-c-util package,
- * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
+ * This header defines the interfaces to fake write functions used to test
+ * error handling wrappers around system write functions.
  *
- * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2002 Russ Allbery <eagle@eyrie.org>
- * Copyright 2006-2007, 2009
- *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2000-2002, 2004, 2017 Russ Allbery <eagle@eyrie.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,25 +27,32 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef TAP_MESSAGES_H
-#define TAP_MESSAGES_H 1
+#ifndef TESTS_UTIL_FAKEWRITE_H
+#define TESTS_UTIL_FAKEWRITE_H 1
 
 #include <config.h>
-#include <tests/tap/macros.h>
+#include <portable/macros.h>
+#include <portable/stdbool.h>
 
-/* A global buffer into which errors_capture stores errors. */
-extern char *errors;
+#include <sys/types.h>
 
 BEGIN_DECLS
 
-/*
- * Turn on capturing of errors with errors_capture.  Errors reported by warn
- * will be stored in the global errors variable.  Turn this off again with
- * errors_uncapture.  Caller is responsible for freeing errors when done.
- */
-void errors_capture(void);
-void errors_uncapture(void);
+/* Replacement functions called instead of C library calls. */
+extern ssize_t fake_write(int, const void *, size_t);
+extern ssize_t fake_pwrite(int, const void *, size_t, off_t);
+extern ssize_t fake_writev(int, const struct iovec *, int);
+
+/* The data written and how many bytes have been written. */
+extern char write_buffer[256];
+extern size_t write_offset;
+
+/* If true, half the calls to write or writev will fail with EINTR. */
+extern int write_interrupt;
+
+/* If true, all write or writev calls will return 0. */
+extern bool write_fail;
 
 END_DECLS
 
-#endif /* !TAP_MESSAGES_H */
+#endif /* !TESTS_UTIL_FAKEWRITE_H */
