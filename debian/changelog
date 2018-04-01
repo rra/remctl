@@ -12,6 +12,7 @@ remctl (3.14-1) UNRELEASED; urgency=medium
     - Drop explicit --parallel option, since this is now the default.
   * Update standards version to 4.1.3.
     - Change libremctl-dev priority to optional.
+    - Use https URLs in debian/copyright.
   * Refresh upstream signing key.
 
  -- Russ Allbery <rra@debian.org>  Sun, 01 Apr 2018 14:03:29 -0700

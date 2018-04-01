@@ -1,7 +1,7 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Contact: Russ Allbery <eagle@eyrie.org>
-Source: http://www.eyrie.org/~eagle/software/remctl/
-Copyright: 2015-2016 Russ Allbery <eagle@eyrie.org>
+Source: https://www.eyrie.org/~eagle/software/remctl/
+Copyright: 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
   2002-2014 The Board of Trustees of the Leland Stanford Junior University
 License: Expat
 
