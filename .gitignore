@@ -15,6 +15,7 @@
 /m4/lt~obsolete.m4
 /perl/Build
 /perl/MYMETA.json
+/perl/MYMETA.json.lock
 /perl/MYMETA.yml
 /perl/_build/
 /perl/blib/

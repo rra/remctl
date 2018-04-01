@@ -85,6 +85,8 @@ Server:
  * Move the core server protocol code into a library so that one can embed
    a remctl server in other programs.
 
+ * Clean up the argv generation code for commands in the server.
+
 Client:
 
  * Implement file upload in the remctl client.
@@ -122,6 +124,22 @@ Perl library:
  * Add support for per-command help (possibly extracted from the POD
    documentation with some additional markup) to implement the help server
    configuration.
+
+Python library:
+
+ * Revise for better Python coding style.
+
+ * Add support for Python 3.
+
+ * Add a Python equivalent to Net::Remctl::Backend.
+
+Ruby library:
+
+ * Revise for better Ruby coding style.
+
+Rust library:
+
+ * Write one.
 
 Language bindings:
 
