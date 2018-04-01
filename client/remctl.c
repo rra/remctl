@@ -7,6 +7,7 @@
  *
  * Originally written by Anton Ushakov
  * Extensive modifications by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -159,6 +160,8 @@ main(int argc, char *argv[])
             break;
         case '+':
             fprintf(stderr, "%s: invalid option -- +\n", argv[0]);
+            usage(1);
+            break;
         default:
             usage(1);
             break;

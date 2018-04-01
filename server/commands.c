@@ -217,7 +217,7 @@ create_argv_command(struct rule *rule, struct process *process,
         req_argv[1] = xstrdup("-u");
         req_argv[2] = xstrdup(rule->sudo_user);
         req_argv[3] = xstrdup("--");
-        req_argv[4] = rule->program;
+        req_argv[4] = xstrdup(rule->program);
         j = 5;
     } else {
         program = strrchr(rule->program, '/');

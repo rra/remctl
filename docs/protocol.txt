@@ -4,7 +4,7 @@
 
                                                               R. Allbery
                                                      Stanford University
-                                                            January 2014
+                                                         January 1, 2014
 
 
               remctl: Remote Authenticated Command Service
