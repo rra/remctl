@@ -48,7 +48,6 @@ Description: Library for Kerberos-authenticated command execution
 
 Package: libremctl-dev
 Section: libdevel
-Priority: optional
 Architecture: any
 Multi-Arch: same
 Depends: ${misc:Depends}, libremctl1 (= ${binary:Version})
