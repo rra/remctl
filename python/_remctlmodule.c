@@ -6,8 +6,9 @@
  * Python wrapper around this class.
  *
  * Original implementation by Thomas L. Kula <kula@tproa.net>
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2008 Thomas L. Kula <kula@tproa.net>
- * Copyright 2008, 2011, 2012, 2014
+ * Copyright 2008, 2011-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -68,7 +69,7 @@ py_remctl(PyObject *self, PyObject *args)
     const char **command = NULL;
     PyObject *list = NULL;
     PyObject *tmp = NULL;
-    int length, i;
+    Py_ssize_t length, i;
     PyObject *result = NULL;
 
     if (!PyArg_ParseTuple(args, "sHzO", &host, &port, &principal, &list))

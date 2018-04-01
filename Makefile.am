@@ -326,14 +326,15 @@ distclean-local: clean-local
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code otherwise generates them.
 PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs			\
-	-Wno-strict-prototypes -Wno-missing-prototypes			\
-	-Wno-redundant-decls -Wno-shadow -Wno-old-style-definition
+	-Wno-strict-prototypes -Wno-missing-declarations		\
+	-Wno-missing-prototypes -Wno-redundant-decls -Wno-shadow	\
+	-Wno-old-style-definition -Wno-conversion
 PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
 	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal	\
-	-Wno-strict-overflow
+	-Wno-strict-overflow -Wno-conversion -Wno-missing-declarations
 PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
-RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls
+RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion
 
 warnings:
 	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
