@@ -1,5 +1,11 @@
-remctl (3.13-2) UNRELEASED; urgency=medium
+remctl (3.14-1) UNRELEASED; urgency=medium
 
+  * New upstream release.
+    - SECURITY: Fix use-after-free and double-free when handling the sudo
+      option in remctld.  This may allow (with some difficulty) arbitrary
+      command execution on the server by streaming clients if the sudo
+      option was used in the server configuration.  Thanks, Santosh
+      Ananthakrishnan.  (CVE-2018-0493)
   * Add upstream-vcs-tag pattern to debian/gbp.conf.
 
  -- Russ Allbery <rra@debian.org>  Sun, 01 Apr 2018 14:03:29 -0700
