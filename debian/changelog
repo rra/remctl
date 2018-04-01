@@ -1,4 +1,4 @@
-remctl (3.14-1) unstable; urgency=medium
+remctl (3.14-1) unstable; urgency=high
 
   * New upstream release.
     - SECURITY: Fix use-after-free and double-free when handling the sudo
@@ -16,7 +16,7 @@ remctl (3.14-1) unstable; urgency=medium
     - Use https URLs in debian/copyright.
   * Refresh upstream signing key.
 
- -- Russ Allbery <rra@debian.org>  Sun, 01 Apr 2018 14:49:37 -0700
+ -- Russ Allbery <rra@debian.org>  Sun, 01 Apr 2018 15:07:40 -0700
 
 remctl (3.13-1) unstable; urgency=medium
 
