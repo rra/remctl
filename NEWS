@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.14 (unreleased)
+remctl 3.14 (2018-03-31)
 
     SECURITY: Fix use-after-free and double-free when handling the sudo
     option in the remctld and remctl-shell server.  For remctl-shell, this

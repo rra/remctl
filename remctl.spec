@@ -2,7 +2,8 @@
 #
 # Written by Russ Allbery <eagle@eyrie.org>
 # Improvements by Thomas Kula and Darren Patterson
-# Copyright 2006, 2007, 2012, 2013
+# Copyright 2018 Russ Allbery <eagle@eyrie.org>
+# Copyright 2006-2007, 2012-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # See LICENSE for licensing terms.
@@ -21,7 +22,7 @@
 %endif
 
 # this is needed for Stanford packaging automation
-%define vers 3.11
+%define vers 3.14
 
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
 %{!?buildperl:%define buildperl 1}
@@ -464,6 +465,9 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Sat Mar 31 2018 Russ Allbery <eagle@eyrie.org> 3.14-1
+- update to 3.14
+
 * Sat May 7 2016 Russ Allbery <eagle@eyrie.org> 3.11-1
 - update to 3.11
 - add systemd support
