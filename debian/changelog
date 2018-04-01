@@ -7,6 +7,7 @@ remctl (3.14-1) UNRELEASED; urgency=medium
       option was used in the server configuration.  Thanks, Santosh
       Ananthakrishnan.  (CVE-2018-0493)
   * Add upstream-vcs-tag pattern to debian/gbp.conf.
+  * Use an https URL in debian/watch.
   * Update debhelper comptibility level to V11.
     - Drop dependency and explicit configuration of dh-autoreconf.
     - Drop explicit --parallel option, since this is now the default.

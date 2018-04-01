@@ -1,3 +1,3 @@
 version=3
 opts=pgpsigurlmangle=s/$/.asc/ \
-    http://archives.eyrie.org/software/kerberos/remctl-(.*)\.tar\.xz
+    https://archives.eyrie.org/software/kerberos/remctl-(.*)\.tar\.xz
