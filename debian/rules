@@ -23,16 +23,15 @@ export REMCTL_PYTHON_INSTALL  := --install-layout=deb
 export REMCTL_PYTHON_VERSIONS := $(shell pyversions -s)
 
 %:
-	dh $@ --parallel --with python2,autoreconf,ruby
+	dh $@ --with python2,ruby
 
 override_dh_autoreconf:
 	dh_autoreconf --as-needed
 
 override_dh_auto_configure:
-	dh_auto_configure --parallel -- PATH_SUDO=/usr/bin/sudo		\
-	    --sysconfdir=/etc/remctl					\
-	    --with-systemdsystemunitdir=/lib/systemd/system		\
-	    --enable-reduced-depends --enable-perl --enable-php		\
+	dh_auto_configure -- PATH_SUDO=/usr/bin/sudo --sysconfdir=/etc/remctl \
+	    --with-systemdsystemunitdir=/lib/systemd/system		      \
+	    --enable-reduced-depends --enable-perl --enable-php		      \
 	    --enable-python --enable-ruby
 
 # Override install to check for missing installed files.  Ignore the Ruby

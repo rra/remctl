@@ -7,6 +7,9 @@ remctl (3.14-1) UNRELEASED; urgency=medium
       option was used in the server configuration.  Thanks, Santosh
       Ananthakrishnan.  (CVE-2018-0493)
   * Add upstream-vcs-tag pattern to debian/gbp.conf.
+  * Update debhelper comptibility level to V11.
+    - Drop dependency and explicit configuration of dh-autoreconf.
+    - Drop explicit --parallel option, since this is now the default.
   * Update standards version to 4.1.3.
     - Change libremctl-dev priority to optional.
 

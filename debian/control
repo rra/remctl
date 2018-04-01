@@ -2,8 +2,7 @@ Source: remctl
 Section: net
 Priority: optional
 Maintainer: Russ Allbery <rra@debian.org>
-Build-Depends: debhelper (>= 9),
- dh-autoreconf,
+Build-Depends: debhelper (>= 11),
  dh-php,
  dpkg-dev (>= 1.14.9),
  gem2deb (>= 0.4.1~),
