@@ -9,6 +9,9 @@ remctl 3.15 (unreleased)
     Check the port argument to remctl and remctld to ensure that it is a
     valid port number.
 
+    Add maintainer check-cppcheck target to run cppcheck across the source
+    base with a standard configuration.  Fix all issues found by cppcheck.
+
     Update to rra-c-util 7.1:
 
     * Avoid spurious test failures from the network library.

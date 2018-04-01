@@ -177,7 +177,6 @@ main(int argc, char *argv[])
     if (argc < 2)
         usage(1);
     server_host = *argv++;
-    argc--;
 
     /*
      * If service_name isn't set, the remctl library uses host/<server>

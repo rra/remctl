@@ -337,7 +337,7 @@ server_run_command(struct client *client, struct config *config,
     }
 
     /* Neither the command nor the subcommand may ever contain nuls. */
-    for (i = 0; argv[i] != NULL && i < 2; i++) {
+    for (i = 0; i < 2 && argv[i] != NULL; i++) {
         if (memchr(argv[i]->iov_base, '\0', argv[i]->iov_len)) {
             notice("%s from user %s contains nul octet",
                    (i == 0) ? "command" : "subcommand", user);

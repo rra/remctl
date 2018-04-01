@@ -11,8 +11,9 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2011, 2012, 2013,
- *     2014 The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2002-2009, 2011-2014
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
  */
@@ -140,7 +141,7 @@ remctl(const char *host, unsigned short port, const char *principal,
        const char **command)
 {
     struct remctl *r = NULL;
-    struct remctl_result *result = NULL;
+    struct remctl_result *result;
     enum remctl_output_type type;
 
     result = calloc(1, sizeof(struct remctl_result));
@@ -390,7 +391,7 @@ int
 remctl_open_addrinfo(struct remctl *r, const char *host,
                      const struct addrinfo *ai, const char *principal)
 {
-    socket_type fd = INVALID_SOCKET;
+    socket_type fd;
 
     internal_reset(r);
     r->host = NULL;

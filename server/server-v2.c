@@ -148,13 +148,13 @@ server_v2_command_finish(struct client *client, struct evbuffer *output UNUSED,
 
     /* Build the status token. */
     token.length = 1 + 1 + 1;
-    token.value = &buffer;
     buffer[0] = 2;
     buffer[1] = MESSAGE_STATUS;
     if (exit_status > 255 || exit_status < -127)
         buffer[2] = -1;
     else
         buffer[2] = (char) exit_status;
+    token.value = &buffer;
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
@@ -231,10 +231,10 @@ server_v2_send_version(struct client *client)
 
     /* Build the version token. */
     token.length = 1 + 1 + 1;
-    token.value = &buffer;
     buffer[0] = 2;
     buffer[1] = MESSAGE_VERSION;
     buffer[2] = 3;
+    token.value = &buffer;
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,
@@ -264,9 +264,9 @@ server_v3_send_noop(struct client *client)
 
     /* Build the version token. */
     token.length = 1 + 1;
-    token.value = &buffer;
     buffer[0] = 3;
     buffer[1] = MESSAGE_NOOP;
+    token.value = &buffer;
 
     /* Send the token. */
     status = token_send_priv(client->fd, client->context,

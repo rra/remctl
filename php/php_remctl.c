@@ -5,9 +5,9 @@
  * the Net::Remctl bindings for Perl.
  *
  * Originally written by Andrew Mortensen <admorten@umich.edu>, 2008
- * Copyirght 2016 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2016, 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2008 Andrew Mortensen <admorten@umich.edu>
- * Copyright 2008, 2011, 2012, 2014
+ * Copyright 2008, 2011-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -94,7 +94,8 @@ PHP_MINIT_FUNCTION(remctl)
  */
 ZEND_FUNCTION(remctl)
 {
-    zval *cmd_array, *data;
+    zval *cmd_array;
+    zval *data = NULL;
     HashTable *hash;
     char *host, *principal = NULL;
     const char **command = NULL;
@@ -329,7 +330,8 @@ ZEND_FUNCTION(remctl_open)
 ZEND_FUNCTION(remctl_command)
 {
     struct remctl *r;
-    zval *zrem, *cmd_array, *data;
+    zval *zrem, *cmd_array;
+    zval *data = NULL;
     HashTable *hash;
     struct iovec *cmd_vec = NULL;
     int i, count, status;

@@ -601,7 +601,7 @@ static enum config_status
 acl_check_file_internal(void *data, const char *aclfile)
 {
     const struct client *client = data;
-    FILE *file = NULL;
+    FILE *file;
     char buffer[BUFSIZ];
     char *p;
     int lineno;
@@ -1019,7 +1019,7 @@ fail:
 static enum config_status
 acl_getgrnam(const char *group, struct group **grp, char **buffer)
 {
-    size_t buflen;
+    long buflen;
     int status, oerrno;
     struct group *result;
     enum config_status retval;

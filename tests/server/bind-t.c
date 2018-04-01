@@ -2,7 +2,8 @@
  * Test suite for address binding in the server.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2011, 2012, 2014
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2011-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -55,7 +56,7 @@ have_ipv6_addr(void)
     hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    snprintf(service, sizeof(service), "%hu", 14373);
+    snprintf(service, sizeof(service), "%d", 14373);
     error = getaddrinfo(NULL, service, &hints, &addrs);
     if (error < 0)
         return false;
@@ -116,14 +117,13 @@ main(void)
     struct remctl *r;
     struct process *remctld;
 #ifdef HAVE_INET6
-    bool ipv6 = false;
+    bool ipv6 = have_ipv6();
 #endif
 
     /* Unless we have Kerberos available, we can't really do anything. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
 
     /* Initialize our testing. */
-    ipv6 = have_ipv6();
     plan(26);
 
     /* Test connecting to IPv4 and IPv6 with default bind. */
