@@ -1,5 +1,16 @@
                        User-Visible remctl Changes
 
+remctl 3.14 (unreleased)
+
+    SECURITY: Fix use-after-free and double-free when handling the sudo
+    option in the remctld and remctl-shell server.  For remctl-shell, this
+    will occasionally produce a spurious non-zero exit status for a
+    command that succeeded.  For remctld, the normal consequence is a
+    server process crash after running a command with the sudo option, but
+    it may be possible (albeit difficult) for a streaming client to abuse
+    this bug to execute an arbitrary command on the server or corrupt
+    server memory.  Thanks, Santosh Ananthakrishnan.  (CVE-2018-0493)
+
 remctl 3.13 (2016-10-10)
 
     remctl-shell now also supports being run as a forced command from
