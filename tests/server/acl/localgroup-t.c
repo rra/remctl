@@ -1,12 +1,10 @@
 /*
- * This file is part of the remctl project.
- *
- * Test suite for unxgrp ACL scheme.
+ * Test suite for localgroup ACL scheme.
  *
  * Written by Remi Ferrand <remi.ferrand@cc.in2p3.fr>
  * Revisions by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015, 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
- * Copyright 2015 Russ Allbery <eagle@eyrie.org>
  * Copyright 2014 IN2P3 Computing Centre - CNRS
  * Copyright 2014
  *     The Board of Trustees of the Leland Stanford Junior University
