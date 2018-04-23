@@ -72,6 +72,7 @@ server_v2_send_output(struct client *client, int stream,
         die("internal error: cannot move data from output buffer");
 
     /* Send the token. */
+    debug("sending OUTPUT token (size=%lu)", (unsigned long) token.length);
     status = token_send_priv(client->fd, client->context,
                              TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
                              &major, &minor);
@@ -157,6 +158,7 @@ server_v2_command_finish(struct client *client, struct evbuffer *output UNUSED,
     token.value = &buffer;
 
     /* Send the token. */
+    debug("sending STATUS token (status=%d)", (int) buffer[2]);
     status = token_send_priv(client->fd, client->context,
                              TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
                              &major, &minor);
@@ -202,6 +204,7 @@ server_v2_send_error(struct client *client, enum error_codes code,
     memcpy(p, message, strlen(message));
 
     /* Send the token. */
+    debug("sending ERROR token (size=%lu)", (unsigned long) token.length);
     status = token_send_priv(client->fd, client->context,
                              TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
                              &major, &minor);
@@ -237,6 +240,7 @@ server_v2_send_version(struct client *client)
     token.value = &buffer;
 
     /* Send the token. */
+    debug("sending VERSION token");
     status = token_send_priv(client->fd, client->context,
                              TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
                              &major, &minor);
@@ -269,6 +273,7 @@ server_v3_send_noop(struct client *client)
     token.value = &buffer;
 
     /* Send the token. */
+    debug("sending NOOP token");
     status = token_send_priv(client->fd, client->context,
                              TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
                              &major, &minor);
