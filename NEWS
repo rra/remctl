@@ -2,6 +2,14 @@
 
 remctl 3.15 (unreleased)
 
+    Fix a bug where output could have been truncated for a command run by
+    the server that was accepting an argument on standard input, if it
+    exited before reading all of the input data.  Incorrect server logic
+    disabled reads from the child process on write failure, so could have
+    missed the last buffer of output from the child.  This was only seen
+    under valgrind testing, not reported as a bug, so it's not clear how
+    widespread of a problem this was.
+
     Validate command argument count, the length of command arguments, and
     the length of blocks of output from the server fit into the data type
     used in the wire protocol.
