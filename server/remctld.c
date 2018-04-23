@@ -90,7 +90,7 @@ struct options {
 /*
  * Display the usage message for remctld.
  */
-static void
+static void __attribute__((__noreturn__))
 usage(int status)
 {
     FILE *output;
@@ -553,7 +553,6 @@ main(int argc, char *argv[])
             break;
         case 'h':
             usage(0);
-            break;
         case 'k':
             if (setenv("KRB5_KTNAME", optarg, 1) < 0)
                 sysdie("cannot set KRB5_KTNAME");
@@ -579,13 +578,11 @@ main(int argc, char *argv[])
         case 'v':
             printf("remctld %s\n", PACKAGE_VERSION);
             exit(0);
-            break;
         case 'Z':
             options.suspend = true;
             break;
         default:
             usage(1);
-            break;
         }
     }
 

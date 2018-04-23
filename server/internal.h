@@ -190,7 +190,8 @@ struct iovec **server_ssh_parse_command(const char *);
 
 /* libevent utility functions. */
 void server_event_log_callback(int, const char *);
-void server_event_fatal_callback(int);
+void server_event_fatal_callback(int)
+    __attribute__((__noreturn__));
 
 END_DECLS
 

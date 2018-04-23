@@ -41,7 +41,7 @@ Options:\n\
 /*
  * Display the usage message for remctl.
  */
-static void
+static void __attribute__((__noreturn__))
 usage(int status)
 {
     fprintf((status == 0) ? stdout : stderr, "%s", usage_message);
@@ -149,7 +149,6 @@ main(int argc, char *argv[])
             break;
         case 'h':
             usage(0);
-            break;
         case 'p':
             tmp_port = strtol(optarg, &end, 10);
             if (*end != '\0' || tmp_port < 1 || tmp_port > (1L << 16) - 1)
@@ -162,14 +161,11 @@ main(int argc, char *argv[])
         case 'v':
             printf("%s\n", PACKAGE_STRING);
             exit(0);
-            break;
         case '+':
             fprintf(stderr, "%s: invalid option -- +\n", argv[0]);
             usage(1);
-            break;
         default:
             usage(1);
-            break;
         }
     }
     argc -= optind;

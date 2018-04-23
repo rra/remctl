@@ -2,7 +2,8 @@
  * Fake token_send and token_recv functions for testing.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2009, 2010, 2012
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2009-2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -15,21 +16,18 @@
 
 #include <time.h>
 
+#include <tests/util/faketoken.h>
 #include <util/macros.h>
 #include <util/tokens.h>
 
-enum token_status fake_token_send(socket_type, int, gss_buffer_t, time_t);
-enum token_status fake_token_recv(socket_type, int *, gss_buffer_t, size_t,
-                                  time_t);
-
-/*
- * The token and flags are actually read from or written to these variables.
- */
+/* The data, length, and flags sent by the last fake_token_send. */
 char send_buffer[2048];
-char recv_buffer[2048];
 size_t send_length;
-size_t recv_length;
 int send_flags;
+
+/* The data, length, and flags returned by the next fake_token_recv. */
+char recv_buffer[2048];
+size_t recv_length;
 int recv_flags;
 
 /* If set to true, return timeout from the fake token functions. */

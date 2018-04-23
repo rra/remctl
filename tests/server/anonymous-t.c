@@ -81,7 +81,7 @@ cache_init_anonymous(krb5_context ctx, const char *principal)
      * memory cache whose name is based on the pointer value of our Kerberos
      * context, since that should be unique among threads.
      */
-    basprintf(&name, "MEMORY:%p", ctx);
+    basprintf(&name, "MEMORY:%p", (void *) ctx);
     retval = krb5_cc_resolve(ctx, name, &ccache);
     if (retval != 0)
         bail_krb5(ctx, retval, "cannot create memory ticket cache %s", name);

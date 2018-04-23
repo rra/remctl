@@ -324,17 +324,21 @@ distclean-local: clean-local
 	fi
 
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
-# auto-generated code otherwise generates them.
+# auto-generated code otherwise generates them.  This suppression list
+# covers both GCC and Clang.
 PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs			\
 	-Wno-strict-prototypes -Wno-missing-declarations		\
 	-Wno-missing-prototypes -Wno-redundant-decls -Wno-shadow	\
-	-Wno-old-style-definition -Wno-conversion
+	-Wno-old-style-definition -Wno-conversion			\
+	-Wno-gnu-statement-expression -Wno-cast-align -Wno-comma
 PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
 	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal	\
-	-Wno-strict-overflow -Wno-conversion -Wno-missing-declarations
+	-Wno-strict-overflow -Wno-conversion -Wno-missing-declarations	\
+	-Wno-double-promotion -Wno-cast-align
 PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
-RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion
+RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
+	-Wno-shift-sign-overflow -Wno-gnu-statement-expression
 
 warnings:
 	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
@@ -543,8 +547,9 @@ tests_util_buffer_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
 tests_util_fdflag_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
-tests_util_gss_tokens_t_SOURCES = tests/util/faketoken.c \
-	tests/util/gss-tokens.c tests/util/gss-tokens-t.c
+tests_util_gss_tokens_t_SOURCES = tests/util/faketoken.c	\
+	tests/util/faketoken.h tests/util/gss-tokens.c		\
+	tests/util/gss-tokens-t.c
 tests_util_gss_tokens_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS)
 tests_util_gss_tokens_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS)
@@ -653,7 +658,7 @@ perl/lib/Net/Remctl.o: $(srcdir)/perl/lib/Net/Remctl.pm			 \
 		$(srcdir)/perl/lib/Net/Remctl.xs			 \
 		$(srcdir)/perl/lib/Net/Remctl/Backend.pm		 \
 		$(srcdir)/perl/typemap client/libremctl.la perl/Build.PL
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then		\
+	set -e; if [ x'$(builddir)' != x'$(srcdir)' ] ; then		\
 	    for d in $(PERL_DIRECTORIES) ; do				\
 		[ -d "$(builddir)/$$d" ] || mkdir "$(builddir)/$$d" ;	\
 	    done ;							\
@@ -664,6 +669,7 @@ perl/lib/Net/Remctl.o: $(srcdir)/perl/lib/Net/Remctl.pm			 \
 	cp -R $(srcdir)/tests/tap/perl/* perl/t/lib/
 	rm -f perl/lib/Net/Remctl.o
 	cd perl && perl Build.PL					\
+	    --config cc='$(CC)'						\
 	    --config lddlflags='$(PERL_LDFLAGS_FULL)'			\
 	    --config optimize='$(CFLAGS) $(PERL_CFLAGS_EXTRA)'		\
 	    --extra-compiler-flags '$(PERL_CFLAGS)'			\
@@ -684,16 +690,16 @@ endif
 
 php/modules/remctl.so: php/config.m4 php/php_remctl.h \
 		$(srcdir)/php/php_remctl.c client/libremctl.la
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
+	set -e; if [ x'$(builddir)' != x'$(srcdir)' ] ; then	\
 	    mkdir php/tests 2>/dev/null || true ;		\
 	    for f in $(PHP_FILES) ; do				\
 	        cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
 	    done						\
 	fi
 	cd php && $(PHPIZE) --clean && $(PHPIZE)
-	cd php && ./configure CPPFLAGS="$(CPPFLAGS)" \
-	    CFLAGS="$(CFLAGS) $(PHP_CFLAGS_EXTRA)" LDFLAGS="$(LDFLAGS)"
-	cd php && $(MAKE) CFLAGS="$(CFLAGS) $(PHP_WARNINGS)"
+	cd php && ./configure CC='$(CC)' CPPFLAGS='$(CPPFLAGS)' \
+	    CFLAGS='$(AM_CFLAGS)' LDFLAGS='$(LDFLAGS)'
+	cd php && $(MAKE) CFLAGS='$(CFLAGS) $(PHP_WARNINGS)'
 
 # PHP's build system uses INSTALL_ROOT where everyone else uses DESTDIR.
 install-data-local-php: php/modules/remctl.so
@@ -712,15 +718,16 @@ endif
 
 stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py	\
 		client/libremctl.la
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
+	set -e; if [ x'$(builddir)' != x'$(srcdir)' ] ; then	\
 	    for f in $(PYTHON_FILES) ; do			\
 		cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
 	    done						\
 	fi
-	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		 \
-	    cd python							 \
-		&& CFLAGS="$(CPPFLAGS) $(CFLAGS) $(PYTHON_CFLAGS_EXTRA)" \
-		"$$python" setup.py build && cd .. ;			 \
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		     \
+	    cd python							     \
+		&& BASECFLAGS='$(CPPFLAGS) $(CFLAGS) $(PYTHON_CFLAGS_EXTRA)' \
+		   CFLAGS='' CC='$(CC)' "$$python" setup.py build	     \
+		&& cd .. ;						     \
 	done
 	touch stamp-python
 
@@ -729,12 +736,12 @@ stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py	\
 install-data-local-python: stamp-python
 	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		\
 	    cd python ;							\
-	    if [ -n "$(DESTDIR)" ] ; then				\
+	    if [ -n '$(DESTDIR)' ] ; then				\
 		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL)	\
-		    --root $(DESTDIR) ;					\
-	    elif [ -n "$(RPM_BUILD_ROOT)" ] ; then			\
+		    --root '$(DESTDIR)' ;				\
+	    elif [ -n '$(RPM_BUILD_ROOT)' ] ; then			\
 		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL)	\
-		    --root $(RPM_BUILD_ROOT) ;				\
+		    --root '$(RPM_BUILD_ROOT)' ;			\
 	    else							\
 		"$$python" setup.py install $(REMCTL_PYTHON_INSTALL) ;	\
 	    fi ;							\
@@ -757,13 +764,13 @@ RUBY_CFLAGS = -I$(abs_top_builddir) -I$(abs_top_srcdir) \
 # the two lines aren't important to suppress for people who want quiet
 # builds.  (PHP and Perl are way noisier.)
 ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c client/libremctl.la
-	set -e; if [ x"$(builddir)" != x"$(srcdir)" ] ; then	\
+	set -e; if [ x'$(builddir)' != x'$(srcdir)' ] ; then	\
 	    for f in $(RUBY_FILES) ; do			\
 		cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
 	    done						\
 	fi
 	cd ruby && $(REMCTL_RUBY) extconf.rb $(REMCTL_RUBY_FLAGS)
-	cd ruby && $(MAKE) V=1 CFLAGS="$(RUBY_CFLAGS)"
+	cd ruby && $(MAKE) V=1 CC='$(CC)' CFLAGS='$(RUBY_CFLAGS)'
 
 install-data-local-ruby: ruby/remctl.so
 	cd ruby && $(MAKE) install DESTDIR=$(DESTDIR)

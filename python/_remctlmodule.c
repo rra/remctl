@@ -48,7 +48,7 @@ typedef int Py_ssize_t;
 PyMODINIT_FUNC init_remctl(void);
 
 /* Map the remctl_output type constants to strings. */
-const struct {
+static const struct {
     enum remctl_output_type type;
     const char *name;
 } OUTPUT_TYPE[] = {

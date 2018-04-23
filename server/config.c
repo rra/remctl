@@ -770,8 +770,8 @@ acl_check_deny(const struct client *client, const char *data,
     case CONFIG_NOMATCH: return CONFIG_NOMATCH;
     case CONFIG_DENY:    return CONFIG_NOMATCH;
     case CONFIG_ERROR:   return CONFIG_ERROR;
-    default:             return s;
     }
+    return s;
 }
 
 

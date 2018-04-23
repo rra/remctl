@@ -2,7 +2,8 @@
  * gss-tokens test suite.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2007, 2009, 2010, 2012
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006-2007, 2009-2010, 2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -14,16 +15,8 @@
 
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
+#include <tests/util/faketoken.h>
 #include <util/gss-tokens.h>
-
-/* From faketoken.c. */
-extern char send_buffer[2048];
-extern char recv_buffer[2048];
-extern size_t send_length;
-extern size_t recv_length;
-extern int send_flags;
-extern int recv_flags;
-extern bool fail_timeout;
 
 
 int

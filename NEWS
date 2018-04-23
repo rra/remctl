@@ -25,6 +25,9 @@ remctl 3.15 (unreleased)
     the end of the test suite.  This catches the bad free that caused the
     security issue in 3.14.
 
+    Flesh out support for Clang warnings and compile cleanly under Clang
+    with most warnings enabled (-Weverything with some exclusions).
+
     Update to rra-c-util 7.1:
 
     * Avoid spurious test failures from the network library.

@@ -21,7 +21,8 @@
  * members of the struct.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2007, 2008, 2011, 2012, 2014
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2007-2008, 2011-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -45,7 +46,7 @@ typedef struct remctl_result *  Net__Remctl__Result;
 typedef struct remctl_output *  Net__Remctl__Output;
 
 /* Map the remctl_output type constants to strings. */
-const struct {
+static const struct {
     enum remctl_output_type type;
     const char *name;
 } OUTPUT_TYPE[] = {

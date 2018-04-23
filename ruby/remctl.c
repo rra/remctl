@@ -5,9 +5,10 @@
  * simple and complex forms of the API.
  *
  * Original implementation by Anthony M. Martinez <twopir@nmt.edu>
- * Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2010, 2011, 2012, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose and without fee is hereby granted, provided
@@ -66,7 +67,7 @@ static ID AAccache, AAsource_ip, AAtimeout;
 static ID Ahost, Aport, Aprincipal;
 
 /* Map the remctl_output type constants to strings. */
-const struct {
+static const struct {
     enum remctl_output_type type;
     const char *name;
 } OUTPUT_TYPE[] = {
