@@ -2,7 +2,8 @@
  * Test suite for the server passing data to programs on standard input.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2009, 2010, 2012, 2013
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2009-2010, 2012-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -51,6 +52,7 @@ test_stdin(const char *principal, const char *test, const void *data,
         ok_block(5, false, "first output token is not null");
     else {
         ok(output != NULL, "first output token is not null");
+        diag("status: %d", output->status);
         is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
         is_int(strlen("Okay"), output->length, "...and is right length");
         if (output->data == NULL)
