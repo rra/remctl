@@ -21,7 +21,7 @@ variableScope
 knownConditionTrueFalse:portable/getopt.c:146
 
 // False positive since the string comes from a command-line define.
-knownConditionTrueFalse:tests/tap/remctl.c:75
+knownConditionTrueFalse:tests/tap/remctl.c:79
 
 // Setting the variable to NULL explicitly after deallocation.
 redundantAssignment:tests/pam-util/options-t.c
