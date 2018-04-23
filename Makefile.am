@@ -330,7 +330,8 @@ PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs			\
 	-Wno-strict-prototypes -Wno-missing-declarations		\
 	-Wno-missing-prototypes -Wno-redundant-decls -Wno-shadow	\
 	-Wno-old-style-definition -Wno-conversion			\
-	-Wno-gnu-statement-expression -Wno-cast-align -Wno-comma
+	-Wno-gnu-statement-expression -Wno-cast-align -Wno-comma	\
+	-Wno-covered-switch-default
 PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
 	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal	\
@@ -723,11 +724,12 @@ stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py	\
 		cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
 	    done						\
 	fi
-	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		     \
-	    cd python							     \
-		&& BASECFLAGS='$(CPPFLAGS) $(CFLAGS) $(PYTHON_CFLAGS_EXTRA)' \
-		   CFLAGS='' CC='$(CC)' "$$python" setup.py build	     \
-		&& cd .. ;						     \
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		\
+	    cd python							\
+		&& CC='$(CC)' BASECFLAGS='$(CPPFLAGS) $(CFLAGS)'	\
+		   CFLAGS='$(PYTHON_CFLAGS_EXTRA)'			\
+		   "$$python" setup.py build				\
+		&& cd .. ;						\
 	done
 	touch stamp-python
 
