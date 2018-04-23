@@ -339,7 +339,8 @@ PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-double-promotion -Wno-cast-align -Wno-extra-semi
 PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
-	-Wno-shift-sign-overflow -Wno-gnu-statement-expression
+	-Wno-shift-sign-overflow -Wno-gnu-statement-expression		    \
+	-Wno-unknown-warning-option
 
 warnings:
 	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
