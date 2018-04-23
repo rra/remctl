@@ -11,7 +11,7 @@
 # which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2017 Russ Allbery <eagle@eyrie.org>
+# Copyright 2017-2018 Russ Allbery <eagle@eyrie.org>
 # Copyright 2011-2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -40,6 +40,15 @@
    Memcheck:Leak
    fun:calloc
    fun:_dlerror_run
+}
+{
+   fakeroot-msgsnd
+   Memcheck:Param
+   msgsnd(msgp->mtext)
+   fun:msgsnd
+   fun:send_fakem
+   fun:send_get_fakem
+   obj:*/libfakeroot-sysv.so
 }
 {
    heimdal-base-once
