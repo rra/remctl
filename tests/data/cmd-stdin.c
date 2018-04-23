@@ -12,7 +12,8 @@
  * delay        Same as large but with delays in reading.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2009, 2010
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2009-2010
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * See LICENSE for licensing terms.
@@ -117,5 +118,6 @@ main(int argc, char *argv[])
         if (write(1, "Okay", strlen("Okay")) < (ssize_t) strlen("Okay"))
             sysdie("write failed");
     }
+    free(buffer);
     return 0;
 }

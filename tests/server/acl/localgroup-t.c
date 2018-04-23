@@ -183,6 +183,7 @@ main(void)
               long_principal, message);
     krb5_free_context(ctx);
     is_string(expected, errors, "...with correct error message");
+    krb5_free_error_message(ctx, message);
     free(expected);
 
     /* Unsupported realm. */
