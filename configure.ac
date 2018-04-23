@@ -43,6 +43,8 @@ AC_PATH_PROG([PATH_SUDO], [sudo])
 dnl Only used for the test suite.
 AC_ARG_VAR([PATH_FAKEROOT], [Path to fakeroot for the test suite])
 AC_PATH_PROG([PATH_FAKEROOT], [fakeroot])
+AC_ARG_VAR([PATH_VALGRIND], [Path to valgrind for the test suite])
+AC_PATH_PROG([PATH_VALGRIND], [valgrind])
 
 dnl Probes for networking libraries.
 AC_SEARCH_LIBS([gethostbyname], [nsl])

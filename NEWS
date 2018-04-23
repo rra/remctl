@@ -20,6 +20,11 @@ remctl 3.15 (unreleased)
     Add maintainer check-cppcheck target to run cppcheck across the source
     base with a standard configuration.  Fix all issues found by cppcheck.
 
+    Rework the check-valgrind target to use the new C TAP Harness valgrind
+    support and automatically check the valgrind log files for errors at
+    the end of the test suite.  This catches the bad free that caused the
+    security issue in 3.14.
+
     Update to rra-c-util 7.1:
 
     * Avoid spurious test failures from the network library.
