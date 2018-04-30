@@ -365,7 +365,7 @@ Then, follow these steps:
    of the Kerberos for Windows SDK.  For example, if you installed the KfW
    SDK in `"c:\KfW SDK"`, you should run:
 
-   ```sh
+   ```
        configure "c:\KfW SDK"
    ```
 
