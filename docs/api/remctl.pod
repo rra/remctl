@@ -151,6 +151,6 @@ remctl_output(3), remctl_close(3)
 
 The current version of the remctl library and complete details of the
 remctl protocol are available from its web page at
-L<http://www.eyrie.org/~eagle/software/remctl/>.
+L<https://www.eyrie.org/~eagle/software/remctl/>.
 
 =cut

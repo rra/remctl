@@ -3,7 +3,7 @@
 [Unit]
 Description=remote authenticated command execution with ACLs
 Documentation=man:remctld(8)
-Documentation=http://www.eyrie.org/~eagle/software/remctld/
+Documentation=https://www.eyrie.org/~eagle/software/remctld/
 Requires=remctld.socket
 
 [Service]

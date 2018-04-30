@@ -707,7 +707,7 @@ DEALINGS IN THE SOFTWARE.
 remctld(8)
 
 The current version of this module is available from its web page at
-L<http://www.eyrie.org/~eagle/software/remctl/>.
+L<https://www.eyrie.org/~eagle/software/remctl/>.
 
 =cut
 

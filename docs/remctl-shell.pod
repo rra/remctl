@@ -378,6 +378,6 @@ SPDX-License-Identifier: FSFAP
 remctld(8), sshd(8)
 
 The current version of this program is available from its web page at
-L<http://www.eyrie.org/~eagle/software/remctl/>.
+L<https://www.eyrie.org/~eagle/software/remctl/>.
 
 =cut

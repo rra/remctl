@@ -727,6 +727,6 @@ SPDX-License-Identifier: FSFAP
 remctl(1), syslog(3), tcpserver(1)
 
 The current version of this program is available from its web page at
-L<http://www.eyrie.org/~eagle/software/remctl/>.
+L<https://www.eyrie.org/~eagle/software/remctl/>.
 
 =cut

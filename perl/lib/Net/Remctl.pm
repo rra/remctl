@@ -4,10 +4,6 @@
 # which is implemented in XS.  For the actual source, see Remctl.xs.  This
 # file contains the bootstrap and export code and the documentation.
 #
-# Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2007-2008, 2011-2014
-#     The Board of Trustees of the Leland Stanford Junior University
-#
 # SPDX-License-Identifier: MIT
 
 package Net::Remctl;
@@ -379,8 +375,8 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007, 2008, 2011, 2012, 2013, 2014 The Board of Trustees of the
-Leland Stanford Junior University
+Copyright 2007-2008, 2011-2014 The Board of Trustees of the Leland Stanford
+Junior University
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -405,6 +401,10 @@ DEALINGS IN THE SOFTWARE.
 remctl(1), remctld(8)
 
 The current version of this module is available from its web page at
-L<http://www.eyrie.org/~eagle/software/remctl/>.
+L<https://www.eyrie.org/~eagle/software/remctl/>.
 
 =cut
+
+# Local Variables:
+# copyright-at-end-flag: t
+# End:

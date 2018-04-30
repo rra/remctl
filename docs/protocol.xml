@@ -5,15 +5,10 @@
   <front>
     <title abbrev="remctl">remctl: Remote Authenticated Command Service</title>
     <author initials='R.' surname='Allbery' fullname='Russ Allbery'>
-      <organization>Stanford University</organization>
+      <organization>Dropbox</organization>
       <address>
-        <postal>
-          <street>255 Panama Street, MC 4136</street>
-          <city>Stanford</city> <region>CA</region>
-          <code>94305-4136</code> <country>US</country>
-        </postal>
         <email>eagle@eyrie.org</email>
-        <uri>http://www.eyrie.org/~eagle/</uri>
+        <uri>https://www.eyrie.org/~eagle/</uri>
       </address>
     </author>
     <date month='January' year='2014' />

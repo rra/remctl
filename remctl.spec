@@ -48,8 +48,8 @@ License: MIT
 %else
 Copyright: MIT
 %endif
-URL: http://www.eyrie.org/~eagle/software/remctl/
-Source: http://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
+URL: https://www.eyrie.org/~eagle/software/remctl/
+Source: https://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
 Vendor: Stanford University
 Packager: Russ Allbery <eagle@eyrie.org>
