@@ -6,7 +6,7 @@
  *
  * Original implementation by Anthony M. Martinez <twopir@nmt.edu>
  * Copyright 2018 Russ Allbery <eagle@eyrie.org>
- * Copyright 2010, 2011, 2012, 2013
+ * Copyright 2010-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
  *
@@ -23,6 +23,8 @@
  * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * There is no SPDX-License-Identifier registered for this license.
  */
 
 #include <config.h>

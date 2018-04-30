@@ -507,13 +507,15 @@
       without modification, under your choice of the license specified in
       the Copyright Notice section or the license below.</t>
 
-      <t>Copyright 2006, 2007, 2008, 2009, 2011, 2013, 2014 The Board of
-      Trustees of the Leland Stanford Junior University</t>
+      <t>Copyright 2006-2009, 2011, 2013-2014 The Board of Trustees of the
+      Leland Stanford Junior University</t>
 
       <t>Copying and distribution of this file, with or without
       modification, are permitted in any medium without royalty provided
       the copyright notice and this notice are preserved.  This file is
       offered as-is, without any warranty.</t>
+
+      <!-- SPDX-License-Identifier: FSFAP -->
     </section>
   </back>
 </rfc>

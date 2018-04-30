@@ -12,7 +12,7 @@
  * Copyright 2008 Carnegie Mellon University
  * Copyright 2014 IN2P3 Computing Centre - CNRS
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>

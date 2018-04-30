@@ -2,10 +2,10 @@
 Check full remctl API
 --CREDIT--
 Russ Allbery
-# Copyright 2008, 2010, 2011
+# Copyright 2008, 2010-2011
 #     The Board of Trustees of the Leland Stanford Junior University
 #
-# See LICENSE for licensing terms.
+# SPDX-License-Identifier: MIT
 --ENV--
 KRB5CCNAME=remctl-test.cache
 LD_LIBRARY_PATH=../client/.libs

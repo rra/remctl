@@ -2,10 +2,10 @@
  * Test suite for the high-level remctl library API.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2007, 2009, 2010, 2011, 2012, 2013
+ * Copyright 2006-2007, 2009-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>

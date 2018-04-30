@@ -6,7 +6,7 @@
 #
 # Original implementation by Thomas L. Kula <kula@tproa.net>
 # Copyright 2008 Thomas L. Kula <kula@tproa.net>
-# Copyright 2008, 2011, 2012
+# Copyright 2008, 2011-2012
 #     The Board of Trustees of the Leland Stanford Junior University
 # Copyright 2014 Russ Allbery <eagle@eyrie.org>
 #
@@ -23,6 +23,8 @@
 # THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+# There is no SPDX-License-Identifier registered for this license.
 
 """Interface to remctl.
 

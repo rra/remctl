@@ -6,7 +6,7 @@ dnl Copyright 2016 Dropbox, Inc.
 dnl Copyright 2002-2008, 2010-2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
-dnl See LICENSE for licensing terms.
+dnl SPDX-License-Identifier: MIT
 
 AC_PREREQ([2.64])
 AC_INIT([remctl], [3.14], [eagle@eyrie.org])

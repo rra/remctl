@@ -18,6 +18,8 @@
 # THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+# There is no SPDX-License-Identifier registered for this license.
 
 # Keep the wrapping of the description to 65 columns and make sure there is no
 # trailing newline so that PKG-INFO looks right.

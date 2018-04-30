@@ -5,7 +5,7 @@ Russ Allbery
 # Copyright 2008, 2010
 #     The Board of Trustees of the Leland Stanford Junior University
 #
-# See LICENSE for licensing terms.
+# SPDX-License-Identifier: MIT
 --ENV--
 LD_LIBRARY_PATH=../client/.libs
 --FILE--

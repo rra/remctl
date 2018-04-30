@@ -12,10 +12,10 @@
 # directory.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2008, 2009
+# Copyright 2008-2009
 #     The Board of Trustees of the Leland Stanford Junior University
 #
-# See LICENSE for licensing terms.
+# SPDX-License-Identifier: MIT
 
 if [ -z "$1" ] ; then
     echo 'Missing top build directory argument' >&2

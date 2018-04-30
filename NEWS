@@ -28,6 +28,8 @@ remctl 3.15 (unreleased)
     Flesh out support for Clang warnings and compile cleanly under Clang
     with most warnings enabled (-Weverything with some exclusions).
 
+    Add SPDX-License-Identifier headers to all substantial source files.
+
     Update to rra-c-util 7.1:
 
     * Avoid spurious test failures from the network library.
@@ -38,14 +40,12 @@ remctl 3.15 (unreleased)
     * Define UINT32_MAX for systems that don't have it.
     * Support running remctld under valgrind for memory leak testing.
     * Update the valgrind suppression file.
-    * Add SPDX-License-Identifier headers to all substantial source files.
 
     Update to C TAP Harness 4.3:
 
     * Add support for valgrind testing via test list options.
     * Report test failures as left and right, not wanted and seen.
     * Fix is_string comparisons involving NULL pointers and "(null)".
-    * Add SPDX-License-Identifier headers to all substantial source files.
 
 remctl 3.14 (2018-03-31)
 

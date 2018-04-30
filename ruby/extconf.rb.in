@@ -6,7 +6,7 @@
 # Copyright 2010
 #     The Board of Trustees of the Leland Stanford Junior University
 #
-# See LICENSE for licensing terms.
+# SPDX-License-Identifier: MIT
 
 # This hack is to force the extension to build against the local client
 # library rather than some other library already installed on the system.

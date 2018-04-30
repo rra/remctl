@@ -1,7 +1,7 @@
 =for stopwords
 remctl const API hostname IP NUL-terminated GSS-API DNS KRB5CCNAME NULs
 ENOMEM CNAME lookups canonicalization libdefaults canonicalize Allbery
-DNS-based IANA-registered
+DNS-based IANA-registered SPDX-License-Identifier FSFAP
 
 =head1 NAME
 
@@ -134,13 +134,15 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007, 2008, 2009, 2014 The Board of Trustees of the Leland
-Stanford Junior University
+Copyright 2007-2009, 2014 The Board of Trustees of the Leland Stanford
+Junior University
 
 Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice and
 this notice are preserved.  This file is offered as-is, without any
 warranty.
+
+SPDX-License-Identifier: FSFAP
   
 =head1 SEE ALSO
 

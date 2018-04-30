@@ -12,7 +12,7 @@
 **
 **  Copyright 2007 Marcus Watts <mdw@umich.edu>
 **
-**  See LICENSE for licensing terms.
+**  SPDX-License-Identifier: MIT
 */
 
 import javax.security.auth.callback.*;

@@ -6,7 +6,7 @@
 # Copyright 2006-2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
-# See LICENSE for licensing terms.
+# SPDX-License-Identifier: MIT
 
 # These variables exist only for the use of the Debian packaging and similar
 # situations and aren't normally set.  We want to honor them if they're set

@@ -2,13 +2,13 @@
  * Test suite for the server ACL checking.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
- * Copyright 2015, 2016, 2018 Russ Allbery <eagle@eyrie.org>
- * Copyright 2007, 2008, 2009, 2010, 2012, 2014
+ * Copyright 2007-2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>

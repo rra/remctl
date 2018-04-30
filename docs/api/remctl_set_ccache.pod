@@ -1,5 +1,6 @@
 =for stopwords
-remctl API Allbery const ccache GSS-API KRB5CCNAME
+remctl API Allbery const ccache GSS-API KRB5CCNAME SPDX-License-Identifier
+FSFAP
 
 =head1 NAME
 
@@ -80,13 +81,15 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2011, 2013, 2014 The Board of Trustees of the Leland Stanford
+Copyright 2011, 2013-2014 The Board of Trustees of the Leland Stanford
 Junior University
 
 Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice and
 this notice are preserved.  This file is offered as-is, without any
 warranty.
+
+SPDX-License-Identifier: FSFAP
   
 =head1 SEE ALSO
 

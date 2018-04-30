@@ -1,5 +1,6 @@
 =for stopwords
 remctl API Allbery const IP IPv4 IPv6 IPv4-only IPv6-only
+SPDX-License-Identifier FSFAP
 
 =head1 NAME
 
@@ -49,6 +50,8 @@ Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice and
 this notice are preserved.  This file is offered as-is, without any
 warranty.
+
+SPDX-License-Identifier: FSFAP
   
 =head1 SEE ALSO
 
