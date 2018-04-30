@@ -18,6 +18,8 @@ client/source-ip        valgrind libtool
 client/timeout          valgrind libtool
 docs/pod
 docs/pod-spelling
+docs/spdx-license
+docs/urls
 perl/module-version
 portable/asprintf       valgrind
 portable/daemon         valgrind
