@@ -185,7 +185,7 @@ your local Ruby module directory regardless of the `--prefix` argument to
 `configure`.  To change this, override the `sitedir` variable on the `make
 install` command line, as in:
 
-```sh
+```
     make install sitedir=/opt/ruby
 ```
 
@@ -352,8 +352,8 @@ already.  This is a free download from Microsoft for users of "Genuine
 Microsoft Windows."  The `vcvars32.bat` environment provided by Visual
 Studio may work as an alternative, but has not been tested.
 
-Next, install the MIT Kerberos for Windows SDK, available for download
-from https://web.mit.edu/kerberos/www/dist/index.html.  remctl has been
+Next, install the [MIT Kerberos for Windows
+SDK](https://web.mit.edu/kerberos/www/dist/index.html).  remctl has been
 tested with version 3.2.1 but should hopefully work with later versions.
 
 Then, follow these steps:
