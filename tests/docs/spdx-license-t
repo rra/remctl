@@ -59,6 +59,7 @@ my @IGNORE_PATHS = (
     qr{ \A perl/Build \z }xms,                 # Perl build files
     qr{ \A perl/MYMETA [.] }xms,               # Perl build files
     qr{ \A perl/blib/ }xms,                    # Perl build files
+    qr{ \A perl/cover_db/ }xms,                # Perl test files
     qr{ \A perl/_build }xms,                   # Perl build files
     qr{ \A php/Makefile [.] global \z }xms,    # Created by phpize
     qr{ \A php/autom4te [.] cache/ }xms,       # Created by phpize
