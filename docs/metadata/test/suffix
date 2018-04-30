@@ -1,0 +1,27 @@
+On particularly slow or loaded systems, you may see intermittant failures
+from the `server/streaming` test because it's timing-sensitive.
+
+The test suite will also need to be able to bind to 127.0.0.1 on port
+11119 and 14373 to run test network server programs.
+
+To test anonymous authentication, the KDC configured in the test suite
+needs to support service tickets for the anonymous identity (not a
+standard configuration).  This test will be skipped if the KDC does not
+support this.
+
+To test user handling in remctld, you will need the `fakeroot` command
+(available in the `fakeroot` package in Debian and Ubuntu).  This test
+will be skipped if `fakeroot` isn't available.
+
+The following additional Perl modules will be used by the test suite for
+the main package and the Perl bindings if installed:
+
+* Test::MinimumVersion
+* Test::Perl::Critic
+* Test::Pod
+* Test::Spelling
+* Test::Strict
+* Test::Synopsis
+
+All are available on CPAN.  Those tests will be skipped if the modules are
+not available.

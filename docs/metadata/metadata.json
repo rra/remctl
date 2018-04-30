@@ -1,0 +1,169 @@
+{
+    "name": "remctl",
+    "version": "3.14",
+    "synopsis": "remote authenticated command execution with ACLs",
+    "maintainer": "Russ Allbery <eagle@eyrie.org>",
+    "copyrights": [
+        {
+            "holder": "Russ Allbery <eagle@eyrie.org>",
+            "years": "2015-2016, 2018",
+        },
+        {
+            "holder": "The Board of Trustees of the Leland Stanford Junior University",
+            "years": "2002-2014",
+        },
+    ],
+    "license": "Expat",
+    "build": {
+        "autotools": true,
+        "automake": "1.11",
+        "autoconf": "2.64",
+        "gssapi": true,
+        "install": true,
+        "kerberos": true,
+        "lancaster": true,
+        "manpages": true,
+        "reduced_depends": true,
+        "type": "Autoconf",
+    },
+    "support": {
+        "email": "eagle@eyrie.org",
+        "github": "rra/remctl",
+        "web": "https://www.eyrie.org/~eagle/software/remctl/",
+    },
+    "vcs": {
+        "type": "Git",
+        "url": "https://git.eyrie.org/git/kerberos/remctl.git",
+        "browse": "https://git.eyrie.org/?p=kerberos/remctl.git",
+        "github": "rra/remctl",
+        "openhub": "https://www.openhub.net/p/remctl",
+        "travis": "rra/remctl",
+    },
+    "readme": {
+        "sections": [
+            { "title": "Building on Windows" },
+        ],
+    },
+    "quote": {
+        "author": "Peter Marshall",
+    },
+    "distribution": {
+        "section": "kerberos",
+        "tarname": "remctl",
+        "version": "remctl",
+    },
+    "packaging": {
+        "debian": "remctl",
+    },
+    "advisories": [
+        {
+            "date": "2018-04-01",
+            "versions": "3.12 and 3.13",
+            "threshold": "3.14",
+        },
+    ],
+    "docs": {
+        "user": [
+            {
+                "name": "java-readme",
+                "title": "Java client and server README",
+            },
+            {
+                "name": "php-readme",
+                "title": "PHP bindings README",
+            },
+            {
+                "name": "python-readme",
+                "title": "Python bindings README",
+            },
+            {
+                "name": "ruby-readme",
+                "title": "Ruby bindings README",
+            },
+            {
+                "name": "remctl",
+                "title": "remctl manual page",
+            },
+            {
+                "name": "remctl-shell",
+                "title": "remctl-shell manual page",
+            },
+            {
+                "name": "remctld",
+                "title": "remctld manual page",
+            },
+            {
+                "name": "thanks",
+                "title": "Thanks and credits",
+            },
+        ],
+        "developer": [
+            {
+                "name": "extending",
+                "title": "Extending remctl",
+            },
+            {
+                "name": "protocol",
+                "title": "Protocol specification",
+            },
+            {
+                "name": "protocol-v4",
+                "title": "Protocol v4 draft",
+            },
+        ],
+        "api": [
+            {
+                "name": "remctl-api",
+                "title": "remctl and remctl_free_result",
+            },
+            {
+                "name": "remctl_new",
+                "title": "remctl_new",
+            },
+            {
+                "name": "remctl_open",
+                "title": "remctl_open",
+            },
+            {
+                "name": "remctl_command",
+                "title": "remctl_command and remctl_commandv",
+            },
+            {
+                "name": "remctl_output",
+                "title": "remctl_output",
+            },
+            {
+                "name": "remctl_noop",
+                "title": "remctl_noop",
+            },
+            {
+                "name": "remctl_close",
+                "title": "remctl_close",
+            },
+            {
+                "name": "remctl_error",
+                "title": "remctl_error",
+            },
+            {
+                "name": "remctl_set_ccache",
+                "title": "remctl_set_ccache",
+            },
+            {
+                "name": "remctl_set_source_ip",
+                "title": "remctl_set_source_ip",
+            },
+            {
+                "name": "remctl_set_timeout",
+                "title": "remctl_set_timeout",
+            },
+            {
+                "name": "net-remctl",
+                "title": "Net::Remctl Perl module",
+            },
+            {
+                "name": "net-remctl-backend",
+                "title": "Net::Remctl::Backend Perl module",
+            },
+        ],
+    },
+}

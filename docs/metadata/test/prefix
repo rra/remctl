@@ -1,0 +1,10 @@
+remctl comes with a comprehensive test suite, but it requires some
+configuration in order to test anything other than low-level utility
+functions.  For the full test suite, you will need to have a keytab that
+can authenticate to a running KDC.  Using a test KDC environment, if you
+have one, is recommended.
+
+Follow the instructions in `tests/config/README` to configure the test
+suite.
+
+Now, you can run the test suite with:
