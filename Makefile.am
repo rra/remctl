@@ -110,13 +110,14 @@ EXTRA_DIST = .gitignore .travis.yml LICENSE Makefile.w32 bootstrap	    \
 	tests/data/configs/bad-user-1 tests/data/fake-sudo		    \
 	tests/data/perl.conf tests/data/generate-krb5-conf tests/data/gput  \
 	tests/data/valgrind.supp tests/docs/pod-spelling-t tests/docs/pod-t \
+	tests/docs/spdx-license-t tests/docs/urls-t			    \
 	tests/server/shell-misc-t tests/perl/module-version-t		    \
 	tests/tap/kerberos.sh tests/tap/libtap.sh			    \
 	tests/tap/perl/Test/RRA.pm tests/tap/perl/Test/RRA/Automake.pm	    \
 	tests/tap/perl/Test/RRA/Config.pm				    \
 	tests/tap/perl/Test/RRA/ModuleVersion.pm tests/tap/remctl.sh	    \
-	tests/server/misc-t tests/util/xmalloc-t $(PERL_FILES) $(PHP_FILES) \
-	$(PYTHON_FILES) $(RUBY_FILES)
+	tests/server/misc-t tests/util/xmalloc-t tests/valgrind/logs-t	    \
+	$(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES) $(RUBY_FILES)
 
 # Override systemdsystemunitdir when running distcheck so that we don't try
 # to install files in the system directory.  It would be nice to also enable
