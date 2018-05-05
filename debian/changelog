@@ -1,3 +1,12 @@
+remctl (3.15-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+    - Fix possible output truncation for commands receiving data from
+      standard input that exit before reading all input data.
+    - Do more paranoid validation of more protocol elements.
+
+ -- Russ Allbery <rra@debian.org>  Sat, 05 May 2018 13:35:40 -0700
+
 remctl (3.14-1) unstable; urgency=high
 
   * New upstream release.
