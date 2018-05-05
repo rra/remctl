@@ -6,6 +6,11 @@ remctl (3.15-1) UNRELEASED; urgency=medium
     - Do more paranoid validation of more protocol elements.
   * Add Multi-Arch: same for libnet-remctl-perl and ruby-remctl.
   * Enable basic autopkgtest-pkg-python tests.
+  * Enable basic pkg-perl-autopkgtests tests with a custom control file,
+    since autodep8 doesn't find the Perl package built from this
+    more-complex source package.  Don't include the smoke test for now
+    since it requires a more complex setup and execution of the test from
+    the perl subdirectory.
   * Add dh-python to Build-Depends as requested by dh_python2.
   * Set Rules-Requires-Root: no.
   * Bump watch file version to 4.
