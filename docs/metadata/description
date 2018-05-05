@@ -1,0 +1,49 @@
+remctl is a client/server application that supports remote execution of
+specific commands, using Kerberos GSS-API for authentication and
+confidentiality.  The commands a given user can execute are controlled by
+a configuration file and ACL files and can easily be tightly limited,
+unlike with rsh.  The mapping of command to backend program is done by the
+configuration file, which allows some additional flexibility compared to
+ssh command restrictions and works with Kerberos authentications rather
+than being limited to public key authentications.
+
+remctld is very similar to a CGI server that uses a different network
+protocol than HTTP, always does strong authentication before executing the
+desired command, and guarantees the data is encrypted on the network.
+Alternately, you can think of it as a very simple combination of Kerberos
+ssh and sudo, without most of the features of both but with simpler
+authorization.
+
+There are a lot of different client/server systems that do something
+similar, including regular rsh, CGI, IBM's sysctl (not to be confused with
+the Linux kernel call and configuration file of the same name), CERN's
+arc, and more elaborate systems like MIT's Moira.  remctl has the
+advantage over many of these schemes of using GSS-API and being about as
+simple as it possibly can be while still being useful.  It doesn't require
+any particular programming language, builds self-contained binaries, and
+uses as minimal of a protocol as possible.
+
+Both C and Java clients and servers are provided, as well as Perl, PHP,
+and Python bindings for the C client library.  For more information about
+the Java client, see `java/README`.  For more information about the PHP
+bindings, see `php/README`.  For more information about the Python
+bindings, see `python/README`.
+
+Also included in the remctl package is an alternate way of running the
+remctl server: remctl-shell.  This program is designed to be run as either
+a shell or a forced command under ssh, using ssh for authentication and
+communicating the authentication information to remctl-shell via either
+environment variables or command-line arguments via the forced command
+configuration.  This version of the server uses simple ssh clients, rather
+than using the remctl client program or libraries.
+
+remctl was originally written by Anton Ushakov as a replacement for IBM's
+sysctl, a client/server application with Kerberos v4 authentication that
+allowed the client to run Tcl code on the server, protected by ACLs.  At
+Stanford, we used sysctl extensively, but mostly only to run external
+programs, so remctl was developed as a Kerberos v5 equivalent that did
+only the portions we needed.
+
+Complete protocol documentation is available in `docs/protocol.html`.
+Also present, as `docs/design.html`, is the original design document (now
+somewhat out of date).

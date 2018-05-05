@@ -1,5 +1,52 @@
                        User-Visible remctl Changes
 
+remctl 3.15 (2018-05-05)
+
+    Fix a bug where output could have been truncated for a command run by
+    the server that was accepting an argument on standard input, if it
+    exited before reading all of the input data.  Incorrect server logic
+    disabled reads from the child process on write failure, so could have
+    missed the last buffer of output from the child.  This was only seen
+    under valgrind testing, not reported as a bug, so it's not clear how
+    widespread of a problem this was.
+
+    Validate command argument count, the length of command arguments, and
+    the length of blocks of output from the server fit into the data type
+    used in the wire protocol.
+
+    Check the port argument to remctl and remctld to ensure that it is a
+    valid port number.
+
+    Add maintainer check-cppcheck target to run cppcheck across the source
+    base with a standard configuration.  Fix all issues found by cppcheck.
+
+    Rework the check-valgrind target to use the new C TAP Harness valgrind
+    support and automatically check the valgrind log files for errors at
+    the end of the test suite.  This catches the bad free that caused the
+    security issue in 3.14.
+
+    Flesh out support for Clang warnings and compile cleanly under Clang
+    with most warnings enabled (-Weverything with some exclusions).
+
+    Add SPDX-License-Identifier headers to all substantial source files.
+
+    Update to rra-c-util 7.1:
+
+    * Avoid spurious test failures from the network library.
+    * Fix configure output when a Kerberos install prefix was provided.
+    * Fix new warnings in GCC 7 and add new warning flags.
+    * Fix all warnings from the Clang static analyzer.
+    * Fix warnings under Clang with most warnings enabled.
+    * Define UINT32_MAX for systems that don't have it.
+    * Support running remctld under valgrind for memory leak testing.
+    * Update the valgrind suppression file.
+
+    Update to C TAP Harness 4.3:
+
+    * Add support for valgrind testing via test list options.
+    * Report test failures as left and right, not wanted and seen.
+    * Fix is_string comparisons involving NULL pointers and "(null)".
+
 remctl 3.14 (2018-03-31)
 
     SECURITY: Fix use-after-free and double-free when handling the sudo

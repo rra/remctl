@@ -18,6 +18,8 @@
 # THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+# There is no SPDX-License-Identifier registered for this license.
 
 # Keep the wrapping of the description to 65 columns and make sure there is no
 # trailing newline so that PKG-INFO looks right.
@@ -81,7 +83,7 @@ setup(name             = 'pyremctl',
       version          = VERSION,
       author           = 'Thomas L. Kula',
       author_email     = 'kula@tproa.net',
-      url              = 'http://www.eyrie.org/~eagle/software/remctl/',
+      url              = 'https://www.eyrie.org/~eagle/software/remctl/',
       description      = doclines[0],
       long_description = "\n".join(doclines[2:]),
       license          = 'MIT',

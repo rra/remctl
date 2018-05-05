@@ -10,6 +10,8 @@
 # All the functions here assume that C_TAP_BUILD and C_TAP_SOURCE are set in
 # the environment.  This is normally done via the C TAP Harness runtests
 # wrapper.
+#
+# SPDX-License-Identifier: MIT
 
 package Test::RRA::Automake;
 
@@ -21,6 +23,7 @@ use warnings;
 ## no critic (ClassHierarchies::ProhibitExplicitISA)
 
 use Exporter;
+use File::Find qw(find);
 use File::Spec;
 use Test::More;
 use Test::RRA::Config qw($LIBRARY_PATH);
@@ -58,23 +61,62 @@ our (@EXPORT_OK, @ISA, $VERSION);
 # consistency is good).
 BEGIN {
     @ISA       = qw(Exporter);
-    @EXPORT_OK = qw(automake_setup perl_dirs test_file_path test_tmpdir);
+    @EXPORT_OK = qw(
+      all_files automake_setup perl_dirs test_file_path test_tmpdir
+    );
 
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '6.01';
+    $VERSION = '7.01';
 }
 
-# Perl directories to skip globally for perl_dirs.  We ignore the perl
-# directory if it exists since, in my packages, it is treated as a Perl module
-# distribution and has its own standalone test suite.
-my @GLOBAL_SKIP = qw(.git _build perl);
+# Directories to skip globally when looking for all files, or for directories
+# that could contain Perl files.
+my @GLOBAL_SKIP = qw(.git _build autom4te.cache build-aux);
+
+# Additional paths to skip when building a list of all files in the
+# distribution.  This primarily skips build artifacts that aren't interesting
+# to any of the tests.  These match any path component.
+my @FILES_SKIP = qw(
+  .deps .dirstamp .libs aclocal.m4 config.h config.h.in config.h.in~ config.log
+  config.status configure
+);
 
 # The temporary directory created by test_tmpdir, if any.  If this is set,
 # attempt to remove the directory stored here on program exit (but ignore
 # failure to do so).
 my $TMPDIR;
+
+# Returns a list of all files in the distribution.
+#
+# Returns: List of files
+sub all_files {
+    my @files;
+
+    # Turn the skip lists into hashes for ease of querying.
+    my %skip       = map { $_ => 1 } @GLOBAL_SKIP;
+    my %files_skip = map { $_ => 1 } @FILES_SKIP;
+
+    # Wanted function for find.  Prune anything matching either of the skip
+    # lists, or *.lo files, and then add all regular files to the list.
+    my $wanted = sub {
+        my $file = $_;
+        my $path = $File::Find::name;
+        $path =~ s{ \A [.]/ }{}xms;
+        if ($skip{$path} or $files_skip{$file} or $file =~ m{ [.] lo \z }xms) {
+            $File::Find::prune = 1;
+            return;
+        }
+        if (-f $file) {
+            push(@files, $path);
+        }
+    };
+
+    # Do the recursive search and return the results.
+    find($wanted, q{.});
+    return @files;
+}
 
 # Perform initial test setup for running a Perl test in an Automake package.
 # This verifies that C_TAP_BUILD and C_TAP_SOURCE are set and then changes
@@ -171,9 +213,11 @@ sub automake_setup {
 sub perl_dirs {
     my ($args_ref) = @_;
 
-    # Add the global skip list.
+    # Add the global skip list.  We also ignore the perl directory if it
+    # exists since, in my packages, it is treated as a Perl module
+    # distribution and has its own standalone test suite.
     my @skip = $args_ref->{skip} ? @{ $args_ref->{skip} } : ();
-    push(@skip, @GLOBAL_SKIP);
+    push(@skip, @GLOBAL_SKIP, 'perl');
 
     # Separate directories to skip under tests from top-level directories.
     my @skip_tests = grep { m{ \A tests/ }xms } @skip;
@@ -328,6 +372,14 @@ BAIL_OUT (from Test::More).
 
 =over 4
 
+=item all_files()
+
+Returns a list of all "interesting" files in the distribution that a test
+suite may want to look at.  This excludes various products of the build system,
+the build directory if it's under the source directory, and a few other
+uninteresting directories like F<.git>.  The returned paths will be paths
+relative to the root of the package.
+
 =item automake_setup([ARGS])
 
 Verifies that the C_TAP_BUILD and C_TAP_SOURCE environment variables are set
@@ -397,7 +449,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2014, 2015 Russ Allbery <eagle@eyrie.org>
+Copyright 2014, 2015, 2018 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2013 The Board of Trustees of the Leland Stanford Junior University
 
@@ -424,9 +476,13 @@ SOFTWARE.
 Test::More(3), Test::RRA(3), Test::RRA::Config(3)
 
 This module is maintained in the rra-c-util package.  The current version is
-available from L<http://www.eyrie.org/~eagle/software/rra-c-util/>.
+available from L<https://www.eyrie.org/~eagle/software/rra-c-util/>.
 
 The C TAP Harness test driver and libraries for TAP-based C testing are
-available from L<http://www.eyrie.org/~eagle/software/c-tap-harness/>.
+available from L<https://www.eyrie.org/~eagle/software/c-tap-harness/>.
 
 =cut
+
+# Local Variables:
+# copyright-at-end-flag: t
+# End:

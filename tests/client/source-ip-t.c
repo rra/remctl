@@ -2,10 +2,10 @@
  * Test suite for setting a source IP for the client.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2011, 2012
+ * Copyright 2011-2012
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>

@@ -1,0 +1,72 @@
+Solaris users should look at `examples/remctld.xml`, an SMF manifest for
+running the `remctld` daemon.
+
+To also build the Perl bindings for the libremctl client library, pass the
+`--enable-perl` option to `configure`.  The Perl module build is handled
+by the normal Perl extension build system, and therefore will be built
+with compiler flags defined by your Perl installation and installed into
+your local Perl module directory regardless of the `--prefix` argument to
+`configure`.  To change this, you will need to run `perl Makefile.PL` in
+the `perl` subdirectory of the build tree with appropriate options and
+rebuild the module after running `make` and before running `make install`.
+
+To also build the remctl PECL extension for PHP, pass the `--enable-php`
+option to `configure`.  The PHP PECL module build is handled by the normal
+PHP extension build system and therefore will be installed into your local
+PHP module directory.  The configure script will look for `phpize` on your
+`PATH` by default; if it's in some other directory, set the `PHPIZE`
+environment variable to the full path or set it on the configure command
+line.  The configure script for the PECL extension will be run during the
+build instead of during configure.  This is unfortunately apparently
+unavoidable given how the PECL build system works.
+
+To also build the Python bindings for the libremctl client library, pass
+the `--enable-python` option to configure.  The Python module build is
+handled by the normal Python extension build system, and therefore will be
+installed into your local Python module directory regardless of the
+`--prefix` argument to `configure`.  To change this, you will need to run
+`python setup.py install` by hand in the `python` directory with whatever
+options you want to use.
+
+To also build the Ruby bindings for the libremctl client library, pass
+the `--enable-ruby` option to configure.  The Ruby module build is handled
+by the normal Ruby module build system, and therefore will be installed
+into your local Ruby module directory regardless of the `--prefix`
+argument to `configure`.  To change this, override the `sitedir` variable on
+the `make install` command line, as in:
+
+```
+    make install sitedir=/opt/ruby
+```
+
+The remctl build system also supports a few other environment variables
+that can be set to control aspects of the Perl, Python, and Ruby binding
+build systems.  These are primarily only of use when packaging the
+software.  For more information, a list of the variables, and their
+effects, see the comment at the start of `Makefile.am`.
+
+The Java client and server aren't integrated with the regular build
+system.  For information on building and installing them, see
+`java/README`.
+
+remctl will use pkg-config if it's available to find the build flags for
+libevent.  You can control which pkg-config binary and paths are used with
+the normal pkg-config environment variables of `PKG_CONFIG`,
+`PKG_CONFIG_PATH`, and `PKG_CONFIG_LIBDIR`, and you can override the
+pkg-config results with `LIBEVENT_CFLAGS` and `LIBEVENT_LIBS`.
+Alternately, you can bypass pkg-config by passing one or more of
+`--with-libevent`, `--with-libevent-include`, and `--with-libevent-lib` to
+indicate the install prefix, include directory, or library directory.
+
+remctl will automatically build with PCRE support if pcre-config or the
+PCRE library are found.  You can pass `--with-pcre` to configure to
+specify the root directory where PCRE is installed, or set the include and
+library directories separately with `--with-pcre-include` and
+`--with-pcre-lib`.  You can also set `PCRE_CONFIG` to point to a different
+pcre-config script, or do similar things as with `PATH_KRB5_CONFIG`
+described below.
+
+remctl will automatically build with GPUT support if the GPUT header and
+library are found.  You can pass `--with-gput` to configure to specify the
+root directory where GPUT is installed, or set the include and library
+directories separately with `--with-gput-include` and `--with-gput-lib`.

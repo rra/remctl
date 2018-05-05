@@ -5,11 +5,12 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
+ * Copyright 2002-2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>
@@ -42,9 +43,13 @@ server_v2_send_output(struct client *client, int stream,
     OM_uint32 tmp, major, minor;
     int status;
 
+    /* Sanity check on stream. */
+    if (stream < 0 || stream > 128)
+        die("internal error: invalid stream number");
+
     /* Allocate room for the total message. */
     outlen = evbuffer_get_length(output);
-    if (outlen >= SIZE_MAX - 1 - 1 - 1 - 4)
+    if (outlen >= UINT32_MAX - 1 - 1 - 1 - 4)
         die("internal error: memory allocation too large");
     token.length = 1 + 1 + 1 + 4 + outlen;
     token.value = xmalloc(token.length);
@@ -58,15 +63,16 @@ server_v2_send_output(struct client *client, int stream,
     p++;
     *p = MESSAGE_OUTPUT;
     p++;
-    *p = stream;
+    *p = (char) stream;
     p++;
-    tmp = htonl(outlen);
+    tmp = htonl((OM_uint32) outlen);
     memcpy(p, &tmp, 4);
     p += 4;
     if (evbuffer_remove(output, p, outlen) < 0)
         die("internal error: cannot move data from output buffer");
 
     /* Send the token. */
+    debug("sending OUTPUT token (size=%lu)", (unsigned long) token.length);
     status = token_send_priv(client->fd, client->context,
                              TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
                              &major, &minor);
@@ -143,12 +149,16 @@ server_v2_command_finish(struct client *client, struct evbuffer *output UNUSED,
 
     /* Build the status token. */
     token.length = 1 + 1 + 1;
-    token.value = &buffer;
     buffer[0] = 2;
     buffer[1] = MESSAGE_STATUS;
-    buffer[2] = exit_status;
+    if (exit_status > 255 || exit_status < -127)
+        buffer[2] = -1;
+    else
+        buffer[2] = (char) exit_status;
+    token.value = &buffer;
 
     /* Send the token. */
+    debug("sending STATUS token (status=%d)", (int) buffer[2]);
     status = token_send_priv(client->fd, client->context,
                              TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
                              &major, &minor);
@@ -176,7 +186,7 @@ server_v2_send_error(struct client *client, enum error_codes code,
     int status;
 
     /* Build the error token. */
-    if (strlen(message) >= SIZE_MAX - 1 - 1 - 4 - 4)
+    if (strlen(message) >= UINT32_MAX - 1 - 1 - 4 - 4)
         die("internal error: memory allocation too large");
     token.length = 1 + 1 + 4 + 4 + strlen(message);
     token.value = xmalloc(token.length);
@@ -188,12 +198,13 @@ server_v2_send_error(struct client *client, enum error_codes code,
     tmp = htonl(code);
     memcpy(p, &tmp, 4);
     p += 4;
-    tmp = htonl(strlen(message));
+    tmp = htonl((OM_uint32) strlen(message));
     memcpy(p, &tmp, 4);
     p += 4;
     memcpy(p, message, strlen(message));
 
     /* Send the token. */
+    debug("sending ERROR token (size=%lu)", (unsigned long) token.length);
     status = token_send_priv(client->fd, client->context,
                              TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
                              &major, &minor);
@@ -223,12 +234,13 @@ server_v2_send_version(struct client *client)
 
     /* Build the version token. */
     token.length = 1 + 1 + 1;
-    token.value = &buffer;
     buffer[0] = 2;
     buffer[1] = MESSAGE_VERSION;
     buffer[2] = 3;
+    token.value = &buffer;
 
     /* Send the token. */
+    debug("sending VERSION token");
     status = token_send_priv(client->fd, client->context,
                              TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
                              &major, &minor);
@@ -256,11 +268,12 @@ server_v3_send_noop(struct client *client)
 
     /* Build the version token. */
     token.length = 1 + 1;
-    token.value = &buffer;
     buffer[0] = 3;
     buffer[1] = MESSAGE_NOOP;
+    token.value = &buffer;
 
     /* Send the token. */
+    debug("sending NOOP token");
     status = token_send_priv(client->fd, client->context,
                              TOKEN_DATA | TOKEN_PROTOCOL, &token, TIMEOUT,
                              &major, &minor);

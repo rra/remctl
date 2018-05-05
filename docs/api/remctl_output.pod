@@ -1,5 +1,5 @@
 =for stopwords
-remctl API Allbery
+remctl API Allbery SPDX-License-Identifier FSFAP
 
 =head1 NAME
 
@@ -83,15 +83,6 @@ remctl_output() returns a pointer to a remctl_output struct on success and
 NULL on failure.  On failure, the caller should call remctl_error() to
 retrieve the error message.
 
-=head1 SEE ALSO
-
-remctl_new(3), remctl_open(3), remctl_command(3), remctl_commandv(3),
-remctl_error(3)
-
-The current version of the remctl library and complete details of the
-remctl protocol are available from its web page at
-L<http://www.eyrie.org/~eagle/software/remctl/>.
-
 =head1 AUTHOR
 
 Russ Allbery <eagle@eyrie.org>
@@ -105,5 +96,16 @@ Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice and
 this notice are preserved.  This file is offered as-is, without any
 warranty.
+
+SPDX-License-Identifier: FSFAP
   
+=head1 SEE ALSO
+
+remctl_new(3), remctl_open(3), remctl_command(3), remctl_commandv(3),
+remctl_error(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<https://www.eyrie.org/~eagle/software/remctl/>.
+
 =cut

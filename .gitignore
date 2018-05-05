@@ -1,3 +1,17 @@
+# Ignore list for Git.  -*- conf -*-
+#
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
+# Copyright 2008-2014
+#     Board of Trustees of the Leland Stanford Junior University
+#
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and
+# this notice are preserved.  This file is offered as-is, without any
+# warranty.
+#
+# SPDX-License-Identifier: FSFAP
+
 /autom4te.cache/
 /build-aux/
 /client/libremctl.pc
@@ -114,6 +128,7 @@
 /tests/server/summary-t
 /tests/server/user-t
 /tests/server/version-t
+/tests/tmp/
 /tests/util/buffer-t
 /tests/util/fdflag-t
 /tests/util/gss-tokens-t

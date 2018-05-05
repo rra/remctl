@@ -8,10 +8,10 @@
 # in order to test undefined values passed to Net::Remctl functions.
 #
 # Written by Russ Allbery
-# Copyright 2008, 2012, 2013
+# Copyright 2008, 2012-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
-# See LICENSE for licensing terms.
+# SPDX-License-Identifier: MIT
 
 use strict;
 use warnings;

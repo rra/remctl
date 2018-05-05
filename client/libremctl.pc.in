@@ -5,7 +5,7 @@ libdir=@libdir@
 
 Name: remctl
 Description: Remote authenticated command execution with ACLs
-URL: http://www.eyrie.org/~eagle/software/remctl/
+URL: https://www.eyrie.org/~eagle/software/remctl/
 Version: @PACKAGE_VERSION@
 Cflags: -I${includedir}
 Libs: -L${libdir} -lremctl

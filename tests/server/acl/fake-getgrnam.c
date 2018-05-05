@@ -7,12 +7,11 @@
  * caller to fake a syscall failure to exercise failure behavior.
  *
  * Written by Remi Ferrand <remi.ferrand@cc.in2p3.fr>
- * Revisions by Russ Allbery <eagle@eyrie.org>
  * Copyright 2014 IN2P3 Computing Centre - CNRS
  * Copyright 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>

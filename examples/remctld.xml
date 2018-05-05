@@ -17,7 +17,7 @@
 
 	Copyright 2009 Peter Eriksson <peter@ifm.liu.se>
 
-	See LICENSE for licensing terms.
+	SPDX-License-Identifier: MIT
 -->
 
 <service_bundle type='manifest' name='remctld'>

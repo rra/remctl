@@ -1,5 +1,6 @@
 =for stopwords
 remctl -dqS -dhqSv ACL Allbery GSS-API REMUSER nul remctld sshd subcommand
+SPDX-License-Identifier FSFAP
 
 =head1 NAME
 
@@ -369,12 +370,14 @@ Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice and
 this notice are preserved.  This file is offered as-is, without any
 warranty.
+
+SPDX-License-Identifier: FSFAP
   
 =head1 SEE ALSO
 
 remctld(8), sshd(8)
 
 The current version of this program is available from its web page at
-L<http://www.eyrie.org/~eagle/software/remctl/>.
+L<https://www.eyrie.org/~eagle/software/remctl/>.
 
 =cut

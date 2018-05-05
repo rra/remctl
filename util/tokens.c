@@ -7,10 +7,11 @@
  *
  * Originally written by Anton Ushakov
  * Extensive modifications by Russ Allbery <eagle@eyrie.org>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2002-2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>
@@ -48,8 +49,8 @@ map_socket_error(int err)
  * Send a token to a file descriptor.  Takes the file descriptor, the token,
  * and the flags (a single byte, even though they're passed in as an integer)
  * and writes them to the file descriptor.  Returns TOKEN_OK on success and
- * TOKEN_FAIL_SYSTEM, TOKEN_FAIL_SOCKET, or TOKEN_FAIL_TIMEOUT on an error
- * (including partial writes).
+ * TOKEN_FAIL_SYSTEM, TOKEN_FAIL_SOCKET, TOKEN_FAIL_LARGE, or
+ * TOKEN_FAIL_TIMEOUT on an error (including partial writes).
  */
 enum token_status
 token_send(socket_type fd, int flags, gss_buffer_t tok, time_t timeout)
@@ -58,10 +59,10 @@ token_send(socket_type fd, int flags, gss_buffer_t tok, time_t timeout)
     char *buffer;
     bool okay;
     unsigned char char_flags = (unsigned char) flags;
-    OM_uint32 len = htonl(tok->length);
+    OM_uint32 len;
 
     /* Send out the whole message in a single write. */
-    if (tok->length > SIZE_MAX - 1 - sizeof(OM_uint32)) {
+    if (tok->length > UINT32_MAX - 1 - sizeof(OM_uint32)) {
         errno = ENOMEM;
         return TOKEN_FAIL_SYSTEM;
     }
@@ -70,6 +71,7 @@ token_send(socket_type fd, int flags, gss_buffer_t tok, time_t timeout)
     if (buffer == NULL)
         return TOKEN_FAIL_SYSTEM;
     memcpy(buffer, &char_flags, 1);
+    len = htonl((OM_uint32) tok->length);
     memcpy(buffer + 1, &len, sizeof(OM_uint32));
     memcpy(buffer + 1 + sizeof(OM_uint32), tok->value, tok->length);
     okay = network_write(fd, buffer, buflen, timeout);

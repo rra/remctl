@@ -9,10 +9,10 @@
  * This file handles parsing of the user's command and the main control flow.
  *
  * Written by Russ Allbery
- * Copyright 2016 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2016, 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>
@@ -50,7 +50,7 @@ Supported ACL methods: file, princ, deny";
 /*
  * Display the usage message for remctl-shell.
  */
-static void
+static void __attribute__((__noreturn__))
 usage(int status)
 {
     FILE *output;
@@ -125,7 +125,6 @@ main(int argc, char *argv[])
             break;
         case 'h':
             usage(0);
-            break;
         case 'q':
             quiet = true;
             break;
@@ -135,11 +134,9 @@ main(int argc, char *argv[])
         case 'v':
             printf("remctl-shell %s\n", PACKAGE_VERSION);
             exit(0);
-            break;
         default:
             warn("unknown option -%c", optopt);
             usage(1);
-            break;
         }
     }
     argc -= optind;

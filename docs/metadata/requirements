@@ -1,0 +1,52 @@
+The remctld server and the standard client are written in C and require a
+C compiler and GSS-API libraries to build.  Both will build against either
+MIT Kerberos or Heimdal of any reasonable vintage.  remctl will also build
+against the Kerberos GSS-API implementation shipped with AIX 5.2 (and
+possibly later versions) and the Solaris 10 generic GSS-API library (and
+possibly later versions).  The `remctl_set_ccache` implementation is
+improved by building with Kerberos libraries and a GSS-API library that
+supports `gss_krb5_import_cred`.
+
+The remctld server requires libevent 1.4.x or later.  It's only been
+tested with libevent 1.4.13-stable and later, but should work with 1.4.4
+or later.  It is now only tested with libevent 2.x, so moving to a later
+version of libevent if possible is recommended.
+
+The remctl server will support regex ACLs if the system supports the POSIX
+regex API.  The remctl server also optionally supports PCRE regular
+expressions in ACLs.  To include that support, the PCRE library is
+required.
+
+To build the remctl client for Windows, the Microsoft Windows SDK for
+Windows Vista and the MIT Kerberos for Windows SDK are required, along
+with a Microsoft Windows build environment (probably Visual Studio).
+remctl has only been tested with the 3.2.1 MIT Kerberos for Windows SDK.
+To run the resulting binary, MIT Kerberos for Windows must be installed
+and configured.  The client was tested on Windows XP and Vista and should
+work on Windows 2000 and up; however, the primary maintainer does not use
+or test Windows, so it's always possible Windows support has broken.  The
+server is not supported on Windows.
+
+To build the Perl bindings for the C client library, you will need Perl
+5.8 or later.
+
+To build the PHP bindings for the C client library, you will need PHP 5.x
+or later and phpize, plus any other programs that phpize requires.  PHP
+5.x support has only been tested on 5.2 and 5.3, and PHP support is now
+only tested on PHP 7.x and later.
+
+To build the Python bindings for the C client library, you will need
+Python 2.3 or later (primarily tested with Python 2.7).  Python 3 is not
+(yet) supported.
+
+To build the Ruby bindings for the C client library, you will need Ruby
+1.8 or later (primarily tested with 2.5 and later).
+
+None of the language bindings have been tested on Windows.
+
+A Java client and Java server are available in the java subdirectory, but
+they are not integrated into the normal build or built by default.  There
+is a basic Makefile in that directory that may require some tweaking.  It
+currently requires the Sun Java JDK (1.4.2, 5, or 6) or OpenJDK 6 or
+later.  A considerably better Java client implementation is available on
+the `java` branch in the Git repository but has not yet been merged.

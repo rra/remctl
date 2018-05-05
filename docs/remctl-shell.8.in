@@ -129,7 +129,7 @@
 .\" ========================================================================
 .\"
 .IX Title "REMCTL-SHELL 8"
-.TH REMCTL-SHELL 8 "2018-04-01" "3.14" "remctl"
+.TH REMCTL-SHELL 8 "2018-05-05" "3.15" "remctl"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -490,9 +490,11 @@ Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice and
 this notice are preserved.  This file is offered as-is, without any
 warranty.
+.PP
+SPDX-License-Identifier: \s-1FSFAP\s0
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIremctld\fR\|(8), \fIsshd\fR\|(8)
 .PP
 The current version of this program is available from its web page at
-<http://www.eyrie.org/~eagle/software/remctl/>.
+<https://www.eyrie.org/~eagle/software/remctl/>.

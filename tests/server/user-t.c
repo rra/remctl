@@ -2,10 +2,11 @@
  * Test suite for running commands as a designated user.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2012, 2013, 2014
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2012-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>
@@ -86,14 +87,14 @@ test_user(struct remctl *r, const char *subcommand, uid_t *uid, gid_t *gid)
         free(data);
         return false;
     }
-    *uid = value;
+    *uid = (uid_t) value;
     value = strtol(end, NULL, 10);
     if (value < 0) {
         diag("invalid output: %s", data);
         free(data);
         return false;
     }
-    *gid = value;
+    *gid = (gid_t) value;
     free(data);
     return true;
 }

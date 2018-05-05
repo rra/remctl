@@ -2,17 +2,19 @@
  * getnameinfo test suite.
  *
  * The canonical version of this file is maintained in the rra-c-util package,
- * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2005-2006, 2014, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2007-2011
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
- * The authors hereby relinquish any claim to any copyright that they may have
- * in this work, whether granted under contract or by operation of law or
- * international treaty, and hereby commit to the public, at large, that they
- * shall not, at any time in the future, seek to enforce any copyright in this
- * work against any person or entity, or prevent any person or entity from
- * copying, publishing, distributing or creating derivative works of this
- * work.
+ * Copying and distribution of this file, with or without modification, are
+ * permitted in any medium without royalty provided the copyright notice and
+ * this notice are preserved.  This file is offered as-is, without any
+ * warranty.
+ *
+ * SPDX-License-Identifier: FSFAP
  */
 
 #include <config.h>
@@ -118,20 +120,20 @@ main(void)
      * some well-known host and make sure that getnameinfo returns the same
      * results.  This may need to be skipped.
      */
-    hp = gethostbyname("www.isc.org");
+    hp = gethostbyname("a.root-servers.net");
     if (hp == NULL)
-        skip_block(2, "cannot look up www.isc.org");
+        skip_block(2, "cannot look up a.root-servers.net");
     else {
         memcpy(&sin.sin_addr, hp->h_addr, sizeof(sin.sin_addr));
         hp = gethostbyaddr((const void *) &sin.sin_addr, sizeof(sin.sin_addr),
                            AF_INET);
         if (hp == NULL || strchr(hp->h_name, '.') == NULL)
-            skip_block(2, "cannot reverse-lookup www.isc.org");
+            skip_block(2, "cannot reverse-lookup a.root-servers.net");
         else {
             name = xstrdup(hp->h_name);
             status = test_getnameinfo(sa, sizeof(sin), node, sizeof(node),
                                       NULL, 0, 0);
-            is_int(0, status, "lookup of www.isc.org IP address");
+            is_int(0, status, "lookup of a.root-servers.net IP address");
             is_string(name, node, "...matches gethostbyaddr");
             free(name);
         }

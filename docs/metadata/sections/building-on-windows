@@ -1,0 +1,31 @@
+(These instructions are not tested by the author and are now dated.
+Updated instructions via a pull request, issue, or email are very
+welcome.)
+
+First, install the Microsoft Windows SDK for Windows Vista if you have not
+already.  This is a free download from Microsoft for users of "Genuine
+Microsoft Windows."  The `vcvars32.bat` environment provided by Visual
+Studio may work as an alternative, but has not been tested.
+
+Next, install the [MIT Kerberos for Windows
+SDK](https://web.mit.edu/kerberos/www/dist/index.html).  remctl has been
+tested with version 3.2.1 but should hopefully work with later versions.
+
+Then, follow these steps:
+
+1. Run the `InitEnv.cmd` script included with the Windows SDK with
+   parameters `"/xp /release"`.
+
+2. Run the `configure.bat` script, giving it as an argument the location
+   of the Kerberos for Windows SDK.  For example, if you installed the KfW
+   SDK in `"c:\KfW SDK"`, you should run:
+
+   ```
+       configure "c:\KfW SDK"
+   ```
+
+3. Run `nmake` to start compiling.  You can ignore the warnings.
+
+If all goes well, you will have `remctl.exe` and `remctl.dll`.  The latter
+is a shared library used by the client program.  It exports the same
+interface as the UNIX libremctl library.

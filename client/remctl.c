@@ -11,7 +11,7 @@
  * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
 */
 
 #include <config.h>
@@ -41,7 +41,7 @@ Options:\n\
 /*
  * Display the usage message for remctl.
  */
-static void
+static void __attribute__((__noreturn__))
 usage(int status)
 {
     fprintf((status == 0) ? stdout : stderr, "%s", usage_message);
@@ -121,6 +121,8 @@ main(int argc, char *argv[])
     struct addrinfo hints, *ai;
     const char *source = NULL;
     const char *service_name = NULL;
+    char *end;
+    long tmp_port;
     unsigned short port = 0;
     struct remctl *r;
     int errorcode = 0;
@@ -147,9 +149,11 @@ main(int argc, char *argv[])
             break;
         case 'h':
             usage(0);
-            break;
         case 'p':
-            port = atoi(optarg);
+            tmp_port = strtol(optarg, &end, 10);
+            if (*end != '\0' || tmp_port < 1 || tmp_port > (1L << 16) - 1)
+                die("invalid port number %ld", tmp_port);
+            port = (unsigned short) tmp_port;
             break;
         case 's':
             service_name = optarg;
@@ -157,14 +161,11 @@ main(int argc, char *argv[])
         case 'v':
             printf("%s\n", PACKAGE_STRING);
             exit(0);
-            break;
         case '+':
             fprintf(stderr, "%s: invalid option -- +\n", argv[0]);
             usage(1);
-            break;
         default:
             usage(1);
-            break;
         }
     }
     argc -= optind;
@@ -172,7 +173,6 @@ main(int argc, char *argv[])
     if (argc < 2)
         usage(1);
     server_host = *argv++;
-    argc--;
 
     /*
      * If service_name isn't set, the remctl library uses host/<server>

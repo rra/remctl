@@ -1,0 +1,2 @@
+You will also need pkg-config installed to regenerate configure and
+xml2rfc to build the formatted protocol documentation.

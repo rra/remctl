@@ -1,9 +1,9 @@
 /*
  * Test suite for anonymous authentication.
  *
- * Copyright 2015, 2016 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>
@@ -68,7 +68,8 @@ cache_init_anonymous(krb5_context ctx, const char *principal)
         diag_krb5(ctx, retval, "cannot find realm for anonymous PKINIT");
         return NULL;
     }
-    retval = krb5_build_principal_ext(ctx, &princ, strlen(realm), realm,
+    retval = krb5_build_principal_ext(ctx, &princ,
+                 (unsigned int) strlen(realm), realm,
                  strlen(KRB5_WELLKNOWN_NAME), KRB5_WELLKNOWN_NAME,
                  strlen(KRB5_ANON_NAME), KRB5_ANON_NAME, NULL);
     if (retval != 0)
@@ -80,7 +81,7 @@ cache_init_anonymous(krb5_context ctx, const char *principal)
      * memory cache whose name is based on the pointer value of our Kerberos
      * context, since that should be unique among threads.
      */
-    basprintf(&name, "MEMORY:%p", ctx);
+    basprintf(&name, "MEMORY:%p", (void *) ctx);
     retval = krb5_cc_resolve(ctx, name, &ccache);
     if (retval != 0)
         bail_krb5(ctx, retval, "cannot create memory ticket cache %s", name);

@@ -2,11 +2,11 @@
  * Test suite for environment variables set by the server.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2015 Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2009, 2010, 2012, 2013, 2014
+ * Copyright 2015, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006, 2009-2010, 2012-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>
@@ -100,6 +100,7 @@ main(void)
     value = test_env(r, "REMOTE_HOST");
     ok(strcmp(value, "\n") == 0 || strstr(value, "localhost") != NULL,
        "value for REMOTE_HOST");
+    free(value);
     value = test_env(r, "REMOTE_EXPIRES");
     expires = strtol(value, NULL, 10);
     free(value);

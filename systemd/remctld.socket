@@ -3,7 +3,7 @@
 [Unit]
 Description=remctld listening socket
 Documentation=man:remctld(8)
-Documentation=http://www.eyrie.org/~eagle/software/remctl/
+Documentation=https://www.eyrie.org/~eagle/software/remctl/
 
 [Socket]
 ListenStream=4373
