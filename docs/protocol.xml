@@ -5,15 +5,10 @@
   <front>
     <title abbrev="remctl">remctl: Remote Authenticated Command Service</title>
     <author initials='R.' surname='Allbery' fullname='Russ Allbery'>
-      <organization>Stanford University</organization>
+      <organization>Dropbox</organization>
       <address>
-        <postal>
-          <street>255 Panama Street, MC 4136</street>
-          <city>Stanford</city> <region>CA</region>
-          <code>94305-4136</code> <country>US</country>
-        </postal>
         <email>eagle@eyrie.org</email>
-        <uri>http://www.eyrie.org/~eagle/</uri>
+        <uri>https://www.eyrie.org/~eagle/</uri>
       </address>
     </author>
     <date month='January' year='2014' />
@@ -507,13 +502,15 @@
       without modification, under your choice of the license specified in
       the Copyright Notice section or the license below.</t>
 
-      <t>Copyright 2006, 2007, 2008, 2009, 2011, 2013, 2014 The Board of
-      Trustees of the Leland Stanford Junior University</t>
+      <t>Copyright 2006-2009, 2011, 2013-2014 The Board of Trustees of the
+      Leland Stanford Junior University</t>
 
       <t>Copying and distribution of this file, with or without
       modification, are permitted in any medium without royalty provided
       the copyright notice and this notice are preserved.  This file is
       offered as-is, without any warranty.</t>
+
+      <!-- SPDX-License-Identifier: FSFAP -->
     </section>
   </back>
 </rfc>

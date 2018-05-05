@@ -10,13 +10,13 @@
  * enough.  The API changes were sufficiently wide-ranging that trying to
  * maintain one unified version with a ton of #ifdefs didn't seem practical.
  *
- * Originally written by Andrew Mortensen <admorten@umich.edu>, 2008
+ * Originally written by Andrew Mortensen <admorten@umich.edu>
  * Copyirght 2016 Russ Allbery <eagle@eyrie.org>
  * Copyright 2008 Andrew Mortensen <admorten@umich.edu>
- * Copyright 2008, 2011, 2012, 2014
+ * Copyright 2008, 2011-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>

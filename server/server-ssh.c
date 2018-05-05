@@ -9,7 +9,7 @@
  * Copyright 2016 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
  
 #include <config.h>

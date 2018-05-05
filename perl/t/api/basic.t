@@ -4,10 +4,10 @@
 # larger remctl build tree and uses the built remctld for testing.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2007, 2008, 2009, 2011, 2012, 2013
+# Copyright 2007-2009, 2011-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
-# See LICENSE for licensing terms.
+# SPDX-License-Identifier: MIT
 
 use strict;
 use warnings;

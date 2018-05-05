@@ -9,10 +9,11 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2012, 2014
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2002-2008, 2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>
@@ -43,6 +44,12 @@ internal_v1_commandv(struct remctl *r, const struct iovec *command,
     OM_uint32 data, major, minor;
     int status;
 
+    /* Check that the number of arguments isn't too high to represent. */
+    if (count > UINT32_MAX) {
+        internal_set_error(r, "too many arguments to command");
+        return false;
+    }
+
     /* Allocate room for the total message: argc, {<length><arg>}+. */
     token.length = 4;
     for (i = 0; i < count; i++) {
@@ -60,11 +67,16 @@ internal_v1_commandv(struct remctl *r, const struct iovec *command,
 
     /* First, the argument count.  Then, each argument. */
     p = token.value;
-    data = htonl(count);
+    data = htonl((OM_uint32) count);
     memcpy(p, &data, 4);
     p += 4;
     for (i = 0; i < count; i++) {
-        data = htonl(command[i].iov_len);
+        if (command[i].iov_len > UINT32_MAX) {
+            internal_set_error(r, "command component too long");
+            free(token.value);
+            return false;
+        }
+        data = htonl((OM_uint32) command[i].iov_len);
         memcpy(p, &data, 4);
         p += 4;
         memcpy(p, command[i].iov_base, command[i].iov_len);

@@ -1,26 +1,6 @@
 # Helper infrastructure for remctl backend programs.
 #
-# Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2012, 2013, 2014
-#     The Board of Trustees of the Leland Stanford Junior University
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to
-# deal in the Software without restriction, including without limitation the
-# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-# sell copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-# IN THE SOFTWARE.
+# SPDX-License-Identifier: MIT
 
 package Net::Remctl::Backend;
 
@@ -48,7 +28,7 @@ our $VERSION;
 # This version matches the version of remctl with which this module was
 # released, but with at least two digits for the minor version.
 BEGIN {
-    $VERSION = '3.14';
+    $VERSION = '3.15';
 }
 
 # Constructor.  Takes all possible parameters as a hash.  See the POD
@@ -701,8 +681,8 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2012, 2013, 2014 The Board of Trustees of the Leland Stanford
-Junior University
+Copyright 2012-2014 The Board of Trustees of the Leland Stanford Junior
+University
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -727,6 +707,10 @@ DEALINGS IN THE SOFTWARE.
 remctld(8)
 
 The current version of this module is available from its web page at
-L<http://www.eyrie.org/~eagle/software/remctl/>.
+L<https://www.eyrie.org/~eagle/software/remctl/>.
 
 =cut
+
+# Local Variables:
+# copyright-at-end-flag: t
+# End:

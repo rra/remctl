@@ -6,13 +6,13 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2015 Russ Allbery <eagle@eyrie.org>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2014
+ * Copyright 2015, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2002-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
  * Copyright 2014 IN2P3 Computing Centre - CNRS
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>
@@ -77,7 +77,7 @@ struct config_option {
 struct acl_scheme {
     const char *name;
     enum config_status (*check)(const struct client *, const char *data,
-                                const char *file, int lineno);
+                                const char *file, size_t lineno);
 };
 
 /*
@@ -90,7 +90,7 @@ struct acl_scheme {
 /* Forward declarations. */
 static enum config_status acl_check(const struct client *, const char *entry,
                                     int def_index, const char *file,
-                                    int lineno);
+                                    size_t lineno);
 
 /*
  * Check a filename for acceptable characters.  Returns true if the file
@@ -133,7 +133,7 @@ valid_filename(const char *filename)
  * the file was empty.
  */
 static enum config_status
-handle_include(const char *included, const char *file, int lineno,
+handle_include(const char *included, const char *file, size_t lineno,
                enum config_status (*function)(void *, const char *),
                void *data)
 {
@@ -141,11 +141,13 @@ handle_include(const char *included, const char *file, int lineno,
 
     /* Sanity checking. */
     if (strcmp(included, file) == 0) {
-        warn("%s:%d: %s recursively included", file, lineno, file);
+        warn("%s:%lu: %s recursively included", file, (unsigned long) lineno,
+             file);
         return CONFIG_ERROR;
     }
     if (stat(included, &st) < 0) {
-        syswarn("%s:%d: included file %s not found", file, lineno, included);
+        syswarn("%s:%lu: included file %s not found", file,
+                (unsigned long) lineno, included);
         return CONFIG_ERROR;
     }
 
@@ -164,8 +166,8 @@ handle_include(const char *included, const char *file, int lineno,
 
         dir = opendir(included);
         if (dir == NULL) {
-            syswarn("%s:%d: included directory %s cannot be opened", file,
-                 lineno, included);
+            syswarn("%s:%lu: included directory %s cannot be opened", file,
+                    (unsigned long) lineno, included);
             return CONFIG_ERROR;
         }
         while ((entry = readdir(dir)) != NULL) {
@@ -246,7 +248,7 @@ option_logmask(struct rule *rule, char *value, const char *name, size_t lineno)
     free(rule->logmask);
     rule->logmask = xcalloc(logmask->count + 1, sizeof(unsigned int));
     for (i = 0; i < logmask->count; i++) {
-        if (!convert_number(logmask->strings[i], &mask)) {
+        if (!convert_number(logmask->strings[i], &mask) || mask < 0) {
             warn("%s:%lu: invalid logmask parameter %s", name,
                  (unsigned long) lineno, logmask->strings[i]);
             cvector_free(logmask);
@@ -254,7 +256,7 @@ option_logmask(struct rule *rule, char *value, const char *name, size_t lineno)
             rule->logmask = NULL;
             return CONFIG_ERROR;
         }
-        rule->logmask[i] = mask;
+        rule->logmask[i] = (unsigned int) mask;
     }
     rule->logmask[i] = 0;
     cvector_free(logmask);
@@ -309,7 +311,7 @@ option_user(struct rule *rule, char *value, const char *name, size_t lineno)
     long uid;
 
     if (convert_number(value, &uid))
-        pw = getpwuid(uid);
+        pw = getpwuid((uid_t) uid);
     else
         pw = getpwnam(value);
     if (pw == NULL) {
@@ -425,7 +427,8 @@ read_conf_file(void *data, const char *name)
     struct config *config = data;
     FILE *file;
     char *buffer, *p, *option;
-    size_t bufsize, length, count, i, arg_i;
+    int bufsize;
+    size_t length, count, i, arg_i;
     enum config_status s;
     struct vector *line = NULL;
     struct rule *rule = NULL;
@@ -465,7 +468,7 @@ read_conf_file(void *data, const char *name)
                 length -= 2;
                 lineno++;
             }
-            if (fgets(buffer + length, bufsize - length, file) == NULL) {
+            if (fgets(buffer + length, bufsize - (int) length, file) == NULL) {
                 warn("%s:%lu: no final line or newline", name,
                      (unsigned long) lineno);
                 goto fail;
@@ -598,7 +601,7 @@ static enum config_status
 acl_check_file_internal(void *data, const char *aclfile)
 {
     const struct client *client = data;
-    FILE *file = NULL;
+    FILE *file;
     char buffer[BUFSIZ];
     char *p;
     int lineno;
@@ -685,7 +688,7 @@ fail:
  */
 static enum config_status
 acl_check_file(const struct client *client, const char *aclfile,
-               const char *file, int lineno)
+               const char *file, size_t lineno)
 {
     return handle_include(aclfile, file, lineno, acl_check_file_internal,
                           (void *) client);
@@ -702,7 +705,7 @@ acl_check_file(const struct client *client, const char *aclfile,
  */
 static enum config_status
 acl_check_princ(const struct client *client, const char *data,
-                const char *file UNUSED, int lineno UNUSED)
+                const char *file UNUSED, size_t lineno UNUSED)
 {
     return (strcmp(client->user, data) == 0) ? CONFIG_SUCCESS : CONFIG_NOMATCH;
 }
@@ -718,14 +721,15 @@ acl_check_princ(const struct client *client, const char *data,
  */
 static enum config_status
 acl_check_anyuser(const struct client *client, const char *data,
-                  const char *file, int lineno)
+                  const char *file, size_t lineno)
 {
     if (strcmp(data, "auth") == 0)
         return client->anonymous ? CONFIG_NOMATCH : CONFIG_SUCCESS;
     else if (strcmp(data, "anonymous") == 0)
         return CONFIG_SUCCESS;
     else {
-        warn("%s:%d: invalid ACL value 'anyuser:%s'", file, lineno, data);
+        warn("%s:%lu: invalid ACL value 'anyuser:%s'", file,
+             (unsigned long) lineno, data);
         return CONFIG_ERROR;
     }
 }
@@ -756,7 +760,7 @@ acl_check_anyuser(const struct client *client, const char *data,
  */
 static enum config_status
 acl_check_deny(const struct client *client, const char *data,
-               const char *file, int lineno)
+               const char *file, size_t lineno)
 {
     enum config_status s;
 
@@ -766,8 +770,8 @@ acl_check_deny(const struct client *client, const char *data,
     case CONFIG_NOMATCH: return CONFIG_NOMATCH;
     case CONFIG_DENY:    return CONFIG_NOMATCH;
     case CONFIG_ERROR:   return CONFIG_ERROR;
-    default:             return s;
     }
+    return s;
 }
 
 
@@ -804,7 +808,7 @@ server_config_set_gput_file(char *file UNUSED)
 #ifdef HAVE_GPUT
 static enum config_status
 acl_check_gput(const struct client *client, const char *data,
-               const char *file, int lineno)
+               const char *file, size_t lineno)
 {
     GPUT *G;
     char *role, *xform, *xform_start, *xform_end;
@@ -814,13 +818,13 @@ acl_check_gput(const struct client *client, const char *data,
     if (xform_start != NULL) {
         xform_end = strchr(xform_start + 1, ']');
         if (xform_end == NULL) {
-            warn("%s:%d: missing ] in GPUT specification '%s'", file, lineno,
-                 data);
+            warn("%s:%lu: missing ] in GPUT specification '%s'", file,
+                 (unsigned long) lineno, data);
             return CONFIG_ERROR;
         }
         if (xform_end[1] != '\0') {
-            warn("%s:%d: invalid GPUT specification '%s'", file, lineno,
-                 data);
+            warn("%s:%lu: invalid GPUT specification '%s'", file,
+                 (unsigned long) lineno, data);
             return CONFIG_ERROR;
         }
         role = xstrndup(data, xform_start - data);
@@ -864,7 +868,7 @@ acl_check_gput(const struct client *client, const char *data,
 #ifdef HAVE_PCRE
 static enum config_status
 acl_check_pcre(const struct client *client, const char *data,
-               const char *file, int lineno)
+               const char *file, size_t lineno)
 {
     pcre *regex;
     const char *error;
@@ -873,11 +877,11 @@ acl_check_pcre(const struct client *client, const char *data,
 
     regex = pcre_compile(data, PCRE_NO_AUTO_CAPTURE, &error, &offset, NULL);
     if (regex == NULL) {
-        warn("%s:%d: compilation of regex '%s' failed around %d", file,
-             lineno, data, offset);
+        warn("%s:%lu: compilation of regex '%s' failed around %d", file,
+             (unsigned long) lineno, data, offset);
         return CONFIG_ERROR;
     }
-    status = pcre_exec(regex, NULL, user, strlen(user), 0, 0, NULL, 0);
+    status = pcre_exec(regex, NULL, user, (int) strlen(user), 0, 0, NULL, 0);
     pcre_free(regex);
     switch (status) {
     case 0:
@@ -885,8 +889,8 @@ acl_check_pcre(const struct client *client, const char *data,
     case PCRE_ERROR_NOMATCH:
         return CONFIG_NOMATCH;
     default:
-        warn("%s:%d: matching with regex '%s' failed with status %d", file,
-             lineno, data, status);
+        warn("%s:%lu: matching with regex '%s' failed with status %d", file,
+             (unsigned long) lineno, data, status);
         return CONFIG_ERROR;
     }
 }
@@ -902,7 +906,7 @@ acl_check_pcre(const struct client *client, const char *data,
 #ifdef HAVE_REGCOMP
 static enum config_status
 acl_check_regex(const struct client *client, const char *data,
-                const char *file, int lineno)
+                const char *file, size_t lineno)
 {
     regex_t regex;
     char error[BUFSIZ];
@@ -913,8 +917,8 @@ acl_check_regex(const struct client *client, const char *data,
     status = regcomp(&regex, data, REG_EXTENDED | REG_NOSUB);
     if (status != 0) {
         regerror(status, &regex, error, sizeof(error));
-        warn("%s:%d: compilation of regex '%s' failed: %s", file, lineno,
-             data, error);
+        warn("%s:%lu: compilation of regex '%s' failed: %s", file,
+             (unsigned long) lineno, data, error);
         return CONFIG_ERROR;
     }
     status = regexec(&regex, client->user, 0, NULL, 0);
@@ -927,8 +931,8 @@ acl_check_regex(const struct client *client, const char *data,
         break;
     default:
         regerror(status, &regex, error, sizeof(error));
-        warn("%s:%d: matching with regex '%s' failed: %s", file, lineno,
-             data, error);
+        warn("%s:%lu: matching with regex '%s' failed: %s", file,
+             (unsigned long) lineno, data, error);
         result = CONFIG_ERROR;
         break;
     }
@@ -1015,7 +1019,7 @@ fail:
 static enum config_status
 acl_getgrnam(const char *group, struct group **grp, char **buffer)
 {
-    size_t buflen;
+    long buflen;
     int status, oerrno;
     struct group *result;
     enum config_status retval;
@@ -1076,7 +1080,7 @@ fail:
  */
 static enum config_status
 acl_check_localgroup(const struct client *client, const char *group,
-                     const char *file, int lineno)
+                     const char *file, size_t lineno)
 {
     struct passwd *pw;
     struct group *gr = NULL;
@@ -1088,8 +1092,8 @@ acl_check_localgroup(const struct client *client, const char *group,
     /* Look up the group membership. */
     result = acl_getgrnam(group, &gr, &grbuffer);
     if (result != CONFIG_SUCCESS) {
-        syswarn("%s:%d: retrieving membership of localgroup %s failed", file,
-                lineno, group);
+        syswarn("%s:%lu: retrieving membership of localgroup %s failed", file,
+                (unsigned long) lineno, group);
         return result;
     }
     if (gr == NULL)
@@ -1183,7 +1187,7 @@ static const struct acl_scheme schemes[] = {
  */
 static enum config_status
 acl_check(const struct client *client, const char *entry, int def_index,
-          const char *file, int lineno)
+          const char *file, size_t lineno)
 {
     const struct acl_scheme *scheme;
     char *prefix;
@@ -1202,7 +1206,8 @@ acl_check(const struct client *client, const char *entry, int def_index,
             if (strcmp(prefix, scheme->name) == 0)
                 break;
         if (scheme->name == NULL) {
-            warn("%s:%d: invalid ACL scheme '%s'", file, lineno, prefix);
+            warn("%s:%lu: invalid ACL scheme '%s'", file,
+                 (unsigned long) lineno, prefix);
             free(prefix);
             return CONFIG_ERROR;
         }
@@ -1213,8 +1218,8 @@ acl_check(const struct client *client, const char *entry, int def_index,
         data = entry;
     }
     if (scheme->check == NULL) {
-        warn("%s:%d: ACL scheme '%s' is not supported", file, lineno,
-             scheme->name);
+        warn("%s:%lu: ACL scheme '%s' is not supported", file,
+             (unsigned long) lineno, scheme->name);
         return CONFIG_ERROR;
     }
     return scheme->check(client, data, file, lineno);

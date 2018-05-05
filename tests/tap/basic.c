@@ -10,11 +10,11 @@
  * up the TAP output format, or finding things in the test environment.
  *
  * This file is part of C TAP Harness.  The current version plus supporting
- * documentation is at <http://www.eyrie.org/~eagle/software/c-tap-harness/>.
+ * documentation is at <https://www.eyrie.org/~eagle/software/c-tap-harness/>.
  *
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016
- *     Russ Allbery <eagle@eyrie.org>
- * Copyright 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2011, 2012, 2013, 2014
+ * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2009-2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2001-2002, 2004-2008, 2011-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -34,6 +34,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
+ *
+ * SPDX-License-Identifier: MIT
  */
 
 #include <errno.h>
@@ -128,8 +130,7 @@ static struct diag_file *diag_files = NULL;
     do {                                        \
         if (format != NULL) {                   \
             va_list args;                       \
-            if (prefix != NULL)                 \
-                printf("%s", prefix);           \
+            printf("%s", prefix);               \
             va_start(args, format);             \
             vprintf(format, args);              \
             va_end(args);                       \
@@ -489,22 +490,21 @@ skip_block(unsigned long count, const char *reason, ...)
 
 
 /*
- * Takes an expected integer and a seen integer and assumes the test passes
- * if those two numbers match.
+ * Takes two boolean values and requires the truth value of both match.
  */
 int
-is_int(long wanted, long seen, const char *format, ...)
+is_bool(int left, int right, const char *format, ...)
 {
     int success;
 
     fflush(stderr);
     check_diag_files();
-    success = (wanted == seen);
+    success = (!!left == !!right);
     if (success)
         printf("ok %lu", testnum++);
     else {
-        diag("wanted: %ld", wanted);
-        diag("  seen: %ld", seen);
+        diag(" left: %s", !!left  ? "true" : "false");
+        diag("right: %s", !!right ? "true" : "false");
         printf("not ok %lu", testnum++);
         _failed++;
     }
@@ -515,26 +515,21 @@ is_int(long wanted, long seen, const char *format, ...)
 
 
 /*
- * Takes a string and what the string should be, and assumes the test passes
- * if those strings match (using strcmp).
+ * Takes two integer values and requires they match.
  */
 int
-is_string(const char *wanted, const char *seen, const char *format, ...)
+is_int(long left, long right, const char *format, ...)
 {
     int success;
 
-    if (wanted == NULL)
-        wanted = "(null)";
-    if (seen == NULL)
-        seen = "(null)";
     fflush(stderr);
     check_diag_files();
-    success = (strcmp(wanted, seen) == 0);
+    success = (left == right);
     if (success)
         printf("ok %lu", testnum++);
     else {
-        diag("wanted: %s", wanted);
-        diag("  seen: %s", seen);
+        diag(" left: %ld", left);
+        diag("right: %ld", right);
         printf("not ok %lu", testnum++);
         _failed++;
     }
@@ -545,22 +540,91 @@ is_string(const char *wanted, const char *seen, const char *format, ...)
 
 
 /*
- * Takes an expected unsigned long and a seen unsigned long and assumes the
- * test passes if the two numbers match.  Otherwise, reports them in hex.
+ * Takes two strings and requires they match (using strcmp).  NULL arguments
+ * are permitted and handled correctly.
  */
 int
-is_hex(unsigned long wanted, unsigned long seen, const char *format, ...)
+is_string(const char *left, const char *right, const char *format, ...)
 {
     int success;
 
     fflush(stderr);
     check_diag_files();
-    success = (wanted == seen);
+
+    /* Compare the strings, being careful of NULL. */
+    if (left == NULL)
+        success = (right == NULL);
+    else if (right == NULL)
+        success = 0;
+    else
+        success = (strcmp(left, right) == 0);
+
+    /* Report the results. */
     if (success)
         printf("ok %lu", testnum++);
     else {
-        diag("wanted: %lx", (unsigned long) wanted);
-        diag("  seen: %lx", (unsigned long) seen);
+        diag(" left: %s", left  == NULL ? "(null)" : left);
+        diag("right: %s", right == NULL ? "(null)" : right);
+        printf("not ok %lu", testnum++);
+        _failed++;
+    }
+    PRINT_DESC(" - ", format);
+    putchar('\n');
+    return success;
+}
+
+
+/*
+ * Takes two unsigned longs and requires they match.  On failure, reports them
+ * in hex.
+ */
+int
+is_hex(unsigned long left, unsigned long right, const char *format, ...)
+{
+    int success;
+
+    fflush(stderr);
+    check_diag_files();
+    success = (left == right);
+    if (success)
+        printf("ok %lu", testnum++);
+    else {
+        diag(" left: %lx", (unsigned long) left);
+        diag("right: %lx", (unsigned long) right);
+        printf("not ok %lu", testnum++);
+        _failed++;
+    }
+    PRINT_DESC(" - ", format);
+    putchar('\n');
+    return success;
+}
+
+
+/*
+ * Takes pointers to a regions of memory and requires that len bytes from each
+ * match.  Otherwise reports any bytes which didn't match.
+ */
+int
+is_blob(const void *left, const void *right, size_t len, const char *format,
+        ...)
+{
+    int success;
+    size_t i;
+
+    fflush(stderr);
+    check_diag_files();
+    success = (memcmp(left, right, len) == 0);
+    if (success)
+        printf("ok %lu", testnum++);
+    else {
+        const unsigned char *left_c  = left;
+        const unsigned char *right_c = right;
+
+        for (i = 0; i < len; i++) {
+            if (left_c[i] != right_c[i])
+                diag("offset %lu: left %02x, right %02x", (unsigned long) i,
+                     left_c[i], right_c[i]);
+        }
         printf("not ok %lu", testnum++);
         _failed++;
     }
@@ -769,6 +833,8 @@ breallocarray(void *p, size_t n, size_t size)
 {
     if (n > 0 && UINT_MAX / n <= size)
         bail("reallocarray too large");
+    if (n == 0)
+        n = 1;
     p = realloc(p, n * size);
     if (p == NULL)
         sysbail("failed to realloc %lu bytes", (unsigned long) (n * size));

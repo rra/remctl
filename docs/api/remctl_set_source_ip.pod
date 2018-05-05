@@ -1,5 +1,6 @@
 =for stopwords
 remctl API Allbery const IP IPv4 IPv6 IPv4-only IPv6-only
+SPDX-License-Identifier FSFAP
 
 =head1 NAME
 
@@ -49,6 +50,8 @@ Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice and
 this notice are preserved.  This file is offered as-is, without any
 warranty.
+
+SPDX-License-Identifier: FSFAP
   
 =head1 SEE ALSO
 
@@ -56,6 +59,6 @@ remctl_new(3), remctl_open(3), remctl_error(3)
 
 The current version of the remctl library and complete details of the
 remctl protocol are available from its web page at
-L<http://www.eyrie.org/~eagle/software/remctl/>.
+L<https://www.eyrie.org/~eagle/software/remctl/>.
 
 =cut

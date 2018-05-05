@@ -9,10 +9,10 @@
 # Currently, only the Sun Java JDK is supported (1.4.2, 5, or 6).
 #
 # Copyright 2007 Marcus Watts <mdw@umich.edu>
-# Copyright 2007, 2008
+# Copyright 2007-2008
 #     The Board of Trustees of the Leland Stanford Junior University
 #
-# See LICENSE for licensing terms.
+# SPDX-License-Identifier: MIT
 
 JAVA_HOME ?= /usr/lib/jvm/java-6-sun
 JAVAC      = $(JDK)/bin/javac

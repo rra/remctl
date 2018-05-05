@@ -2,9 +2,9 @@
  * Fake write and writev functions for testing xwrite and xwritev.
  *
  * The canonical version of this file is maintained in the rra-c-util package,
- * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2000, 2001, 2002, 2004 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2000-2002, 2004, 2017 Russ Allbery <eagle@eyrie.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
+ *
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>
@@ -32,10 +34,8 @@
 #include <errno.h>
 
 #include <util/macros.h>
+#include <tests/util/fakewrite.h>
 
-ssize_t fake_write(int, const void *, size_t);
-ssize_t fake_pwrite(int, const void *, size_t, off_t);
-ssize_t fake_writev(int, const struct iovec *, int);
 
 /*
  * All the data is actually written into this buffer.  We use write_offset
@@ -48,13 +48,13 @@ size_t write_offset = 0;
  * If write_interrupt is non-zero, then half of the calls to write or writev
  * will fail, returning -1 with errno set to EINTR.
  */
-int write_interrupt = 0;
+int write_interrupt = false;
 
 /*
- * If write_fail is non-zero, all writes or writevs will return 0, indicating
- * no progress in writing out the buffer.
+ * If write_fail is true, all writes or writevs will return 0, indicating no
+ * progress in writing out the buffer.
  */
-int write_fail = 0;
+bool write_fail = false;
 
 
 /*
@@ -116,8 +116,8 @@ fake_pwrite(int fd UNUSED, const void *data, size_t n, off_t offset)
 ssize_t
 fake_writev(int fd UNUSED, const struct iovec *iov, int iovcnt)
 {
-    int total, i;
-    size_t left, n;
+    int i;
+    size_t left, n, total;
 
     if (write_fail)
         return 0;

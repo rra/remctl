@@ -6,7 +6,7 @@
 # Copyright 2006-2007, 2012-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
-# See LICENSE for licensing terms.
+# SPDX-License-Identifier: MIT
 
 %if 0%{?sles_version:1}
 %define relsuffix sles%{sles_version}
@@ -22,7 +22,7 @@
 %endif
 
 # this is needed for Stanford packaging automation
-%define vers 3.14
+%define vers 3.15
 
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
 %{!?buildperl:%define buildperl 1}
@@ -48,8 +48,8 @@ License: MIT
 %else
 Copyright: MIT
 %endif
-URL: http://www.eyrie.org/~eagle/software/remctl/
-Source: http://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
+URL: https://www.eyrie.org/~eagle/software/remctl/
+Source: https://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
 Vendor: Stanford University
 Packager: Russ Allbery <eagle@eyrie.org>
@@ -465,6 +465,9 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Sat May 5 2018 Russ Allbery <eagle@eyrie.org> 3.15-1
+- update to 3.15
+
 * Sat Mar 31 2018 Russ Allbery <eagle@eyrie.org> 3.14-1
 - update to 3.14
 

@@ -9,6 +9,8 @@
 #
 # When given the --update option, instead fixes all of the Perl modules found
 # to have the correct version.
+#
+# SPDX-License-Identifier: MIT
 
 use 5.006;
 use strict;
@@ -178,6 +180,10 @@ SOFTWARE.
 =head1 SEE ALSO
 
 This module is maintained in the rra-c-util package.  The current version is
-available from L<http://www.eyrie.org/~eagle/software/rra-c-util/>.
+available from L<https://www.eyrie.org/~eagle/software/rra-c-util/>.
 
 =cut
+
+# Local Variables:
+# copyright-at-end-flag: t
+# End:

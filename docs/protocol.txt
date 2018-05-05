@@ -3,7 +3,7 @@
 
 
                                                               R. Allbery
-                                                     Stanford University
+                                                                 Dropbox
                                                          January 1, 2014
 
 
@@ -515,8 +515,8 @@ Appendix B.  Additional License
    modification, under your choice of the license specified in the
    Copyright Notice section or the license below.
 
-   Copyright 2006, 2007, 2008, 2009, 2011, 2013, 2014 The Board of
-   Trustees of the Leland Stanford Junior University
+   Copyright 2006-2009, 2011, 2013-2014 The Board of Trustees of the
+   Leland Stanford Junior University
 
    Copying and distribution of this file, with or without modification,
    are permitted in any medium without royalty provided the copyright
@@ -526,13 +526,13 @@ Appendix B.  Additional License
 Author's Address
 
    Russ Allbery
-   Stanford University
-   255 Panama Street, MC 4136
-   Stanford, CA  94305-4136
-   US
+   Dropbox
 
    Email: eagle@eyrie.org
-   URI:   http://www.eyrie.org/~eagle/
+   URI:   https://www.eyrie.org/~eagle/
+
+
+
 
 
 

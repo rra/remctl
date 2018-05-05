@@ -18,7 +18,7 @@
  **  Copyright 2002
  **      The Board of Trustees of the Leland Stanford Junior University
  **
- **  See LICENSE for licensing terms.
+ **  SPDX-License-Identifier: MIT
  **
  **  This version considerably modified by Marcus Watts <mdw@umich.edu>
  **  Updated to use V2 protocol & to support the server side as well.

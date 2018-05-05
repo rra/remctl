@@ -17,16 +17,14 @@
  * of knowing that this code is correct.
  *
  * The canonical version of this file is maintained in the rra-c-util package,
- * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2014, 2015, 2016 Russ Allbery <eagle@eyrie.org>
- * Copyright 2009, 2011, 2012, 2013, 2014
+ * Copyright 2014-2017 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2009, 2011-2014
  *     The Board of Trustees of the Leland Stanford Junior University
- * Copyright (c) 2004, 2005, 2006, 2007, 2008
- *     by Internet Systems Consortium, Inc. ("ISC")
- * Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
- *     2002, 2003 by The Internet Software Consortium and Rich Salz
+ * Copyright 2004-2008 Internet Systems Consortium, Inc. ("ISC")
+ * Copyright 1991, 1994-2003 The Internet Software Consortium and Rich Salz
  *
  * This code is derived from software contributed to the Internet Software
  * Consortium by Rich Salz.
@@ -42,6 +40,8 @@
  * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
 #include <config.h>
@@ -812,7 +812,7 @@ fail:
  * it should always be as large as the latter.  Returns success or failure.
  */
 bool
-network_sockaddr_sprint(char *dst, size_t size, const struct sockaddr *addr)
+network_sockaddr_sprint(char *dst, socklen_t size, const struct sockaddr *addr)
 {
     const char *result;
 
@@ -932,7 +932,7 @@ network_addr_match(const char *a, const char *b, const char *mask)
     unsigned long cidr;
     char *end;
     unsigned int i;
-    unsigned long bits, addr_mask;
+    uint32_t bits, addr_mask;
 #ifdef HAVE_INET6
     struct in6_addr a6, b6;
 #endif
@@ -959,7 +959,7 @@ network_addr_match(const char *a, const char *b, const char *mask)
             if (cidr > 32 || *end != '\0')
                 return false;
             for (bits = 0, i = 0; i < cidr; i++)
-                bits |= (1UL << (31 - i));
+                bits |= (1U << (31 - i));
             addr_mask = htonl(bits);
         } else if (inet_aton(mask, &tmp))
             addr_mask = tmp.s_addr;
@@ -988,7 +988,7 @@ network_addr_match(const char *a, const char *b, const char *mask)
                 return false;
         } else {
             for (addr_mask = 0, bits = 0; bits < cidr % 8; bits++)
-                addr_mask |= (1UL << (7 - bits));
+                addr_mask |= (1U << (7 - bits));
             if ((a6.s6_addr[i] & addr_mask) != (b6.s6_addr[i] & addr_mask))
                 return false;
         }

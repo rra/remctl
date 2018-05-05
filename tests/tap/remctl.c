@@ -5,10 +5,11 @@
  * Kerberos environment and runs on port 14373 instead of the default 4373.
  *
  * The canonical version of this file is maintained in the rra-c-util package,
- * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2006, 2007, 2009, 2011, 2012, 2013, 2014
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006-2007, 2009, 2011-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -28,6 +29,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
+ *
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>
@@ -39,6 +42,7 @@
 #include <tests/tap/process.h>
 #include <tests/tap/remctl.h>
 #include <tests/tap/string.h>
+#include <util/vector.h>
 
 /* May be defined by the build system. */
 #ifndef PATH_REMCTLD
@@ -64,6 +68,8 @@ remctld_start_internal(struct kerberos_config *krbconf, const char *config,
 {
     va_list args_copy;
     char *tmpdir, *pidfile, *confpath;
+    const char *valgrind;
+    struct vector *valgrind_args = NULL;
     size_t i, length;
     const char *arg, **argv;
     struct process *process;
@@ -79,17 +85,28 @@ remctld_start_internal(struct kerberos_config *krbconf, const char *config,
     if (access(pidfile, F_OK) == 0)
         bail("remctld may already be running: %s exists", pidfile);
 
+    /* If valgrind testing is configured, get the options to valgrind. */
+    length = 0;
+    valgrind = getenv("C_TAP_VALGRIND");
+    if (valgrind != NULL) {
+        valgrind_args = vector_split_space(valgrind, NULL);
+        length += valgrind_args->count;
+    }
+
     /* Build the argv used to run remctld. */
     confpath = test_file_path(config);
     if (confpath == NULL)
         bail("cannot find remctld config %s", config);
-    length = 11;
+    length += 11;
     va_copy(args_copy, args);
     while ((arg = va_arg(args_copy, const char *)) != NULL)
         length++;
     va_end(args_copy);
     argv = bcalloc(length, sizeof(const char *));
     i = 0;
+    if (valgrind_args != NULL)
+        for (i = 0; i < valgrind_args->count; i++)
+            argv[i] = valgrind_args->strings[i];
     argv[i++] = path_remctld;
     argv[i++] = "-mdSF";
     argv[i++] = "-p";
@@ -111,6 +128,7 @@ remctld_start_internal(struct kerberos_config *krbconf, const char *config,
         process = process_start(argv, pidfile);
 
     /* Clean up and return. */
+    vector_free(valgrind_args);
     test_file_path_free(confpath);
     free(pidfile);
     test_tmpdir_free(tmpdir);

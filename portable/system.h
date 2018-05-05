@@ -22,17 +22,19 @@
  * the portable helper library.  Also provides some standard #defines.
  *
  * The canonical version of this file is maintained in the rra-c-util package,
- * which can be found at <http://www.eyrie.org/~eagle/software/rra-c-util/>.
+ * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2014, 2016, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2006-2011, 2013-2014
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
- * The authors hereby relinquish any claim to any copyright that they may have
- * in this work, whether granted under contract or by operation of law or
- * international treaty, and hereby commit to the public, at large, that they
- * shall not, at any time in the future, seek to enforce any copyright in this
- * work against any person or entity, or prevent any person or entity from
- * copying, publishing, distributing or creating derivative works of this
- * work.
+ * Copying and distribution of this file, with or without modification, are
+ * permitted in any medium without royalty provided the copyright notice and
+ * this notice are preserved.  This file is offered as-is, without any
+ * warranty.
+ *
+ * SPDX-License-Identifier: FSFAP
  */
 
 #ifndef PORTABLE_SYSTEM_H
@@ -72,6 +74,11 @@
 
 /* Get the bool type. */
 #include <portable/stdbool.h>
+
+/* In case uint32_t and associated limits weren't defined. */
+#ifndef UINT32_MAX
+# define UINT32_MAX 4294967295UL
+#endif
 
 /* Windows provides snprintf under a different name. */
 #ifdef _WIN32
@@ -123,14 +130,16 @@ BEGIN_DECLS
 #if !HAVE_ASPRINTF
 extern int asprintf(char **, const char *, ...)
     __attribute__((__format__(printf, 2, 3)));
-extern int vasprintf(char **, const char *, va_list);
+extern int vasprintf(char **, const char *, va_list)
+    __attribute__((__format__(printf, 2, 0)));
 #endif
 #if !HAVE_DECL_SNPRINTF
 extern int snprintf(char *, size_t, const char *, ...)
     __attribute__((__format__(printf, 3, 4)));
 #endif
 #if !HAVE_DECL_VSNPRINTF
-extern int vsnprintf(char *, size_t, const char *, va_list);
+extern int vsnprintf(char *, size_t, const char *, va_list)
+    __attribute__((__format__(printf, 3, 0)));
 #endif
 #if !HAVE_DAEMON
 extern int daemon(int, int);

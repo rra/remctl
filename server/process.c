@@ -6,11 +6,12 @@
  * with the child process.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
- *     2014 The Board of Trustees of the Leland Stanford Junior University
+ * Copyright 2002-2010, 2012-2014
+ *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>
@@ -71,12 +72,14 @@ server_handle_io_event(struct bufferevent *bev, short events, void *data)
 
     /*
      * If we get ECONNRESET or EPIPE, the client went away without bothering
-     * to read our data.  This is the same as EOF except that we should also
-     * stop trying to write data.
+     * to read our data.  Stop trying to write data, but continue to read
+     * data, since we may otherwise miss output from the client before it went
+     * away.
      */
     if (events & BEV_EVENT_ERROR)
         if (socket_errno == ECONNRESET || socket_errno == EPIPE) {
-            bufferevent_disable(bev, EV_READ | EV_WRITE);
+            debug("EPIPE or ECONNRESET from client");
+            bufferevent_disable(bev, EV_WRITE);
             return;
         }
 
@@ -161,7 +164,7 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
      * actually runs the command.  We have to use sockets rather than pipes
      * because libevent's buffevents require sockets.
      *
-     * For protocol version one, we can use one socket pair for eerything,
+     * For protocol version one, we can use one socket pair for everything,
      * since we don't distinguish between streams.  For protocol version two,
      * we use one socket pair for standard intput and standard output, and a
      * separate read-only one for standard error so that we can keep the

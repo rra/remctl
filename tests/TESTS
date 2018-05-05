@@ -1,55 +1,69 @@
-client/api
-client/ccache
-client/large
-client/open
+# Test list for remctl.  -*- conf -*-
+#
+# Copyright 2006-2009, 2011-2016, 2018 Russ Allbery <eagle@eyrie.org>
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+#
+# SPDX-License-Identifier: FSFAP
+
+client/api              valgrind libtool
+client/ccache           valgrind libtool
+client/large            valgrind libtool
+client/open             valgrind libtool
 client/remctl
-client/source-ip
-client/timeout
+client/source-ip        valgrind libtool
+client/timeout          valgrind libtool
 docs/pod
 docs/pod-spelling
+docs/spdx-license
+docs/urls
 perl/module-version
-portable/asprintf
-portable/daemon
-portable/getaddrinfo
-portable/getnameinfo
-portable/getopt
-portable/inet_aton
-portable/inet_ntoa
-portable/inet_ntop
-portable/mkstemp
+portable/asprintf       valgrind
+portable/daemon         valgrind
+portable/getaddrinfo    valgrind
+portable/getnameinfo    valgrind
+portable/getopt         valgrind
+portable/inet_aton      valgrind
+portable/inet_ntoa      valgrind
+portable/inet_ntop      valgrind
+portable/mkstemp        valgrind
 portable/setenv
-portable/snprintf
-server/accept
-server/acl
-server/acl/localgroup
-server/anonymous
-server/bind
-server/config
-server/continue
-server/empty
-server/env
-server/errors
-server/help
-server/invalid
-server/logging
+portable/snprintf       valgrind
+server/accept           valgrind
+server/acl              valgrind
+server/acl/localgroup   valgrind
+server/anonymous        valgrind libtool
+server/bind             valgrind libtool
+server/config           valgrind
+server/continue         valgrind libtool
+server/empty            valgrind libtool
+server/env              valgrind libtool
+server/errors           valgrind libtool
+server/help             valgrind libtool
+server/invalid          valgrind libtool
+server/logging          valgrind
 server/misc
 server/shell-misc
-server/ssh-parse
-server/stdin
-server/streaming
-server/sudo
-server/summary
+server/ssh-parse        valgrind
+server/stdin            valgrind libtool
+server/streaming        valgrind libtool
+server/sudo             valgrind
+server/summary          valgrind libtool
 server/user
-server/version
-util/buffer
-util/gss-tokens
-util/messages
-util/messages-krb5
-util/network/addr-ipv4
-util/network/addr-ipv6
-util/network/client
-util/network/server
-util/tokens
-util/vector
+server/version          valgrind libtool
+util/buffer             valgrind
+util/gss-tokens         valgrind
+util/messages           valgrind
+util/messages-krb5      valgrind
+util/network/addr-ipv4  valgrind
+util/network/addr-ipv6  valgrind
+util/network/client     valgrind
+util/network/server     valgrind
+util/tokens             valgrind
+util/vector             valgrind
 util/xmalloc
-util/xwrite
+util/xwrite             valgrind
+valgrind/logs

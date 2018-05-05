@@ -4,13 +4,13 @@ dnl
 dnl Provides additional configuration hooks for the PHP module build system.
 dnl This file is used by the phpize frameowrk.
 dnl
-dnl Originally written by Andrew Mortensen <admorten@umich.edu>, 2008
+dnl Originally written by Andrew Mortensen <admorten@umich.edu>
 dnl Copyright 2015 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2008 Andrew Mortensen <admorten@umich.edu>
 dnl Copyright 2008
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
-dnl See LICENSE for licensing terms.
+dnl SPDX-License-Identifier: MIT
 
 PHP_ARG_ENABLE([remctl], [whether to enable remctl PHP extension],
     [AC_HELP_STRING([--enable-remctl], [Enable recmtl PHP extension])], [yes])

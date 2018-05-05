@@ -8,10 +8,11 @@
  * we're looking up matches that, we return it; otherwise, we return NULL.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018 Russ Allbery <eagle@eyrie.org>
  * Copyright 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
- * See LICENSE for licensing terms.
+ * SPDX-License-Identifier: MIT
  */
 
 #include <config.h>
@@ -36,9 +37,12 @@ static struct passwd *pwd_info = NULL;
 void
 fake_set_passwd(struct passwd *pwd)
 {
+    struct passwd *new_pwd;
+
+    new_pwd = bmalloc(sizeof(*pwd_info));
+    *new_pwd = *pwd;
     free(pwd_info);
-    pwd_info = bmalloc(sizeof(*pwd_info));
-    *pwd_info = *pwd;
+    pwd_info = new_pwd;
 }
 
 
