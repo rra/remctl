@@ -5,6 +5,7 @@ remctl (3.15-1) UNRELEASED; urgency=medium
       standard input that exit before reading all input data.
     - Do more paranoid validation of more protocol elements.
   * Add Multi-Arch: same for libnet-remctl-perl and ruby-remctl.
+  * Enable basic autopkgtest-pkg-python tests.
   * Bump watch file version to 4.
   * Update standards version to 4.1.4 (no changes required).
 
