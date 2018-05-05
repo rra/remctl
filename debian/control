@@ -96,6 +96,7 @@ Description: Server for Kerberos-authenticated command execution
 Package: libnet-remctl-perl
 Section: perl
 Architecture: any
+Multi-Arch: same
 Depends: ${shlibs:Depends}, ${perl:Depends}, ${misc:Depends}
 Description: Perl client for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
@@ -145,6 +146,7 @@ Description: Python extension for Kerberos-authenticated command execution
 Package: ruby-remctl
 Section: ruby
 Architecture: any
+Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}, ruby | ruby-interpreter
 X-DhRuby-Root: ruby
