@@ -27,7 +27,6 @@ Build-Depends: debhelper (>= 11),
 XS-Python-Version: >= 2.6
 XS-Ruby-Versions: all
 Rules-Requires-Root: no
-Testsuite: autopkgtest-pkg-python
 Standards-Version: 4.1.4
 Homepage: https://www.eyrie.org/~eagle/software/remctl/
 Vcs-Git: https://git.eyrie.org/git/kerberos/remctl.git -b debian/master
