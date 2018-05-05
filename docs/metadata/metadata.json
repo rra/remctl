@@ -65,6 +65,18 @@
     "docs": {
         "user": [
             {
+                "name": "remctl",
+                "title": "remctl manual page",
+            },
+            {
+                "name": "remctl-shell",
+                "title": "remctl-shell manual page",
+            },
+            {
+                "name": "remctld",
+                "title": "remctld manual page",
+            },
+            {
                 "name": "java-readme",
                 "title": "Java client and server README",
             },
@@ -79,18 +91,6 @@
             {
                 "name": "ruby-readme",
                 "title": "Ruby bindings README",
-            },
-            {
-                "name": "remctl",
-                "title": "remctl manual page",
-            },
-            {
-                "name": "remctl-shell",
-                "title": "remctl-shell manual page",
-            },
-            {
-                "name": "remctld",
-                "title": "remctld manual page",
             },
             {
                 "name": "thanks",
