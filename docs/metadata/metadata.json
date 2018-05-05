@@ -1,6 +1,6 @@
 {
     "name": "remctl",
-    "version": "3.14",
+    "version": "3.15",
     "synopsis": "remote authenticated command execution with ACLs",
     "maintainer": "Russ Allbery <eagle@eyrie.org>",
     "copyrights": [

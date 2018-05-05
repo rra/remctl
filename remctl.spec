@@ -22,7 +22,7 @@
 %endif
 
 # this is needed for Stanford packaging automation
-%define vers 3.14
+%define vers 3.15
 
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
 %{!?buildperl:%define buildperl 1}
@@ -465,6 +465,9 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Sat May 5 2018 Russ Allbery <eagle@eyrie.org> 3.15-1
+- update to 3.15
+
 * Sat Mar 31 2018 Russ Allbery <eagle@eyrie.org> 3.14-1
 - update to 3.14
 
