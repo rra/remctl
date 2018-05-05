@@ -5,6 +5,7 @@ remctl (3.15-1) UNRELEASED; urgency=medium
       standard input that exit before reading all input data.
     - Do more paranoid validation of more protocol elements.
   * Bump watch file version to 4.
+  * Update standards version to 4.1.4 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Sat, 05 May 2018 13:35:40 -0700
 
