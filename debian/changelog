@@ -14,6 +14,7 @@ remctl (3.15-1) UNRELEASED; urgency=medium
     (Unfortunately, autopkgtest-pkg-python in the Testsuite control field
     appears to do nothing if debian/tests/control exists in the package.)
   * Add dh-python to Build-Depends as requested by dh_python2.
+  * Add debian/upstream/metadata file.
   * Set Rules-Requires-Root: no.
   * Bump watch file version to 4.
   * Update standards version to 4.1.4 (no changes required).
