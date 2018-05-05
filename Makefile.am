@@ -73,22 +73,23 @@ PERL_DIRECTORIES = perl perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
 	perl/t/lib/Test perl/t/style
 
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = .gitignore .travis.yml LICENSE Makefile.w32 bootstrap	    \
-	client/libremctl.pc.in client/libremctl.map client/libremctl.rc	    \
-	client/libremctl.sym client/remctl.rc config.h.w32 configure.cmd    \
-	docs/api/remctl.pod docs/api/remctl_close.pod			    \
-	docs/api/remctl_command.pod docs/api/remctl_error.pod		    \
-	docs/api/remctl_new.pod docs/api/remctl_noop.pod		    \
-	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
-	docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.pod    \
-	docs/api/remctl_set_timeout.pod docs/design.html docs/extending	    \
-	docs/protocol-v4 docs/protocol.txt docs/protocol.html		    \
-	docs/protocol.xml docs/remctl.pod docs/remctl-shell.8.in	    \
-	docs/remctl-shell.pod docs/remctld.8.in docs/remctld.pod	    \
-	examples/remctl.conf examples/remctld.xml examples/rsh-wrapper	    \
-	examples/xinetd java/.classpath java/.project java/Makefile	    \
-	java/README java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf	    \
-	java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java		    \
+EXTRA_DIST = .gitignore .travis.yml LICENSE Makefile.w32 README.md	    \
+	bootstrap client/libremctl.pc.in client/libremctl.map		    \
+	client/libremctl.rc client/libremctl.sym client/remctl.rc	    \
+	config.h.w32 configure.cmd docs/api/remctl.pod			    \
+	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
+	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
+	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
+	docs/api/remctl_output.pod docs/api/remctl_set_ccache.pod	    \
+	docs/api/remctl_set_source_ip.pod docs/api/remctl_set_timeout.pod   \
+	docs/design.html docs/extending docs/metadata docs/protocol-v4	    \
+	docs/protocol.txt docs/protocol.html docs/protocol.xml		    \
+	docs/remctl.pod docs/remctl-shell.8.in docs/remctl-shell.pod	    \
+	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
+	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
+	java/.classpath java/.project java/Makefile java/README		    \
+	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
+	java/org/eyrie/eagle/remctl/Remctl.java				    \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
@@ -107,9 +108,10 @@ EXTRA_DIST = .gitignore .travis.yml LICENSE Makefile.w32 bootstrap	    \
 	tests/data/configs/bad-logmask-1 tests/data/configs/bad-include-1   \
 	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
 	tests/data/configs/bad-logmask-4 tests/data/configs/bad-option-1    \
-	tests/data/configs/bad-user-1 tests/data/fake-sudo		    \
-	tests/data/perl.conf tests/data/generate-krb5-conf tests/data/gput  \
-	tests/data/valgrind.supp tests/docs/pod-spelling-t tests/docs/pod-t \
+	tests/data/configs/bad-user-1 tests/data/cppcheck.supp		    \
+	tests/data/fake-sudo tests/data/generate-krb5-conf tests/data/gput  \
+	tests/data/perl.conf tests/data/valgrind.supp			    \
+	tests/docs/pod-spelling-t tests/docs/pod-t			    \
 	tests/docs/spdx-license-t tests/docs/urls-t			    \
 	tests/server/shell-misc-t tests/perl/module-version-t		    \
 	tests/tap/kerberos.sh tests/tap/libtap.sh			    \
@@ -276,7 +278,7 @@ install-data-hook:
 CLEANFILES = client/libremctl.pc docs/remctl-shell.8 docs/remctld.8	   \
 	perl/t/lib/Test/RRA.pm perl/t/lib/Test/RRA/Automake.pm		   \
 	perl/t/lib/Test/RRA/Config.pm stamp-python systemd/remctld.service
-DISTCLEANFILES = perl/Makefile python/MANIFEST
+DISTCLEANFILES = perl/Makefile perl/MYMETA.json.lock python/MANIFEST
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 build-aux/compile		   \
 	build-aux/config.guess build-aux/config.sub build-aux/depcomp	   \
 	build-aux/install-sh build-aux/ltmain.sh build-aux/missing	   \
