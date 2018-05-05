@@ -23,7 +23,7 @@ License: Expat
 Files: Makefile.in
 Copyright: 1994-2017 Free Software Foundation, Inc.
   2006-2014 The Board of Trustees of the Leland Stanford Junior University
-  2015-2016 Russ Allbery <eagle@eyrie.org>
+  2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
   2016 Dropbox, Inc.
 License: FSF-unlimited and Expat
 
@@ -90,14 +90,28 @@ Files: docs/api/remctl.3 docs/api/remctl.pod docs/api/remctl_close.3
  docs/protocol-v4 docs/protocol.html docs/protocol.txt docs/protocol.xml
  docs/remctl-shell.8.in docs/remctl-shell.pod docs/remctl.1 docs/remctl.pod
  docs/remctld.8.in docs/remctld.pod examples/remctl.conf
- examples/rsh-wrapper java/README php/README python/README ruby/README
- server/README tests/README tests/data/acl-too-long
- tests/data/conf-simple.in
-Copyright: 2002-2014
-    The Board of Trustees of the Leland Stanford Junior University
+ examples/rsh-wrapper java/README m4/gput.m4 perl/t/data/perltidyrc
+ php/README portable/asprintf.c portable/daemon.c portable/dummy.c
+ portable/event-extra.c portable/event.h portable/getaddrinfo.c
+ portable/getaddrinfo.h portable/getnameinfo.c portable/getnameinfo.h
+ portable/gssapi-mech.c portable/gssapi.h portable/inet_aton.c
+ portable/inet_ntoa.c portable/inet_ntop.c portable/krb5-extra.c
+ portable/krb5.h portable/macros.h portable/mkstemp.c
+ portable/reallocarray.c portable/sd-daemon.h portable/setenv.c
+ portable/stdbool.h portable/strndup.c portable/system.h portable/uio.h
+ portable/winsock.c python/README ruby/README server/README tests/README
+ tests/TESTS tests/data/acl-too-long tests/data/conf-simple.in
+ tests/data/cppcheck.supp tests/portable/asprintf-t.c
+ tests/portable/daemon-t.c tests/portable/getaddrinfo-t.c
+ tests/portable/getnameinfo-t.c tests/portable/inet_aton-t.c
+ tests/portable/inet_ntoa-t.c tests/portable/inet_ntop-t.c
+ tests/portable/mkstemp-t.c tests/portable/setenv-t.c tests/util/buffer-t.c
+ tests/util/vector-t.c util/macros.h util/vector.c util/vector.h
+Copyright: 2000-2018 Russ Allbery <eagle@eyrie.org>
+  2002-2014 The Board of Trustees of the Leland Stanford Junior University
   2006 Romain LENGLET
   2008 Thomas L. Kula <kula@tproa.net>
-  2010, 2014, 2016 Russ Allbery <eagle@eyrie.org>
+  2015 Julien ÉLIE <julien@trigofacile.com>
   2016 Dropbox, Inc.
 License: all-permissive
  Copying and distribution of this file, with or without modification, are
@@ -112,7 +126,7 @@ Files: m4/cc-flags.m4 m4/socket.m4 portable/socket.h util/buffer.c
 Copyright: 1991, 1994-2003 The Internet Software Consortium and Rich Salz
   2004-2010, 2016 Internet Systems Consortium, Inc.
   2008-2014 The Board of Trustees of the Leland Stanford Junior University
-  2014-2016 Russ Allbery <eagle@eyrie.org>
+  2014-2018 Russ Allbery <eagle@eyrie.org>
 License: ISC
  Permission to use, copy, modify, and distribute this software for any
  purpose with or without fee is hereby granted, provided that the above
@@ -126,11 +140,11 @@ License: ISC
  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-Files: m4/clang.m4 m4/gput.m4 m4/gssapi.m4 m4/inet-ntoa.m4
- m4/krb5-config.m4 m4/krb5.m4 m4/ld-version.m4 m4/lib-depends.m4
- m4/lib-helper.m4 m4/lib-pathname.m4 m4/libevent.m4 m4/pcre.m4
- m4/snprintf.m4 m4/systemd.m4 m4/vamacros.m4
-Copyright: 1999-2001, 2003, 2015 Russ Allbery <eagle@eyrie.org>
+Files: m4/clang.m4 m4/gssapi.m4 m4/inet-ntoa.m4 m4/krb5-config.m4
+ m4/krb5.m4 m4/ld-version.m4 m4/lib-depends.m4 m4/lib-helper.m4
+ m4/lib-pathname.m4 m4/libevent.m4 m4/pcre.m4 m4/snprintf.m4 m4/systemd.m4
+ m4/vamacros.m4
+Copyright: 1999-2001, 2003, 2015, 2018 Russ Allbery <eagle@eyrie.org>
   2005-2014 The Board of Trustees of the Leland Stanford Junior University
   2008-2010 Free Software Foundation, Inc.
 License: unlimited
@@ -146,33 +160,9 @@ Files: m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 m4/lt~obsolete.m4
 Copyright: 2004-2005, 2007-2009, 2011-2015 Free Software Foundation, Inc.
 License: FSF-unlimited
 
-Files: portable/asprintf.c portable/daemon.c portable/dummy.c
- portable/event-extra.c portable/event.h portable/getaddrinfo.c
- portable/getaddrinfo.h portable/getnameinfo.c portable/getnameinfo.h
- portable/gssapi-mech.c portable/gssapi.h portable/inet_aton.c
- portable/inet_ntoa.c portable/inet_ntop.c portable/krb5-extra.c
- portable/krb5.h portable/macros.h portable/mkstemp.c
- portable/reallocarray.c portable/sd-daemon.h portable/setenv.c
- portable/stdbool.h portable/strndup.c portable/system.h portable/uio.h
- portable/winsock.c tests/portable/asprintf-t.c tests/portable/daemon-t.c
- tests/portable/getaddrinfo-t.c tests/portable/getnameinfo-t.c
- tests/portable/inet_aton-t.c tests/portable/inet_ntoa-t.c
- tests/portable/inet_ntop-t.c tests/portable/mkstemp-t.c
- tests/portable/setenv-t.c tests/util/buffer-t.c tests/util/vector-t.c
- util/macros.h util/vector.c util/vector.h
-Copyright: no copyright notice, see License below
-License: rra-public-domain
- The authors hereby relinquish any claim to any copyright that they may
- have in this work, whether granted under contract or by operation of law
- or international treaty, and hereby commit to the public, at large, that
- they shall not, at any time in the future, seek to enforce any copyright
- in this work against any person or entity, or prevent any person or
- entity from copying, publishing, distributing or creating derivative
- works of this work.
-
 Files: portable/snprintf.c tests/portable/snprintf-t.c
 Copyright: 1995 Patrick Powell
-  2000-2006 Russ Allbery <eagle@eyrie.org>
+  2000-2006, 2018 Russ Allbery <eagle@eyrie.org>
   2001 Hrvoje Niksic
   2009-2010 The Board of Trustees of the Leland Stanford Junior University
 License: Powell-snprintf
@@ -184,7 +174,7 @@ Files: python/_remctlmodule.c python/remctl.py.in python/setup.py.in
 Copyright: 2008 Thomas L. Kula <kula@tproa.net>
   2008, 2011-2012, 2014
     The Board of Trustees of the Leland Stanford Junior University
-  2014 Russ Allbery <eagle@eyrie.org>
+  2014, 2018 Russ Allbery <eagle@eyrie.org>
 License: MIT-Kula
  Permission to use, copy, modify, and distribute this software and its
  documentation for any purpose and without fee is hereby granted,
@@ -203,6 +193,7 @@ License: MIT-Kula
 Files: ruby/remctl.c
 Copyright: 2010 Anthony M. Martinez <twopir@nmt.edu>
   2010-2013 The Board of Trustees of the Leland Stanford Junior University
+  2018 Russ Allbery <eagle@eyrie.org>
 License: MIT-Martinez
  Permission to use, copy, modify, and distribute this software and its
  documentation for any purpose and without fee is hereby granted,
