@@ -1,5 +1,10 @@
                        User-Visible remctl Changes
 
+remctl 3.16 (unreleased)
+
+    Check for minimum versions of Perl or Python during configure if
+    building the Perl or Python bindings is requested.
+
 remctl 3.15 (2018-05-05)
 
     Fix a bug where output could have been truncated for a command run by

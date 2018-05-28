@@ -164,7 +164,7 @@ AC_ARG_ENABLE([perl],
     [AS_IF([test x"$enableval" = xyes], [build_perl=yes])])
 AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
 AS_IF([test x"$build_perl" = xyes],
-    [AC_PATH_PROG([PERL], [perl])
+    [RRA_PROG_PERL([5.008])
      PERL_LDFLAGS=`"$PERL" -MConfig -e 'print $Config{lddlflags}'`])
 AC_SUBST([PERL_LDFLAGS])
 
@@ -187,6 +187,8 @@ AC_ARG_ENABLE([python],
     [AC_HELP_STRING([--enable-python], [Build Python libremctl bindings])],
     [AS_IF([test x"$enableval" = xyes], [build_python=yes])])
 AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
+AS_IF([test x"$build_perl" = xyes],
+    [RRA_PROG_PYTHON([2.3], [])])
 
 dnl Whether to build the Ruby bindings.
 build_ruby=
