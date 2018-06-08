@@ -703,7 +703,7 @@ php/modules/remctl.so: php/config.m4 php/php_remctl.h \
 	fi
 	cd php && $(PHPIZE) --clean && $(PHPIZE)
 	cd php && ./configure CC='$(CC)' CPPFLAGS='$(CPPFLAGS)' \
-	    CFLAGS='$(AM_CFLAGS)' LDFLAGS='$(LDFLAGS)'
+	    CFLAGS='$(CFLAGS)' LDFLAGS='$(LDFLAGS)'
 	cd php && $(MAKE) CFLAGS='$(CFLAGS) $(PHP_WARNINGS)'
 
 # PHP's build system uses INSTALL_ROOT where everyone else uses DESTDIR.
