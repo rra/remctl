@@ -346,13 +346,13 @@ RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
 	-Wno-unknown-warning-option
 
 warnings:
-	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
+	$(MAKE) V=0 AM_CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
 	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)'		\
 	    PERL_CFLAGS_EXTRA='$(PERL_WARNINGS)'		\
 	    PHP_CFLAGS_EXTRA='$(PHP_WARNINGS)'			\
 	    PYTHON_CFLAGS_EXTRA='$(PYTHON_WARNINGS)'		\
 	    RUBY_CFLAGS_EXTRA='$(RUBY_WARNINGS)'
-	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)' \
+	$(MAKE) V=0 AM_CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)' \
 	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
@@ -673,12 +673,12 @@ perl/lib/Net/Remctl.o: $(srcdir)/perl/lib/Net/Remctl.pm			 \
 	fi
 	cp -R $(srcdir)/tests/tap/perl/* perl/t/lib/
 	rm -f perl/lib/Net/Remctl.o
-	cd perl && perl Build.PL					\
-	    --config cc='$(CC)'						\
-	    --config lddlflags='$(PERL_LDFLAGS_FULL)'			\
-	    --config optimize='$(CFLAGS) $(PERL_CFLAGS_EXTRA)'		\
-	    --extra-compiler-flags '$(PERL_CFLAGS)'			\
-	    --extra-linker-flags '-lremctl $(DEPEND_LIBS) $(LIBS)'	\
+	cd perl && perl Build.PL					    \
+	    --config cc='$(CC)'						    \
+	    --config lddlflags='$(PERL_LDFLAGS_FULL)'			    \
+	    --config optimize='$(CFLAGS) $(AM_CFLAGS) $(PERL_CFLAGS_EXTRA)' \
+	    --extra-compiler-flags '$(PERL_CFLAGS)'			    \
+	    --extra-linker-flags '-lremctl $(DEPEND_LIBS) $(LIBS)'	    \
 	    $(REMCTL_PERL_FLAGS)
 	cd perl && ./Build
 
@@ -703,8 +703,8 @@ php/modules/remctl.so: php/config.m4 php/php_remctl.h \
 	fi
 	cd php && $(PHPIZE) --clean && $(PHPIZE)
 	cd php && ./configure CC='$(CC)' CPPFLAGS='$(CPPFLAGS)' \
-	    CFLAGS='$(AM_CFLAGS)' LDFLAGS='$(LDFLAGS)'
-	cd php && $(MAKE) CFLAGS='$(CFLAGS) $(PHP_WARNINGS)'
+	    CFLAGS='$(CFLAGS)' LDFLAGS='$(LDFLAGS)'
+	cd php && $(MAKE) CFLAGS='$(CFLAGS) $(AM_CFLAGS) $(PHP_WARNINGS)'
 
 # PHP's build system uses INSTALL_ROOT where everyone else uses DESTDIR.
 install-data-local-php: php/modules/remctl.so
@@ -730,7 +730,8 @@ stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py	\
 	fi
 	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		\
 	    cd python							\
-		&& CC='$(CC)' BASECFLAGS='$(CPPFLAGS) $(CFLAGS)'	\
+		&& CC='$(CC)'						\
+		   BASECFLAGS='$(CPPFLAGS) $(CFLAGS) $(AM_CFLAGS)'	\
 		   CFLAGS='$(PYTHON_CFLAGS_EXTRA)'			\
 		   "$$python" setup.py build				\
 		&& cd .. ;						\
@@ -763,8 +764,9 @@ endif
 # The following section sets up the Ruby bindings for remctl.
 
 # CFLAGS to pass to the Ruby build.
-RUBY_CFLAGS = -I$(abs_top_builddir) -I$(abs_top_srcdir) \
-	-I$(abs_top_srcdir)/client $(CPPFLAGS) $(CFLAGS) $(RUBY_CFLAGS_EXTRA)
+RUBY_CFLAGS = -I$(abs_top_builddir) -I$(abs_top_srcdir)			\
+	-I$(abs_top_srcdir)/client $(CPPFLAGS) $(CFLAGS) $(AM_CFLAGS)	\
+	$(RUBY_CFLAGS_EXTRA)
 
 # Always enable verbose builds, since we want them for automated builds and
 # the two lines aren't important to suppress for people who want quiet

@@ -5,6 +5,11 @@ remctl 3.16 (unreleased)
     Check for minimum versions of Perl or Python during configure if
     building the Perl or Python bindings is requested.
 
+    More correctly handle user-supplied CFLAGS in combination with make
+    warnings when building the PHP bindings.  Add the warning flags to
+    AM_CFLAGS instead of CFLAGS and pass user-supplied CFLAGS through to
+    configure (but not the warning flags).  Thanks, Ken Dreyer.
+
 remctl 3.15 (2018-05-05)
 
     Fix a bug where output could have been truncated for a command run by
