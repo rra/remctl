@@ -49,6 +49,7 @@
 /php/config.m4
 /php/config.nice
 /php/config.sub
+/php/configure.ac
 /php/configure.in
 /php/install-sh
 /php/ltmain.sh
