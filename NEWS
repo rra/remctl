@@ -10,6 +10,10 @@ remctl 3.16 (unreleased)
     AM_CFLAGS instead of CFLAGS and pass user-supplied CFLAGS through to
     configure (but not the warning flags).  Thanks, Ken Dreyer.
 
+    Fix Kerberos library probing with --enable-reduced-depends and
+    correctly suppress probing for Kerberos library features when no
+    Kerberos library is present.
+
 remctl 3.15 (2018-05-05)
 
     Fix a bug where output could have been truncated for a command run by

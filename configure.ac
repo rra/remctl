@@ -54,7 +54,7 @@ AC_SEARCH_LIBS([socket], [socket], [],
 
 dnl Kerberos portability checks.
 RRA_LIB_KRB5_OPTIONAL
-AS_IF([test x"$rra_use_KRB5" != xfalse],
+AS_IF([test x"$rra_use_KRB5" = xtrue],
     [RRA_LIB_KRB5_SWITCH
      AC_CHECK_FUNCS([krb5_free_default_realm \
          krb5_get_init_creds_opt_alloc \
