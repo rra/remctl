@@ -35,6 +35,7 @@ Options:\n\
     -h            Display this help\n\
     -p <port>     remctld port (default: 4373 falling back to 4444)\n\
     -s <service>  remctld service principal (default: host/<host>)\n\
+    -t <timeout>  client timeout in seconds (default: 0, disable timeout)\n\
     -v            Display the version of remctl\n";
 
 
@@ -123,6 +124,7 @@ main(int argc, char *argv[])
     const char *service_name = NULL;
     char *end;
     long tmp_port;
+    time_t timeout = 0;
     unsigned short port = 0;
     struct remctl *r;
     int errorcode = 0;
@@ -139,7 +141,7 @@ main(int argc, char *argv[])
      * Non-GNU getopt will treat the + as a supported option, which is handled
      * below.
      */
-    while ((option = getopt(argc, argv, "+b:dhp:s:v")) != EOF) {
+    while ((option = getopt(argc, argv, "+b:dhp:s:t:v")) != EOF) {
         switch (option) {
         case 'b':
             source = optarg;
@@ -157,6 +159,11 @@ main(int argc, char *argv[])
             break;
         case 's':
             service_name = optarg;
+            break;
+        case 't':
+            timeout = strtol(optarg, &end, 10);
+            if (*end != '\0' || timeout < 0)
+                die("invalid timeout value %ld", timeout);
             break;
         case 'v':
             printf("%s\n", PACKAGE_STRING);
@@ -217,6 +224,10 @@ main(int argc, char *argv[])
     r = remctl_new();
     if (r == NULL)
         sysdie("cannot initialize remctl connection");
+
+    if (timeout != 0) 
+        remctl_set_timeout(r, timeout);
+
     if (source != NULL)
         if (!remctl_set_source_ip(r, source))
             die("%s", remctl_error(r));
