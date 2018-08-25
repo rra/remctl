@@ -2,6 +2,9 @@
 
 remctl 3.16 (unreleased)
 
+    Add -t flag to the remctl client to specify the network timeout.
+    Thanks, Remi Ferrand.
+
     Check for minimum versions of Perl or Python during configure if
     building the Perl or Python bindings is requested.
 

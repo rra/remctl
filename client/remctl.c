@@ -35,7 +35,7 @@ Options:\n\
     -h            Display this help\n\
     -p <port>     remctld port (default: 4373 falling back to 4444)\n\
     -s <service>  remctld service principal (default: host/<host>)\n\
-    -t <timeout>  client timeout in seconds (default: 0, disable timeout)\n\
+    -t <timeout>  Timeout in seconds (default: 0, disable timeout)\n\
     -v            Display the version of remctl\n";
 
 
@@ -123,8 +123,8 @@ main(int argc, char *argv[])
     const char *source = NULL;
     const char *service_name = NULL;
     char *end;
-    long tmp_port;
     time_t timeout = 0;
+    long tmp_port, tmp_timeout;
     unsigned short port = 0;
     struct remctl *r;
     int errorcode = 0;
@@ -161,9 +161,10 @@ main(int argc, char *argv[])
             service_name = optarg;
             break;
         case 't':
-            timeout = strtol(optarg, &end, 10);
-            if (*end != '\0' || timeout < 0)
-                die("invalid timeout value %ld", timeout);
+            tmp_timeout = strtol(optarg, &end, 10);
+            if (*end != '\0' || tmp_timeout < 0)
+                die("invalid timeout value %ld", tmp_timeout);
+            timeout = (time_t) tmp_timeout;
             break;
         case 'v':
             printf("%s\n", PACKAGE_STRING);
