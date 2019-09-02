@@ -19,7 +19,6 @@ client/timeout          valgrind libtool
 docs/pod
 docs/pod-spelling
 docs/spdx-license
-docs/urls
 perl/module-version
 portable/asprintf       valgrind
 portable/daemon         valgrind
@@ -54,6 +53,7 @@ server/sudo             valgrind
 server/summary          valgrind libtool
 server/user
 server/version          valgrind libtool
+style/obsolete-strings
 util/buffer             valgrind
 util/gss-tokens         valgrind
 util/messages           valgrind

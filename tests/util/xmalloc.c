@@ -34,6 +34,7 @@
 #include <config.h>
 #include <portable/system.h>
 
+#include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #ifdef HAVE_SYS_TIME_H
@@ -94,6 +95,7 @@ test_realloc(size_t size)
     char *buffer;
     size_t i;
 
+    assert(size > 10);
     buffer = xmalloc(10);
     if (buffer == NULL)
         return 0;
@@ -101,8 +103,7 @@ test_realloc(size_t size)
     buffer = xrealloc(buffer, size);
     if (buffer == NULL)
         return 0;
-    if (size > 0)
-        memset(buffer + 10, 2, size - 10);
+    memset(buffer + 10, 2, size - 10);
     for (i = 0; i < 10; i++)
         if (buffer[i] != 1)
             return 0;

@@ -4,7 +4,11 @@
 // aren't in rra-c-util, for ease of sharing between projects.  The ones that
 // don't apply to a particular project should hopefully be harmless.
 //
-// Copyright 2018 Russ Allbery <eagle@eyrie.org>
+// To determine the correct suppression to add for a new error, run cppcheck
+// with the --xml flag and then add a suppression for the error id, file
+// location, and line.
+//
+// Copyright 2018-2019 Russ Allbery <eagle@eyrie.org>
 //
 // Copying and distribution of this file, with or without modification, are
 // permitted in any medium without royalty provided the copyright notice and
@@ -22,6 +26,10 @@ knownConditionTrueFalse:portable/getopt.c:146
 
 // False positive since the string comes from a command-line define.
 knownConditionTrueFalse:tests/tap/remctl.c:79
+
+// Stored in the returned ai struct, but cppcheck can't see the assignment
+// because of the struct sockaddr * cast.
+memleak:portable/getaddrinfo.c:236
 
 // Setting the variable to NULL explicitly after deallocation.
 redundantAssignment:tests/pam-util/options-t.c

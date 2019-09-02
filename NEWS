@@ -17,6 +17,15 @@ remctl 3.16 (unreleased)
     correctly suppress probing for Kerberos library features when no
     Kerberos library is present.
 
+    Update to rra-c-util 8.0:
+
+    * Skip more Automake files in tests.
+    * Fix warnings with current versions of GCC and cppcheck.
+
+    Update to C TAP Harness 4.5:
+
+    * Fix error checking for malloc failure in bstrndup.
+
 remctl 3.15 (2018-05-05)
 
     Fix a bug where output could have been truncated for a command run by

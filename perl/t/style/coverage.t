@@ -35,10 +35,11 @@ use warnings;
 
 use lib 't/lib';
 
-use File::Spec;
-use Test::More;
 use Test::RRA qw(skip_unless_author use_prereq);
 use Test::RRA::Config qw($COVERAGE_LEVEL @COVERAGE_SKIP_TESTS);
+
+use File::Spec;
+use Test::More;
 
 # Skip code coverage unless author tests are enabled since it takes a long
 # time, is sensitive to versions of various libraries, and does not detect

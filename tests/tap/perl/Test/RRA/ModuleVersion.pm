@@ -33,7 +33,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '7.01';
+    $VERSION = '8.00';
 }
 
 # A regular expression matching the version string for a module using the
@@ -129,21 +129,23 @@ sub _module_version {
 #  Throws: Text exception on I/O failure or inability to find version
 sub _update_module_version {
     my ($file, $version) = @_;
-    open(my $in, q{<}, $file) or die "$0: cannot open $file: $!\n";
-    open(my $out, q{>}, "$file.new")
-      or die "$0: cannot create $file.new: $!\n";
 
-    # If the version starts with v, use it without quotes.  Otherwise, quote
-    # it to prevent removal of trailing zeroes.
-    if ($version !~ m{ \A v }xms) {
-        $version = "'$version'";
+    # The old-style syntax may require different quoting.  If the version
+    # starts with v, use it without quotes.  Otherwise, quote it to prevent
+    # removal of trailing zeroes.
+    my $old_version = $version;
+    if ($old_version !~ m{ \A v }xms) {
+        $old_version = "'$old_version'";
     }
 
     # Scan for the version and replace it.
+    open(my $in,  q{<}, $file) or die "$0: cannot open $file: $!\n";
+    open(my $out, q{>}, "$file.new")
+      or die "$0: cannot create $file.new: $!\n";
   SCAN:
     while (defined(my $line = <$in>)) {
         if (   $line =~ s{ $REGEX_VERSION_PACKAGE }{$1$version$3}xms
-            || $line =~ s{ $REGEX_VERSION_OLD     }{$1$version$3}xms)
+            || $line =~ s{ $REGEX_VERSION_OLD     }{$1$old_version$3}xms)
         {
             print {$out} $line or die "$0: cannot write to $file.new: $!\n";
             last SCAN;
@@ -153,8 +155,8 @@ sub _update_module_version {
 
     # Copy the rest of the input file to the output file.
     print {$out} <$in> or die "$0: cannot write to $file.new: $!\n";
-    close($out) or die "$0: cannot flush $file.new: $!\n";
-    close($in)  or die "$0: error reading from $file: $!\n";
+    close($out)        or die "$0: cannot flush $file.new: $!\n";
+    close($in)         or die "$0: error reading from $file: $!\n";
 
     # All done.  Rename the new file over top of the old file.
     rename("$file.new", $file)
@@ -267,7 +269,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2016 Russ Allbery <eagle@eyrie.org>
+Copyright 2016, 2018, 2019 Russ Allbery <eagle@eyrie.org>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
