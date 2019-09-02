@@ -1,6 +1,6 @@
 --TEST--
 Check setting credential cache
---CREDIT--
+--CREDITS--
 Russ Allbery
 # Copyright 2011
 #     The Board of Trustees of the Leland Stanford Junior University

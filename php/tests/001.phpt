@@ -1,6 +1,6 @@
 --TEST--
 Check for remctl module
---CREDIT--
+--CREDITS--
 Russ Allbery
 # Copyright 2008, 2010
 #     The Board of Trustees of the Leland Stanford Junior University
