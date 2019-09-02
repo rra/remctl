@@ -6,9 +6,22 @@ compiler:
   - gcc
   - clang
 
+# Perl::Tidy, Perl::Critic, and Test::Perl::Critic are installed
+# separately to get the latest version, since they sometimes change
+# formatting and style rules compared to the version in Ubuntu.
+# Test::MinimumVersion has to be included since it installs Perl::Critic.
+#
+# Allow the installation of Perl::Critic and Test::Perl::Critic to fail,
+# since this seems to fail regularly on Travis-CI.  (We'll just skip the
+# test if it won't install.)
+
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y krb5-config libevent-dev libkrb5-dev libmodule-build-perl libpcre3-dev libtest-pod-perl libtest-minimumversion-perl libtest-pod-coverage-perl libtest-strict-perl libtest-synopsis-perl perl php5-cli pkg-config python-all-dev ruby-all-dev
+  - sudo apt-get install -y krb5-config libevent-dev libkrb5-dev libmodule-build-perl libpcre3-dev libtest-pod-perl libtest-pod-coverage-perl libtest-strict-perl libtest-synopsis-perl perl php5-cli pkg-config python-all-dev ruby-all-dev
+  - sudo cpanm Perl::Tidy
+  - sudo cpanm Perl::Critic         || true
+  - sudo cpanm Test::MinimumVersion || true
+  - sudo cpanm Test::Perl::Critic   || true
 env: AUTHOR_TESTING=1
 script: ./bootstrap && ./configure --enable-perl --enable-php --enable-python --enable-ruby && make warnings && make check
 
