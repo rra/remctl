@@ -63,7 +63,10 @@ PERL_FILES = perl/Build.PL perl/MANIFEST perl/MANIFEST.SKIP		   \
 PHP_FILES = php/README php/php_remctl.c php/php5_remctl.c php/test-wrapper \
 	php/tests/001.phpt php/tests/002.phpt php/tests/003.phpt	   \
 	php/tests/004.phpt php/tests/005.phpt php/tests/006.phpt
-PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
+PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c	\
+	python/remctl.py python/setup.py python/test_remctl.py		\
+	python/tests/data/cmd-hello python/tests/data/cmd-sleep		\
+	python/tests/data/remctl.conf
 RUBY_FILES = ruby/README ruby/remctl.c
 
 # Directories that have to be created in builddir != srcdir builds before
@@ -299,8 +302,9 @@ clean-local:
 	set -e; if [ -f "ruby/Makefile" ] ; then	\
 	    cd ruby && $(MAKE) distclean ;		\
 	fi
-	rm -rf perl/t/config perl/t/lib/Test/RRA php/tmp-php.ini \
-	    python/build python/dist python/*.pyc
+	rm -rf perl/t/config perl/t/lib/Test/RRA php/tmp-php.ini	\
+	    python/build python/dist python/*.pyc python/tests/config	\
+	    python/tests/tmp 
 
 # Also clean the Perl, PHP, and Python directories on make distclean if
 # needed.
@@ -587,40 +591,48 @@ TEST_RPATH = $(abs_top_builddir)/client/.libs
 
 check-local: $(check_PROGRAMS)
 	tests/runtests -l '$(abs_top_srcdir)/tests/TESTS'
-	@set -e; if [ -f perl/Build ] ; then			\
-	    echo '' ;						\
-	    [ -d perl/t/config ] || mkdir perl/t/config ;	\
-	    if [ -f tests/config/keytab ] ; then		\
-		cp tests/config/keytab perl/t/config ;		\
-	    fi ;						\
-	    if [ -f tests/config/principal ] ; then		\
-		cp tests/config/principal perl/t/config ;	\
-	    fi ;						\
+	@set -e; if [ -f perl/Build ]; then			\
+	    echo '';						\
+	    [ -d perl/t/config ] || mkdir perl/t/config;	\
+	    if [ -f tests/config/keytab ]; then			\
+		cp tests/config/keytab perl/t/config;		\
+	    fi;							\
+	    if [ -f tests/config/principal ]; then		\
+		cp tests/config/principal perl/t/config;	\
+	    fi;							\
 	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH)		\
 		REMCTLD="$(abs_top_builddir)/server/remctld"	\
-		./Build test ;					\
+		./Build test;					\
 	fi
-	@set -e; if [ -f php/Makefile ] ; then				    \
-	    echo '' ;							    \
+	@set -e; if [ -f php/Makefile ]; then				    \
+	    echo '';							    \
 	    cd php && NO_INTERACTION=1 ./test-wrapper "$(abs_top_builddir)" \
-		"$(abs_top_srcdir)" ;					    \
+		"$(abs_top_srcdir)";					    \
 	fi
-	@set -e; if [ -f python/setup.py ] ; then		\
-	    echo '' ;						\
-	    echo 'Testing Python extension' ;			\
-	    for python in $(REMCTL_PYTHON_VERSIONS) ; do	\
-		v=`echo "$$python" | sed 's/^[^0-9]*//'` ;	\
-		cd python ;					\
-		LD_LIBRARY_PATH=$(TEST_RPATH)			\
-		    PYTHONPATH="`ls -d build/lib.*$$v`"		\
-		    "$$python" test_remctl.py ;			\
-		cd .. ;						\
-	    done ;						\
+	@set -e; if [ -f python/setup.py ]; then			\
+	    echo '';							\
+	    echo 'Testing Python extension';				\
+	    [ -d python/tests/config ] || mkdir python/tests/config;	\
+	    if [ -f tests/config/keytab ]; then				\
+		cp tests/config/keytab python/tests/config;		\
+	    fi;								\
+	    if [ -f tests/config/principal ]; then			\
+		cp tests/config/principal python/tests/config;		\
+	    fi;								\
+	    for python in $(REMCTL_PYTHON_VERSIONS); do			\
+		v=`echo "$$python" | sed 's/^[^0-9]*//'`;		\
+		cd python;						\
+		LD_LIBRARY_PATH=$(TEST_RPATH)				\
+		    PYTHONPATH="`ls -d build/lib.*$$v`"			\
+		    REMCTLD="$(abs_top_builddir)/server/remctld"	\
+		    "$$python" test_remctl.py;				\
+		cd ..;							\
+	    done;							\
 	fi
-	@set -e; if [ -f ruby/Makefile ] ; then		\
-	    echo '' ;					\
+	@set -e; if [ -f ruby/Makefile ]; then		\
+	    echo '';					\
 	    cd ruby && LD_LIBRARY_PATH=$(TEST_RPATH)	\
-		$(REMCTL_RUBY) -I. test_remctl.rb ;	\
+		$(REMCTL_RUBY) -I. test_remctl.rb;	\
 	fi
 
 # Used by maintainers to check the source code with cppcheck.

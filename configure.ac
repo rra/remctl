@@ -209,8 +209,6 @@ AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
 AC_CONFIG_FILES([tests/data/conf-simple])
 AS_IF([test x"$build_php" = xyes],
     [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])
-AS_IF([test x"$build_python" = xyes],
-    [AC_CONFIG_FILES([python/test_remctl.py])])
 AS_IF([test x"$build_ruby" = xyes],
     [AC_CONFIG_FILES([ruby/extconf.rb ruby/test_remctl.rb])])
 AC_CONFIG_HEADER([config.h])

@@ -1,7 +1,7 @@
 # test_remctl.py -- Test suite for remctl Python bindings
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2008, 2011-2012, 2014
+# Copyright 2008, 2011-2012, 2014, 2019
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # SPDX-License-Identifier: MIT
@@ -16,7 +16,7 @@ def needs_kerberos(func):
     Ignores failures in the annotated test method.
     """
     def wrapper(*args, **kw):
-        if not os.path.isfile('config/principal'):
+        if not os.path.isfile('tests/config/principal'):
             return True
         else:
             return func(*args, **kw)
@@ -26,7 +26,7 @@ def needs_kerberos(func):
 
 class TestRemctl(unittest.TestCase):
     def get_principal(self):
-        file = open('config/principal', 'r')
+        file = open('tests/config/principal', 'r')
         principal = file.read().rstrip()
         file.close()
         return principal
@@ -34,33 +34,34 @@ class TestRemctl(unittest.TestCase):
     @needs_kerberos
     def start_remctld(self):
         try:
-            os.mkdir('tmp')
-            os.remove('tmp/pid')
+            os.mkdir('tests/tmp')
+            os.remove('tests/tmp/pid')
         except OSError, (error, strerror):
             if error != errno.ENOENT and error != errno.EEXIST:
                 raise
         principal = self.get_principal()
         child = os.fork()
         if child == 0:
-            output = open('tmp/output', 'w')
+            output = open('tests/tmp/output', 'w')
             os.dup2(output.fileno(), 1)
             os.dup2(output.fileno(), 2)
-            os.chdir('@abs_top_srcdir@/tests')
-            os.execl('@abs_top_builddir@/server/remctld', 'remctld', '-m',
-                     '-p', '14373', '-s', principal, '-f', 'data/conf-simple',
-                     '-P', '@abs_top_builddir@/tests/tmp/pid', '-d', '-S',
-                     '-F', '-k', '@abs_top_builddir@/tests/config/keytab')
-        if not os.path.isfile('tmp/pid'):
+            remctld = os.environ.get("REMCTLD", "remctld")
+            os.execl(remctld, 'remctld', '-m',
+                     '-p', '14373', '-s', principal, '-f',
+                     'tests/data/remctl.conf',
+                     '-P', 'tests/tmp/pid', '-d', '-S',
+                     '-F', '-k', 'tests/config/keytab')
+        if not os.path.isfile('tests/tmp/pid'):
             time.sleep(1)
 
     def stop_remctld(self):
         try:
-            file = open('tmp/pid', 'r')
+            file = open('tests/tmp/pid', 'r')
             pid = file.read().rstrip()
             file.close()
             os.kill(int(pid), signal.SIGTERM)
             child, status = os.waitpid(int(pid), 0)
-            os.remove('tmp/pid')
+            os.remove('tests/tmp/pid')
         except IOError, (error, strerror):
             if error != errno.ENOENT:
                 raise
@@ -70,33 +71,32 @@ class TestRemctl(unittest.TestCase):
 
     @needs_kerberos
     def run_kinit(self):
-        os.environ['KRB5CCNAME'] = 'tmp/krb5cc_test'
+        os.environ['KRB5CCNAME'] = 'tests/tmp/krb5cc_test'
         self.principal = self.get_principal()
         commands = (
-            'kinit --no-afslog -k -t config/keytab ' + self.principal,
-            'kinit -k -t config/keytab ' + self.principal,
-            'kinit -t config/keytab ' + self.principal,
-            'kinit -k -K config/keytab ' + self.principal)
+            'kinit --no-afslog -k -t tests/config/keytab ' + self.principal,
+            'kinit -k -t tests/config/keytab ' + self.principal,
+            'kinit -t tests/config/keytab ' + self.principal,
+            'kinit -k -K tests/config/keytab ' + self.principal)
         for command in commands:
             if os.system(command + ' >/dev/null 2>&1 </dev/null') == 0:
                 return True
-        if not os.path.isfile('tmp/pid'):
+        if not os.path.isfile('tests/tmp/pid'):
             time.sleep(1)
-        stop_remctld()
+        self.stop_remctld()
         return False
 
     def setUp(self):
-        os.chdir('@abs_top_builddir@/tests')
         self.start_remctld()
         assert(self.run_kinit())
 
     @needs_kerberos
     def tearDown(self):
         self.stop_remctld()
-        os.remove('tmp/output')
+        os.remove('tests/tmp/output')
         try:
-            os.remove('tmp/krb5cc_test')
-            os.rmdir('tmp')
+            os.remove('tests/tmp/krb5cc_test')
+            os.rmdir('tests/tmp')
         except OSError, (error, strerror):
             if error != errno.ENOENT:
                 raise
@@ -198,7 +198,7 @@ class TestRemctlFull(TestRemctl):
             pass
         okay = False
         try:
-            r.set_ccache('tmp/krb5cc_test')
+            r.set_ccache('tests/tmp/krb5cc_test')
             okay = True
         except remctl.RemctlError, error:
             pass

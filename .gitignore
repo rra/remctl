@@ -63,7 +63,7 @@
 /python/MANIFEST
 /python/build
 /python/dist
-/python/test_remctl.py
+/python/tests/config/
 /ruby/doc/
 /ruby/extconf.rb
 /ruby/mkmf.log
