@@ -17,7 +17,7 @@ compiler:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y krb5-config libevent-dev libkrb5-dev libmodule-build-perl libpcre3-dev libtest-pod-perl libtest-pod-coverage-perl libtest-strict-perl libtest-synopsis-perl perl php-cli php-dev pkg-config python-all-dev ruby-all-dev
+  - sudo apt-get install -y cpanminus krb5-config libevent-dev libkrb5-dev libmodule-build-perl libpcre3-dev libtest-pod-perl libtest-pod-coverage-perl libtest-strict-perl libtest-synopsis-perl perl php-cli php-dev pkg-config python-all-dev ruby-all-dev
   - sudo cpanm Perl::Tidy
   - sudo cpanm Perl::Critic         || true
   - sudo cpanm Test::MinimumVersion || true
