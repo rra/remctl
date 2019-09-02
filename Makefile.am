@@ -721,7 +721,7 @@ endif
 # in which case we need to copy various files from the source directory and
 # make sure they're up to date.
 
-stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py	\
+stamp-python: $(srcdir)/python/_remctlmodule.c $(srcdir)/python/remctl.py \
 		client/libremctl.la
 	set -e; if [ x'$(builddir)' != x'$(srcdir)' ] ; then	\
 	    for f in $(PYTHON_FILES) ; do			\

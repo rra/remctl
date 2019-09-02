@@ -1,7 +1,7 @@
 # Ignore list for Git.  -*- conf -*-
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
+# Copyright 2015-2016, 2018-2019 Russ Allbery <eagle@eyrie.org>
 # Copyright 2008-2014
 #     Board of Trustees of the Leland Stanford Junior University
 #
@@ -63,7 +63,6 @@
 /python/MANIFEST
 /python/build
 /python/dist
-/python/remctl.py
 /python/setup.py
 /python/test_remctl.py
 /ruby/doc/

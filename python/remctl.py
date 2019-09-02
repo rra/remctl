@@ -5,10 +5,10 @@
 # exposes exactly the libremctl API.
 #
 # Original implementation by Thomas L. Kula <kula@tproa.net>
-# Copyright 2008 Thomas L. Kula <kula@tproa.net>
+# Copyright 2014, 2019 Russ Allbery <eagle@eyrie.org>
 # Copyright 2008, 2011-2012
 #     The Board of Trustees of the Leland Stanford Junior University
-# Copyright 2014 Russ Allbery <eagle@eyrie.org>
+# Copyright 2008 Thomas L. Kula <kula@tproa.net>
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose and without fee is hereby granted, provided
@@ -33,7 +33,7 @@
    using Kerberos v5 authentication.
 """
 
-VERSION = '@PACKAGE_VERSION@'
+VERSION = '3.16'
 
 import _remctl
 
