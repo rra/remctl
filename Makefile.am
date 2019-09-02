@@ -1,7 +1,7 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
+# Copyright 2015-2016, 2018-2019 Russ Allbery <eagle@eyrie.org>
 # Copyright 2016 Dropbox, Inc.
 # Copyright 2006-2014
 #     The Board of Trustees of the Leland Stanford Junior University
@@ -339,7 +339,7 @@ PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
 	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal	\
 	-Wno-strict-overflow -Wno-conversion -Wno-missing-declarations	\
-	-Wno-double-promotion -Wno-cast-align -Wno-extra-semi
+	-Wno-double-promotion -Wno-cast-align
 PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
 	-Wno-shift-sign-overflow -Wno-gnu-statement-expression		    \
