@@ -1,9 +1,10 @@
 # Python remctl extension build rules.
 #
 # Original implementation by Thomas L. Kula <kula@tproa.net>
-# Copyright 2008 Thomas L. Kula <kula@tproa.net>
+# Copyright 2019 Russ Allbery <eagle@eyrie.org>
 # Copyright 2008
 #     The Board of Trustees of the Leland Stanford Junior University
+# Copyright 2008 Thomas L. Kula <kula@tproa.net>
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose and without fee is hereby granted, provided
@@ -36,9 +37,11 @@ most of the features and complexity of either.
 This module provides Python bindings to the remctl client
 library."""
 
+import os
+
 from distutils.core import setup, Extension
 
-VERSION = '@PACKAGE_VERSION@'
+VERSION = '3.16'
 
 doclines = __doc__.split("\n")
 classifiers = """\
@@ -62,22 +65,19 @@ def parse_flags(prefix, flags):
         result.append(opt[len(prefix):])
     return result
 
-# Build the list of include directories, libraries to link with, and
-# directories to add to the search paths based on the Autoconf results.
-ldflags = '@GSSAPI_LDFLAGS@' + ' ' + '@GSSAPI_LIBS@' + ' ' + '@LDFLAGS@'
-include = parse_flags('-I', '@GSSAPI_CPPFLAGS@' + ' ' + '@CPPFLAGS@')
-libs    = parse_flags('-l', '@GSSAPI_LIBS@' + ' ' + '@LIBS@')
-dirs    = parse_flags('-L', ldflags)
-libs = ['remctl'] + libs
-dirs.append('@abs_top_builddir@/client/.libs')
-include.append('@abs_top_srcdir@/client')
+# When built as part of the remctl distribution, the top-level build
+# configuration will set REMCTL_PYTHON_LIBS to any additional flags that
+# should be used in the link.  Extract those flags and pass them into the
+# extension configuration.  When built stand-alone, use the defaults and
+# assume we don't need special contortions to link with libremctl.
+library_dirs = parse_flags('-L', os.environ.get("REMCTL_PYTHON_LIBS", ""))
+libraries = parse_flags('-l', os.environ.get("REMCTL_PYTHON_LIBS", ""))
 
 extension = Extension('_remctl',
                       sources       = [ '_remctlmodule.c' ],
                       define_macros = [ ('VERSION', '"' + VERSION + '"') ],
-                      include_dirs  = include,
-                      libraries     = libs,
-                      library_dirs  = dirs)
+                      libraries     = ['remctl'] + libraries,
+                      library_dirs  = library_dirs)
 
 setup(name             = 'pyremctl',
       version          = VERSION,

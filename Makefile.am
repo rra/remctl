@@ -721,20 +721,26 @@ endif
 # in which case we need to copy various files from the source directory and
 # make sure they're up to date.
 
+# CFLAGS and LDFLAGS to pass to the Python build.
+PYTHON_CFLAGS = -I$(abs_top_srcdir)/client $(CPPFLAGS) $(CFLAGS) $(AM_CFLAGS)
+PYTHON_LDFLAGS_FULL = -L$(abs_top_builddir)/client/.libs $(GSSAPI_LDFLAGS) \
+	$(LDFLAGS)
+
 stamp-python: $(srcdir)/python/_remctlmodule.c $(srcdir)/python/remctl.py \
 		client/libremctl.la
-	set -e; if [ x'$(builddir)' != x'$(srcdir)' ] ; then	\
-	    for f in $(PYTHON_FILES) ; do			\
-		cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
+	set -e; if [ x'$(builddir)' != x'$(srcdir)' ]; then	\
+	    for f in $(PYTHON_FILES); do			\
+		cp "$(srcdir)/$$f" "$(builddir)/$$f";		\
 	    done						\
 	fi
-	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		\
-	    cd python							\
-		&& CC='$(CC)'						\
-		   BASECFLAGS='$(CPPFLAGS) $(CFLAGS) $(AM_CFLAGS)'	\
-		   CFLAGS='$(PYTHON_CFLAGS_EXTRA)'			\
-		   "$$python" setup.py build				\
-		&& cd .. ;						\
+	set -e; for python in $(REMCTL_PYTHON_VERSIONS); do	\
+	    cd python;						\
+	    CC='$(CC)' BASECFLAGS='$(PYTHON_CFLAGS)'		\
+		CFLAGS='$(PYTHON_CFLAGS_EXTRA)'			\
+		LDFLAGS='$(PYTHON_LDFLAGS_FULL)'		\
+		REMCTL_PYTHON_LIBS='$(GSSAPI_LIBS)'		\
+		"$$python" setup.py build;			\
+	    cd ..;						\
 	done
 	touch stamp-python
 
