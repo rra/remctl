@@ -93,7 +93,7 @@ sub _build_help {
 
         # Now add any nested data, if there was any.
         if ($more_syntax_ref) {
-            push(@syntax, map { $command . q{ } . $_ } @{$more_syntax_ref});
+            push(@syntax,  map { $command . q{ } . $_ } @{$more_syntax_ref});
             push(@summary, @{$more_summary_ref});
         }
     }
@@ -360,6 +360,7 @@ sub run {
     # If configured to read data from standard input, do so, and splice that
     # into the argument list.  Save the index of the stdin argument for later
     # since the error message for invalid arguments changes.
+    ## no critic (InputOutput::ProhibitExplicitStdin)
     my $stdin_index;
     my $args_count = scalar(@{$args_ref});
     if (defined($config->{stdin})) {
@@ -371,6 +372,7 @@ sub run {
         splice(@{$args_ref}, $stdin_index - 1, 0, $stdin);
         $args_count = scalar(@{$args_ref});
     }
+    ## use critic
 
     # Check the number of arguments if desired.
     if (defined($config->{args_max}) && $config->{args_max} < $args_count) {
@@ -680,6 +682,8 @@ supports any number of arguments.
 Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
+
+Copyright 2019 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2012-2014 The Board of Trustees of the Leland Stanford Junior
 University
