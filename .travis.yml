@@ -28,7 +28,9 @@ before_install:
   - sudo cpanm Perl::Critic         || true
   - sudo cpanm Test::MinimumVersion || true
   - sudo cpanm Test::Perl::Critic   || true
-env: AUTHOR_TESTING=1
+env:
+  - AUTHOR_TESTING=1
+  - C_TAP_VERBOSE=1
 script: ./bootstrap && ./configure --enable-perl --enable-php --enable-python --enable-ruby && make warnings && make check
 
 branches:
