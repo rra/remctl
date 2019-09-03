@@ -60,9 +60,12 @@
 /php/php_test_results_*.txt
 /php/run-tests.php
 /php/tmp-php.ini
+/python/.eggs/
+/python/_remctl.so
 /python/MANIFEST
 /python/build
 /python/dist
+/python/pyremctl.egg-info/
 /python/tests/config/
 /ruby/doc/
 /ruby/extconf.rb

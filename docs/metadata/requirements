@@ -36,8 +36,9 @@ or later and phpize, plus any other programs that phpize requires.  PHP
 only tested on PHP 7.x and later.
 
 To build the Python bindings for the C client library, you will need
-Python 2.7.  Earlier versions may work back to possibly Python 2.3 may
-work, but are not tested.  Python 3 is not (yet) supported.
+Python 2.7 and the setuptools, pytest, and pytest-runner modules.  Earlier
+versions may work back to possibly Python 2.3 may work, but are not
+tested.  Python 3 is not (yet) supported.
 
 To build the Ruby bindings for the C client library, you will need Ruby
 1.8 or later (primarily tested with 2.5 and later).

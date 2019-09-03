@@ -39,7 +39,7 @@ library."""
 
 import os
 
-from distutils.core import setup, Extension
+from setuptools import Extension, setup
 
 VERSION = "3.16"
 
@@ -94,6 +94,8 @@ kwargs = {
     "description": doclines[0],
     "long_description": "\n".join(doclines[2:]),
     "license": "MIT",
+    "setup_requires": ["pytest-runner"],
+    "tests_require": ["pytest"],
     "classifiers": filter(None, classifiers.split("\n")),
     "platforms": "any",
     "keywords": ["remctl", "kerberos", "remote", "command"],

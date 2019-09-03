@@ -64,9 +64,9 @@ PHP_FILES = php/README php/php_remctl.c php/php5_remctl.c php/test-wrapper \
 	php/tests/001.phpt php/tests/002.phpt php/tests/003.phpt	   \
 	php/tests/004.phpt php/tests/005.phpt php/tests/006.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c	\
-	python/remctl.py python/setup.py python/test_remctl.py		\
+	python/remctl.py python/setup.cfg python/setup.py		\
 	python/tests/data/cmd-hello python/tests/data/cmd-sleep		\
-	python/tests/data/remctl.conf
+	python/tests/data/remctl.conf python/tests/remctl_test.py
 RUBY_FILES = ruby/README ruby/remctl.c
 
 # Directories that have to be created in builddir != srcdir builds before
@@ -74,6 +74,7 @@ RUBY_FILES = ruby/README ruby/remctl.c
 PERL_DIRECTORIES = perl perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
 	perl/t/api perl/t/backend perl/t/data perl/t/docs perl/t/lib	 \
 	perl/t/lib/Test perl/t/style
+PYTHON_DIRECTORIES = python python/tests python/tests/data
 
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .gitignore .travis.yml LICENSE Makefile.w32 README.md	    \
@@ -620,14 +621,10 @@ check-local: $(check_PROGRAMS)
 	    if [ -f tests/config/principal ]; then			\
 		cp tests/config/principal python/tests/config;		\
 	    fi;								\
-	    for python in $(REMCTL_PYTHON_VERSIONS); do			\
-		v=`echo "$$python" | sed 's/^[^0-9]*//'`;		\
-		cd python;						\
+	    cd python && for python in $(REMCTL_PYTHON_VERSIONS); do	\
 		LD_LIBRARY_PATH=$(TEST_RPATH)				\
-		    PYTHONPATH="`ls -d build/lib.*$$v`"			\
 		    REMCTLD="$(abs_top_builddir)/server/remctld"	\
-		    "$$python" test_remctl.py;				\
-		cd ..;							\
+		    "$$python" setup.py test;				\
 	    done;							\
 	fi
 	@set -e; if [ -f ruby/Makefile ]; then		\
@@ -741,10 +738,13 @@ PYTHON_LDFLAGS_FULL = -L$(abs_top_builddir)/client/.libs $(GSSAPI_LDFLAGS) \
 
 stamp-python: $(srcdir)/python/_remctlmodule.c $(srcdir)/python/remctl.py \
 		client/libremctl.la
-	set -e; if [ x'$(builddir)' != x'$(srcdir)' ]; then	\
-	    for f in $(PYTHON_FILES); do			\
-		cp "$(srcdir)/$$f" "$(builddir)/$$f";		\
-	    done						\
+	set -e; if [ x'$(builddir)' != x'$(srcdir)' ]; then		\
+	    for d in $(PYTHON_DIRECTORIES); do				\
+		[ -d "$(builddir)/$$d" ] || mkdir "$(builddir)/$$d";	\
+	    done;							\
+	    for f in $(PYTHON_FILES); do				\
+		cp "$(srcdir)/$$f" "$(builddir)/$$f";			\
+	    done							\
 	fi
 	set -e; for python in $(REMCTL_PYTHON_VERSIONS); do	\
 	    cd python;						\
