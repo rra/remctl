@@ -55,10 +55,13 @@ Topic :: Security
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
-# Helper function to parse a string of compiler flags for ones of interest and
-# strip the flag off, returning the string that the distutils Extension
-# interface expects.
 def parse_flags(prefix, flags):
+    """Parse a string of compiler or linker flags for items of interest.
+
+    Helper function to parse a string of compiler flags for ones of interest
+    and strip the flag off, returning the list that the distutils Extension
+    interface expects.
+    """
     result = []
     filtered = [opt for opt in flags.split() if opt.startswith(prefix)]
     for opt in filtered:
@@ -82,18 +85,20 @@ extension = Extension(
     library_dirs=library_dirs,
 )
 
-setup(
-    name="pyremctl",
-    version=VERSION,
-    author="Thomas L. Kula",
-    author_email="kula@tproa.net",
-    url="https://www.eyrie.org/~eagle/software/remctl/",
-    description=doclines[0],
-    long_description="\n".join(doclines[2:]),
-    license="MIT",
-    classifiers=filter(None, classifiers.split("\n")),
-    platforms="any",
-    keywords=["remctl", "kerberos", "remote", "command"],
-    ext_modules=[extension],
-    py_modules=["remctl"],
-)
+kwargs = {
+    "name": "pyremctl",
+    "version": VERSION,
+    "author": "Thomas L. Kula",
+    "author_email": "kula@tproa.net",
+    "url": "https://www.eyrie.org/~eagle/software/remctl/",
+    "description": doclines[0],
+    "long_description": "\n".join(doclines[2:]),
+    "license": "MIT",
+    "classifiers": filter(None, classifiers.split("\n")),
+    "platforms": "any",
+    "keywords": ["remctl", "kerberos", "remote", "command"],
+    "ext_modules": [extension],
+    "py_modules": ["remctl"],
+}
+
+setup(**kwargs)
