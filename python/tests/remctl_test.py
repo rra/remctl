@@ -160,7 +160,7 @@ class TestRemctlSimple(TestRemctl):
         # type: () -> None
         command = ("test", "bad-command")
         try:
-            result = remctl.remctl("localhost", 14373, self.principal, command)
+            remctl.remctl("localhost", 14373, self.principal, command)
         except remctl.RemctlProtocolError as error:
             self.assertEqual(str(error), "Unknown command")
 
@@ -234,13 +234,13 @@ class TestRemctlFull(TestRemctl):
         try:
             r.open("localhost", 14373, self.principal)
             self.fail("open without ticket cache succeeded")
-        except remctl.RemctlError as error:
+        except remctl.RemctlError:
             pass
         okay = False
         try:
             r.set_ccache("tests/tmp/krb5cc_test")
             okay = True
-        except remctl.RemctlError as error:
+        except remctl.RemctlError:
             pass
         if okay:
             r.open("localhost", 14373, self.principal)
@@ -269,7 +269,7 @@ class TestRemctlFull(TestRemctl):
         try:
             type, data, stream, status, error = r.output()
             assert "output unexpectedly succeeded"
-        except remctl.RemctlError as error:
+        except remctl.RemctlError:
             self.assertEqual(r.error(), "error receiving token: timed out")
         r.close()
 
@@ -285,7 +285,7 @@ class TestRemctlFull(TestRemctl):
             r.open("localhost", -1)
         except ValueError as error:
             self.assertEqual(str(error), "invalid port number: -1")
-        pattern = "cannot connect to localhost \(port 14444\): .*"
+        pattern = "cannot connect to localhost \\(port 14444\\): .*"
         try:
             r.open("localhost", 14444)
         except remctl.RemctlError as error:

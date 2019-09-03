@@ -33,11 +33,11 @@
    using Kerberos v5 authentication.
 """
 
-VERSION = "3.16"
-
-from typing import Any, Iterable, Optional, Text, Tuple, Union
+from typing import Any, Iterable, Optional, Tuple, Union
 
 import _remctl
+
+VERSION = "3.16"
 
 RemctlOutput = Tuple[
     str, Optional[bytes], Optional[int], Optional[int], Optional[int]
@@ -117,7 +117,7 @@ def remctl(
 
     # At this point, things should be sane.  Call the low-level interface.
     output = _remctl.remctl(host, port, principal, mycommand)
-    if output[0] != None:
+    if output[0] is not None:
         raise RemctlProtocolError(output[0])
     result = RemctlSimpleResult()
     setattr(result, "stdout", output[1])
@@ -217,7 +217,7 @@ class Remctl:
 
     def error(self):
         # type: () -> str
-        if self.r == None:
+        if not self.r:
             # We do this instead of throwing an exception so that callers
             # don't have to handle an exception when they are trying to find
             # out why an exception occured.
