@@ -1,3 +1,9 @@
+# Configuration for Travis-CI continuous integration.
+#
+# Copyright 2016, 2018-2019 Russ Allbery <eagle@eyrie.org>
+#
+# SPDX-License-Identifier: MIT
+
 sudo: required
 dist: bionic
 
