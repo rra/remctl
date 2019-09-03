@@ -22,7 +22,7 @@ make warnings
 make check
 
 # Run additional Python coding style tests, but only in the non-Clang build.
-if "$TRAVIS_COMPILER" == "gcc"; then
+if [ "$TRAVIS_COMPILER" == "gcc" ]; then
     cd python
     mypy .
     mypy --py2 .
