@@ -44,8 +44,13 @@ import os
 from setuptools import Extension, setup
 
 try:
+    import sysconfig
+except ImportError:
+    import distutils.sysconfig as sysconfig
+
+try:
     from typing import List
-except Exception:
+except ImportError:
     pass
 
 VERSION = "3.16"
@@ -67,6 +72,20 @@ def parse_flags(prefix, flags):
         result.append(opt[len(prefix) :])
     return result
 
+
+# If CC is set in the environment, we need to also fix LDSHARED, but we want
+# to keep any options that are included in LDSHARED, only replace the first
+# word with the value of CC.  We have to do this rather than using the default
+# linker because for some bizarre reason Python 3 puts all of CFLAGS on the
+# link line, which means that using Clang for CC and passing in Clang warning
+# flags will break the build.
+if os.environ.get("CC"):
+    ldshared = sysconfig.get_config_var("LDSHARED")
+    if ldshared is None:
+        ldshared = os.environ["CC"]
+    else:
+        ldshared = [os.environ["CC"]] + ldshared.split()[1:]
+    os.environ["LDSHARED"] = " ".join(ldshared)
 
 # When built as part of the remctl distribution, the top-level build
 # configuration will set REMCTL_PYTHON_LIBS to any additional flags that
