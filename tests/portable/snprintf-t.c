@@ -41,8 +41,8 @@ int test_vsnprintf(char *str, size_t count, const char *fmt, va_list args);
 static const char string[] = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 static const char *const fp_formats[] = {
-    "%-1.5f",   "%1.5f",    "%31.7f",   "%10.5f",   "% 10.5f",  "%+22.7f",
-    "%+4.7f",   "%01.3f",   "%3.1f",    "%3.2f",    "%.0f",     "%.1f",
+    "%-1.5f",   "%1.5f",    "%31.6f",   "%10.5f",   "% 10.5f",  "%+22.6f",
+    "%+4.6f",   "%01.3f",   "%3.1f",    "%3.2f",    "%.0f",     "%.1f",
     "%f",
 
     /* %e and %g formats aren't really implemented yet. */
