@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# Run tests for continuous integration.
+#
+# This script is normally run in a test container, such as in Travis-CI.
+#
+# SPDX-License-Identifier: MIT
+
+set -eux
+
+# Build everything.
+./bootstrap
+./configure --enable-perl --enable-php --enable-python --enable-ruby
+make warnings
+
+# Run the regular tests.
+make check
+
+# Run additional Python coding style tests.
+cd python
+mypy .
+mypy --py2 .
+black --check .
+flake8
+cd ..

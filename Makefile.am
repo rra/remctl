@@ -63,10 +63,10 @@ PERL_FILES = perl/Build.PL perl/MANIFEST perl/MANIFEST.SKIP		   \
 PHP_FILES = php/README php/php_remctl.c php/php5_remctl.c php/test-wrapper \
 	php/tests/001.phpt php/tests/002.phpt php/tests/003.phpt	   \
 	php/tests/004.phpt php/tests/005.phpt php/tests/006.phpt
-PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c	\
-	python/pyproject.toml python/remctl.py python/setup.cfg		\
-	python/setup.py python/tests/data/cmd-hello			\
-	python/tests/data/cmd-sleep python/tests/data/remctl.conf	\
+PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c	   \
+	python/pyproject.toml python/remctl.py python/requirements-dev.txt \
+	python/setup.cfg python/setup.py python/tests/data/cmd-hello	   \
+	python/tests/data/cmd-sleep python/tests/data/remctl.conf	   \
 	python/tests/__init__.py python/tests/remctl_test.py
 RUBY_FILES = ruby/README ruby/remctl.c
 
@@ -79,9 +79,9 @@ PYTHON_DIRECTORIES = python python/tests python/tests/data
 
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .gitignore .travis.yml LICENSE Makefile.w32 README.md	    \
-	bootstrap client/libremctl.pc.in client/libremctl.map		    \
-	client/libremctl.rc client/libremctl.sym client/remctl.rc	    \
-	config.h.w32 configure.cmd docs/api/remctl.pod			    \
+	bootstrap ci/README ci/install ci/test client/libremctl.pc.in	    \
+	client/libremctl.map client/libremctl.rc client/libremctl.sym	    \
+	client/remctl.rc config.h.w32 configure.cmd docs/api/remctl.pod	    \
 	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
 	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
 	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \

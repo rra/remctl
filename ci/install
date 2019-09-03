@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# Install packages for integration tests.
+#
+# This script is normally run via sudo in a test container, such as in
+# Travis-CI.
+#
+# Perl::Tidy, Perl::Critic, and Test::Perl::Critic are installed separately to
+# get the latest version, since they sometimes change formatting and style
+# rules compared to the version in Ubuntu.  Test::MinimumVersion has to be
+# included since it installs Perl::Critic.
+#
+# Allow the installation of Perl::Critic and Test::Perl::Critic to fail, since
+# this seems to fail regularly on Travis-CI.  (We'll just skip the test if it
+# won't install.)
+#
+# SPDX-License-Identifier: MIT
+
+set -eux
+
+# Install packages.
+apt-get update -qq
+apt-get install -y cpanminus krb5-config libevent-dev libkrb5-dev           \
+        libmodule-build-perl libpcre3-dev libtest-pod-perl                  \
+        libtest-pod-coverage-perl libtest-strict-perl libtest-synopsis-perl \
+        perl php-cli php-dev pkg-config python-all-dev python-pip           \
+        python-pytest python-pytest-runner python-setuptools ruby-all-dev
+
+# Dependencies for Perl bindings and Perl tests.
+cpanm Perl::Tidy
+cpanm Perl::Critic         || true
+cpanm Test::MinimumVersion || true
+cpanm Test::Perl::Critic   || true
+
+# Dependencies for the Python bindings.
+pip install python/requirements-dev.txt
