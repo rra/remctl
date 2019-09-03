@@ -747,14 +747,12 @@ stamp-python: $(srcdir)/python/_remctlmodule.c $(srcdir)/python/remctl.py \
 		cp "$(srcdir)/$$f" "$(builddir)/$$f";			\
 	    done							\
 	fi
-	set -e; for python in $(REMCTL_PYTHON_VERSIONS); do	\
-	    cd python;						\
-	    CC='$(CC)' BASECFLAGS='$(PYTHON_CFLAGS)'		\
-		CFLAGS='$(PYTHON_CFLAGS_EXTRA)'			\
-		LDFLAGS='$(PYTHON_LDFLAGS_FULL)'		\
-		REMCTL_PYTHON_LIBS='$(GSSAPI_LIBS)'		\
-		"$$python" setup.py build;			\
-	    cd ..;						\
+	set -e; cd python && for python in $(REMCTL_PYTHON_VERSIONS); do \
+	    CC='$(CC)'							 \
+		CFLAGS='$(PYTHON_CFLAGS) $(PYTHON_CFLAGS_EXTRA)'	 \
+		LDFLAGS='$(PYTHON_LDFLAGS_FULL)'			 \
+		REMCTL_PYTHON_LIBS='$(GSSAPI_LIBS)'			 \
+		"$$python" setup.py build;				 \
 	done
 	touch stamp-python
 
