@@ -5,7 +5,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2000-2006, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2000-2006, 2018-2019 Russ Allbery <eagle@eyrie.org>
  * Copyright 2009-2010
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 1995 Patrick Powell
@@ -41,8 +41,8 @@ int test_vsnprintf(char *str, size_t count, const char *fmt, va_list args);
 static const char string[] = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 static const char *const fp_formats[] = {
-    "%-1.5f",   "%1.5f",    "%31.9f",   "%10.5f",   "% 10.5f",  "%+22.9f",
-    "%+4.9f",   "%01.3f",   "%3.1f",    "%3.2f",    "%.0f",     "%.1f",
+    "%-1.5f",   "%1.5f",    "%31.7f",   "%10.5f",   "% 10.5f",  "%+22.7f",
+    "%+4.7f",   "%01.3f",   "%3.1f",    "%3.2f",    "%.0f",     "%.1f",
     "%f",
 
     /* %e and %g formats aren't really implemented yet. */
