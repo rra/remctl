@@ -28,7 +28,7 @@ def needs_kerberos(func):
     def wrapper(*args, **kw):
         # type: (*Any, **Any) -> Any
         if not os.path.isfile("tests/config/principal"):
-            return False
+            return True
         return func(*args, **kw)
 
     wrapper.__name__ = func.__name__
