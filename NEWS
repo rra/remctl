@@ -6,8 +6,8 @@ remctl 3.16 (unreleased)
     which may mean that versions of Python back to Python 2.3 are no
     longer supported.  The bindings are only tested with Python 2.7.
 
-    Building the Python bindings now requires the setuptools, pytest, and
-    pytest-runner Python modules.
+    Building the Python bindings now requires the setuptools, pytest,
+    pytest-runner, and typing Python modules.
 
     Add -t flag to the remctl client to specify the network timeout.
     Thanks, Remi Ferrand.

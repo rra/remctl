@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # Python remctl extension build rules.
 #
 # Original implementation by Thomas L. Kula <kula@tproa.net>
@@ -41,6 +43,11 @@ import os
 
 from setuptools import Extension, setup
 
+try:
+    from typing import List
+except Exception:
+    pass
+
 VERSION = "3.16"
 
 doclines = __doc__.split("\n")
@@ -55,7 +62,9 @@ Topic :: Security
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
+
 def parse_flags(prefix, flags):
+    # type: (str, str) -> List[str]
     """Parse a string of compiler or linker flags for items of interest.
 
     Helper function to parse a string of compiler flags for ones of interest
@@ -94,6 +103,7 @@ kwargs = {
     "description": doclines[0],
     "long_description": "\n".join(doclines[2:]),
     "license": "MIT",
+    "install_requires": ["typing"],
     "setup_requires": ["pytest-runner"],
     "tests_require": ["pytest"],
     "classifiers": filter(None, classifiers.split("\n")),

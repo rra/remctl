@@ -64,9 +64,10 @@ PHP_FILES = php/README php/php_remctl.c php/php5_remctl.c php/test-wrapper \
 	php/tests/001.phpt php/tests/002.phpt php/tests/003.phpt	   \
 	php/tests/004.phpt php/tests/005.phpt php/tests/006.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c	\
-	python/remctl.py python/setup.cfg python/setup.py		\
-	python/tests/data/cmd-hello python/tests/data/cmd-sleep		\
-	python/tests/data/remctl.conf python/tests/remctl_test.py
+	python/pyproject.toml python/remctl.py python/setup.cfg		\
+	python/setup.py python/tests/data/cmd-hello			\
+	python/tests/data/cmd-sleep python/tests/data/remctl.conf	\
+	python/tests/__init__.py python/tests/remctl_test.py
 RUBY_FILES = ruby/README ruby/remctl.c
 
 # Directories that have to be created in builddir != srcdir builds before

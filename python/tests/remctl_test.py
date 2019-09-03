@@ -6,11 +6,19 @@
 #
 # SPDX-License-Identifier: MIT
 
+import errno
+import os
+import re
+import signal
+import time
+import unittest
+from typing import Any, Callable
+
 import remctl
-import errno, os, re, signal, time, unittest
 
 
 def needs_kerberos(func):
+    # type: (Callable[..., Any]) -> Callable[..., Any]
     """unittest test method decorator to skip tests requiring Kerberos
 
     Used to annotate test methods that require a Kerberos configuration.
@@ -18,10 +26,10 @@ def needs_kerberos(func):
     """
 
     def wrapper(*args, **kw):
+        # type: (*Any, **Any) -> Any
         if not os.path.isfile("tests/config/principal"):
-            return True
-        else:
-            return func(*args, **kw)
+            return False
+        return func(*args, **kw)
 
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__
@@ -30,6 +38,7 @@ def needs_kerberos(func):
 
 class TestRemctl(unittest.TestCase):
     def get_principal(self):
+        # type: () -> str
         file = open("tests/config/principal", "r")
         principal = file.read().rstrip()
         file.close()
@@ -37,6 +46,7 @@ class TestRemctl(unittest.TestCase):
 
     @needs_kerberos
     def start_remctld(self):
+        # type: () -> None
         try:
             os.mkdir("tests/tmp")
             os.remove("tests/tmp/pid")
@@ -72,6 +82,7 @@ class TestRemctl(unittest.TestCase):
             time.sleep(1)
 
     def stop_remctld(self):
+        # type: () -> None
         try:
             file = open("tests/tmp/pid", "r")
             pid = file.read().rstrip()
@@ -85,6 +96,7 @@ class TestRemctl(unittest.TestCase):
 
     @needs_kerberos
     def run_kinit(self):
+        # type: () -> bool
         os.environ["KRB5CCNAME"] = "tests/tmp/krb5cc_test"
         self.principal = self.get_principal()
         commands = (
@@ -102,11 +114,13 @@ class TestRemctl(unittest.TestCase):
         return False
 
     def setUp(self):
+        # type: () -> None
         self.start_remctld()
         assert self.run_kinit()
 
     @needs_kerberos
     def tearDown(self):
+        # type: () -> None
         self.stop_remctld()
         os.remove("tests/tmp/output")
         try:
@@ -120,6 +134,7 @@ class TestRemctl(unittest.TestCase):
 class TestRemctlSimple(TestRemctl):
     @needs_kerberos
     def test_simple_success(self):
+        # type: () -> None
         command = ("test", "test")
         result = remctl.remctl("localhost", 14373, self.principal, command)
         self.assertEqual(result.stdout, "hello world\n")
@@ -128,6 +143,7 @@ class TestRemctlSimple(TestRemctl):
 
     @needs_kerberos
     def test_simple_status(self):
+        # type: () -> None
         command = ["test", "status", "2"]
         result = remctl.remctl(
             host="localhost",
@@ -141,6 +157,7 @@ class TestRemctlSimple(TestRemctl):
 
     @needs_kerberos
     def test_simple_failure(self):
+        # type: () -> None
         command = ("test", "bad-command")
         try:
             result = remctl.remctl("localhost", 14373, self.principal, command)
@@ -149,10 +166,7 @@ class TestRemctlSimple(TestRemctl):
 
     @needs_kerberos
     def test_simple_errors(self):
-        try:
-            remctl.remctl()
-        except TypeError:
-            pass
+        # type: () -> None
         try:
             remctl.remctl("localhost")
         except ValueError as error:
@@ -186,6 +200,7 @@ class TestRemctlSimple(TestRemctl):
 class TestRemctlFull(TestRemctl):
     @needs_kerberos
     def test_full_success(self):
+        # type: () -> None
         r = remctl.Remctl()
         r.open("localhost", 14373, self.principal)
         r.command(["test", "test"])
@@ -203,6 +218,7 @@ class TestRemctlFull(TestRemctl):
 
     @needs_kerberos
     def test_full_failure(self):
+        # type: () -> None
         r = remctl.Remctl("localhost", 14373, self.principal)
         r.command(["test", "bad-command"])
         type, data, stream, status, error = r.output()
@@ -212,6 +228,7 @@ class TestRemctlFull(TestRemctl):
 
     @needs_kerberos
     def test_ccache(self):
+        # type: () -> None
         r = remctl.Remctl()
         os.environ["KRB5CCNAME"] = "nonexistent-file"
         try:
@@ -231,6 +248,7 @@ class TestRemctlFull(TestRemctl):
 
     @needs_kerberos
     def test_source_ip(self):
+        # type: () -> None
         r = remctl.Remctl()
         r.set_source_ip("127.0.0.1")
         r.open("127.0.0.1", 14373, self.principal)
@@ -239,10 +257,11 @@ class TestRemctlFull(TestRemctl):
         try:
             r.open("127.0.0.1", 14373, self.principal)
         except remctl.RemctlError as error:
-            self.assert_(re.compile(pattern).match(str(error)))
+            self.assert_(bool(re.compile(pattern).match(str(error))))
 
     @needs_kerberos
     def test_timeout(self):
+        # type: () -> None
         r = remctl.Remctl()
         r.set_timeout(1)
         r.open("127.0.0.1", 14373, self.principal)
@@ -256,11 +275,8 @@ class TestRemctlFull(TestRemctl):
 
     @needs_kerberos
     def test_full_errors(self):
+        # type: () -> None
         r = remctl.Remctl()
-        try:
-            r.open()
-        except TypeError:
-            pass
         try:
             r.open("localhost", "foo")
         except TypeError as error:
@@ -273,8 +289,8 @@ class TestRemctlFull(TestRemctl):
         try:
             r.open("localhost", 14444)
         except remctl.RemctlError as error:
-            self.assert_(re.compile(pattern).match(str(error)))
-        self.assert_(re.compile(pattern).match(r.error()))
+            self.assert_(bool(re.compile(pattern).match(str(error))))
+        self.assert_(bool(re.compile(pattern).match(r.error())))
         try:
             r.command(["test", "test"])
         except remctl.RemctlNotOpenedError as error:
