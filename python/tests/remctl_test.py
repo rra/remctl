@@ -137,7 +137,7 @@ class TestRemctlSimple(TestRemctl):
         # type: () -> None
         command = ("test", "test")
         result = remctl.remctl("localhost", 14373, self.principal, command)
-        self.assertEqual(result.stdout, "hello world\n")
+        self.assertEqual(result.stdout, b"hello world\n")
         self.assertEqual(result.stderr, None)
         self.assertEqual(result.status, 0)
 
@@ -162,7 +162,7 @@ class TestRemctlSimple(TestRemctl):
         try:
             remctl.remctl("localhost", 14373, self.principal, command)
         except remctl.RemctlProtocolError as error:
-            self.assertEqual(str(error), "Unknown command")
+            self.assertEqual(str(error), str(b"Unknown command"))
 
     @needs_kerberos
     def test_simple_errors(self):
@@ -206,7 +206,7 @@ class TestRemctlFull(TestRemctl):
         r.command(["test", "test"])
         type, data, stream, status, error = r.output()
         self.assertEqual(type, "output")
-        self.assertEqual(data, "hello world\n")
+        self.assertEqual(data, b"hello world\n")
         self.assertEqual(stream, 1)
         type, data, stream, status, error = r.output()
         self.assertEqual(type, "status")
@@ -223,7 +223,7 @@ class TestRemctlFull(TestRemctl):
         r.command(["test", "bad-command"])
         type, data, stream, status, error = r.output()
         self.assertEqual(type, "error")
-        self.assertEqual(data, "Unknown command")
+        self.assertEqual(data, b"Unknown command")
         self.assertEqual(error, 5)
 
     @needs_kerberos
@@ -257,7 +257,7 @@ class TestRemctlFull(TestRemctl):
         try:
             r.open("127.0.0.1", 14373, self.principal)
         except remctl.RemctlError as error:
-            self.assert_(bool(re.compile(pattern).match(str(error))))
+            self.assertTrue(re.compile(pattern).match(str(error)))
 
     @needs_kerberos
     def test_timeout(self):
@@ -289,8 +289,8 @@ class TestRemctlFull(TestRemctl):
         try:
             r.open("localhost", 14444)
         except remctl.RemctlError as error:
-            self.assert_(bool(re.compile(pattern).match(str(error))))
-        self.assert_(bool(re.compile(pattern).match(r.error())))
+            self.assertTrue(re.compile(pattern).match(str(error)))
+        self.assertTrue(re.compile(pattern).match(r.error()))
         try:
             r.command(["test", "test"])
         except remctl.RemctlNotOpenedError as error:

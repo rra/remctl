@@ -51,16 +51,6 @@ except Exception:
 VERSION = "3.16"
 
 doclines = __doc__.split("\n")
-classifiers = """\
-Development Status :: 4 - Beta
-Intended Audience :: Developers
-License :: OSI Approved :: MIT License
-Operating System :: OS Independent
-Programming Language :: C
-Programming Language :: Python
-Topic :: Security
-Topic :: Software Development :: Libraries :: Python Modules
-"""
 
 
 def parse_flags(prefix, flags):
@@ -106,7 +96,17 @@ kwargs = {
     "install_requires": ["typing"],
     "setup_requires": ["pytest-runner"],
     "tests_require": ["pytest"],
-    "classifiers": filter(None, classifiers.split("\n")),
+    "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: C",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
+        "Topic :: Security",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
     "platforms": "any",
     "keywords": ["remctl", "kerberos", "remote", "command"],
     "ext_modules": [extension],

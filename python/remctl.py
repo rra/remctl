@@ -33,7 +33,7 @@
    using Kerberos v5 authentication.
 """
 
-from typing import Any, Iterable, Optional, Tuple, Union
+from typing import Any, Iterable, Optional, Text, Tuple, Union
 
 import _remctl
 
@@ -85,7 +85,7 @@ def remctl(
     host,  # type: str
     port=None,  # type: Optional[Union[int, str]]
     principal=None,  # type: Optional[str]
-    command=[],  # type: Iterable[Any]
+    command=[],  # type: Iterable[Union[Text, bytes]]
 ):
     # type: (...) -> RemctlSimpleResult
     """Simple interface to remctl.
@@ -108,10 +108,8 @@ def remctl(
     if isinstance(command, (bytes, str, bool, int, float)):
         raise TypeError("command must be a sequence or iterator")
 
-    # Convert the command to a list of strings.
-    mycommand = []
-    for item in command:
-        mycommand.append(str(item))
+    # Convert the command to a list of bytes.
+    mycommand = [i if isinstance(i, bytes) else i.encode() for i in command]
     if len(mycommand) < 1:
         raise ValueError("command must not be empty")
 
@@ -176,16 +174,14 @@ class Remctl:
         self.opened = True
 
     def command(self, comm):
-        # type: (Iterable[Any]) -> None
-        commlist = []
+        # type: (Iterable[Union[Text, bytes]]) -> None
         if not self.opened:
             raise RemctlNotOpenedError("no currently open connection")
         if isinstance(comm, (bytes, str, bool, int, float)):
             raise TypeError("command must be a sequence or iterator")
 
         # Convert the command to a list of strings.
-        for item in comm:
-            commlist.append(str(item))
+        commlist = [i if isinstance(i, bytes) else i.encode() for i in comm]
         if len(commlist) < 1:
             raise ValueError("command must not be empty")
 

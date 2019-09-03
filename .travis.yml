@@ -14,7 +14,6 @@ compiler:
 
 before_install: sudo ci/install
 
-env: AUTHOR_TESTING=1 C_TAP_VERBOSE=1
 script: ci/test
 
 branches:

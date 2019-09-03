@@ -8,6 +8,11 @@
 
 set -eux
 
+# Configure the build.
+export AUTHOR_TESTING=1
+export C_TAP_VERBOSE=1
+export REMCTL_PYTHON_VERSIONS="python2 python3"
+
 # Build everything.
 ./bootstrap
 ./configure --enable-perl --enable-php --enable-python --enable-ruby

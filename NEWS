@@ -2,6 +2,10 @@
 
 remctl 3.16 (unreleased)
 
+    The Python bindings now support Python 3.  They have been tested only
+    with Python 2.7 and Python 3.7, but should work with any version of
+    Python 3 later than Python 3.1.
+
     The Python bindings have been modernized to remove obsolete syntax,
     which may mean that versions of Python back to Python 2.3 are no
     longer supported.  The bindings are only tested with Python 2.7.

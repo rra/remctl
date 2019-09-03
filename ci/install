@@ -23,8 +23,10 @@ apt-get update -qq
 apt-get install -y cpanminus krb5-config libevent-dev libkrb5-dev           \
         libmodule-build-perl libpcre3-dev libtest-pod-perl                  \
         libtest-pod-coverage-perl libtest-strict-perl libtest-synopsis-perl \
-        perl php-cli php-dev pkg-config python-all-dev python-pip           \
-        python-pytest python-pytest-runner python-setuptools ruby-all-dev
+        perl php-cli php-dev pkg-config python3-all-dev python3-pip         \
+        python3-pytest python3-pytest-runner python3-setuptools             \
+        python-all-dev python-pytest python-pytest-runner python-setuptools \
+        python-typing ruby-all-dev
 
 # Dependencies for Perl bindings and Perl tests.
 cpanm Perl::Tidy
@@ -32,5 +34,5 @@ cpanm Perl::Critic         || true
 cpanm Test::MinimumVersion || true
 cpanm Test::Perl::Critic   || true
 
-# Dependencies for the Python bindings.
-pip install python/requirements-dev.txt
+# Dependencies for additional style checks for the Python bindings.
+pip3 install -r python/requirements-dev.txt

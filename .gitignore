@@ -62,7 +62,7 @@
 /php/tmp-php.ini
 /python/.eggs/
 /python/.mypy_cache/
-/python/_remctl.so
+/python/_remctl*.so
 /python/MANIFEST
 /python/build
 /python/dist
