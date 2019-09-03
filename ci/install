@@ -34,5 +34,8 @@ cpanm Perl::Critic         || true
 cpanm Test::MinimumVersion || true
 cpanm Test::Perl::Critic   || true
 
-# Dependencies for additional style checks for the Python bindings.
-pip3 install -r python/requirements-dev.txt
+# Dependencies for additional style checks for the Python bindings.  These are
+# only run as part of the GCC build.
+if "$TRAVIS_COMPILER" == "gcc"; then
+    pip3 install -r python/requirements-dev.txt
+fi
