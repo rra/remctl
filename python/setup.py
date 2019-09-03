@@ -41,7 +41,7 @@ import os
 
 from distutils.core import setup, Extension
 
-VERSION = '3.16'
+VERSION = "3.16"
 
 doclines = __doc__.split("\n")
 classifiers = """\
@@ -60,36 +60,40 @@ Topic :: Software Development :: Libraries :: Python Modules
 # interface expects.
 def parse_flags(prefix, flags):
     result = []
-    filtered = [ opt for opt in flags.split() if opt.startswith(prefix) ]
+    filtered = [opt for opt in flags.split() if opt.startswith(prefix)]
     for opt in filtered:
-        result.append(opt[len(prefix):])
+        result.append(opt[len(prefix) :])
     return result
+
 
 # When built as part of the remctl distribution, the top-level build
 # configuration will set REMCTL_PYTHON_LIBS to any additional flags that
 # should be used in the link.  Extract those flags and pass them into the
 # extension configuration.  When built stand-alone, use the defaults and
 # assume we don't need special contortions to link with libremctl.
-library_dirs = parse_flags('-L', os.environ.get("REMCTL_PYTHON_LIBS", ""))
-libraries = parse_flags('-l', os.environ.get("REMCTL_PYTHON_LIBS", ""))
+library_dirs = parse_flags("-L", os.environ.get("REMCTL_PYTHON_LIBS", ""))
+libraries = parse_flags("-l", os.environ.get("REMCTL_PYTHON_LIBS", ""))
 
-extension = Extension('_remctl',
-                      sources       = [ '_remctlmodule.c' ],
-                      define_macros = [ ('VERSION', '"' + VERSION + '"') ],
-                      libraries     = ['remctl'] + libraries,
-                      library_dirs  = library_dirs)
+extension = Extension(
+    "_remctl",
+    sources=["_remctlmodule.c"],
+    define_macros=[("VERSION", '"' + VERSION + '"')],
+    libraries=["remctl"] + libraries,
+    library_dirs=library_dirs,
+)
 
-setup(name             = 'pyremctl',
-      version          = VERSION,
-      author           = 'Thomas L. Kula',
-      author_email     = 'kula@tproa.net',
-      url              = 'https://www.eyrie.org/~eagle/software/remctl/',
-      description      = doclines[0],
-      long_description = "\n".join(doclines[2:]),
-      license          = 'MIT',
-      classifiers      = filter(None, classifiers.split("\n")),
-      platforms        = 'any',
-      keywords         = [ 'remctl', 'kerberos', 'remote', 'command' ],
-
-      ext_modules      = [ extension ],
-      py_modules       = ['remctl'])
+setup(
+    name="pyremctl",
+    version=VERSION,
+    author="Thomas L. Kula",
+    author_email="kula@tproa.net",
+    url="https://www.eyrie.org/~eagle/software/remctl/",
+    description=doclines[0],
+    long_description="\n".join(doclines[2:]),
+    license="MIT",
+    classifiers=filter(None, classifiers.split("\n")),
+    platforms="any",
+    keywords=["remctl", "kerberos", "remote", "command"],
+    ext_modules=[extension],
+    py_modules=["remctl"],
+)
