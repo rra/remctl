@@ -21,10 +21,12 @@ make warnings
 # Run the regular tests.
 make check
 
-# Run additional Python coding style tests.
-cd python
-mypy .
-mypy --py2 .
-black --check .
-flake8
-cd ..
+# Run additional Python coding style tests, but only in the non-Clang build.
+if "$TRAVIS_COMPILER" == "gcc"; then
+    cd python
+    mypy .
+    mypy --py2 .
+    black --check .
+    flake8
+    cd ..
+fi
