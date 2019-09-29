@@ -33,7 +33,7 @@
    using Kerberos v5 authentication.
 """
 
-from typing import Any, Iterable, Optional, Text, Tuple, Union
+from typing import Iterable, Optional, Text, Tuple, Union
 
 import _remctl
 
