@@ -93,7 +93,7 @@ sub _build_help {
 
         # Now add any nested data, if there was any.
         if ($more_syntax_ref) {
-            push(@syntax,  map { $command . q{ } . $_ } @{$more_syntax_ref});
+            push(@syntax, map { $command . q{ } . $_ } @{$more_syntax_ref});
             push(@summary, @{$more_summary_ref});
         }
     }

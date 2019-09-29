@@ -139,7 +139,7 @@ sub _update_module_version {
     }
 
     # Scan for the version and replace it.
-    open(my $in,  q{<}, $file) or die "$0: cannot open $file: $!\n";
+    open(my $in, q{<}, $file) or die "$0: cannot open $file: $!\n";
     open(my $out, q{>}, "$file.new")
       or die "$0: cannot create $file.new: $!\n";
   SCAN:
