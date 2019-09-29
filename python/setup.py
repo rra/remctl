@@ -46,7 +46,7 @@ from setuptools import Extension, setup
 try:
     import sysconfig
 except ImportError:
-    import distutils.sysconfig as sysconfig
+    import distutils.sysconfig as sysconfig  # type: ignore
 
 try:
     from typing import List
@@ -80,11 +80,10 @@ def parse_flags(prefix, flags):
 # link line, which means that using Clang for CC and passing in Clang warning
 # flags will break the build.
 if os.environ.get("CC"):
-    ldshared = sysconfig.get_config_var("LDSHARED")
-    if ldshared is None:
-        ldshared = os.environ["CC"]
-    else:
-        ldshared = [os.environ["CC"]] + ldshared.split()[1:]
+    config_ldshared = sysconfig.get_config_var("LDSHARED")
+    ldshared = [os.environ["CC"]]
+    if config_ldshared is not None:
+        ldshared.extend(config_ldshared.split()[1:])
     os.environ["LDSHARED"] = " ".join(ldshared)
 
 # When built as part of the remctl distribution, the top-level build
