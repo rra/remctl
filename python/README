@@ -17,7 +17,8 @@ REQUIREMENTS
 
   The module has been tested with Python 2.7 and 3.7 and may not work with
   older versions of Python, although the only known incompatibility are
-  parameters in setup.py not supported prior to Python 2.3.
+  with Python 3.0 and with parameters in setup.py that are not supported
+  prior to Python 2.3.
 
 SIMPLIFIED INTERFACE
 

@@ -9,7 +9,7 @@ dnl
 dnl SPDX-License-Identifier: MIT
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [3.15], [eagle@eyrie.org])
+AC_INIT([remctl], [3.16], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
