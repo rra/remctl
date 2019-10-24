@@ -32,7 +32,7 @@ REMCTL_PROGRAM_CFLAGS  ?=
 REMCTL_PROGRAM_LDFLAGS ?=
 REMCTL_PERL_FLAGS      ?=
 REMCTL_PYTHON_INSTALL  ?=
-REMCTL_PYTHON_VERSIONS ?= python
+REMCTL_PYTHON_VERSIONS ?= $(PYTHON)
 REMCTL_RUBY            ?= ruby
 REMCTL_RUBY_FLAGS      ?=
 
@@ -612,7 +612,7 @@ check-local: $(check_PROGRAMS)
 	    cd php && NO_INTERACTION=1 ./test-wrapper "$(abs_top_builddir)" \
 		"$(abs_top_srcdir)";					    \
 	fi
-	@set -e; if [ -f python/setup.py ]; then			\
+	@set -e; if [ -n "$(PYTHON)" -a -f python/setup.py ]; then	\
 	    echo '';							\
 	    echo 'Testing Python extension';				\
 	    [ -d python/tests/config ] || mkdir python/tests/config;	\
