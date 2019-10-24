@@ -15,8 +15,8 @@ OVERVIEW
 
 REQUIREMENTS
 
-  The module has been tested with Python 2.5 and may not work with older
-  versions of Python, although the only known incompatibility are
+  The module has been tested with Python 2.7 and 3.7 and may not work with
+  older versions of Python, although the only known incompatibility are
   parameters in setup.py not supported prior to Python 2.3.
 
 SIMPLIFIED INTERFACE
@@ -26,10 +26,10 @@ SIMPLIFIED INTERFACE
       the results.
 
       Arguments:
-      * host (required): string, the host to connect to
-      * port (optional): unsigned short, the port to connect to
-      * principal (optional): string, authentication identity of host
-      * command (required): sequence or iterator yielding the command
+      * host (required): str, the host to connect to
+      * port (optional): int, the port to connect to
+      * principal (optional): str, authentication identity of host
+      * command (required): iterable of str or bytes, the command
 
       If port is not given, the library default is used (try 4373 first
       and fall back to attempting the legacy 4444 port).  If principal is
@@ -39,15 +39,16 @@ SIMPLIFIED INTERFACE
       arguments, or None can be passed as the port and principal
       arguments.
 
-      command can be any sequence or iterator that returns a series of
-      strings or things that can be converted to strings making up the
-      command.
+      command should be an iterable or str or bytes.  Any str elements
+      will be encoded in UTF-8 to convert them to bytes.  (Currently,
+      anything that can be converted to str is also supported, but this
+      support will be dropped in a future version.)
 
       Returns an object of type RemctlSimpleResult with the following
       attributes:
-      * stdout: string, the standard output from the command
-      * stderr: string, the standard error from the command
-      * status: integer, the exit status of the command
+      * stdout: bytes, the standard output from the command
+      * stderr: bytes, the standard error from the command
+      * status: int, the exit status of the command
 
       Exceptions:
       * ValueError, TypeError: an invalid argument was supplied
@@ -60,18 +61,21 @@ SIMPLIFIED INTERFACE
 
   Here is an example using the simplified interface:
 
-      import remctl, sys
-      command = ('test', 'test')
+      from __future__ import print_function
+      import remctl
+      import sys
+
+      command = ("test", "test")
       try:
-          result = remctl.remctl(host = 'foo.example.com', command = command)
-      except remctl.RemctlProtocolError, error:
-          print "Error:", str(error)
+          result = remctl.remctl(host="foo.example.com", command=command)
+      except remctl.RemctlProtocolError as e:
+          print("Error:", str(e))
           sys.exit(1)
       if result.stdout:
-          print "stdout:", result.stdout
+          print("stdout:", result.stdout)
       if result.stderr:
-          print "stderr:", result.stderr
-      print "exit status:", result.status
+          print("stderr:", result.stderr)
+      print("exit status:", result.status)
 
 FULL INTERFACE
 
@@ -102,7 +106,7 @@ FULL INTERFACE
       Sets the credential cache for outgoing connections to ccache.
 
       Arguments:
-      * ccache (required): string, the credential cache to use
+      * ccache (required): str, the credential cache to use
 
       This is normally the full path to a Kerberos ticket cache, but may
       have other valid forms depending on the underlying Kerberos
@@ -131,7 +135,7 @@ FULL INTERFACE
       no effect on connections that are already open.
 
       Arguments:
-      * source (required): string, the source IP address
+      * source (required): str, the source IP address
 
       The source may be either an IPv4 or an IPv6 address (if IPv6 is
       supported).  It must be an IP address, not a host name.
@@ -153,7 +157,7 @@ FULL INTERFACE
       the timeout.
 
       Arguments:
-      * timeout (required): long, the timeout in seconds or 0
+      * timeout (required): int, the timeout in seconds or 0
 
       Exceptions:
       * RemctlError: the timeout was negative
@@ -163,9 +167,9 @@ FULL INTERFACE
       return value; an exception is thrown on any error.
 
       Arguments:
-      * host (required): string, the host to connect to
-      * port (optional): unsigned short, the port to connect to
-      * principal (optional): string, authentication identity of host
+      * host (required): str, the host to connect to
+      * port (optional): int, the port to connect to
+      * principal (optional): str, authentication identity of host
       
       If port is not given, the library default is used (try 4373 first
       and fall back to attempting the legacy 4444 port).  If principal is
@@ -191,11 +195,12 @@ FULL INTERFACE
       arbitrary unencoded binary data.
 
       Arguments:
-      * command (required): sequence or iterator yielding the command
+      * command (required): iterable of str or bytes, the command
 
-      command can be any sequence or iterator that returns a series of
-      strings or things that can be converted to strings making up the
-      command.
+      command should be an iterable or str or bytes.  Any str elements
+      will be encoded in UTF-8 to convert them to bytes.  (Currently,
+      anything that can be converted to str is also supported, but this
+      support will be dropped in a future version.)
 
       Exceptions:
       * ValueError, TypeError: an invalid argument was supplied
@@ -215,11 +220,11 @@ FULL INTERFACE
       output() is called without another call to command().
 
       The members of the returned tuple are:
-      * type: string, "output", "status", "error", or "done"
-      * output: string, the returned output or error
-      * stream: integer, 1 for stdout or 2 for stderr for an output token
-      * status: integer, exit status of command for a status token
-      * error: integer, remctl protocol error for an error token
+      * type: str, "output", "status", "error", or "done"
+      * output: bytes, the returned output or error
+      * stream: int, 1 for stdout or 2 for stderr for an output token
+      * status: int, exit status of command for a status token
+      * error: int, remctl protocol error for an error token
 
       type will always be present.  The other members of the tuple may be
       None depending on the type of token.  Output tokens will have
@@ -299,7 +304,7 @@ LICENSE
   Copyright 2008 Thomas L. Kula <kula@tproa.net>
   Copyright 2008-2009, 2011-2012
       The Board of Trustees of the Leland Stanford Junior University
-  Copyright 2014 Russ Allbery <eagle@eyrie.org>
+  Copyright 2014, 2019 Russ Allbery <eagle@eyrie.org>
 
   Copying and distribution of this file, with or without modification,
   are permitted in any medium without royalty provided the copyright

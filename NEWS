@@ -9,6 +9,8 @@ remctl 3.16 (unreleased)
     The Python bindings have been modernized to remove obsolete syntax,
     which may mean that versions of Python back to Python 2.3 are no
     longer supported.  The bindings are only tested with Python 2.7.
+    Update the documentation to use proper Python types and to document
+    how str and bytes values are handled.
 
     Building the Python bindings now requires the setuptools, pytest,
     pytest-runner, and typing Python modules.
