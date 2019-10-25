@@ -18,6 +18,9 @@ remctl 3.16 (2019-10-24)
     Add -t flag to the remctl client to specify the network timeout.
     Thanks, Remi Ferrand.
 
+    Fix NULL pointer dereference in the client library if allocation of
+    memory fails, caught by cppcheck.
+
     Check for minimum versions of Perl or Python during configure if
     building the Perl or Python bindings is requested.
 

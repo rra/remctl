@@ -11,7 +11,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018-2019 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2009, 2011-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -148,8 +148,10 @@ remctl(const char *host, unsigned short port, const char *principal,
     if (result == NULL)
         return NULL;
     r = remctl_new();
-    if (r == NULL)
-        return internal_fail(r, result);
+    if (r == NULL) {
+        free(result);
+        return NULL;
+    }
     if (!remctl_open(r, host, port, principal))
         return internal_fail(r, result);
     if (!remctl_command(r, command))
