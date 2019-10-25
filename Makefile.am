@@ -636,9 +636,11 @@ check-local: $(check_PROGRAMS)
 
 # Used by maintainers to check the source code with cppcheck.
 check-cppcheck:
-	cd $(abs_top_srcdir) && cppcheck -q --error-exitcode=2	\
-	    --suppressions-list=tests/data/cppcheck.supp	\
-	    --enable=warning,performance,portability,style .
+	cd $(abs_top_srcdir) &&						\
+	    find . -name .git -prune -o -name '*.[ch]' -print		\
+	    | cppcheck -q --force --error-exitcode=2 --file-list=-	\
+		--suppressions-list=tests/data/cppcheck.supp		\
+		--enable=warning,performance,portability,style
 
 # The full path to valgrind and its options, used when doing valgrind
 # testing.
