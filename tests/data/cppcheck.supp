@@ -21,6 +21,10 @@
 // every if and loop body with declarations.
 variableScope
 
+// strlen of a constant string is more maintainable code than hard-coding the
+// string length.
+constArgument:tests/runtests.c:804
+
 // False positive due to recursive function.
 knownConditionTrueFalse:portable/getopt.c:146
 
@@ -31,8 +35,18 @@ knownConditionTrueFalse:tests/tap/remctl.c:79
 // because of the struct sockaddr * cast.
 memleak:portable/getaddrinfo.c:236
 
+// Bug in cppcheck 1.89.  The address of this variable is passed to a Windows
+// function (albeit through a cast).
+nullPointer:portable/winsock.c:62
+
 // Setting the variable to NULL explicitly after deallocation.
 redundantAssignment:tests/pam-util/options-t.c
 
-// (remctl) Nested assignments in this test confuse cppcheck.
-redundantAssignment:tests/server/acl-t.c
+// (remctl) Bug in cppcheck 1.89.  The address of these variables are passed
+// to a PHP function.
+uninitvar:php/php_remctl.c:119
+uninitvar:php/php_remctl.c:123
+uninitvar:php/php_remctl.c:315
+uninitvar:php/php5_remctl.c:125
+uninitvar:php/php5_remctl.c:129
+uninitvar:php/php5_remctl.c:321

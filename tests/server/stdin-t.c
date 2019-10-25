@@ -2,7 +2,7 @@
  * Test suite for the server passing data to programs on standard input.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018-2019 Russ Allbery <eagle@eyrie.org>
  * Copyright 2009-2010, 2012-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -48,10 +48,10 @@ test_stdin(const char *principal, const char *test, const void *data,
         bail("can't connect: %s", remctl_error(r));
     ok(remctl_commandv(r, command, 4), "sent command for %s", test);
     output = remctl_output(r);
+    ok(output != NULL, "first output token is not null");
     if (output == NULL)
-        ok_block(5, false, "first output token is not null");
+        ok_block(4, false, "first output token is not null");
     else {
-        ok(output != NULL, "first output token is not null");
         diag("status: %d", output->status);
         is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
         is_int(strlen("Okay"), output->length, "...and is right length");
@@ -64,10 +64,10 @@ test_stdin(const char *principal, const char *test, const void *data,
         is_int(1, output->stream, "...and is right stream");
     }
     output = remctl_output(r);
+    ok(output != NULL, "second output token is not null");
     if (output == NULL)
-        ok_block(3, false, "second output token is not null");
+        ok_block(2, false, "second output token is not null");
     else {
-        ok(output != NULL, "second output token is not null");
         is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
         is_int(0, output->status, "...and is right status");
     }

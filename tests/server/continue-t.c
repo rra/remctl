@@ -2,7 +2,7 @@
  * Test suite for continued commands.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018-2019 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006, 2009-2010, 2012-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -88,10 +88,10 @@ main(void)
     is_int(TOKEN_OK, status, "fourth token sent okay");
     r->ready = 1;
     output = remctl_output(r);
+    ok(output != NULL, "got output");
     if (output == NULL)
-        ok_block(3, false, "got output");
+        ok_block(2, false, "got output");
     else {
-        ok(output != NULL, "got output");
         is_int(REMCTL_OUT_STATUS, output->type, "...of type status");
         is_int(2, output->status, "...with correct status");
     }
