@@ -306,9 +306,10 @@ clean-local:
 	set -e; if [ -f "ruby/Makefile" ] ; then	\
 	    cd ruby && $(MAKE) distclean ;		\
 	fi
-	rm -rf perl/t/config perl/t/lib/Test/RRA php/tmp-php.ini	\
-	    python/build python/dist python/*.pyc python/tests/config	\
-	    python/tests/tmp 
+	rm -rf perl/t/config perl/t/lib/Test/RRA php/tmp-php.ini	   \
+	    python/.eggs python/build python/dist python/pyremctl.egg-info \
+	    python/*.pyc python/tests/config python/tests/tmp		   \
+	    python/tests/*.pyc
 
 # Also clean the Perl, PHP, and Python directories on make distclean if
 # needed.
@@ -333,6 +334,8 @@ distclean-local: clean-local
 	set -e; if [ -f "ruby/Makefile" ] ; then	\
 	    cd ruby && $(MAKE) distclean ;		\
 	fi
+	rm -rf python/.mypy_cache python/.pytest_cache python/__pycache__ \
+	    python/tests/__pycache__
 
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code otherwise generates them.  This suppression list
