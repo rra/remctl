@@ -21,6 +21,10 @@ remctl 3.16 (2019-10-24)
     Fix NULL pointer dereference in the client library if allocation of
     memory fails, caught by cppcheck.
 
+    Add GCC attributes to the declarations of the libremctl client
+    functions, which will allow some minor optimization improvements and
+    better compiler errors about NULL pointers.
+
     Check for minimum versions of Perl or Python during configure if
     building the Perl or Python bindings is requested.
 
