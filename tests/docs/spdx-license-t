@@ -72,6 +72,7 @@ my @IGNORE_PATHS = (
     qr{ \A php/configure [.] (ac|in) \z }xms,  # Created by phpize
     qr{ \A php/ltmain [.] sh \z }xms,          # Created by phpize
     qr{ \A php/run-tests [.] php \z }xms,      # Created by phpize
+    qr{ \A python/ .* [.] egg-info/ }xms,      # Python build files
     qr{ [.] l?a \z }xms,                       # Created by libtool
 );
 ## use critic
