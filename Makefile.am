@@ -49,25 +49,26 @@ RUBY_CFLAGS_EXTRA   =
 # for the test suite and are not generated or touched by configure.  They're
 # listed here to be added to EXTRA_DIST and so that they can be copied over
 # properly for builddir != srcdir builds.
-PERL_FILES = perl/Build.PL perl/MANIFEST perl/MANIFEST.SKIP		   \
-	perl/lib/Net/Remctl.pm perl/lib/Net/Remctl.xs			   \
-	perl/lib/Net/Remctl/Backend.pm perl/t/api/basic.t		   \
-	perl/t/api/stanford-netdb.t perl/t/backend/basic.t		   \
-	perl/t/backend/nested.t perl/t/backend/options.t		   \
-	perl/t/data/perl.conf perl/t/data/perlcriticrc			   \
-	perl/t/data/perltidyrc perl/t/data/remctl.conf			   \
-	perl/t/docs/pod-coverage.t perl/t/docs/pod-spelling.t		   \
-	perl/t/docs/pod.t perl/t/docs/synopsis.t perl/t/lib/Test/Remctl.pm \
-	perl/t/style/coverage.t perl/t/style/critic.t			   \
-	perl/t/style/minimum-version.t perl/t/style/strict.t perl/typemap
+PERL_FILES = perl/Build.PL perl/MANIFEST perl/MANIFEST.SKIP		    \
+	perl/lib/Net/Remctl.pm perl/lib/Net/Remctl.xs			    \
+	perl/lib/Net/Remctl/Backend.pm perl/t/api/basic.t		    \
+	perl/t/backend/basic.t perl/t/backend/nested.t			    \
+	perl/t/backend/options.t perl/t/data/perl.conf			    \
+	perl/t/data/perlcriticrc perl/t/data/perltidyrc			    \
+	perl/t/data/remctl.conf perl/t/docs/pod-coverage.t		    \
+	perl/t/docs/pod-spelling.t perl/t/docs/pod.t perl/t/docs/synopsis.t \
+	perl/t/lib/Test/Remctl.pm perl/t/style/coverage.t		    \
+	perl/t/style/critic.t perl/t/style/minimum-version.t		    \
+	perl/t/style/strict.t perl/typemap
 PHP_FILES = php/README php/php_remctl.c php/php5_remctl.c php/test-wrapper \
 	php/tests/001.phpt php/tests/002.phpt php/tests/003.phpt	   \
 	php/tests/004.phpt php/tests/005.phpt php/tests/006.phpt
 PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c	   \
 	python/pyproject.toml python/remctl.py python/requirements-dev.txt \
 	python/setup.cfg python/setup.py python/tests/data/cmd-hello	   \
-	python/tests/data/cmd-sleep python/tests/data/remctl.conf	   \
-	python/tests/__init__.py python/tests/remctl_test.py
+	python/tests/data/cmd-sleep python/tests/data/cmd-status	   \
+	python/tests/data/remctl.conf python/tests/__init__.py		   \
+	python/tests/remctl_test.py
 RUBY_FILES = ruby/README ruby/remctl.c
 
 # Directories that have to be created in builddir != srcdir builds before
@@ -117,14 +118,15 @@ EXTRA_DIST = .gitignore .travis.yml LICENSE Makefile.w32 README.md	    \
 	tests/data/fake-sudo tests/data/generate-krb5-conf tests/data/gput  \
 	tests/data/perl.conf tests/data/valgrind.supp			    \
 	tests/docs/pod-spelling-t tests/docs/pod-t			    \
-	tests/docs/spdx-license-t tests/docs/urls-t			    \
-	tests/server/shell-misc-t tests/perl/module-version-t		    \
-	tests/tap/kerberos.sh tests/tap/libtap.sh			    \
-	tests/tap/perl/Test/RRA.pm tests/tap/perl/Test/RRA/Automake.pm	    \
+	tests/docs/spdx-license-t tests/server/shell-misc-t		    \
+	tests/perl/module-version-t tests/tap/kerberos.sh		    \
+	tests/tap/libtap.sh tests/tap/perl/Test/RRA.pm			    \
+	tests/tap/perl/Test/RRA/Automake.pm				    \
 	tests/tap/perl/Test/RRA/Config.pm				    \
 	tests/tap/perl/Test/RRA/ModuleVersion.pm tests/tap/remctl.sh	    \
-	tests/server/misc-t tests/util/xmalloc-t tests/valgrind/logs-t	    \
-	$(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES) $(RUBY_FILES)
+	tests/server/misc-t tests/style/obsolete-strings-t		    \
+	tests/util/xmalloc-t tests/valgrind/logs-t $(PERL_FILES)	    \
+	$(PHP_FILES) $(PYTHON_FILES) $(RUBY_FILES)
 
 # Override systemdsystemunitdir when running distcheck so that we don't try
 # to install files in the system directory.  It would be nice to also enable
