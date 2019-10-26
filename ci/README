@@ -1,0 +1,2 @@
+The files in this directory are used for Travis-CI testing.  ci/install
+installs the prerequisite packages, and ci/test runs the tests.

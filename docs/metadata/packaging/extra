@@ -1,0 +1,5 @@
+For those using Puppet, there is a
+[Puppet module](https://forge.puppetlabs.com/ccin2p3/remctl)
+available for installing the remctl server and managing server
+configurations.  This was written and is maintained by the IN2P3 Computing
+Centre; see that page for more information.

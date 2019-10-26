@@ -4,13 +4,13 @@
 # for packages that run perlcritic tests automatically during the build for
 # reproducible test results.
 #
-# This file has been updated to match perlcritic 1.118.
+# This file has been updated to match perlcritic 1.134.
 #
 # The canonical version of this file is maintained in the rra-c-util package,
 # which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2018 Russ Allbery <eagle@eyrie.org>
+# Copyright 2018-2019 Russ Allbery <eagle@eyrie.org>
 # Copyright 2011-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -51,9 +51,6 @@ allow = unless
 
 # This is handled with a separate test case that uses Test::Spelling.
 [-Documentation::PodSpelling]
-
-# Pod::Man and Pod::Text fixed this bug years ago.  I know, I maintain them.
-[-Documentation::RequirePodLinksIncludeText]
 
 # The POD sections Perl::Critic wants are incompatible with the POD template
 # from perlpodstyle, which is what I use for my POD documentation.

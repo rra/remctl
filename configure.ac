@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2015-2016, 2018-2019 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2016 Dropbox, Inc.
 dnl Copyright 2002-2008, 2010-2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
@@ -9,7 +9,7 @@ dnl
 dnl SPDX-License-Identifier: MIT
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [3.15], [eagle@eyrie.org])
+AC_INIT([remctl], [3.16], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
@@ -54,7 +54,7 @@ AC_SEARCH_LIBS([socket], [socket], [],
 
 dnl Kerberos portability checks.
 RRA_LIB_KRB5_OPTIONAL
-AS_IF([test x"$rra_use_KRB5" != xfalse],
+AS_IF([test x"$rra_use_KRB5" = xtrue],
     [RRA_LIB_KRB5_SWITCH
      AC_CHECK_FUNCS([krb5_free_default_realm \
          krb5_get_init_creds_opt_alloc \
@@ -164,7 +164,7 @@ AC_ARG_ENABLE([perl],
     [AS_IF([test x"$enableval" = xyes], [build_perl=yes])])
 AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
 AS_IF([test x"$build_perl" = xyes],
-    [AC_PATH_PROG([PERL], [perl])
+    [RRA_PROG_PERL([5.008])
      PERL_LDFLAGS=`"$PERL" -MConfig -e 'print $Config{lddlflags}'`])
 AC_SUBST([PERL_LDFLAGS])
 
@@ -187,6 +187,8 @@ AC_ARG_ENABLE([python],
     [AC_HELP_STRING([--enable-python], [Build Python libremctl bindings])],
     [AS_IF([test x"$enableval" = xyes], [build_python=yes])])
 AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
+AS_IF([test x"$build_python" = xyes],
+    [RRA_PROG_PYTHON([2.3], [3.1])])
 
 dnl Whether to build the Ruby bindings.
 build_ruby=
@@ -207,9 +209,6 @@ AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
 AC_CONFIG_FILES([tests/data/conf-simple])
 AS_IF([test x"$build_php" = xyes],
     [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])
-AS_IF([test x"$build_python" = xyes],
-    [AC_CONFIG_FILES([python/remctl.py python/setup.py])
-     AC_CONFIG_FILES([python/test_remctl.py])])
 AS_IF([test x"$build_ruby" = xyes],
     [AC_CONFIG_FILES([ruby/extconf.rb ruby/test_remctl.rb])])
 AC_CONFIG_HEADER([config.h])

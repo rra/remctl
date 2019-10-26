@@ -1,6 +1,6 @@
 --TEST--
 Check full remctl API
---CREDIT--
+--CREDITS--
 Russ Allbery
 # Copyright 2008, 2010-2011
 #     The Board of Trustees of the Leland Stanford Junior University

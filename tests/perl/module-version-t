@@ -27,10 +27,11 @@ BEGIN {
     }
 }
 
-use Getopt::Long qw(GetOptions);
 use Test::RRA qw(skip_unless_automated);
 use Test::RRA::Automake qw(automake_setup);
 use Test::RRA::ModuleVersion qw(test_module_versions update_module_versions);
+
+use Getopt::Long qw(GetOptions);
 
 # Return the current version and, optionally, the package name from the NEWS
 # file.  Munges the version to be appropriate for Perl if necessary.

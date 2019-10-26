@@ -6,7 +6,7 @@
  * Python wrapper around this class.
  *
  * Original implementation by Thomas L. Kula <kula@tproa.net>
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018-2019 Russ Allbery <eagle@eyrie.org>
  * Copyright 2008 Thomas L. Kula <kula@tproa.net>
  * Copyright 2008, 2011-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -29,6 +29,7 @@
  */
 
 #include <Python.h>
+#include <bytesobject.h>
 
 #include <errno.h>
 #include <stdlib.h>
@@ -46,8 +47,24 @@ typedef int Py_ssize_t;
 # define PY_SSIZE_T_MIN INT_MIN
 #endif
 
+/* The return value from module initialization changed in Python 3. */
+#if PY_MAJOR_VERSION >= 3
+# define INITERROR return NULL
+#else
+# define INITERROR return
+#endif
+
+/* Support versions of Python that predate PyCapsule. */
+#if PY_VERSION_HEX < 0x02070000
+# define PyCapsule_New(p, n, d) (PyCObject_FromVoidPtr(p, d))
+# define PyCapsule_GetPointer(c, n) (PyCObject_AsVoidPtr(c))
+#endif
+
 /* Silence GCC warnings. */
+PyMODINIT_FUNC PyInit__remctl(void);
+#if PY_MAJOR_VERSION < 3
 PyMODINIT_FUNC init_remctl(void);
+#endif
 
 /* Map the remctl_output type constants to strings. */
 static const struct {
@@ -91,7 +108,7 @@ py_remctl(PyObject *self, PyObject *args)
         tmp = PyList_GetItem(list, i);
         if (tmp == NULL)
             goto end;
-        command[i] = PyString_AsString(tmp);
+        command[i] = PyBytes_AsString(tmp);
         if (command[i] == NULL)
             goto end;
     }
@@ -102,7 +119,13 @@ py_remctl(PyObject *self, PyObject *args)
         PyErr_NoMemory();
         return NULL;
     }
-    result = Py_BuildValue("(ss#s#i)", rr->error,
+
+#if PY_MAJOR_VERSION >= 3
+# define PY_REMCTL_RETURN "(yy#y#i)"
+#else
+# define PY_REMCTL_RETURN "(ss#s#i)"
+#endif
+    result = Py_BuildValue(PY_REMCTL_RETURN, rr->error,
                            rr->stdout_buf, (int) rr->stdout_len,
                            rr->stderr_buf, (int) rr->stderr_len,
                            rr->status);
@@ -118,11 +141,23 @@ end:
  * Called when the Python object is destroyed.  Clean up the underlying
  * libremctl object.
  */
+#if PY_VERSION_HEX < 0x02070000
 static void
 remctl_destruct(void *r)
 {
     remctl_close(r);
 }
+#else
+static void
+remctl_destruct(PyObject *obj)
+{
+    struct remctl *r;
+
+    r = PyCapsule_GetPointer(obj, "remctl");
+    if (r != NULL)
+        remctl_close(r);
+}
+#endif
 
 
 static PyObject *
@@ -135,7 +170,7 @@ py_remctl_new(PyObject *self, PyObject *args)
         PyErr_NoMemory();
         return NULL;
     }
-    return PyCObject_FromVoidPtr(r, remctl_destruct);
+    return PyCapsule_New(r, "remctl", remctl_destruct);
 }
 
 
@@ -149,7 +184,9 @@ py_remctl_set_ccache(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "Os", &object, &ccache))
         return NULL;
-    r = PyCObject_AsVoidPtr(object);
+    r = PyCapsule_GetPointer(object, "remctl");
+    if (r == NULL)
+        return NULL;
     status = remctl_set_ccache(r, ccache);
     return Py_BuildValue("i", status);
 }
@@ -165,7 +202,9 @@ py_remctl_set_source_ip(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "Os", &object, &source))
         return NULL;
-    r = PyCObject_AsVoidPtr(object);
+    r = PyCapsule_GetPointer(object, "remctl");
+    if (r == NULL)
+        return NULL;
     status = remctl_set_source_ip(r, source);
     return Py_BuildValue("i", status);
 }
@@ -181,7 +220,9 @@ py_remctl_set_timeout(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "Ol", &object, &timeout))
         return NULL;
-    r = PyCObject_AsVoidPtr(object);
+    r = PyCapsule_GetPointer(object, "remctl");
+    if (r == NULL)
+        return NULL;
     status = remctl_set_timeout(r, timeout);
     return Py_BuildValue("i", status);
 }
@@ -199,7 +240,9 @@ py_remctl_open(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "Os|Hz", &object, &host, &port, &principal))
         return NULL;
-    r = PyCObject_AsVoidPtr(object);
+    r = PyCapsule_GetPointer(object, "remctl");
+    if (r == NULL)
+        return NULL;
     status = remctl_open(r, host, port, principal);
     return Py_BuildValue("i", status);
 }
@@ -213,7 +256,9 @@ py_remctl_close(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "O", &object))
         return NULL;
-    r = PyCObject_AsVoidPtr(object);
+    r = PyCapsule_GetPointer(object, "remctl");
+    if (r == NULL)
+        return NULL;
     remctl_close(r);
     Py_INCREF(Py_None);
     return Py_None;
@@ -228,7 +273,9 @@ py_remctl_error(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "O", &object))
         return NULL;
-    r = PyCObject_AsVoidPtr(object);
+    r = PyCapsule_GetPointer(object, "remctl");
+    if (r == NULL)
+        return NULL;
     return Py_BuildValue("s", remctl_error(r));
 }
 
@@ -248,7 +295,9 @@ py_remctl_commandv(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "OO", &object, &list))
         return NULL;
-    r = PyCObject_AsVoidPtr(object);
+    r = PyCapsule_GetPointer(object, "remctl");
+    if (r == NULL)
+        return NULL;
 
     /*
      * Convert the Python list into an array of struct iovecs, each of which
@@ -264,7 +313,7 @@ py_remctl_commandv(PyObject *self, PyObject *args)
         element = PyList_GetItem(list, i);
         if (element == NULL)
             goto end;
-        if (PyString_AsStringAndSize(element, &string, &length) == -1)
+        if (PyBytes_AsStringAndSize(element, &string, &length) == -1)
             goto end;
         iov[i].iov_base = string;
         iov[i].iov_len = length;
@@ -296,7 +345,10 @@ py_remctl_output(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "O", &object))
         return NULL;
-    r = PyCObject_AsVoidPtr(object);
+    r = PyCapsule_GetPointer(object, "remctl");
+    if (r == NULL)
+        return NULL;
+
     output = remctl_output(r);
     if (output == NULL)
         return Py_BuildValue("()");
@@ -305,7 +357,14 @@ py_remctl_output(PyObject *self, PyObject *args)
             type = OUTPUT_TYPE[output->type].name;
             break;
         }
-    result = Py_BuildValue("ss#iii", type, output->data, output->length,
+
+#if PY_MAJOR_VERSION >= 3
+# define PY_REMCTL_OUTPUT_RETURN "(sy#iii)"
+#else
+# define PY_REMCTL_OUTPUT_RETURN "(ss#iii)"
+#endif
+    result = Py_BuildValue(PY_REMCTL_OUTPUT_RETURN, type,
+                           output->data, output->length,
                            output->stream, output->status, output->error);
     return result;
 }
@@ -320,7 +379,9 @@ py_remctl_noop(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "O", &object))
         return NULL;
-    r = PyCObject_AsVoidPtr(object);
+    r = PyCapsule_GetPointer(object, "remctl");
+    if (r == NULL)
+        return NULL;
     status = remctl_noop(r);
     return Py_BuildValue("i", status);
 }
@@ -341,16 +402,50 @@ static PyMethodDef methods[] = {
     { NULL,                   NULL,                    0,            NULL },
 };
 
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef module_def = {
+    PyModuleDef_HEAD_INIT,
+    "_remctl",
+    NULL,
+    0,
+    methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+#endif
+
 
 PyMODINIT_FUNC
-init_remctl(void)
+PyInit__remctl(void)
 {
     PyObject *module, *dict, *tmp;
 
+#if PY_MAJOR_VERSION >= 3
+    module = PyModule_Create(&module_def);
+#else
     module = Py_InitModule("_remctl", methods);
-    dict = PyModule_GetDict(module);
+#endif
+    if (module == NULL)
+        INITERROR;
 
-    tmp = PyString_FromString(VERSION);
+    dict = PyModule_GetDict(module);
+    tmp = PyUnicode_FromString(VERSION);
     PyDict_SetItemString(dict, "VERSION", tmp);
     Py_DECREF(tmp);
+
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
 }
+
+
+/* Used for Python 2. */
+#if PY_MAJOR_VERSION < 3
+PyMODINIT_FUNC
+init_remctl(void)
+{
+    PyInit__remctl();
+}
+#endif

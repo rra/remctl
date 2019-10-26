@@ -35,8 +35,9 @@ use warnings;
 
 use lib 't/lib';
 
-use Test::More;
 use Test::RRA qw(skip_unless_automated use_prereq);
+
+use Test::More;
 
 # Skip this test for normal user installs, although pod2man may still fail.
 skip_unless_automated('POD syntax tests');

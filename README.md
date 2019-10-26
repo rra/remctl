@@ -1,4 +1,4 @@
-# remctl 3.15
+# remctl 3.16
 
 [![Build
 status](https://travis-ci.org/rra/remctl.svg?branch=master)](https://travis-ci.org/rra/remctl)
@@ -109,8 +109,9 @@ or later and phpize, plus any other programs that phpize requires.  PHP
 only tested on PHP 7.x and later.
 
 To build the Python bindings for the C client library, you will need
-Python 2.3 or later (primarily tested with Python 2.7).  Python 3 is not
-(yet) supported.
+Python 2.7, or Python 3.1 or later.  You will also need the setuptools,
+pytest, and pytest-runner modules and, for Python 2, the typing module.
+Earlier versions may work back to possibly Python 2.3, but are not tested.
 
 To build the Ruby bindings for the C client library, you will need Ruby
 1.8 or later (primarily tested with 2.5 and later).
@@ -266,7 +267,8 @@ be used to specify the exact paths, overriding any `krb5-config` results.
 
 Pass `--enable-silent-rules` to configure for a quieter build (similar to
 the Linux kernel).  Use `make warnings` instead of `make` to build with
-full GCC compiler warnings (requires a relatively current version of GCC).
+full GCC compiler warnings (requires either GCC or Clang and may require a
+relatively current version of the compiler).
 
 You can pass the `--enable-reduced-depends` flag to configure to try to
 minimize the shared library dependencies encoded in the binaries.  This

@@ -1,5 +1,55 @@
                        User-Visible remctl Changes
 
+remctl 3.16 (2019-10-26)
+
+    The Python bindings now support Python 3.  They have been tested only
+    with Python 2.7 and Python 3.7, but should work with any version of
+    Python 3 later than Python 3.1.
+
+    The Python bindings have been modernized to remove obsolete syntax,
+    which may mean that versions of Python back to Python 2.3 are no
+    longer supported.  The bindings are only tested with Python 2.7.
+    Passing in anything other than an iterable of str or bytes as the
+    command to run is deprecated and support for using objects that can be
+    converted to str in commands will be removed in a future release.
+
+    Update the Python bindings documentation to use proper Python types
+    and to document how str and bytes values are handled.
+
+    Building the Python bindings now requires the setuptools, pytest,
+    pytest-runner, and typing Python modules.
+
+    Add -t flag to the remctl client to specify the network timeout.
+    Thanks, Remi Ferrand.
+
+    Fix NULL pointer dereference in the client library if allocation of
+    memory fails, caught by cppcheck.
+
+    Add GCC attributes to the declarations of the libremctl client
+    functions, which will allow some minor optimization improvements and
+    better compiler errors about NULL pointers.
+
+    Check for minimum versions of Perl or Python during configure if
+    building the Perl or Python bindings is requested.
+
+    More correctly handle user-supplied CFLAGS in combination with make
+    warnings when building the PHP bindings.  Add the warning flags to
+    AM_CFLAGS instead of CFLAGS and pass user-supplied CFLAGS through to
+    configure (but not the warning flags).  Thanks, Ken Dreyer.
+
+    Fix Kerberos library probing with --enable-reduced-depends and
+    correctly suppress probing for Kerberos library features when no
+    Kerberos library is present.
+
+    Update to rra-c-util 8.0:
+
+    * Skip more Automake files in tests.
+    * Fix warnings with current versions of GCC and cppcheck.
+
+    Update to C TAP Harness 4.5:
+
+    * Fix error checking for malloc failure in bstrndup.
+
 remctl 3.15 (2018-05-05)
 
     Fix a bug where output could have been truncated for a command run by

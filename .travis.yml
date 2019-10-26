@@ -1,16 +1,23 @@
+# Configuration for Travis-CI continuous integration.
+#
+# Copyright 2016, 2018-2019 Russ Allbery <eagle@eyrie.org>
+#
+# SPDX-License-Identifier: MIT
+
 sudo: required
-dist: trusty
+dist: bionic
+
+cache:
+  directories:
+    - $HOME/.cache/pip
 
 language: c
 compiler:
   - gcc
   - clang
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y krb5-config libevent-dev libkrb5-dev libmodule-build-perl libpcre3-dev libtest-pod-perl libtest-minimumversion-perl libtest-pod-coverage-perl libtest-strict-perl libtest-synopsis-perl perl php5-cli pkg-config python-all-dev ruby-all-dev
-env: AUTHOR_TESTING=1
-script: ./bootstrap && ./configure --enable-perl --enable-php --enable-python --enable-ruby && make warnings && make check
+before_install: sudo ci/install
+script: ci/test
 
 branches:
   except:

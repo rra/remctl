@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2015-2016 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015-2016, 2019 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
  * Copyright 2002-2010, 2012-2014
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -437,13 +437,10 @@ server_run_command(struct client *client, struct config *config,
             free(subcommand);
             subcommand = xstrdup(rule->help);
         }
-    }
-
-    /* Assemble the argv for the command we're about to run. */
-    if (help)
         req_argv = create_argv_help(rule->program, subcommand, helpsubcommand);
-    else
+    } else {
         req_argv = create_argv_command(rule, &process, argv);
+    }
 
     /* Now actually execute the program. */
     process.command = command;

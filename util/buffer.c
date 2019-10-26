@@ -16,7 +16,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2015-2016 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015-2016, 2019 Russ Allbery <eagle@eyrie.org>
  * Copyright 2011-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2004-2006 Internet Systems Consortium, Inc. ("ISC")
@@ -43,6 +43,7 @@
 #include <config.h>
 #include <portable/system.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <sys/stat.h>
 
@@ -111,6 +112,7 @@ void
 buffer_set(struct buffer *buffer, const char *data, size_t length)
 {
     if (length > 0) {
+        assert(data != NULL);
         buffer_resize(buffer, length);
         memmove(buffer->data, data, length);
     }
