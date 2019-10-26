@@ -7,3 +7,5 @@ Tests: python
 Depends:
  python-all,
  python-remctl,
+ python3-all,
+ python3-pyremctl,
