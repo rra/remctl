@@ -9,8 +9,12 @@ remctl 3.16 (2019-10-26)
     The Python bindings have been modernized to remove obsolete syntax,
     which may mean that versions of Python back to Python 2.3 are no
     longer supported.  The bindings are only tested with Python 2.7.
-    Update the documentation to use proper Python types and to document
-    how str and bytes values are handled.
+    Passing in anything other than an iterable of str or bytes as the
+    command to run is deprecated and support for using objects that can be
+    converted to str in commands will be removed in a future release.
+
+    Update the Python bindings documentation to use proper Python types
+    and to document how str and bytes values are handled.
 
     Building the Python bindings now requires the setuptools, pytest,
     pytest-runner, and typing Python modules.
