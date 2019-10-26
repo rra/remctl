@@ -3,12 +3,6 @@ Depends:
  pkg-perl-autopkgtest,
  @,
 
-Test-Command: /usr/share/pkg-perl-autopkgtest/runner runtime-deps-and-recommends
-Depends:
- pkg-perl-autopkgtest,
- @,
-Restrictions: needs-recommends
-
 Tests: python
 Depends:
  python-all,

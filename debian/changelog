@@ -17,6 +17,9 @@ remctl (3.16-1) UNRELEASED; urgency=medium
     - Install NEWS in all packages as /usr/share/doc/<package>/NEWS.gz
       rather than as changelog.gz.
   * Remove obsolete debian/source/options file to force xz compression.
+  * Remove unnecessary Perl module test that includes Recommends.  The
+    Perl module has no Recommends, so this is redundant with the normal
+    dependency test.
   * Run wrap-and-sort -ast.
 
  -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 12:14:48 -0700
