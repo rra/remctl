@@ -5,9 +5,8 @@ remctl (3.16-1) UNRELEASED; urgency=medium
     - Fix NULL pointer dereference after memory allocation failure.
     - Add GCC attributes to declarations in remctl.h.
   * Add python3-pyremctl package with the Python 3 version of the
-    libremctl bindings.  Don't bother to rename python-remctl to
-    python-pyremctl since it will be removed in an upcoming release.  Mark
-    python3-pyremctl Multi-Arch: same.  (Partly addresses #938350)
+    libremctl bindings and drop python-remctl.  Mark python3-pyremctl
+    Multi-Arch: same.  (Closes: #938350)
   * Remove XS-Python-Version, since only 2.7 is now supported.
   * Add Build-Depends-Package to libremctl1 symbols file.
   * Update to debhelper compatibility level V12.
@@ -942,4 +941,3 @@ remctl (1.7-1) unstable; urgency=low
   * Initial release.
 
  -- Russ Allbery <rra@stanford.edu>  Wed, 23 Feb 2005 00:19:37 -0800
-

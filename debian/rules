@@ -20,10 +20,10 @@ export REMCTL_PERL_FLAGS := --installdirs vendor --create_packlist 0
 # The supported Python versions and the additional Python flags, picked up
 # by the upstream build system.
 export REMCTL_PYTHON_INSTALL  := --install-layout=deb
-export REMCTL_PYTHON_VERSIONS := $(shell pyversions -s) $(shell py3versions -s)
+export REMCTL_PYTHON_VERSIONS := $(shell py3versions -s)
 
 %:
-	dh $@ --with python2,python3,ruby
+	dh $@ --with python3,ruby
 
 override_dh_autoreconf:
 	dh_autoreconf --as-needed
