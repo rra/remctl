@@ -108,7 +108,8 @@ Description: Server for Kerberos-authenticated command execution
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
  .
- This package contains the server (remctld).
+ This package contains the server (remctld) and the SSH backend
+ (remctl-shell).
 
 Package: libnet-remctl-perl
 Section: perl
