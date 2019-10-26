@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.16 (2019-10-24)
+remctl 3.16 (2019-10-26)
 
     The Python bindings now support Python 3.  They have been tested only
     with Python 2.7 and Python 3.7, but should work with any version of
