@@ -5,8 +5,7 @@ remctl (3.16-1) unstable; urgency=medium
     - Fix NULL pointer dereference after memory allocation failure.
     - Add GCC attributes to declarations in remctl.h.
   * Add python3-pyremctl package with the Python 3 version of the
-    libremctl bindings and drop python-remctl.  Mark python3-pyremctl
-    Multi-Arch: same.  (Closes: #938350)
+    libremctl bindings and drop python-remctl.  (Closes: #938350)
   * Remove XS-Python-Version, since only 2.7 is now supported.
   * Add Build-Depends-Package to libremctl1 symbols file.
   * Mention remctl-shell in the long description of remctl-server.
@@ -26,7 +25,7 @@ remctl (3.16-1) unstable; urgency=medium
     completed long ago.
   * Run wrap-and-sort -ast.
 
- -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 13:39:49 -0700
+ -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 13:49:19 -0700
 
 remctl (3.15-1) unstable; urgency=medium
 

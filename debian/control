@@ -153,7 +153,6 @@ Description: PECL module for Kerberos-authenticated command execution
 Package: python3-pyremctl
 Section: python
 Architecture: any
-Multi-Arch: same
 Depends:
  ${misc:Depends},
  ${python3:Depends},
