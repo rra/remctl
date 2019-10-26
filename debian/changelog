@@ -1,4 +1,4 @@
-remctl (3.16-1) UNRELEASED; urgency=medium
+remctl (3.16-1) unstable; urgency=medium
 
   * New upstream release.
     - Add -t flag to the remctl client to specify network timeout.
@@ -26,7 +26,7 @@ remctl (3.16-1) UNRELEASED; urgency=medium
     completed long ago.
   * Run wrap-and-sort -ast.
 
- -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 12:14:48 -0700
+ -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 13:39:49 -0700
 
 remctl (3.15-1) unstable; urgency=medium
 
