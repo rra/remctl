@@ -3,6 +3,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on prior work by Anton Ushakov
+ * Copyright 2019 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2008, 2011-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -34,7 +35,30 @@
 #include <time.h>               /* time_t */
 
 /*
- * Normally we treat this as an opaque struct and clients who want to use the
+ * __attribute__ is available in gcc 2.5 and later, but only with gcc 2.7
+ * could you use the __format__ form of the attributes, which is what we use
+ * (to avoid confusion with other macros), and only with gcc 2.96 can you use
+ * the attribute __malloc__.  2.96 is very old, so don't bother trying to get
+ * the other attributes to work with GCC versions between 2.7 and 2.96.
+ */
+#ifndef __attribute__
+# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
+#  define __attribute__(spec)   /* empty */
+# endif
+#endif
+
+/*
+ * LLVM and Clang pretend to be GCC but don't support all of the __attribute__
+ * settings that GCC does.  For them, suppress warnings about unknown
+ * attributes on declarations.  This unfortunately will affect the entire
+ * compilation context, but there's no push and pop available.
+ */
+#if !defined(__attribute__) && (defined(__llvm__) || defined(__clang__))
+# pragma GCC diagnostic ignored "-Wattributes"
+#endif
+
+/*
+ * Normally we treat iovec as an opaque struct and clients who want to use the
  * iovec interface need to include <sys/uio.h> themselves.  However, Windows
  * doesn't provide this struct, so we define it for Windows.  It will already
  * be defined by remctl's internal build system, so deal with that.
@@ -115,7 +139,8 @@ BEGIN_DECLS
  * remctl_result_free.
  */
 struct remctl_result *remctl(const char *host, unsigned short port,
-                             const char *principal, const char **command);
+                             const char *principal, const char **command)
+    __attribute__((__nonnull__(1, 4), __malloc__));
 void remctl_result_free(struct remctl_result *);
 
 /*
@@ -124,9 +149,11 @@ void remctl_result_free(struct remctl_result *);
  * to REMCTL_PORT_OLD.  principal may be NULL, in which case host/<host> is
  * used (with no transformations applied to host at all).
  */
-struct remctl *remctl_new(void);
+struct remctl *remctl_new(void)
+    __attribute__((__malloc__));
 int remctl_open(struct remctl *, const char *host, unsigned short port,
-                const char *principal);
+                const char *principal)
+    __attribute__((__nonnull__(1, 2)));
 void remctl_close(struct remctl *);
 
 /*
@@ -138,18 +165,22 @@ void remctl_close(struct remctl *);
  * more than one command to a v1 server.
  */
 int remctl_open_addrinfo(struct remctl *r, const char *host,
-                         const struct addrinfo *ai, const char *principal);
+                         const struct addrinfo *ai, const char *principal)
+    __attribute__((__nonnull__(1, 3)));
 int remctl_open_sockaddr(struct remctl *r, const char *host,
                          const struct sockaddr *addr, int addrlen,
-                         const char *principal);
+                         const char *principal)
+    __attribute__((__nonnull__(1, 3)));
 
 /* Windows uses a SOCKET type for sockets instead of an integer. */
 #ifdef _WIN32
 int remctl_open_fd(struct remctl *r, const char *host, SOCKET fd,
-                   const char *principal);
+                   const char *principal)
+    __attribute__((__nonnull__(1)));
 #else
 int remctl_open_fd(struct remctl *r, const char *host, int fd,
-                   const char *principal);
+                   const char *principal)
+    __attribute__((__nonnull__(1)));
 #endif
 
 
@@ -167,7 +198,8 @@ int remctl_open_fd(struct remctl *r, const char *host, int fd,
  * all uses of GSS-API by that process.  The GSS-API does not provide a way of
  * setting it only for one particular GSS-API context.
  */
-int remctl_set_ccache(struct remctl *, const char *);
+int remctl_set_ccache(struct remctl *, const char *)
+    __attribute__((__nonnull__));
 
 /*
  * Set the source address for connections.  If remctl_set_source_ip is called
@@ -177,7 +209,8 @@ int remctl_set_ccache(struct remctl *, const char *);
  * Returns true on success, false on failure.  On failure, use remctl_error to
  * get the error.
  */
-int remctl_set_source_ip(struct remctl *, const char *);
+int remctl_set_source_ip(struct remctl *, const char *)
+    __attribute__((__nonnull__));
 
 /*
  * Set the network timeout, which may be 0 to not use any timeout (the
@@ -187,7 +220,8 @@ int remctl_set_source_ip(struct remctl *, const char *);
  * with an invalid timeout, such as a negative value).  On failure, use
  * remctl_error to get the error.
  */
-int remctl_set_timeout(struct remctl *, time_t);
+int remctl_set_timeout(struct remctl *, time_t)
+    __attribute__((__nonnull__));
 
 /*
  * Send a complete remote command.  Returns true on success, false on failure.
@@ -196,8 +230,10 @@ int remctl_set_timeout(struct remctl *, time_t);
  * strings and remctl_commandv takes an array of struct iovecs of length
  * count.  The latter form should be used for binary data.
  */
-int remctl_command(struct remctl *, const char **command);
-int remctl_commandv(struct remctl *, const struct iovec *, size_t count);
+int remctl_command(struct remctl *, const char **command)
+    __attribute__((__nonnull__));
+int remctl_commandv(struct remctl *, const struct iovec *, size_t count)
+    __attribute__((__nonnull__));
 
 /*
  * Send a NOOP message to the server and read the NOOP reply.  This is
@@ -209,7 +245,8 @@ int remctl_commandv(struct remctl *, const struct iovec *, size_t count);
  * it, so the caller should be prepared to handle an error return and fall
  * back on reopening the connection when necessary.
  */
-int remctl_noop(struct remctl *);
+int remctl_noop(struct remctl *)
+    __attribute__((__nonnull__));
 
 /*
  * Retrieve output from the remote server.  Each call to this function on the
@@ -226,14 +263,16 @@ int remctl_noop(struct remctl *);
  * invalidated after another call to remctl_output or to remctl_close on the
  * same connection.
  */
-struct remctl_output *remctl_output(struct remctl *);
+struct remctl_output *remctl_output(struct remctl *)
+    __attribute__((__nonnull__));
 
 /*
  * Call remctl_error after an error return to retrieve the internal error
  * message.  The returned error string will be invalidated by any subsequent
  * call to a remctl library function.
  */
-const char *remctl_error(struct remctl *);
+const char *remctl_error(struct remctl *)
+    __attribute__((__nonnull__));
 
 END_DECLS
 

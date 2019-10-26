@@ -1,7 +1,7 @@
 # Ignore list for Git.  -*- conf -*-
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
+# Copyright 2015-2016, 2018-2019 Russ Allbery <eagle@eyrie.org>
 # Copyright 2008-2014
 #     Board of Trustees of the Leland Stanford Junior University
 #
@@ -49,6 +49,7 @@
 /php/config.m4
 /php/config.nice
 /php/config.sub
+/php/configure.ac
 /php/configure.in
 /php/install-sh
 /php/ltmain.sh
@@ -59,12 +60,14 @@
 /php/php_test_results_*.txt
 /php/run-tests.php
 /php/tmp-php.ini
+/python/.eggs/
+/python/.mypy_cache/
+/python/_remctl*.so
 /python/MANIFEST
 /python/build
 /python/dist
-/python/remctl.py
-/python/setup.py
-/python/test_remctl.py
+/python/pyremctl.egg-info/
+/python/tests/config/
 /ruby/doc/
 /ruby/extconf.rb
 /ruby/mkmf.log

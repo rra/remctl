@@ -150,7 +150,7 @@ SKIP: {
 
     # Now we can finally run our tests.  Basic interface, success.
     my $principal = get_principal();
-    my $result = remctl('localhost', 14373, $principal, 'test', 'test');
+    my $result    = remctl('localhost', 14373, $principal, 'test', 'test');
     isa_ok($result, 'Net::Remctl::Result', 'Basic remctl return');
     is($result->status, 0,               '... exit status');
     is($result->stdout, "hello world\n", '... stdout output');

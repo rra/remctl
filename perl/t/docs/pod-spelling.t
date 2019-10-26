@@ -35,8 +35,9 @@ use warnings;
 
 use lib 't/lib';
 
-use Test::More;
 use Test::RRA qw(skip_unless_author use_prereq);
+
+use Test::More;
 
 # Only run this test for the module author since the required stopwords are
 # too sensitive to the exact spell-checking program and dictionary.

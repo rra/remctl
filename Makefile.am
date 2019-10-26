@@ -1,7 +1,7 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
+# Copyright 2015-2016, 2018-2019 Russ Allbery <eagle@eyrie.org>
 # Copyright 2016 Dropbox, Inc.
 # Copyright 2006-2014
 #     The Board of Trustees of the Leland Stanford Junior University
@@ -32,7 +32,7 @@ REMCTL_PROGRAM_CFLAGS  ?=
 REMCTL_PROGRAM_LDFLAGS ?=
 REMCTL_PERL_FLAGS      ?=
 REMCTL_PYTHON_INSTALL  ?=
-REMCTL_PYTHON_VERSIONS ?= python
+REMCTL_PYTHON_VERSIONS ?= $(PYTHON)
 REMCTL_RUBY            ?= ruby
 REMCTL_RUBY_FLAGS      ?=
 
@@ -49,21 +49,26 @@ RUBY_CFLAGS_EXTRA   =
 # for the test suite and are not generated or touched by configure.  They're
 # listed here to be added to EXTRA_DIST and so that they can be copied over
 # properly for builddir != srcdir builds.
-PERL_FILES = perl/Build.PL perl/MANIFEST perl/MANIFEST.SKIP		   \
-	perl/lib/Net/Remctl.pm perl/lib/Net/Remctl.xs			   \
-	perl/lib/Net/Remctl/Backend.pm perl/t/api/basic.t		   \
-	perl/t/api/stanford-netdb.t perl/t/backend/basic.t		   \
-	perl/t/backend/nested.t perl/t/backend/options.t		   \
-	perl/t/data/perl.conf perl/t/data/perlcriticrc			   \
-	perl/t/data/perltidyrc perl/t/data/remctl.conf			   \
-	perl/t/docs/pod-coverage.t perl/t/docs/pod-spelling.t		   \
-	perl/t/docs/pod.t perl/t/docs/synopsis.t perl/t/lib/Test/Remctl.pm \
-	perl/t/style/coverage.t perl/t/style/critic.t			   \
-	perl/t/style/minimum-version.t perl/t/style/strict.t perl/typemap
+PERL_FILES = perl/Build.PL perl/MANIFEST perl/MANIFEST.SKIP		    \
+	perl/lib/Net/Remctl.pm perl/lib/Net/Remctl.xs			    \
+	perl/lib/Net/Remctl/Backend.pm perl/t/api/basic.t		    \
+	perl/t/backend/basic.t perl/t/backend/nested.t			    \
+	perl/t/backend/options.t perl/t/data/perl.conf			    \
+	perl/t/data/perlcriticrc perl/t/data/perltidyrc			    \
+	perl/t/data/remctl.conf perl/t/docs/pod-coverage.t		    \
+	perl/t/docs/pod-spelling.t perl/t/docs/pod.t perl/t/docs/synopsis.t \
+	perl/t/lib/Test/Remctl.pm perl/t/style/coverage.t		    \
+	perl/t/style/critic.t perl/t/style/minimum-version.t		    \
+	perl/t/style/strict.t perl/typemap
 PHP_FILES = php/README php/php_remctl.c php/php5_remctl.c php/test-wrapper \
 	php/tests/001.phpt php/tests/002.phpt php/tests/003.phpt	   \
 	php/tests/004.phpt php/tests/005.phpt php/tests/006.phpt
-PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c
+PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c	   \
+	python/pyproject.toml python/remctl.py python/requirements-dev.txt \
+	python/setup.cfg python/setup.py python/tests/data/cmd-hello	   \
+	python/tests/data/cmd-sleep python/tests/data/cmd-status	   \
+	python/tests/data/remctl.conf python/tests/__init__.py		   \
+	python/tests/remctl_test.py
 RUBY_FILES = ruby/README ruby/remctl.c
 
 # Directories that have to be created in builddir != srcdir builds before
@@ -71,12 +76,13 @@ RUBY_FILES = ruby/README ruby/remctl.c
 PERL_DIRECTORIES = perl perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
 	perl/t/api perl/t/backend perl/t/data perl/t/docs perl/t/lib	 \
 	perl/t/lib/Test perl/t/style
+PYTHON_DIRECTORIES = python python/tests python/tests/data
 
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .gitignore .travis.yml LICENSE Makefile.w32 README.md	    \
-	bootstrap client/libremctl.pc.in client/libremctl.map		    \
-	client/libremctl.rc client/libremctl.sym client/remctl.rc	    \
-	config.h.w32 configure.cmd docs/api/remctl.pod			    \
+	bootstrap ci/README ci/install ci/test client/libremctl.pc.in	    \
+	client/libremctl.map client/libremctl.rc client/libremctl.sym	    \
+	client/remctl.rc config.h.w32 configure.cmd docs/api/remctl.pod	    \
 	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
 	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
 	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
@@ -112,14 +118,15 @@ EXTRA_DIST = .gitignore .travis.yml LICENSE Makefile.w32 README.md	    \
 	tests/data/fake-sudo tests/data/generate-krb5-conf tests/data/gput  \
 	tests/data/perl.conf tests/data/valgrind.supp			    \
 	tests/docs/pod-spelling-t tests/docs/pod-t			    \
-	tests/docs/spdx-license-t tests/docs/urls-t			    \
-	tests/server/shell-misc-t tests/perl/module-version-t		    \
-	tests/tap/kerberos.sh tests/tap/libtap.sh			    \
-	tests/tap/perl/Test/RRA.pm tests/tap/perl/Test/RRA/Automake.pm	    \
+	tests/docs/spdx-license-t tests/server/shell-misc-t		    \
+	tests/perl/module-version-t tests/tap/kerberos.sh		    \
+	tests/tap/libtap.sh tests/tap/perl/Test/RRA.pm			    \
+	tests/tap/perl/Test/RRA/Automake.pm				    \
 	tests/tap/perl/Test/RRA/Config.pm				    \
 	tests/tap/perl/Test/RRA/ModuleVersion.pm tests/tap/remctl.sh	    \
-	tests/server/misc-t tests/util/xmalloc-t tests/valgrind/logs-t	    \
-	$(PERL_FILES) $(PHP_FILES) $(PYTHON_FILES) $(RUBY_FILES)
+	tests/server/misc-t tests/style/obsolete-strings-t		    \
+	tests/util/xmalloc-t tests/valgrind/logs-t $(PERL_FILES)	    \
+	$(PHP_FILES) $(PYTHON_FILES) $(RUBY_FILES)
 
 # Override systemdsystemunitdir when running distcheck so that we don't try
 # to install files in the system directory.  It would be nice to also enable
@@ -299,8 +306,10 @@ clean-local:
 	set -e; if [ -f "ruby/Makefile" ] ; then	\
 	    cd ruby && $(MAKE) distclean ;		\
 	fi
-	rm -rf perl/t/config perl/t/lib/Test/RRA php/tmp-php.ini \
-	    python/build python/dist python/*.pyc
+	rm -rf perl/t/config perl/t/lib/Test/RRA php/tmp-php.ini	   \
+	    python/.eggs python/build python/dist python/pyremctl.egg-info \
+	    python/*.pyc python/tests/config python/tests/tmp		   \
+	    python/tests/*.pyc
 
 # Also clean the Perl, PHP, and Python directories on make distclean if
 # needed.
@@ -325,6 +334,8 @@ distclean-local: clean-local
 	set -e; if [ -f "ruby/Makefile" ] ; then	\
 	    cd ruby && $(MAKE) distclean ;		\
 	fi
+	rm -rf python/.mypy_cache python/.pytest_cache python/__pycache__ \
+	    python/tests/__pycache__
 
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
 # auto-generated code otherwise generates them.  This suppression list
@@ -339,20 +350,21 @@ PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
 	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal	\
 	-Wno-strict-overflow -Wno-conversion -Wno-missing-declarations	\
-	-Wno-double-promotion -Wno-cast-align -Wno-extra-semi
+	-Wno-double-promotion -Wno-cast-align
 PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
-	-Wno-shift-sign-overflow -Wno-gnu-statement-expression		    \
-	-Wno-unknown-warning-option
+	-Wno-nested-externs -Wno-shift-sign-overflow			    \
+	-Wno-gnu-statement-expression -Wno-unknown-warning-option	    \
+	-Wno-gcc-compat
 
 warnings:
-	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
+	$(MAKE) V=0 AM_CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
 	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)'		\
 	    PERL_CFLAGS_EXTRA='$(PERL_WARNINGS)'		\
 	    PHP_CFLAGS_EXTRA='$(PHP_WARNINGS)'			\
 	    PYTHON_CFLAGS_EXTRA='$(PYTHON_WARNINGS)'		\
 	    RUBY_CFLAGS_EXTRA='$(RUBY_WARNINGS)'
-	$(MAKE) V=0 CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)' \
+	$(MAKE) V=0 AM_CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)' \
 	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
@@ -587,47 +599,53 @@ TEST_RPATH = $(abs_top_builddir)/client/.libs
 
 check-local: $(check_PROGRAMS)
 	tests/runtests -l '$(abs_top_srcdir)/tests/TESTS'
-	@set -e; if [ -f perl/Build ] ; then			\
-	    echo '' ;						\
-	    [ -d perl/t/config ] || mkdir perl/t/config ;	\
-	    if [ -f tests/config/keytab ] ; then		\
-		cp tests/config/keytab perl/t/config ;		\
-	    fi ;						\
-	    if [ -f tests/config/principal ] ; then		\
-		cp tests/config/principal perl/t/config ;	\
-	    fi ;						\
+	@set -e; if [ -f perl/Build ]; then			\
+	    echo '';						\
+	    [ -d perl/t/config ] || mkdir perl/t/config;	\
+	    if [ -f tests/config/keytab ]; then			\
+		cp tests/config/keytab perl/t/config;		\
+	    fi;							\
+	    if [ -f tests/config/principal ]; then		\
+		cp tests/config/principal perl/t/config;	\
+	    fi;							\
 	    cd perl && LD_LIBRARY_PATH=$(TEST_RPATH)		\
 		REMCTLD="$(abs_top_builddir)/server/remctld"	\
-		./Build test ;					\
+		./Build test;					\
 	fi
-	@set -e; if [ -f php/Makefile ] ; then				    \
-	    echo '' ;							    \
+	@set -e; if [ -f php/Makefile ]; then				    \
+	    echo '';							    \
 	    cd php && NO_INTERACTION=1 ./test-wrapper "$(abs_top_builddir)" \
-		"$(abs_top_srcdir)" ;					    \
+		"$(abs_top_srcdir)";					    \
 	fi
-	@set -e; if [ -f python/setup.py ] ; then		\
-	    echo '' ;						\
-	    echo 'Testing Python extension' ;			\
-	    for python in $(REMCTL_PYTHON_VERSIONS) ; do	\
-		v=`echo "$$python" | sed 's/^[^0-9]*//'` ;	\
-		cd python ;					\
-		LD_LIBRARY_PATH=$(TEST_RPATH)			\
-		    PYTHONPATH="`ls -d build/lib.*$$v`"		\
-		    "$$python" test_remctl.py ;			\
-		cd .. ;						\
-	    done ;						\
+	@set -e; if [ -n "$(PYTHON)" -a -f python/setup.py ]; then	\
+	    echo '';							\
+	    echo 'Testing Python extension';				\
+	    [ -d python/tests/config ] || mkdir python/tests/config;	\
+	    if [ -f tests/config/keytab ]; then				\
+		cp tests/config/keytab python/tests/config;		\
+	    fi;								\
+	    if [ -f tests/config/principal ]; then			\
+		cp tests/config/principal python/tests/config;		\
+	    fi;								\
+	    cd python && for python in $(REMCTL_PYTHON_VERSIONS); do	\
+		LD_LIBRARY_PATH=$(TEST_RPATH)				\
+		    REMCTLD="$(abs_top_builddir)/server/remctld"	\
+		    "$$python" setup.py test;				\
+	    done;							\
 	fi
-	@set -e; if [ -f ruby/Makefile ] ; then		\
-	    echo '' ;					\
+	@set -e; if [ -f ruby/Makefile ]; then		\
+	    echo '';					\
 	    cd ruby && LD_LIBRARY_PATH=$(TEST_RPATH)	\
-		$(REMCTL_RUBY) -I. test_remctl.rb ;	\
+		$(REMCTL_RUBY) -I. test_remctl.rb;	\
 	fi
 
 # Used by maintainers to check the source code with cppcheck.
 check-cppcheck:
-	cd $(abs_top_srcdir) && cppcheck -q --error-exitcode=2	\
-	    --suppressions-list=tests/data/cppcheck.supp	\
-	    --enable=warning,performance,portability,style .
+	cd $(abs_top_srcdir) &&						\
+	    find . -name .git -prune -o -name '*.[ch]' -print		\
+	    | cppcheck -q --force --error-exitcode=2 --file-list=-	\
+		--suppressions-list=tests/data/cppcheck.supp		\
+		--enable=warning,performance,portability,style
 
 # The full path to valgrind and its options, used when doing valgrind
 # testing.
@@ -673,12 +691,12 @@ perl/lib/Net/Remctl.o: $(srcdir)/perl/lib/Net/Remctl.pm			 \
 	fi
 	cp -R $(srcdir)/tests/tap/perl/* perl/t/lib/
 	rm -f perl/lib/Net/Remctl.o
-	cd perl && perl Build.PL					\
-	    --config cc='$(CC)'						\
-	    --config lddlflags='$(PERL_LDFLAGS_FULL)'			\
-	    --config optimize='$(CFLAGS) $(PERL_CFLAGS_EXTRA)'		\
-	    --extra-compiler-flags '$(PERL_CFLAGS)'			\
-	    --extra-linker-flags '-lremctl $(DEPEND_LIBS) $(LIBS)'	\
+	cd perl && perl Build.PL					    \
+	    --config cc='$(CC)'						    \
+	    --config lddlflags='$(PERL_LDFLAGS_FULL)'			    \
+	    --config optimize='$(CFLAGS) $(AM_CFLAGS) $(PERL_CFLAGS_EXTRA)' \
+	    --extra-compiler-flags '$(PERL_CFLAGS)'			    \
+	    --extra-linker-flags '-lremctl $(DEPEND_LIBS) $(LIBS)'	    \
 	    $(REMCTL_PERL_FLAGS)
 	cd perl && ./Build
 
@@ -703,8 +721,8 @@ php/modules/remctl.so: php/config.m4 php/php_remctl.h \
 	fi
 	cd php && $(PHPIZE) --clean && $(PHPIZE)
 	cd php && ./configure CC='$(CC)' CPPFLAGS='$(CPPFLAGS)' \
-	    CFLAGS='$(AM_CFLAGS)' LDFLAGS='$(LDFLAGS)'
-	cd php && $(MAKE) CFLAGS='$(CFLAGS) $(PHP_WARNINGS)'
+	    CFLAGS='$(CFLAGS)' LDFLAGS='$(LDFLAGS)'
+	cd php && $(MAKE) CFLAGS='$(CFLAGS) $(AM_CFLAGS) $(PHP_WARNINGS)'
 
 # PHP's build system uses INSTALL_ROOT where everyone else uses DESTDIR.
 install-data-local-php: php/modules/remctl.so
@@ -721,19 +739,27 @@ endif
 # in which case we need to copy various files from the source directory and
 # make sure they're up to date.
 
-stamp-python: $(srcdir)/python/_remctlmodule.c python/remctl.py	\
+# CFLAGS and LDFLAGS to pass to the Python build.
+PYTHON_CFLAGS = -I$(abs_top_srcdir)/client $(CPPFLAGS) $(CFLAGS) $(AM_CFLAGS)
+PYTHON_LDFLAGS_FULL = -L$(abs_top_builddir)/client/.libs $(GSSAPI_LDFLAGS) \
+	$(LDFLAGS)
+
+stamp-python: $(srcdir)/python/_remctlmodule.c $(srcdir)/python/remctl.py \
 		client/libremctl.la
-	set -e; if [ x'$(builddir)' != x'$(srcdir)' ] ; then	\
-	    for f in $(PYTHON_FILES) ; do			\
-		cp "$(srcdir)/$$f" "$(builddir)/$$f" ;		\
-	    done						\
+	set -e; if [ x'$(builddir)' != x'$(srcdir)' ]; then		\
+	    for d in $(PYTHON_DIRECTORIES); do				\
+		[ -d "$(builddir)/$$d" ] || mkdir "$(builddir)/$$d";	\
+	    done;							\
+	    for f in $(PYTHON_FILES); do				\
+		cp "$(srcdir)/$$f" "$(builddir)/$$f";			\
+	    done							\
 	fi
-	set -e; for python in $(REMCTL_PYTHON_VERSIONS) ; do		\
-	    cd python							\
-		&& CC='$(CC)' BASECFLAGS='$(CPPFLAGS) $(CFLAGS)'	\
-		   CFLAGS='$(PYTHON_CFLAGS_EXTRA)'			\
-		   "$$python" setup.py build				\
-		&& cd .. ;						\
+	set -e; cd python && for python in $(REMCTL_PYTHON_VERSIONS); do \
+	    CC='$(CC)'							 \
+		CFLAGS='$(PYTHON_CFLAGS) $(PYTHON_CFLAGS_EXTRA)'	 \
+		LDFLAGS='$(PYTHON_LDFLAGS_FULL)'			 \
+		REMCTL_PYTHON_LIBS='$(GSSAPI_LIBS)'			 \
+		"$$python" setup.py build;				 \
 	done
 	touch stamp-python
 
@@ -763,8 +789,9 @@ endif
 # The following section sets up the Ruby bindings for remctl.
 
 # CFLAGS to pass to the Ruby build.
-RUBY_CFLAGS = -I$(abs_top_builddir) -I$(abs_top_srcdir) \
-	-I$(abs_top_srcdir)/client $(CPPFLAGS) $(CFLAGS) $(RUBY_CFLAGS_EXTRA)
+RUBY_CFLAGS = -I$(abs_top_builddir) -I$(abs_top_srcdir)			\
+	-I$(abs_top_srcdir)/client $(CPPFLAGS) $(CFLAGS) $(AM_CFLAGS)	\
+	$(RUBY_CFLAGS_EXTRA)
 
 # Always enable verbose builds, since we want them for automated builds and
 # the two lines aren't important to suppress for people who want quiet

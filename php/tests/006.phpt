@@ -1,6 +1,6 @@
 --TEST--
 Check setting a timeout for operations
---CREDIT--
+--CREDITS--
 Russ Allbery
 # Copyright 2012
 #     The Board of Trustees of the Leland Stanford Junior University

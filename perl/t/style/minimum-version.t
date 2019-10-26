@@ -35,9 +35,10 @@ use warnings;
 
 use lib 't/lib';
 
-use Test::More;
 use Test::RRA qw(skip_unless_automated use_prereq);
 use Test::RRA::Config qw($MINIMUM_VERSION);
+
+use Test::More;
 
 # Skip for normal user installs since this doesn't affect functionality.
 skip_unless_automated('Minimum version tests');

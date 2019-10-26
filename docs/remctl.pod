@@ -11,7 +11,7 @@ remctl - Remote execution tool
 =head1 SYNOPSIS
 
 remctl [B<-dhv>] [B<-b> I<source-ip>] [B<-p> I<port>] [B<-s> I<service>]
-    I<host> I<command> [I<subcommand> [I<parameters> ...]]
+    [B<-t> I<timeout>] I<host> I<command> [I<subcommand> [I<parameters> ...]]
 
 =head1 DESCRIPTION
 
@@ -66,6 +66,17 @@ on the legacy port (4444) if that fails.
 rather than the default server identity of host/I<hostname>.  This may be
 necessary with, for instance, a server where B<remctld> is not running as
 root.
+
+=item B<-t> I<timeout>
+
+[3.16] Set the timeout for all network operations to I<timeout> (in
+seconds).
+
+This is a timeout on network activity, not on a complete operation; for
+example, a timeout of ten seconds just requires that the server send some
+data at least every ten seconds.  If the server sends only tiny amounts of
+data at a time, the complete operation could take much longer without
+triggering the timeout.
 
 =item B<-v>
 
@@ -126,6 +137,8 @@ maintenance are done by Russ Allbery <eagle@eyrie.org>.
 
 =head1 COPYRIGHT AND LICENSE
 
+Copyright 2018 Russ Allbery <eagle@eyrie.org>
+
 Copyright 2002-2011, 2014 The Board of Trustees of the Leland Stanford
 Junior University
 
@@ -135,7 +148,7 @@ this notice are preserved.  This file is offered as-is, without any
 warranty.
 
 SPDX-License-Identifier: FSFAP
-  
+
 =head1 SEE ALSO
 
 kinit(1), remctld(8)

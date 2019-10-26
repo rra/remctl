@@ -63,7 +63,7 @@ my %result = (
 $backend->run('options', @flags, 'all options', %result);
 
 # Pass only a single option.
-@flags = qw(--input foo);
+@flags  = qw(--input foo);
 %result = (input => 'foo');
 $backend->run('options', @flags, 'one option', %result);
 

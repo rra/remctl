@@ -68,12 +68,14 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '7.01';
+    $VERSION = '8.00';
 }
 
 # Directories to skip globally when looking for all files, or for directories
 # that could contain Perl files.
-my @GLOBAL_SKIP = qw(.git _build autom4te.cache build-aux);
+my @GLOBAL_SKIP = qw(
+  .git _build autom4te.cache build-aux perl/_build perl/blib
+);
 
 # Additional paths to skip when building a list of all files in the
 # distribution.  This primarily skips build artifacts that aren't interesting
@@ -104,7 +106,7 @@ sub all_files {
         my $file = $_;
         my $path = $File::Find::name;
         $path =~ s{ \A [.]/ }{}xms;
-        if ($skip{$path} or $files_skip{$file} or $file =~ m{ [.] lo \z }xms) {
+        if ($skip{$path} || $files_skip{$file} || $file =~ m{ [.] lo \z }xms) {
             $File::Find::prune = 1;
             return;
         }
@@ -187,7 +189,7 @@ sub automake_setup {
         @builddirs = File::Spec->splitdir($builddirs);
         pop(@builddirs);
         my $libdir = File::Spec->catdir(@builddirs, $LIBRARY_PATH);
-        my $path = File::Spec->catpath($buildvol, $libdir, q{});
+        my $path   = File::Spec->catpath($buildvol, $libdir, q{});
         if (-d "$path/.libs") {
             $path .= '/.libs';
         }
@@ -227,7 +229,7 @@ sub perl_dirs {
     }
 
     # Convert the skip lists into hashes for convenience.
-    my %skip = map { $_ => 1 } @skip, 'tests';
+    my %skip       = map { $_ => 1 } @skip, 'tests';
     my %skip_tests = map { $_ => 1 } @skip_tests;
 
     # Build the list of top-level directories to test.
@@ -449,7 +451,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2014, 2015, 2018 Russ Allbery <eagle@eyrie.org>
+Copyright 2014-2015, 2018 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2013 The Board of Trustees of the Leland Stanford Junior University
 

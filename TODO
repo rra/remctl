@@ -113,6 +113,10 @@ Client library:
    mechanism OID and then pass that in to calls to gssapi_error_string
    rather than hard-coding the Kerberos v5 OID.
 
+Go library:
+
+ * Incorporate the Go library developed by Thomas Kula.
+
 Perl library:
 
  * Add Net::Remctl::Backend support for obtaining a Kerberos ticket from a
@@ -129,7 +133,22 @@ Python library:
 
  * Revise for better Python coding style.
 
- * Add support for Python 3.
+ * Sort out type handling fully and stop being so aggressive about
+   supporting multiple ways to specify the commands, instead just
+   requiring an iterable of str or bytes.
+
+ * Add enums for streams and protocol error codes.
+
+ * Add proper mypy stubs to typeshed and to this package.
+
+ * Move API documentation to proper docstrings and use Sphinx to generate
+   the documentation.
+
+ * Fix or drop module version information.
+
+ * Use a named tuple for the return value of output().
+
+ * Use a dataclass for RemctlSimpleResult.
 
  * Add a Python equivalent to Net::Remctl::Backend.
 
@@ -155,6 +174,9 @@ Documentation:
  * Submit the remctl protocol as an IETF Internet-Draft.
 
  * Document conventions for the configuration in the remctld manual.
+
+ * Rewrite the documentation and protocol specification as a proper manual
+   and format it with Sphinx.
 
 Portability layer:
 

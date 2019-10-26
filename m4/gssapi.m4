@@ -12,9 +12,6 @@ dnl RRA_LIB_GSSAPI_SWITCH to set CPPFLAGS, LDFLAGS, and LIBS to include the
 dnl GSS-API libraries, saving the ecurrent values, and RRA_LIB_GSSAPI_RESTORE
 dnl to restore those settings to before the last RRA_LIB_GSSAPI_SWITCH.
 dnl
-dnl Also provides RRA_INCLUDES_KRB5, which are the headers to include when
-dnl probing the Kerberos library properties.
-dnl
 dnl Depends on RRA_KRB5_CONFIG, RRA_ENABLE_REDUCED_DEPENDS, and
 dnl RRA_SET_LDFLAGS.
 dnl

@@ -714,7 +714,7 @@ static int fmtfp (char *buffer, size_t *currlen, size_t maxlen,
       if (intpart != 0)
 	{
 	  /* For each digit of INTPART, print one less fractional digit. */
-	  LLONG temp = intpart;
+	  LLONG temp;
 	  for (temp = intpart; temp != 0; temp /= 10)
 	    --max;
 	  if (max < 0)

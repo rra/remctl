@@ -2,6 +2,7 @@
  * Test suite for streaming data from the server.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2019 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006, 2009-2010, 2012-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -41,10 +42,10 @@ main(void)
     ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
     ok(remctl_command(r, command_streaming), "remctl_command streaming");
     output = remctl_output(r);
+    ok(output != NULL, "output is not null");
     if (output == NULL)
-        ok_block(5, false, "output is not null");
+        ok_block(4, false, "output is not null");
     else {
-        ok(output != NULL, "output is not null");
         is_int(REMCTL_OUT_OUTPUT, output->type, "...and is correct type");
         is_int(23, output->length, "right length for first line");
         if (output->data == NULL)
@@ -55,10 +56,10 @@ main(void)
         is_int(1, output->stream, "...right stream");
     }
     output = remctl_output(r);
+    ok(output != NULL, "second output is not null");
     if (output == NULL)
-        ok_block(5, false, "second output is not null");
+        ok_block(4, false, "second output is not null");
     else {
-        ok(output != NULL, "second output is not null");
         is_int(REMCTL_OUT_OUTPUT, output->type, "...and is correct type");
         is_int(24, output->length, "right length for second line");
         if (output->data == NULL)
@@ -69,10 +70,10 @@ main(void)
         is_int(2, output->stream, "...right stream");
     }
     output = remctl_output(r);
+    ok(output != NULL, "third output is not null");
     if (output == NULL)
-        ok_block(5, false, "third output is not null");
+        ok_block(4, false, "third output is not null");
     else {
-        ok(output != NULL, "third output is not null");
         is_int(REMCTL_OUT_OUTPUT, output->type, "...and is correct type");
         is_int(23, output->length, "right length for third line");
         if (output->data == NULL)
@@ -83,10 +84,10 @@ main(void)
         is_int(1, output->stream, "...right stream");
     }
     output = remctl_output(r);
+    ok(output != NULL, "status is not null");
     if (output == NULL)
-        ok_block(3, false, "status is not null");
+        ok_block(2, false, "status is not null");
     else {
-        ok(output != NULL, "status is not null");
         is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
         is_int(0, output->status, "...and is right status");
     }
@@ -126,10 +127,10 @@ main(void)
     ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
     ok(remctl_command(r, command_streaming), "remctl_command");
     output = remctl_output(r);
+    ok(output != NULL, "output is not null");
     if (output == NULL)
-        ok_block(5, false, "output is not null");
+        ok_block(4, false, "output is not null");
     else {
-        ok(output != NULL, "output is not null");
         is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
         is_int(70, output->length, "...and right length");
         if (output->data == NULL)
@@ -141,10 +142,10 @@ main(void)
         is_int(1, output->stream, "...and right stream");
     }
     output = remctl_output(r);
+    ok(output != NULL, "status token is not null");
     if (output == NULL)
-        ok_block(3, false, "status token is not null");
+        ok_block(2, false, "status token is not null");
     else {
-        ok(output != NULL, "status token is not null");
         is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
         is_int(0, output->status, "...and is right status");
     }
@@ -163,19 +164,19 @@ main(void)
     ok(remctl_open(r, "localhost", 14373, config->principal), "remctl_open");
     ok(remctl_command(r, command_cat), "remctl_command cat");
     output = remctl_output(r);
+    ok(output != NULL, "output is not null");
     if (output == NULL)
-        ok_block(4, false, "output is not null");
+        ok_block(3, false, "output is not null");
     else {
-        ok(output != NULL, "output is not null");
         is_int(REMCTL_OUT_OUTPUT, output->type, "...and is right type");
         is_int(TOKEN_MAX_OUTPUT_V1, output->length, "...and right length");
         is_int(1, output->stream, "...and right stream");
     }
     output = remctl_output(r);
+    ok(output != NULL, "status token is not null");
     if (output == NULL)
-        ok_block(3, false, "status token is not null");
+        ok_block(2, false, "status token is not null");
     else {
-        ok(output != NULL, "status token is not null");
         is_int(REMCTL_OUT_STATUS, output->type, "...and is right type");
         is_int(0, output->status, "...and is right status");
     }

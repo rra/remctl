@@ -1,4 +1,4 @@
-                               remctl 3.15
+                               remctl 3.16
             (remote authenticated command execution with ACLs)
                Maintained by Russ Allbery <eagle@eyrie.org>
 
@@ -109,8 +109,10 @@ REQUIREMENTS
   now only tested on PHP 7.x and later.
 
   To build the Python bindings for the C client library, you will need
-  Python 2.3 or later (primarily tested with Python 2.7).  Python 3 is not
-  (yet) supported.
+  Python 2.7, or Python 3.1 or later.  You will also need the setuptools,
+  pytest, and pytest-runner modules and, for Python 2, the typing module.
+  Earlier versions may work back to possibly Python 2.3, but are not
+  tested.
 
   To build the Ruby bindings for the C client library, you will need Ruby
   1.8 or later (primarily tested with 2.5 and later).
@@ -258,7 +260,8 @@ BUILDING AND INSTALLATION
 
   Pass --enable-silent-rules to configure for a quieter build (similar to
   the Linux kernel).  Use make warnings instead of make to build with full
-  GCC compiler warnings (requires a relatively current version of GCC).
+  compiler warnings (requires either GCC or Clang and may require a
+  relatively current version of the compiler).
 
   You can pass the --enable-reduced-depends flag to configure to try to
   minimize the shared library dependencies encoded in the binaries.  This
@@ -343,6 +346,8 @@ BUILDING ON WINDOWS
   Next, install the MIT Kerberos for Windows SDK [1].  remctl has been
   tested with version 3.2.1 but should hopefully work with later versions.
 
+  [1] https://web.mit.edu/kerberos/www/dist/index.html
+
   Then, follow these steps:
 
   1. Run the InitEnv.cmd script included with the Windows SDK with
@@ -359,8 +364,6 @@ BUILDING ON WINDOWS
   If all goes well, you will have remctl.exe and remctl.dll.  The latter
   is a shared library used by the client program.  It exports the same
   interface as the UNIX libremctl library.
-
-  [1] https://web.mit.edu/kerberos/www/dist/index.html
 
 SUPPORT
 

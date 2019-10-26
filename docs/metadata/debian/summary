@@ -1,0 +1,10 @@
+Debian packages are available from Debian as of Debian 3.1 (sarge).  For
+Debian 4.0 (etch) and later, install remctl-server for the server and
+remctl-client for the client.  (The sarge release had a single remctl
+package that contained both.)
+
+The Net::Remctl Perl module is available in Debian 5.0 (lenny) and newer;
+install libnet-remctl-perl for it.  The PHP bindings (php5-remctl), Python
+bindings (python-remctl), and Ruby bindings (ruby-remctl) are available in
+Debian 6.0 (squeeze) and newer.  The Ruby bindings package is named
+libremctl-ruby in Debian versions before 7.0 (wheezy).

@@ -36,9 +36,10 @@ use warnings;
 
 use lib 't/lib';
 
-use Test::More;
 use Test::RRA qw(skip_unless_author use_prereq);
 use Test::RRA::Config qw(@CRITIC_IGNORE);
+
+use Test::More;
 
 # Skip tests unless we're running author tests since this test is too
 # sensitive to the exact version of Perl::Critic to be generally useful.

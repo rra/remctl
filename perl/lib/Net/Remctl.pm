@@ -21,7 +21,7 @@ use DynaLoader;
 use vars qw($VERSION @EXPORT @ISA);
 
 BEGIN {
-    $VERSION = '3.15';
+    $VERSION = '3.16';
 }
 
 # use base qw(Exporter) requires Perl 5.8 and we still support Perl 5.6.
