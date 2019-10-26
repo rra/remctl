@@ -1,11 +1,15 @@
 Test-Command: /usr/share/pkg-perl-autopkgtest/runner runtime-deps
-Depends: @, pkg-perl-autopkgtest
+Depends:
+ pkg-perl-autopkgtest,
+ @,
 
 Test-Command: /usr/share/pkg-perl-autopkgtest/runner runtime-deps-and-recommends
-Depends: @, pkg-perl-autopkgtest
+Depends:
+ pkg-perl-autopkgtest,
+ @,
 Restrictions: needs-recommends
 
-# This unfortunately has to be manually specified since if tests/control
-# exists, autopkgtest apparently no longer runs autodep8.
 Tests: python
-Depends: python-all, python-remctl
+Depends:
+ python-all,
+ python-remctl,

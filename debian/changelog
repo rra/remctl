@@ -14,6 +14,7 @@ remctl (3.16-1) UNRELEASED; urgency=medium
     - Switch to debhelper-compat dependency and remove debian/compat.
     - Override dh_missing rather than pass --fail-missing to dh_install.
   * Remove obsolete debian/source/options file to force xz compression.
+  * Run wrap-and-sort -ast.
 
  -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 12:14:48 -0700
 
