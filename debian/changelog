@@ -1,3 +1,12 @@
+remctl (3.16-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+    - Add -t flag to the remctl client to specify network timeout.
+    - Fix NULL pointer dereference after memory allocation failure.
+    - Add GCC attributes to declarations in remctl.h.
+
+ -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 12:14:48 -0700
+
 remctl (3.15-1) unstable; urgency=medium
 
   * New upstream release.
