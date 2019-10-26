@@ -34,14 +34,16 @@ override_dh_auto_configure:
 	    --enable-reduced-depends --enable-perl --enable-php		      \
 	    --enable-python --enable-ruby
 
-# Override install to check for missing installed files.  Ignore the Ruby
-# module installed in usr/local/lib by the upstream build system.  Run
-# dh_ruby --install to build and install the module for each supported Ruby
-# version.
+# Ignore the Ruby module installed in usr/local/lib by the upstream build
+# system.  Run dh_ruby --install to build and install the module for each
+# supported Ruby version.
 override_dh_install:
-	dh_install --fail-missing -Xlibremctl.la -Xusr/local/lib
+	dh_install -Xlibremctl.la -Xusr/local/lib
 	dh_ruby --install
 	dh_php -pphp-remctl
+
+override_dh_missing:
+	dh_missing --fail-missing
 
 override_dh_installchangelogs:
 	dh_installchangelogs NEWS

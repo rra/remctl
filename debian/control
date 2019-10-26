@@ -2,7 +2,7 @@ Source: remctl
 Section: net
 Priority: optional
 Maintainer: Russ Allbery <rra@debian.org>
-Build-Depends: debhelper (>= 11),
+Build-Depends: debhelper-compat (= 12),
  dh-php,
  dh-python,
  dpkg-dev (>= 1.14.9),

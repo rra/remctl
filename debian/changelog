@@ -8,6 +8,9 @@ remctl (3.16-1) UNRELEASED; urgency=medium
     libremctl bindings.  Don't bother to rename python-remctl to
     python-pyremctl since it will be removed in an upcoming release.  Mark
     python3-pyremctl Multi-Arch: same.
+  * Update to debhelper compatibility level V12.
+    - Switch to debhelper-compat dependency and remove debian/compat.
+    - Override dh_missing rather than pass --fail-missing to dh_install.
 
  -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 12:14:48 -0700
 
