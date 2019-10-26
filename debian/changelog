@@ -1,3 +1,12 @@
+remctl (3.16-2) unstable; urgency=medium
+
+  * Reupload including the binary packages since source-only uploads
+    aren't allowed when NEW processing is involved.  (Requires a version
+    bump because dgit already recorded the 3.16-1 version as part of a
+    source-only upload.)
+
+ -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 15:13:23 -0700
+
 remctl (3.16-1) unstable; urgency=medium
 
   * New upstream release.
