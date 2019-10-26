@@ -23,7 +23,8 @@ Build-Depends: debhelper (>= 11),
  php-cli,
  php-dev,
  pkg-config,
- python-all-dev
+ python-all-dev,
+ python3-all-dev
 XS-Python-Version: >= 2.6
 XS-Ruby-Versions: all
 Rules-Requires-Root: no
@@ -143,6 +144,23 @@ Description: Python extension for Kerberos-authenticated command execution
  authorized to run that command.
  .
  This package contains the Python remctl extension, which provides native
+ Python bindings for the libremctl client library.
+
+Package: python3-pyremctl
+Section: python
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${python3:Depends}, ${misc:Depends}
+Provides: ${python:Provides}
+Description: Python 3 extension for Kerberos-authenticated command execution
+ remctl is a client/server protocol for executing specific commands on a
+ remote system with Kerberos authentication.  The allowable commands must
+ be listed in a server configuration file, and the executable run on the
+ server may be mapped to any command name.  Each command is also
+ associated with an ACL containing a list of Kerberos principals
+ authorized to run that command.
+ .
+ This package contains the Python 3 remctl extension, which provides native
  Python bindings for the libremctl client library.
 
 Package: ruby-remctl

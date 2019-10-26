@@ -4,6 +4,10 @@ remctl (3.16-1) UNRELEASED; urgency=medium
     - Add -t flag to the remctl client to specify network timeout.
     - Fix NULL pointer dereference after memory allocation failure.
     - Add GCC attributes to declarations in remctl.h.
+  * Add python3-pyremctl package with the Python 3 version of the
+    libremctl bindings.  Don't bother to rename python-remctl to
+    python-pyremctl since it will be removed in an upcoming release.  Mark
+    python3-pyremctl Multi-Arch: same.
 
  -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 12:14:48 -0700
 
