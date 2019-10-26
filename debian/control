@@ -25,7 +25,13 @@ Build-Depends:
  php-dev,
  pkg-config,
  python-all-dev,
+ python-pytest,
+ python-pytest-runner,
+ python-setuptools,
  python3-all-dev,
+ python3-pytest,
+ python3-pytest-runner,
+ python3-setuptools,
 XS-Ruby-Versions: all
 Rules-Requires-Root: no
 Standards-Version: 4.4.1
