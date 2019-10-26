@@ -6,7 +6,7 @@ Build-Depends:
  debhelper-compat (= 12),
  dh-php,
  dh-python,
- gem2deb (>= 0.4.1~),
+ gem2deb,
  krb5-config,
  libevent-dev,
  libkrb5-dev,
