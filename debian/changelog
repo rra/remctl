@@ -21,6 +21,8 @@ remctl (3.16-1) UNRELEASED; urgency=medium
     dependency test.
   * Drop versioned dpkg-dev dependency that's older than oldoldstable.
   * Drop version constraint on gem2deb satisfied by oldoldstable.
+  * Drop Provides: php7.0-remctl from php-remctl.  This transition was
+    completed long ago.
   * Run wrap-and-sort -ast.
 
  -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 12:14:48 -0700

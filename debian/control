@@ -138,8 +138,6 @@ Depends:
  ${misc:Depends},
  ${php:Depends},
  ${shlibs:Depends},
-Provides:
- php7.0-remctl,
 Description: PECL module for Kerberos-authenticated command execution
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
