@@ -13,6 +13,9 @@ remctl (3.16-1) UNRELEASED; urgency=medium
   * Update to debhelper compatibility level V12.
     - Switch to debhelper-compat dependency and remove debian/compat.
     - Override dh_missing rather than pass --fail-missing to dh_install.
+  * Update standards version to 4.4.1.
+    - Install NEWS in all packages as /usr/share/doc/<package>/NEWS.gz
+      rather than as changelog.gz.
   * Remove obsolete debian/source/options file to force xz compression.
   * Run wrap-and-sort -ast.
 
