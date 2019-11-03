@@ -8,5 +8,5 @@ set -e
 for py in $(pyversions -r 2>/dev/null) $(py3versions -r 2>/dev/null); do
     cd "$AUTOPKGTEST_TMP"
     echo "Testing with $py:"
-    $py -c "import remctl; print remctl"
+    $py -c "from __future__ import print_function; import remctl; print(remctl)"
 done
