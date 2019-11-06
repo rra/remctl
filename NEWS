@@ -1,5 +1,12 @@
                        User-Visible remctl Changes
 
+remctl 3.17 (unreleased)
+
+    Make the Python install_requires dependency on typing conditional on
+    Python versions earlier than 3.5 so that setuptools won't attempt to
+    download typing when it's part of the standard library.  Thanks to
+    Gianfranco Costamagna and Matthias Klose for the bug report.
+
 remctl 3.16 (2019-10-26)
 
     The Python bindings now support Python 3.  They have been tested only
