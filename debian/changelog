@@ -1,3 +1,10 @@
+remctl (3.16-3.1) unstable; urgency=medium
+
+  * Fix build by avoiding typing install_require (useless with python3 only
+    package) Closes: #944151
+
+ -- Gianfranco Costamagna <locutusofborg@debian.org>  Tue, 05 Nov 2019 07:55:51 +0100
+
 remctl (3.16-3) unstable; urgency=medium
 
   * Fix syntax of Python autopkgtest script to work with both Python 2 and

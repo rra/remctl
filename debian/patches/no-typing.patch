@@ -1,0 +1,14 @@
+Description: Typing is native in Python3, so no need to have it specified in setup.py file, avoiding internet connection during build
+Author: Gianfranco Costamagna <locutusofborg@debian.org>
+Last-Update: 2019-11-05
+
+--- remctl-3.16.orig/python/setup.py
++++ remctl-3.16/python/setup.py
+@@ -111,7 +111,6 @@ kwargs = {
+     "description": doclines[0],
+     "long_description": "\n".join(doclines[2:]),
+     "license": "MIT",
+-    "install_requires": ["typing"],
+     "setup_requires": ["pytest-runner"],
+     "tests_require": ["pytest"],
+     "classifiers": [
