@@ -111,7 +111,6 @@ kwargs = {
     "description": doclines[0],
     "long_description": "\n".join(doclines[2:]),
     "license": "MIT",
-    "install_requires": ["typing"],
     "setup_requires": ["pytest-runner"],
     "tests_require": ["pytest"],
     "classifiers": [
