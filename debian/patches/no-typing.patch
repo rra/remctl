@@ -1,4 +1,5 @@
-Description: Typing is native in Python3, so no need to have it specified in setup.py file, avoiding internet connection during build
+Description: Typing is native in Python3, so no need to have it specified in
+  setup.py file, avoiding internet connection during testing
 Author: Gianfranco Costamagna <locutusofborg@debian.org>
 Last-Update: 2019-11-05
 
