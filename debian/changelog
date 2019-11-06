@@ -1,9 +1,12 @@
-remctl (3.16-3.1) unstable; urgency=medium
+remctl (3.16-4) unstable; urgency=medium
 
-  * Fix build by avoiding typing install_require (useless with python3 only
-    package) Closes: #944151
+  [ Gianfranco Costamagna ]
+  * Avoid autopkgtest trying to download and install typing from PIP for
+    the Python tests by removing install_requires, since setuptools is not
+    smart enough to know that the typing dependency is satisfied by Python
+    3's standard library.  (Closes: #944151, #944152)
 
- -- Gianfranco Costamagna <locutusofborg@debian.org>  Tue, 05 Nov 2019 07:55:51 +0100
+ -- Russ Allbery <rra@debian.org>  Tue, 05 Nov 2019 20:45:18 -0800
 
 remctl (3.16-3) unstable; urgency=medium
 
