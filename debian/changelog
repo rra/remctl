@@ -1,10 +1,10 @@
 remctl (3.16-4) unstable; urgency=medium
 
   [ Gianfranco Costamagna ]
-  * Avoid autopkgtest trying to download and install typing from PIP for
-    the Python tests by removing install_requires, since setuptools is not
-    smart enough to know that the typing dependency is satisfied by Python
-    3's standard library.  (Closes: #944151, #944152)
+  * Avoid Python setuptools trying to download and install typing from PIP
+    for the Python tests by removing install_requires, since setuptools is
+    not smart enough to know that the typing dependency is satisfied by
+    Python 3's standard library.  (Closes: #944151, #944152)
 
  -- Russ Allbery <rra@debian.org>  Tue, 05 Nov 2019 20:45:18 -0800
 
