@@ -14,7 +14,7 @@
 %define with_systemd 1
 %endif
 %else
-%define rel %(cat /etc/redhat-release | cut -d ' ' -f 7 | cut -d'.' -f1)
+%define rel %(perl -ne 'print $1 if /^Red.*Hat\\s+Enterprise\\s+Linux\\s+(?:(?:Server|Client|Workstation|Everything)\\s+)?release\\s+(\\d+)/i' /etc/redhat-release)
 %define relsuffix EL%{rel}
 %if %{rel} >= 7
 %define with_systemd 1
