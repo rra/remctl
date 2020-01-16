@@ -329,9 +329,13 @@ EOF
 %check
 # Use rpmbuild option "--define 'test_princ'" to set the principal name
 # Use rpmbuild option "--define 'test_keytab'" to specify the keytab location
+# Use rpmbuild option "--define 'test_krb5_conf'" to specify a krb5.conf to use
 %if 0%{?test_princ:%{?test_keytab:1}}
 ln -s $(realpath '%{test_keytab}') tests/config/keytab
 echo '%{test_princ}'  > tests/config/principal
+%endif
+%if 0%{?test_krb5_conf:1}
+ln -s $(realpath '%{test_krb5_conf}') tests/config/krb5.conf
 %endif
 make check
 
