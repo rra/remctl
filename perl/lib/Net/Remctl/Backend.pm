@@ -93,7 +93,7 @@ sub _build_help {
 
         # Now add any nested data, if there was any.
         if ($more_syntax_ref) {
-            push(@syntax, map { $command . q{ } . $_ } @{$more_syntax_ref});
+            push(@syntax,  map { $command . q{ } . $_ } @{$more_syntax_ref});
             push(@summary, @{$more_summary_ref});
         }
     }
@@ -683,7 +683,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2019 Russ Allbery <eagle@eyrie.org>
+Copyright 2019-2020 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2012-2014 The Board of Trustees of the Leland Stanford Junior
 University

@@ -7,6 +7,7 @@
 # common prior to 5.8.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2020 Russ Allbery <eagle@eyrie.org>
 # Copyright 2012-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -297,7 +298,7 @@ is($@, "Unknown command unknown\n", '...with correct error');
 
     # Save standard output and close it.
     open(my $oldout, '>&', \*STDOUT) or BAIL_OUT("Cannot save STDOUT: $!");
-    close(STDOUT) or BAIL_OUT("Cannot close STDOUT: $!");
+    close(STDOUT)                    or BAIL_OUT("Cannot close STDOUT: $!");
 
     # Run the backend.
     local @ARGV = qw(help);
