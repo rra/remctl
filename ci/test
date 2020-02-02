@@ -13,9 +13,15 @@ export AUTHOR_TESTING=1
 export C_TAP_VERBOSE=1
 export REMCTL_PYTHON_VERSIONS="python2 python3"
 
-# Build everything.
+# Build everything, except skip PHP with Clang for now because PHP built with
+# GCC (such as what's installed on Travis-CI) uses asm goto, which isn't
+# supported by Clang.
 ./bootstrap
-./configure --enable-perl --enable-php --enable-python --enable-ruby
+if [ "$TRAVIS_COMPILER" = "gcc" ]; then
+    ./configure --enable-perl --enable-php --enable-python --enable-ruby
+else
+    ./configure --enable-perl --enable-python --enable-ruby
+fi
 make warnings
 
 # Run the regular tests.
