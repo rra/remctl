@@ -7,6 +7,7 @@
 # files, junk, and any files explicitly configured to be ignored.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2019 Russ Allbery <eagle@eyrie.org>
 # Copyright 2013-2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -30,7 +31,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
 

@@ -67,7 +67,7 @@ awk '
     !/^ *\[appdefaults\]/ && / *\[/   { skip = 0 }
 
     { if (skip == 0) print }
-' "$p" > tmp/krb5.conf.tmp
+' "$krb5conf" > tmp/krb5.conf.tmp
 if [ -n "$realm" ] ; then
     sed -e "s/\\(default_realm.*=\\) .*/\\1 $realm/" \
         tmp/krb5.conf.tmp > tmp/krb5.conf

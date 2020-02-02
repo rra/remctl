@@ -5,7 +5,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2005, 2013, 2016-2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2005, 2013, 2016-2018, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2009-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -31,12 +31,12 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <errno.h>
-#include <sys/wait.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 #include <tests/tap/basic.h>
 #include <util/fdflag.h>
@@ -147,7 +147,7 @@ client_writer(const char *host, const char *source, bool succeed)
  * localhost, from the given source address, containing a constant string.
  * This also verifies that network_client_create works properly.
  */
-static void __attribute__((__noreturn__))
+__attribute__((__noreturn__)) static void
 client_udp_writer(const char *source)
 {
     socket_type fd;
@@ -233,7 +233,7 @@ test_server_accept(socket_type fd)
 
 
 /*
- * A varient version of the server portion of the test.  Takes an array of
+ * A variant version of the server portion of the test.  Takes an array of
  * sockets and the size of the sockets and accepts a connection on any of
  * those sockets.  Ensures that the client address information is stored
  * correctly by checking that it is an IPv4 address.  For skipping purposes,
@@ -429,9 +429,9 @@ test_all(const char *source_ipv4, const char *source_ipv6 UNUSED)
                 client_writer("127.0.0.1", source_ipv4, true);
 #ifdef HAVE_INET6
             } else if (family == AF_INET6) {
-# ifdef IPV6_V6ONLY
+#    ifdef IPV6_V6ONLY
                 client_writer("127.0.0.1", source_ipv4, false);
-# endif
+#    endif
                 client_writer("::1", source_ipv6, true);
 #endif
             } else {

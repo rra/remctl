@@ -5,7 +5,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2000-2001, 2004, 2016-2017 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2000-2001, 2004, 2016-2017, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2009, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -18,8 +18,8 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <tests/tap/basic.h>
 
@@ -41,11 +41,13 @@ main(void)
 {
     plan(5);
 
+    /* clang-format off */
     test_addr(        "0.0.0.0", 0x0);
     test_addr(      "127.0.0.0", 0x7f000000U);
     test_addr("255.255.255.255", 0xffffffffU);
     test_addr("172.200.232.199", 0xacc8e8c7U);
     test_addr(        "1.2.3.4", 0x01020304U);
+    /* clang-format on */
 
     return 0;
 }

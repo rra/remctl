@@ -5,6 +5,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2008-2009
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -30,8 +31,8 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/getopt.h>
+#include <portable/system.h>
 
 #include <tests/tap/basic.h>
 
@@ -44,12 +45,14 @@ extern char *test_optarg;
 int
 main(void)
 {
+    /* clang-format off */
     const char *test1[] = {
         "foo", "-ab", "-c", "foo", "bar", "-dbar", "-", "-efbaz", "--", "-g"
     };
-    const char *test2[] = { "foo", "-a" };
-    const char *test3[] = { "foo" };
-    const char *test4[] = { "foo", "-a", "foo", "-b" };
+    const char *test2[] = {"foo", "-a"};
+    const char *test3[] = {"foo"};
+    const char *test4[] = {"foo", "-a", "foo", "-b"};
+    /* clang-format on */
 
     plan(37);
 

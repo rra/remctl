@@ -5,6 +5,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2010-2011, 2013-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -31,7 +32,7 @@
 
 #include <config.h>
 #ifdef HAVE_KRB5
-# include <portable/krb5.h>
+#    include <portable/krb5.h>
 #endif
 #include <portable/system.h>
 
@@ -39,7 +40,7 @@
 #include <tests/tap/process.h>
 #include <util/macros.h>
 #ifdef HAVE_KRB5
-# include <util/messages-krb5.h>
+#    include <util/messages-krb5.h>
 #endif
 #include <util/messages.h>
 #include <util/xmalloc.h>
@@ -58,7 +59,7 @@ main(void)
 /*
  * Test functions.
  */
-static void __attribute__((__noreturn__))
+__attribute__((__noreturn__)) static void
 test_warn(void *data UNUSED)
 {
     krb5_context ctx;
@@ -76,7 +77,7 @@ test_warn(void *data UNUSED)
     exit(0);
 }
 
-static void __attribute__((__noreturn__))
+__attribute__((__noreturn__)) static void
 test_die(void *data UNUSED)
 {
     krb5_context ctx;

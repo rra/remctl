@@ -46,7 +46,7 @@
 
 /* May be defined by the build system. */
 #ifndef PATH_REMCTLD
-# define PATH_REMCTLD ""
+#    define PATH_REMCTLD ""
 #endif
 
 

@@ -20,8 +20,8 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 
 /*
@@ -34,7 +34,7 @@ socket_init(void)
 {
     WSADATA data;
 
-    if (WSAStartup(MAKEWORD(2,2), &data))
+    if (WSAStartup(MAKEWORD(2, 2), &data))
         return 0;
     return 1;
 }
@@ -45,15 +45,14 @@ socket_init(void)
  * over sys_nerr).  Try to use FormatMessage with a local static variable
  * instead.
  */
-const char *
-socket_strerror(err)
+const char *socket_strerror(err)
 {
     const char *message = NULL;
 
     if (err >= sys_nerr) {
         char *p;
         DWORD f = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM
-            | FORMAT_MESSAGE_IGNORE_INSERTS;
+                  | FORMAT_MESSAGE_IGNORE_INSERTS;
         static char *buffer = NULL;
 
         if (buffer != NULL)

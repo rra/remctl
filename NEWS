@@ -7,6 +7,12 @@ remctl 3.17 (unreleased)
     download typing when it's part of the standard library.  Thanks to
     Gianfranco Costamagna and Matthias Klose for the bug report.
 
+    Update to rra-c-util 8.2:
+
+    * Drop support for Perl 5.6.
+    * Reformat all C source using clang-format 10.
+    * Remove bogus snprintf tests.
+
 remctl 3.16 (2019-10-26)
 
     The Python bindings now support Python 3.  They have been tested only

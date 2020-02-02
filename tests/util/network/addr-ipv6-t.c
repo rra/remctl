@@ -5,7 +5,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2005, 2013, 2016-2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2005, 2013, 2016-2018, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2009-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -31,8 +31,8 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <ctype.h>
 
@@ -133,6 +133,7 @@ main(void)
     freeaddrinfo(ai4);
 
     /* Tests for network_addr_compare. */
+    /* clang-format off */
     is_addr_compare(1, ipv6_addr,   ipv6_addr,     NULL);
     is_addr_compare(1, ipv6_addr,   ipv6_addr,     "128");
     is_addr_compare(1, ipv6_addr,   ipv6_addr,     "60");
@@ -149,6 +150,7 @@ main(void)
     is_addr_compare(0, "ffff::1",   "7fff::1",     "-1");
     is_addr_compare(0, "ffff::1",   "ffff::1",     "-1");
     is_addr_compare(0, "ffff::1",   "ffff::1",     "129");
+    /* clang-format on */
 
     /* Test setting various socket options. */
     fd = socket(PF_INET6, SOCK_STREAM, IPPROTO_IP);

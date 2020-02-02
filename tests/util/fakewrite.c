@@ -33,8 +33,8 @@
 
 #include <errno.h>
 
-#include <util/macros.h>
 #include <tests/util/fakewrite.h>
+#include <util/macros.h>
 
 
 /*
@@ -102,7 +102,7 @@ fake_pwrite(int fd UNUSED, const void *data, size_t n, off_t offset)
         errno = ENOSPC;
         return -1;
     }
-    if ((size_t) (256 - offset) < total)
+    if ((size_t)(256 - offset) < total)
         total = 256 - offset;
     memcpy(write_buffer + offset, data, total);
     return total;

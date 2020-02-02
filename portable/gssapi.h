@@ -28,19 +28,19 @@
 #include <portable/system.h>
 
 #ifdef HAVE_GSSAPI_GSSAPI_H
-# include <gssapi/gssapi.h>
+#    include <gssapi/gssapi.h>
 #else
-# include <gssapi.h>
+#    include <gssapi.h>
 #endif
 #ifdef HAVE_GSSAPI_GSSAPI_KRB5_H
-# include <gssapi/gssapi_krb5.h>
+#    include <gssapi/gssapi_krb5.h>
 #endif
 
 /* Handle compatibility to older versions of MIT Kerberos. */
 #ifndef HAVE_GSS_RFC_OIDS
-# include <gssapi/gssapi_generic.h>
-# define GSS_C_NT_USER_NAME gss_nt_user_name
-# define GSS_C_NT_HOSTBASED_SERVICE gss_nt_service_name
+#    include <gssapi/gssapi_generic.h>
+#    define GSS_C_NT_USER_NAME         gss_nt_user_name
+#    define GSS_C_NT_HOSTBASED_SERVICE gss_nt_service_name
 #endif
 
 /*
@@ -50,10 +50,10 @@
  * hard-coded GSS-API OID struct.
  */
 #if !HAVE_DECL_GSS_KRB5_MECHANISM
-# if !HAVE_DECL_GSS_MECH_KRB5
-extern const gss_OID_desc * const gss_mech_krb5;
-# endif
-# define GSS_KRB5_MECHANISM gss_mech_krb5
+#    if !HAVE_DECL_GSS_MECH_KRB5
+extern const gss_OID_desc *const gss_mech_krb5;
+#    endif
+#    define GSS_KRB5_MECHANISM gss_mech_krb5
 #endif
 
 /*
@@ -61,9 +61,9 @@ extern const gss_OID_desc * const gss_mech_krb5;
  * expression to check the struct members directly.
  */
 #ifndef HAVE_GSS_OID_EQUAL
-# define gss_oid_equal(x, y)                                    \
-    ((x)->length == (y)->length &&                              \
-     memcmp((x)->elements, (y)->elements, (x)->length) == 0)
+#    define gss_oid_equal(x, y)     \
+        ((x)->length == (y)->length \
+         && memcmp((x)->elements, (y)->elements, (x)->length) == 0)
 #endif
 
 #endif /* PORTABLE_GSSAPI_H */
