@@ -31,8 +31,8 @@
 #ifndef REMCTL_H
 #define REMCTL_H 1
 
-#include <sys/types.h>          /* size_t */
-#include <time.h>               /* time_t */
+#include <sys/types.h> /* size_t */
+#include <time.h>      /* time_t */
 
 /*
  * __attribute__ is available in gcc 2.5 and later, but only with gcc 2.7
@@ -42,9 +42,9 @@
  * the other attributes to work with GCC versions between 2.7 and 2.96.
  */
 #ifndef __attribute__
-# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
-#  define __attribute__(spec)   /* empty */
-# endif
+#    if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
+#        define __attribute__(spec) /* empty */
+#    endif
 #endif
 
 /*
@@ -54,7 +54,7 @@
  * compilation context, but there's no push and pop available.
  */
 #if !defined(__attribute__) && (defined(__llvm__) || defined(__clang__))
-# pragma GCC diagnostic ignored "-Wattributes"
+#    pragma GCC diagnostic ignored "-Wattributes"
 #endif
 
 /*
@@ -83,11 +83,11 @@ struct sockaddr;
 #undef BEGIN_DECLS
 #undef END_DECLS
 #ifdef __cplusplus
-# define BEGIN_DECLS    extern "C" {
-# define END_DECLS      }
+#    define BEGIN_DECLS extern "C" {
+#    define END_DECLS   }
 #else
-# define BEGIN_DECLS    /* empty */
-# define END_DECLS      /* empty */
+#    define BEGIN_DECLS /* empty */
+#    define END_DECLS   /* empty */
 #endif
 
 /* The standard remctl port and the legacy port used before 2.11. */
@@ -95,16 +95,16 @@ struct sockaddr;
 #define REMCTL_PORT_OLD 4444
 
 /* The standard remctl service name for /etc/services. */
-#define REMCTL_SERVICE  "remctl"
+#define REMCTL_SERVICE "remctl"
 
 /* Used to hold the return from a simple remctl call. */
 struct remctl_result {
-    char *error;                /* remctl error if non-NULL. */
-    char *stdout_buf;           /* Standard output. */
-    size_t stdout_len;          /* Length of standard output. */
-    char *stderr_buf;           /* Standard error. */
-    size_t stderr_len;          /* Length of standard error. */
-    int status;                 /* Exit status of remote command. */
+    char *error;       /* remctl error if non-NULL. */
+    char *stdout_buf;  /* Standard output. */
+    size_t stdout_len; /* Length of standard output. */
+    char *stderr_buf;  /* Standard error. */
+    size_t stderr_len; /* Length of standard error. */
+    int status;        /* Exit status of remote command. */
 };
 
 /* The type of a remctl_output struct. */
@@ -120,9 +120,9 @@ struct remctl_output {
     enum remctl_output_type type;
     char *data;
     size_t length;
-    int stream;                 /* 1 == stdout, 2 == stderr */
-    int status;                 /* Exit status of remote command. */
-    int error;                  /* Remote error code. */
+    int stream; /* 1 == stdout, 2 == stderr */
+    int status; /* Exit status of remote command. */
+    int error;  /* Remote error code. */
 };
 
 /* Opaque struct representing an open remctl connection. */
@@ -149,11 +149,9 @@ void remctl_result_free(struct remctl_result *);
  * to REMCTL_PORT_OLD.  principal may be NULL, in which case host/<host> is
  * used (with no transformations applied to host at all).
  */
-struct remctl *remctl_new(void)
-    __attribute__((__malloc__));
+struct remctl *remctl_new(void) __attribute__((__malloc__));
 int remctl_open(struct remctl *, const char *host, unsigned short port,
-                const char *principal)
-    __attribute__((__nonnull__(1, 2)));
+                const char *principal) __attribute__((__nonnull__(1, 2)));
 void remctl_close(struct remctl *);
 
 /*
@@ -175,12 +173,10 @@ int remctl_open_sockaddr(struct remctl *r, const char *host,
 /* Windows uses a SOCKET type for sockets instead of an integer. */
 #ifdef _WIN32
 int remctl_open_fd(struct remctl *r, const char *host, SOCKET fd,
-                   const char *principal)
-    __attribute__((__nonnull__(1)));
+                   const char *principal) __attribute__((__nonnull__(1)));
 #else
 int remctl_open_fd(struct remctl *r, const char *host, int fd,
-                   const char *principal)
-    __attribute__((__nonnull__(1)));
+                   const char *principal) __attribute__((__nonnull__(1)));
 #endif
 
 
@@ -220,8 +216,7 @@ int remctl_set_source_ip(struct remctl *, const char *)
  * with an invalid timeout, such as a negative value).  On failure, use
  * remctl_error to get the error.
  */
-int remctl_set_timeout(struct remctl *, time_t)
-    __attribute__((__nonnull__));
+int remctl_set_timeout(struct remctl *, time_t) __attribute__((__nonnull__));
 
 /*
  * Send a complete remote command.  Returns true on success, false on failure.
@@ -245,8 +240,7 @@ int remctl_commandv(struct remctl *, const struct iovec *, size_t count)
  * it, so the caller should be prepared to handle an error return and fall
  * back on reopening the connection when necessary.
  */
-int remctl_noop(struct remctl *)
-    __attribute__((__nonnull__));
+int remctl_noop(struct remctl *) __attribute__((__nonnull__));
 
 /*
  * Retrieve output from the remote server.  Each call to this function on the
@@ -271,8 +265,7 @@ struct remctl_output *remctl_output(struct remctl *)
  * message.  The returned error string will be invalidated by any subsequent
  * call to a remctl library function.
  */
-const char *remctl_error(struct remctl *)
-    __attribute__((__nonnull__));
+const char *remctl_error(struct remctl *) __attribute__((__nonnull__));
 
 END_DECLS
 

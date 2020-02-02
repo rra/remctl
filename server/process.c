@@ -42,10 +42,10 @@
  * variable is in scope to replace the event_base_got_break functionality.
  */
 #ifndef HAVE_EVENT_BASE_LOOPBREAK
-# define event_base_loopbreak(base) /* empty */
+#    define event_base_loopbreak(base) /* empty */
 #endif
 #ifndef HAVE_EVENT_BASE_GOT_BREAK
-# define event_base_got_break(base) process->saw_error
+#    define event_base_got_break(base) process->saw_error
 #endif
 
 
@@ -152,8 +152,8 @@ start(evutil_socket_t junk UNUSED, short what UNUSED, void *data)
     struct process *process = data;
     struct client *client = process->client;
     struct event_base *loop = process->loop;
-    socket_type stdinout_fds[2] = { INVALID_SOCKET, INVALID_SOCKET };
-    socket_type stderr_fds[2]   = { INVALID_SOCKET, INVALID_SOCKET };
+    socket_type stdinout_fds[2] = {INVALID_SOCKET, INVALID_SOCKET};
+    socket_type stderr_fds[2] = {INVALID_SOCKET, INVALID_SOCKET};
     socket_type fd;
     struct sigaction sa;
     const char *argv0;
@@ -375,7 +375,7 @@ server_process_run(struct process *process)
     bool success;
     struct event_base *loop;
     struct client *client = process->client;
-    const struct timeval immediate = { 0, 0 };
+    const struct timeval immediate = {0, 0};
 
     /* Create the event base that we use for the event loop. */
     loop = event_base_new();

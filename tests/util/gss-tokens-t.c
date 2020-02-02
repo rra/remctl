@@ -10,8 +10,8 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
+#include <portable/system.h>
 
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
@@ -48,21 +48,19 @@ main(void)
     client_ctx = GSS_C_NO_CONTEXT;
     token_ptr = GSS_C_NO_BUFFER;
     do {
-        c_stat = gss_init_sec_context(&c_min_stat, GSS_C_NO_CREDENTIAL,
-                                      &client_ctx, server_name,
-                                      (const gss_OID) GSS_KRB5_MECHANISM,
-                                      GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG,
-                                      0, NULL, token_ptr, NULL, &client_tok,
-                                      &ret_flags, NULL);
+        c_stat = gss_init_sec_context(
+            &c_min_stat, GSS_C_NO_CREDENTIAL, &client_ctx, server_name,
+            (const gss_OID) GSS_KRB5_MECHANISM,
+            GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG, 0, NULL, token_ptr, NULL,
+            &client_tok, &ret_flags, NULL);
         if (token_ptr != GSS_C_NO_BUFFER)
             gss_release_buffer(&c_min_stat, &server_tok);
         if (client_tok.length == 0)
             break;
-        s_stat = gss_accept_sec_context(&s_min_stat, &server_ctx,
-                                        GSS_C_NO_CREDENTIAL, &client_tok,
-                                        GSS_C_NO_CHANNEL_BINDINGS,
-                                        &client_name, &doid, &server_tok,
-                                        &ret_flags, NULL, NULL);
+        s_stat = gss_accept_sec_context(
+            &s_min_stat, &server_ctx, GSS_C_NO_CREDENTIAL, &client_tok,
+            GSS_C_NO_CHANNEL_BINDINGS, &client_name, &doid, &server_tok,
+            &ret_flags, NULL, NULL);
         gss_release_buffer(&c_min_stat, &client_tok);
         if (server_tok.length == 0)
             break;
@@ -143,7 +141,7 @@ main(void)
     memcpy(recv_buffer, send_buffer, send_length);
     recv_length = send_length;
     recv_flags = send_flags;
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024,0,
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 1024, 0,
                              &c_stat, &c_min_stat);
     is_int(TOKEN_OK, status, "received protocol v1 token with MIC");
     is_int(TOKEN_DATA, flags, "...with the right flags");
@@ -174,8 +172,8 @@ main(void)
     fail_timeout = false;
 
     /* Test receiving too large of a token. */
-    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 4, 0,
-                             &s_stat, &s_min_stat);
+    status = token_recv_priv(0, client_ctx, &flags, &client_tok, 4, 0, &s_stat,
+                             &s_min_stat);
     is_int(TOKEN_FAIL_LARGE, status, "receiving too large of a token");
 
     /* Test receiving a corrupt token. */

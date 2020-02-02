@@ -9,13 +9,13 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <fcntl.h>
 #ifdef HAVE_SYS_SELECT_H
-# include <sys/select.h>
+#    include <sys/select.h>
 #endif
 #include <sys/time.h>
 #include <sys/wait.h>
@@ -86,8 +86,9 @@ accept_connection(const char *pidfile, int protocol)
         if (flags != wanted_flags)
             die("bad flags on subsequent token");
         major = gss_accept_sec_context(&minor, &context, GSS_C_NO_CREDENTIAL,
-                       &recv_tok, GSS_C_NO_CHANNEL_BINDINGS, &client, &doid,
-                       &send_tok, &ret_flags, NULL, NULL);
+                                       &recv_tok, GSS_C_NO_CHANNEL_BINDINGS,
+                                       &client, &doid, &send_tok, &ret_flags,
+                                       NULL, NULL);
         if (major != GSS_S_COMPLETE && major != GSS_S_CONTINUE_NEEDED)
             die("GSS-API failure: %ld %ld\n", (long) major, (long) minor);
         gss_release_buffer(&minor, &recv_tok);

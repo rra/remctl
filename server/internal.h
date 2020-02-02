@@ -51,23 +51,23 @@ struct process;
  * defined since it makes the build rules for the test suite irritating.
  */
 #ifndef PATH_SUDO
-# define PATH_SUDO "sudo"
+#    define PATH_SUDO "sudo"
 #endif
 
 /* Holds the information about a client connection. */
 struct client {
-    int fd;                     /* File descriptor of client connection. */
-    int stderr_fd;              /* stderr file descriptor for remctl-shell. */
-    char *hostname;             /* Hostname of client (if available). */
-    char *ipaddress;            /* IP address of client as a string. */
-    int protocol;               /* Protocol version number. */
-    gss_ctx_id_t context;       /* GSS-API context. */
-    char *user;                 /* Name of the client as a string. */
-    bool anonymous;             /* Whether the client is anonymous. */
-    OM_uint32 flags;            /* Connection flags. */
-    time_t expires;             /* Expiration time of GSS-API session. */
-    bool keepalive;             /* Whether keep-alive was set. */
-    bool fatal;                 /* Whether a fatal error has occurred. */
+    int fd;               /* File descriptor of client connection. */
+    int stderr_fd;        /* stderr file descriptor for remctl-shell. */
+    char *hostname;       /* Hostname of client (if available). */
+    char *ipaddress;      /* IP address of client as a string. */
+    int protocol;         /* Protocol version number. */
+    gss_ctx_id_t context; /* GSS-API context. */
+    char *user;           /* Name of the client as a string. */
+    bool anonymous;       /* Whether the client is anonymous. */
+    OM_uint32 flags;      /* Connection flags. */
+    time_t expires;       /* Expiration time of GSS-API session. */
+    bool keepalive;       /* Whether keep-alive was set. */
+    bool fatal;           /* Whether a fatal error has occurred. */
 
     /*
      * Callbacks used by generic server code handle the separate protocols,
@@ -80,21 +80,21 @@ struct client {
 
 /* Holds the configuration for a single command. */
 struct rule {
-    char *file;                 /* Config file name. */
-    size_t lineno;              /* Config file line number. */
-    struct vector *line;        /* The split configuration line. */
-    char *command;              /* Command (first argument). */
-    char *subcommand;           /* Subcommand (second argument). */
-    char *program;              /* Full file name of executable. */
-    unsigned int *logmask;      /* Zero-terminated list of args to mask. */
-    long stdin_arg;             /* Arg to pass on stdin, -1 for last. */
-    char *user;                 /* Run executable as user. */
-    char *sudo_user;            /* Run executable as user with sudo. */
-    uid_t uid;                  /* Run executable with this UID. */
-    gid_t gid;                  /* Run executable with this GID. */
-    char *summary;              /* Argument that gives a command summary. */
-    char *help;                 /* Argument that gives help for a command. */
-    char **acls;                /* Full file names of ACL files. */
+    char *file;            /* Config file name. */
+    size_t lineno;         /* Config file line number. */
+    struct vector *line;   /* The split configuration line. */
+    char *command;         /* Command (first argument). */
+    char *subcommand;      /* Subcommand (second argument). */
+    char *program;         /* Full file name of executable. */
+    unsigned int *logmask; /* Zero-terminated list of args to mask. */
+    long stdin_arg;        /* Arg to pass on stdin, -1 for last. */
+    char *user;            /* Run executable as user. */
+    char *sudo_user;       /* Run executable as user with sudo. */
+    uid_t uid;             /* Run executable with this UID. */
+    gid_t gid;             /* Run executable with this GID. */
+    char *summary;         /* Argument that gives a command summary. */
+    char *help;            /* Argument that gives help for a command. */
+    char **acls;           /* Full file names of ACL files. */
 };
 
 /* Holds the complete parsed configuration for remctld. */
@@ -111,35 +111,35 @@ struct config {
  * needed.
  */
 struct process {
-    struct client *client;      /* Pointer to corresponding remctl client. */
+    struct client *client; /* Pointer to corresponding remctl client. */
 
     /* Command input. */
-    const char *command;        /* The remctl command run by the user. */
-    const char **argv;          /* argv for running the command. */
-    struct rule *rule;          /* Configuration rule for the command. */
-    struct evbuffer *input;     /* Buffer of input to process. */
+    const char *command;    /* The remctl command run by the user. */
+    const char **argv;      /* argv for running the command. */
+    struct rule *rule;      /* Configuration rule for the command. */
+    struct evbuffer *input; /* Buffer of input to process. */
 
     /* Command output. */
-    struct evbuffer *output;    /* Buffer of output from process. */
-    int status;                 /* Exit status. */
+    struct evbuffer *output; /* Buffer of output from process. */
+    int status;              /* Exit status. */
 
     /* Everything below this point is used internally by the process loop. */
 
     /* Process data. */
-    socket_type stdinout_fd;    /* File descriptor for input and output. */
-    socket_type stderr_fd;      /* File descriptor for standard error. */
-    pid_t pid;                  /* Process ID of child. */
+    socket_type stdinout_fd; /* File descriptor for input and output. */
+    socket_type stderr_fd;   /* File descriptor for standard error. */
+    pid_t pid;               /* Process ID of child. */
 
     /* Event loop. */
-    struct event_base *loop;    /* Event base for the process event loop. */
-    struct bufferevent *inout;  /* Input and output from process. */
-    struct bufferevent *err;    /* Standard error from process. */
-    struct event *sigchld;      /* Handle the SIGCHLD signal for exit. */
+    struct event_base *loop;   /* Event base for the process event loop. */
+    struct bufferevent *inout; /* Input and output from process. */
+    struct bufferevent *err;   /* Standard error from process. */
+    struct event *sigchld;     /* Handle the SIGCHLD signal for exit. */
 
     /* State flags. */
-    bool reaped;                /* Whether we've reaped the process. */
-    bool saw_error;             /* Whether we encountered some error. */
-    bool saw_output;            /* Whether we saw process output. */
+    bool reaped;     /* Whether we've reaped the process. */
+    bool saw_error;  /* Whether we encountered some error. */
+    bool saw_output; /* Whether we saw process output. */
 };
 
 BEGIN_DECLS
@@ -190,8 +190,7 @@ struct iovec **server_ssh_parse_command(const char *);
 
 /* libevent utility functions. */
 void server_event_log_callback(int, const char *);
-void server_event_fatal_callback(int)
-    __attribute__((__noreturn__));
+void server_event_fatal_callback(int) __attribute__((__noreturn__));
 
 END_DECLS
 

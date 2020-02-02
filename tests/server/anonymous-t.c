@@ -8,7 +8,7 @@
 
 #include <config.h>
 #ifdef HAVE_KRB5
-# include <portable/krb5.h>
+#    include <portable/krb5.h>
 #endif
 #include <portable/system.h>
 
@@ -33,8 +33,8 @@
  * anonymous tests if that function is not present.
  */
 #ifdef HAVE_KRB5
-# if !defined(HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS) \
-    || !defined(HAVE_KRB5_INIT_CREDS_SET_PASSWORD)
+#    if !defined(HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS) \
+        || !defined(HAVE_KRB5_INIT_CREDS_SET_PASSWORD)
 
 static char *
 cache_init_anonymous(krb5_context ctx UNUSED, const char *principal UNUSED)
@@ -42,7 +42,7 @@ cache_init_anonymous(krb5_context ctx UNUSED, const char *principal UNUSED)
     return NULL;
 }
 
-# else /* HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS */
+#    else /* HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS */
 
 static char *
 cache_init_anonymous(krb5_context ctx, const char *principal)
@@ -68,10 +68,10 @@ cache_init_anonymous(krb5_context ctx, const char *principal)
         diag_krb5(ctx, retval, "cannot find realm for anonymous PKINIT");
         return NULL;
     }
-    retval = krb5_build_principal_ext(ctx, &princ,
-                 (unsigned int) strlen(realm), realm,
-                 strlen(KRB5_WELLKNOWN_NAME), KRB5_WELLKNOWN_NAME,
-                 strlen(KRB5_ANON_NAME), KRB5_ANON_NAME, NULL);
+    retval = krb5_build_principal_ext(
+        ctx, &princ, (unsigned int) strlen(realm), realm,
+        strlen(KRB5_WELLKNOWN_NAME), KRB5_WELLKNOWN_NAME,
+        strlen(KRB5_ANON_NAME), KRB5_ANON_NAME, NULL);
     if (retval != 0)
         bail_krb5(ctx, retval, "cannot create anonymous principal");
     krb5_free_default_realm(ctx, realm);
@@ -92,11 +92,11 @@ cache_init_anonymous(krb5_context ctx, const char *principal)
         bail_krb5(ctx, retval, "cannot initialize credential options");
     krb5_get_init_creds_opt_set_anonymous(opts, 1);
     krb5_get_init_creds_opt_set_tkt_life(opts, 60);
-#  ifdef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_OUT_CCACHE
+#        ifdef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_OUT_CCACHE
     krb5_get_init_creds_opt_set_out_ccache(ctx, opts, ccache);
-#  endif
-    retval = krb5_get_init_creds_password(ctx, &creds, princ, NULL, NULL,
-                                          NULL, 0, NULL, opts);
+#        endif
+    retval = krb5_get_init_creds_password(ctx, &creds, princ, NULL, NULL, NULL,
+                                          0, NULL, opts);
     if (retval != 0) {
         diag_krb5(ctx, retval, "cannot perform anonymous PKINIT");
         goto done;
@@ -109,14 +109,14 @@ cache_init_anonymous(krb5_context ctx, const char *principal)
      * initializing the ticket cache, since the realm will not match the realm
      * of our input principal.
      */
-#  ifndef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_OUT_CCACHE
+#        ifndef HAVE_KRB5_GET_INIT_CREDS_OPT_SET_OUT_CCACHE
     retval = krb5_cc_initialize(ctx, ccache, creds.client);
     if (retval != 0)
         bail_krb5(ctx, retval, "cannot initialize ticket cache");
     retval = krb5_cc_store_cred(ctx, ccache, &creds);
     if (retval != 0)
         bail_krb5(ctx, retval, "cannot store credentials");
-#  endif /* !HAVE_KRB5_GET_INIT_CREDS_OPT_SET_OUT_CCACHE */
+#        endif /* !HAVE_KRB5_GET_INIT_CREDS_OPT_SET_OUT_CCACHE */
 
     /*
      * Now, test to see if we can get credentials for a service.  Usually,
@@ -149,8 +149,8 @@ done:
         krb5_free_creds(ctx, out_creds);
     return name;
 }
-# endif /* HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS */
-#endif /* HAVE_KRB5 */
+#    endif     /* HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS */
+#endif         /* HAVE_KRB5 */
 
 
 /*
@@ -162,7 +162,7 @@ static int
 test_error(struct remctl *r, const char *arg)
 {
     struct remctl_output *output;
-    const char *command[] = { "test", NULL, NULL };
+    const char *command[] = {"test", NULL, NULL};
 
     command[1] = arg;
     if (arg == NULL)

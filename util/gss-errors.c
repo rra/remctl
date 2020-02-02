@@ -12,8 +12,8 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
+#include <portable/system.h>
 
 #include <util/gss-errors.h>
 
@@ -38,11 +38,11 @@ gssapi_error_string(const char *prefix, OM_uint32 major, OM_uint32 minor)
     msg_ctx = 0;
     do {
         gss_display_status(&status, major, GSS_C_GSS_CODE,
-                           (const gss_OID) GSS_KRB5_MECHANISM,
-                           &msg_ctx, &msg);
+                           (const gss_OID) GSS_KRB5_MECHANISM, &msg_ctx, &msg);
         if (string == NULL) {
             if (asprintf(&string, "GSS-API error %s: %s", prefix,
-                         (char *) msg.value) < 0)
+                         (char *) msg.value)
+                < 0)
                 string = NULL;
         } else {
             old = string;

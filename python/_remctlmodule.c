@@ -6,7 +6,7 @@
  * Python wrapper around this class.
  *
  * Original implementation by Thomas L. Kula <kula@tproa.net>
- * Copyright 2018-2019 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018-2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2008 Thomas L. Kula <kula@tproa.net>
  * Copyright 2008, 2011-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -35,29 +35,29 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/uio.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <remctl.h>
 
 /* The type of the argument to PyString_AsStringAndSize changed in 2.5. */
 #if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
 typedef int Py_ssize_t;
-# define PY_SSIZE_T_MAX INT_MAX
-# define PY_SSIZE_T_MIN INT_MIN
+#    define PY_SSIZE_T_MAX INT_MAX
+#    define PY_SSIZE_T_MIN INT_MIN
 #endif
 
 /* The return value from module initialization changed in Python 3. */
 #if PY_MAJOR_VERSION >= 3
-# define INITERROR return NULL
+#    define INITERROR return NULL
 #else
-# define INITERROR return
+#    define INITERROR return
 #endif
 
 /* Support versions of Python that predate PyCapsule. */
 #if PY_VERSION_HEX < 0x02070000
-# define PyCapsule_New(p, n, d) (PyCObject_FromVoidPtr(p, d))
-# define PyCapsule_GetPointer(c, n) (PyCObject_AsVoidPtr(c))
+#    define PyCapsule_New(p, n, d)     (PyCObject_FromVoidPtr(p, d))
+#    define PyCapsule_GetPointer(c, n) (PyCObject_AsVoidPtr(c))
 #endif
 
 /* Silence GCC warnings. */
@@ -67,16 +67,19 @@ PyMODINIT_FUNC init_remctl(void);
 #endif
 
 /* Map the remctl_output type constants to strings. */
+/* clang-format off */
 static const struct {
     enum remctl_output_type type;
     const char *name;
 } OUTPUT_TYPE[] = {
-    { REMCTL_OUT_OUTPUT, "output" },
-    { REMCTL_OUT_STATUS, "status" },
-    { REMCTL_OUT_ERROR,  "error"  },
-    { REMCTL_OUT_DONE,   "done"   },
-    { 0,                 NULL     }
+    {REMCTL_OUT_OUTPUT, "output"},
+    {REMCTL_OUT_STATUS, "status"},
+    {REMCTL_OUT_ERROR,  "error" },
+    {REMCTL_OUT_DONE,   "done"  },
+    {0,                 NULL    }
 };
+/* clang-format on */
+
 
 static PyObject *
 py_remctl(PyObject *self, PyObject *args)
@@ -121,14 +124,13 @@ py_remctl(PyObject *self, PyObject *args)
     }
 
 #if PY_MAJOR_VERSION >= 3
-# define PY_REMCTL_RETURN "(yy#y#i)"
+#    define PY_REMCTL_RETURN "(yy#y#i)"
 #else
-# define PY_REMCTL_RETURN "(ss#s#i)"
+#    define PY_REMCTL_RETURN "(ss#s#i)"
 #endif
-    result = Py_BuildValue(PY_REMCTL_RETURN, rr->error,
-                           rr->stdout_buf, (int) rr->stdout_len,
-                           rr->stderr_buf, (int) rr->stderr_len,
-                           rr->status);
+    result = Py_BuildValue(PY_REMCTL_RETURN, rr->error, rr->stdout_buf,
+                           (int) rr->stdout_len, rr->stderr_buf,
+                           (int) rr->stderr_len, rr->status);
     remctl_result_free(rr);
 
 end:
@@ -359,13 +361,13 @@ py_remctl_output(PyObject *self, PyObject *args)
         }
 
 #if PY_MAJOR_VERSION >= 3
-# define PY_REMCTL_OUTPUT_RETURN "(sy#iii)"
+#    define PY_REMCTL_OUTPUT_RETURN "(sy#iii)"
 #else
-# define PY_REMCTL_OUTPUT_RETURN "(ss#iii)"
+#    define PY_REMCTL_OUTPUT_RETURN "(ss#iii)"
 #endif
-    result = Py_BuildValue(PY_REMCTL_OUTPUT_RETURN, type,
-                           output->data, output->length,
-                           output->stream, output->status, output->error);
+    result = Py_BuildValue(PY_REMCTL_OUTPUT_RETURN, type, output->data,
+                           output->length, output->stream, output->status,
+                           output->error);
     return result;
 }
 
@@ -387,22 +389,25 @@ py_remctl_noop(PyObject *self, PyObject *args)
 }
 
 
+/* clang-format off */
 static PyMethodDef methods[] = {
-    { "remctl",               py_remctl,               METH_VARARGS, NULL },
-    { "remctl_new",           py_remctl_new,           METH_VARARGS, NULL },
-    { "remctl_set_ccache",    py_remctl_set_ccache,    METH_VARARGS, NULL },
-    { "remctl_set_source_ip", py_remctl_set_source_ip, METH_VARARGS, NULL },
-    { "remctl_set_timeout",   py_remctl_set_timeout,   METH_VARARGS, NULL },
-    { "remctl_open",          py_remctl_open,          METH_VARARGS, NULL },
-    { "remctl_close",         py_remctl_close,         METH_VARARGS, NULL },
-    { "remctl_error",         py_remctl_error,         METH_VARARGS, NULL },
-    { "remctl_commandv",      py_remctl_commandv,      METH_VARARGS, NULL },
-    { "remctl_output",        py_remctl_output,        METH_VARARGS, NULL },
-    { "remctl_noop",          py_remctl_noop,          METH_VARARGS, NULL },
-    { NULL,                   NULL,                    0,            NULL },
+    {"remctl",               py_remctl,               METH_VARARGS, NULL},
+    {"remctl_new",           py_remctl_new,           METH_VARARGS, NULL},
+    {"remctl_set_ccache",    py_remctl_set_ccache,    METH_VARARGS, NULL},
+    {"remctl_set_source_ip", py_remctl_set_source_ip, METH_VARARGS, NULL},
+    {"remctl_set_timeout",   py_remctl_set_timeout,   METH_VARARGS, NULL},
+    {"remctl_open",          py_remctl_open,          METH_VARARGS, NULL},
+    {"remctl_close",         py_remctl_close,         METH_VARARGS, NULL},
+    {"remctl_error",         py_remctl_error,         METH_VARARGS, NULL},
+    {"remctl_commandv",      py_remctl_commandv,      METH_VARARGS, NULL},
+    {"remctl_output",        py_remctl_output,        METH_VARARGS, NULL},
+    {"remctl_noop",          py_remctl_noop,          METH_VARARGS, NULL},
+    {NULL,                   NULL,                    0,            NULL},
 };
+/* clang-format on */
 
 #if PY_MAJOR_VERSION >= 3
+/* clang-format off */
 static struct PyModuleDef module_def = {
     PyModuleDef_HEAD_INIT,
     "_remctl",
@@ -414,6 +419,7 @@ static struct PyModuleDef module_def = {
     NULL,
     NULL
 };
+/* clang-format on */
 #endif
 
 

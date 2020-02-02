@@ -15,8 +15,8 @@
 
 #include <sys/uio.h>
 
-#include <client/remctl.h>
 #include <client/internal.h>
+#include <client/remctl.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
@@ -33,7 +33,7 @@ static void
 test_command(struct remctl *r)
 {
     struct remctl_output *output = NULL;
-    static const char *test[] = { "test", "test", NULL };
+    static const char *test[] = {"test", "test", NULL};
 
     /* Send a successful command. */
     if (r == NULL)
@@ -83,8 +83,8 @@ do_tests(const char *principal, int protocol)
     struct remctl *r;
     struct iovec *command;
     struct remctl_output *output;
-    static const char *error[] = { "test", "bad-command", NULL };
-    static const char *no_service[] = { "all", NULL };
+    static const char *error[] = {"test", "bad-command", NULL};
+    static const char *no_service[] = {"all", NULL};
 
     /* Open the connection. */
     r = remctl_new();
@@ -210,7 +210,6 @@ do_tests(const char *principal, int protocol)
 }
 
 
-
 int
 main(void)
 {
@@ -221,8 +220,8 @@ main(void)
     struct sockaddr_in sin;
     int fd;
     char *message, *p;
-    static const char *test[] = { "test", "test", NULL };
-    static const char *error[] = { "test", "bad-command", NULL };
+    static const char *test[] = {"test", "test", NULL};
+    static const char *error[] = {"test", "bad-command", NULL};
 
     /* Set up Kerberos and remctld. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);

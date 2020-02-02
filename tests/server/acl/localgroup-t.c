@@ -14,7 +14,7 @@
 
 #include <config.h>
 #ifdef HAVE_KRB5
-# include <portable/krb5.h>
+#    include <portable/krb5.h>
 #endif
 #include <portable/system.h>
 
@@ -33,22 +33,18 @@
  * Lists of users used to populate the group membership field of various test
  * group structs.
  */
-static const char *const empty_members[] = { NULL };
-static const char *const goodguys_members[] = { "remi", "eagle", NULL };
-static const char *const badguys_members[] = {
-    "darth-vader", "darth-maul", "boba-fett", NULL
-};
+static const char *const empty_members[] = {NULL};
+static const char *const goodguys_members[] = {"remi", "eagle", NULL};
+static const char *const badguys_members[] = {"darth-vader", "darth-maul",
+                                              "boba-fett", NULL};
 
 /* Dummy group definitions used as return values from getgrnam_r. */
-static const struct group empty = {
-    (char *) "empty", NULL, 42, (char **) empty_members
-};
-static const struct group goodguys = {
-    (char *) "goodguys", NULL, 42, (char **) goodguys_members
-};
-static const struct group badguys = {
-    (char *) "badguys", NULL, 42, (char **) badguys_members
-};
+static const struct group empty = {(char *) "empty", NULL, 42,
+                                   (char **) empty_members};
+static const struct group goodguys = {(char *) "goodguys", NULL, 42,
+                                      (char **) goodguys_members};
+static const struct group badguys = {(char *) "badguys", NULL, 42,
+                                     (char **) badguys_members};
 
 /*
  * Length of a principal that will be longer than the buffer size we use for
@@ -65,10 +61,9 @@ static const struct group badguys = {
 static bool
 acl_permit(const struct rule *rule, const char *user)
 {
-    struct client client = {
-        -1, -1, NULL, NULL, 0, NULL, (char *) user, false, 0, 0, false, false,
-        NULL, NULL, NULL
-    };
+    struct client client = {-1,    -1, NULL, NULL,  0,     NULL, (char *) user,
+                            false, 0,  0,    false, false, NULL, NULL,
+                            NULL};
     return server_config_acl_permit(rule, &client);
 }
 
@@ -79,10 +74,21 @@ int
 main(void)
 {
     const char *acls[5];
-    const struct rule rule = {
-        (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0,
-        NULL, NULL, NULL
-    };
+    const struct rule rule = {(char *) "TEST",
+                              0,
+                              NULL,
+                              NULL,
+                              NULL,
+                              NULL,
+                              NULL,
+                              0,
+                              NULL,
+                              NULL,
+                              0,
+                              0,
+                              NULL,
+                              NULL,
+                              NULL};
 
     plan(2);
 
@@ -111,8 +117,8 @@ set_passwd(const char *user, gid_t gid)
 
     memset(&pw, 0, sizeof(pw));
     pw.pw_name = (char *) user;
-    pw.pw_uid  = 1000;
-    pw.pw_gid  = gid;
+    pw.pw_uid = 1000;
+    pw.pw_gid = gid;
     fake_set_passwd(&pw);
 }
 
@@ -125,10 +131,21 @@ main(void)
     char *expected;
     char long_principal[VERY_LONG_PRINCIPAL];
     const char *acls[5];
-    const struct rule rule = {
-        (char *) "TEST", 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0,
-        NULL, NULL, (char **) acls
-    };
+    const struct rule rule = {(char *) "TEST",
+                              0,
+                              NULL,
+                              NULL,
+                              NULL,
+                              NULL,
+                              NULL,
+                              0,
+                              NULL,
+                              NULL,
+                              0,
+                              0,
+                              NULL,
+                              NULL,
+                              (char **) acls};
 
     plan(16);
 

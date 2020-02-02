@@ -31,8 +31,8 @@
  * functions.
  */
 #if TESTING
-# define token_send fake_token_send
-# define token_recv fake_token_recv
+#    define token_send fake_token_send
+#    define token_recv fake_token_recv
 enum token_status token_send(int, int, gss_buffer_t, time_t);
 enum token_status token_recv(int, int *, gss_buffer_t, size_t, time_t);
 #endif
@@ -49,7 +49,7 @@ enum token_status token_recv(int, int *, gss_buffer_t, size_t, time_t);
  * As a hack to support remctl v1, look to see if the flags includes
  * TOKEN_SEND_MIC and don't include TOKEN_PROTOCOL.  If so, expect the remote
  * side to reply with a MIC, which we then verify.
-*/
+ */
 enum token_status
 token_send_priv(socket_type fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
                 time_t timeout, OM_uint32 *major, OM_uint32 *minor)
@@ -100,9 +100,8 @@ token_send_priv(socket_type fd, gss_ctx_id_t ctx, int flags, gss_buffer_t tok,
  * and send it back.
  */
 enum token_status
-token_recv_priv(socket_type fd, gss_ctx_id_t ctx, int *flags,
-                gss_buffer_t tok, size_t max, time_t timeout,
-                OM_uint32 *major, OM_uint32 *minor)
+token_recv_priv(socket_type fd, gss_ctx_id_t ctx, int *flags, gss_buffer_t tok,
+                size_t max, time_t timeout, OM_uint32 *major, OM_uint32 *minor)
 {
     gss_buffer_desc in, mic;
     int state;

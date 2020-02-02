@@ -9,7 +9,7 @@
  * This file handles parsing of the user's command and the main control flow.
  *
  * Written by Russ Allbery
- * Copyright 2016, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2016, 2018, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
  *
  * SPDX-License-Identifier: MIT
@@ -50,7 +50,7 @@ Supported ACL methods: file, princ, deny";
 /*
  * Display the usage message for remctl-shell.
  */
-static void __attribute__((__noreturn__))
+__attribute__((__noreturn__)) static void
 usage(int status)
 {
     FILE *output;

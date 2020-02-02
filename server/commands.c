@@ -375,8 +375,7 @@ server_run_command(struct client *client, struct config *config,
         } else {
             help = true;
             if (argv[2] != NULL)
-                helpsubcommand = xstrndup(argv[2]->iov_base,
-                                          argv[2]->iov_len);
+                helpsubcommand = xstrndup(argv[2]->iov_base, argv[2]->iov_len);
             rule = find_config_line(config, subcommand, helpsubcommand);
         }
     }
@@ -428,8 +427,8 @@ server_run_command(struct client *client, struct config *config,
      */
     if (help) {
         if (rule->help == NULL) {
-            notice("command %s from user %s has no defined help",
-                   command, user);
+            notice("command %s from user %s has no defined help", command,
+                   user);
             client->error(client, ERROR_NO_HELP,
                           "No help defined for command");
             goto done;
@@ -456,7 +455,7 @@ server_run_command(struct client *client, struct config *config,
     }
     status = process.status;
 
- done:
+done:
     free(command);
     free(subcommand);
     free(helpsubcommand);

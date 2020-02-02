@@ -9,13 +9,13 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <fcntl.h>
 #ifdef HAVE_SYS_SELECT_H
-# include <sys/select.h>
+#    include <sys/select.h>
 #endif
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -30,13 +30,13 @@
  * return short writes on blocking sockets.
  */
 #ifdef _WIN32
-# define socket_xwrite(fd, b, s)        send((fd), (b), (s), 0)
+#    define socket_xwrite(fd, b, s) send((fd), (b), (s), 0)
 #else
-# define socket_xwrite(fd, b, s)        xwrite((fd), (b), (s))
+#    define socket_xwrite(fd, b, s) xwrite((fd), (b), (s))
 #endif
 
 /* A token for testing. */
-static const char token[] = { 3, 0, 0, 0, 5, 'h', 'e', 'l', 'l', 'o' };
+static const char token[] = {3, 0, 0, 0, 5, 'h', 'e', 'l', 'l', 'o'};
 
 
 /*

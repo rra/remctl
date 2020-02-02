@@ -14,9 +14,9 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 #include <portable/uio.h>
 
 #include <errno.h>
@@ -160,9 +160,9 @@ internal_v2_commandv(struct remctl *r, const struct iovec *command,
 
         /* Send the result. */
         token.length -= left;
-        status = token_send_priv(r->fd, r->context,
-                                 TOKEN_DATA | TOKEN_PROTOCOL, &token,
-                                 r->timeout, &major, &minor);
+        status =
+            token_send_priv(r->fd, r->context, TOKEN_DATA | TOKEN_PROTOCOL,
+                            &token, r->timeout, &major, &minor);
         if (status != TOKEN_OK) {
             internal_token_error(r, "sending token", status, major, minor);
             free(token.value);
@@ -183,7 +183,7 @@ bool
 internal_v2_quit(struct remctl *r)
 {
     gss_buffer_desc token;
-    char buffer[2] = { 2, MESSAGE_QUIT };
+    char buffer[2] = {2, MESSAGE_QUIT};
     OM_uint32 major, minor;
     int status;
 
@@ -374,7 +374,7 @@ bool
 internal_noop(struct remctl *r)
 {
     gss_buffer_desc token;
-    char buffer[2] = { 3, MESSAGE_NOOP };
+    char buffer[2] = {3, MESSAGE_NOOP};
     OM_uint32 major, minor;
     int status;
     char *p;

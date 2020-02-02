@@ -13,7 +13,7 @@
 #include <portable/system.h>
 
 #ifdef HAVE_SYS_SELECT_H
-# include <sys/select.h>
+#    include <sys/select.h>
 #endif
 #include <sys/time.h>
 

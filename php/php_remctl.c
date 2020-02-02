@@ -5,7 +5,7 @@
  * the Net::Remctl bindings for Perl.
  *
  * Originally written by Andrew Mortensen <admorten@umich.edu>
- * Copyright 2016, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2016, 2018, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2008 Andrew Mortensen <admorten@umich.edu>
  * Copyright 2008, 2011-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -19,8 +19,8 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <time.h>
 
 #include <client/remctl.h>
@@ -30,6 +30,7 @@
 
 static int le_remctl_internal;
 
+/* clang-format off */
 static zend_function_entry remctl_functions[] = {
     ZEND_FE(remctl,               NULL)
     ZEND_FE(remctl_new,           NULL)
@@ -42,9 +43,11 @@ static zend_function_entry remctl_functions[] = {
     ZEND_FE(remctl_output,        NULL)
     ZEND_FE(remctl_noop,          NULL)
     ZEND_FE(remctl_error,         NULL)
-    { NULL, NULL, NULL, 0, 0 }
+    {NULL, NULL, NULL, 0, 0}
 };
+/* clang-format on */
 
+/* clang-format off */
 zend_module_entry remctl_module_entry = {
     STANDARD_MODULE_HEADER,
     PHP_REMCTL_EXTNAME,
@@ -57,10 +60,12 @@ zend_module_entry remctl_module_entry = {
     PHP_REMCTL_VERSION,
     STANDARD_MODULE_PROPERTIES
 };
+/* clang-format on */
 
 #ifdef COMPILE_DL_REMCTL
 ZEND_GET_MODULE(remctl)
 #endif
+
 
 /*
  * Destructor for a remctl object.  Close the underlying connection.
@@ -81,9 +86,8 @@ php_remctl_dtor(zend_resource *rsrc TSRMLS_DC)
  */
 PHP_MINIT_FUNCTION(remctl)
 {
-    le_remctl_internal =
-        zend_register_list_destructors_ex(php_remctl_dtor, NULL,
-            PHP_REMCTL_RES_NAME, module_number);
+    le_remctl_internal = zend_register_list_destructors_ex(
+        php_remctl_dtor, NULL, PHP_REMCTL_RES_NAME, module_number);
     return SUCCESS;
 }
 
@@ -110,8 +114,9 @@ ZEND_FUNCTION(remctl)
      * validity.  Host and command are required, so all arguments must be
      * provided, but an empty string can be passed in as the principal.
      */
-    status = zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "slsa", &host,
-                 &hlen, &port, &principal, &plen, &cmd_array);
+    status =
+        zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "slsa", &host, &hlen,
+                              &port, &principal, &plen, &cmd_array);
     if (status == FAILURE) {
         zend_error(E_WARNING, "remctl: invalid parameters\n");
         RETURN_NULL();
@@ -140,7 +145,8 @@ ZEND_FUNCTION(remctl)
         RETURN_NULL();
     }
     i = 0;
-    ZEND_HASH_FOREACH_VAL(hash, data) {
+    ZEND_HASH_FOREACH_VAL(hash, data)
+    {
         if (Z_TYPE_P(data) != IS_STRING) {
             zend_error(E_WARNING, "remctl: command contains non-string\n");
             goto cleanup;
@@ -156,7 +162,8 @@ ZEND_FUNCTION(remctl)
             goto cleanup;
         }
         i++;
-    } ZEND_HASH_FOREACH_END();
+    }
+    ZEND_HASH_FOREACH_END();
     command[count] = NULL;
 
     /* Run the actual remctl call. */
@@ -179,10 +186,10 @@ ZEND_FUNCTION(remctl)
     else
         add_property_string(return_value, "error", result->error);
     add_property_stringl(return_value, "stdout", result->stdout_buf,
-        result->stdout_len);
+                         result->stdout_len);
     add_property_long(return_value, "stdout_len", result->stdout_len);
     add_property_stringl(return_value, "stderr", result->stderr_buf,
-        result->stderr_len);
+                         result->stderr_len);
     add_property_long(return_value, "stderr_len", result->stderr_len);
     add_property_long(return_value, "status", result->status);
     success = 1;
@@ -228,7 +235,7 @@ ZEND_FUNCTION(remctl_set_ccache)
     int status;
 
     status = zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zrem,
-                 &ccache, &clen);
+                                   &ccache, &clen);
     if (status == FAILURE) {
         zend_error(E_WARNING, "remctl_set_ccache: invalid parameters\n");
         RETURN_FALSE;
@@ -253,7 +260,7 @@ ZEND_FUNCTION(remctl_set_source_ip)
     int status;
 
     status = zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zrem,
-                 &source, &slen);
+                                   &source, &slen);
     if (status == FAILURE) {
         zend_error(E_WARNING, "remctl_set_source_ip: invalid parameters\n");
         RETURN_FALSE;
@@ -277,7 +284,7 @@ ZEND_FUNCTION(remctl_set_timeout)
     int status;
 
     status = zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zrem,
-                 &timeout);
+                                   &timeout);
     if (status == FAILURE) {
         zend_error(E_WARNING, "remctl_set_timeout: invalid parameters\n");
         RETURN_FALSE;
@@ -307,7 +314,7 @@ ZEND_FUNCTION(remctl_open)
 
     /* Parse and verify arguments. */
     status = zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|ls", &zrem,
-                 &host, &hlen, &port, &principal, &plen);
+                                   &host, &hlen, &port, &principal, &plen);
     if (status == FAILURE) {
         zend_error(E_WARNING, "remctl_open: invalid parameters\n");
         RETURN_FALSE;
@@ -339,7 +346,7 @@ ZEND_FUNCTION(remctl_command)
 
     /* Parse and verify arguments. */
     status = zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &zrem,
-                 &cmd_array);
+                                   &cmd_array);
     if (status == FAILURE) {
         zend_error(E_WARNING, "remctl_command: invalid parameters\n");
         RETURN_FALSE;
@@ -364,15 +371,16 @@ ZEND_FUNCTION(remctl_command)
         RETURN_FALSE;
     }
     i = 0;
-    ZEND_HASH_FOREACH_VAL(hash, data) {
+    ZEND_HASH_FOREACH_VAL(hash, data)
+    {
         if (Z_TYPE_P(data) != IS_STRING) {
             zend_error(E_WARNING,
-                "remctl_command: command contains non-string\n");
+                       "remctl_command: command contains non-string\n");
             goto cleanup;
         }
         if (i >= count) {
             zend_error(E_WARNING,
-                "remctl_command: internal error: incorrect count\n");
+                       "remctl_command: internal error: incorrect count\n");
             goto cleanup;
         }
         cmd_vec[i].iov_base = emalloc(Z_STRLEN_P(data) + 1);
@@ -384,7 +392,8 @@ ZEND_FUNCTION(remctl_command)
         cmd_vec[i].iov_len = Z_STRLEN_P(data);
         memcpy(cmd_vec[i].iov_base, Z_STRVAL_P(data), cmd_vec[i].iov_len);
         i++;
-    } ZEND_HASH_FOREACH_END();
+    }
+    ZEND_HASH_FOREACH_END();
 
     /* Finally, we can do the work. */
     if (!remctl_commandv(r, cmd_vec, count))
@@ -439,13 +448,13 @@ ZEND_FUNCTION(remctl_output)
     case REMCTL_OUT_OUTPUT:
         add_property_string(return_value, "type", "output");
         add_property_stringl(return_value, "data", output->data,
-            output->length);
+                             output->length);
         add_property_long(return_value, "stream", output->stream);
         break;
     case REMCTL_OUT_ERROR:
         add_property_string(return_value, "type", "error");
         add_property_stringl(return_value, "data", output->data,
-            output->length);
+                             output->length);
         add_property_long(return_value, "error", output->error);
         break;
     case REMCTL_OUT_STATUS:

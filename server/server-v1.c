@@ -131,7 +131,7 @@ server_v1_send_output(struct client *client, struct evbuffer *output,
     p += 4;
     if (evbuffer_remove(output, p, outlen) < 0)
         die("internal error: cannot move data from output buffer");
-    
+
     /* Send the token. */
     status = token_send_priv(client->fd, client->context, TOKEN_DATA, &token,
                              TIMEOUT, &major, &minor);
@@ -172,7 +172,7 @@ server_v1_send_error(struct client *client, enum error_codes code UNUSED,
  * Takes the client struct and the server configuration and handles a client
  * request.  Reads a command from the client, checks the ACL, runs the command
  * if appropriate, and sends any output back to the client.
-*/
+ */
 void
 server_v1_handle_messages(struct client *client, struct config *config)
 {

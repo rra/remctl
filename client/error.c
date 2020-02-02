@@ -14,9 +14,9 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <errno.h>
 
@@ -27,7 +27,7 @@
 /*
  * Internal function to set the error message, freeing an old error message if
  * one is present.
-*/
+ */
 void
 internal_set_error(struct remctl *r, const char *format, ...)
 {

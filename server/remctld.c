@@ -7,7 +7,7 @@
  *
  * Written by Anton Ushakov
  * Extensive modifications by Russ Allbery <eagle@eyrie.org>
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2008, 2010-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -22,8 +22,8 @@
 #include <portable/system.h>
 
 #include <signal.h>
-#include <syslog.h>
 #include <sys/wait.h>
+#include <syslog.h>
 #include <time.h>
 
 #include <server/internal.h>
@@ -74,23 +74,23 @@ Supported ACL methods: file, princ, deny";
 
 /* Structure used to store program options. */
 struct options {
-    bool debug;                 /* -d: log verbose debugging information */
-    bool foreground;            /* -F: run in the foreground */
-    bool log_stdout;            /* -S: log to standard output and error */
-    bool standalone;            /* -m: run in stand-alone daemon mode */
-    bool suspend;               /* -Z: raise SIGSTOP when ready */
-    unsigned short port;        /* -p: port on which to listen */
-    char *service;              /* -s: service principal to use */
-    const char *config_path;    /* -f: path to the configuration file */
-    const char *pid_path;       /* -P: path to the PID file to write */
-    struct vector *bindaddrs;   /* -b: bind to a specific address */
+    bool debug;               /* -d: log verbose debugging information */
+    bool foreground;          /* -F: run in the foreground */
+    bool log_stdout;          /* -S: log to standard output and error */
+    bool standalone;          /* -m: run in stand-alone daemon mode */
+    bool suspend;             /* -Z: raise SIGSTOP when ready */
+    unsigned short port;      /* -p: port on which to listen */
+    char *service;            /* -s: service principal to use */
+    const char *config_path;  /* -f: path to the configuration file */
+    const char *pid_path;     /* -P: path to the PID file to write */
+    struct vector *bindaddrs; /* -b: bind to a specific address */
 };
 
 
 /*
  * Display the usage message for remctld.
  */
-static void __attribute__((__noreturn__))
+__attribute__((__noreturn__)) static void
 usage(int status)
 {
     FILE *output;
@@ -175,8 +175,8 @@ acquire_creds(char *service, gss_cred_id_t *creds)
         warn_gssapi("while importing name", major, minor);
         return false;
     }
-    major = gss_acquire_cred(&minor, name, 0, GSS_C_NULL_OID_SET,
-                             GSS_C_ACCEPT, creds, NULL, NULL);
+    major = gss_acquire_cred(&minor, name, 0, GSS_C_NULL_OID_SET, GSS_C_ACCEPT,
+                             creds, NULL, NULL);
     if (major != GSS_S_COMPLETE) {
         warn_gssapi("while acquiring credentials", major, minor);
         return false;
@@ -276,8 +276,7 @@ is_ipv6(const char *string UNUSED)
  * socket.
  */
 static void
-bind_sockets(struct options *options, socket_type **fds,
-             unsigned int *count)
+bind_sockets(struct options *options, socket_type **fds, unsigned int *count)
 {
     int status, fd_index;
     size_t i;

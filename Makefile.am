@@ -662,6 +662,12 @@ check-valgrind: $(check_PROGRAMS)
 	    C_TAP_LIBTOOL="$(top_builddir)/libtool"		\
 	    tests/runtests -l '$(abs_top_srcdir)/tests/TESTS'
 
+# Used by maintainers to reformat all source code using clang-format and
+# excluding some files.
+reformat:
+	find . -name '*.[ch]' \! -name snprintf.c -print \
+	     | xargs clang-format-10 -style=file -i
+
 # Used for hooking in the build of optional language bindings.
 BINDINGS =
 BINDINGS_INSTALL =

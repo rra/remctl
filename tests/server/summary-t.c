@@ -27,7 +27,7 @@ main(void)
     struct remctl_result *result;
     struct process *remctld;
     const char *expected;
-    const char *test[] = { "help", NULL };
+    const char *test[] = {"help", NULL};
 
     /* Unless we have Kerberos available, we can't really do anything. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);

@@ -5,7 +5,7 @@
  * simple and complex forms of the API.
  *
  * Original implementation by Anthony M. Martinez <twopir@nmt.edu>
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2010-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
@@ -55,7 +55,7 @@
  * all the versions that people care about.
  */
 #ifndef HAVE_RUBY_DEFINES_H
-# define rb_cvar_set(a, b, c) rb_cvar_set((a), (b), (c), 0)
+#    define rb_cvar_set(a, b, c) rb_cvar_set((a), (b), (c), 0)
 #endif
 
 /* Our public interface. */
@@ -69,28 +69,30 @@ static ID AAccache, AAsource_ip, AAtimeout;
 static ID Ahost, Aport, Aprincipal;
 
 /* Map the remctl_output type constants to strings. */
+/* clang-format off */
 static const struct {
     enum remctl_output_type type;
     const char *name;
 } OUTPUT_TYPE[] = {
-    { REMCTL_OUT_OUTPUT, "output" },
-    { REMCTL_OUT_STATUS, "status" },
-    { REMCTL_OUT_ERROR,  "error"  },
-    { REMCTL_OUT_DONE,   "done"   },
-    { 0,                 NULL     }
+    {REMCTL_OUT_OUTPUT, "output"},
+    {REMCTL_OUT_STATUS, "status"},
+    {REMCTL_OUT_ERROR,  "error" },
+    {REMCTL_OUT_DONE,   "done"  },
+    {0,                 NULL    }
 };
+/* clang-format on */
 
 /*
  * Used for the complex interface when a method that requires the remctl
  * connection be open is called.  Retrieves the underlying struct remctl
  * object and raises an exception if it is NULL.
  */
-#define GET_REMCTL_OR_RAISE(obj, var)                                   \
-    do {                                                                \
-        Data_Get_Struct((obj), struct remctl, (var));                   \
-        if ((var) == NULL)                                              \
-            rb_raise(eRemctlNotOpen, "Connection is no longer open.");  \
-    } while(0)
+#define GET_REMCTL_OR_RAISE(obj, var)                                  \
+    do {                                                               \
+        Data_Get_Struct((obj), struct remctl, (var));                  \
+        if ((var) == NULL)                                             \
+            rb_raise(eRemctlNotOpen, "Connection is no longer open."); \
+    } while (0)
 
 
 /*
@@ -150,11 +152,11 @@ rb_remctl_remctl(int argc, VALUE argv[], VALUE self UNUSED)
      * user specify "nil, nil" so often.
      */
     rb_scan_args(argc, argv, "1*", &vhost, &vargs);
-    host   = StringValuePtr(vhost);
-    vport  = rb_cvar_get(cRemctl, AAdefault_port);
+    host = StringValuePtr(vhost);
+    vport = rb_cvar_get(cRemctl, AAdefault_port);
     vprinc = rb_cvar_get(cRemctl, AAdefault_principal);
-    port   = NIL_P(vport)  ? 0    : FIX2UINT(vport);
-    princ  = NIL_P(vprinc) ? NULL : StringValuePtr(vprinc);
+    port = NIL_P(vport) ? 0 : FIX2UINT(vport);
+    princ = NIL_P(vprinc) ? NULL : StringValuePtr(vprinc);
 
     /* Convert the remaining arguments to their underlying pointers. */
     rc_argc = RARRAY_LEN(vargs);
@@ -412,12 +414,12 @@ rb_remctl_reopen(VALUE self)
             rb_raise(eRemctlError, "%s", remctl_error(r));
 
     /* Retrieve the stored host, port, and principal values. */
-    vhost  = rb_ivar_get(self, Ahost);
-    vport  = rb_ivar_get(self, Aport);
+    vhost = rb_ivar_get(self, Ahost);
+    vport = rb_ivar_get(self, Aport);
     vprinc = rb_ivar_get(self, Aprincipal);
-    host   = StringValuePtr(vhost);
-    port   = NIL_P(vport)  ? 0    : FIX2UINT(vport);
-    princ  = NIL_P(vprinc) ? NULL : StringValuePtr(vprinc);
+    host = StringValuePtr(vhost);
+    port = NIL_P(vport) ? 0 : FIX2UINT(vport);
+    princ = NIL_P(vprinc) ? NULL : StringValuePtr(vprinc);
 
     /* Reopen the connection. */
     if (!remctl_open(r, host, port, princ))
@@ -470,7 +472,7 @@ rb_remctl_command(int argc, VALUE argv[], VALUE self)
     for (i = 0; i < argc; i++) {
         s = StringValue(argv[i]);
         iov[i].iov_base = RSTRING_PTR(s);
-        iov[i].iov_len  = RSTRING_LEN(s);
+        iov[i].iov_len = RSTRING_LEN(s);
     }
     if (!remctl_commandv(r, iov, argc))
         rb_raise(eRemctlError, "%s", remctl_error(r));
@@ -537,6 +539,7 @@ rb_remctl_noop(VALUE self)
 }
 
 
+/* clang-format off */
 /* call-seq:
  * Remctl.new(host, port=Remctl.default_port, princ=Remctl.default_principal) -> #&lt;Remctl&gt;
  * Remctl.new(host, port, princ) {|r| ...} -> nil
@@ -546,6 +549,7 @@ rb_remctl_noop(VALUE self)
  * library raises one.  With a block, yield the instance, and ensure the
  * connection is closed at block exit.
  */
+/* clang-format on */
 static VALUE
 rb_remctl_initialize(int argc, VALUE argv[], VALUE self)
 {
@@ -555,11 +559,11 @@ rb_remctl_initialize(int argc, VALUE argv[], VALUE self)
     rb_define_attr(cRemctl, "host", 1, 0);
     rb_define_attr(cRemctl, "port", 1, 0);
     rb_define_attr(cRemctl, "principal", 1, 0);
-    vdefport  = rb_cvar_get(cRemctl, AAdefault_port);
+    vdefport = rb_cvar_get(cRemctl, AAdefault_port);
     vdefprinc = rb_cvar_get(cRemctl, AAdefault_principal);
     rb_scan_args(argc, argv, "12", &vhost, &vport, &vprinc);
     if (NIL_P(vport))
-        vport  = vdefport;
+        vport = vdefport;
     if (NIL_P(vprinc))
         vprinc = vdefprinc;
     port = NIL_P(vport) ? 0 : FIX2UINT(vport);
@@ -595,14 +599,14 @@ Init_remctl(void)
      * Allocate string constants used to refer to our class and instance
      * variables.
      */
-    AAdefault_port      = rb_intern("@@default_port");
+    AAdefault_port = rb_intern("@@default_port");
     AAdefault_principal = rb_intern("@@default_principal");
-    AAccache            = rb_intern("@@ccache");
-    AAsource_ip         = rb_intern("@@source_ip");
-    AAtimeout           = rb_intern("@@timeout");
-    Ahost               = rb_intern("@host");
-    Aport               = rb_intern("@port");
-    Aprincipal          = rb_intern("@principal");
+    AAccache = rb_intern("@@ccache");
+    AAsource_ip = rb_intern("@@source_ip");
+    AAtimeout = rb_intern("@@timeout");
+    Ahost = rb_intern("@host");
+    Aport = rb_intern("@port");
+    Aprincipal = rb_intern("@principal");
 
     /* Default values for class variables. */
     rb_cvar_set(cRemctl, AAdefault_port, UINT2NUM(0));
@@ -614,24 +618,20 @@ Init_remctl(void)
     /* Getter and setter methods for class variables. */
     rb_define_singleton_method(cRemctl, "default_port",
                                rb_remctl_default_port_get, 0);
-    rb_define_singleton_method(cRemctl, "default_port=",
-                               rb_remctl_default_port_set, 1);
+    rb_define_singleton_method(cRemctl,
+                               "default_port=", rb_remctl_default_port_set, 1);
     rb_define_singleton_method(cRemctl, "default_principal",
                                rb_remctl_default_principal_get, 0);
-    rb_define_singleton_method(cRemctl, "default_principal=",
-                               rb_remctl_default_principal_set, 1);
-    rb_define_singleton_method(cRemctl, "ccache",
-                               rb_remctl_ccache_get, 0);
-    rb_define_singleton_method(cRemctl, "ccache=",
-                               rb_remctl_ccache_set, 1);
-    rb_define_singleton_method(cRemctl, "source_ip",
-                               rb_remctl_source_ip_get, 0);
-    rb_define_singleton_method(cRemctl, "source_ip=",
-                               rb_remctl_source_ip_set, 1);
-    rb_define_singleton_method(cRemctl, "timeout",
-                               rb_remctl_timeout_get, 0);
-    rb_define_singleton_method(cRemctl, "timeout=",
-                               rb_remctl_timeout_set, 1);
+    rb_define_singleton_method(
+        cRemctl, "default_principal=", rb_remctl_default_principal_set, 1);
+    rb_define_singleton_method(cRemctl, "ccache", rb_remctl_ccache_get, 0);
+    rb_define_singleton_method(cRemctl, "ccache=", rb_remctl_ccache_set, 1);
+    rb_define_singleton_method(cRemctl, "source_ip", rb_remctl_source_ip_get,
+                               0);
+    rb_define_singleton_method(cRemctl, "source_ip=", rb_remctl_source_ip_set,
+                               1);
+    rb_define_singleton_method(cRemctl, "timeout", rb_remctl_timeout_get, 0);
+    rb_define_singleton_method(cRemctl, "timeout=", rb_remctl_timeout_set, 1);
 
     /* Create the Remctl class. */
     rb_define_alloc_func(cRemctl, rb_remctl_alloc);
@@ -652,8 +652,8 @@ Init_remctl(void)
      * +status+:: Fixnum of the command's exit status.
      */
     cRemctlResult = rb_define_class_under(cRemctl, "Result", rb_cObject);
-    rb_define_method(cRemctlResult, "initialize",
-                     rb_remctl_result_initialize, 0);
+    rb_define_method(cRemctlResult, "initialize", rb_remctl_result_initialize,
+                     0);
 
     /* Document-class: Remctl::Error
      *
