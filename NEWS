@@ -7,6 +7,13 @@ remctl 3.17 (unreleased)
     download typing when it's part of the standard library.  Thanks to
     Gianfranco Costamagna and Matthias Klose for the bug report.
 
+    Fix non-Kerberos network tests on hosts with no IPv4 addresses.  In
+    this case, the network tests for binding all configured addresses will
+    bind only to IPv6, which broke some prior assumptions in the test
+    suite.  Thanks to Niko Tyni for the bug report.  Note that the tests
+    that require a Kerberos setup will still fail in this scenario, since
+    they assume remctld will bind to 127.0.0.1 by default.
+
     Update to rra-c-util 8.2:
 
     * Drop support for Perl 5.6.
