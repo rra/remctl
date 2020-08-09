@@ -14,6 +14,11 @@
 
 set -eux
 
+# Normally, COMPILER and KERBEROS are set based on the CI matrix, but provide
+# a default in case someone runs this test by hand.
+COMPILER="${COMPILER:-gcc}"
+KERBEROS="${KERBEROS:-mit}"
+
 # Install packages.
 apt-get update -qq
 apt-get install -y cpanminus krb5-config libevent-dev libkrb5-dev           \
@@ -22,7 +27,7 @@ apt-get install -y cpanminus krb5-config libevent-dev libkrb5-dev           \
         perl php-cli php-dev pkg-config python3-all-dev python3-pip         \
         python3-pytest python3-pytest-runner python3-setuptools             \
         python-all-dev python-pytest python-pytest-runner python-setuptools \
-        python-typing ruby-all-dev
+        python-typing ruby-all-dev valgrind
 
 # Dependencies for Perl bindings and Perl tests.
 #
@@ -36,7 +41,7 @@ cpanm Test::MinimumVersion   || true
 cpanm Test::Perl::Critic     || true
 
 # Dependencies for additional style checks for the Python bindings.  These are
-# only run as part of the GCC build.
-if [ "$TRAVIS_COMPILER" = "gcc" ]; then
+# only run as part of the GCC build and MIT Kerberos test.
+if [ "$COMPILER" = "gcc" ] && [ "$KERBEROS" = "mit" ]; then
     pip3 install -r python/requirements-dev.txt
 fi
