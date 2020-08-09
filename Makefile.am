@@ -63,11 +63,11 @@ PERL_FILES = perl/Build.PL perl/MANIFEST perl/MANIFEST.SKIP		    \
 PHP_FILES = php/README php/php_remctl.c php/php5_remctl.c php/test-wrapper \
 	php/tests/001.phpt php/tests/002.phpt php/tests/003.phpt	   \
 	php/tests/004.phpt php/tests/005.phpt php/tests/006.phpt
-PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c	   \
-	python/pyproject.toml python/remctl.py python/requirements-dev.txt \
-	python/setup.cfg python/setup.py python/tests/data/cmd-hello	   \
-	python/tests/data/cmd-sleep python/tests/data/cmd-status	   \
-	python/tests/data/remctl.conf python/tests/__init__.py		   \
+PYTHON_FILES = python/README python/_remctlmodule.c python/pyproject.toml \
+	python/remctl.py python/requirements-dev.txt python/setup.cfg	  \
+	python/setup.py python/tests/data/cmd-hello			  \
+	python/tests/data/cmd-sleep python/tests/data/cmd-status	  \
+	python/tests/data/remctl.conf python/tests/__init__.py		  \
 	python/tests/remctl_test.py
 RUBY_FILES = ruby/README ruby/remctl.c
 
