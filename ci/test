@@ -8,41 +8,40 @@
 
 set -eux
 
-# Normally, COMPILER and KERBEROS are set based on the CI matrix, but provide
-# a default in case someone runs this test by hand.
-COMPILER="${COMPILER:-gcc}"
+# Normally, KERBEROS is set based on the CI matrix, but provide a default in
+# case someone runs this test by hand.
 KERBEROS="${KERBEROS:-mit}"
 
-# Configure the build.
-export AUTHOR_TESTING=1
-export C_TAP_VERBOSE=1
-export REMCTL_PYTHON_VERSIONS="python2 python3"
-
-# Build everything, except skip PHP with Clang for now because PHP built with
-# GCC (such as what's installed on Travis-CI) uses asm goto, which isn't
-# supported by Clang.
+# Generate Autotools files.
 ./bootstrap
+
+# Build everything with Clang first, with warnings enabled.
 if [ "$KERBEROS" = 'heimdal' ]; then
-    ./configure CC="$COMPILER" PATH_KRB5_CONFIG=/usr/bin/krb5-config.heimdal \
+    ./configure CC=clang PATH_KRB5_CONFIG=/usr/bin/krb5-config.heimdal \
         --enable-perl --enable-php --enable-python --enable-ruby
 else
-    ./configure CC="$COMPILER" \
+    ./configure CC=clang \
         --enable-perl --enable-php --enable-python --enable-ruby
 fi
 make warnings
 
-# Run the regular tests with valgrind for one of the compilers.  Arbitrarily
-# pick the GCC build.  (The assumption here is that other compilers won't
-# produce sufficiently different code as to create memory management
-# problems.)
-if [ "$COMPILER" = 'gcc' ]; then
-    make check-valgrind
+# Then rebuild everything with GCC with warnings enabled.
+make distclean
+if [ "$KERBEROS" = 'heimdal' ]; then
+    ./configure CC=gcc PATH_KRB5_CONFIG=/usr/bin/krb5-config.heimdal \
+        --enable-perl --enable-php --enable-python --enable-ruby
 else
-    make check
+    ./configure CC=gcc \
+        --enable-perl --enable-php --enable-python --enable-ruby
 fi
+make warnings
 
-# Run additional Python coding style tests, but only in the non-Clang build.
-if [ "$COMPILER" = "gcc" ]; then
+# Run the tests with valgrind.
+make check-valgrind
+
+# Run additional style tests, but only in the MIT build.
+if [ "$KERBEROS" = "mit" ]; then
+    make check-cppcheck
     cd python
     mypy .
     mypy --py2 .

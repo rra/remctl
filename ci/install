@@ -5,23 +5,17 @@
 # This script is normally run via sudo in a test container or VM, such as via
 # GitHub Actions.
 #
-# Perl::Tidy, Perl::Critic, and Test::Perl::Critic are installed separately to
-# get the latest version, since they sometimes change formatting and style
-# rules compared to the version in Ubuntu.  Test::MinimumVersion has to be
-# included since it installs Perl::Critic.
-#
 # SPDX-License-Identifier: MIT
 
 set -eux
 
-# Normally, COMPILER and KERBEROS are set based on the CI matrix, but provide
-# a default in case someone runs this test by hand.
-COMPILER="${COMPILER:-gcc}"
+# Normally, KERBEROS is set based on the CI matrix, but provide a default in
+# case someone runs this test by hand.
 KERBEROS="${KERBEROS:-mit}"
 
-# Install packages.
+# Install distribution packages.
 apt-get update -qq
-apt-get install -y cpanminus krb5-config libevent-dev libkrb5-dev           \
+apt-get install -y cpanminus cppcheck krb5-config libevent-dev libkrb5-dev  \
         libmodule-build-perl libpcre3-dev libtest-pod-perl                  \
         libtest-pod-coverage-perl libtest-strict-perl libtest-synopsis-perl \
         perl php-cli php-dev pkg-config python3-all-dev python3-pip         \
@@ -30,6 +24,11 @@ apt-get install -y cpanminus krb5-config libevent-dev libkrb5-dev           \
         python-typing ruby-all-dev valgrind
 
 # Dependencies for Perl bindings and Perl tests.
+#
+# Perl::Tidy, Perl::Critic, Perl::Critic::Freenode, and Test::Perl::Critic are
+# installed separately to get the latest version, since they sometimes change
+# formatting and style rules compared to the version in Ubuntu.
+# Test::MinimumVersion has to be included since it installs Perl::Critic.
 #
 # Allow the installation of Perl::Critic and Test::Perl::Critic to fail, since
 # this seems to fail regularly due to unresolvable dependencies.  (We'll just
@@ -41,7 +40,7 @@ cpanm Test::MinimumVersion   || true
 cpanm Test::Perl::Critic     || true
 
 # Dependencies for additional style checks for the Python bindings.  These are
-# only run as part of the GCC build and MIT Kerberos test.
-if [ "$COMPILER" = "gcc" ] && [ "$KERBEROS" = "mit" ]; then
+# only run as part of the MIT Kerberos test.
+if [ "$KERBEROS" = "mit" ]; then
     pip3 install -r python/requirements-dev.txt
 fi
