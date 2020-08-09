@@ -1,7 +1,7 @@
 /*
  * Test suite for anonymous authentication.
  *
- * Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015-2016, 2018, 2020 Russ Allbery <eagle@eyrie.org>
  *
  * SPDX-License-Identifier: MIT
  */
@@ -21,10 +21,10 @@
 
 
 /*
- * Initialize an internal anonymous ticket cache with a random name, make sure
- * that we can get a service ticket for the provided principal, and return the
- * name of the Kerberos ticket cache on success and NULL on failure.  Internal
- * Kerberos errors resort in an abort instead.
+ * Initialize an internal anonymous ticket cache with the provided name, make
+ * sure that we can get a service ticket for the provided principal, and
+ * return the open cache on success and NULL on failure.  Internal Kerberos
+ * errors resort in an abort instead.
  *
  * Some older versions of Heimdal not only can't do PKINIT, but also crash
  * when krb5_get_init_creds_password is called with no password or prompter.
@@ -44,15 +44,14 @@ cache_init_anonymous(krb5_context ctx UNUSED, const char *principal UNUSED)
 
 #    else /* HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS */
 
-static char *
-cache_init_anonymous(krb5_context ctx, const char *principal)
+static krb5_ccache
+cache_init_anonymous(krb5_context ctx, const char *principal, const char *name)
 {
     krb5_error_code retval;
     krb5_principal princ = NULL;
     krb5_principal test_server = NULL;
     krb5_ccache ccache;
     char *realm;
-    char *name = NULL;
     krb5_creds creds, in_creds;
     krb5_creds *out_creds = NULL;
     bool creds_valid = false;
@@ -76,12 +75,7 @@ cache_init_anonymous(krb5_context ctx, const char *principal)
         bail_krb5(ctx, retval, "cannot create anonymous principal");
     krb5_free_default_realm(ctx, realm);
 
-    /*
-     * Set up the credential cache the anonymous credentials.  We use a
-     * memory cache whose name is based on the pointer value of our Kerberos
-     * context, since that should be unique among threads.
-     */
-    basprintf(&name, "MEMORY:%p", (void *) ctx);
+    /* Set up the credential cache the anonymous credentials. */
     retval = krb5_cc_resolve(ctx, name, &ccache);
     if (retval != 0)
         bail_krb5(ctx, retval, "cannot create memory ticket cache %s", name);
@@ -131,11 +125,9 @@ cache_init_anonymous(krb5_context ctx, const char *principal)
     retval = krb5_get_credentials(ctx, 0, ccache, &in_creds, &out_creds);
 
 done:
-    if (retval != 0) {
-        if (ccache != NULL)
-            krb5_cc_destroy(ctx, ccache);
-        free(name);
-        name = NULL;
+    if (retval != 0 && ccache != NULL) {
+        krb5_cc_destroy(ctx, ccache);
+        ccache = NULL;
     }
     if (princ != NULL)
         krb5_free_principal(ctx, princ);
@@ -147,7 +139,7 @@ done:
         krb5_free_cred_contents(ctx, &creds);
     if (out_creds != NULL)
         krb5_free_creds(ctx, out_creds);
-    return name;
+    return ccache;
 }
 #    endif     /* HAVE_KRB5_GET_INIT_CREDS_OPT_SET_ANONYMOUS */
 #endif         /* HAVE_KRB5 */
@@ -200,19 +192,24 @@ main(void)
     int status;
 #ifdef HAVE_KRB5
     krb5_context ctx;
+    krb5_ccache ccache;
     char *cache_name;
-    char *krb5ccname = NULL;
+    char *krb5ccname;
 #endif
 
     /* Unless we have Kerberos available, we can't really do anything. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
 
-    /* Check to see if we can obtain anonymous credentials. */
+    /* Check to see if we can obtain anonymous credentials.  We use a memory
+     * cache whose name is based on the pointer value of our Kerberos context,
+     * since that should be unique among threads.
+     */
 #ifdef HAVE_KRB5
     if (krb5_init_context(&ctx) != 0)
         bail("cannot initialize Kerberos");
-    cache_name = cache_init_anonymous(ctx, config->principal);
-    if (cache_name == NULL)
+    basprintf(&cache_name, "MEMORY:%p", (void *) ctx);
+    ccache = cache_init_anonymous(ctx, config->principal, cache_name);
+    if (ccache == NULL)
         skip_all("cannot obtain anonymous credentials");
     basprintf(&krb5ccname, "KRB5CCNAME=%s", cache_name);
     free(cache_name);
@@ -238,9 +235,9 @@ main(void)
     remctl_close(r);
 
     /* Clean up. */
-    if (krb5ccname != NULL) {
-        putenv((char *) "KRB5CCNAME=");
-        free(krb5ccname);
-    }
+    putenv((char *) "KRB5CCNAME=");
+    free(krb5ccname);
+    krb5_cc_destroy(ctx, ccache);
+    krb5_free_context(ctx);
     return 0;
 }
