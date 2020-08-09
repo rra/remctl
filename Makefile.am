@@ -627,7 +627,7 @@ check-local: $(check_PROGRAMS)
 	    cd python && for python in $(REMCTL_PYTHON_VERSIONS); do	\
 		LD_LIBRARY_PATH=$(TEST_RPATH)				\
 		    REMCTLD="$(abs_top_builddir)/server/remctld"	\
-		    "$$python" setup.py test;				\
+		    "$$python" -m pytest;				\
 	    done;							\
 	fi
 	@set -e; if [ -f ruby/Makefile ]; then		\
