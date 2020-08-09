@@ -659,7 +659,7 @@ check-valgrind: $(check_PROGRAMS)
 	mkdir $(abs_top_builddir)/tests/tmp
 	mkdir $(abs_top_builddir)/tests/tmp/valgrind
 	C_TAP_VALGRIND="$(VALGRIND_COMMAND)"			\
-	    C_TAP_LIBTOOL="$(top_builddir)/libtool"		\
+	    C_TAP_LIBTOOL="$(abs_top_builddir)/libtool"		\
 	    tests/runtests -l '$(abs_top_srcdir)/tests/TESTS'
 
 # Used by maintainers to reformat all source code using clang-format and
