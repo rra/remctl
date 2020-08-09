@@ -379,7 +379,7 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
 	tests/portable/getopt-t tests/portable/inet_aton-t		    \
 	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		    \
 	tests/portable/mkstemp-t tests/portable/setenv-t		    \
-	tests/portable/snprintf-t tests/server/accept-t tests/server/acl-t  \
+	tests/server/accept-t tests/server/acl-t			    \
 	tests/server/acl/localgroup-t tests/server/anonymous-t		    \
 	tests/server/bind-t tests/server/config-t tests/server/continue-t   \
 	tests/server/empty-t tests/server/env-t tests/server/errors-t	    \
@@ -468,9 +468,6 @@ tests_portable_mkstemp_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_portable_setenv_t_SOURCES = tests/portable/setenv-t.c \
 	tests/portable/setenv.c
 tests_portable_setenv_t_LDADD = tests/tap/libtap.a portable/libportable.la
-tests_portable_snprintf_t_SOURCES = tests/portable/snprintf-t.c \
-	tests/portable/snprintf.c
-tests_portable_snprintf_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
 tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
@@ -665,7 +662,7 @@ check-valgrind: $(check_PROGRAMS)
 # Used by maintainers to reformat all source code using clang-format and
 # excluding some files.
 reformat:
-	find . -name '*.[ch]' \! -name snprintf.c -print \
+	find . -name '*.[ch]' -print \
 	     | xargs clang-format-10 -style=file -i
 
 # Used for hooking in the build of optional language bindings.

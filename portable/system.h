@@ -25,7 +25,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2014, 2016, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2014, 2016, 2018, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2011, 2013-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -132,14 +132,6 @@ extern int asprintf(char **, const char *, ...)
     __attribute__((__format__(printf, 2, 3)));
 extern int vasprintf(char **, const char *, va_list)
     __attribute__((__format__(printf, 2, 0)));
-#endif
-#if !HAVE_DECL_SNPRINTF
-extern int snprintf(char *, size_t, const char *, ...)
-    __attribute__((__format__(printf, 3, 4)));
-#endif
-#if !HAVE_DECL_VSNPRINTF
-extern int vsnprintf(char *, size_t, const char *, va_list)
-    __attribute__((__format__(printf, 3, 0)));
 #endif
 #if !HAVE_DAEMON
 extern int daemon(int, int);
