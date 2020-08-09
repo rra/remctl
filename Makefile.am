@@ -355,7 +355,7 @@ PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
 	-Wno-nested-externs -Wno-shift-sign-overflow			    \
 	-Wno-gnu-statement-expression -Wno-unknown-warning-option	    \
-	-Wno-gcc-compat -Wno-extra-semi-stmt
+	-Wno-gcc-compat -Wno-extra-semi-stmt -Wno-strict-overflow -Wno-vla
 
 warnings:
 	$(MAKE) V=0 AM_CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
