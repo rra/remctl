@@ -37,7 +37,9 @@
         "browse": "https://git.eyrie.org/?p=kerberos/remctl.git",
         "github": "rra/remctl",
         "openhub": "https://www.openhub.net/p/remctl",
-        "travis": "rra/remctl",
+        "status": {
+            "workflow": "build",
+        },
     },
     "readme": {
         "sections": [

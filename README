@@ -312,6 +312,9 @@ TESTING
   (available in the fakeroot package in Debian and Ubuntu).  This test
   will be skipped if fakeroot isn't available.
 
+  To test the Perl bindings, Perl 5.10 or later is required.  (However,
+  the Perl modules themselves should work with Perl 5.8.)
+
   The following additional Perl modules will be used by the test suite for
   the main package and the Perl bindings if installed:
 

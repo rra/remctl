@@ -1,7 +1,9 @@
 # remctl 3.16
 
 [![Build
-status](https://travis-ci.org/rra/remctl.svg?branch=master)](https://travis-ci.org/rra/remctl)
+status](https://github.com/rra/remctl/workflows/build/badge.svg)](https://github.com/rra/remctl/actions)
+[![Debian
+package](https://img.shields.io/debian/v/remctl)](https://tracker.debian.org/pkg/remctl)
 
 Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>.  Copyright
 2002-2014 The Board of Trustees of the Leland Stanford Junior University.
@@ -322,6 +324,9 @@ support this.
 To test user handling in remctld, you will need the `fakeroot` command
 (available in the `fakeroot` package in Debian and Ubuntu).  This test
 will be skipped if `fakeroot` isn't available.
+
+To test the Perl bindings, Perl 5.10 or later is required.  (However, the
+Perl modules themselves should work with Perl 5.8.)
 
 The following additional Perl modules will be used by the test suite for
 the main package and the Perl bindings if installed:
