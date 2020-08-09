@@ -2,17 +2,13 @@
 #
 # Install packages for integration tests.
 #
-# This script is normally run via sudo in a test container, such as in
-# Travis-CI.
+# This script is normally run via sudo in a test container or VM, such as via
+# GitHub Actions.
 #
 # Perl::Tidy, Perl::Critic, and Test::Perl::Critic are installed separately to
 # get the latest version, since they sometimes change formatting and style
 # rules compared to the version in Ubuntu.  Test::MinimumVersion has to be
 # included since it installs Perl::Critic.
-#
-# Allow the installation of Perl::Critic and Test::Perl::Critic to fail, since
-# this seems to fail regularly on Travis-CI.  (We'll just skip the test if it
-# won't install.)
 #
 # SPDX-License-Identifier: MIT
 
@@ -29,10 +25,15 @@ apt-get install -y cpanminus krb5-config libevent-dev libkrb5-dev           \
         python-typing ruby-all-dev
 
 # Dependencies for Perl bindings and Perl tests.
+#
+# Allow the installation of Perl::Critic and Test::Perl::Critic to fail, since
+# this seems to fail regularly due to unresolvable dependencies.  (We'll just
+# skip the test if it won't install.)
 cpanm Perl::Tidy
-cpanm Perl::Critic         || true
-cpanm Test::MinimumVersion || true
-cpanm Test::Perl::Critic   || true
+cpanm Perl::Critic           || true
+cpanm Perl::Critic::Freenode || true
+cpanm Test::MinimumVersion   || true
+cpanm Test::Perl::Critic     || true
 
 # Dependencies for additional style checks for the Python bindings.  These are
 # only run as part of the GCC build.
