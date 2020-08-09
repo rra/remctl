@@ -52,5 +52,9 @@ uninitvar:php/php5_remctl.c:125
 uninitvar:php/php5_remctl.c:129
 uninitvar:php/php5_remctl.c:321
 
+// (remctl) Bug in cppcheck 1.82.  A pointer to this array is stored in a
+// struct that's passed to another function.
+redundantAssignment:tests/server/acl-t.c
+
 // (pam-krb5) cppcheck doesn't recognize the unused attribute on labels.
 unusedLabel:module/auth.c:895
