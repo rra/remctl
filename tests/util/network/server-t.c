@@ -532,8 +532,7 @@ test_any(void)
             client_writer("127.0.0.1", NULL, true);
         else
             client_writer("::1", NULL, true);
-    }
-    else {
+    } else {
         test_server_accept_any(fds, count);
         waitpid(child, &status, 0);
         is_int(0, status, "client made correct connections");
