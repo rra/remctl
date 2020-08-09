@@ -29,6 +29,7 @@ constArgument:tests/runtests.c:804
 knownConditionTrueFalse:portable/getopt.c:146
 
 // False positive since the string comes from a command-line define.
+knownConditionTrueFalse:tests/tap/process.c:415
 knownConditionTrueFalse:tests/tap/remctl.c:79
 
 // Stored in the returned ai struct, but cppcheck can't see the assignment

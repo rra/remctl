@@ -512,10 +512,11 @@ rb_remctl_output(VALUE self)
     output = remctl_output(r);
     if (output == NULL)
         rb_raise(eRemctlError, "%s", remctl_error(r));
-    return rb_ary_new3(5, rb_remctl_type_intern(output->type),
-                       rb_str_new(output->data, output->length),
-                       INT2FIX(output->stream), INT2FIX(output->status),
-                       INT2FIX(output->error));
+    else
+        return rb_ary_new3(5, rb_remctl_type_intern(output->type),
+                           rb_str_new(output->data, output->length),
+                           INT2FIX(output->stream), INT2FIX(output->status),
+                           INT2FIX(output->error));
 }
 
 
