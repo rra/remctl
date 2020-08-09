@@ -35,8 +35,10 @@
 #ifndef HAVE_GETADDRINFO
 
 /* OpenBSD likes to have sys/types.h included before sys/socket.h. */
-#    include <sys/socket.h>
+/* clang-format off */
 #    include <sys/types.h>
+#    include <sys/socket.h>
+/* clang-format on */
 
 /* The struct returned by getaddrinfo, from RFC 3493. */
 struct addrinfo {

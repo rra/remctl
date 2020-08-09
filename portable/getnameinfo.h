@@ -34,8 +34,10 @@
 #if !HAVE_GETNAMEINFO
 
 /* OpenBSD likes to have sys/types.h included before sys/socket.h. */
-#    include <sys/socket.h>
+/* clang-format off */
 #    include <sys/types.h>
+#    include <sys/socket.h>
+/* clang-format on */
 
 /* Constants for flags from RFC 3493, combined with binary or. */
 #    define NI_NOFQDN      0x0001

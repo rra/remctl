@@ -52,7 +52,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '8.02';
+    $VERSION = '8.03';
 }
 
 # Compare a string to the contents of a file, similar to the standard is()

@@ -31,7 +31,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-use 5.008;
+use 5.010;
 use strict;
 use warnings;
 
@@ -75,6 +75,7 @@ my @IGNORE_PATHS = (
     qr{ \A python/ .* [.] egg-info/ }xms,      # Python build files
     qr{ \A tests/config/ (?!README) }xms,      # Test configuration
     qr{ [.] l?a \z }xms,                       # Created by libtool
+    qr{ [.] o \z }xms,                         # Compiler objects
 );
 ## use critic
 

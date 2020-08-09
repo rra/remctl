@@ -65,7 +65,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '8.02';
+    $VERSION = '8.03';
 }
 
 # Directories to skip globally when looking for all files, or for directories
@@ -107,7 +107,7 @@ sub all_files {
             $File::Find::prune = 1;
             return;
         }
-        if (-f $file) {
+        if (!-d $file) {
             push(@files, $path);
         }
     };
@@ -270,7 +270,7 @@ sub test_file_path {
   BASE:
     for my $base ($ENV{C_TAP_BUILD}, $ENV{C_TAP_SOURCE}) {
         next if !defined($base);
-        if (-f "$base/$file") {
+        if (-e "$base/$file") {
             return "$base/$file";
         }
     }

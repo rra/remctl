@@ -52,4 +52,4 @@ uninitvar:php/php5_remctl.c:129
 uninitvar:php/php5_remctl.c:321
 
 // (pam-krb5) cppcheck doesn't recognize the unused attribute on labels.
-unusedLabel:auth.c:884
+unusedLabel:module/auth.c:895

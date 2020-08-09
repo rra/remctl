@@ -8,7 +8,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2007, 2009, 2011-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -99,7 +99,7 @@ remctld_start_internal(struct kerberos_config *krbconf, const char *config,
         bail("cannot find remctld config %s", config);
     length += 11;
     va_copy(args_copy, args);
-    while ((arg = va_arg(args_copy, const char *)) != NULL)
+    while (va_arg(args_copy, const char *) != NULL)
         length++;
     va_end(args_copy);
     argv = bcalloc(length, sizeof(const char *));

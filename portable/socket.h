@@ -16,7 +16,7 @@
  * The canonical version of this file is maintained in the rra-c-util package,
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
- * Copyright 2014, 2017 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2014, 2017, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2008-2009, 2011, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2004-2007 Internet Systems Consortium, Inc. ("ISC")
@@ -50,15 +50,17 @@
 #include <sys/types.h>
 
 /* BSDI needs <netinet/in.h> before <arpa/inet.h>. */
+/* clang-format off */
 #ifdef _WIN32
 #    include <winsock2.h>
 #    include <ws2tcpip.h>
 #else
+#    include <netinet/in.h>
 #    include <arpa/inet.h>
 #    include <netdb.h>
-#    include <netinet/in.h>
 #    include <sys/socket.h>
 #endif
+/* clang-format on */
 
 /*
  * Pick up definitions of getaddrinfo and getnameinfo if not otherwise

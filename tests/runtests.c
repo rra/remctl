@@ -8,7 +8,7 @@
  * should be sent to the e-mail address below.  This program is part of C TAP
  * Harness <https://www.eyrie.org/~eagle/software/c-tap-harness/>.
  *
- * Copyright 2000-2001, 2004, 2006-2020 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2000-2001, 2004, 2006-2019 Russ Allbery <eagle@eyrie.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -387,11 +387,10 @@ x_malloc(size_t size, const char *file, int line)
 static void *
 x_reallocarray(void *p, size_t n, size_t size, const char *file, int line)
 {
-    if (n == 0)
-        n = 1;
-    if (size == 0)
-        size = 1;
-    if (UINT_MAX / n <= size)
+    n = (n > 0) ? n : 1;
+    size = (size > 0) ? size : 1;
+
+    if (n > 0 && UINT_MAX / n <= size)
         sysdie("realloc too large at %s line %d", file, line);
     p = realloc(p, n * size);
     if (p == NULL)

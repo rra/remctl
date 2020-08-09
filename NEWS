@@ -14,11 +14,20 @@ remctl 3.17 (unreleased)
     that require a Kerberos setup will still fail in this scenario, since
     they assume remctld will bind to 127.0.0.1 by default.
 
-    Update to rra-c-util 8.2:
+    Update to rra-c-util 8.3:
 
+    * Fix Perl style issues found by Perl::Critic::Freenode.
+    * Fix support for configuring the test suite with a krb5.conf file.
+    * Fix tests when the system krb5.conf file does not set default_realm.
+    * Ignore files in tests/config when checking for license identifiers.
+    * Ignore object files when checking for license identifiers.
     * Drop support for Perl 5.6.
     * Reformat all C source using clang-format 10.
     * Remove bogus snprintf tests.
+
+    Update to C TAP Harness 4.7:
+
+    * Fix warning with GCC 10.
 
 remctl 3.16 (2019-10-26)
 

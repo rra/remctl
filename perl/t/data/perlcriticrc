@@ -10,7 +10,7 @@
 # which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2018-2019 Russ Allbery <eagle@eyrie.org>
+# Copyright 2018-2020 Russ Allbery <eagle@eyrie.org>
 # Copyright 2011-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -42,6 +42,10 @@ verbose  = %f:%l:%c: [%p] %m (%e, Severity: %s)\n
 # group coding style.
 [-CodeLayout::ProhibitParensWithBuiltins]
 
+# This recommends using given/when, but Perl has marked those as experimental
+# and cautions against using when.
+[-ControlStructures::ProhibitCascadingIfElse]
+
 # Stanford's coding style allows postfix unless for flow control.  There
 # doesn't appear to be any way to allow it only for flow control (the logic
 # for "if" and "when" appears to be special-cased), so we have to allow unless
@@ -59,6 +63,12 @@ allow = unless
 # This problem was fixed in Perl 5.14, which now properly preserves the value
 # of $@ even if destructors run at exit from the eval block.
 [-ErrorHandling::RequireCheckingReturnValueOfEval]
+
+# This conflicts with Subroutines::ProhibitExplicitReturnUndef and
+# Subroutines::RequireFinalReturn, and I prefer the brevity of the simple
+# return statement.  I don't think the empty list versus undef behavior is
+# that confusing.
+[-Freenode::EmptyReturn]
 
 # The default of 9 is too small and forces weird code contortions.
 [InputOutput::RequireBriefOpen]

@@ -8,7 +8,7 @@
 
 package Test::RRA::ModuleVersion;
 
-use 5.008;
+use 5.010;
 use base qw(Exporter);
 use strict;
 use warnings;
@@ -29,7 +29,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '8.02';
+    $VERSION = '8.03';
 }
 
 # A regular expression matching the version string for a module using the
@@ -265,7 +265,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2016, 2018-2019 Russ Allbery <eagle@eyrie.org>
+Copyright 2016, 2018-2020 Russ Allbery <eagle@eyrie.org>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

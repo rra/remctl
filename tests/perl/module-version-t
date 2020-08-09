@@ -31,18 +31,18 @@ use Test::RRA qw(skip_unless_automated);
 use Test::RRA::Automake qw(automake_setup);
 use Test::RRA::ModuleVersion qw(test_module_versions update_module_versions);
 
+use Cwd qw(getcwd);
 use Getopt::Long qw(GetOptions);
 
 # Return the current version and, optionally, the package name from the NEWS
 # file.  Munges the version to be appropriate for Perl if necessary.
 #
-# Returns: Scalar: The version number of the latest version in NEWS
-#          List: The version number and the package name
+# Returns: The version number and the package name as a list
 # Throws: Text exception if NEWS is not found or doesn't contain a version
 sub news_version {
     my ($package, $version, $news);
     for my $path ('NEWS', '../NEWS') {
-        if (-f $path) {
+        if (-e $path) {
             open($news, q{<}, $path) or die "$0: cannot open $path: $!\n";
         }
     }
@@ -68,8 +68,8 @@ sub news_version {
     $version =~ s{ [.] (\d) (?= [.] | \z ) }{.0$1}xmsg;
     $version =~ s{ ([.] \d+) [.] (\d+) }{$1$2}xms;
 
-    # Return the appropriate value based on context.
-    return wantarray ? ($version, $package) : $version;
+    # Return the version and package name.
+    return ($version, $package);
 }
 
 # Parse command-line arguments.
@@ -86,9 +86,9 @@ if (!$update) {
 # Get the package name and version.
 my ($version, $package) = news_version();
 
-# rra-c-util itself checks the versions of the testing support modules instead
-# of an embedded tree of Perl modules.
-my $root = ($package eq 'rra-c-util') ? 'tests/tap/perl' : 'perl/lib';
+# rra-c-util, but only it, also checks the versions of all the testing support
+# modules.
+my $root = ($package eq 'rra-c-util') ? getcwd() : 'perl/lib';
 
 # Main routine.  We run as either a test suite or as a script to update all of
 # the module versions, selecting based on whether we got the -u / --update
