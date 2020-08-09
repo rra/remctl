@@ -3,7 +3,7 @@
 [![Build
 status](https://github.com/rra/remctl/workflows/build/badge.svg)](https://github.com/rra/remctl/actions)
 [![Debian
-package](https://img.shields.io/debian/v/remctl)](https://tracker.debian.org/pkg/remctl)
+package](https://img.shields.io/debian/v/remctl/unstable)](https://tracker.debian.org/pkg/remctl)
 
 Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>.  Copyright
 2002-2014 The Board of Trustees of the Leland Stanford Junior University.
