@@ -29,6 +29,8 @@ BEGIN {
 Net::Remctl->bootstrap();
 1;
 
+__END__
+
 =for stopwords
 remctl libremctl GSS-API HOSTNAME remctld IPv4 IPv6 NUL CNAME DNS Allbery
 MERCHANTABILITY sublicense NONINFRINGEMENT libdefaults CCACHE IP DNS-based

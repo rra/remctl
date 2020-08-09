@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-use 5.008;
+use 5.010;
 use strict;
 use warnings;
 
@@ -29,7 +29,7 @@ BEGIN { use_ok('Net::Remctl') }
 sub test_file_path {
     my ($file) = @_;
     for my $base (qw(t tests .)) {
-        if (-f "$base/$file") {
+        if (-e "$base/$file") {
             return "$base/$file";
         }
     }
@@ -123,7 +123,7 @@ sub run_kinit {
     # If unable to get Kerberos tickets, wait until remctld has started and
     # then stop it.  Then return false.
     warn "Unable to obtain Kerberos tickets\n";
-    if (!-f 't/tmp/pid') {
+    if (!-e 't/tmp/pid') {
         sleep 1;
     }
     stop_remctld();
@@ -131,7 +131,7 @@ sub run_kinit {
 }
 
 # Test setup.
-my $okay = (-f 't/config/principal' && -f 't/config/keytab');
+my $okay = (-e 't/config/principal' && -e 't/config/keytab');
 local $ENV{KRB5CCNAME} = 't/tmp/krb5cc_test';
 if ($okay) {
     start_remctld();
@@ -143,9 +143,9 @@ SKIP: {
     }
 
     # Wait for remctld to start.
-    if (!-f 't/tmp/pid') {
+    if (!-e 't/tmp/pid') {
         sleep 1;
-        if (!-f 't/tmp/pid') {
+        if (!-e 't/tmp/pid') {
             die "remctld did not start\n";
         }
     }
@@ -184,7 +184,7 @@ SKIP: {
         like(
             $@,
             qr{\A Usage: [ ] Net::Remctl::remctl\(.*}xms,
-            'Insufficient arguments to remctl'
+            'Insufficient arguments to remctl',
         );
     }
 
@@ -253,7 +253,7 @@ SKIP: {
     like(
         $remctl->error,
         qr{ \A (?:cannot[ ] connect [ ] to | unknown [ ] host) [ ] }xms,
-        '... with correct error'
+        '... with correct error',
     );
 
     # Get the current ticket cache location and then change KRB5CCNAME.

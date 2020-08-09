@@ -159,7 +159,7 @@ is($status, undef, 'run() with insufficient arguments returns undef');
 is(
     $@,
     "frobnicate nest nest bar: insufficient arguments\n",
-    '...with correct error'
+    '...with correct error',
 );
 
 # Check the help output.

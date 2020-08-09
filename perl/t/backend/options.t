@@ -94,5 +94,5 @@ is($output, q{}, '...with no output');
 is(
     $error,
     qq{number: value "foo" invalid for option number (number expected)\n},
-    '...and correct error'
+    '...and correct error',
 );

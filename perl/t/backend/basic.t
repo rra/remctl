@@ -13,7 +13,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-use 5.008;
+use 5.010;
 use strict;
 use warnings;
 
@@ -111,7 +111,7 @@ $backend = Net::Remctl::Backend->new(
     {
         command  => 'foo',
         commands => \%commands,
-    }
+    },
 );
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2 arg3));
 is($status, 255, 'cmd1 with three args returns 255');
@@ -152,7 +152,7 @@ is($err,    q{}, '... and no errors');
 is_deeply(
     \@CALLS,
     [['main::test_cmd1', $stdin, 'arg2']],
-    'cmd1 called correctly'
+    'cmd1 called correctly',
 );
 @CALLS = ();
 
@@ -188,7 +188,7 @@ is($status, 0, 'help returns status 0');
 is(
     $out,
     "cmd1 arg1 [arg2]  cmd1 all over the args\n",
-    '... and correct output'
+    '... and correct output',
 );
 is($err, q{}, '... and no errors');
 
@@ -226,7 +226,7 @@ $backend = Net::Remctl::Backend->new(
         command     => 'foo',
         commands    => \%commands,
         help_banner => 'Foo manipulation remctl help:',
-    }
+    },
 );
 $expected = <<'END_HELP';
 Foo manipulation remctl help:
@@ -245,7 +245,7 @@ $backend = Net::Remctl::Backend->new(
         command     => 'foo',
         commands    => \%commands,
         help_banner => "Foo manipulation remctl help:\n",
-    }
+    },
 );
 is($backend->help, $expected, 'Help output w/newline banner is correct');
 
@@ -314,6 +314,6 @@ is($@, "Unknown command unknown\n", '...with correct error');
     like(
         $@,
         qr{ \A Cannot [ ] write [ ] to [ ] STDOUT: [ ] }xms,
-        '...with correct error'
+        '...with correct error',
     );
 }

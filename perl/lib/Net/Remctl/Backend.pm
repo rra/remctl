@@ -399,6 +399,8 @@ sub run {
 
 1;
 
+__END__
+
 =for stopwords
 remctl remctld backend subcommand subcommands Allbery MERCHANTABILITY
 NONINFRINGEMENT sublicense STDERR STDOUT regex regexes CONFIG undef
