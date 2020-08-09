@@ -28,6 +28,7 @@
  * There is no SPDX-License-Identifier registered for this license.
  */
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <bytesobject.h>
 
@@ -129,8 +130,8 @@ py_remctl(PyObject *self, PyObject *args)
 #    define PY_REMCTL_RETURN "(ss#s#i)"
 #endif
     result = Py_BuildValue(PY_REMCTL_RETURN, rr->error, rr->stdout_buf,
-                           (int) rr->stdout_len, rr->stderr_buf,
-                           (int) rr->stderr_len, rr->status);
+                           (Py_ssize_t) rr->stdout_len, rr->stderr_buf,
+                           (Py_ssize_t) rr->stderr_len, rr->status);
     remctl_result_free(rr);
 
 end:
@@ -366,8 +367,8 @@ py_remctl_output(PyObject *self, PyObject *args)
 #    define PY_REMCTL_OUTPUT_RETURN "(ss#iii)"
 #endif
     result = Py_BuildValue(PY_REMCTL_OUTPUT_RETURN, type, output->data,
-                           output->length, output->stream, output->status,
-                           output->error);
+                           (Py_ssize_t) output->length, output->stream,
+                           output->status, output->error);
     return result;
 }
 
