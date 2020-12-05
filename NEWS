@@ -19,8 +19,9 @@ remctl 3.17 (unreleased)
     to maintain, and was only relevant for ancient proprietary UNIX
     versions that have been obsolete for many years.
 
-    Update to rra-c-util 8.3:
+    Update to rra-c-util 8.4:
 
+    * Include string.h when probing for getaddrinfo properties.
     * Fix Perl style issues found by Perl::Critic::Freenode.
     * Fix support for configuring the test suite with a krb5.conf file.
     * Fix tests when the system krb5.conf file does not set default_realm.

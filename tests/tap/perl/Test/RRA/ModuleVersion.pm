@@ -29,7 +29,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '8.03';
+    $VERSION = '8.04';
 }
 
 # A regular expression matching the version string for a module using the

@@ -65,7 +65,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '8.03';
+    $VERSION = '8.04';
 }
 
 # Directories to skip globally when looking for all files, or for directories
@@ -226,7 +226,7 @@ sub perl_dirs {
     }
 
     # Convert the skip lists into hashes for convenience.
-    my %skip       = map { $_ => 1 } @skip, 'tests';
+    my %skip = map { $_ => 1 } @skip, 'tests';
     my %skip_tests = map { $_ => 1 } @skip_tests;
 
     # Build the list of top-level directories to test.

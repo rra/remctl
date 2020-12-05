@@ -11,7 +11,7 @@ dnl
 dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
-dnl Copyright 2017 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2017, 2020 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2008-2009, 2011
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl Copyright 2004-2009 Internet Systems Consortium, Inc. ("ISC")
@@ -38,6 +38,7 @@ dnl Source used by RRA_FUNC_GETADDRINFO_ADDRCONFIG.
 AC_DEFUN([_RRA_FUNC_GETADDRINFO_ADDRCONFIG_SOURCE], [[
 #include <netdb.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 

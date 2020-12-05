@@ -51,6 +51,8 @@ my @IGNORE = (
     qr{ \A (NEWS|THANKS|TODO) \z }xms,  # Package license should be fine
     qr{ \A README ( [.] .* )? \z }xms,  # Package license should be fine
     qr{ \A (Makefile|libtool) \z }xms,  # Generated file
+    qr{ [.] l?a \z }xms,                # Created by libtool
+    qr{ [.] o \z }xms,                  # Compiler objects
     qr{ [.] output \z }xms,             # Test data
 );
 my @IGNORE_PATHS = (
@@ -75,8 +77,6 @@ my @IGNORE_PATHS = (
     qr{ \A python/ .* [.] egg-info/ }xms,      # Python build files
     qr{ \A tests/config/ (?!README) }xms,      # Test configuration
     qr{ \A tests/tmp/ }xms,                    # Temporary test files
-    qr{ [.] l?a \z }xms,                       # Created by libtool
-    qr{ [.] o \z }xms,                         # Compiler objects
 );
 ## use critic
 
