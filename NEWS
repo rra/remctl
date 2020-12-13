@@ -2,6 +2,10 @@
 
 remctl 3.17 (unreleased)
 
+    Port the PHP extention to PHP 8.  This required declaring the
+    arguments to the functions (which should have been done with PHP 7)
+    and removing some obsolete constructs.
+
     Make the Python install_requires dependency on typing conditional on
     Python versions earlier than 3.5 so that setuptools won't attempt to
     download typing when it's part of the standard library.  Thanks to
