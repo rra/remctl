@@ -2,10 +2,10 @@
             (remote authenticated command execution with ACLs)
                Maintained by Russ Allbery <eagle@eyrie.org>
 
-  Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>.  Copyright
-  2002-2014 The Board of Trustees of the Leland Stanford Junior
-  University.  This software is distributed under a BSD-style license.
-  Please see the section LICENSE below for more information.
+  Copyright 2015-2020 Russ Allbery <eagle@eyrie.org>.  Copyright 2002-2014
+  The Board of Trustees of the Leland Stanford Junior University.  This
+  software is distributed under a BSD-style license.  Please see the
+  section LICENSE below for more information.
 
 BLURB
 
@@ -409,7 +409,7 @@ LICENSE
   The remctl package as a whole is covered by the following copyright
   statement and license:
 
-    Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
+    Copyright 2015-2020 Russ Allbery <eagle@eyrie.org>
     Copyright 2002-2014
         The Board of Trustees of the Leland Stanford Junior University
 
