@@ -147,7 +147,7 @@ Description: PECL module for Kerberos-authenticated command execution
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
  .
- This package contains the PECL remctl module for PHP 7, which provides
+ This package contains the PECL remctl module for PHP, which provides
  native PHP bindings for the libremctl client library.
 
 Package: python3-pyremctl
