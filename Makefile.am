@@ -665,7 +665,7 @@ check-valgrind: $(check_PROGRAMS)
 # excluding some files.
 reformat:
 	find . -name '*.[ch]' -print \
-	     | xargs clang-format-10 -style=file -i
+	     | xargs clang-format -style=file -i
 
 # Used for hooking in the build of optional language bindings.
 BINDINGS =
