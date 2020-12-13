@@ -1,4 +1,4 @@
-remctl (3.17-1) UNRELEASED; urgency=medium
+remctl (3.17-1) unstable; urgency=medium
 
   * New upstream release.
     - Add support for PHP 8.
@@ -10,7 +10,7 @@ remctl (3.17-1) UNRELEASED; urgency=medium
   * Update to debhelper compatibility level v13.
   * Update standards version to 4.5.1 (no changes required).
 
- -- Russ Allbery <rra@debian.org>  Sun, 13 Dec 2020 14:12:15 -0800
+ -- Russ Allbery <rra@debian.org>  Sun, 13 Dec 2020 15:14:38 -0800
 
 remctl (3.16-4) unstable; urgency=medium
 
