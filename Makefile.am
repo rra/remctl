@@ -352,7 +352,7 @@ PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-strict-overflow -Wno-conversion -Wno-missing-declarations	\
 	-Wno-double-promotion -Wno-cast-align -Wno-extra-semi-stmt
 PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing \
-	-Wno-redundant-decls
+	-Wno-redundant-decls -Wno-cast-align
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
 	-Wno-nested-externs -Wno-shift-sign-overflow			    \
 	-Wno-gnu-statement-expression -Wno-unknown-warning-option	    \
