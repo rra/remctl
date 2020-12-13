@@ -308,7 +308,7 @@ clean-local:
 	fi
 	rm -rf perl/t/config perl/t/lib/Test/RRA php/tmp-php.ini	   \
 	    python/.eggs python/build python/dist python/pyremctl.egg-info \
-	    python/*.pyc python/tests/config python/tests/tmp		   \
+	    python/*.pyc python/*.so python/tests/config python/tests/tmp  \
 	    python/tests/*.pyc
 
 # Also clean the Perl, PHP, and Python directories on make distclean if
@@ -628,7 +628,7 @@ check-local: $(check_PROGRAMS)
 	    cd python && for python in $(REMCTL_PYTHON_VERSIONS); do	\
 		LD_LIBRARY_PATH=$(TEST_RPATH)				\
 		    REMCTLD="$(abs_top_builddir)/server/remctld"	\
-		    "$$python" -m pytest;				\
+		    "$$python" -m pytest -v;				\
 	    done;							\
 	fi
 	@set -e; if [ -f ruby/Makefile ]; then		\
@@ -764,10 +764,9 @@ stamp-python: $(srcdir)/python/_remctlmodule.c $(srcdir)/python/remctl.py \
 		CFLAGS='$(PYTHON_CFLAGS) $(PYTHON_CFLAGS_EXTRA)'	 \
 		LDFLAGS='$(PYTHON_LDFLAGS_FULL)'			 \
 		REMCTL_PYTHON_LIBS='$(GSSAPI_LIBS)'			 \
-		"$$python" setup.py build;				 \
+		"$$python" setup.py build_ext --inplace;		 \
 	done
 	touch stamp-python
-
 
 # If RPM_BUILD_ROOT is set, we're being built by RPM.  Use that as DESTDIR.
 install-data-local-python: stamp-python

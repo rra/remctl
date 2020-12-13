@@ -11,6 +11,9 @@ remctl 3.17 (unreleased)
     download typing when it's part of the standard library.  Thanks to
     Gianfranco Costamagna and Matthias Klose for the bug report.
 
+    Fix the Python module build to more reliably test the newly-built
+    module and to enable verbose testing.
+
     Fix non-Kerberos network tests on hosts with no IPv4 addresses.  In
     this case, the network tests for binding all configured addresses will
     bind only to IPv6, which broke some prior assumptions in the test
