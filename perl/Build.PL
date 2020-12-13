@@ -3,7 +3,8 @@
 # Build script for the Net::Remctl distribution.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2007, 2012-2013, 2020
+# Copyright 2020 Russ Allbery <eagle@eyrie.org>
+# Copyright 2007, 2012-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # SPDX-License-Identifier: MIT

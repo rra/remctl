@@ -1,7 +1,8 @@
 # test_remctl.py -- Test suite for remctl Python bindings
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2008, 2011-2012, 2014, 2019
+# Copyright 2019 Russ Allbery <eagle@eyrie.org>
+# Copyright 2008, 2011-2012, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # SPDX-License-Identifier: MIT
