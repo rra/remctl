@@ -1,3 +1,11 @@
+remctl (3.17-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+    - Add support for PHP 8.
+    - Fix basic tests on platforms without IPv4.  (Closes: #972206)
+
+ -- Russ Allbery <rra@debian.org>  Sun, 13 Dec 2020 14:12:15 -0800
+
 remctl (3.16-4) unstable; urgency=medium
 
   [ Gianfranco Costamagna ]
