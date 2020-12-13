@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.17 (unreleased)
+remctl 3.17 (2020-12-13)
 
     Port the PHP extention to PHP 8.  This required declaring the
     arguments to the functions (which should have been done with PHP 7)

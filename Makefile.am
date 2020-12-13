@@ -79,8 +79,13 @@ PERL_DIRECTORIES = perl perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
 PYTHON_DIRECTORIES = python python/tests python/tests/data
 
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = .clang-format .gitignore .travis.yml LICENSE Makefile.w32	    \
-	README.md bootstrap ci/README ci/install ci/test		    \
+EXTRA_DIST = .clang-format .gitignore .github LICENSE Makefile.w32	    \
+	README.md bootstrap ci/README.md ci/files/heimdal/heimdal-kdc	    \
+	ci/files/heimdal/kadmind.acl ci/files/heimdal/kdc.conf		    \
+	ci/files/heimdal/krb5.conf ci/files/mit/extensions.client	    \
+	ci/files/mit/extensions.kdc ci/files/mit/kadm5.acl		    \
+	ci/files/mit/kdc.conf ci/files/mit/krb5.conf ci/install		    \
+	ci/kdc-setup-heimdal ci/kdc-setup-mit ci/test			    \
 	client/libremctl.pc.in client/libremctl.map client/libremctl.rc	    \
 	client/libremctl.sym client/remctl.rc config.h.w32 configure.cmd    \
 	docs/api/remctl.pod docs/api/remctl_close.pod			    \
