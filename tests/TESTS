@@ -1,6 +1,6 @@
 # Test list for remctl.  -*- conf -*-
 #
-# Copyright 2006-2009, 2011-2016, 2018 Russ Allbery <eagle@eyrie.org>
+# Copyright 2006-2009, 2011-2016, 2018, 2020 Russ Allbery <eagle@eyrie.org>
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,7 +30,6 @@ portable/inet_ntoa      valgrind
 portable/inet_ntop      valgrind
 portable/mkstemp        valgrind
 portable/setenv
-portable/snprintf       valgrind
 server/accept           valgrind
 server/acl              valgrind
 server/acl/localgroup   valgrind

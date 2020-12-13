@@ -42,7 +42,7 @@
 
 #include <config.h>
 #ifdef HAVE_KRB5
-# include <portable/krb5.h>
+#    include <portable/krb5.h>
 #endif
 #include <portable/system.h>
 
@@ -59,7 +59,7 @@
  * to handle the possible patterns for kinit commands as an array.
  */
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 2) || defined(__clang__)
-# pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#    pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
 
 
@@ -158,12 +158,11 @@ kerberos_kinit(void)
 static void
 kerberos_kinit(void)
 {
-    static const char * const format[] = {
+    static const char *const format[] = {
         "kinit --no-afslog -k -t %s %s >/dev/null 2>&1 </dev/null",
         "kinit -k -t %s %s >/dev/null 2>&1 </dev/null",
         "kinit -t %s %s >/dev/null 2>&1 </dev/null",
-        "kinit -k -K %s %s >/dev/null 2>&1 </dev/null"
-    };
+        "kinit -k -K %s %s >/dev/null 2>&1 </dev/null"};
     FILE *file;
     char *path;
     char principal[BUFSIZ], *command;

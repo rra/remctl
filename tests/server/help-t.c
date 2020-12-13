@@ -23,11 +23,11 @@ main(void)
 {
     struct kerberos_config *config;
     struct remctl_result *result;
-    const char *helptest[]    = { "help", "test-summary", NULL };
-    const char *subhelptest[] = { "help", "test-summary", "subhelp", NULL };
-    const char *nohelptest[]  = { "help", "test", "test", NULL };
-    const char *badcommand1[] = { "help", "test", NULL };
-    const char *badcommand2[] = { "help", "invalid", "invalid", NULL };
+    const char *helptest[] = {"help", "test-summary", NULL};
+    const char *subhelptest[] = {"help", "test-summary", "subhelp", NULL};
+    const char *nohelptest[] = {"help", "test", "test", NULL};
+    const char *badcommand1[] = {"help", "test", NULL};
+    const char *badcommand2[] = {"help", "invalid", "invalid", NULL};
 
     /* Unless we have Kerberos available, we can't really do anything. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);

@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
+#    include <sys/time.h>
 #endif
 #include <time.h>
 
@@ -35,8 +35,8 @@
  * another name.
  */
 #if TESTING
-# undef mkstemp
-# define mkstemp test_mkstemp
+#    undef mkstemp
+#    define mkstemp test_mkstemp
 int test_mkstemp(char *);
 #endif
 

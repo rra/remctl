@@ -184,6 +184,11 @@ Portability layer:
 
 Test suite:
 
+ * Fix tests on a host with only IPv6 addresses.  Right now, the test
+   suite assumes remctld will always bind to 127.0.0.1.  While fixing this
+   problem, it may be possible to also fix remctld binding to public IP
+   addresses while the test suite runs.
+
  * Incorporate a program that can generate a Kerberos ticket cache from a
    keytab and use that for running the Kerberos tests instead of requiring
    the user to generate a keytab.

@@ -7,6 +7,7 @@
 # files, junk, and any files explicitly configured to be ignored.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2019-2020 Russ Allbery <eagle@eyrie.org>
 # Copyright 2013-2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -30,7 +31,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
 
@@ -61,7 +62,7 @@ my @files = Perl::Critic::Utils::all_perl_files('blib');
 if (!@files) {
     @files = Perl::Critic::Utils::all_perl_files('lib');
 }
-if (-f 'Build.PL') {
+if (-e 'Build.PL') {
     push(@files, 'Build.PL');
 }
 for my $dir (qw(examples usr t)) {

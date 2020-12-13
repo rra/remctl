@@ -1,7 +1,7 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2015-2016, 2018-2019 Russ Allbery <eagle@eyrie.org>
+# Copyright 2015-2016, 2018-2020 Russ Allbery <eagle@eyrie.org>
 # Copyright 2016 Dropbox, Inc.
 # Copyright 2006-2014
 #     The Board of Trustees of the Leland Stanford Junior University
@@ -63,11 +63,11 @@ PERL_FILES = perl/Build.PL perl/MANIFEST perl/MANIFEST.SKIP		    \
 PHP_FILES = php/README php/php_remctl.c php/php5_remctl.c php/test-wrapper \
 	php/tests/001.phpt php/tests/002.phpt php/tests/003.phpt	   \
 	php/tests/004.phpt php/tests/005.phpt php/tests/006.phpt
-PYTHON_FILES = python/MANIFEST.in python/README python/_remctlmodule.c	   \
-	python/pyproject.toml python/remctl.py python/requirements-dev.txt \
-	python/setup.cfg python/setup.py python/tests/data/cmd-hello	   \
-	python/tests/data/cmd-sleep python/tests/data/cmd-status	   \
-	python/tests/data/remctl.conf python/tests/__init__.py		   \
+PYTHON_FILES = python/README python/_remctlmodule.c python/pyproject.toml \
+	python/remctl.py python/requirements-dev.txt python/setup.cfg	  \
+	python/setup.py python/tests/data/cmd-hello			  \
+	python/tests/data/cmd-sleep python/tests/data/cmd-status	  \
+	python/tests/data/remctl.conf python/tests/__init__.py		  \
 	python/tests/remctl_test.py
 RUBY_FILES = ruby/README ruby/remctl.c
 
@@ -79,23 +79,28 @@ PERL_DIRECTORIES = perl perl/lib perl/lib/Net perl/lib/Net/Remctl perl/t \
 PYTHON_DIRECTORIES = python python/tests python/tests/data
 
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = .gitignore .travis.yml LICENSE Makefile.w32 README.md	    \
-	bootstrap ci/README ci/install ci/test client/libremctl.pc.in	    \
-	client/libremctl.map client/libremctl.rc client/libremctl.sym	    \
-	client/remctl.rc config.h.w32 configure.cmd docs/api/remctl.pod	    \
-	docs/api/remctl_close.pod docs/api/remctl_command.pod		    \
-	docs/api/remctl_error.pod docs/api/remctl_new.pod		    \
-	docs/api/remctl_noop.pod docs/api/remctl_open.pod		    \
-	docs/api/remctl_output.pod docs/api/remctl_set_ccache.pod	    \
-	docs/api/remctl_set_source_ip.pod docs/api/remctl_set_timeout.pod   \
-	docs/design.html docs/extending docs/metadata docs/protocol-v4	    \
-	docs/protocol.txt docs/protocol.html docs/protocol.xml		    \
-	docs/remctl.pod docs/remctl-shell.8.in docs/remctl-shell.pod	    \
-	docs/remctld.8.in docs/remctld.pod examples/remctl.conf		    \
-	examples/remctld.xml examples/rsh-wrapper examples/xinetd	    \
-	java/.classpath java/.project java/Makefile java/README		    \
-	java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf java/k5.conf    \
-	java/org/eyrie/eagle/remctl/Remctl.java				    \
+EXTRA_DIST = .clang-format .gitignore .github LICENSE Makefile.w32	    \
+	README.md bootstrap ci/README.md ci/files/heimdal/heimdal-kdc	    \
+	ci/files/heimdal/kadmind.acl ci/files/heimdal/kdc.conf		    \
+	ci/files/heimdal/krb5.conf ci/files/mit/extensions.client	    \
+	ci/files/mit/extensions.kdc ci/files/mit/kadm5.acl		    \
+	ci/files/mit/kdc.conf ci/files/mit/krb5.conf ci/install		    \
+	ci/kdc-setup-heimdal ci/kdc-setup-mit ci/test			    \
+	client/libremctl.pc.in client/libremctl.map client/libremctl.rc	    \
+	client/libremctl.sym client/remctl.rc config.h.w32 configure.cmd    \
+	docs/api/remctl.pod docs/api/remctl_close.pod			    \
+	docs/api/remctl_command.pod docs/api/remctl_error.pod		    \
+	docs/api/remctl_new.pod docs/api/remctl_noop.pod		    \
+	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
+	docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.pod    \
+	docs/api/remctl_set_timeout.pod docs/design.html docs/extending	    \
+	docs/metadata docs/protocol-v4 docs/protocol.txt docs/protocol.html \
+	docs/protocol.xml docs/remctl.pod docs/remctl-shell.8.in	    \
+	docs/remctl-shell.pod docs/remctld.8.in docs/remctld.pod	    \
+	examples/remctl.conf examples/remctld.xml examples/rsh-wrapper	    \
+	examples/xinetd java/.classpath java/.project java/Makefile	    \
+	java/README java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf	    \
+	java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java		    \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
@@ -308,7 +313,7 @@ clean-local:
 	fi
 	rm -rf perl/t/config perl/t/lib/Test/RRA php/tmp-php.ini	   \
 	    python/.eggs python/build python/dist python/pyremctl.egg-info \
-	    python/*.pyc python/tests/config python/tests/tmp		   \
+	    python/*.pyc python/*.so python/tests/config python/tests/tmp  \
 	    python/tests/*.pyc
 
 # Also clean the Perl, PHP, and Python directories on make distclean if
@@ -345,17 +350,18 @@ PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs			\
 	-Wno-missing-prototypes -Wno-redundant-decls -Wno-shadow	\
 	-Wno-old-style-definition -Wno-conversion			\
 	-Wno-gnu-statement-expression -Wno-cast-align -Wno-comma	\
-	-Wno-covered-switch-default
+	-Wno-covered-switch-default -Wno-extra-semi-stmt
 PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
 	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal	\
 	-Wno-strict-overflow -Wno-conversion -Wno-missing-declarations	\
-	-Wno-double-promotion -Wno-cast-align
-PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing
+	-Wno-double-promotion -Wno-cast-align -Wno-extra-semi-stmt
+PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing \
+	-Wno-redundant-decls -Wno-cast-align
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
 	-Wno-nested-externs -Wno-shift-sign-overflow			    \
 	-Wno-gnu-statement-expression -Wno-unknown-warning-option	    \
-	-Wno-gcc-compat
+	-Wno-gcc-compat -Wno-extra-semi-stmt -Wno-strict-overflow -Wno-vla
 
 warnings:
 	$(MAKE) V=0 AM_CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
@@ -379,7 +385,7 @@ check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
 	tests/portable/getopt-t tests/portable/inet_aton-t		    \
 	tests/portable/inet_ntoa-t tests/portable/inet_ntop-t		    \
 	tests/portable/mkstemp-t tests/portable/setenv-t		    \
-	tests/portable/snprintf-t tests/server/accept-t tests/server/acl-t  \
+	tests/server/accept-t tests/server/acl-t			    \
 	tests/server/acl/localgroup-t tests/server/anonymous-t		    \
 	tests/server/bind-t tests/server/config-t tests/server/continue-t   \
 	tests/server/empty-t tests/server/env-t tests/server/errors-t	    \
@@ -468,9 +474,6 @@ tests_portable_mkstemp_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_portable_setenv_t_SOURCES = tests/portable/setenv-t.c \
 	tests/portable/setenv.c
 tests_portable_setenv_t_LDADD = tests/tap/libtap.a portable/libportable.la
-tests_portable_snprintf_t_SOURCES = tests/portable/snprintf-t.c \
-	tests/portable/snprintf.c
-tests_portable_snprintf_t_LDADD = tests/tap/libtap.a portable/libportable.la
 tests_server_accept_t_SOURCES = tests/server/accept-t.c $(SERVER_FILES)
 tests_server_accept_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
@@ -630,7 +633,7 @@ check-local: $(check_PROGRAMS)
 	    cd python && for python in $(REMCTL_PYTHON_VERSIONS); do	\
 		LD_LIBRARY_PATH=$(TEST_RPATH)				\
 		    REMCTLD="$(abs_top_builddir)/server/remctld"	\
-		    "$$python" setup.py test;				\
+		    "$$python" -m pytest -v;				\
 	    done;							\
 	fi
 	@set -e; if [ -f ruby/Makefile ]; then		\
@@ -641,10 +644,11 @@ check-local: $(check_PROGRAMS)
 
 # Used by maintainers to check the source code with cppcheck.
 check-cppcheck:
-	cd $(abs_top_srcdir) &&						\
-	    find . -name .git -prune -o -name '*.[ch]' -print		\
-	    | cppcheck -q --force --error-exitcode=2 --file-list=-	\
-		--suppressions-list=tests/data/cppcheck.supp		\
+	cd $(abs_top_srcdir) &&						 \
+	    find . -name .git -prune -o -name Remctl.c -prune		 \
+	        -o -name 'php*_remctl.c' -prune -o -name '*.[ch]' -print \
+	    | cppcheck -q --force --error-exitcode=2 --file-list=-	 \
+		--suppressions-list=tests/data/cppcheck.supp		 \
 		--enable=warning,performance,portability,style
 
 # The full path to valgrind and its options, used when doing valgrind
@@ -659,8 +663,14 @@ check-valgrind: $(check_PROGRAMS)
 	mkdir $(abs_top_builddir)/tests/tmp
 	mkdir $(abs_top_builddir)/tests/tmp/valgrind
 	C_TAP_VALGRIND="$(VALGRIND_COMMAND)"			\
-	    C_TAP_LIBTOOL="$(top_builddir)/libtool"		\
+	    C_TAP_LIBTOOL="$(abs_top_builddir)/libtool"		\
 	    tests/runtests -l '$(abs_top_srcdir)/tests/TESTS'
+
+# Used by maintainers to reformat all source code using clang-format and
+# excluding some files.
+reformat:
+	find . -name '*.[ch]' -print \
+	     | xargs clang-format -style=file -i
 
 # Used for hooking in the build of optional language bindings.
 BINDINGS =
@@ -759,10 +769,9 @@ stamp-python: $(srcdir)/python/_remctlmodule.c $(srcdir)/python/remctl.py \
 		CFLAGS='$(PYTHON_CFLAGS) $(PYTHON_CFLAGS_EXTRA)'	 \
 		LDFLAGS='$(PYTHON_LDFLAGS_FULL)'			 \
 		REMCTL_PYTHON_LIBS='$(GSSAPI_LIBS)'			 \
-		"$$python" setup.py build;				 \
+		"$$python" setup.py build_ext --inplace;		 \
 	done
 	touch stamp-python
-
 
 # If RPM_BUILD_ROOT is set, we're being built by RPM.  Use that as DESTDIR.
 install-data-local-python: stamp-python

@@ -8,36 +8,28 @@
 # This may not work with versions of Perl built without PerlIO, which was more
 # common prior to 5.8.
 #
-# Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2012-2013
-#     The Board of Trustees of the Leland Stanford Junior University
-#
 # SPDX-License-Identifier: MIT
 
 package Test::Remctl;
 
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
 
-use Exporter;
-
-# For Perl 5.006 compatibility.
-## no critic (ClassHierarchies::ProhibitExplicitISA)
+use base qw(Exporter);
 
 # Declare variables that should be set in BEGIN for robustness.
-our (@EXPORT_OK, @ISA, $VERSION);
+our (@EXPORT_OK, $VERSION);
 
 # Set $VERSION and everything export-related in a BEGIN block for robustness
 # against circular module loading (not that we load any modules, but
 # consistency is good).
 BEGIN {
-    @ISA       = qw(Exporter);
     @EXPORT_OK = qw(run_wrapper);
 
     # This version is somewhat arbitrary and doesn't track the broader remctl
     # version.  I update it when code in this module changes.
-    $VERSION = '1.00';
+    $VERSION = '1.01';
 }
 
 # Run the backend and capture its output and return status.
@@ -54,10 +46,10 @@ sub run_wrapper {
     # Save STDOUT and STDERR and redirect to scalars.
     open(my $oldout, '>&', \*STDOUT) or BAIL_OUT("Cannot save STDOUT: $!");
     open(my $olderr, '>&', \*STDERR) or BAIL_OUT("Cannot save STDERR: $!");
-    close(STDOUT) or BAIL_OUT("Cannot close STDOUT: $!");
-    close(STDERR) or BAIL_OUT("Cannot close STDERR: $!");
-    open(STDOUT, '>', \$output) or BAIL_OUT("Cannot redirect STDOUT: $!");
-    open(STDERR, '>', \$error)  or BAIL_OUT("Cannot redirect STDERR: $!");
+    close(STDOUT)                    or BAIL_OUT("Cannot close STDOUT: $!");
+    close(STDERR)                    or BAIL_OUT("Cannot close STDERR: $!");
+    open(STDOUT, '>', \$output)      or BAIL_OUT("Cannot redirect STDOUT: $!");
+    open(STDERR, '>', \$error)       or BAIL_OUT("Cannot redirect STDERR: $!");
 
     # Run the backend.
     my $status = eval { $backend->run(@args) };
@@ -119,4 +111,33 @@ exception, the exit status will always be set to 255.
 
 Russ Allbery <eagle@eyrie.org>
 
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2020 Russ Allbery <eagle@eyrie.org>
+
+Copyright 2012-2013 The Board of Trustees of the Leland Stanford Junior
+University
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
 =cut
+
+# Local Variables:
+# copyright-at-end-flag: t
+# End:

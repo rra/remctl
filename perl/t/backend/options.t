@@ -3,11 +3,13 @@
 # Tests for option handling in Net::Remctl::Backend.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2020 Russ Allbery <eagle@eyrie.org>
 # Copyright 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # SPDX-License-Identifier: MIT
 
+use 5.008;
 use strict;
 use warnings;
 
@@ -92,5 +94,5 @@ is($output, q{}, '...with no output');
 is(
     $error,
     qq{number: value "foo" invalid for option number (number expected)\n},
-    '...and correct error'
+    '...and correct error',
 );

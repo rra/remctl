@@ -11,7 +11,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2018-2019 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018-2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2009, 2011-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -21,7 +21,7 @@
 #include <config.h>
 #include <portable/gssapi.h>
 #ifdef HAVE_KRB5
-# include <portable/krb5.h>
+#    include <portable/krb5.h>
 #endif
 #include <portable/socket.h>
 #include <portable/system.h>
@@ -92,8 +92,8 @@ internal_output_append(struct remctl_result *result,
         length = &result->stderr_len;
     } else if (output->type == REMCTL_OUT_OUTPUT) {
         free(result->error);
-        status = asprintf(&result->error, "bad output stream %d",
-                          output->stream);
+        status =
+            asprintf(&result->error, "bad output stream %d", output->stream);
         if (status < 0)
             result->error = NULL;
         return false;
@@ -265,7 +265,7 @@ remctl_set_ccache(struct remctl *r, const char *ccache)
     }
     return 1;
 }
-#else /* !HAVE_GSS_KRB5_CCACHE_NAME */
+#else  /* !HAVE_GSS_KRB5_CCACHE_NAME */
 int
 remctl_set_ccache(struct remctl *r, const char *ccache UNUSED)
 {
@@ -471,8 +471,9 @@ remctl_close(struct remctl *r)
         shutdown(r->fd, SHUT_RDWR);
         socket_close(r->fd);
     }
-    if (r->context != GSS_C_NO_CONTEXT)
+    if (r->context != GSS_C_NO_CONTEXT) {
         gss_delete_sec_context(&minor, &r->context, GSS_C_NO_BUFFER);
+    }
 
     /* If we have a registered ticket cache, free those resources. */
 #ifdef HAVE_KRB5

@@ -9,7 +9,7 @@
 # which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2016 Russ Allbery <eagle@eyrie.org>
+# Copyright 2016, 2020 Russ Allbery <eagle@eyrie.org>
 # Copyright 2006-2008, 2010-2011
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -67,10 +67,19 @@ awk '
     !/^ *\[appdefaults\]/ && / *\[/   { skip = 0 }
 
     { if (skip == 0) print }
-' "$p" > tmp/krb5.conf.tmp
+' "$krb5conf" > tmp/krb5.conf.tmp
 if [ -n "$realm" ] ; then
-    sed -e "s/\\(default_realm.*=\\) .*/\\1 $realm/" \
-        tmp/krb5.conf.tmp > tmp/krb5.conf
+    pattern='^[ 	]*default_realm.*='
+    if grep "$pattern" tmp/krb5.conf.tmp >/dev/null 2>/dev/null; then
+        sed -e "s/\\(default_realm.*=\\) .*/\\1 $realm/" \
+            tmp/krb5.conf.tmp >tmp/krb5.conf
+    else
+        (
+            cat tmp/krb5.conf.tmp
+            echo "[libdefaults]"
+            echo "    default_realm = $realm"
+        ) >tmp/krb5.conf
+    fi
     rm tmp/krb5.conf.tmp
 else
     mv tmp/krb5.conf.tmp tmp/krb5.conf

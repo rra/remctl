@@ -10,12 +10,12 @@
 
 package Test::RRA;
 
-use 5.006;
+use 5.008;
+use base qw(Exporter);
 use strict;
 use warnings;
 
 use Carp qw(croak);
-use Exporter;
 use File::Temp;
 
 # Abort if Test::More was loaded before Test::RRA to be sure that we get the
@@ -38,17 +38,13 @@ if ($@) {
     exit 0;
 }
 
-# For Perl 5.006 compatibility.
-## no critic (ClassHierarchies::ProhibitExplicitISA)
-
 # Declare variables that should be set in BEGIN for robustness.
-our (@EXPORT_OK, @ISA, $VERSION);
+our (@EXPORT_OK, $VERSION);
 
 # Set $VERSION and everything export-related in a BEGIN block for robustness
 # against circular module loading (not that we load any modules, but
 # consistency is good).
 BEGIN {
-    @ISA       = qw(Exporter);
     @EXPORT_OK = qw(
       is_file_contents skip_unless_author skip_unless_automated use_prereq
     );
@@ -56,7 +52,7 @@ BEGIN {
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '8.00';
+    $VERSION = '8.04';
 }
 
 # Compare a string to the contents of a file, similar to the standard is()

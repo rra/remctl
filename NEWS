@@ -1,5 +1,49 @@
                        User-Visible remctl Changes
 
+remctl 3.17 (2020-12-13)
+
+    Port the PHP extention to PHP 8.  This required declaring the
+    arguments to the functions (which should have been done with PHP 7)
+    and removing some obsolete constructs.
+
+    Make the Python install_requires dependency on typing conditional on
+    Python versions earlier than 3.5 so that setuptools won't attempt to
+    download typing when it's part of the standard library.  Thanks to
+    Gianfranco Costamagna and Matthias Klose for the bug report.
+
+    Fix the Python module build to more reliably test the newly-built
+    module and to enable verbose testing.
+
+    Fix non-Kerberos network tests on hosts with no IPv4 addresses.  In
+    this case, the network tests for binding all configured addresses will
+    bind only to IPv6, which broke some prior assumptions in the test
+    suite.  Thanks to Niko Tyni for the bug report.  Note that the tests
+    that require a Kerberos setup will still fail in this scenario, since
+    they assume remctld will bind to 127.0.0.1 by default.
+
+    Stop providing a replacement for a broken snprintf and assume the libc
+    version works correctly.  This portability code has proven difficult
+    to maintain, and was only relevant for ancient proprietary UNIX
+    versions that have been obsolete for many years.
+
+    Update to rra-c-util 8.4:
+
+    * Fix reallocarray prototyping on NetBSD.
+    * Fix getnameinfo tests on musl-based Linux distributions.
+    * Include string.h when probing for getaddrinfo properties.
+    * Fix Perl style issues found by Perl::Critic::Freenode.
+    * Fix support for configuring the test suite with a krb5.conf file.
+    * Fix tests when the system krb5.conf file does not set default_realm.
+    * Ignore files in tests/config when checking for license identifiers.
+    * Ignore object files when checking for license identifiers.
+    * Drop support for Perl 5.6.
+    * Reformat all C source using clang-format 10.
+    * Remove bogus snprintf tests.
+
+    Update to C TAP Harness 4.7:
+
+    * Fix warning with GCC 10.
+
 remctl 3.16 (2019-10-26)
 
     The Python bindings now support Python 3.  They have been tested only

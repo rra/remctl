@@ -20,30 +20,30 @@
 #define PORTABLE_EVENT_H 1
 
 #ifdef HAVE_EVENT2_EVENT_H
-# include <event2/buffer.h>
-# include <event2/bufferevent.h>
-# include <event2/event.h>
+#    include <event2/buffer.h>
+#    include <event2/bufferevent.h>
+#    include <event2/event.h>
 #else
-# include <event.h>
+#    include <event.h>
 #endif
 
-#include <portable/socket.h>    /* socket_type */
+#include <portable/socket.h> /* socket_type */
 
 /* Introduced in 2.0.1-alpha. */
 #ifndef BEV_EVENT_EOF
-# define BEV_EVENT_EOF     EVBUFFER_EOF
-# define BEV_EVENT_ERROR   EVBUFFER_ERROR
-# define BEV_EVENT_READING EVBUFFER_READ
-# define BEV_EVENT_WRITING EVBUFFER_WRITE
-# define BEV_EVENT_TIMEOUT EVBUFFER_TIMEOUT
+#    define BEV_EVENT_EOF     EVBUFFER_EOF
+#    define BEV_EVENT_ERROR   EVBUFFER_ERROR
+#    define BEV_EVENT_READING EVBUFFER_READ
+#    define BEV_EVENT_WRITING EVBUFFER_WRITE
+#    define BEV_EVENT_TIMEOUT EVBUFFER_TIMEOUT
 #endif
 
 /* Introduced in 2.0.19-stable. */
 #ifndef EVENT_LOG_DEBUG
-# define EVENT_LOG_DEBUG _EVENT_LOG_DEBUG
-# define EVENT_LOG_MSG   _EVENT_LOG_MSG
-# define EVENT_LOG_WARN  _EVENT_LOG_WARN
-# define EVENT_LOG_ERR   _EVENT_LOG_ERR
+#    define EVENT_LOG_DEBUG _EVENT_LOG_DEBUG
+#    define EVENT_LOG_MSG   _EVENT_LOG_MSG
+#    define EVENT_LOG_WARN  _EVENT_LOG_WARN
+#    define EVENT_LOG_ERR   _EVENT_LOG_ERR
 #endif
 
 BEGIN_DECLS
@@ -71,7 +71,7 @@ typedef void (*event_callback_fn)(evutil_socket_t, short, void *);
 
 /* Introduced in 2.0.1-alpha. */
 #ifndef HAVE_BUFFEREVENT_GET_INPUT
-# define bufferevent_get_input(bev) EVBUFFER_INPUT(bev)
+#    define bufferevent_get_input(bev) EVBUFFER_INPUT(bev)
 #endif
 
 /* Introduced in 2.0.1-alpha. */
@@ -91,7 +91,7 @@ struct bufferevent *bufferevent_socket_new(struct event_base *,
 
 /* Introduced in 2.1.1-alpha.  Just skip it if we don't have it. */
 #ifndef HAVE_LIBEVENT_GLOBAL_SHUTDOWN
-# define libevent_global_shutdown() /* empty */
+#    define libevent_global_shutdown() /* empty */
 #endif
 
 /*
@@ -102,17 +102,17 @@ struct bufferevent *bufferevent_socket_new(struct event_base *,
  * support more backing types.
  */
 #if !defined(LIBEVENT_VERSION_NUMBER) || LIBEVENT_VERSION_NUMBER < 0x02000100
-# define evbuffer_drain(buf, len) evbuffer_drain_fixed((buf), (len))
+#    define evbuffer_drain(buf, len) evbuffer_drain_fixed((buf), (len))
 #endif
 
 /* Introduced in 2.0.1-alpha. */
 #ifndef HAVE_EVBUFFER_GET_LENGTH
-# define evbuffer_get_length(buf) EVBUFFER_LENGTH(buf)
+#    define evbuffer_get_length(buf) EVBUFFER_LENGTH(buf)
 #endif
 
 /* Introduced in 2.0.1-alpha. */
 #ifndef HAVE_EVENT_FREE
-# define event_free(event) free(event)
+#    define event_free(event) free(event)
 #endif
 
 /* Introduced in 2.0.1-alpha. */
@@ -126,13 +126,13 @@ struct event *event_new(struct event_base *, evutil_socket_t, short,
  * have fatal callbacks.
  */
 #ifndef HAVE_EVENT_SET_FATAL_CALLBACK
-# define event_set_fatal_callback(cb) /* empty */
+#    define event_set_fatal_callback(cb) /* empty */
 #endif
 
 /* Introduced in 2.0.1-alpha. */
 #ifndef evsignal_new
-# define evsignal_new(base, signum, callback, arg) \
-    event_new((base), (signum), EV_SIGNAL | EV_PERSIST, (callback), (arg))
+#    define evsignal_new(base, signum, callback, arg) \
+        event_new((base), (signum), EV_SIGNAL | EV_PERSIST, (callback), (arg))
 #endif
 
 /* Undo default visibility change. */

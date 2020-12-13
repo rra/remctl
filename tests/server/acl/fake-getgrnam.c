@@ -19,9 +19,9 @@
 
 #include <grp.h>
 
-#include <util/macros.h>
 #include <tests/server/acl/fake-getgrnam.h>
 #include <tests/tap/basic.h>
+#include <util/macros.h>
 
 /*
  * The queue of fake responses.  This is a linked list of responses to return,

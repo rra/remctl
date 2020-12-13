@@ -27,8 +27,8 @@ main(void)
     struct remctl *r;
     struct remctl_output *output;
     size_t total;
-    const char *command_streaming[] = { "test", "streaming", NULL };
-    const char *command_cat[] = { "test", "large-output", "1728361", NULL };
+    const char *command_streaming[] = {"test", "streaming", NULL};
+    const char *command_cat[] = {"test", "large-output", "1728361", NULL};
 
     /* Unless we have Kerberos available, we can't really do anything. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
@@ -137,7 +137,9 @@ main(void)
             ok(0, "...and right data");
         else
             ok(memcmp("This is the first line\nThis is the second line\n"
-                      "This is the third line\n", output->data, 70) == 0,
+                      "This is the third line\n",
+                      output->data, 70)
+                   == 0,
                "...and right data");
         is_int(1, output->stream, "...and right stream");
     }

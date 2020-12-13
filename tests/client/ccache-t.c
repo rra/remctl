@@ -25,7 +25,7 @@ main(void)
     struct remctl *r;
     struct remctl_output *output;
     int status;
-    const char *command[] = { "test", "test", NULL };
+    const char *command[] = {"test", "test", NULL};
 
     /* Set up Kerberos and remctld. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
@@ -79,8 +79,8 @@ main(void)
             ok_block(3, 0, "remctl_output failed");
         else {
             is_int(REMCTL_OUT_OUTPUT, output->type, "output token");
-            ok(memcmp("hello world\n", output->data,
-                      strlen("hello world\n")) == 0,
+            ok(memcmp("hello world\n", output->data, strlen("hello world\n"))
+                   == 0,
                "correct output");
             is_int(strlen("hello world\n"), output->length, "correct length");
         }

@@ -9,9 +9,9 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <sys/wait.h>
 
@@ -35,13 +35,13 @@ make_connection(int protocol, const char *principal)
     socket_type fd;
     int flags;
     gss_buffer_desc send_tok, recv_tok, name_buffer, *token_ptr;
-    gss_buffer_desc empty_token = { 0, (void *) "" };
+    gss_buffer_desc empty_token = {0, (void *) ""};
     gss_name_t name;
     gss_ctx_id_t gss_context;
     OM_uint32 major, minor, init_minor, gss_flags;
-    static const OM_uint32 req_gss_flags
-        = (GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_CONF_FLAG
-           | GSS_C_INTEG_FLAG);
+    static const OM_uint32 req_gss_flags =
+        (GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_CONF_FLAG
+         | GSS_C_INTEG_FLAG);
 
     /* Connect. */
     saddr.sin_family = AF_INET;
@@ -71,10 +71,10 @@ make_connection(int protocol, const char *principal)
     token_ptr = GSS_C_NO_BUFFER;
     gss_context = GSS_C_NO_CONTEXT;
     do {
-        major = gss_init_sec_context(&init_minor, GSS_C_NO_CREDENTIAL, 
-                    &gss_context, name, (const gss_OID) GSS_KRB5_MECHANISM,
-                    req_gss_flags, 0, NULL, token_ptr, NULL, &send_tok,
-                    &gss_flags, NULL);
+        major = gss_init_sec_context(
+            &init_minor, GSS_C_NO_CREDENTIAL, &gss_context, name,
+            (const gss_OID) GSS_KRB5_MECHANISM, req_gss_flags, 0, NULL,
+            token_ptr, NULL, &send_tok, &gss_flags, NULL);
         if (token_ptr != GSS_C_NO_BUFFER)
             gss_release_buffer(&minor, &recv_tok);
         if (send_tok.length != 0) {

@@ -7,11 +7,13 @@
 # common prior to 5.8.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2020 Russ Allbery <eagle@eyrie.org>
 # Copyright 2012-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # SPDX-License-Identifier: MIT
 
+use 5.010;
 use strict;
 use warnings;
 
@@ -109,12 +111,12 @@ $backend = Net::Remctl::Backend->new(
     {
         command  => 'foo',
         commands => \%commands,
-    }
+    },
 );
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2 arg3));
 is($status, 255, 'cmd1 with three args returns 255');
 is($out,    q{}, '... and no output');
-is($err, "foo cmd1: too many arguments\n", '... and correct verbose error');
+is($err,    "foo cmd1: too many arguments\n", '... and correct verbose error');
 is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
 
@@ -132,7 +134,7 @@ is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1 arg2)]], 'cmd1 called correctly');
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg-2));
 is($status, 255, 'cmd1 fails argument checking');
 is($out,    q{}, '... and no output');
-is($err, "foo cmd1: invalid argument: arg-2\n", '... and correct error');
+is($err,    "foo cmd1: invalid argument: arg-2\n", '... and correct error');
 is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
 
@@ -150,7 +152,7 @@ is($err,    q{}, '... and no errors');
 is_deeply(
     \@CALLS,
     [['main::test_cmd1', $stdin, 'arg2']],
-    'cmd1 called correctly'
+    'cmd1 called correctly',
 );
 @CALLS = ();
 
@@ -186,7 +188,7 @@ is($status, 0, 'help returns status 0');
 is(
     $out,
     "cmd1 arg1 [arg2]  cmd1 all over the args\n",
-    '... and correct output'
+    '... and correct output',
 );
 is($err, q{}, '... and no errors');
 
@@ -224,7 +226,7 @@ $backend = Net::Remctl::Backend->new(
         command     => 'foo',
         commands    => \%commands,
         help_banner => 'Foo manipulation remctl help:',
-    }
+    },
 );
 $expected = <<'END_HELP';
 Foo manipulation remctl help:
@@ -243,7 +245,7 @@ $backend = Net::Remctl::Backend->new(
         command     => 'foo',
         commands    => \%commands,
         help_banner => "Foo manipulation remctl help:\n",
-    }
+    },
 );
 is($backend->help, $expected, 'Help output w/newline banner is correct');
 
@@ -297,7 +299,7 @@ is($@, "Unknown command unknown\n", '...with correct error');
 
     # Save standard output and close it.
     open(my $oldout, '>&', \*STDOUT) or BAIL_OUT("Cannot save STDOUT: $!");
-    close(STDOUT) or BAIL_OUT("Cannot close STDOUT: $!");
+    close(STDOUT)                    or BAIL_OUT("Cannot close STDOUT: $!");
 
     # Run the backend.
     local @ARGV = qw(help);
@@ -312,6 +314,6 @@ is($@, "Unknown command unknown\n", '...with correct error');
     like(
         $@,
         qr{ \A Cannot [ ] write [ ] to [ ] STDOUT: [ ] }xms,
-        '...with correct error'
+        '...with correct error',
     );
 }

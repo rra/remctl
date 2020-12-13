@@ -8,32 +8,28 @@
 
 package Test::RRA::ModuleVersion;
 
-use 5.006;
+use 5.010;
+use base qw(Exporter);
 use strict;
 use warnings;
 
-use Exporter;
 use File::Find qw(find);
 use Test::More;
 use Test::RRA::Config qw(@MODULE_VERSION_IGNORE);
 
-# For Perl 5.006 compatibility.
-## no critic (ClassHierarchies::ProhibitExplicitISA)
-
 # Declare variables that should be set in BEGIN for robustness.
-our (@EXPORT_OK, @ISA, $VERSION);
+our (@EXPORT_OK, $VERSION);
 
 # Set $VERSION and everything export-related in a BEGIN block for robustness
 # against circular module loading (not that we load any modules, but
 # consistency is good).
 BEGIN {
-    @ISA       = qw(Exporter);
     @EXPORT_OK = qw(test_module_versions update_module_versions);
 
     # This version should match the corresponding rra-c-util release, but with
     # two digits for the minor version, including a leading zero if necessary,
     # so that it will sort properly.
-    $VERSION = '8.00';
+    $VERSION = '8.04';
 }
 
 # A regular expression matching the version string for a module using the
@@ -139,7 +135,7 @@ sub _update_module_version {
     }
 
     # Scan for the version and replace it.
-    open(my $in, q{<}, $file) or die "$0: cannot open $file: $!\n";
+    open(my $in,  q{<}, $file) or die "$0: cannot open $file: $!\n";
     open(my $out, q{>}, "$file.new")
       or die "$0: cannot create $file.new: $!\n";
   SCAN:
@@ -269,7 +265,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2016, 2018, 2019 Russ Allbery <eagle@eyrie.org>
+Copyright 2016, 2018-2020 Russ Allbery <eagle@eyrie.org>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

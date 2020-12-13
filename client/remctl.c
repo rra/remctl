@@ -7,17 +7,17 @@
  *
  * Originally written by Anton Ushakov
  * Extensive modifications by Russ Allbery <eagle@eyrie.org>
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
- * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2013
+ * Copyright 2018, 2020 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2002-2011, 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * SPDX-License-Identifier: MIT
-*/
+ */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/getopt.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <ctype.h>
 
@@ -42,7 +42,7 @@ Options:\n\
 /*
  * Display the usage message for remctl.
  */
-static void __attribute__((__noreturn__))
+__attribute__((__noreturn__)) static void
 usage(int status)
 {
     fprintf((status == 0) ? stdout : stderr, "%s", usage_message);
@@ -226,7 +226,7 @@ main(int argc, char *argv[])
     if (r == NULL)
         sysdie("cannot initialize remctl connection");
 
-    if (timeout != 0) 
+    if (timeout != 0)
         remctl_set_timeout(r, timeout);
 
     if (source != NULL)

@@ -11,7 +11,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
- 
+
 #include <config.h>
 #include <portable/event.h>
 #include <portable/socket.h>
@@ -44,11 +44,7 @@ server_ssh_parse_command(const char *command)
     const char *p;
     size_t i, length;
     char quote = '\0';
-    enum state {
-        SEPARATOR,
-        ARG,
-        QUOTE
-    } state;
+    enum state { SEPARATOR, ARG, QUOTE } state;
 
     /*
      * Parse the string using a state engine.  We can be in one of three

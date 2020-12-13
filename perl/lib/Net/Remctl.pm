@@ -1,4 +1,4 @@
-# Net::Remctl -- Perl bindings for the remctl client library.
+# Perl bindings for the remctl client library.
 #
 # This is the Perl boostrap file for the Net::Remctl module, nearly all of
 # which is implemented in XS.  For the actual source, see Remctl.xs.  This
@@ -8,31 +8,28 @@
 
 package Net::Remctl;
 
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
 
-use Exporter;
-use DynaLoader;
+use base qw(DynaLoader Exporter);
 
 # Yes, I shouldn't have exported something by default, but I did, and now
 # removing it would break backward compatibility.  So we live with it.
 ## no critic (Modules::ProhibitAutomaticExportation)
-use vars qw($VERSION @EXPORT @ISA);
+use vars qw($VERSION @EXPORT);
 
+# This version matches the version of remctl with which this module was
+# released, but with at least two digits for the minor version.
 BEGIN {
-    $VERSION = '3.16';
+    $VERSION = '3.17';
+    @EXPORT  = qw(remctl);
 }
 
-# use base qw(Exporter) requires Perl 5.8 and we still support Perl 5.6.
-## no critic (ClassHierarchies::ProhibitExplicitISA)
-BEGIN {
-    @ISA    = qw(Exporter DynaLoader);
-    @EXPORT = qw(remctl);
-}
-
-bootstrap Net::Remctl;
+Net::Remctl->bootstrap();
 1;
+
+__END__
 
 =for stopwords
 remctl libremctl GSS-API HOSTNAME remctld IPv4 IPv6 NUL CNAME DNS Allbery
@@ -374,6 +371,8 @@ QWERTY keyboard up from the letters C<remc> to the number row.
 Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
+
+Copyright 2020 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2007-2008, 2011-2014 The Board of Trustees of the Leland Stanford
 Junior University

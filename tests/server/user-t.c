@@ -33,7 +33,7 @@ test_user(struct remctl *r, const char *subcommand, uid_t *uid, gid_t *gid)
     char *old, *end;
     char *data = NULL;
     long value;
-    const char *command[] = { "test", NULL, NULL };
+    const char *command[] = {"test", NULL, NULL};
 
     /* Run the command and gather its output. */
     command[1] = subcommand;

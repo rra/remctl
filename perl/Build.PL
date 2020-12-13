@@ -3,7 +3,7 @@
 # Build script for the Net::Remctl distribution.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2007, 2012-2013
+# Copyright 2007, 2012-2013, 2020
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # SPDX-License-Identifier: MIT
@@ -30,7 +30,7 @@ sub create_command {
     # Create the file.
     open(my $command, q{>}, $path)
       or die "Cannot create $path: $!\n";
-    print {$command} "#!/usr/bin/perl\nuse strict;\nuse warnings;\n"
+    print {$command} "#!perl\nuse 5.006;\nuse strict;\nuse warnings;\n"
       or die "Cannot write to $path: $!\n";
     print {$command} $code, "\n"
       or die "Cannot write to $path: $!\n";

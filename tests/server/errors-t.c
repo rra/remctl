@@ -28,7 +28,7 @@ static int
 test_error(struct remctl *r, const char *arg)
 {
     struct remctl_output *output;
-    const char *command[] = { "test", NULL, NULL };
+    const char *command[] = {"test", NULL, NULL};
 
     command[1] = arg;
     if (arg == NULL)

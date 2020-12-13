@@ -12,11 +12,11 @@
 #include <portable/system.h>
 
 #include <client/remctl.h>
-#include <util/protocol.h>
 #include <tests/tap/basic.h>
 #include <tests/tap/kerberos.h>
 #include <tests/tap/remctl.h>
 #include <tests/tap/string.h>
+#include <util/protocol.h>
 
 
 int
@@ -27,7 +27,7 @@ main(void)
     struct remctl_output *output;
     char *tmpdir, *confpath;
     FILE *conf;
-    const char *test[] = { "test", "test", NULL };
+    const char *test[] = {"test", "test", NULL};
 
     /* Unless we have Kerberos available, we can't really do anything. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);

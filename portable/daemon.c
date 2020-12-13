@@ -8,6 +8,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2008, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -33,8 +34,8 @@
  * another name.
  */
 #if TESTING
-# undef daemon
-# define daemon test_daemon
+#    undef daemon
+#    define daemon test_daemon
 int test_daemon(int, int);
 #endif
 
@@ -48,10 +49,11 @@ daemon(int nochdir, int noclose)
      * group and become the leader of a new process group.
      */
     status = fork();
-    if (status < 0)
+    if (status < 0) {
         return -1;
-    else if (status > 0)
+    } else if (status > 0) {
         _exit(0);
+    }
 
     /*
      * setsid() should take care of disassociating from the controlling

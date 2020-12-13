@@ -37,8 +37,8 @@
 #include <portable/krb5.h>
 #include <portable/system.h>
 
-#include <util/messages.h>
 #include <util/messages-krb5.h>
+#include <util/messages.h>
 #include <util/xmalloc.h>
 
 

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2015-2016, 2018-2019 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2015-2016, 2018-2020 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2016 Dropbox, Inc.
 dnl Copyright 2002-2008, 2010-2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
@@ -9,7 +9,7 @@ dnl
 dnl SPDX-License-Identifier: MIT
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [3.16], [eagle@eyrie.org])
+AC_INIT([remctl], [3.17], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
@@ -114,7 +114,7 @@ dnl General C library and networking probes.
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/time.h \
                   sys/uio.h syslog.h])
-AC_CHECK_DECLS([snprintf, vsnprintf])
+AC_CHECK_DECLS([reallocarray])
 AC_CHECK_DECLS([h_errno], [], [], [#include <netdb.h>])
 AC_CHECK_DECLS([inet_aton, inet_ntoa], [], [],
     [#include <sys/types.h>
@@ -148,7 +148,6 @@ AC_CHECK_TYPES([struct sockaddr_storage],
      #include <sys/socket.h>])
 RRA_MACRO_IN6_ARE_ADDR_EQUAL
 RRA_FUNC_INET_NTOA
-RRA_FUNC_SNPRINTF
 AC_CHECK_FUNCS([getaddrinfo],
     [RRA_FUNC_GETADDRINFO_ADDRCONFIG],
     [AC_LIBOBJ([getaddrinfo])])

@@ -1,6 +1,6 @@
 {
     "name": "remctl",
-    "version": "3.16",
+    "version": "3.17",
     "synopsis": "remote authenticated command execution with ACLs",
     "maintainer": "Russ Allbery <eagle@eyrie.org>",
     "copyrights": [
@@ -37,7 +37,9 @@
         "browse": "https://git.eyrie.org/?p=kerberos/remctl.git",
         "github": "rra/remctl",
         "openhub": "https://www.openhub.net/p/remctl",
-        "travis": "rra/remctl",
+        "status": {
+            "workflow": "build",
+        },
     },
     "readme": {
         "sections": [

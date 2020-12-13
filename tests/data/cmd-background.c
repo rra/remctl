@@ -14,8 +14,8 @@
 #include <config.h>
 #include <portable/system.h>
 
-#include <util/xmalloc.h>
 #include <tests/tap/basic.h>
+#include <util/xmalloc.h>
 
 
 int
