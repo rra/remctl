@@ -114,6 +114,7 @@ dnl General C library and networking probes.
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([sys/bitypes.h sys/filio.h sys/select.h sys/time.h \
                   sys/uio.h syslog.h])
+AC_CHECK_DECLS([reallocarray])
 AC_CHECK_DECLS([h_errno], [], [], [#include <netdb.h>])
 AC_CHECK_DECLS([inet_aton, inet_ntoa], [], [],
     [#include <sys/types.h>

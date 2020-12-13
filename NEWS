@@ -28,6 +28,8 @@ remctl 3.17 (unreleased)
 
     Update to rra-c-util 8.4:
 
+    * Fix reallocarray prototyping on NetBSD.
+    * Fix getnameinfo tests on musl-based Linux distributions.
     * Include string.h when probing for getaddrinfo properties.
     * Fix Perl style issues found by Perl::Critic::Freenode.
     * Fix support for configuring the test suite with a krb5.conf file.
