@@ -7,6 +7,7 @@ remctl (3.17-1) UNRELEASED; urgency=medium
   * Move the canonical packaging repository to Salsa.
   * Remove the version number of PHP from the long description of
     php-remctl, since the source now supports either PHP 7 or PHP 8.
+  * Update standards version to 4.5.1 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Sun, 13 Dec 2020 14:12:15 -0800
 
