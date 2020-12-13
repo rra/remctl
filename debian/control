@@ -31,8 +31,8 @@ XS-Ruby-Versions: all
 Rules-Requires-Root: no
 Standards-Version: 4.4.1
 Homepage: https://www.eyrie.org/~eagle/software/remctl/
-Vcs-Git: https://git.eyrie.org/git/kerberos/remctl.git -b debian/master
-Vcs-Browser: https://git.eyrie.org/?p=kerberos/remctl.git
+Vcs-Git: https://salsa.debian.org/rra/remctl.git
+Vcs-Browser: https://salsa.debian.org/rra/remctl
 
 Package: libremctl1
 Section: libs

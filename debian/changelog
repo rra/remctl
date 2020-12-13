@@ -4,6 +4,7 @@ remctl (3.17-1) UNRELEASED; urgency=medium
     - Add support for PHP 8.
     - Fix basic tests on platforms without IPv4.  (Closes: #972206)
   * Change the default Debian packaging branch to debian/unstable.
+  * Move the canonical packaging repository to Salsa.
 
  -- Russ Allbery <rra@debian.org>  Sun, 13 Dec 2020 14:12:15 -0800
 
