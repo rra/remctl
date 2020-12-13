@@ -2,6 +2,7 @@
  * Test suite for version negotiation in the server.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2007, 2009-2010, 2012-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -9,8 +10,8 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
+#include <portable/system.h>
 
 #include <signal.h>
 
@@ -23,12 +24,14 @@
 #include <util/protocol.h>
 
 /* A command token to run test test. */
+/* clang-format off */
 static const char token[] = {
     9, 1, 0, 0,
     0, 0, 0, 2,
     0, 0, 0, 4, 't', 'e', 's', 't',
     0, 0, 0, 4, 't', 'e', 's', 't'
 };
+/* clang-format on */
 
 
 int
@@ -87,8 +90,8 @@ main(void)
     is_int(TOKEN_OK, status, "connection is still open");
     gss_release_buffer(&minor, &tok);
     if (status == TOKEN_OK) {
-        status = token_recv_priv(r->fd, r->context, &flags, &tok, 1024 * 64,
-                                 0, &major, &minor);
+        status = token_recv_priv(r->fd, r->context, &flags, &tok, 1024 * 64, 0,
+                                 &major, &minor);
         is_int(TOKEN_OK, status, "received token correctly");
         gss_release_buffer(&minor, &tok);
     } else {

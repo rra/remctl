@@ -297,7 +297,7 @@ server_v2_read_token(struct client *client, gss_buffer_t token)
 {
     OM_uint32 major, minor;
     int status, flags;
-    
+
     status = token_recv_priv(client->fd, client->context, &flags, token,
                              TOKEN_MAX_LENGTH, TIMEOUT, &major, &minor);
     if (status != TOKEN_OK) {
@@ -381,8 +381,8 @@ server_v2_handle_command(struct client *client, struct config *config,
         if (token->length > TOKEN_MAX_DATA) {
             warn("command data length %lu exceeds 64KB",
                  (unsigned long) token->length);
-            result = client->error(client, ERROR_TOOMUCH_DATA,
-                                   "Too much data");
+            result =
+                client->error(client, ERROR_TOOMUCH_DATA, "Too much data");
             goto fail;
         }
 
@@ -405,8 +405,8 @@ server_v2_handle_command(struct client *client, struct config *config,
         if (length >= COMMAND_MAX_DATA - total) {
             warn("total command length %lu exceeds %lu", length + total,
                  COMMAND_MAX_DATA);
-            result = client->error(client, ERROR_TOOMUCH_DATA,
-                                   "Too much data");
+            result =
+                client->error(client, ERROR_TOOMUCH_DATA, "Too much data");
             goto fail;
         }
         if (continued || buffer != NULL) {
@@ -487,8 +487,8 @@ server_v2_handle_token(struct client *client, struct config *config,
         break;
     default:
         warn("unknown message type %d from client", (int) p[1]);
-        result = client->error(client, ERROR_UNKNOWN_MESSAGE,
-                               "Unknown message");
+        result =
+            client->error(client, ERROR_UNKNOWN_MESSAGE, "Unknown message");
         break;
     }
     return result;

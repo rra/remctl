@@ -5,7 +5,6 @@ lib/Net/Remctl/Backend.pm
 MANIFEST			This list of files
 MANIFEST.SKIP
 t/api/basic.t
-t/api/stanford-netdb.t
 t/backend/basic.t
 t/backend/nested.t
 t/backend/options.t

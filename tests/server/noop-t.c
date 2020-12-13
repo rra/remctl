@@ -9,8 +9,8 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/gssapi.h>
+#include <portable/system.h>
 
 #include <client/internal.h>
 #include <client/remctl.h>
@@ -21,7 +21,7 @@
 #include <util/protocol.h>
 
 /* The no-op token. */
-static const char token[] = { 3, 7 };
+static const char token[] = {3, 7};
 
 
 int

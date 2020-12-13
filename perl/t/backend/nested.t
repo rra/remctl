@@ -3,11 +3,13 @@
 # Tests for nested commands in Net::Remctl::Backend.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2020 Russ Allbery <eagle@eyrie.org>
 # Copyright 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # SPDX-License-Identifier: MIT
 
+use 5.008;
 use strict;
 use warnings;
 
@@ -157,7 +159,7 @@ is($status, undef, 'run() with insufficient arguments returns undef');
 is(
     $@,
     "frobnicate nest nest bar: insufficient arguments\n",
-    '...with correct error'
+    '...with correct error',
 );
 
 # Check the help output.
@@ -179,5 +181,5 @@ delete $commands{nest}{code};
     local @ARGV = qw(nest);
     $status = eval { $backend->run };
 }
-is($status, undef, 'run() of nest command returns undef');
-is($@, "Unknown command nest\n", '...with correct error');
+is($status, undef,                    'run() of nest command returns undef');
+is($@,      "Unknown command nest\n", '...with correct error');

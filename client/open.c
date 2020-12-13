@@ -17,7 +17,7 @@
 #include <config.h>
 #include <portable/gssapi.h>
 #ifdef HAVE_KRB5
-# include <portable/krb5.h>
+#    include <portable/krb5.h>
 #endif
 #include <portable/socket.h>
 #include <portable/system.h>
@@ -83,8 +83,8 @@ internal_connect(struct remctl *r, const char *host, unsigned short port)
  * Returns true on success and false on failure.
  */
 static bool
-internal_import_name(struct remctl *r, const char *host,
-                     const char *principal, gss_name_t *name)
+internal_import_name(struct remctl *r, const char *host, const char *principal,
+                     gss_name_t *name)
 {
     gss_buffer_desc name_buffer;
     char *defprinc = NULL;
@@ -161,7 +161,7 @@ internal_set_cred(struct remctl *r, gss_cred_id_t *gss_cred)
     }
     return true;
 }
-#else /* !HAVE_GSS_KRB5_IMPORT_CRED || !HAVE_KRB5 */
+#else  /* !HAVE_GSS_KRB5_IMPORT_CRED || !HAVE_KRB5 */
 static bool
 internal_set_cred(struct remctl *r UNUSED, gss_cred_id_t *gss_cred UNUSED)
 {
@@ -179,16 +179,16 @@ internal_open(struct remctl *r, const char *host, const char *principal)
 {
     int status, flags;
     gss_buffer_desc send_tok, recv_tok, *token_ptr;
-    gss_buffer_desc empty_token = { 0, (void *) "" };
+    gss_buffer_desc empty_token = {0, (void *) ""};
     gss_name_t name = GSS_C_NO_NAME;
     gss_cred_id_t gss_cred = GSS_C_NO_CREDENTIAL;
     gss_ctx_id_t gss_context = GSS_C_NO_CONTEXT;
     OM_uint32 major, minor, init_minor, gss_flags;
-    static const OM_uint32 wanted_gss_flags
-        = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG
-           | GSS_C_REPLAY_FLAG | GSS_C_SEQUENCE_FLAG);
-    static const OM_uint32 req_gss_flags
-        = (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
+    static const OM_uint32 wanted_gss_flags =
+        (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG
+         | GSS_C_REPLAY_FLAG | GSS_C_SEQUENCE_FLAG);
+    static const OM_uint32 req_gss_flags =
+        (GSS_C_MUTUAL_FLAG | GSS_C_CONF_FLAG | GSS_C_INTEG_FLAG);
 
     /* Import the name. */
     if (!internal_import_name(r, host, principal, &name))
@@ -208,8 +208,9 @@ internal_open(struct remctl *r, const char *host, const char *principal)
         r->protocol = 2;
 
     /* Send the initial negotiation token. */
-    status = token_send(r->fd, TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL,
-                        &empty_token, r->timeout);
+    status =
+        token_send(r->fd, TOKEN_NOOP | TOKEN_CONTEXT_NEXT | TOKEN_PROTOCOL,
+                   &empty_token, r->timeout);
     if (status != TOKEN_OK) {
         internal_token_error(r, "sending initial token", status, 0, 0);
         goto fail;
@@ -235,9 +236,10 @@ internal_open(struct remctl *r, const char *host, const char *principal)
      */
     token_ptr = GSS_C_NO_BUFFER;
     do {
-        major = gss_init_sec_context(&init_minor, gss_cred, &gss_context,
-                    name, (const gss_OID) GSS_KRB5_MECHANISM, wanted_gss_flags,
-                    0, NULL, token_ptr, NULL, &send_tok, &gss_flags, NULL);
+        major = gss_init_sec_context(&init_minor, gss_cred, &gss_context, name,
+                                     (const gss_OID) GSS_KRB5_MECHANISM,
+                                     wanted_gss_flags, 0, NULL, token_ptr,
+                                     NULL, &send_tok, &gss_flags, NULL);
         if (token_ptr != GSS_C_NO_BUFFER)
             free(recv_tok.value);
 
@@ -285,7 +287,7 @@ internal_open(struct remctl *r, const char *host, const char *principal)
      */
     if (r->protocol > 1 && (gss_flags & req_gss_flags) != req_gss_flags) {
         internal_set_error(r, "server did not negotiate acceptable GSS-API"
-                           " flags");
+                              " flags");
         goto fail;
     }
 

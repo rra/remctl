@@ -35,15 +35,15 @@
 #include <portable/system.h>
 
 #ifdef _WIN32
-# include <winsock2.h>
+#    include <winsock2.h>
 #else
-# include <fcntl.h>
-# ifndef O_NONBLOCK
-#  include <sys/ioctl.h>
-#  if HAVE_SYS_FILIO_H
-#   include <sys/filio.h>
-#  endif
-# endif
+#    include <fcntl.h>
+#    ifndef O_NONBLOCK
+#        include <sys/ioctl.h>
+#        if HAVE_SYS_FILIO_H
+#            include <sys/filio.h>
+#        endif
+#    endif
 #endif
 
 #include <util/fdflag.h>
@@ -141,7 +141,7 @@ fdflag_nonblocking(socket_type fd, bool flag)
     mode = (flag ? (mode | O_NONBLOCK) : (mode & ~O_NONBLOCK));
     return (fcntl(fd, F_SETFL, mode) == 0);
 }
-#else /* !O_NONBLOCK */
+#else  /* !O_NONBLOCK */
 bool
 fdflag_nonblocking(socket_type fd, bool flag)
 {

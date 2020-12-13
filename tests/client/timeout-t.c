@@ -23,7 +23,7 @@ main(void)
     struct kerberos_config *config;
     struct remctl *r;
     struct remctl_output *output;
-    const char *command[] = { "test", "sleep", NULL, NULL };
+    const char *command[] = {"test", "sleep", NULL, NULL};
 
     /* Set up Kerberos and remctld. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);

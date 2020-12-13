@@ -18,10 +18,10 @@
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
@@ -34,25 +34,25 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/getopt.h>
+#include <portable/system.h>
 
 /*
  * If we're running the test suite, rename getopt and the global variables to
  * avoid conflicts with the system version.
  */
 #if TESTING
-# undef getopt
-# undef optind
-# undef opterr
-# undef optopt
-# undef optarg
-# define getopt test_getopt
+#    undef getopt
+#    undef optind
+#    undef opterr
+#    undef optopt
+#    undef optarg
+#    define getopt test_getopt
 int test_getopt(int, char **, const char *);
-# define optind test_optind
-# define opterr test_opterr
-# define optopt test_optopt
-# define optarg test_optarg
+#    define optind test_optind
+#    define opterr test_opterr
+#    define optopt test_optopt
+#    define optarg test_optarg
 extern int test_optind;
 extern int test_opterr;
 extern int test_optopt;
@@ -177,9 +177,10 @@ getopt(int argc, char *argv[], const char *optstring)
                             optind++;
                             if (optind >= argc) {
                                 if (opterr)
-                                    fprintf(stderr, "%s: option requires"
-                                            " an argument -- %c\n", argv[0],
-                                            optopt);
+                                    fprintf(stderr,
+                                            "%s: option requires"
+                                            " an argument -- %c\n",
+                                            argv[0], optopt);
                                 option = colon_mode ? ':' : '?';
                                 goto done;
                             } else {

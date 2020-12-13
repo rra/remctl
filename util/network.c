@@ -45,15 +45,15 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <errno.h>
 #ifdef HAVE_SYS_SELECT_H
-# include <sys/select.h>
+#    include <sys/select.h>
 #endif
 #ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
+#    include <sys/time.h>
 #endif
 #include <time.h>
 
@@ -66,11 +66,11 @@
 
 /* Macros to set the len attribute of sockaddrs. */
 #if HAVE_STRUCT_SOCKADDR_SA_LEN
-# define sin_set_length(s)      ((s)->sin_len  = sizeof(struct sockaddr_in))
-# define sin6_set_length(s)     ((s)->sin6_len = sizeof(struct sockaddr_in6))
+#    define sin_set_length(s)  ((s)->sin_len = sizeof(struct sockaddr_in))
+#    define sin6_set_length(s) ((s)->sin6_len = sizeof(struct sockaddr_in6))
 #else
-# define sin_set_length(s)      /* empty */
-# define sin6_set_length(s)     /* empty */
+#    define sin_set_length(s)  /* empty */
+#    define sin6_set_length(s) /* empty */
 #endif
 
 /*
@@ -78,9 +78,9 @@
  * return short writes on blocking sockets.
  */
 #ifdef _WIN32
-# define socket_xwrite(fd, b, s)        send((fd), (b), (s), 0)
+#    define socket_xwrite(fd, b, s) send((fd), (b), (s), 0)
 #else
-# define socket_xwrite(fd, b, s)        xwrite((fd), (b), (s))
+#    define socket_xwrite(fd, b, s) xwrite((fd), (b), (s))
 #endif
 
 
@@ -588,8 +588,8 @@ network_connect(const struct addrinfo *ai, const char *source, time_t timeout)
  * anything useful.
  */
 socket_type
-network_connect_host(const char *host, unsigned short port,
-                     const char *source, time_t timeout)
+network_connect_host(const char *host, unsigned short port, const char *source,
+                     time_t timeout)
 {
     struct addrinfo hints, *ai;
     char portbuf[16];
@@ -967,7 +967,7 @@ network_addr_match(const char *a, const char *b, const char *mask)
             return false;
         return (a4.s_addr & addr_mask) == (b4.s_addr & addr_mask);
     }
-            
+
 #ifdef HAVE_INET6
     /*
      * Otherwise, if the address is IPv6, the mask is required to be a CIDR

@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2015, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015, 2018, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
@@ -17,7 +17,7 @@
 
 #include <config.h>
 #ifdef HAVE_KRB5
-# include <portable/krb5.h>
+#    include <portable/krb5.h>
 #endif
 #include <portable/system.h>
 
@@ -26,11 +26,11 @@
 #include <errno.h>
 #include <grp.h>
 #ifdef HAVE_PCRE
-# include <pcre.h>
+#    include <pcre.h>
 #endif
 #include <pwd.h>
 #ifdef HAVE_REGCOMP
-# include <regex.h>
+#    include <regex.h>
 #endif
 #include <sys/stat.h>
 
@@ -38,7 +38,7 @@
 #include <util/macros.h>
 #include <util/messages.h>
 #ifdef HAVE_KRB5
-# include <util/messages-krb5.h>
+#    include <util/messages-krb5.h>
 #endif
 #include <util/vector.h>
 #include <util/xmalloc.h>
@@ -50,7 +50,7 @@
  * for it.
  */
 #ifdef HAVE_GPUT
-# include <gput.h>
+#    include <gput.h>
 static char *acl_gput_file = NULL;
 #endif
 
@@ -59,12 +59,14 @@ static char *acl_gput_file = NULL;
     (sysconf(_SC_LOGIN_NAME_MAX) < 256 ? 256 : sysconf(_SC_LOGIN_NAME_MAX))
 
 /* Return codes for configuration and ACL parsing. */
+/* clang-format off */
 enum config_status {
     CONFIG_SUCCESS = 0,
     CONFIG_NOMATCH = -1,
     CONFIG_ERROR   = -2,
     CONFIG_DENY    = -3
 };
+/* clang-format on */
 
 /* Holds information about parsing configuration options. */
 struct config_option {
@@ -275,8 +277,8 @@ option_stdin(struct rule *rule, char *value, const char *name, size_t lineno)
     if (strcmp(value, "last") == 0)
         rule->stdin_arg = -1;
     else if (!convert_number(value, &rule->stdin_arg)) {
-        warn("%s:%lu: invalid stdin value %s", name,
-             (unsigned long) lineno, value);
+        warn("%s:%lu: invalid stdin value %s", name, (unsigned long) lineno,
+             value);
         return CONFIG_ERROR;
     }
     return CONFIG_SUCCESS;
@@ -357,15 +359,17 @@ option_help(struct rule *rule, char *value, const char *name UNUSED,
 /*
  * The table relating configuration option names to functions.
  */
+/* clang-format off */
 static const struct config_option options[] = {
-    { "help",    option_help    },
-    { "logmask", option_logmask },
-    { "stdin",   option_stdin   },
-    { "sudo",    option_sudo    },
-    { "summary", option_summary },
-    { "user",    option_user    },
-    { NULL,      NULL           }
+    {"help",    option_help   },
+    {"logmask", option_logmask},
+    {"stdin",   option_stdin  },
+    {"sudo",    option_sudo   },
+    {"summary", option_summary},
+    {"user",    option_user   },
+    {NULL,      NULL          }
 };
+/* clang-format on */
 
 
 /*
@@ -522,10 +526,10 @@ read_conf_file(void *data, const char *name)
             config->allocated = n;
         }
         rule = xcalloc(1, sizeof(struct rule));
-        rule->line       = line;
-        rule->command    = line->strings[0];
+        rule->line = line;
+        rule->command = line->strings[0];
         rule->subcommand = line->strings[1];
-        rule->program    = line->strings[2];
+        rule->program = line->strings[2];
 
         /*
          * Parse config options.
@@ -643,8 +647,8 @@ acl_check_file_internal(void *data, const char *aclfile)
         else {
             line = vector_split_space(buffer, NULL);
             if (line->count == 2 && strcmp(line->strings[0], "include") == 0) {
-                s = acl_check(data, line->strings[1], ACL_SCHEME_FILE,
-                              aclfile, lineno);
+                s = acl_check(data, line->strings[1], ACL_SCHEME_FILE, aclfile,
+                              lineno);
                 vector_free(line);
                 line = NULL;
             } else {
@@ -759,17 +763,21 @@ acl_check_anyuser(const struct client *client, const char *data,
  * Any other result indicates a processing error and is returned as-is.
  */
 static enum config_status
-acl_check_deny(const struct client *client, const char *data,
-               const char *file, size_t lineno)
+acl_check_deny(const struct client *client, const char *data, const char *file,
+               size_t lineno)
 {
     enum config_status s;
 
     s = acl_check(client, data, ACL_SCHEME_PRINC, file, lineno);
     switch (s) {
-    case CONFIG_SUCCESS: return CONFIG_DENY;
-    case CONFIG_NOMATCH: return CONFIG_NOMATCH;
-    case CONFIG_DENY:    return CONFIG_NOMATCH;
-    case CONFIG_ERROR:   return CONFIG_ERROR;
+    case CONFIG_SUCCESS:
+        return CONFIG_DENY;
+    case CONFIG_NOMATCH:
+        return CONFIG_NOMATCH;
+    case CONFIG_DENY:
+        return CONFIG_NOMATCH;
+    case CONFIG_ERROR:
+        return CONFIG_ERROR;
     }
     return s;
 }
@@ -807,8 +815,8 @@ server_config_set_gput_file(char *file UNUSED)
  */
 #ifdef HAVE_GPUT
 static enum config_status
-acl_check_gput(const struct client *client, const char *data,
-               const char *file, size_t lineno)
+acl_check_gput(const struct client *client, const char *data, const char *file,
+               size_t lineno)
 {
     GPUT *G;
     char *role, *xform, *xform_start, *xform_end;
@@ -867,8 +875,8 @@ acl_check_gput(const struct client *client, const char *data,
  */
 #ifdef HAVE_PCRE
 static enum config_status
-acl_check_pcre(const struct client *client, const char *data,
-               const char *file, size_t lineno)
+acl_check_pcre(const struct client *client, const char *data, const char *file,
+               size_t lineno)
 {
     pcre *regex;
     const char *error;
@@ -1148,33 +1156,35 @@ done:
  * schemes must remain in their current slots or the index constants set at
  * the top of the file need to change.
  */
+/* clang-format off */
 static const struct acl_scheme schemes[] = {
-    { "file",       acl_check_file       },
-    { "princ",      acl_check_princ      },
-    { "anyuser",    acl_check_anyuser    },
-    { "deny",       acl_check_deny       },
+    {"file",       acl_check_file      },
+    {"princ",      acl_check_princ     },
+    {"anyuser",    acl_check_anyuser   },
+    {"deny",       acl_check_deny      },
 #ifdef HAVE_GPUT
-    { "gput",       acl_check_gput       },
+    {"gput",       acl_check_gput      },
 #else
-    { "gput",       NULL                 },
+    {"gput",       NULL                },
 #endif
 #if defined(HAVE_KRB5) && defined(HAVE_GETGRNAM_R)
-    { "localgroup", acl_check_localgroup },
+    {"localgroup", acl_check_localgroup},
 #else
-    { "localgroup", NULL                 },
+    {"localgroup", NULL                },
 #endif
 #ifdef HAVE_PCRE
-    { "pcre",       acl_check_pcre       },
+    {"pcre",       acl_check_pcre      },
 #else
-    { "pcre",       NULL                 },
+    {"pcre",       NULL                },
 #endif
 #ifdef HAVE_REGCOMP
-    { "regex",      acl_check_regex      },
+    {"regex",      acl_check_regex     },
 #else
-    { "regex",      NULL                 },
+    {"regex",      NULL                },
 #endif
-    { NULL,         NULL                 }
+    {NULL,         NULL                }
 };
+/* clang-format on */
 
 
 /*

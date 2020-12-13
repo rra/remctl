@@ -29,7 +29,7 @@ test_env(struct remctl *r, const char *variable)
 {
     struct remctl_output *output;
     char *value = NULL;
-    const char *command[] = { "test", "env", NULL, NULL };
+    const char *command[] = {"test", "env", NULL, NULL};
 
     command[2] = variable;
     if (!remctl_command(r, command)) {

@@ -2,7 +2,7 @@
  * Replacement for a missing getnameinfo.
  *
  * This is an implementation of getnameinfo for systems that don't have one so
- * that networking code can use a consistant interface without #ifdef.  It is
+ * that networking code can use a consistent interface without #ifdef.  It is
  * a fairly minimal implementation, with the following limitations:
  *
  *   - IPv4 support only.  IPv6 is not supported.
@@ -17,7 +17,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2005 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2005, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2008, 2011, 2013-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -34,6 +34,7 @@
 #include <portable/socket.h>
 #include <portable/system.h>
 
+#include <ctype.h>
 #include <errno.h>
 
 /*
@@ -42,33 +43,52 @@
  * constants, but that should be okay (except possibly for gai_strerror).
  */
 #if TESTING
-# undef getnameinfo
-# define getnameinfo test_getnameinfo
+#    undef getnameinfo
+#    define getnameinfo test_getnameinfo
 int test_getnameinfo(const struct sockaddr *, socklen_t, char *, socklen_t,
                      char *, socklen_t, int);
 
 /* Linux doesn't provide EAI_OVERFLOW, so make up our own for testing. */
-# ifndef EAI_OVERFLOW
-#  define EAI_OVERFLOW 10
-# endif
+#    ifndef EAI_OVERFLOW
+#        define EAI_OVERFLOW 10
+#    endif
 #endif
 
 /* Used for unused parameters to silence gcc warnings. */
-#define UNUSED  __attribute__((__unused__))
+#define UNUSED __attribute__((__unused__))
 
 
 /*
  * Check to see if a name is fully qualified by seeing if it contains a
  * period.  If it does, try to copy it into the provided node buffer and set
  * status accordingly, returning true.  If not, return false.
+ *
+ * musl libc returns the text form of the IP address rather than NULL when the
+ * IP address doesn't resolve.  Reject such names here so that NI_NAMEREQD is
+ * emulated correctly.
  */
 static bool
 try_name(const char *name, char *node, socklen_t nodelen, int *status)
 {
     size_t namelen;
+    const char *p;
+    bool found_nondigit = false;
 
+    /* Reject unqualified names. */
     if (strchr(name, '.') == NULL)
         return false;
+
+    /*
+     * Reject names consisting entirely of digits and period, since these are
+     * converted IP addresses rather than resolved names.
+     */
+    for (p = name; *p != '\0'; p++)
+        if (!isdigit((unsigned char) *p) && *p != '.')
+            found_nondigit = true;
+    if (!found_nondigit)
+        return false;
+
+    /* Copy the name if it's not too long and return success. */
     namelen = strlen(name);
     if (namelen + 1 > (size_t) nodelen)
         *status = EAI_OVERFLOW;

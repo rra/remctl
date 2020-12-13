@@ -2,7 +2,7 @@
  * Test suite for continued commands.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2018-2019 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018-2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006, 2009-2010, 2012-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -30,15 +30,17 @@ main(void)
     struct kerberos_config *config;
     struct remctl *r;
     struct remctl_output *output;
-    static const char prefix_first[] = { 2, MESSAGE_COMMAND, 1, 1 };
-    static const char prefix_next[] = { 2, MESSAGE_COMMAND, 1, 2 };
-    static const char prefix_last[] = { 2, MESSAGE_COMMAND, 1, 3 };
+    static const char prefix_first[] = {2, MESSAGE_COMMAND, 1, 1};
+    static const char prefix_next[] = {2, MESSAGE_COMMAND, 1, 2};
+    static const char prefix_last[] = {2, MESSAGE_COMMAND, 1, 3};
+    /* clang-format off */
     static const char data[] = {
         0, 0, 0, 3,
         0, 0, 0, 4, 't', 'e', 's', 't',
         0, 0, 0, 6, 's', 't', 'a', 't', 'u', 's',
         0, 0, 0, 1, '2'
     };
+    /* clang-format on */
     char buffer[BUFSIZ];
     gss_buffer_desc token;
     OM_uint32 major, minor;

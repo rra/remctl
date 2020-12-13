@@ -33,8 +33,8 @@
 
 #include <config.h>
 #include <portable/macros.h>
-#include <portable/stdbool.h>
 #include <portable/socket.h>
+#include <portable/stdbool.h>
 
 BEGIN_DECLS
 

@@ -2,6 +2,7 @@
  * Test suite for malformed commands.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2007, 2009-2010, 2012-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -83,7 +84,7 @@ test_bad_command(const struct kerberos_config *config, const char *data,
 {
     char buffer[BUFSIZ];
     size_t buflen;
-    static const char prefix[] = { 2, MESSAGE_COMMAND, 1, 0 };
+    static const char prefix[] = {2, MESSAGE_COMMAND, 1, 0};
 
     memcpy(buffer, prefix, sizeof(prefix));
     memcpy(buffer + sizeof(prefix), data, length);
@@ -97,9 +98,8 @@ int
 main(void)
 {
     struct kerberos_config *config;
-    static const char token_message[] = {
-        2, 47
-    };
+    static const char token_message[] = {2, 47};
+    /* clang-format off */
     static const char token_continue[] = {
         2, MESSAGE_COMMAND, 1, 4,
         0, 0, 0, 2,
@@ -151,6 +151,7 @@ main(void)
         0, 0, 0, 6, 's', 't', 'a', 't', 'u', 's',
         0, 0, 0, 1, '\0'
     };
+    /* clang-format on */
 
     /* Unless we have Kerberos available, we can't really do anything. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
@@ -166,8 +167,7 @@ main(void)
                    ERROR_BAD_COMMAND, "Invalid command token",
                    "bad command token");
     test_bad_token(config, token_argv0, sizeof(token_argv0),
-                   ERROR_UNKNOWN_COMMAND, "Unknown command",
-                   "empty command");
+                   ERROR_UNKNOWN_COMMAND, "Unknown command", "empty command");
 
     /* Test a bunch of malformatted commands. */
     test_bad_command(config, data_trunc, sizeof(data_trunc),
@@ -176,8 +176,7 @@ main(void)
                      "truncated argument");
     test_bad_command(config, data_short, sizeof(data_short),
                      "missing argument");
-    test_bad_command(config, data_long, sizeof(data_long),
-                     "extra argument");
+    test_bad_command(config, data_long, sizeof(data_long), "extra argument");
     test_bad_command(config, data_extra, sizeof(data_extra),
                      "extra trailing garbage");
     test_bad_command(config, data_nul_command, sizeof(data_nul_command),

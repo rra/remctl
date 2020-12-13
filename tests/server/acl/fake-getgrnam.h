@@ -8,7 +8,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
- 
+
 #ifndef TESTS_SERVER_ACL_FAKE_GETGRNAM_H
 #define TESTS_SERVER_ACL_FAKE_GETGRNAM_H 1
 

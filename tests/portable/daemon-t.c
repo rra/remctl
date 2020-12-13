@@ -23,11 +23,11 @@
 #include <errno.h>
 #include <fcntl.h>
 #ifdef HAVE_SYS_SELECT_H
-# include <sys/select.h>
+#    include <sys/select.h>
 #endif
 #include <sys/stat.h>
 #ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
+#    include <sys/time.h>
 #endif
 #include <sys/wait.h>
 #include <time.h>

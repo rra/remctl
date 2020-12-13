@@ -3,7 +3,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on prior work by Anton Ushakov
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2010, 2012-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -16,7 +16,7 @@
 #include <config.h>
 #include <portable/gssapi.h>
 #ifdef HAVE_KRB5
-# include <portable/krb5.h>
+#    include <portable/krb5.h>
 #endif
 #include <portable/macros.h>
 #include <portable/socket.h>
@@ -28,19 +28,19 @@ struct iovec;
 
 /* Private structure that holds the details of an open remctl connection. */
 struct remctl {
-    const char *host;           /* From remctl_open, stored here because */
-    unsigned short port;        /*   remctl v1 requires opening a new    */
-    const char *principal;      /*   connection for each command.        */
-    int protocol;               /* Protocol version. */
-    char *source;               /* Source address for connection. */
-    time_t timeout;
-    char *ccache;               /* Path to client ticket cache. */
-    socket_type fd;
-    gss_ctx_id_t context;
-    char *error;
-    struct remctl_output *output;
-    int status;
-    bool ready;                 /* If true, we are expecting server output. */
+    const char *host;             /* From remctl_open, stored here because */
+    unsigned short port;          /*   remctl v1 requires opening a new    */
+    const char *principal;        /*   connection for each command.        */
+    int protocol;                 /* Protocol version. */
+    char *source;                 /* Source address for connection. */
+    time_t timeout;               /* Client-configured timeout. */
+    char *ccache;                 /* Path to client ticket cache. */
+    socket_type fd;               /* Open server socket. */
+    gss_ctx_id_t context;         /* Negotiated GSS-API context with server. */
+    char *error;                  /* Error of last failed operation. */
+    struct remctl_output *output; /* Output from last command. */
+    int status;                   /* Status of last command. */
+    bool ready;                   /* If true, expecting server output. */
 
     /* Used to hold state for remctl_set_ccache. */
 #ifdef HAVE_KRB5
@@ -57,8 +57,8 @@ BEGIN_DECLS
 /* Helper functions to set errors. */
 void internal_set_error(struct remctl *, const char *, ...)
     __attribute__((__format__(printf, 2, 3), __nonnull__));
-void internal_gssapi_error(struct remctl *, const char *error,
-                           OM_uint32 major, OM_uint32 minor);
+void internal_gssapi_error(struct remctl *, const char *error, OM_uint32 major,
+                           OM_uint32 minor);
 #ifdef HAVE_KRB5
 void internal_krb5_error(struct remctl *, const char *error,
                          krb5_error_code code);

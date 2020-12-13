@@ -70,7 +70,7 @@ bufferevent_socket_new(struct event_base *base, evutil_socket_t fd,
 
 
 #if !defined(LIBEVENT_VERSION_NUMBER) || LIBEVENT_VERSION_NUMBER < 0x02000100
-# undef evbuffer_drain
+#    undef evbuffer_drain
 /*
  * A fixed version of evbuffer_drain that returns a status code.  Old versions
  * of libevent returned void.

@@ -38,7 +38,7 @@
 #include <config.h>
 #include <tests/tap/macros.h>
 
-#include <sys/types.h>          /* pid_t */
+#include <sys/types.h> /* pid_t */
 
 /* Defined in <tests/tap/kerberos.h>. */
 struct kerberos_config;
@@ -65,8 +65,7 @@ BEGIN_DECLS
  * this means that the test case cannot be run.
  */
 struct process *remctld_start(struct kerberos_config *, const char *config,
-                              ...)
-    __attribute__((__nonnull__(1, 2)));
+                              ...) __attribute__((__nonnull__(1, 2)));
 
 /*
  * Like remctld_start, but run remctld under fakeroot.  Calls skip_all if

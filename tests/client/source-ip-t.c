@@ -25,7 +25,7 @@ main(void)
     const char *err;
     struct remctl *r;
     struct remctl_output *output;
-    const char *command[] = { "test", "env", "REMOTE_ADDR", NULL };
+    const char *command[] = {"test", "env", "REMOTE_ADDR", NULL};
 
     /* Set up Kerberos and remctld. */
     config = kerberos_setup(TAP_KRB_NEEDS_KEYTAB);
@@ -56,9 +56,10 @@ main(void)
     err = remctl_error(r);
     diag("error: %s", err);
     ok(((strncmp("cannot connect to ::1 (port 14373): ", err,
-                strlen("cannot connect to ::1 (port 14373): ")) == 0)
-        || (strncmp("unknown host ::1: ", err,
-                    strlen("unknown host ::1: ")) == 0)),
+                 strlen("cannot connect to ::1 (port 14373): "))
+         == 0)
+        || (strncmp("unknown host ::1: ", err, strlen("unknown host ::1: "))
+            == 0)),
        "failed with correct error");
 
     remctl_close(r);

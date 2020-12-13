@@ -78,7 +78,7 @@ test_command(struct remctl *r, const char *addr)
 {
     struct remctl_output *output;
     char *seen;
-    const char *command[] = { "test", "env", "REMOTE_ADDR", NULL };
+    const char *command[] = {"test", "env", "REMOTE_ADDR", NULL};
 
     if (!remctl_command(r, command)) {
         diag("remctl error %s", remctl_error(r));
@@ -148,8 +148,8 @@ main(void)
     process_stop(remctld);
 
     /* Try binding to only IPv4. */
-    remctld = remctld_start(config, "data/conf-simple", "-b", "127.0.0.1",
-                            NULL);
+    remctld =
+        remctld_start(config, "data/conf-simple", "-b", "127.0.0.1", NULL);
     r = remctl_new();
     ok(remctl_open(r, "127.0.0.1", 14373, config->principal),
        "Connect to 127.0.0.1 when bound to that address");
@@ -212,6 +212,6 @@ main(void)
 #else
     skip_block(8, "IPv6 not supported");
 #endif
-    
+
     return 0;
 }

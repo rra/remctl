@@ -5,7 +5,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2005, 2013, 2016 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2005, 2013, 2016, 2020 Russ Allbery <eagle@eyrie.org>
  * Copyright 2009-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -31,8 +31,8 @@
  */
 
 #include <config.h>
-#include <portable/system.h>
 #include <portable/socket.h>
+#include <portable/system.h>
 
 #include <tests/tap/basic.h>
 #include <util/network.h>
@@ -107,6 +107,7 @@ main(void)
     freeaddrinfo(ai);
 
     /* Tests for network_addr_compare. */
+    /* clang-format off */
     is_addr_compare(1, "127.0.0.1", "127.0.0.1",   NULL);
     is_addr_compare(0, "127.0.0.1", "127.0.0.2",   NULL);
     is_addr_compare(1, "127.0.0.1", "127.0.0.0",   "31");
@@ -120,8 +121,10 @@ main(void)
     is_addr_compare(0, "129.0.0.0", "1.0.0.0",     "1");
     is_addr_compare(1, "129.0.0.0", "1.0.0.0",     "0");
     is_addr_compare(1, "129.0.0.0", "1.0.0.0",     "0.0.0.0");
+    /* clang-format on */
 
     /* Test some invalid addresses. */
+    /* clang-format off */
     is_addr_compare(0, "fred",      "fred",        NULL);
     is_addr_compare(0, "",          "",            NULL);
     is_addr_compare(0, "",          "",            "0");
@@ -130,6 +133,7 @@ main(void)
     is_addr_compare(0, "127.0.0.1", "127.0.0.1",   "1p");
     is_addr_compare(0, "127.0.0.1", "127.0.0.1",   "-1");
     is_addr_compare(0, "127.0.0.1", "127.0.0.1",   "33");
+    /* clang-format on */
 
     /* Test setting various socket options. */
     fd = socket(PF_INET, SOCK_STREAM, IPPROTO_IP);

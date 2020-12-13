@@ -13,11 +13,11 @@
 
 #include <config.h>
 #ifdef HAVE_KRB5
-# include <portable/krb5.h>
+#    include <portable/krb5.h>
 #else
-# define KRB5_WELLKNOWN_NAME "WELLKNOWN"
-# define KRB5_ANON_NAME "ANONYMOUS"
-# define KRB5_ANON_REALM "WELLKNOWN:ANONYMOUS"
+#    define KRB5_WELLKNOWN_NAME "WELLKNOWN"
+#    define KRB5_ANON_NAME      "ANONYMOUS"
+#    define KRB5_ANON_REALM     "WELLKNOWN:ANONYMOUS"
 #endif
 #include <portable/system.h>
 
@@ -35,10 +35,9 @@
 static bool
 acl_permit(const struct rule *rule, const char *user)
 {
-    struct client client = {
-        -1, -1, NULL, NULL, 0, NULL, (char *) user, false, 0, 0, false, false,
-        NULL, NULL, NULL
-    };
+    struct client client = {-1,    -1, NULL, NULL,  0,     NULL, (char *) user,
+                            false, 0,  0,    false, false, NULL, NULL,
+                            NULL};
     return server_config_acl_permit(rule, &client);
 }
 
@@ -55,10 +54,8 @@ static bool
 acl_permit_anonymous(const struct rule *rule)
 {
     static char *pname = NULL;
-    struct client client = {
-        -1, -1, NULL, NULL, 0, NULL, NULL, true, 0, 0, false, false, NULL,
-        NULL, NULL
-    };
+    struct client client = {-1, -1, NULL,  NULL,  0,    NULL, NULL, true,
+                            0,  0,  false, false, NULL, NULL, NULL};
 
     if (pname == NULL)
         basprintf(&pname, "%s/%s@%s", KRB5_WELLKNOWN_NAME, KRB5_ANON_NAME,
@@ -71,10 +68,8 @@ acl_permit_anonymous(const struct rule *rule)
 int
 main(void)
 {
-    struct rule rule = {
-        NULL, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, 0, NULL,
-        NULL, NULL
-    };
+    struct rule rule = {NULL, 0,    NULL, NULL, NULL, NULL, NULL, 0,
+                        NULL, NULL, 0,    0,    NULL, NULL, NULL};
     const char *acls[5];
 
     plan(78);
@@ -106,12 +101,14 @@ main(void)
     errors_capture();
     ok(!acl_permit(&rule, "test@EXAMPLE.COM"), "included file not found");
     is_string("data/acl-bad-include:1: included file data/acl-nosuchfile"
-              " not found\n", errors, "...and correct error message");
+              " not found\n",
+              errors, "...and correct error message");
     acls[0] = "data/acl-recursive";
     errors_capture();
     ok(!acl_permit(&rule, "test@EXAMPLE.COM"), "recursive ACL inclusion");
     is_string("data/acl-recursive:3: data/acl-recursive recursively"
-              " included\n", errors, "...and correct error message");
+              " included\n",
+              errors, "...and correct error message");
     acls[0] = "data/acls/valid-2";
     acls[1] = "data/acl-too-long";
     errors_capture();
@@ -197,8 +194,7 @@ main(void)
     acls[3] = "princ:evil@EXAMPLE.NET";
     acls[4] = NULL;
     ok(!acl_permit(&rule, "explicit@EXAMPLE.COM"), "deny of a file works");
-    ok(acl_permit(&rule, "evil@EXAMPLE.ORG"),
-       "...and doesn't break anything");
+    ok(acl_permit(&rule, "evil@EXAMPLE.ORG"), "...and doesn't break anything");
     ok(acl_permit(&rule, "evil@EXAMPLE.NET"),
        "...and deny inside a denied file is ignored");
 
@@ -282,7 +278,8 @@ main(void)
     errors_capture();
     ok(!acl_permit(&rule, "host/bar.org@EXAMPLE.ORG"), "regex invalid regex");
     ok(strncmp(errors, "TEST:0: compilation of regex '*host/.*' failed:",
-               strlen("TEST:0: compilation of regex '*host/.*' failed:")) == 0,
+               strlen("TEST:0: compilation of regex '*host/.*' failed:"))
+           == 0,
        "...with invalid regex error");
     errors_uncapture();
     free(errors);
