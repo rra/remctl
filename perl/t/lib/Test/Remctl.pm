@@ -46,10 +46,10 @@ sub run_wrapper {
     # Save STDOUT and STDERR and redirect to scalars.
     open(my $oldout, '>&', \*STDOUT) or BAIL_OUT("Cannot save STDOUT: $!");
     open(my $olderr, '>&', \*STDERR) or BAIL_OUT("Cannot save STDERR: $!");
-    close(STDOUT) or BAIL_OUT("Cannot close STDOUT: $!");
-    close(STDERR) or BAIL_OUT("Cannot close STDERR: $!");
-    open(STDOUT, '>', \$output) or BAIL_OUT("Cannot redirect STDOUT: $!");
-    open(STDERR, '>', \$error)  or BAIL_OUT("Cannot redirect STDERR: $!");
+    close(STDOUT)                    or BAIL_OUT("Cannot close STDOUT: $!");
+    close(STDERR)                    or BAIL_OUT("Cannot close STDERR: $!");
+    open(STDOUT, '>', \$output)      or BAIL_OUT("Cannot redirect STDOUT: $!");
+    open(STDERR, '>', \$error)       or BAIL_OUT("Cannot redirect STDERR: $!");
 
     # Run the backend.
     my $status = eval { $backend->run(@args) };

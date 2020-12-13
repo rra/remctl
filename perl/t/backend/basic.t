@@ -116,7 +116,7 @@ $backend = Net::Remctl::Backend->new(
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2 arg3));
 is($status, 255, 'cmd1 with three args returns 255');
 is($out,    q{}, '... and no output');
-is($err, "foo cmd1: too many arguments\n", '... and correct verbose error');
+is($err,    "foo cmd1: too many arguments\n", '... and correct verbose error');
 is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
 
@@ -134,7 +134,7 @@ is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1 arg2)]], 'cmd1 called correctly');
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg-2));
 is($status, 255, 'cmd1 fails argument checking');
 is($out,    q{}, '... and no output');
-is($err, "foo cmd1: invalid argument: arg-2\n", '... and correct error');
+is($err,    "foo cmd1: invalid argument: arg-2\n", '... and correct error');
 is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
 
