@@ -22,6 +22,7 @@ the main package and the Perl bindings if installed:
 * Test::MinimumVersion
 * Test::Perl::Critic
 * Test::Pod
+* Test::Pod::Coverage
 * Test::Spelling
 * Test::Strict
 * Test::Synopsis
