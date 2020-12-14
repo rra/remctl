@@ -141,8 +141,9 @@ DISTCHECK_CONFIGURE_FLAGS = \
 	--with-systemdsystemunitdir=$$dc_install_base/$(systemdsystemunitdir)
 
 # Set this globally, since we have too many header files that include the
-# GSS-API headers even if the code itself doesn't call GSS-API functions.
-AM_CPPFLAGS = $(GSSAPI_CPPFLAGS)
+# Kerberos or GSS-API headers even if the code itself doesn't call Kerberos
+# or GSS-API functions.
+AM_CPPFLAGS = $(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS)
 
 if HAVE_LD_VERSION_SCRIPT
     VERSION_LDFLAGS = -Wl,--version-script=${srcdir}/client/libremctl.map
@@ -157,7 +158,8 @@ portable_libportable_la_SOURCES = portable/dummy.c portable/event.h	\
 	portable/gssapi.h portable/krb5.h portable/macros.h		\
 	portable/sd-daemon.h portable/socket.h portable/stdbool.h	\
 	portable/system.h portable/uio.h
-portable_libportable_la_LIBADD = $(LTLIBOBJS)
+portable_libportable_la_LDFLAGS = $(KRB5_LDFLAGS)
+portable_libportable_la_LIBADD = $(LTLIBOBJS) $(KRB5_LIBS)
 util_libutil_la_SOURCES = util/buffer.c util/buffer.h util/fdflag.c	    \
 	util/fdflag.h util/gss-errors.c util/gss-errors.h util/gss-tokens.c \
 	util/gss-tokens.h util/macros.h util/messages.c util/messages.h	    \
@@ -170,7 +172,6 @@ util_libutil_la_LIBADD = $(GSSAPI_LIBS)
 # If built with Kerberos support, add messages-krb5.
 if HAVE_KRB5
     util_libutil_la_SOURCES += util/messages-krb5.c util/messages-krb5.h
-    util_libutil_la_CPPFLAGS = $(KRB5_CPPFLAGS)
     util_libutil_la_LDFLAGS += $(KRB5_LDFLAGS)
     util_libutil_la_LIBADD += $(KRB5_LIBS)
 endif
@@ -364,14 +365,15 @@ RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
 	-Wno-gcc-compat -Wno-extra-semi-stmt -Wno-strict-overflow -Wno-vla
 
 warnings:
-	$(MAKE) V=0 AM_CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
-	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)'		\
-	    PERL_CFLAGS_EXTRA='$(PERL_WARNINGS)'		\
-	    PHP_CFLAGS_EXTRA='$(PHP_WARNINGS)'			\
-	    PYTHON_CFLAGS_EXTRA='$(PYTHON_WARNINGS)'		\
+	$(MAKE) V=0					\
+	    AM_CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
+	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_WARNINGS)'	\
+	    PERL_CFLAGS_EXTRA='$(PERL_WARNINGS)'	\
+	    PHP_CFLAGS_EXTRA='$(PHP_WARNINGS)'		\
+	    PYTHON_CFLAGS_EXTRA='$(PYTHON_WARNINGS)'	\
 	    RUBY_CFLAGS_EXTRA='$(RUBY_WARNINGS)'
 	$(MAKE) V=0 AM_CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)' \
-	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)' $(check_PROGRAMS)
+	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_WARNINGS)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
@@ -545,8 +547,9 @@ tests_server_streaming_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 tests_server_sudo_t_SOURCES = tests/server/sudo-t.c $(SERVER_FILES)
-tests_server_sudo_t_CPPFLAGS = \
-	-DPATH_SUDO='"$(abs_top_srcdir)/tests/data/fake-sudo"'
+tests_server_sudo_t_CPPFLAGS =					\
+	-DPATH_SUDO='"$(abs_top_srcdir)/tests/data/fake-sudo"'	\
+	$(KRB5_CPPFLAGS)
 tests_server_sudo_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
 tests_server_sudo_t_LDADD = tests/tap/libtap.a util/libutil.la	 \
@@ -575,7 +578,6 @@ tests_util_gss_tokens_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS)
 tests_util_messages_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
-tests_util_messages_krb5_t_CPPFLAGS = $(KRB5_CPPFLAGS)
 tests_util_messages_krb5_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_util_messages_krb5_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(KRB5_LIBS)
