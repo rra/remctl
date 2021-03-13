@@ -1,7 +1,7 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2015-2016, 2018-2020 Russ Allbery <eagle@eyrie.org>
+# Copyright 2015-2016, 2018-2021 Russ Allbery <eagle@eyrie.org>
 # Copyright 2016 Dropbox, Inc.
 # Copyright 2006-2014
 #     The Board of Trustees of the Leland Stanford Junior University
@@ -351,7 +351,8 @@ PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs			\
 	-Wno-missing-prototypes -Wno-redundant-decls -Wno-shadow	\
 	-Wno-old-style-definition -Wno-conversion			\
 	-Wno-gnu-statement-expression -Wno-cast-align -Wno-comma	\
-	-Wno-covered-switch-default -Wno-extra-semi-stmt
+	-Wno-covered-switch-default -Wno-extra-semi-stmt		\
+	-Wno-implicit-fallthrough
 PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
 	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal	\
