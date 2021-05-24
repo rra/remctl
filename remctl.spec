@@ -337,6 +337,7 @@ echo '%{test_princ}'  > tests/config/principal
 %if 0%{?test_krb5_conf:1}
 ln -s $(realpath '%{test_krb5_conf}') tests/config/krb5.conf
 %endif
+export KRB5RCACHEDIR=$(realpath tests/tmp)
 make check
 
 %files devel
