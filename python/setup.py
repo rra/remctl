@@ -91,8 +91,10 @@ if os.environ.get("CC"):
 # should be used in the link.  Extract those flags and pass them into the
 # extension configuration.  When built stand-alone, use the defaults and
 # assume we don't need special contortions to link with libremctl.
-library_dirs = parse_flags("-L", os.environ.get("REMCTL_PYTHON_LIBS", ""))
-libraries = parse_flags("-l", os.environ.get("REMCTL_PYTHON_LIBS", ""))
+flags = os.environ.get("REMCTL_PYTHON_LIBS", "")
+library_dirs = parse_flags("-L", flags)
+libraries = parse_flags("-l", flags)
+extra_link_args = [opt for opt in flags.split() if opt.startswith("-Wl,")]
 
 extension = Extension(
     "_remctl",
@@ -100,6 +102,7 @@ extension = Extension(
     define_macros=[("VERSION", '"' + VERSION + '"')],
     libraries=["remctl"] + libraries,
     library_dirs=library_dirs,
+    extra_link_args=extra_link_args,
 )
 
 kwargs = {
