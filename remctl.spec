@@ -74,7 +74,7 @@ BuildRequires: systemd-rpm-macros
 Distribution: SUSE Linux Enterprise %{sles_version}
 %else
 %if 0%{?with_systemd:1}
-BuildRequires: systemd-units
+BuildRequires: systemd-units, systemd-devel
 %endif
 Distribution: EL
 %endif
