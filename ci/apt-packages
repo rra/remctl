@@ -23,11 +23,9 @@ pkg-config
 python3-all-dev
 python3-pip
 python3-pytest
-python3-pytest-runner
 python3-setuptools
 python-all-dev
 python-pytest
-python-pytest-runner
 python-setuptools
 python-typing
 ruby-all-dev
