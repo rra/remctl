@@ -1,3 +1,11 @@
+remctl (3.17-2) UNRELEASED; urgency=medium
+
+  * Reorganize the binary package descriptions to put the distinguishing
+    quality of each package first, ahead of the generic description of
+    remctl, rather than last.
+
+ -- Russ Allbery <rra@debian.org>  Mon, 27 Dec 2021 17:08:32 -0800
+
 remctl (3.17-1) unstable; urgency=medium
 
   * New upstream release.

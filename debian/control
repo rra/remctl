@@ -44,14 +44,14 @@ Depends:
  ${misc:Depends},
  ${shlibs:Depends},
 Description: Library for Kerberos-authenticated command execution
+ The remctl client library, linked against MIT Kerberos.
+ .
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
  be listed in a server configuration file, and the executable run on the
  server may be mapped to any command name.  Each command is also
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
- .
- This package contains the client libraries linked against MIT Kerberos.
 
 Package: libremctl-dev
 Section: libdevel
@@ -63,15 +63,16 @@ Depends:
 Suggests:
  libkrb5-dev,
 Description: Development files for Kerberos-authenticated command execution
+ The development files required to build and link C or C++ programs that
+ use the remctl client library.  The underlying library is linked against
+ MIT Kerberos.
+ .
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
  be listed in a server configuration file, and the executable run on the
  server may be mapped to any command name.  Each command is also
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
- .
- This package contains the development files for client libraries linked
- against MIT Kerberos.
 
 Package: remctl-client
 Architecture: any
@@ -80,14 +81,15 @@ Depends:
  ${misc:Depends},
  ${shlibs:Depends},
 Description: Client for Kerberos-authenticated command execution
+ The remctl command-line client, which authenticates to a server using
+ Kerberos and then executes a command and returns the result.
+ .
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
  be listed in a server configuration file, and the executable run on the
  server may be mapped to any command name.  Each command is also
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
- .
- This package contains the client program (remctl).
 
 Package: remctl-server
 Architecture: any
@@ -101,15 +103,16 @@ Recommends:
  openbsd-inetd | inet-superserver,
  tcpd,
 Description: Server for Kerberos-authenticated command execution
+ The remctl server (remctld) and SSH backend (remctl-shell), which are
+ responsible for receiving an authenticated command via the remctl
+ protocol (or via SSH), executing it, and returning the result.
+ .
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
  be listed in a server configuration file, and the executable run on the
  server may be mapped to any command name.  Each command is also
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
- .
- This package contains the server (remctld) and the SSH backend
- (remctl-shell).
 
 Package: libnet-remctl-perl
 Section: perl
@@ -120,17 +123,17 @@ Depends:
  ${perl:Depends},
  ${shlibs:Depends},
 Description: Perl client for Kerberos-authenticated command execution
+ Contains the Net::Remctl Perl library, which provides native Perl
+ bindings for the libremctl client library.  Also contains the
+ Net::Remctl::Backend module, which assists in writing remctl backends in
+ Perl.
+ .
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
  be listed in a server configuration file, and the executable run on the
  server may be mapped to any command name.  Each command is also
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
- .
- This package contains the Net::Remctl Perl library, which provides native
- Perl bindings for the libremctl client library.  It also contains the
- Net::Remctl::Backend module, which assists in writing remctl backends in
- Perl.
 
 Package: php-remctl
 Section: php
@@ -140,15 +143,15 @@ Depends:
  ${php:Depends},
  ${shlibs:Depends},
 Description: PECL module for Kerberos-authenticated command execution
+ The PECL remctl module for PHP, which provides native PHP bindings for
+ the libremctl client library.
+ .
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
  be listed in a server configuration file, and the executable run on the
  server may be mapped to any command name.  Each command is also
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
- .
- This package contains the PECL remctl module for PHP, which provides
- native PHP bindings for the libremctl client library.
 
 Package: python3-pyremctl
 Section: python
@@ -160,15 +163,15 @@ Depends:
 Provides:
  ${python:Provides},
 Description: Python 3 extension for Kerberos-authenticated command execution
+ The Python 3 remctl extension, which provides native Python bindings for
+ the libremctl client library.
+ .
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
  be listed in a server configuration file, and the executable run on the
  server may be mapped to any command name.  Each command is also
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
- .
- This package contains the Python 3 remctl extension, which provides native
- Python bindings for the libremctl client library.
 
 Package: ruby-remctl
 Section: ruby
@@ -183,12 +186,12 @@ Depends:
 X-DhRuby-Root: ruby
 XB-Ruby-Versions: ${ruby:Versions}
 Description: Ruby extension for Kerberos-authenticated command execution
+ The Ruby remctl extension, which provides native Ruby bindings for the
+ libremctl client library.
+ .
  remctl is a client/server protocol for executing specific commands on a
  remote system with Kerberos authentication.  The allowable commands must
  be listed in a server configuration file, and the executable run on the
  server may be mapped to any command name.  Each command is also
  associated with an ACL containing a list of Kerberos principals
  authorized to run that command.
- .
- This package contains the Ruby remctl extension, which provides native
- Ruby bindings for the libremctl client library.
