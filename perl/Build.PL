@@ -48,6 +48,7 @@ sub create_command {
 }
 
 # Basic package configuration.
+#<<<
 my $build = Module::Build->new(
     module_name          => 'Net::Remctl',
     dist_author          => 'Russ Allbery <eagle@eyrie.org>',
@@ -63,6 +64,7 @@ my $build = Module::Build->new(
     configure_requires => { 'Module::Build' => 0.28 },
     requires           => { perl            => '5.008' },
 );
+#>>>
 
 # Work around a bug in the version of Module::Build that shipped with RHEL 5.
 if ($Module::Build::VERSION <= 0.2807) {

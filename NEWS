@@ -1,5 +1,18 @@
                        User-Visible remctl Changes
 
+remctl 3.81 (unreleased)
+
+    The Perl libraries and the remctl test suite now require Perl 5.10 or
+    later.
+
+    Update to rra-c-util 10.2:
+
+    * Fix IN6_ARE_ADDR_EQUAL Autoconf probe on macOS.
+    * Fix compiler flag probes with Clang.
+    * Check that Kerberos headers can be included.
+    * Fix util/fdflag test on Solaris 11 and OpenBSD.
+    * Suppress some additional warnings in GCC 10.
+
 remctl 3.17 (2020-12-13)
 
     Port the PHP extention to PHP 8.  This required declaring the

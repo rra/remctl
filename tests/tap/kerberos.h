@@ -58,7 +58,8 @@ struct kerberos_config {
  * certain configuration information isn't available.  "_BOTH" means that the
  * tests require both keytab and password, but PKINIT is not required.
  */
-enum kerberos_needs {
+enum kerberos_needs
+{
     /* clang-format off */
     TAP_KRB_NEEDS_NONE     = 0x00,
     TAP_KRB_NEEDS_KEYTAB   = 0x01,

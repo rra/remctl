@@ -42,7 +42,7 @@ sub cmd_options {
 # and long.
 my %commands = (
     options => {
-        code    => \&cmd_options,
+        code => \&cmd_options,
         options => [qw(debug+ help|h input|i=s output=s sort! version|v)],
     },
 );
@@ -53,7 +53,8 @@ isa_ok($backend, 'Net::Remctl::Backend');
 $backend->run('options', 'no options');
 
 # Pass a variety of interesting options.
-my @flags  = qw(--debug --debug -hv --output=foo --no-sort -i bar);
+my @flags = qw(--debug --debug -hv --output=foo --no-sort -i bar);
+#<<<
 my %result = (
     debug   => 2,
     help    => 1,
@@ -62,10 +63,11 @@ my %result = (
     sort    => 0,
     version => 1,
 );
+#>>>
 $backend->run('options', @flags, 'all options', %result);
 
 # Pass only a single option.
-@flags  = qw(--input foo);
+@flags = qw(--input foo);
 %result = (input => 'foo');
 $backend->run('options', @flags, 'one option', %result);
 
@@ -81,12 +83,12 @@ $backend->run('mixed', qw(-i foo mixed --debug));
 
 # Handling of an unknown option.
 my ($output, $error, $status) = run_wrapper($backend, 'options', '--foo');
-is($status, 255,                              'unknown option returns 255');
-is($output, q{},                              '...with no output');
-is($error,  "options: unknown option: foo\n", '...and correct error');
+is($status, 255, 'unknown option returns 255');
+is($output, q{}, '...with no output');
+is($error, "options: unknown option: foo\n", '...and correct error');
 
 # Handling of an option with an invalid argument.
-$commands{number}{code}    = \&cmd_options;
+$commands{number}{code} = \&cmd_options;
 $commands{number}{options} = ['number=i'];
 ($output, $error, $status) = run_wrapper($backend, 'number', '--number=foo');
 is($status, 255, 'unknown option returns 255');

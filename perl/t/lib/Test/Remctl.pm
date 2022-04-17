@@ -41,15 +41,15 @@ BEGIN {
 sub run_wrapper {
     my ($backend, @args) = @_;
     my $output = q{};
-    my $error  = q{};
+    my $error = q{};
 
     # Save STDOUT and STDERR and redirect to scalars.
     open(my $oldout, '>&', \*STDOUT) or BAIL_OUT("Cannot save STDOUT: $!");
     open(my $olderr, '>&', \*STDERR) or BAIL_OUT("Cannot save STDERR: $!");
-    close(STDOUT)                    or BAIL_OUT("Cannot close STDOUT: $!");
-    close(STDERR)                    or BAIL_OUT("Cannot close STDERR: $!");
-    open(STDOUT, '>', \$output)      or BAIL_OUT("Cannot redirect STDOUT: $!");
-    open(STDERR, '>', \$error)       or BAIL_OUT("Cannot redirect STDERR: $!");
+    close(STDOUT) or BAIL_OUT("Cannot close STDOUT: $!");
+    close(STDERR) or BAIL_OUT("Cannot close STDERR: $!");
+    open(STDOUT, '>', \$output) or BAIL_OUT("Cannot redirect STDOUT: $!");
+    open(STDERR, '>', \$error) or BAIL_OUT("Cannot redirect STDERR: $!");
 
     # Run the backend.
     my $status = eval { $backend->run(@args) };
@@ -72,7 +72,7 @@ sub run_wrapper {
 __END__
 
 =for stopwords
-Allbery ARG
+Allbery ARG MERCHANTABILITY NONINFRINGEMENT sublicense
 
 =head1 NAME
 
@@ -113,7 +113,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2020 Russ Allbery <eagle@eyrie.org>
+Copyright 2020, 2022 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2012-2013 The Board of Trustees of the Leland Stanford Junior
 University

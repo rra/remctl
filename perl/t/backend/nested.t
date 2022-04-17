@@ -46,6 +46,7 @@ sub test_cmd2 { my (@args) = @_; save_args(@args); return 2 }
 # Set up nested command dispatch.  The first command has a syntax that's
 # exactly 48 characters long, once the prefix is added, which tests an edge
 # case for help formatting.
+#<<<
 my %commands = (
     command => {
         code    => \&test_cmd1,
@@ -82,9 +83,10 @@ my %commands = (
         },
     },
 );
+#>>>
 my %args = (
-    command     => 'frobnicate',
-    commands    => \%commands,
+    command => 'frobnicate',
+    commands => \%commands,
     help_banner => 'Frobnicate remctl help:',
 );
 my $backend = Net::Remctl::Backend->new(\%args);
@@ -92,45 +94,45 @@ isa_ok($backend, 'Net::Remctl::Backend');
 
 # Try running the nested commands and check the result.
 my ($out, $err, $status) = run_wrapper($backend, qw(nest cmd1 foo bar));
-is($status, 1,   'cmd1 returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 1, 'cmd1 returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd1 foo bar)]], 'cmd1 called correctly');
 @CALLS = ();
 ($out, $err, $status) = run_wrapper($backend, qw(nest cmd2));
-is($status, 2,   'cmd2 returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 2, 'cmd2 returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd2)]], 'cmd2 called correctly');
 @CALLS = ();
 
 # Ensure there's nothing weird about the regular command.
 ($out, $err, $status) = run_wrapper($backend, qw(command foo bar));
-is($status, 1,   'cmd1 returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 1, 'cmd1 returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd1 foo bar)]], 'cmd1 called correctly');
 @CALLS = ();
 
 # Ensure we can call the nested command itself.
 ($out, $err, $status) = run_wrapper($backend, qw(nest));
-is($status, 1,   'nest returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 1, 'nest returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd1)]], 'nest called correctly');
 @CALLS = ();
 
 # Try the double-nested commands.
 ($out, $err, $status) = run_wrapper($backend, qw(nest nest bar foo));
-is($status, 1,   'nest nest bar returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 1, 'nest nest bar returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd1 foo)]], 'bar called correctly');
 @CALLS = ();
 ($out, $err, $status) = run_wrapper($backend, qw(nest nest foo));
-is($status, 2,   'nest nest foo returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 2, 'nest nest foo returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd2)]], 'bar called correctly');
 @CALLS = ();
 
@@ -181,5 +183,5 @@ delete $commands{nest}{code};
     local @ARGV = qw(nest);
     $status = eval { $backend->run };
 }
-is($status, undef,                    'run() of nest command returns undef');
-is($@,      "Unknown command nest\n", '...with correct error');
+is($status, undef, 'run() of nest command returns undef');
+is($@, "Unknown command nest\n", '...with correct error');

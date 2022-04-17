@@ -11,7 +11,7 @@ dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2018 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2018, 2021 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2011-2012
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
@@ -98,7 +98,7 @@ AC_DEFUN([RRA_KRB5_CONFIG],
              $3[]_LIBS=`"$rra_krb5_config_$3" --libs $2 2>/dev/null`
              rra_krb5_config_$3[]_ok=yes])])])
  AS_IF([test x"$rra_krb5_config_$3[]_ok" = xyes],
-    [$3[]_CPPFLAGS=`echo "$$3[]_CPPFLAGS" | sed 's%-I/usr/include %%'`
-     $3[]_CPPFLAGS=`echo "$$3[]_CPPFLAGS" | sed 's%-I/usr/include$%%'`
+    [$3[]_CPPFLAGS=`AS_ECHO(["$$3[]_CPPFLAGS"]) | sed 's%-I/usr/include %%'`
+     $3[]_CPPFLAGS=`AS_ECHO(["$$3[]_CPPFLAGS"]) | sed 's%-I/usr/include$%%'`
      $4],
     [$5])])

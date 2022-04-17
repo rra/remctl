@@ -78,7 +78,7 @@ sub _build_help {
         # Get the syntax and summary for this command and add it to the
         # arrays if there is any syntax defined.  Avoid trailing whitespace
         # if there is no extra syntax.
-        my $syntax  = $config->{syntax};
+        my $syntax = $config->{syntax};
         my $summary = $config->{summary};
         if (defined($syntax)) {
             if (length($syntax) > 0) {
@@ -93,7 +93,7 @@ sub _build_help {
 
         # Now add any nested data, if there was any.
         if ($more_syntax_ref) {
-            push(@syntax,  map { $command . q{ } . $_ } @{$more_syntax_ref});
+            push(@syntax, map { $command . q{ } . $_ } @{$more_syntax_ref});
             push(@summary, @{$more_summary_ref});
         }
     }
@@ -127,7 +127,7 @@ sub help {
     # Calculate the longest syntax length, except for very long lines that
     # pass the MAX_SYNTAX cutoff.
     my $longest_syntax_len = 0;
-    my $max_syntax_len     = MAX_SYNTAX_LENGTH - length($prefix);
+    my $max_syntax_len = MAX_SYNTAX_LENGTH - length($prefix);
     for my $syntax (@{$syntax_ref}) {
         my $length = length($syntax);
         if ($length > $longest_syntax_len && $length <= $max_syntax_len) {
@@ -155,10 +155,10 @@ sub help {
     }
 
     # Now, we can format each line of the help output with Text::Wrap.
-    local $Text::Wrap::columns  = LINE_WIDTH;
+    local $Text::Wrap::columns = LINE_WIDTH;
     local $Text::Wrap::unexpand = 0;
     for my $i (0 .. $#{$syntax_ref}) {
-        my $syntax  = $syntax_ref->[$i];
+        my $syntax = $syntax_ref->[$i];
         my $summary = $summary_ref->[$i];
 
         # If there is no summary, just add the bare command syntax.
@@ -264,7 +264,7 @@ sub _check_args_regex {
 
     # Loop through thte arguments and check against the corresponding regex.
     for my $i (0 .. $#{$args_ref}) {
-        my $arg   = $args_ref->[$i];
+        my $arg = $args_ref->[$i];
         my $regex = $regexes_ref->[$i];
         if (defined($regex) && $arg !~ $regex) {
             if ($arg =~ m{ [^[:print:]] }xms) {

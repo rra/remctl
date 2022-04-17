@@ -10,7 +10,7 @@
 # which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2018-2020 Russ Allbery <eagle@eyrie.org>
+# Copyright 2018-2022 Russ Allbery <eagle@eyrie.org>
 # Copyright 2011-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -42,6 +42,16 @@ verbose  = %f:%l:%c: [%p] %m (%e, Severity: %s)\n
 # group coding style.
 [-CodeLayout::ProhibitParensWithBuiltins]
 
+# This conflicts with Subroutines::ProhibitExplicitReturnUndef and
+# Subroutines::RequireFinalReturn, and I prefer the brevity of the simple
+# return statement.  I don't think the empty list versus undef behavior is
+# that confusing.
+#
+# This should be Community::EmptyReturn, which is the new name of the module,
+# but currently ignores have to use the Freenode::EmptyReturn name instead.
+[-Community::EmptyReturn]
+[-Freenode::EmptyReturn]
+
 # This recommends using given/when, but Perl has marked those as experimental
 # and cautions against using when.
 [-ControlStructures::ProhibitCascadingIfElse]
@@ -64,15 +74,9 @@ allow = unless
 # of $@ even if destructors run at exit from the eval block.
 [-ErrorHandling::RequireCheckingReturnValueOfEval]
 
-# This conflicts with Subroutines::ProhibitExplicitReturnUndef and
-# Subroutines::RequireFinalReturn, and I prefer the brevity of the simple
-# return statement.  I don't think the empty list versus undef behavior is
-# that confusing.
-[-Freenode::EmptyReturn]
-
-# The default of 9 is too small and forces weird code contortions.
-[InputOutput::RequireBriefOpen]
-lines = 25
+# The default of 9 is too small and forces weird code contortions.  After some
+# experimentation, I've never found this helpful in driving useful refactors.
+[-InputOutput::RequireBriefOpen]
 
 # This is correct 80% of the time, but it isn't correct for a lot of scripts
 # inside packages, where maintaining $VERSION isn't worth the effort.
@@ -89,6 +93,12 @@ lines = 25
 # Perl 5.20).  See https://github.com/Perl-Critic/Perl-Critic/issues/578.
 [-References::ProhibitDoubleSigils]
 
+# Five arguments to a method has seemed reasonable at least once: a pair of
+# input file data and path, a pair of output file descriptor and path, and
+# a dict of additional arguments.
+[Subroutines::ProhibitManyArgs]
+skip_object = 1
+
 # I generally don't want to require Readonly as a prerequisite for all my Perl
 # modules.
 [-ValuesAndExpressions::ProhibitConstantPragma]
@@ -98,15 +108,15 @@ lines = 25
 # independent of the algorithm, but don't do so for mathematical formulae.
 [-ValuesAndExpressions::ProhibitMagicNumbers]
 
-# Increase this to six digits so that I'm not told to add underscores to
-# port numbers (which is just silly).
-[ValuesAndExpressions::RequireNumberSeparators]
-min_value = 100000
+# This has never triggered on anything useful and keeps telling me to add
+# underscores to UNIX timestamps and port numbers, which is just silly.
+[-ValuesAndExpressions::RequireNumberSeparators]
 
 # IO::Uncompress::Gunzip puts the error message in a package variable.
 # Text::Wrap has a broken interface that requires use of package variables.
+# YAML::XS also cannot be configured without package variables.
 [Variables::ProhibitPackageVars]
-add_packages = IO::Uncompress::Gunzip Text::Wrap
+add_packages = IO::Uncompress::Gunzip Text::Wrap YAML::XS
 
 # use English was one of the worst ideas in the history of Perl.  It makes the
 # code slightly more readable for amateurs at the cost of confusing

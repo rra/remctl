@@ -45,7 +45,8 @@ socket_init(void)
  * over sys_nerr).  Try to use FormatMessage with a local static variable
  * instead.
  */
-const char *socket_strerror(err)
+const char *
+socket_strerror(err)
 {
     const char *message = NULL;
 

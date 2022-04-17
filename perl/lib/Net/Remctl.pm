@@ -23,7 +23,7 @@ use vars qw($VERSION @EXPORT);
 # released, but with at least two digits for the minor version.
 BEGIN {
     $VERSION = '3.17';
-    @EXPORT  = qw(remctl);
+    @EXPORT = qw(remctl);
 }
 
 Net::Remctl->bootstrap();
