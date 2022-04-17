@@ -36,7 +36,7 @@ jobs:
           - "heimdal"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: install
         run: sudo -E ci/install
@@ -47,14 +47,14 @@ jobs:
           perl -e 'print "::set-output name=version::", $^V, "\n"'
 
       - name: Cache Perl modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/perl5
           key: ${{ runner.os }}-perl-${{ steps.get-perl.outputs.version }}-${{ hashFiles('ci/cpanfile') }}
           restore-keys: |
             ${{ runner.os }}-perl-${{ steps.get-perl.outputs.version }}-
 
-      - uses: perl-actions/install-with-cpanm@v1.3
+      - uses: perl-actions/install-with-cpanm@v1
         env:
           PERL5LIB: ${{ env.HOME }}/perl5
         with:
