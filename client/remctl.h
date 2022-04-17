@@ -95,7 +95,7 @@ struct sockaddr;
 #define REMCTL_PORT_OLD 4444
 
 /* The standard remctl service name for /etc/services. */
-#define REMCTL_SERVICE "remctl"
+#define REMCTL_SERVICE  "remctl"
 
 /* Used to hold the return from a simple remctl call. */
 struct remctl_result {

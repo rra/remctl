@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on prior work by Anton Ushakov
- * Copyright 2020 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2020, 2022 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2011, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -15,18 +15,6 @@
 
 #ifndef UTIL_PROTOCOL_H
 #define UTIL_PROTOCOL_H 1
-
-/* Maximum lengths from the protocol specification of tokens and data. */
-#define TOKEN_MAX_LENGTH (1024 * 1024)
-#define TOKEN_MAX_DATA   (64 * 1024)
-
-/*
- * Maximum data payload for a MESSAGE_OUTPUT message, which is TOKEN_MAX_DATA
- * minus the overhead for MESSAGE_OUTPUT labeling.  This is slightly different
- * in protocol one, which used a different message format.
- */
-#define TOKEN_MAX_OUTPUT    (TOKEN_MAX_DATA - 1 - 1 - 1 - 4)
-#define TOKEN_MAX_OUTPUT_V1 (TOKEN_MAX_DATA - 4 - 4)
 
 /* Message types. */
 /* clang-format off */
@@ -40,6 +28,18 @@ enum message_types {
     MESSAGE_NOOP    = 7
 };
 /* clang-format on */
+
+/* Maximum lengths from the protocol specification of tokens and data. */
+#define TOKEN_MAX_LENGTH    (1024 * 1024)
+#define TOKEN_MAX_DATA      (64 * 1024)
+
+/*
+ * Maximum data payload for a MESSAGE_OUTPUT message, which is TOKEN_MAX_DATA
+ * minus the overhead for MESSAGE_OUTPUT labeling.  This is slightly different
+ * in protocol one, which used a different message format.
+ */
+#define TOKEN_MAX_OUTPUT    (TOKEN_MAX_DATA - 1 - 1 - 1 - 4)
+#define TOKEN_MAX_OUTPUT_V1 (TOKEN_MAX_DATA - 4 - 4)
 
 /* Windows uses this for something else. */
 #ifdef _WIN32
