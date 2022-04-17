@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.81 (unreleased)
+remctl 3.18 (unreleased)
 
     The Perl libraries and the remctl test suite now require Perl 5.10 or
     later.
