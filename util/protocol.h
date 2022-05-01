@@ -14,7 +14,7 @@
  */
 
 #ifndef UTIL_PROTOCOL_H
-#define UTIL_PROTOCOL_H 1
+#define UTIL_PROTOCOL_H     1
 
 /* Message types. */
 /* clang-format off */
