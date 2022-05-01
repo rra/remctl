@@ -7,7 +7,7 @@
 # SPDX-License-Identifier: MIT
 
 require 'fileutils'
-require 'test/unit'
+require 'minitest'
 require 'remctl'
 
 module Helpers
@@ -89,7 +89,7 @@ module Helpers
   end
 end
 
-class TC_RemctlSimple < Test::Unit::TestCase
+class TC_RemctlSimple < Minitest::Test
   include Helpers
 
   def test_simple_success
@@ -157,7 +157,7 @@ class TC_RemctlSimple < Test::Unit::TestCase
   end
 end
 
-class TC_RemctlFull < Test::Unit::TestCase
+class TC_RemctlFull < Minitest::Test
   include Helpers
 
   def test_full_success
