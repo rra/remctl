@@ -79,6 +79,7 @@ my @IGNORE_PATHS = (
     qr{ \A python/ .* [.] egg-info/ }xms,      # Python build files
     qr{ \A tests/config/ (?!README) }xms,      # Test configuration
     qr{ \A tests/tmp/ }xms,                    # Temporary test files
+    qr{ [.] mypy_cache/ }xms,                  # mypy caches
 );
 ## use critic
 
