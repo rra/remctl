@@ -71,7 +71,9 @@ main(void)
     struct rule rule = {NULL, 0,    NULL, NULL, NULL, NULL, NULL, 0,
                         NULL, NULL, 0,    0,    NULL, NULL, NULL};
     const char *acls[5];
+#if defined(HAVE_PCRE) || defined(HAVE_PCRE2)
     char *colon;
+#endif
 
     plan(78);
     if (chdir(getenv("C_TAP_SOURCE")) < 0)
