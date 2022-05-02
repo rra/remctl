@@ -1,14 +1,14 @@
-# remctl 3.17
+# remctl
 
 [![Build
 status](https://github.com/rra/remctl/workflows/build/badge.svg)](https://github.com/rra/remctl/actions)
 [![Debian
 package](https://img.shields.io/debian/v/remctl/unstable)](https://tracker.debian.org/pkg/remctl)
 
-Copyright 2015-2020 Russ Allbery <eagle@eyrie.org>.  Copyright 2002-2014
-The Board of Trustees of the Leland Stanford Junior University.  This
-software is distributed under a BSD-style license.  Please see the section
-[License](#license) below for more information.
+Copyright 2015-2020, 2022 Russ Allbery <eagle@eyrie.org>.  Copyright
+2002-2014 The Board of Trustees of the Leland Stanford Junior University.
+This software is distributed under a BSD-style license.  Please see the
+section [License](#license) below for more information.
 
 ## Blurb
 
@@ -38,19 +38,19 @@ ssh and sudo, without most of the features of both but with simpler
 authorization.
 
 There are a lot of different client/server systems that do something
-similar, including regular rsh, CGI, IBM's sysctl (not to be confused with
-the Linux kernel call and configuration file of the same name), CERN's
-arc, and more elaborate systems like MIT's Moira.  remctl has the
-advantage over many of these schemes of using GSS-API and being about as
-simple as it possibly can be while still being useful.  It doesn't require
-any particular programming language, builds self-contained binaries, and
-uses as minimal of a protocol as possible.
+similar: current packages like gRPC, and a wealth of older systems like
+rsh, CGI, CERN's arc, and more elaborate systems like MIT's Moira.  remctl
+has the advantage over many of these schemes of using GSS-API and being
+about as simple as it possibly can be while still being useful.  It
+doesn't require any particular programming language, builds self-contained
+binaries, and uses as minimal of a protocol as possible.
 
 Both C and Java clients and servers are provided, as well as Perl, PHP,
-and Python bindings for the C client library.  For more information about
-the Java client, see `java/README`.  For more information about the PHP
-bindings, see `php/README`.  For more information about the Python
-bindings, see `python/README`.
+Python, and Ruby bindings for the C client library.  For more information
+about the Java client, see `java/README`.  For more information about the
+PHP bindings, see `php/README`.  For more information about the Python
+bindings, see `python/README`.  For more information about the Ruby
+bindings, see `ruby/README`.
 
 Also included in the remctl package is an alternate way of running the
 remctl server: remctl-shell.  This program is designed to be run as either
@@ -82,15 +82,15 @@ possibly later versions).  The `remctl_set_ccache` implementation is
 improved by building with Kerberos libraries and a GSS-API library that
 supports `gss_krb5_import_cred`.
 
-The remctld server requires libevent 1.4.x or later.  It's only been
-tested with libevent 1.4.13-stable and later, but should work with 1.4.4
-or later.  It is now only tested with libevent 2.x, so moving to a later
+The remctld server requires libevent 1.4.x or later.  It was only tested
+with libevent 1.4.13-stable and later, but should work with 1.4.4 or
+later.  It is now only tested with libevent 2.x, so moving to a later
 version of libevent if possible is recommended.
 
 The remctl server will support regex ACLs if the system supports the POSIX
 regex API.  The remctl server also optionally supports PCRE regular
-expressions in ACLs.  To include that support, the PCRE library is
-required.
+expressions in ACLs.  To include that support, the PCRE library (either
+PCRE2 or PCRE1) is required.
 
 To build the remctl client for Windows, the Microsoft Windows SDK for
 Windows Vista and the MIT Kerberos for Windows SDK are required, along
@@ -211,13 +211,17 @@ Alternately, you can bypass pkg-config by passing one or more of
 `--with-libevent`, `--with-libevent-include`, and `--with-libevent-lib` to
 indicate the install prefix, include directory, or library directory.
 
-remctl will automatically build with PCRE support if pcre-config or the
-PCRE library are found.  You can pass `--with-pcre` to configure to
-specify the root directory where PCRE is installed, or set the include and
-library directories separately with `--with-pcre-include` and
-`--with-pcre-lib`.  You can also set `PCRE_CONFIG` to point to a different
+remctl will automatically build with PCRE support if PCRE2 or PCRE1 are
+found.  As with libevent, remctl will use pkg-config if it's available to
+find the build flags for PCRE2.  Use the same variables as documented by
+libevent to control which pkg-config is used, and override its results
+with `PCRE2_CFLAGS` and `PCRE2_LIBS`.  For PCRE1, the `pcre-config` script
+will be used.  You can set `PCRE_CONFIG` to point to a different
 pcre-config script, or do similar things as with `PATH_KRB5_CONFIG`
-described below.
+described below.  Alternately, you can bypass pkg-config by passing one or
+more of `--with-pcre2`, `--with-pcre2-include`, `--with-pcre2-lib`,
+`--with-pcre`, `--with-pcre-include`, or `--with-pcre-lib` to indicate the
+install prefix, include directory, or library directory.
 
 remctl will automatically build with GPUT support if the GPUT header and
 library are found.  You can pass `--with-gput` to configure to specify the
@@ -247,11 +251,11 @@ you need to specify a different Kerberos installation root via
 
 You can also individually set the paths to the include directory and the
 library directory with `--with-krb5-include` and `--with-krb5-lib`.  You
-may need to do this if Autoconf can't figure out whether to use lib,
-lib32, or lib64 on your platform.
+may need to do this if Autoconf can't figure out whether to use `lib`,
+`lib32`, or `lib64` on your platform.
 
-To not use krb5-config and force library probing even if there is a
-krb5-config script on your path, set PATH_KRB5_CONFIG to a nonexistent
+To not use `krb5-config` and force library probing even if there is a
+`krb5-config` script on your path, set `PATH_KRB5_CONFIG` to a nonexistent
 path:
 
 ```
@@ -334,6 +338,7 @@ the main package and the Perl bindings if installed:
 * Test::MinimumVersion
 * Test::Perl::Critic
 * Test::Pod
+* Test::Pod::Coverage
 * Test::Spelling
 * Test::Strict
 * Test::Synopsis
@@ -413,7 +418,7 @@ requests are gratefully reviewed and normally accepted.
 The remctl package as a whole is covered by the following copyright
 statement and license:
 
-> Copyright 2015-2020
+> Copyright 2015-2020, 2022
 >     Russ Allbery <eagle@eyrie.org>
 >
 > Copyright 2002-2014
