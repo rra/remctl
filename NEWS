@@ -5,7 +5,7 @@ remctl 3.18 (unreleased)
     Add support for PCRE2 for pcre ACLs and use it by preference over
     PCRE1 if it is found.  UTF-8 regular expressions are not enabled by
     default, but can be enabled by adding (*UTF) to the beginning of the
-    regular expression.
+    regular expression (a standard PCRE2 feature not specific to remctl).
 
     Document that pcre and regex ACL expressions are not automatically
     anchored at the start and end of the principal name, so they should be
