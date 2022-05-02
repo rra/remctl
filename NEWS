@@ -10,6 +10,12 @@ remctl 3.18 (unreleased)
     The Perl libraries and the remctl test suite now require Perl 5.10 or
     later.
 
+    Remove remaining references to pytest-runner in the Python bindings.
+    Thanks, Ken Dreyer.
+
+    Switch the Ruby bindings tests to Minitest from Test::Unit.  Thanks,
+    Ken Dreyer.
+
     Update to rra-c-util 10.2:
 
     * Fix IN6_ARE_ADDR_EQUAL Autoconf probe on macOS.
