@@ -15,7 +15,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2017 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2017, 2022 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2007, 2009-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -211,9 +211,11 @@ kerberos_kinit(void)
  * process so that test programs that fork don't remove the ticket cache still
  * used by the main program.
  */
-static void
-kerberos_free(void)
+void
+kerberos_free(struct kerberos_config *config_arg)
 {
+    if (config_arg != config)
+        bail("invalid argument to kerberos_free");
     test_tmpdir_free(tmpdir_ticket);
     tmpdir_ticket = NULL;
     if (config != NULL) {
@@ -257,7 +259,7 @@ kerberos_cleanup(void)
         unlink(path);
         free(path);
     }
-    kerberos_free();
+    kerberos_free(config);
 }
 
 
@@ -273,7 +275,7 @@ kerberos_cleanup_handler(int success UNUSED, int primary)
     if (primary)
         kerberos_cleanup();
     else
-        kerberos_free();
+        kerberos_free(config);
 }
 
 

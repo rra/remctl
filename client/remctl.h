@@ -3,7 +3,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on prior work by Anton Ushakov
- * Copyright 2019 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2019, 2022 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2008, 2011-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -44,6 +44,16 @@
 #ifndef __attribute__
 #    if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
 #        define __attribute__(spec) /* empty */
+#    endif
+#endif
+
+/*
+ * Suppress the argument to __malloc__ in Clang (not supported in at least
+ * version 13) and GCC versions prior to 11.
+ */
+#if !defined(__attribute__) && !defined(__malloc__)
+#    if defined(__clang__) || __GNUC__ < 11
+#        define __malloc__(dalloc) __malloc__
 #    endif
 #endif
 
@@ -138,10 +148,10 @@ BEGIN_DECLS
  * and return a struct remctl_result.  The result should be freed with
  * remctl_result_free.
  */
+void remctl_result_free(struct remctl_result *);
 struct remctl_result *remctl(const char *host, unsigned short port,
                              const char *principal, const char **command)
-    __attribute__((__nonnull__(1, 4), __malloc__));
-void remctl_result_free(struct remctl_result *);
+    __attribute__((__nonnull__(1, 4), __malloc__(remctl_result_free)));
 
 /*
  * Now, the more complex persistant interface.  The basic housekeeping
@@ -149,10 +159,10 @@ void remctl_result_free(struct remctl_result *);
  * to REMCTL_PORT_OLD.  principal may be NULL, in which case host/<host> is
  * used (with no transformations applied to host at all).
  */
-struct remctl *remctl_new(void) __attribute__((__malloc__));
+void remctl_close(struct remctl *);
+struct remctl *remctl_new(void) __attribute__((__malloc__(remctl_close)));
 int remctl_open(struct remctl *, const char *host, unsigned short port,
                 const char *principal) __attribute__((__nonnull__(1, 2)));
-void remctl_close(struct remctl *);
 
 /*
  * Some alternate interfaces for opening connections.  In each of these,

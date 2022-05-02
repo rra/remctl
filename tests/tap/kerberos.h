@@ -5,7 +5,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2017, 2020 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2017, 2020, 2022 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2007, 2009, 2011-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -76,6 +76,8 @@ BEGIN_DECLS
  * them in a Kerberos ticket cache, sets KRB5_KTNAME and KRB5CCNAME.  It also
  * loads the principal and password from config/password, if it exists, and
  * stores the principal, password, username, and realm in the returned struct.
+ * The returned struct is also saved statically to allow for easier cleanup
+ * and thus cleaner valgrind output in tests.
  *
  * If there is no config/keytab file, KRB5_KTNAME and KRB5CCNAME won't be set
  * and the keytab field will be NULL.  If there is no config/password file,
@@ -87,9 +89,14 @@ BEGIN_DECLS
  * however, be called directly if for some reason the caller needs to delete
  * the Kerberos environment again.  However, normally the caller can just call
  * kerberos_setup again.
+ *
+ * kerberos_free is an alternate way of calling kerberos_cleanup that
+ * satisfies the __malloc__ annotation requirements.  There is normally no
+ * need to call it.
  */
+void kerberos_free(struct kerberos_config *);
 struct kerberos_config *kerberos_setup(enum kerberos_needs)
-    __attribute__((__malloc__));
+    __attribute__((__malloc__(kerberos_free)));
 void kerberos_cleanup(void);
 
 /*

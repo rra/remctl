@@ -15,6 +15,10 @@ remctl 3.18 (unreleased)
     The Perl libraries and the remctl test suite now require Perl 5.10 or
     later.
 
+    Mark remctl client library functions that allocate memory with their
+    corresponding deallocation functions so that GCC 11 and later can
+    diagnose memory deallocation bugs.
+
     Remove remaining references to pytest-runner in the Python bindings.
     Thanks, Ken Dreyer.
 
