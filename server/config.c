@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2015, 2018, 2020 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015, 2018, 2020, 2022 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
@@ -25,7 +25,10 @@
 #include <dirent.h>
 #include <errno.h>
 #include <grp.h>
-#ifdef HAVE_PCRE
+#if defined(HAVE_PCRE2)
+#    define PCRE2_CODE_UNIT_WIDTH 8
+#    include <pcre2.h>
+#elif defined(HAVE_PCRE)
 #    include <pcre.h>
 #endif
 #include <pwd.h>
@@ -873,7 +876,55 @@ acl_check_gput(const struct client *client, const char *data, const char *file,
  * can be used to do things like allow only host principals and deny everyone
  * else.
  */
-#ifdef HAVE_PCRE
+#if defined(HAVE_PCRE2)
+
+static enum config_status
+acl_check_pcre(const struct client *client, const char *data, const char *file,
+               size_t lineno)
+{
+    const unsigned char *regex = (const unsigned char *) data;
+    const unsigned char *user = (const unsigned char *) client->user;
+    pcre2_code *code;
+    pcre2_match_data *match;
+    int errorcode;
+    PCRE2_SIZE offset;
+    int status;
+    unsigned char error[BUFSIZ];
+
+    match = pcre2_match_data_create(1, NULL);
+    if (match == NULL) {
+        warn("%s:%lu: regex memory allocation failed", file,
+             (unsigned long) lineno);
+        return CONFIG_ERROR;
+    }
+    code = pcre2_compile(regex, strlen(data), PCRE2_NO_AUTO_CAPTURE,
+                         &errorcode, &offset, NULL);
+    if (code == NULL) {
+        pcre2_match_data_free(match);
+        pcre2_get_error_message(errorcode, error, sizeof(error));
+        warn("%s:%lu: compilation of regex '%s' failed around %lu: %s", file,
+             (unsigned long) lineno, data, (unsigned long) offset, error);
+        return CONFIG_ERROR;
+    }
+    status = pcre2_match(code, user, PCRE2_ZERO_TERMINATED, 0, 0, match, NULL);
+    pcre2_match_data_free(match);
+    pcre2_code_free(code);
+    if (status < 0) {
+        switch (status) {
+        case PCRE2_ERROR_NOMATCH:
+            return CONFIG_NOMATCH;
+        default:
+            pcre2_get_error_message(status, error, sizeof(error));
+            warn("%s:%lu: matching with regex '%s' failed: %s", file,
+                 (unsigned long) lineno, data, error);
+            return CONFIG_ERROR;
+        }
+    }
+    return CONFIG_SUCCESS;
+}
+
+#elif defined(HAVE_PCRE)
+
 static enum config_status
 acl_check_pcre(const struct client *client, const char *data, const char *file,
                size_t lineno)
@@ -902,6 +953,7 @@ acl_check_pcre(const struct client *client, const char *data, const char *file,
         return CONFIG_ERROR;
     }
 }
+
 #endif /* HAVE_PCRE */
 
 
@@ -1172,7 +1224,7 @@ static const struct acl_scheme schemes[] = {
 #else
     {"localgroup", NULL                },
 #endif
-#ifdef HAVE_PCRE
+#if defined(HAVE_PCRE) || defined(HAVE_PCRE2)
     {"pcre",       acl_check_pcre      },
 #else
     {"pcre",       NULL                },

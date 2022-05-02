@@ -2,7 +2,7 @@
  * Test suite for the server ACL checking.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015-2016, 2018, 2022 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
  * Copyright 2007-2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -71,6 +71,7 @@ main(void)
     struct rule rule = {NULL, 0,    NULL, NULL, NULL, NULL, NULL, 0,
                         NULL, NULL, 0,    0,    NULL, NULL, NULL};
     const char *acls[5];
+    char *colon;
 
     plan(78);
     if (chdir(getenv("C_TAP_SOURCE")) < 0)
@@ -235,10 +236,10 @@ main(void)
      * Check PCRE ACLs, or make sure they behave as they should when not
      * supported.
      */
-    acls[0] = "deny:pcre:host/foo.+\\.org@EXAMPLE\\.ORG";
-    acls[1] = "pcre:host/.+\\.org@EXAMPLE\\.ORG";
+    acls[0] = "deny:pcre:^host/foo.+\\.org@EXAMPLE\\.ORG$";
+    acls[1] = "pcre:^host/.+\\.org@EXAMPLE\\.ORG$";
     acls[2] = NULL;
-#ifdef HAVE_PCRE
+#if defined(HAVE_PCRE) || defined(HAVE_PCRE2)
     ok(acl_permit(&rule, "host/bar.org@EXAMPLE.ORG"), "PCRE 1");
     ok(!acl_permit(&rule, "host/foobar.org@EXAMPLE.ORG"), "PCRE 2");
     ok(!acl_permit(&rule, "host/baz.org@EXAMPLE.NET"), "PCRE 3");
@@ -248,6 +249,15 @@ main(void)
     acls[1] = "pcre:+host/.*";
     errors_capture();
     ok(!acl_permit(&rule, "host/bar.org@EXAMPLE.ORG"), "PCRE invalid regex");
+
+    /* Truncate the error message since PCRE2 includes some error detail. */
+    if (strlen(errors) > 8) {
+        colon = strchr(errors + 8, ':');
+        if (colon != NULL) {
+            colon[0] = '\n';
+            colon[1] = '\0';
+        }
+    }
     is_string("TEST:0: compilation of regex '+host/.*' failed around 0\n",
               errors, "...with invalid regex error");
     errors_uncapture();
@@ -264,8 +274,8 @@ main(void)
      * Check POSIX regex ACLs, or make sure they behave as they should when
      * not supported.
      */
-    acls[0] = "deny:regex:host/foo.*\\.org@EXAMPLE\\.ORG";
-    acls[1] = "regex:host/.*\\.org@EXAMPLE\\.ORG";
+    acls[0] = "deny:regex:^host/foo.*\\.org@EXAMPLE\\.ORG$";
+    acls[1] = "regex:^host/.*\\.org@EXAMPLE\\.ORG$";
     acls[2] = NULL;
 #ifdef HAVE_REGCOMP
     ok(acl_permit(&rule, "host/bar.org@EXAMPLE.ORG"), "regex 1");

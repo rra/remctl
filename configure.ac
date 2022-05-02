@@ -106,7 +106,8 @@ dnl Check for the CMU GPUT library.
 RRA_LIB_GPUT
 
 dnl Check for regex libraries for pcre:* and regex:* ACL support.
-RRA_LIB_PCRE_OPTIONAL
+RRA_LIB_PCRE2_OPTIONAL
+AS_IF([test x"$rra_use_PCRE2" != xtrue], [RRA_LIB_PCRE_OPTIONAL])
 AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
 
 dnl General C library and networking probes.
