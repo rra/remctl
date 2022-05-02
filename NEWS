@@ -7,6 +7,11 @@ remctl 3.18 (unreleased)
     default, but can be enabled by adding (*UTF) to the beginning of the
     regular expression.
 
+    Document that pcre and regex ACL expressions are not automatically
+    anchored at the start and end of the principal name, so they should be
+    explicitly anchored in the configuration unless one intends to allow
+    partial matches.
+
     The Perl libraries and the remctl test suite now require Perl 5.10 or
     later.
 

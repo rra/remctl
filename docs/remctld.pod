@@ -472,8 +472,13 @@ Perl-compatible regular expressions.  The data is taken to be a
 Perl-compatible regular expression and matched against the user identity.
 To deny access, use the C<deny:pcre:I<regex>> syntax.
 
+The regular expression is not automatically anchored, so be careful to
+anchor it at the start and end (with C<\A> and C<\z>) to ensure that the
+entire principal name is matched, unless you intend to allow partial
+matches.
+
 This method is supported only if B<remctld> was compiled with PCRE support
-by using the C<--with-pcre> configure option.
+(either PCRE2 or PCRE1).
 
 =item regex
 
@@ -481,6 +486,11 @@ by using the C<--with-pcre> configure option.
 regular expressions.  The data is taken to be a POSIX extended regular
 expression (like those used by B<egrep>) and matched against the user
 identity.  To deny access, use the C<deny:regex:I<regex>> syntax.
+
+The regular expression is not automatically anchored, so be careful to
+anchor it at the start and end (with C<^> and C<$>) to ensure that the
+entire principal name is matched, unless you intend to allow partial
+matches.
 
 This method is supported only if a library for POSIX-compatible regular
 expressions was found when B<remctld> was built.
