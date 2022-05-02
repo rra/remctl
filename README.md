@@ -103,7 +103,7 @@ or test Windows, so it's always possible Windows support has broken.  The
 server is not supported on Windows.
 
 To build the Perl bindings for the C client library, you will need Perl
-5.8 or later.
+5.10 or later.
 
 To build the PHP bindings for the C client library, you will need PHP 5.x
 or later and phpize, plus any other programs that phpize requires.  PHP
@@ -328,9 +328,6 @@ support this.
 To test user handling in remctld, you will need the `fakeroot` command
 (available in the `fakeroot` package in Debian and Ubuntu).  This test
 will be skipped if `fakeroot` isn't available.
-
-To test the Perl bindings, Perl 5.10 or later is required.  (However, the
-Perl modules themselves should work with Perl 5.8.)
 
 The following additional Perl modules will be used by the test suite for
 the main package and the Perl bindings if installed:

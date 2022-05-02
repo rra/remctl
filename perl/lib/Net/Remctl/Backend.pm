@@ -4,7 +4,7 @@
 
 package Net::Remctl::Backend;
 
-use 5.008;
+use 5.010;
 use strict;
 use warnings;
 
@@ -685,7 +685,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2019-2020 Russ Allbery <eagle@eyrie.org>
+Copyright 2019-2020, 2022 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2012-2014 The Board of Trustees of the Leland Stanford Junior
 University

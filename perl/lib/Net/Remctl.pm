@@ -8,7 +8,7 @@
 
 package Net::Remctl;
 
-use 5.008;
+use 5.010;
 use strict;
 use warnings;
 
@@ -372,7 +372,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2020 Russ Allbery <eagle@eyrie.org>
+Copyright 2020, 2022 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2007-2008, 2011-2014 The Board of Trustees of the Leland Stanford
 Junior University

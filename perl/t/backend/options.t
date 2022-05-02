@@ -3,13 +3,13 @@
 # Tests for option handling in Net::Remctl::Backend.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2020 Russ Allbery <eagle@eyrie.org>
+# Copyright 2020, 2022 Russ Allbery <eagle@eyrie.org>
 # Copyright 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # SPDX-License-Identifier: MIT
 
-use 5.008;
+use 5.010;
 use strict;
 use warnings;
 

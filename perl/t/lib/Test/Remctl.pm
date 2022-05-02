@@ -12,7 +12,7 @@
 
 package Test::Remctl;
 
-use 5.008;
+use 5.010;
 use strict;
 use warnings;
 
@@ -29,7 +29,7 @@ BEGIN {
 
     # This version is somewhat arbitrary and doesn't track the broader remctl
     # version.  I update it when code in this module changes.
-    $VERSION = '1.01';
+    $VERSION = '1.02';
 }
 
 # Run the backend and capture its output and return status.

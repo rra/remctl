@@ -3,13 +3,13 @@
 # Build script for the Net::Remctl distribution.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2020 Russ Allbery <eagle@eyrie.org>
+# Copyright 2020, 2022 Russ Allbery <eagle@eyrie.org>
 # Copyright 2007, 2012-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # SPDX-License-Identifier: MIT
 
-use 5.008;
+use 5.010;
 use strict;
 use warnings;
 
@@ -62,7 +62,7 @@ my $build = Module::Build->new(
 
     # Other package relationships.
     configure_requires => { 'Module::Build' => 0.28 },
-    requires           => { perl            => '5.008' },
+    requires           => { perl            => '5.010' },
 );
 #>>>
 
