@@ -8,6 +8,7 @@ remctl (3.18-1) UNRELEASED; urgency=medium
   * Reorganize the binary package descriptions to put the distinguishing
     quality of each package first, ahead of the generic description of
     remctl, rather than last.
+  * Update standards version to 4.6.0 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Mon, 27 Dec 2021 17:08:32 -0800
 
