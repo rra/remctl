@@ -10,8 +10,9 @@ dnl variables PCRE_CPPFLAGS, PCRE_LDFLAGS, and PCRE_LIBS.  Also provides
 dnl RRA_LIB_PCRE_SWITCH to set CPPFLAGS, LDFLAGS, and LIBS to include the PCRE
 dnl libraries, saving the current values first, and RRA_LIB_PCRE_RESTORE to
 dnl restore those settings to before the last RRA_LIB_PCRE_SWITCH.  Defines
-dnl HAVE_PCRE and sets rra_use_pcre to true if PCRE is found.  If it isn't
-dnl found, the substitution variables will be empty.
+dnl HAVE_PCRE and sets rra_use_pcre to true if PCRE is found and
+dnl --without-pcre is not given.  If it isn't found, or if --without-pcre is
+dnl given, the substitution variables will be empty.
 dnl
 dnl Depends on RRA_SET_LDFLAGS.
 dnl
@@ -19,6 +20,7 @@ dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2021-2022 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2010, 2013
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
@@ -101,7 +103,7 @@ AC_DEFUN([_RRA_LIB_PCRE_INTERNAL],
  AS_IF([test x"$PCRE_CONFIG" != x && test -x "$PCRE_CONFIG"],
     [PCRE_CPPFLAGS=`"$PCRE_CONFIG" --cflags 2>/dev/null`
      PCRE_LIBS=`"$PCRE_CONFIG" --libs 2>/dev/null`
-     PCRE_CPPFLAGS=`echo "$PCRE_CPPFLAGS" | sed 's%-I/usr/include ?%%'`
+     PCRE_CPPFLAGS=`AS_ECHO(["$PCRE_CPPFLAGS"]) | sed 's%-I/usr/include ?%%'`
      _RRA_LIB_PCRE_CHECK([$1])],
     [_RRA_LIB_PCRE_PATHS
      _RRA_LIB_PCRE_MANUAL([$1])])])])

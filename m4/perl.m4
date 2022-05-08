@@ -25,7 +25,7 @@ dnl
 dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
-dnl Copyright 2016, 2018 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2016, 2018, 2021 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2006, 2009, 2011 Internet Systems Consortium, Inc. ("ISC")
 dnl Copyright 1998-2003 The Internet Software Consortium
 dnl
@@ -92,16 +92,18 @@ AC_DEFUN([RRA_LIB_PERL],
  rra_perl_core_flags=`"$PERL" -MExtUtils::Embed -e ccopts`
  rra_perl_core_libs=`"$PERL" -MExtUtils::Embed -e ldopts 2>&1 | tail -n 1`
  rra_perl_core_libs=" $rra_perl_core_libs "
- rra_perl_core_libs=`echo "$rra_perl_core_libs" | sed 's/ -lc / /'`
+ rra_perl_core_libs=`AS_ECHO(["$rra_perl_core_libs"]) | sed 's/ -lc / /'`
  AS_CASE([$host],
     [*-linux*],
-        [rra_perl_core_libs=`echo "$rra_perl_core_libs" | sed 's/ -lgdbm / /'`],
+        [rra_perl_core_libs=`AS_ECHO(["$rra_perl_core_libs"]) \
+            | sed 's/ -lgdbm / /'`],
     [*-cygwin*],
         [rra_perl_libname=`"$PERL" -MConfig -e 'print $Config{libperl}'`
-         rra_perl_libname=`echo "$rra_perl_libname" | sed 's/^lib//; s/\.a$//'`
+         rra_perl_libname=`AS_ECHO(["$rra_perl_libname"]) \
+            | sed 's/^lib//; s/\.a$//'`
          rra_perl_core_libs="${rra_perl_core_libs}-l$rra_perl_libname"])
- rra_perl_core_libs=`echo "$rra_perl_core_libs" | sed 's/^  *//'`
- rra_perl_core_libs=`echo "$rra_perl_core_libs" | sed 's/  *$//'`
+ rra_perl_core_libs=`AS_ECHO(["$rra_perl_core_libs"]) | sed 's/^  *//'`
+ rra_perl_core_libs=`AS_ECHO(["$rra_perl_core_libs"]) | sed 's/  *$//'`
  PERL_CPPFLAGS="$rra_perl_core_flags"
  PERL_LIBS="$rra_perl_core_libs"
  AC_MSG_RESULT([$PERL_LIBS])

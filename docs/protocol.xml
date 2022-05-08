@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
-<!DOCTYPE rfc SYSTEM "rfc2629.dtd">
+<!DOCTYPE rfc>
 <?rfc private="remctl Protocol" toc="yes" symrefs="yes"?>
-<rfc category="info" docName="draft-allbery-remctl-00" ipr="trust200902">
+<rfc category="info" docName="draft-allbery-remctl-00" ipr="trust200902"
+     submissionType="independent">
   <front>
     <title abbrev="remctl">remctl: Remote Authenticated Command Service</title>
     <author initials='R.' surname='Allbery' fullname='Russ Allbery'>
-      <organization>Dropbox</organization>
+      <organization>AURA</organization>
       <address>
         <email>eagle@eyrie.org</email>
         <uri>https://www.eyrie.org/~eagle/</uri>

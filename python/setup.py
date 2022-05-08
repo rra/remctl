@@ -53,7 +53,7 @@ try:
 except ImportError:
     pass
 
-VERSION = "3.16"
+VERSION = "3.18"
 
 doclines = __doc__.split("\n")
 
@@ -112,7 +112,6 @@ kwargs = {
     "long_description": "\n".join(doclines[2:]),
     "license": "MIT",
     "install_requires": ['typing;python_version<"3.5"'],
-    "setup_requires": ["pytest-runner"],
     "tests_require": ["pytest"],
     "classifiers": [
         "Development Status :: 4 - Beta",

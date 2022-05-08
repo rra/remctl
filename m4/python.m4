@@ -13,11 +13,11 @@ dnl     empty, it means that Python 2 is not supported).  The second argument
 dnl     is a Python version related to at least the 3.x series (if empty,
 dnl     it means that Python 3 or later is not supported).
 dnl
-dnl INN_PYTHON_CHECK_MODULE
+dnl RRA_PYTHON_CHECK_MODULE
 dnl     Checks for the existence of a Python module.  Runs the second argument
 dnl     if it is present and the third argument if it is not.
 dnl
-dnl INN_LIB_PYTHON
+dnl RRA_LIB_PYTHON
 dnl     Determines the flags required for embedding Python and sets
 dnl     PYTHON_CPPFLAGS and PYTHON_LIBS.
 dnl
@@ -27,16 +27,22 @@ dnl way.  (It cannot be run automatically via dependencies because it takes a
 dnl mandatory minimum version argument, which should be provided by the
 dnl calling configure script.)
 dnl
-dnl This macro uses the distutils.sysconfig module shipped with Python 2.2.0
-dnl and later to find the compiler and linker flags to use to embed Python.
-dnl It also expects libpython to be in the main library location, which it is
-dnl since Python 2.3.0.
+dnl For Python 3, this macro uses the sysconfig module to find the compiler
+dnl and linker flags to use to embed Python.  If the sysconfig module is not
+dnl present, it falls back on using the distutils.sysconfig module shipped
+dnl with Python 2.2.0 and later until its removal in Python 3.12.0.
+dnl
+dnl sysconfig.get_paths() in Python 2.7 as packaged in Debian buster returns
+dnl an include path in /usr/local/include, suitable for user-built extensions,
+dnl not the path in /usr/include required for including Python.h.  Therefore,
+dnl always use distutils.sysconfig for Python 2.
 dnl
 dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
-dnl Copyright 2018 Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2009, 2011, 2015, 2018 Julien ÉLIE <julien@trigofacile.com>
+dnl Copyright 2018, 2021 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2009, 2011, 2015, 2018, 2021
+dnl     Julien ÉLIE <julien@trigofacile.com>
 dnl Copyright 1998-2003 The Internet Software Consortium
 dnl
 dnl Permission to use, copy, modify, and distribute this software for any
@@ -58,17 +64,17 @@ AC_DEFUN([_RRA_PROG_PYTHON_CMD], [[
 import sys
 two_okay = False
 three_okay = False
-if sys.argv[1]:
-    two_tuple = tuple(int(i) for i in sys.argv[1].split("."))
-    if sys.version_info.major == 2 and sys.version_info >= two_tuple:
+if len(sys.argv) > 1 and sys.argv[1]:
+    two_tuple = tuple(map(int, sys.argv[1].split(".")))
+    if sys.version_info[0] == 2 and sys.version_info >= two_tuple:
         two_okay = True
-if sys.argv[2]:
-    three_tuple = tuple(int(i) for i in sys.argv[2].split("."))
-    if sys.version_info.major > 2 and sys.version_info >= three_tuple:
+if len(sys.argv) > 2 and sys.argv[2]:
+    three_tuple = tuple(map(int, sys.argv[2].split(".")))
+    if sys.version_info[0] > 2 and sys.version_info >= three_tuple:
         three_okay = True
 assert(two_okay or three_okay)
 ]])
-        
+
 dnl Check for the path to Python and ensure it meets our minimum version
 dnl requirement.  The first argument specifies the minimum Python 2 version
 dnl and the second argument specifies the minimum Python 3 (or later) version.
@@ -117,20 +123,32 @@ AC_DEFUN([RRA_LIB_PYTHON],
 [AC_SUBST([PYTHON_CPPFLAGS])
  AC_SUBST([PYTHON_LIBS])
  AC_MSG_CHECKING([for flags to link with Python])
- py_include=`$PYTHON -c 'import distutils.sysconfig; \
-     print(distutils.sysconfig.get_python_inc())'`
+ AS_IF(["$PYTHON" -c 'import sysconfig' >/dev/null 2>&1],
+     [py_include=`$PYTHON -c 'import sysconfig; \
+          print(sysconfig.get_paths("posix_prefix").get("include", ""))'`
+      py_libdir=`$PYTHON -c 'import sysconfig; \
+          print(" -L".join(sysconfig.get_config_vars("LIBDIR")))'`
+      py_ldlibrary=`$PYTHON -c 'import sysconfig; \
+          print(sysconfig.get_config_vars("LDLIBRARY")@<:@0@:>@)'`
+      py_linkage=`$PYTHON -c 'import sysconfig;                      \
+          print(" ".join(sysconfig.get_config_vars(                  \
+              "LIBS", "LIBC", "LIBM", "LOCALMODLIBS", "BASEMODLIBS", \
+              "LINKFORSHARED", "LDFLAGS")))'`],
+     [py_include=`$PYTHON -c 'import distutils.sysconfig; \
+          print(distutils.sysconfig.get_python_inc())'`
+      py_libdir=`$PYTHON -c 'import distutils.sysconfig; \
+          print(" -L".join(distutils.sysconfig.get_config_vars("LIBDIR")))'`
+      py_ldlibrary=`$PYTHON -c 'import distutils.sysconfig; \
+          print(distutils.sysconfig.get_config_vars("LDLIBRARY")@<:@0@:>@)'`
+      py_linkage=`$PYTHON -c 'import distutils.sysconfig;            \
+          print(" ".join(distutils.sysconfig.get_config_vars(        \
+              "LIBS", "LIBC", "LIBM", "LOCALMODLIBS", "BASEMODLIBS", \
+              "LINKFORSHARED", "LDFLAGS")))'`])
  PYTHON_CPPFLAGS="-I$py_include"
- py_libdir=`$PYTHON -c 'import distutils.sysconfig; \
-     print(" -L".join(distutils.sysconfig.get_config_vars("LIBDIR")))'`
- py_ldlibrary=`$PYTHON -c 'import distutils.sysconfig; \
-     print(distutils.sysconfig.get_config_vars("LDLIBRARY")@<:@0@:>@)'`
- py_linkage=`$PYTHON -c 'import distutils.sysconfig;            \
-     print(" ".join(distutils.sysconfig.get_config_vars(        \
-         "LIBS", "LIBC", "LIBM", "LOCALMODLIBS", "BASEMODLIBS", \
-         "LINKFORSHARED", "LDFLAGS")))'`
- py_libpython=`echo $py_ldlibrary | sed "s/^lib//" | sed "s/\.@<:@a-z@:>@*$//"`
+ py_libpython=`AS_ECHO(["$py_ldlibrary"]) \
+    | sed -e 's/^lib//' -e 's/\.@<:@a-z@:>@*$//'`
  PYTHON_LIBS="-L$py_libdir -l$py_libpython $py_linkage"
- PYTHON_LIBS=`echo $PYTHON_LIBS | sed -e 's/[ \\t]*/ /g'`
+ PYTHON_LIBS=`AS_ECHO(["$PYTHON_LIBS"]) | sed 's/ @<:@ \\t@:>@*/ /g'`
  AC_MSG_RESULT([$PYTHON_LIBS])
  rra_python_save_CPPFLAGS="$CPPFLAGS"
  rra_python_save_LIBS="$LIBS"

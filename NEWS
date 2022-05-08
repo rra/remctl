@@ -1,5 +1,42 @@
                        User-Visible remctl Changes
 
+remctl 3.18 (2022-05-08)
+
+    Add support for PCRE2 for pcre ACLs and use it by preference over
+    PCRE1 if it is found.  UTF-8 regular expressions are not enabled by
+    default, but can be enabled by adding (*UTF) to the beginning of the
+    regular expression (a standard PCRE2 feature not specific to remctl).
+
+    Document that pcre and regex ACL expressions are not automatically
+    anchored at the start and end of the principal name, so they should be
+    explicitly anchored in the configuration unless one intends to allow
+    partial matches.
+
+    The Perl libraries and the remctl test suite now require Perl 5.10 or
+    later.
+
+    Document sending SIGHUP to remctld when running in stand-alone mode to
+    ask it to re-read its configuration file, and document that SIGTERM
+    will cause it to exit.  (Fixes #30)
+
+    Mark remctl client library functions that allocate memory with their
+    corresponding deallocation functions so that GCC 11 and later can
+    diagnose memory deallocation bugs.
+
+    Remove remaining references to pytest-runner in the Python bindings.
+    Thanks, Ken Dreyer.
+
+    Switch the Ruby bindings tests to Minitest from Test::Unit.  Thanks,
+    Ken Dreyer.
+
+    Update to rra-c-util 10.2:
+
+    * Fix IN6_ARE_ADDR_EQUAL Autoconf probe on macOS.
+    * Fix compiler flag probes with Clang.
+    * Check that Kerberos headers can be included.
+    * Fix util/fdflag test on Solaris 11 and OpenBSD.
+    * Suppress some additional warnings in GCC 10.
+
 remctl 3.17 (2020-12-13)
 
     Port the PHP extention to PHP 8.  This required declaring the

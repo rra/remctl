@@ -14,6 +14,9 @@ set -eux
 # case someone runs this test by hand.
 KERBEROS="${KERBEROS:-mit}"
 
+# Configure Perl to use the cpanm installation paths.
+eval "$(perl -Mlocal::lib)"
+
 # Generate Autotools files.
 ./bootstrap
 

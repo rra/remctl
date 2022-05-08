@@ -8,7 +8,7 @@
  * we're looking up matches that, we return it; otherwise, we return NULL.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018, 2022 Russ Allbery <eagle@eyrie.org>
  * Copyright 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -35,7 +35,7 @@ static struct passwd *pwd_info = NULL;
  * NULL.
  */
 void
-fake_set_passwd(struct passwd *pwd)
+fake_set_passwd(const struct passwd *pwd)
 {
     struct passwd *new_pwd;
 

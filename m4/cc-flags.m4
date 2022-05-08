@@ -15,7 +15,7 @@ dnl
 dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
-dnl Copyright 2016-2020 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2016-2021 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2006, 2009, 2016
 dnl     by Internet Systems Consortium, Inc. ("ISC")
 dnl
@@ -46,8 +46,10 @@ AC_DEFUN([RRA_PROG_CC_FLAG],
  AC_MSG_CHECKING([if $CC supports $1])
  AC_CACHE_VAL([_RRA_PROG_CC_FLAG_CACHE([$1])],
     [save_CFLAGS=$CFLAGS
+     AS_IF([test x"$CLANG" = xyes],
+        [CFLAGS="$CFLAGS -Werror=unknown-warning-option"])
      AS_CASE([$1],
-        [-Wno-*], [CFLAGS="$CFLAGS `echo "$1" | sed 's/-Wno-/-W/'`"],
+        [-Wno-*], [CFLAGS="$CFLAGS `AS_ECHO(["$1"]) | sed 's/-Wno-/-W/'`"],
         [*],      [CFLAGS="$CFLAGS $1"])
      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [int foo = 0;])],
         [_RRA_PROG_CC_FLAG_CACHE([$1])=yes],
@@ -63,6 +65,8 @@ AC_DEFUN([RRA_PROG_LD_FLAG],
  AC_MSG_CHECKING([if $CC supports $1 for linking])
  AC_CACHE_VAL([_RRA_PROG_LD_FLAG_CACHE([$1])],
     [save_LDFLAGS=$LDFLAGS
+     AS_IF([test x"$CLANG" = xyes],
+        [LDFLAGS="$LDFLAGS -Werror=unknown-warning-option"])
      LDFLAGS="$LDFLAGS $1"
      AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int foo = 0;])],
         [_RRA_PROG_LD_FLAG_CACHE([$1])=yes],
@@ -92,6 +96,7 @@ dnl   -Wcast-qual                     Some structs require casting away const
 dnl   -Wdisabled-macro-expansion      Triggers on libc (sigaction.sa_handler)
 dnl   -Wpadded                        Not an actual problem
 dnl   -Wreserved-id-macros            Autoconf sets several of these normally
+dnl   -Wreserved-identifer            False positive with FD_ZERO
 dnl   -Wsign-conversion               Too many fiddly changes for the benefit
 dnl   -Wtautological-pointer-compare  False positives with for loops
 dnl   -Wundef                         Conflicts with Autoconf probe results
@@ -107,7 +112,7 @@ AC_DEFUN([RRA_PROG_CC_WARNINGS_FLAGS],
     [WARNINGS_CFLAGS="-Werror"
      m4_foreach_w([flag],
         [-Weverything -Wno-cast-qual -Wno-disabled-macro-expansion -Wno-padded
-         -Wno-sign-conversion -Wno-reserved-id-macro
+         -Wno-sign-conversion -Wno-reserved-id-macro -Wno-reserved-identifier
          -Wno-tautological-pointer-compare -Wno-undef -Wno-unreachable-code
          -Wno-unreachable-code-return -Wno-unused-macros
          -Wno-used-but-marked-unused],

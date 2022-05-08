@@ -2,7 +2,7 @@
  * Prototypes for shared GSS-API error handling code.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2007, 2010
+ * Copyright 2007, 2010, 2022
  *     The Board of Trustees of the Leland Stanford Junior University
  *
  * SPDX-License-Identifier: MIT
@@ -15,6 +15,8 @@
 #include <portable/gssapi.h>
 #include <portable/macros.h>
 
+#include <stdlib.h>
+
 BEGIN_DECLS
 
 /* Default to a hidden visibility for all util functions. */
@@ -25,7 +27,7 @@ BEGIN_DECLS
  * newly allocated string that the caller must free.
  */
 char *gssapi_error_string(const char *prefix, OM_uint32, OM_uint32)
-    __attribute__((__malloc__, __nonnull__));
+    __attribute__((__malloc__(free), __nonnull__));
 
 /* Undo default visibility change. */
 #pragma GCC visibility pop
