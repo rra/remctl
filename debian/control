@@ -11,7 +11,7 @@ Build-Depends:
  libevent-dev,
  libkrb5-dev,
  libmodule-build-perl,
- libpcre3-dev,
+ libpcre2-dev,
  libperl-critic-perl,
  libsystemd-dev [linux-any],
  libtest-minimumversion-perl,
