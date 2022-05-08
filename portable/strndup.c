@@ -44,7 +44,7 @@ strndup(const char *s, size_t n)
     }
 
     /* Don't assume that the source string is nul-terminated. */
-    for (p = s; (size_t)(p - s) < n && *p != '\0'; p++)
+    for (p = s; (size_t) (p - s) < n && *p != '\0'; p++)
         ;
     length = p - s;
     copy = malloc(length + 1);

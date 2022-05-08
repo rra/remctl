@@ -2,7 +2,7 @@
 #
 # Written by Russ Allbery <eagle@eyrie.org>
 # Improvements by Thomas Kula and Darren Patterson
-# Copyright 2018, 2020 Russ Allbery <eagle@eyrie.org>
+# Copyright 2018, 2020, 2022 Russ Allbery <eagle@eyrie.org>
 # Copyright 2006-2007, 2012-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -22,7 +22,7 @@
 %endif
 
 # this is needed for Stanford packaging automation
-%define vers 3.17
+%define vers 3.18
 
 # Use rpmbuild option "--define 'buildperl 0'" to not build the Perl module.
 %{!?buildperl:%define buildperl 1}
@@ -465,6 +465,9 @@ fi
 %{__rm} -rf %{buildroot}
 
 %changelog
+* Sun May 8 2022 Russ Allbery <eagle@eyrie.org> 3.18-1
+- update to 3.18
+
 * Sun Dec 13 2020 Russ Allbery <eagle@eyrie.org> 3.17-1
 - update to 3.17
 

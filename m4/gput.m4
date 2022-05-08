@@ -10,6 +10,7 @@ dnl
 dnl Depends on RRA_SET_LDFLAGS.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2022 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2008
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
@@ -29,7 +30,7 @@ AC_DEFUN([RRA_LIB_GPUT],
  rra_with_gput=
 
  AC_ARG_WITH([gput],
-    [AC_HELP_STRING([--with-gput=DIR],
+    [AS_HELP_STRING([--with-gput=DIR],
         [Location of CMU GPUT headers and libraries])],
     [rra_with_gput=yes
      AS_IF([test x"$withval" = xno],
@@ -38,14 +39,14 @@ AC_DEFUN([RRA_LIB_GPUT],
             [GPUT_CPPFLAGS="-I$withval/include"
              RRA_SET_LDFLAGS([GPUT_LDFLAGS], [$withval])])])])
  AC_ARG_WITH([gput-include],
-    [AC_HELP_STRING([--with-gput-include=DIR],
+    [AS_HELP_STRING([--with-gput-include=DIR],
         [Location of CMU GPUT headers])],
     [AS_IF([test x"$withval" = xyes || test x"$withval" = xno],
         [AC_MSG_ERROR([no argument given for --with-gput-include])])
      rra_with_gput=yes
      GPUT_CPPFLAGS="-I$withval"])
  AC_ARG_WITH([gput-lib],
-    [AC_HELP_STRING([--with-gput-lib=DIR], [Location of CMU GPUT libraries])],
+    [AS_HELP_STRING([--with-gput-lib=DIR], [Location of CMU GPUT libraries])],
     [AS_IF([test x"$withval" = xyes || test x"$withval" = xno],
         [AC_MSG_ERROR([no argument given for --with-gput-lib])])
      rra_with_gput=yes

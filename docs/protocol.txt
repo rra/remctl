@@ -2,9 +2,10 @@
 
 
 
-                                                              R. Allbery
-                                                                 Dropbox
-                                                         January 1, 2014
+Network Working Group                                         R. Allbery
+Internet-Draft                                                      AURA
+Intended status: Informational                              January 2014
+Expires: 4 August 2014
 
 
               remctl: Remote Authenticated Command Service
@@ -19,6 +20,61 @@ Abstract
    the current (version 3) protocol and the older version 1 protocol are
    described.  The version 1 protocol should only be implemented for
    backward compatibility.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 5 July 2014.
+
+Copyright Notice
+
+   Copyright (c) 2014 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (http://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.
+
+
+
+
+
+Allbery                   Expires 4 August 2014                 [Page 1]
+
+Internet-Draft                   remctl                     January 2014
+
+
+Table of Contents
+
+   1.  Basic Packet Format . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Network Protocol (version 3)  . . . . . . . . . . . . . . . .   3
+     2.1.  Session Sequence  . . . . . . . . . . . . . . . . . . . .   3
+     2.2.  Message Format  . . . . . . . . . . . . . . . . . . . . .   4
+     2.3.  Protocol Version Negotiation  . . . . . . . . . . . . . .   5
+     2.4.  MESSAGE_COMMAND . . . . . . . . . . . . . . . . . . . . .   5
+     2.5.  MESSAGE_OUTPUT and MESSAGE_STATUS . . . . . . . . . . . .   7
+     2.6.  MESSAGE_ERROR . . . . . . . . . . . . . . . . . . . . . .   7
+     2.7.  MESSAGE_QUIT  . . . . . . . . . . . . . . . . . . . . . .   8
+     2.8.  MESSAGE_NOOP  . . . . . . . . . . . . . . . . . . . . . .   8
+   3.  Network Protocol (version 1)  . . . . . . . . . . . . . . . .   9
+   4.  Security Considerations . . . . . . . . . . . . . . . . . . .  10
+   Appendix A.  Acknowledgements . . . . . . . . . . . . . . . . . .  10
+   Appendix B.  Additional License . . . . . . . . . . . . . . . . .  11
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  11
 
 1.  Basic Packet Format
 
@@ -53,9 +109,9 @@ Abstract
 
 
 
-Allbery                   Expires July 5, 2014                  [Page 1]
+Allbery                   Expires 4 August 2014                 [Page 2]
 
-                                 remctl                     January 2014
+Internet-Draft                   remctl                     January 2014
 
 
    The length field is a four-octet length in network byte order,
@@ -109,9 +165,9 @@ Allbery                   Expires July 5, 2014                  [Page 1]
 
 
 
-Allbery                   Expires July 5, 2014                  [Page 2]
+Allbery                   Expires 4 August 2014                 [Page 3]
 
-                                 remctl                     January 2014
+Internet-Draft                   remctl                     January 2014
 
 
        MUST confirm that GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and
@@ -165,9 +221,9 @@ Allbery                   Expires July 5, 2014                  [Page 2]
 
 
 
-Allbery                   Expires July 5, 2014                  [Page 3]
+Allbery                   Expires 4 August 2014                 [Page 4]
 
-                                 remctl                     January 2014
+Internet-Draft                   remctl                     January 2014
 
 
 2.3.  Protocol Version Negotiation
@@ -216,16 +272,18 @@ Allbery                   Expires July 5, 2014                  [Page 3]
    logically part of the previous message, like 2, but it also says that
    this is the end of the command.
 
+
+
+
+
+
+Allbery                   Expires 4 August 2014                 [Page 5]
+
+Internet-Draft                   remctl                     January 2014
+
+
    A continuation of a message starts with the keep-alive flag and
    continue status and then the next chunk of data.  To reconstruct a
-
-
-
-Allbery                   Expires July 5, 2014                  [Page 4]
-
-                                 remctl                     January 2014
-
-
    continued message, remove the first two octets from each chunk and
    concatenate the pieces together.  The result is the portion of a
    MESSAGE_COMMAND starting with the number of arguments.
@@ -268,19 +326,23 @@ Allbery                   Expires July 5, 2014                  [Page 4]
    octets of data in the following argument.  Argument length may be 0.
    Commands with no arguments are permitted by the protocol.
 
+
+
+
+
+
+
+
+Allbery                   Expires 4 August 2014                 [Page 6]
+
+Internet-Draft                   remctl                     January 2014
+
+
    Servers may impose limits on the number of arguments and the size of
    argument data to limit resource usage.  If the client message exceeds
    one of those limits, the server MUST respond with MESSAGE_ERROR with
    an error code of ERROR_TOOMANY_ARGS or ERROR_TOOMUCH_DATA as
    appropriate.
-
-
-
-
-Allbery                   Expires July 5, 2014                  [Page 5]
-
-                                 remctl                     January 2014
-
 
 2.5.  MESSAGE_OUTPUT and MESSAGE_STATUS
 
@@ -327,15 +389,9 @@ Allbery                   Expires July 5, 2014                  [Page 5]
 
 
 
-
-
-
-
-
-
-Allbery                   Expires July 5, 2014                  [Page 6]
+Allbery                   Expires 4 August 2014                 [Page 7]
 
-                                 remctl                     January 2014
+Internet-Draft                   remctl                     January 2014
 
 
        1  ERROR_INTERNAL           Internal server failure
@@ -389,9 +445,9 @@ Allbery                   Expires July 5, 2014                  [Page 6]
 
 
 
-Allbery                   Expires July 5, 2014                  [Page 7]
+Allbery                   Expires 4 August 2014                 [Page 8]
 
-                                 remctl                     January 2014
+Internet-Draft                   remctl                     January 2014
 
 
 3.  Network Protocol (version 1)
@@ -445,9 +501,9 @@ Allbery                   Expires July 5, 2014                  [Page 7]
 
 
 
-Allbery                   Expires July 5, 2014                  [Page 8]
+Allbery                   Expires 4 August 2014                 [Page 9]
 
-                                 remctl                     January 2014
+Internet-Draft                   remctl                     January 2014
 
 
    9.   Server runs the command, collects the output, and sends the
@@ -501,9 +557,9 @@ Appendix A.  Acknowledgements
 
 
 
-Allbery                   Expires July 5, 2014                  [Page 9]
+Allbery                   Expires 4 August 2014                [Page 10]
 
-                                 remctl                     January 2014
+Internet-Draft                   remctl                     January 2014
 
 
 Appendix B.  Additional License
@@ -526,8 +582,7 @@ Appendix B.  Additional License
 Author's Address
 
    Russ Allbery
-   Dropbox
-
+   AURA
    Email: eagle@eyrie.org
    URI:   https://www.eyrie.org/~eagle/
 
@@ -557,4 +612,5 @@ Author's Address
 
 
 
-Allbery                   Expires July 5, 2014                 [Page 10]
+
+Allbery                   Expires 4 August 2014                [Page 11]

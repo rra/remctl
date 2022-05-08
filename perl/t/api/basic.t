@@ -105,12 +105,14 @@ sub run_kinit {
     }
 
     # List of commands to try.
+    #<<<
     my @commands = (
         [qw(kinit --no-afslog -k -t t/config/keytab), $princ],
         [qw(kinit -k -t t/config/keytab),             $princ],
         [qw(kinit -t t/config/keytab),                $princ],
         [qw(kinit -k -K t/config/keytab),             $princ],
     );
+    #>>>
 
     # Attempt each command in turn.  If any succeed, return true.
     for my $command (@commands) {
@@ -152,29 +154,29 @@ SKIP: {
 
     # Now we can finally run our tests.  Basic interface, success.
     my $principal = get_principal();
-    my $result    = remctl('localhost', 14373, $principal, 'test', 'test');
+    my $result = remctl('localhost', 14373, $principal, 'test', 'test');
     isa_ok($result, 'Net::Remctl::Result', 'Basic remctl return');
-    is($result->status, 0,               '... exit status');
+    is($result->status, 0, '... exit status');
     is($result->stdout, "hello world\n", '... stdout output');
-    is($result->stderr, undef,           '... stderr output');
-    is($result->error,  undef,           '... error return');
+    is($result->stderr, undef, '... stderr output');
+    is($result->error, undef, '... error return');
 
     # The same, but passing the arguments in via an array.
     my @args = ('localhost', 14373, $principal, 'test', 'test');
     $result = remctl(@args);
     isa_ok($result, 'Net::Remctl::Result', 'Basic remctl with array args');
-    is($result->status, 0,               '... exit status');
+    is($result->status, 0, '... exit status');
     is($result->stdout, "hello world\n", '... stdout output');
-    is($result->stderr, undef,           '... stderr output');
-    is($result->error,  undef,           '... error return');
+    is($result->stderr, undef, '... stderr output');
+    is($result->error, undef, '... error return');
 
     # Basic interface, failure.
     $result = remctl('localhost', 14373, $principal, 'test', 'bad-command');
     isa_ok($result, 'Net::Remctl::Result', 'Error remctl return');
-    is($result->status, 0,                 '... exit status');
-    is($result->stdout, undef,             '... stdout output');
-    is($result->stderr, undef,             '... stderr output');
-    is($result->error,  'Unknown command', '... error return');
+    is($result->status, 0, '... exit status');
+    is($result->stdout, undef, '... stdout output');
+    is($result->stderr, undef, '... stderr output');
+    is($result->error, 'Unknown command', '... error return');
 
     # Test not providing enough arguments to remctl.
     if (eval { $result = remctl() }) {
@@ -202,32 +204,32 @@ SKIP: {
     # First output token.
     my $output = $remctl->output;
     isa_ok($output, 'Net::Remctl::Output', 'Output token');
-    is($output->type,   'output',        '... of type output');
-    is($output->length, 12,              '... and length 12');
-    is($output->data,   "hello world\n", '... with the right data');
-    is($output->stream, 1,               '... and the right stream');
+    is($output->type, 'output', '... of type output');
+    is($output->length, 12, '... and length 12');
+    is($output->data, "hello world\n", '... with the right data');
+    is($output->stream, 1, '... and the right stream');
 
     # Second output token.
     $output = $remctl->output;
     isa_ok($output, 'Net::Remctl::Output', 'Second output token');
-    is($output->type,   'status', '... of type status');
-    is($output->status, 0,        '... with status 0');
+    is($output->type, 'status', '... of type status');
+    is($output->status, 0, '... with status 0');
 
     # Complex interface, failure.
     ok($remctl->command('test', 'bad-command'), 'Send failing command');
     is($remctl->error, 'no error', '... no error set');
     $output = $remctl->output;
     isa_ok($output, 'Net::Remctl::Output', 'Output token');
-    is($output->type,  'error',           '... of type error');
-    is($output->data,  'Unknown command', '... with the error message');
-    is($output->error, 5,                 '... and the right code');
+    is($output->type, 'error', '... of type error');
+    is($output->data, 'Unknown command', '... with the error message');
+    is($output->error, 5, '... and the right code');
 
     # Complex interface with a timeout.
     $remctl = Net::Remctl->new;
     isa_ok($remctl, 'Net::Remctl', 'Object');
-    is($remctl->error,          'no error', '... no error set');
-    is($remctl->set_timeout(1), 1,          'Set timeout');
-    is($remctl->error,          'no error', '... no error set');
+    is($remctl->error, 'no error', '... no error set');
+    is($remctl->set_timeout(1), 1, 'Set timeout');
+    is($remctl->error, 'no error', '... no error set');
     ok($remctl->open('127.0.0.1', 14373, $principal), 'Connect to server');
     is($remctl->error, 'no error', '... no error set');
     ok($remctl->command('test', 'sleep'), 'Send sleep command');
@@ -239,17 +241,19 @@ SKIP: {
     # Complex interface with source IP.
     $remctl = Net::Remctl->new;
     isa_ok($remctl, 'Net::Remctl', 'Object');
-    is($remctl->error,                      'no error', '... no error set');
-    is($remctl->set_source_ip('127.0.0.1'), 1,          'Set source IP');
-    is($remctl->error,                      'no error', '... no error set');
+    is($remctl->error, 'no error', '... no error set');
+    is($remctl->set_source_ip('127.0.0.1'), 1, 'Set source IP');
+    is($remctl->error, 'no error', '... no error set');
     ok($remctl->open('127.0.0.1', 14373, $principal), 'Connect to server');
     is($remctl->error, 'no error', '... no error set');
 
     # Complex interface with unworkable source IP.
-    is($remctl->set_source_ip('::1'), 1,          'Set source IP to ::1');
-    is($remctl->error,                'no error', '... no error set');
-    ok(!$remctl->open('127.0.0.1', 14373, $principal),
-        'Cannot connect to server');
+    is($remctl->set_source_ip('::1'), 1, 'Set source IP to ::1');
+    is($remctl->error, 'no error', '... no error set');
+    ok(
+        !$remctl->open('127.0.0.1', 14373, $principal),
+        'Cannot connect to server',
+    );
     like(
         $remctl->error,
         qr{ \A (?:cannot[ ] connect [ ] to | unknown [ ] host) [ ] }xms,
@@ -262,8 +266,10 @@ SKIP: {
     local $ENV{KRB5CCNAME} = './nonexistent-file';
     $remctl = Net::Remctl->new;
     isa_ok($remctl, 'Net::Remctl', 'Object');
-    ok(!$remctl->open('localhost', 14373, $principal),
-        'Cannot connect without cache');
+    ok(
+        !$remctl->open('localhost', 14373, $principal),
+        'Cannot connect without cache',
+    );
 
     # Set the ticket cache, and then open should work.
   SKIP: {

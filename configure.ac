@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2015-2016, 2018-2020 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2015-2016, 2018-2020, 2022 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2016 Dropbox, Inc.
 dnl Copyright 2002-2008, 2010-2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
@@ -9,7 +9,7 @@ dnl
 dnl SPDX-License-Identifier: MIT
 
 AC_PREREQ([2.64])
-AC_INIT([remctl], [3.17], [eagle@eyrie.org])
+AC_INIT([remctl], [3.18], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
 AC_CONFIG_MACRO_DIR([m4])
@@ -29,8 +29,7 @@ RRA_PROG_CC_WARNINGS_FLAGS
 AC_SYS_LARGEFILE
 AM_PROG_CC_C_O
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
-AC_PROG_INSTALL
-AC_PROG_LIBTOOL
+LT_INIT
 RRA_LD_VERSION_SCRIPT
 
 dnl Support installation of systemd unit files.
@@ -107,7 +106,8 @@ dnl Check for the CMU GPUT library.
 RRA_LIB_GPUT
 
 dnl Check for regex libraries for pcre:* and regex:* ACL support.
-RRA_LIB_PCRE_OPTIONAL
+RRA_LIB_PCRE2_OPTIONAL
+AS_IF([test x"$rra_use_PCRE2" != xtrue], [RRA_LIB_PCRE_OPTIONAL])
 AC_CHECK_HEADER([regex.h], [AC_CHECK_FUNCS([regcomp])])
 
 dnl General C library and networking probes.
@@ -159,7 +159,7 @@ dnl Whether to build the Perl bindings.  Put this late so that it shows up
 dnl near the bottom of the --help output.
 build_perl=
 AC_ARG_ENABLE([perl],
-    [AC_HELP_STRING([--enable-perl], [Build Perl libremctl bindings])],
+    [AS_HELP_STRING([--enable-perl], [Build Perl libremctl bindings])],
     [AS_IF([test x"$enableval" = xyes], [build_perl=yes])])
 AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
 AS_IF([test x"$build_perl" = xyes],
@@ -171,7 +171,7 @@ dnl Whether to build the PHP bindings.  The dance required to be able to run
 dnl phpize before AC_OUTPUT sucks like a sucking thing.
 build_php=
 AC_ARG_ENABLE([php],
-    [AC_HELP_STRING([--enable-php], [Build remctl PECL extension for PHP])],
+    [AS_HELP_STRING([--enable-php], [Build remctl PECL extension for PHP])],
     [AS_IF([test x"$enableval" = xyes],
         [build_php=yes
          AC_ARG_VAR([PHPIZE], [Path to phpize])
@@ -183,7 +183,7 @@ AM_CONDITIONAL([BUILD_PHP], [test x"$build_php" = xyes])
 dnl Whether to build the Python bindings.
 build_python=
 AC_ARG_ENABLE([python],
-    [AC_HELP_STRING([--enable-python], [Build Python libremctl bindings])],
+    [AS_HELP_STRING([--enable-python], [Build Python libremctl bindings])],
     [AS_IF([test x"$enableval" = xyes], [build_python=yes])])
 AM_CONDITIONAL([BUILD_PYTHON], [test x"$build_python" = xyes])
 AS_IF([test x"$build_python" = xyes],
@@ -192,7 +192,7 @@ AS_IF([test x"$build_python" = xyes],
 dnl Whether to build the Ruby bindings.
 build_ruby=
 AC_ARG_ENABLE([ruby],
-    [AC_HELP_STRING([--enable-ruby], [Build Ruby libremctl bindings])],
+    [AS_HELP_STRING([--enable-ruby], [Build Ruby libremctl bindings])],
     [AS_IF([test x"$enableval" = xyes], [build_ruby=yes])])
 AM_CONDITIONAL([BUILD_RUBY], [test x"$build_ruby" = xyes])
 
@@ -210,7 +210,7 @@ AS_IF([test x"$build_php" = xyes],
     [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])
 AS_IF([test x"$build_ruby" = xyes],
     [AC_CONFIG_FILES([ruby/extconf.rb ruby/test_remctl.rb])])
-AC_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_COMMANDS([docs], [test -d docs || mkdir docs])
 AC_CONFIG_COMMANDS([tests/config],
     [test -d tests/config || mkdir tests/config])

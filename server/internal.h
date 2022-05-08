@@ -44,7 +44,7 @@ struct process;
  * The timeout.  We won't wait for longer than this number of seconds for more
  * data from the client.  This needs to be configurable.
  */
-#define TIMEOUT (60 * 60)
+#define TIMEOUT          (60 * 60)
 
 /*
  * Normally set by the build system, but don't fail to compile if it's not

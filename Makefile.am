@@ -1,7 +1,7 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2015-2016, 2018-2020 Russ Allbery <eagle@eyrie.org>
+# Copyright 2015-2016, 2018-2022 Russ Allbery <eagle@eyrie.org>
 # Copyright 2016 Dropbox, Inc.
 # Copyright 2006-2014
 #     The Board of Trustees of the Leland Stanford Junior University
@@ -80,12 +80,12 @@ PYTHON_DIRECTORIES = python python/tests python/tests/data
 
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .clang-format .gitignore .github LICENSE Makefile.w32	    \
-	README.md bootstrap ci/README.md ci/files/heimdal/heimdal-kdc	    \
-	ci/files/heimdal/kadmind.acl ci/files/heimdal/kdc.conf		    \
-	ci/files/heimdal/krb5.conf ci/files/mit/extensions.client	    \
-	ci/files/mit/extensions.kdc ci/files/mit/kadm5.acl		    \
-	ci/files/mit/kdc.conf ci/files/mit/krb5.conf ci/install		    \
-	ci/kdc-setup-heimdal ci/kdc-setup-mit ci/test			    \
+	README.md bootstrap ci/README.md ci/apt-packages ci/cpanfile	    \
+	ci/files/heimdal/heimdal-kdc ci/files/heimdal/kadmind.acl	    \
+	ci/files/heimdal/kdc.conf ci/files/heimdal/krb5.conf		    \
+	ci/files/mit/extensions.client ci/files/mit/extensions.kdc	    \
+	ci/files/mit/kadm5.acl ci/files/mit/kdc.conf ci/files/mit/krb5.conf \
+	ci/install ci/kdc-setup-heimdal ci/kdc-setup-mit ci/test	    \
 	client/libremctl.pc.in client/libremctl.map client/libremctl.rc	    \
 	client/libremctl.sym client/remctl.rc config.h.w32 configure.cmd    \
 	docs/api/remctl.pod docs/api/remctl_close.pod			    \
@@ -93,14 +93,14 @@ EXTRA_DIST = .clang-format .gitignore .github LICENSE Makefile.w32	    \
 	docs/api/remctl_new.pod docs/api/remctl_noop.pod		    \
 	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
 	docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.pod    \
-	docs/api/remctl_set_timeout.pod docs/design.html docs/extending	    \
-	docs/metadata docs/protocol-v4 docs/protocol.txt docs/protocol.html \
-	docs/protocol.xml docs/remctl.pod docs/remctl-shell.8.in	    \
-	docs/remctl-shell.pod docs/remctld.8.in docs/remctld.pod	    \
-	examples/remctl.conf examples/remctld.xml examples/rsh-wrapper	    \
-	examples/xinetd java/.classpath java/.project java/Makefile	    \
-	java/README java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf	    \
-	java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java		    \
+	docs/api/remctl_set_timeout.pod docs/design.html docs/docknot.yaml  \
+	docs/extending docs/protocol-v4 docs/protocol.txt		    \
+	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
+	docs/remctl-shell.8.in docs/remctl-shell.pod docs/remctld.8.in	    \
+	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
+	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
+	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf    \
+	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java   \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
@@ -141,8 +141,9 @@ DISTCHECK_CONFIGURE_FLAGS = \
 	--with-systemdsystemunitdir=$$dc_install_base/$(systemdsystemunitdir)
 
 # Set this globally, since we have too many header files that include the
-# GSS-API headers even if the code itself doesn't call GSS-API functions.
-AM_CPPFLAGS = $(GSSAPI_CPPFLAGS)
+# Kerberos or GSS-API headers even if the code itself doesn't call Kerberos
+# or GSS-API functions.
+AM_CPPFLAGS = $(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS)
 
 if HAVE_LD_VERSION_SCRIPT
     VERSION_LDFLAGS = -Wl,--version-script=${srcdir}/client/libremctl.map
@@ -157,7 +158,8 @@ portable_libportable_la_SOURCES = portable/dummy.c portable/event.h	\
 	portable/gssapi.h portable/krb5.h portable/macros.h		\
 	portable/sd-daemon.h portable/socket.h portable/stdbool.h	\
 	portable/system.h portable/uio.h
-portable_libportable_la_LIBADD = $(LTLIBOBJS)
+portable_libportable_la_LDFLAGS = $(KRB5_LDFLAGS)
+portable_libportable_la_LIBADD = $(LTLIBOBJS) $(KRB5_LIBS)
 util_libutil_la_SOURCES = util/buffer.c util/buffer.h util/fdflag.c	    \
 	util/fdflag.h util/gss-errors.c util/gss-errors.h util/gss-tokens.c \
 	util/gss-tokens.h util/macros.h util/messages.c util/messages.h	    \
@@ -170,7 +172,6 @@ util_libutil_la_LIBADD = $(GSSAPI_LIBS)
 # If built with Kerberos support, add messages-krb5.
 if HAVE_KRB5
     util_libutil_la_SOURCES += util/messages-krb5.c util/messages-krb5.h
-    util_libutil_la_CPPFLAGS = $(KRB5_CPPFLAGS)
     util_libutil_la_LDFLAGS += $(KRB5_LDFLAGS)
     util_libutil_la_LIBADD += $(KRB5_LIBS)
 endif
@@ -350,7 +351,8 @@ PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs			\
 	-Wno-missing-prototypes -Wno-redundant-decls -Wno-shadow	\
 	-Wno-old-style-definition -Wno-conversion			\
 	-Wno-gnu-statement-expression -Wno-cast-align -Wno-comma	\
-	-Wno-covered-switch-default -Wno-extra-semi-stmt
+	-Wno-covered-switch-default -Wno-extra-semi-stmt		\
+	-Wno-implicit-fallthrough
 PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
 	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal	\
@@ -361,17 +363,19 @@ PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing \
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
 	-Wno-nested-externs -Wno-shift-sign-overflow			    \
 	-Wno-gnu-statement-expression -Wno-unknown-warning-option	    \
-	-Wno-gcc-compat -Wno-extra-semi-stmt -Wno-strict-overflow -Wno-vla
+	-Wno-gcc-compat -Wno-extra-semi-stmt -Wno-strict-overflow -Wno-vla  \
+	-Wno-gnu-zero-variadic-macro-arguments
 
 warnings:
-	$(MAKE) V=0 AM_CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
-	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)'		\
-	    PERL_CFLAGS_EXTRA='$(PERL_WARNINGS)'		\
-	    PHP_CFLAGS_EXTRA='$(PHP_WARNINGS)'			\
-	    PYTHON_CFLAGS_EXTRA='$(PYTHON_WARNINGS)'		\
+	$(MAKE) V=0					\
+	    AM_CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)'	\
+	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_WARNINGS)'	\
+	    PERL_CFLAGS_EXTRA='$(PERL_WARNINGS)'	\
+	    PHP_CFLAGS_EXTRA='$(PHP_WARNINGS)'		\
+	    PYTHON_CFLAGS_EXTRA='$(PYTHON_WARNINGS)'	\
 	    RUBY_CFLAGS_EXTRA='$(RUBY_WARNINGS)'
 	$(MAKE) V=0 AM_CFLAGS='$(WARNINGS_CFLAGS) $(AM_CFLAGS)' \
-	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_GCC)' $(check_PROGRAMS)
+	    KRB5_CPPFLAGS='$(KRB5_CPPFLAGS_WARNINGS)' $(check_PROGRAMS)
 
 # The bits below are for the test suite, not for the main package.
 check_PROGRAMS = tests/runtests tests/client/api-t tests/client/ccache-t    \
@@ -545,8 +549,9 @@ tests_server_streaming_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_server_streaming_t_LDADD = client/libremctl.la tests/tap/libtap.a \
 	util/libutil.la portable/libportable.la $(KRB5_LIBS)
 tests_server_sudo_t_SOURCES = tests/server/sudo-t.c $(SERVER_FILES)
-tests_server_sudo_t_CPPFLAGS = \
-	-DPATH_SUDO='"$(abs_top_srcdir)/tests/data/fake-sudo"'
+tests_server_sudo_t_CPPFLAGS =					\
+	-DPATH_SUDO='"$(abs_top_srcdir)/tests/data/fake-sudo"'	\
+	$(KRB5_CPPFLAGS)
 tests_server_sudo_t_LDFLAGS = $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS) \
 	$(GPUT_LDFLAGS) $(PCRE_LDFLAGS) $(LIBEVENT_LDFLAGS)
 tests_server_sudo_t_LDADD = tests/tap/libtap.a util/libutil.la	 \
@@ -575,7 +580,6 @@ tests_util_gss_tokens_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(GSSAPI_LIBS) $(KRB5_LIBS)
 tests_util_messages_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la
-tests_util_messages_krb5_t_CPPFLAGS = $(KRB5_CPPFLAGS)
 tests_util_messages_krb5_t_LDFLAGS = $(KRB5_LDFLAGS)
 tests_util_messages_krb5_t_LDADD = tests/tap/libtap.a util/libutil.la \
 	portable/libportable.la $(KRB5_LIBS)

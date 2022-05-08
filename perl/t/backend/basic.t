@@ -57,17 +57,17 @@ isa_ok($backend, 'Net::Remctl::Backend');
 
 # Try running cmd1 and check the result.
 my ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2));
-is($status, 1,   'cmd1 returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 1, 'cmd1 returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1 arg2)]], 'cmd1 called correctly');
 @CALLS = ();
 
 # Now try running cmd2 and check the result.
 ($out, $err, $status) = run_wrapper($backend, qw(cmd2 arg1 arg2));
-is($status, 2,   'cmd2 returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 2, 'cmd2 returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd2 arg1 arg2)]], 'cmd2 called correctly');
 @CALLS = ();
 
@@ -75,48 +75,48 @@ is_deeply(\@CALLS, [[qw(main::test_cmd2 arg1 arg2)]], 'cmd2 called correctly');
 $commands{cmd1}{args_min} = 1;
 $backend = Net::Remctl::Backend->new({ commands => \%commands });
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1));
-is($status, 255,                              'cmd1 with no args returns 255');
-is($out,    q{},                              '... and no output');
-is($err,    "cmd1: insufficient arguments\n", '... and correct error');
+is($status, 255, 'cmd1 with no args returns 255');
+is($out, q{}, '... and no output');
+is($err, "cmd1: insufficient arguments\n", '... and correct error');
 is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
 
 # But this works fine if we pass in one argument.
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1));
-is($status, 1,   'cmd1 with one arg returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 1, 'cmd1 with one arg returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1)]], 'cmd1 called correctly');
 @CALLS = ();
 
 # Set a maximum number of arguments as well.  Two arguments should be fine.
 $commands{cmd1}{args_max} = 2;
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2));
-is($status, 1,   'cmd1 with two args returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 1, 'cmd1 with two args returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1 arg2)]], 'cmd1 called correctly');
 @CALLS = ();
 
 # Three arguments should result in an error.
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2 arg3));
-is($status, 255,                          'cmd1 with three args returns 255');
-is($out,    q{},                          '... and no output');
-is($err,    "cmd1: too many arguments\n", '... and correct error');
+is($status, 255, 'cmd1 with three args returns 255');
+is($out, q{}, '... and no output');
+is($err, "cmd1: too many arguments\n", '... and correct error');
 is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
 
 # Set a global command name in the object, which should change the error.
 $backend = Net::Remctl::Backend->new(
     {
-        command  => 'foo',
+        command => 'foo',
         commands => \%commands,
     },
 );
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2 arg3));
 is($status, 255, 'cmd1 with three args returns 255');
-is($out,    q{}, '... and no output');
-is($err,    "foo cmd1: too many arguments\n", '... and correct verbose error');
+is($out, q{}, '... and no output');
+is($err, "foo cmd1: too many arguments\n", '... and correct verbose error');
 is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
 
@@ -124,31 +124,31 @@ is_deeply(\@CALLS, [], 'no functions called');
 # be fine.
 $commands{cmd1}{args_match} = [undef, qr{ \A \w+ \z }xms];
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2));
-is($status, 1,   'cmd1 with argument checking returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 1, 'cmd1 with argument checking returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1 arg2)]], 'cmd1 called correctly');
 @CALLS = ();
 
 # Now, pass in an argument that should fail.
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg-2));
 is($status, 255, 'cmd1 fails argument checking');
-is($out,    q{}, '... and no output');
-is($err,    "foo cmd1: invalid argument: arg-2\n", '... and correct error');
+is($out, q{}, '... and no output');
+is($err, "foo cmd1: invalid argument: arg-2\n", '... and correct error');
 is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
 
 # Change cmd1 to take the first argument on standard input and require two
 # arguments to ensure that arguments passed via standard input count.
-$commands{cmd1}{stdin}    = 1;
+$commands{cmd1}{stdin} = 1;
 $commands{cmd1}{args_min} = 2;
 close(STDIN) or BAIL_OUT("Cannot close STDIN: $!");
 my $stdin = "some\0data";
 open(STDIN, '<', \$stdin) or BAIL_OUT("Cannot redirect STDIN: $!");
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg2));
-is($status, 1,   'cmd1 with stdin arg returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 1, 'cmd1 with stdin arg returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(
     \@CALLS,
     [['main::test_cmd1', $stdin, 'arg2']],
@@ -162,7 +162,7 @@ seek(STDIN, 0, 0) or BAIL_OUT("Cannot rewind STDIN: $!");
 $commands{cmd1}{stdin} = -1;
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1));
 is($status, 255, 'cmd1 with final stdin arg fails argument checking');
-is($out,    q{}, '... and no output');
+is($out, q{}, '... and no output');
 is($err, "foo cmd1: invalid data in argument #2\n", '... and correct error');
 is_deeply(\@CALLS, [], 'no functions called');
 @CALLS = ();
@@ -171,14 +171,14 @@ is_deeply(\@CALLS, [], 'no functions called');
 seek(STDIN, 0, 0) or BAIL_OUT("Cannot rewind STDIN: $!");
 $stdin = 'stin';
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1));
-is($status, 1,   'cmd1 with final stdin arg returns correct status');
-is($out,    q{}, '... and no output');
-is($err,    q{}, '... and no errors');
+is($status, 1, 'cmd1 with final stdin arg returns correct status');
+is($out, q{}, '... and no output');
+is($err, q{}, '... and no errors');
 is_deeply(\@CALLS, [[qw(main::test_cmd1 arg1 stin)]], 'cmd1 called correctly');
 @CALLS = ();
 
 # Add help information to one of the commands.
-$commands{cmd1}{syntax}  = 'arg1 [arg2]';
+$commands{cmd1}{syntax} = 'arg1 [arg2]';
 $commands{cmd1}{summary} = 'cmd1 all over the args';
 $backend = Net::Remctl::Backend->new({ commands => \%commands });
 
@@ -221,6 +221,7 @@ is($backend->help, $expected, 'Wrapped help output is correct');
 
 # Now, add a help banner and set the command to get a more typical help
 # configuration example.
+#<<<
 $backend = Net::Remctl::Backend->new(
     {
         command     => 'foo',
@@ -228,6 +229,7 @@ $backend = Net::Remctl::Backend->new(
         help_banner => 'Foo manipulation remctl help:',
     },
 );
+#>>>
 $expected = <<'END_HELP';
 Foo manipulation remctl help:
   foo cmd1 arg1 [arg2]  cmd1 all over the args
@@ -240,6 +242,7 @@ is($backend->help, $expected, 'Help output w/command and banner is correct');
 
 # Add a newline to the end of the help banner and make sure we get the same
 # thing, not a double newline.
+#<<<
 $backend = Net::Remctl::Backend->new(
     {
         command     => 'foo',
@@ -247,21 +250,24 @@ $backend = Net::Remctl::Backend->new(
         help_banner => "Foo manipulation remctl help:\n",
     },
 );
+#>>>
 is($backend->help, $expected, 'Help output w/newline banner is correct');
 
 # Actually run the help command and be sure we get the same thing.
 ($out, $err, $status) = run_wrapper($backend, qw(help));
-is($status, 0,         'help with more configuration returns status 0');
-is($out,    $expected, '... and correct output');
-is($err,    q{},       '... and no errors');
+is($status, 0, 'help with more configuration returns status 0');
+is($out, $expected, '... and correct output');
+is($err, q{}, '... and no errors');
 
 # If one of the commands has an extremely long syntax, avoid scrunching the
 # summaries against the right margin.
+#<<<
 $commands{cmd3} = {
     code    => \&test_cmd2,
     syntax  => '<lots of long options beyond 50 columns>',
     summary => 'actually does something very simple',
 };
+#>>>
 $expected = <<'END_HELP';
 Foo manipulation remctl help:
   foo cmd1 arg1 [arg2]  cmd1 all over the args
@@ -299,7 +305,7 @@ is($@, "Unknown command unknown\n", '...with correct error');
 
     # Save standard output and close it.
     open(my $oldout, '>&', \*STDOUT) or BAIL_OUT("Cannot save STDOUT: $!");
-    close(STDOUT)                    or BAIL_OUT("Cannot close STDOUT: $!");
+    close(STDOUT) or BAIL_OUT("Cannot close STDOUT: $!");
 
     # Run the backend.
     local @ARGV = qw(help);

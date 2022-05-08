@@ -3,6 +3,7 @@
 # Run this shell script to bootstrap as necessary after a fresh checkout.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2022 Russ Allbery <eagle@eyrie.org>
 # Copyright 2016 Dropbox, Inc.
 # Copyright 2005-2006, 2008-2013
 #     The Board of Trustees of the Leland Stanford Junior University
@@ -32,8 +33,7 @@ done
 # Generate protocol documentation if xml2rfc is available.
 if command -v xml2rfc 2>&1 >/dev/null ; then
     cd docs
-    xml2rfc --html protocol.xml protocol.html
-    xml2rfc --text protocol.xml protocol.txt
+    xml2rfc protocol.xml --text --html
 else
     echo 'xml2rfc not found, not building protocol documentation' >&2
 fi

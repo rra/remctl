@@ -5,25 +5,33 @@ dnl Provides the --with-libevent, --with-libevent-lib, and
 dnl --with-libevent-include configure options to specify non-standard paths to
 dnl the libevent libraries or header files.
 dnl
-dnl Provides the macros RRA_LIB_EVENT and RRA_LIB_EVENT_OPTIONAL and sets the
-dnl substitution variables LIBEVENT_CPPFLAGS, LIBEVENT_LDFLAGS, and
-dnl LIBEVENT_LIBS.  Also provides RRA_LIB_EVENT_SWITCH to set CPPFLAGS,
-dnl LDFLAGS, and LIBS to include the libevent libraries, saving the current
-dnl values first, and RRA_LIB_EVENT_RESTORE to restore those settings to
-dnl before the last RRA_LIB_EVENT_SWITCH.  Defines HAVE_LIBEVENT and sets
-dnl rra_use_LIBEVENT to true if libevent is found.  If it isn't found, the
-dnl substitution variables will be empty.
+dnl Provides the macro RRA_LIB_EVENT and sets the substitution variables
+dnl LIBEVENT_CPPFLAGS, LIBEVENT_LDFLAGS, and LIBEVENT_LIBS.  Also provides
+dnl RRA_LIB_EVENT_SWITCH to set CPPFLAGS, LDFLAGS, and LIBS to include the
+dnl libevent library, saving the current values first, and
+dnl RRA_LIB_EVENT_RESTORE to restore those settings to before the last
+dnl RRA_LIB_EVENT_SWITCH.  Defines HAVE_LIBEVENT and sets rra_use_LIBEVENT to
+dnl true.
+dnl
+dnl Provides the RRA_LIB_EVENT_OPTIONAL macro, which should be used if
+dnl libevent support is optional.  This macro will still always set the
+dnl substitution variables, but they'll be empty if libevent is not found or
+dnl if --without-libevent is given.  Defines HAVE_LIBEVENT and sets
+dnl rra_use_LIBEVENT to true if libevent is found and --without-libevent is
+dnl not given.
 dnl
 dnl Also provides RRA_INCLUDES_EVENT, which are the headers to include when
 dnl probing the libevent library properties.  This assumes that
 dnl AC_CHECK_HEADERS([event2/event.h]) has been called.
 dnl
-dnl Depends on the lib-helper.m4 framework.
+dnl Depends on the lib-helper.m4 framework and the Autoconf macros that come
+dnl with pkg-config.
 dnl
 dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2022 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl

@@ -8,7 +8,7 @@
 
 package Net::Remctl;
 
-use 5.008;
+use 5.010;
 use strict;
 use warnings;
 
@@ -22,8 +22,8 @@ use vars qw($VERSION @EXPORT);
 # This version matches the version of remctl with which this module was
 # released, but with at least two digits for the minor version.
 BEGIN {
-    $VERSION = '3.17';
-    @EXPORT  = qw(remctl);
+    $VERSION = '3.18';
+    @EXPORT = qw(remctl);
 }
 
 Net::Remctl->bootstrap();
@@ -372,7 +372,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2020 Russ Allbery <eagle@eyrie.org>
+Copyright 2020, 2022 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2007-2008, 2011-2014 The Board of Trustees of the Leland Stanford
 Junior University
