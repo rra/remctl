@@ -35,6 +35,7 @@
 
 #include <stdarg.h> /* va_list */
 #include <stddef.h> /* size_t */
+#include <stdlib.h> /* free */
 #include <tests/tap/macros.h>
 
 /*
