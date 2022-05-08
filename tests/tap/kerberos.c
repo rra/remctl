@@ -227,7 +227,14 @@ kerberos_free(struct kerberos_config *config_arg)
         free(config->password);
         free(config->pkinit_principal);
         free(config->pkinit_cert);
-        free(config);
+
+        /*
+         * Free config_arg rather than config, since otherwise cppcheck thinks
+         * that config_arg could be const, which while technically true would
+         * look very weird since config_arg is invalidated by calling this
+         * function.
+         */
+        free(config_arg);
         config = NULL;
     }
     if (krb5ccname != NULL) {
