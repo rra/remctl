@@ -4,7 +4,7 @@ backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
 IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
 subcommands REMUSER pcre PCRE PCRE1 PCRE2 triple-DES MERCHANTABILITY
 username arg SIGCONT SIGSTOP systemd IANA-registered localgroup PKINIT
-anyuser SPDX-License-Identifier FSFAP
+anyuser SPDX-License-Identifier FSFAP SIGHUP SIGTERM
 
 =head1 NAME
 
@@ -108,6 +108,9 @@ service in the local F</etc/services> file and uses the port defined
 there.  If the C<remctl> service could not be found, it uses 4373, the
 registered remctl port.
 
+When running in stand-alone mode, send the SIGHUP signal to B<remctld> to
+ask it to re-read its configuration file and SIGTERM to ask it to exit.
+
 =item B<-P> I<file>
 
 [2.0] When running in stand-alone mode (B<-m>), write the PID of
@@ -179,6 +182,11 @@ configuration file at that point.  I<file> may be a directory, in which
 case all files whose names do not contain a period found in that directory
 will be included (in no particular order).  I<file> should be a fully
 qualified path.
+
+The configuration file is loaded when B<remctld> starts and is normally
+not re-read.  To trigger a re-read of the configuration file when
+B<remctld> is running in stand-alone mode, send the SIGHUP signal to the
+B<remctld> process.
 
 The meaning of the fields on each configuration line are:
 

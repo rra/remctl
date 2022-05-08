@@ -15,6 +15,10 @@ remctl 3.18 (2022-05-08)
     The Perl libraries and the remctl test suite now require Perl 5.10 or
     later.
 
+    Document sending SIGHUP to remctld when running in stand-alone mode to
+    ask it to re-read its configuration file, and document that SIGTERM
+    will cause it to exit.  (Fixes #30)
+
     Mark remctl client library functions that allocate memory with their
     corresponding deallocation functions so that GCC 11 and later can
     diagnose memory deallocation bugs.
