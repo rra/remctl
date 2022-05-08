@@ -1,14 +1,15 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Contact: Russ Allbery <eagle@eyrie.org>
 Source: https://www.eyrie.org/~eagle/software/remctl/
-Copyright: 2015-2020 Russ Allbery <eagle@eyrie.org>
+Copyright: 2015-2022 Russ Allbery <eagle@eyrie.org>
   2002-2014 The Board of Trustees of the Leland Stanford Junior University
 License: Expat
 
 Files: *
 Copyright: 1997, 2000-2002 Benjamin Sittler
-  2000-2002, 2004-2020 Russ Allbery <eagle@eyrie.org>
-  2001-2014 The Board of Trustees of the Leland Stanford Junior University
+  2000-2022 Russ Allbery <eagle@eyrie.org>
+  2001-2014, 2022
+    The Board of Trustees of the Leland Stanford Junior University
   2007 Marcus Watts <mdw@umich.edu>
   2008 Andrew Mortensen <admorten@umich.edu>
   2008 Carnegie Mellon University
@@ -30,9 +31,9 @@ Files: .clang-format docs/api/remctl.3 docs/api/remctl.pod
  docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.3
  docs/api/remctl_set_source_ip.pod docs/api/remctl_set_timeout.3
  docs/api/remctl_set_timeout.pod docs/design.html docs/extending
- docs/protocol-v4 docs/protocol.txt docs/protocol.xml
- docs/remctl-shell.8.in docs/remctl-shell.pod docs/remctl.1 docs/remctl.pod
- docs/remctld.8.in docs/remctld.pod examples/remctl.conf
+ docs/protocol-v4 docs/protocol.html docs/protocol.txt docs/protocol.xml
+ docs/remctl-shell.8.in docs/remctl-shell.pod docs/remctl.1
+ docs/remctl.pod docs/remctld.8.in docs/remctld.pod examples/remctl.conf
  examples/rsh-wrapper java/README m4/gput.m4 perl/t/data/perltidyrc
  php/README portable/asprintf.c portable/daemon.c portable/dummy.c
  portable/event-extra.c portable/event.h portable/getaddrinfo.c
@@ -40,17 +41,18 @@ Files: .clang-format docs/api/remctl.3 docs/api/remctl.pod
  portable/gssapi-mech.c portable/gssapi.h portable/inet_aton.c
  portable/inet_ntoa.c portable/inet_ntop.c portable/krb5-extra.c
  portable/krb5.h portable/macros.h portable/mkstemp.c
- portable/reallocarray.c portable/sd-daemon.h portable/setenv.c
- portable/stdbool.h portable/strndup.c portable/system.h portable/uio.h
- portable/winsock.c python/README ruby/README server/README tests/README
- tests/TESTS tests/data/acl-too-long tests/data/conf-simple.in
- tests/data/cppcheck.supp tests/portable/asprintf-t.c
- tests/portable/daemon-t.c tests/portable/getaddrinfo-t.c
- tests/portable/getnameinfo-t.c tests/portable/inet_aton-t.c
- tests/portable/inet_ntoa-t.c tests/portable/inet_ntop-t.c
- tests/portable/mkstemp-t.c tests/portable/setenv-t.c tests/util/buffer-t.c
- tests/util/vector-t.c util/macros.h util/vector.c util/vector.h
-Copyright: 2000-2020 Russ Allbery <eagle@eyrie.org>
+ portable/reallocarray.c portable/sd-daemon.c portable/sd-daemon.h
+ portable/setenv.c portable/stdbool.h portable/strndup.c portable/system.h
+ portable/uio.h portable/winsock.c python/README ruby/README server/README
+ tests/README tests/TESTS tests/data/acl-too-long
+ tests/data/conf-simple.in tests/data/cppcheck.supp
+ tests/portable/asprintf-t.c tests/portable/daemon-t.c
+ tests/portable/getaddrinfo-t.c tests/portable/getnameinfo-t.c
+ tests/portable/inet_aton-t.c tests/portable/inet_ntoa-t.c
+ tests/portable/inet_ntop-t.c tests/portable/mkstemp-t.c
+ tests/portable/setenv-t.c tests/util/buffer-t.c tests/util/vector-t.c
+ util/macros.h util/vector.c util/vector.h
+Copyright: 2000-2022 Russ Allbery <eagle@eyrie.org>
   2002-2014 The Board of Trustees of the Leland Stanford Junior University
   2006 Romain LENGLET
   2008 Thomas L. Kula <kula@tproa.net>
@@ -63,25 +65,25 @@ License: all-permissive
  warranty.
 
 Files: Makefile.in
-Copyright: 1994-2020 Free Software Foundation, Inc.
+Copyright: 1994-2021 Free Software Foundation, Inc.
   2006-2014 The Board of Trustees of the Leland Stanford Junior University
-  2015-2016, 2018-2020 Russ Allbery <eagle@eyrie.org>
+  2015-2016, 2018-2021 Russ Allbery <eagle@eyrie.org>
   2016 Dropbox, Inc.
 License: FSF-unlimited and Expat
 
 Files: aclocal.m4
-Copyright: 1996-2020 Free Software Foundation, Inc.
+Copyright: 1996-2021 Free Software Foundation, Inc.
   2004 Scott James Remnant <scott@netsplit.com>
   2012-2015 Dan Nicholson <dbn.lists@gmail.com>
 License: FSF-unlimited, and GPL-2+ with Autoconf exception or Expat
 
 Files: build-aux/ar-lib build-aux/compile build-aux/depcomp
  build-aux/missing
-Copyright: 1996-2020 Free Software Foundation, Inc.
+Copyright: 1996-2021 Free Software Foundation, Inc.
 License: GPL-2+ with Autoconf exception or Expat
 
 Files: build-aux/config.guess build-aux/config.sub
-Copyright: 1992-2018 Free Software Foundation, Inc.
+Copyright: 1992-2022 Free Software Foundation, Inc.
 License: GPL-3+ with Autoconf exception or Expat
 
 Files: build-aux/install-sh
@@ -112,11 +114,19 @@ License: X11
  Consortium.
 
 Files: build-aux/ltmain.sh
-Copyright: 1996-2015 Free Software Foundation, Inc.
-License: GPL-2+ with Libtool exception or Expat, and GPL-3+ with Libtool exception or Expat, and GPL-3+
+Copyright: 1996-2019, 2021-2022 Free Software Foundation, Inc.
+  2004-2019, 2021 Bootstrap Authors
+License: GPL-2+ with Libtool exception or Expat, and GPL-2+ or Expat
+Comment:
+ This file is dual licensed under the terms of the MIT license
+ <https://opensource.org/license/MIT>, and GPL version 2 or later
+ <http://www.gnu.org/licenses/gpl-2.0.html>.  You must apply one of these
+ licenses when using or redistributing this software or any of the files
+ within it.  See the URLs above, or the file `LICENSE` included in the
+ Bootstrap distribution for the full license texts.
 
 Files: configure
-Copyright: 1992-1996, 1998-2012, 2014 Free Software Foundation, Inc.
+Copyright: 1992-1996, 1998-2017, 2020-2021 Free Software Foundation, Inc.
 License: FSF-configure, and GPL-2+ with Libtool exception or Expat
 
 Files: m4/cc-flags.m4 m4/perl.m4 m4/python.m4 m4/socket.m4
@@ -127,8 +137,8 @@ Copyright: 1991, 1994-2003 The Internet Software Consortium and Rich Salz
   1998-2003 The Internet Software Consortium
   2004-2011, 2016 Internet Systems Consortium, Inc.
   2008-2014 The Board of Trustees of the Leland Stanford Junior University
-  2009, 2011, 2015, 2018 Julien ÉLIE <julien@trigofacile.com>
-  2014-2020 Russ Allbery <eagle@eyrie.org>
+  2009, 2011, 2015, 2018, 2021 Julien ÉLIE <julien@trigofacile.com>
+  2014-2022 Russ Allbery <eagle@eyrie.org>
 License: ISC
  Permission to use, copy, modify, and distribute this software for any
  purpose with or without fee is hereby granted, provided that the above
@@ -144,8 +154,10 @@ License: ISC
 
 Files: m4/clang.m4 m4/gssapi.m4 m4/inet-ntoa.m4 m4/krb5-config.m4
  m4/krb5.m4 m4/ld-version.m4 m4/lib-depends.m4 m4/lib-helper.m4
- m4/lib-pathname.m4 m4/libevent.m4 m4/pcre.m4 m4/systemd.m4 m4/vamacros.m4
-Copyright: 1999-2001, 2003, 2015, 2018 Russ Allbery <eagle@eyrie.org>
+ m4/lib-pathname.m4 m4/libevent.m4 m4/pcre.m4 m4/pcre2.m4 m4/systemd.m4
+ m4/vamacros.m4
+Copyright: 1999-2001, 2003, 2015, 2018, 2020-2022
+    Russ Allbery <eagle@eyrie.org>
   2005-2014 The Board of Trustees of the Leland Stanford Junior University
   2008-2010 Free Software Foundation, Inc.
 License: unlimited
@@ -154,11 +166,12 @@ License: unlimited
  notice is preserved.
 
 Files: m4/libtool.m4
-Copyright: 1996-2001, 2003-2015 Free Software Foundation, Inc.
+Copyright: 1996-2001, 2003-2019, 2021-2022 Free Software Foundation, Inc.
 License: FSF-unlimited, and GPL-2+ with Libtool exception or Expat
 
 Files: m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 m4/lt~obsolete.m4
-Copyright: 2004-2005, 2007-2009, 2011-2015 Free Software Foundation, Inc.
+Copyright: 2004-2005, 2007-2009, 2011-2019, 2021-2022
+    Free Software Foundation, Inc.
 License: FSF-unlimited
 
 Files: python/_remctlmodule.c python/remctl.py python/setup.py
@@ -278,19 +291,6 @@ Comment: The option described in the license has been accepted and these
  described at the top of this file.  You can find the GPL version 2 in
  /usr/share/common-licenses/GPL-2 on Debian systems.
 
-License: GPL-3+
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
- .
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-Comment: You can find the GPL version 3 in /usr/share/common-licenses/GPL-3
- on Debian systems.
-
 License: GPL-3+ with Autoconf exception
  This file is free software; you can redistribute it and/or modify it
  under the terms of the GNU General Public License as published by the
@@ -311,26 +311,6 @@ License: GPL-3+ with Autoconf exception
  distribution terms that you use for the rest of that program.  This
  Exception is an additional permission under section 7 of the GNU General
  Public License, version 3 ("GPLv3").
-Comment: The option described in the license has been accepted and these
- files are distributed under the same terms as the package as a whole, as
- described at the top of this file.  You can find the GPL version 3 in
- /usr/share/common-licenses/GPL-3 on Debian systems.
-
-License: GPL-3+ with Libtool exception
- GNU Libtool is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 3 of the License, or
- (at your option) any later version.
- .
- As a special exception to the GNU General Public License, if you
- distribute this file as part of a program or library that is built
- using GNU Libtool, you may include this file under the same
- distribution terms that you use for the rest of that program.
- .
- GNU Libtool is distributed in the hope that it will be useful, but
- WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
 Comment: The option described in the license has been accepted and these
  files are distributed under the same terms as the package as a whole, as
  described at the top of this file.  You can find the GPL version 3 in
