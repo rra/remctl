@@ -8,6 +8,7 @@
 # DocKnot is available from <https://www.eyrie.org/~eagle/software/docknot/>.
 #
 # Copyright 2002-2003, 2005-2014, 2016, 2018-2020
+#     Russ Allbery <eagle@eyrie.org>
 #
 # SPDX-License-Identifier: MIT
 
@@ -15,14 +16,14 @@ format: v1
 
 name: remctl
 maintainer: Russ Allbery <eagle@eyrie.org>
-version: '3.17'
+version: '3.18'
 synopsis: remote authenticated command execution with ACLs
 
 license:
   name: Expat
 copyrights:
   - holder: Russ Allbery <eagle@eyrie.org>
-    years: 2015-2020, 2022
+    years: 2015-2022
   - holder: The Board of Trustees of the Leland Stanford Junior University
     years: 2002-2014
 

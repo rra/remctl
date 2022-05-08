@@ -1,6 +1,6 @@
                        User-Visible remctl Changes
 
-remctl 3.18 (unreleased)
+remctl 3.18 (2022-05-08)
 
     Add support for PCRE2 for pcre ACLs and use it by preference over
     PCRE1 if it is found.  UTF-8 regular expressions are not enabled by

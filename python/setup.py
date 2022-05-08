@@ -53,7 +53,7 @@ try:
 except ImportError:
     pass
 
-VERSION = "3.17"
+VERSION = "3.18"
 
 doclines = __doc__.split("\n")
 

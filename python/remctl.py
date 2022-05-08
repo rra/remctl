@@ -37,7 +37,7 @@ from typing import Iterable, Optional, Text, Tuple, Union
 
 import _remctl
 
-VERSION = "3.17"
+VERSION = "3.18"
 
 RemctlOutput = Tuple[
     str, Optional[bytes], Optional[int], Optional[int], Optional[int]

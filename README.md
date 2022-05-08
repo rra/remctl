@@ -5,10 +5,10 @@ status](https://github.com/rra/remctl/workflows/build/badge.svg)](https://github
 [![Debian
 package](https://img.shields.io/debian/v/remctl/unstable)](https://tracker.debian.org/pkg/remctl)
 
-Copyright 2015-2020, 2022 Russ Allbery <eagle@eyrie.org>.  Copyright
-2002-2014 The Board of Trustees of the Leland Stanford Junior University.
-This software is distributed under a BSD-style license.  Please see the
-section [License](#license) below for more information.
+Copyright 2015-2022 Russ Allbery <eagle@eyrie.org>.  Copyright 2002-2014
+The Board of Trustees of the Leland Stanford Junior University.  This
+software is distributed under a BSD-style license.  Please see the section
+[License](#license) below for more information.
 
 ## Blurb
 
@@ -415,7 +415,7 @@ requests are gratefully reviewed and normally accepted.
 The remctl package as a whole is covered by the following copyright
 statement and license:
 
-> Copyright 2015-2020, 2022
+> Copyright 2015-2022
 >     Russ Allbery <eagle@eyrie.org>
 >
 > Copyright 2002-2014

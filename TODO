@@ -198,19 +198,6 @@ Test suite:
    server/timeout or server/invalid where we've previously stranded child
    processes for long periods.
 
-Windows port:
-
- * With more modifications, it should be possible to build remctl against
-   SSPI, the GSS-API-like interface built into Windows, and remove the
-   dependency on MIT Kerberos for Windows.  However, limitations
-   surrounding realm trusts in the Kerberos implementation in versions of
-   Windows prior to Vista would make this a less general solution.
-   Alternately, a separate client protocol implementation in .NET (either
-   C# or C++) may be easier than trying to build the current source base
-   on Windows with SSPI.
-
- * Support the remctl server.
-
 Java implementation:
 
  * Integrate the new Java client implementation.

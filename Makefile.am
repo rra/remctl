@@ -1,7 +1,7 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2015-2016, 2018-2021 Russ Allbery <eagle@eyrie.org>
+# Copyright 2015-2016, 2018-2022 Russ Allbery <eagle@eyrie.org>
 # Copyright 2016 Dropbox, Inc.
 # Copyright 2006-2014
 #     The Board of Trustees of the Leland Stanford Junior University
@@ -80,12 +80,12 @@ PYTHON_DIRECTORIES = python python/tests python/tests/data
 
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .clang-format .gitignore .github LICENSE Makefile.w32	    \
-	README.md bootstrap ci/README.md ci/files/heimdal/heimdal-kdc	    \
-	ci/files/heimdal/kadmind.acl ci/files/heimdal/kdc.conf		    \
-	ci/files/heimdal/krb5.conf ci/files/mit/extensions.client	    \
-	ci/files/mit/extensions.kdc ci/files/mit/kadm5.acl		    \
-	ci/files/mit/kdc.conf ci/files/mit/krb5.conf ci/install		    \
-	ci/kdc-setup-heimdal ci/kdc-setup-mit ci/test			    \
+	README.md bootstrap ci/README.md ci/apt-packages ci/cpanfile	    \
+	ci/files/heimdal/heimdal-kdc ci/files/heimdal/kadmind.acl	    \
+	ci/files/heimdal/kdc.conf ci/files/heimdal/krb5.conf		    \
+	ci/files/mit/extensions.client ci/files/mit/extensions.kdc	    \
+	ci/files/mit/kadm5.acl ci/files/mit/kdc.conf ci/files/mit/krb5.conf \
+	ci/install ci/kdc-setup-heimdal ci/kdc-setup-mit ci/test	    \
 	client/libremctl.pc.in client/libremctl.map client/libremctl.rc	    \
 	client/libremctl.sym client/remctl.rc config.h.w32 configure.cmd    \
 	docs/api/remctl.pod docs/api/remctl_close.pod			    \
@@ -93,14 +93,14 @@ EXTRA_DIST = .clang-format .gitignore .github LICENSE Makefile.w32	    \
 	docs/api/remctl_new.pod docs/api/remctl_noop.pod		    \
 	docs/api/remctl_open.pod docs/api/remctl_output.pod		    \
 	docs/api/remctl_set_ccache.pod docs/api/remctl_set_source_ip.pod    \
-	docs/api/remctl_set_timeout.pod docs/design.html docs/extending	    \
-	docs/metadata docs/protocol-v4 docs/protocol.txt docs/protocol.html \
-	docs/protocol.xml docs/remctl.pod docs/remctl-shell.8.in	    \
-	docs/remctl-shell.pod docs/remctld.8.in docs/remctld.pod	    \
-	examples/remctl.conf examples/remctld.xml examples/rsh-wrapper	    \
-	examples/xinetd java/.classpath java/.project java/Makefile	    \
-	java/README java/bcsKeytab.conf java/gss_jaas.conf java/j3.conf	    \
-	java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java		    \
+	docs/api/remctl_set_timeout.pod docs/design.html docs/docknot.yaml  \
+	docs/extending docs/protocol-v4 docs/protocol.txt		    \
+	docs/protocol.html docs/protocol.xml docs/remctl.pod		    \
+	docs/remctl-shell.8.in docs/remctl-shell.pod docs/remctld.8.in	    \
+	docs/remctld.pod examples/remctl.conf examples/remctld.xml	    \
+	examples/rsh-wrapper examples/xinetd java/.classpath java/.project  \
+	java/Makefile java/README java/bcsKeytab.conf java/gss_jaas.conf    \
+	java/j3.conf java/k5.conf java/org/eyrie/eagle/remctl/Remctl.java   \
 	java/org/eyrie/eagle/remctl/RemctlClient.java			    \
 	java/org/eyrie/eagle/remctl/RemctlServer.java java/t5.java	    \
 	java/t7.java php/remctl.ini portable/winsock.c remctl.spec	    \
