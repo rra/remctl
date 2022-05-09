@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# Sleeps for three seconds and exits, used to test timeouts.  If given any
+# arguments, echos them first so that we can test timeouts after initial
+# output.
+
+if [ $# -gt 1 ] ; then
+    echo "$2"
+fi
+sleep 3

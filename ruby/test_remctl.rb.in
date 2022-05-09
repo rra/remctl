@@ -1,0 +1,284 @@
+# Test suite for remctl Ruby bindings.
+#
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2022 Russ Allbery <eagle@eyrie.org>
+# Copyright 2010, 2012, 2014
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# SPDX-License-Identifier: MIT
+
+require 'fileutils'
+require 'minitest/autorun'
+require 'remctl'
+
+module Helpers
+  def configured?
+    return File.exist? 'config/principal'
+  end
+
+  def get_principal
+    IO.readlines('config/principal').each do |line|
+      return line.chomp
+    end
+  end
+
+  def start_remctld
+    begin
+      FileUtils.mkdir 'tmp'
+    rescue Errno::EEXIST
+      nil
+    end
+    FileUtils.rm 'tmp/pid', :force => true
+    @principal = get_principal
+    fork do
+      $stdout.reopen('tmp/output', 'w')
+      $stderr.reopen('tmp/output', 'w')
+      FileUtils.cd '@abs_top_srcdir@/tests'
+      exec('@abs_top_builddir@/server/remctld', 'remctld', '-m',
+           '-p', '14373', '-s', @principal, '-f', 'data/conf-simple',
+           '-P', '@abs_top_builddir@/tests/tmp/pid', '-d', '-S', '-F',
+           '-k', '@abs_top_builddir@/tests/config/keytab')
+    end
+    unless File.exist? 'tmp/pid' then sleep 1 end
+  end
+
+  def stop_remctld
+    IO.readlines('tmp/pid').each do |pid|
+      pid.chomp!
+      Process.kill('TERM', pid.to_i)
+      Process.waitpid(pid.to_i)
+      FileUtils.rm 'tmp/pid', :force => true
+      return
+    end
+  end
+
+  def run_kinit
+    ENV['KRB5CCNAME'] = 'tmp/krb5cc_test'
+    commands = ['kinit --no-afslog -k -t config/keytab ' + @principal,
+                'kinit -k -t config/keytab ' + @principal,
+                'kinit -t config/keytab ' + @principal,
+                'kinit -k -K config/keytab ' + @principal]
+    commands.each do |command|
+      if system(command + ' >/dev/null 2>&1 </dev/null')
+        return true
+      end
+    end
+    unless File.exist? 'tmp/pid' then sleep 1 end
+    stop_remctld
+    return false
+  end
+
+  def setup
+    FileUtils.cd '@abs_top_builddir@/tests'
+    if configured?
+      start_remctld
+      assert(run_kinit, 'Authentication with kinit failed')
+    end
+  end
+
+  def teardown
+    if configured?
+      stop_remctld
+      FileUtils.rm 'tmp/output'
+      FileUtils.rm 'tmp/krb5cc_test', :force => true
+      begin
+        FileUtils.rmdir 'tmp'
+      rescue Errno::ENOENT
+        nil
+      end
+    end
+  end
+end
+
+class TC_RemctlSimple < Minitest::Test
+  include Helpers
+
+  def test_simple_success
+    unless configured? then return end
+    Remctl.default_port = 14373
+    Remctl.default_principal = @principal
+    assert_equal(14373, Remctl.default_port)
+    assert_equal(@principal, Remctl.default_principal)
+    result = Remctl.remctl('localhost', 'test', 'test')
+    assert_equal("hello world\n", result.stdout)
+    assert_equal("", result.stderr)
+    assert_equal(0, result.status)
+  end
+
+  def test_simple_status
+    unless configured? then return end
+    Remctl.default_port = 14373
+    Remctl.default_principal = @principal
+    command = [ 'test', 'status', '2' ]
+    result = Remctl.remctl('localhost', *command)
+    assert_equal("", result.stdout)
+    assert_equal("", result.stderr)
+    assert_equal(2, result.status)
+  end
+
+  def test_simple_failure
+    unless configured? then return end
+    Remctl.default_port = 14373
+    Remctl.default_principal = @principal
+    assert_raises Remctl::Error do
+      begin
+        result = Remctl.remctl('localhost', 'test', 'bad-command')
+      rescue Remctl::Error
+        assert_equal('Unknown command', $!.to_s)
+        raise
+      end
+    end
+  end
+
+  def test_simple_errors
+    unless configured? then return end
+    Remctl.default_port = 14373
+    Remctl.default_principal = @principal
+    assert_raises ArgumentError do Remctl.remctl end
+    assert_raises Remctl::Error do
+      begin
+        Remctl.remctl('localhost')
+      rescue
+        assert_equal('Unknown command', $!.to_s)
+        raise
+      end
+    end
+    assert_raises ArgumentError, TypeError do Remctl.default_port = 'foo' end
+    assert_raises ArgumentError, RangeError do Remctl.default_port = -1 end
+    assert_raises ArgumentError do
+      begin
+        Remctl.default_port = 65536
+      rescue ArgumentError
+        assert_equal('Port number 65536 out of range', $!.to_s)
+        raise
+      end
+    end
+    assert_raises TypeError do Remctl.remctl(1) end
+    assert_raises TypeError do Remctl.remctl('localhost', 1) end
+  end
+end
+
+class TC_RemctlFull < Minitest::Test
+  include Helpers
+
+  def test_full_success
+    unless configured? then return end
+    r = Remctl.new('localhost', 14373, @principal)
+    r.command('test', 'test')
+    output = r.output
+    assert_equal(output[0], :output)
+    assert_equal(output[1], "hello world\n")
+    assert_equal(output[2], 1)
+    output = r.output
+    assert_equal(output[0], :status)
+    assert_equal(output[3], 0)
+    output = r.output
+    assert_equal(output[0], :done)
+    r.reopen
+    r.command('test', 'test')
+    output = r.output
+    assert_equal(output[0], :output)
+    assert_equal(output[1], "hello world\n")
+    assert_equal(output[2], 1)
+    output = r.output
+    assert_equal(output[0], :status)
+    assert_equal(output[3], 0)
+    output = r.output
+    assert_equal(output[0], :done)
+    r.noop
+    r.close
+  end
+
+  def test_full_failure
+    unless configured? then return end
+    r = Remctl.new('localhost', 14373, @principal)
+    r.command('test', 'bad-command')
+    output = r.output
+    assert_equal(output[0], :error)
+    assert_equal(output[1], 'Unknown command')
+    assert_equal(output[4], 5)
+  end
+
+  def test_full_ccache
+    unless configured? then return end
+    ENV['KRB5CCNAME'] = 'nonexistent-file'
+    assert_raises Remctl::Error do
+      Remctl.new('127.0.0.1', 14373, @principal)
+    end
+    Remctl.ccache = 'tmp/krb5cc_test'
+    begin
+      Remctl.new('127.0.0.1', 14373, @principal)
+    rescue Remctl::Error
+      assert_equal('setting credential cache not supported', $!.to_s)
+    end
+  end
+
+  def test_full_source_ip
+    unless configured? then return end
+    Remctl.source_ip = '127.0.0.1'
+    r = Remctl.new('127.0.0.1', 14373, @principal)
+    r.close
+    Remctl.source_ip = '::1'
+    assert_raises Remctl::Error do
+      Remctl.new('127.0.0.1', 14373, @principal)
+    end
+    Remctl.source_ip = nil
+  end
+
+  def test_full_timeout
+    unless configured? then return end
+
+    # Test the set_timeout method on an existing object.
+    r = Remctl.new('127.0.0.1', 14373, @principal)
+    r.set_timeout(1)
+    r.command('test', 'sleep')
+    assert_raises Remctl::Error do
+      begin
+        output = r.output
+      rescue Remctl::Error
+        assert_equal('error receiving token: timed out', $!.to_s)
+        raise
+      end
+    end
+    r.close
+
+    # Test the default timeout support.
+    Remctl.timeout = 1
+    r = Remctl.new('127.0.0.1', 14373, @principal)
+    r.command('test', 'sleep')
+    assert_raises Remctl::Error do
+      begin
+        output = r.output
+      rescue Remctl::Error
+        assert_equal('error receiving token: timed out', $!.to_s)
+        raise
+      end
+    end
+    r.close
+  end
+
+  def test_full_errors
+    unless configured? then return end
+    assert_raises ArgumentError do Remctl.new end
+    assert_raises TypeError do Remctl.new(1, 14373, @principal) end
+    assert_raises ArgumentError, TypeError do
+      Remctl.new('localhost', 'foo', @principal)
+    end
+    assert_raises TypeError do Remctl.new('localhost', 14373, 1) end
+    assert_raises ArgumentError, RangeError do Remctl.new('localhost', -1) end
+    assert_raises ArgumentError do Remctl.new('localhost', 65536) end
+    assert_raises Remctl::Error do
+      begin
+        Remctl.new('localhost', 14444, @principal)
+      rescue Remctl::Error
+        assert_match(/^cannot connect to localhost \(port 14444\): .*/,
+                     $!.to_s)
+        raise
+      end
+    end
+    r = Remctl.new('localhost', 14373, @principal)
+    assert_raises TypeError do r.command(1) end
+    r.close
+    assert_raises Remctl::NotOpen do r.command('test', 'test') end
+  end
+end

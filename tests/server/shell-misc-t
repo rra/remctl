@@ -1,0 +1,95 @@
+#!/bin/sh
+#
+# Test suite for remctl-shell.
+#
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2016 Russ Allbery <eagle@eyrie.org>
+# Copyright 2016 Dropbox, Inc.
+#
+# SPDX-License-Identifier: MIT
+
+. "${C_TAP_SOURCE}/tap/libtap.sh"
+
+# Declare plan.
+plan 18
+
+# Clean any leaked environment variables.
+unset REMCTL_USER
+unset SSH_CONNECTION
+unset SSH_ORIGINAL_COMMAND
+
+# Find the remctl-shell binary.
+shell="${C_TAP_BUILD}/../server/remctl-shell"
+
+# Check a few error messages from not having environment variables set, and
+# set up the environment.
+msg='SSH_ORIGINAL_COMMAND not set in the environment'
+ok_program 'no SSH_ORIGINAL_COMMAND' 1 "remctl-shell: $msg" \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" test@EXAMPLE.COM
+msg='REMCTL_USER must be set in the environment via authorized_keys'
+ok_program 'no REMCTL_USER' 1 "remctl-shell: $msg" \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test test'
+REMCTL_USER=test@EXAMPLE.COM
+export REMCTL_USER
+ok_program 'no SSH_CONNECTION' 1 \
+    'remctl-shell: SSH_CONNECTION not set (remctl-shell must be run via ssh)' \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test test'
+SSH_CONNECTION='127.0.0.1 16666 127.0.0.1 16666'
+export SSH_CONNECTION
+
+# Check the various environment variables.
+ok_program 'value for REMUSER' 0 "$REMCTL_USER" \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test env REMUSER'
+ok_program 'value for REMOTE_USER' 0 "$REMCTL_USER" \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test env REMOTE_USER'
+ok_program 'value for REMOTE_ADDR' 0 '127.0.0.1' \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test env REMOTE_ADDR'
+ok_program 'value for REMOTE_EXPIRES' 0 '0' \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test env REMOTE_EXPIRES'
+
+# Remote host requires a bit more effort, since it can be one of a number of
+# values.  Don't bother with all the ok_program checks, and just check the
+# output.
+command='test env REMOTE_HOST'
+hostname=`"$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c "$command" 2>&1`
+status=$?
+ok 'return status for REMOTE_HOST' [ $status -eq 0 ]
+if [ -z "$hostname" ]; then
+    ok 'value for REMOTE_HOST' true
+elif echo "$hostname" | grep -q localhost; then
+    ok 'value for REMOTE_HOST' true
+elif echo "$hostname" | grep -q "`hostname`"; then
+    ok 'value for REMOTE_HOST' true
+else
+    diag "env REMOTE_HOST: $hostname"
+    ok 'value for REMOTE_HOST' false
+fi
+
+# Test some of the general server properties.  This code is mostly also tested
+# by the regular server tests, but it's good verification that the shell
+# implementation works the same.
+ok_program "file descriptors closed properly on server" 0 "Okay" \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test closed'
+ok_program "server returns despite background process" 0 "Parent" \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test background'
+ok_program "matching and argv passing for EMPTY" 0 "0" \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'empty'
+ok_program "...but the empty argument does not match" 255 "Unknown command" \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'empty ""'
+ok_program "wildcard matching for the command" 0 "hello world" \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'foo bar'
+ok_program "...but only matches that subcommand" 255 "Unknown command" \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'foo baz'
+ok_program "server resets SIGPIPE handler before running client" 255 '' \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" -c 'test sigpipe'
+
+# Now check passing in a command via SSH_ORIGINAL_COMMAND instead.  We should
+# ignore the REMCTL_USER environment variable.
+SSH_ORIGINAL_COMMAND='test env REMUSER'
+export SSH_ORIGINAL_COMMAND
+ok_program 'force-command value for REMUSER' 0 command@EXAMPLE.COM \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" command@EXAMPLE.COM
+unset REMCTL_USER
+SSH_ORIGINAL_COMMAND='test env "REMOTE_USER"'
+ok_program 'force-command value for REMOTE_USER' 0 command@EXAMPLE.COM \
+    "$shell" -qSf "${C_TAP_BUILD}/data/conf-simple" command@EXAMPLE.COM

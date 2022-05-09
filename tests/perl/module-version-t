@@ -1,0 +1,190 @@
+#!/usr/bin/perl
+#
+# Check or update the version of embedded Perl modules.
+#
+# Examines all module files (*.pm) under the perl/lib directory, if it exists,
+# and verifies that their $VERSION is set to the same value as the current
+# version number as determined by the NEWS file at the top level of the source
+# tree (or the current directory if not being run as a test).
+#
+# When given the --update option, instead fixes all of the Perl modules found
+# to have the correct version.
+#
+# SPDX-License-Identifier: MIT
+
+use 5.010;
+use strict;
+use warnings;
+
+# C_TAP_SOURCE may not be set if we're running this script manually to update
+# version numbers.  If it isn't, assume we're being run from the top of the
+# tree.
+BEGIN {
+    if ($ENV{C_TAP_SOURCE}) {
+        unshift(@INC, "$ENV{C_TAP_SOURCE}/tap/perl");
+    } else {
+        unshift(@INC, 'tests/tap/perl');
+    }
+}
+
+use Test::RRA qw(skip_unless_automated);
+use Test::RRA::Automake qw(automake_setup);
+use Test::RRA::ModuleVersion qw(test_module_versions update_module_versions);
+
+use Cwd qw(getcwd);
+use Getopt::Long qw(GetOptions);
+
+# Return the current version and, optionally, the package name from the NEWS
+# file.  Munges the version to be appropriate for Perl if necessary.
+#
+# Returns: The version number and the package name as a list
+# Throws: Text exception if NEWS is not found or doesn't contain a version
+sub news_version {
+    my ($package, $version, $news);
+    for my $path ('NEWS', '../NEWS') {
+        if (-e $path) {
+            open($news, q{<}, $path) or die "$0: cannot open $path: $!\n";
+        }
+    }
+    if (!$news) {
+        die "$0: cannot find NEWS file\n";
+    }
+  SCAN:
+    while (defined(my $line = <$news>)) {
+        ## no critic (RegularExpressions::ProhibitEscapedMetacharacters)
+        if ($line =~ m{ \A ([\w\s-]+) \s ([\d.]+) \s \( }xms) {
+            ($package, $version) = ($1, $2);
+            last SCAN;
+        }
+        ## use critic
+    }
+    close($news) or die "$0: error reading from NEWS: $!\n";
+    if (!defined($version)) {
+        die "$0: cannot find version number in NEWS\n";
+    }
+
+    # Munge the version for Perl purposes by ensuring that each component
+    # has two digits and by dropping the second period.
+    $version =~ s{ [.] (\d) (?= [.] | \z ) }{.0$1}xmsg;
+    $version =~ s{ ([.] \d+) [.] (\d+) }{$1$2}xms;
+
+    # Return the version and package name.
+    return ($version, $package);
+}
+
+# Parse command-line arguments.
+my $update;
+Getopt::Long::config('bundling', 'no_ignore_case');
+GetOptions('update|u' => \$update) or exit 1;
+
+# If we're not updating, set up for Automake testing.  Otherwise, we assume
+# we're running from the top of the source tree.
+if (!$update) {
+    automake_setup();
+}
+
+# Get the package name and version.
+my ($version, $package) = news_version();
+
+# rra-c-util, but only it, also checks the versions of all the testing support
+# modules.
+my $root = ($package eq 'rra-c-util') ? getcwd() : 'perl/lib';
+
+# Main routine.  We run as either a test suite or as a script to update all of
+# the module versions, selecting based on whether we got the -u / --update
+# command-line option.
+if ($update) {
+    update_module_versions($root, $version);
+} else {
+    skip_unless_automated('Module version tests');
+    test_module_versions($root, $version);
+}
+exit 0;
+__END__
+
+=for stopwords
+Allbery sublicense MERCHANTABILITY NONINFRINGEMENT rra-c-util
+
+=head1 NAME
+
+module-version-t - Check or update versions of embedded Perl modules
+
+=head1 SYNOPSIS
+
+B<module-version-t> [B<--update>]
+
+=head1 REQUIREMENTS
+
+Perl 5.8 or later.
+
+=head1 DESCRIPTION
+
+This script has a dual purpose as either a test script or a utility script.
+The intent is to assist with maintaining consistent versions between a larger
+primarily C project and any embedded Perl modules, supporting both the package
+keyword syntax introduced in Perl 5.12 or the older explicit setting of a
+$VERSION variable.
+
+As a test, it reads the current version of a package from the F<NEWS> file and
+then looks for any Perl modules in F<perl/lib>.  (As a special exception, if
+the package name as determined from the F<NEWS> file is C<rra-c-util>, it
+looks for Perl modules in F<tests/tap/perl> instead.)  If it finds any, it
+checks that the version number of the Perl module matches the version number
+of the package from the F<NEWS> file.  These test results are reported with
+Test::More, suitable for any TAP harness.
+
+As a utility script, when run with the B<--update> option, it similarly finds
+all Perl modules in F<perl/lib> (or F<tests/tap/perl> per above) and then
+rewrites their version setting to match the version of the package as
+determined from the F<NEWS> file.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-u>, B<--update>
+
+Rather than test the Perl modules for the correct version, update all Perl
+modules found in the tree under F<perl/lib> to the current version from the
+NEWS file.
+
+=back
+
+=head1 AUTHOR
+
+Russ Allbery <eagle@eyrie.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2014, 2016, 2019-2021 Russ Allbery <eagle@eyrie.org>
+
+Copyright 2013 The Board of Trustees of the Leland Stanford Junior University
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+=head1 SEE ALSO
+
+This module is maintained in the rra-c-util package.  The current version is
+available from L<https://www.eyrie.org/~eagle/software/rra-c-util/>.
+
+=cut
+
+# Local Variables:
+# copyright-at-end-flag: t
+# End:

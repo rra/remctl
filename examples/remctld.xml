@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+
+<!--
+	This manifest can be used to manage the remctl daemon using the 
+	Solaris SMF subsystem.
+
+	If remctld is installed somewhere other than /usr/local, change
+	the path to /usr/local/sbin/remctld and /usr/local/share/man
+	below.	Then, import this manifest using:
+
+		svccfg -v import remctld.xml
+	
+	and activate the daemon with:
+
+		svcadm enable /site/remctld
+
+	Copyright 2009 Peter Eriksson <peter@ifm.liu.se>
+
+	SPDX-License-Identifier: MIT
+-->
+
+<service_bundle type='manifest' name='remctld'>
+
+<service
+	name='site/remctld'
+	type='service'
+	version='1'>
+
+	<single_instance />
+
+	<!-- Need / & /usr filesystems mounted, /var mounted read/write -->
+	<dependency
+		name='fs-local'
+		type='service'
+		grouping='require_all'
+		restart_on='none'>
+		<service_fmri value='svc:/system/filesystem/local' />
+	</dependency>
+
+	<dependency
+	    name='network-service'
+	    grouping='require_all'
+	    restart_on='none'
+	    type='service'>
+		<service_fmri value='svc:/network/service' />
+	</dependency>
+
+	<dependency
+	    name='name-services'
+	    grouping='require_all'
+	    restart_on='refresh'
+	    type='service'>
+		<service_fmri value='svc:/milestone/name-services' />
+	</dependency>
+	
+	<exec_method
+		type='method'
+		name='start'
+		exec='/usr/local/sbin/remctld -m'
+		timeout_seconds='60'>
+	</exec_method>
+
+	<exec_method
+		type='method'
+		name='stop'
+		exec=':kill'
+		timeout_seconds='30'>
+	</exec_method>
+
+	<instance name='default' enabled='false' />
+
+	<stability value='Evolving' />
+
+	<template>
+		<common_name>
+			<loctext xml:lang='C'>
+			remctl server
+			</loctext>
+		</common_name>
+		<documentation>
+			<manpage
+				title='named'
+				section='8'
+				manpath='/usr/local/share/man' />
+		</documentation>
+	</template>
+</service>
+
+</service_bundle>

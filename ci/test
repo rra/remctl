@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+# Run tests for continuous integration.
+#
+# This script is normally run in a test container, such as in Travis-CI.
+#
+# Copyright 2016, 2018-2020 Russ Allbery <eagle@eyrie.org>
+#
+# SPDX-License-Identifier: MIT
+
+set -eux
+
+# Normally, KERBEROS is set based on the CI matrix, but provide a default in
+# case someone runs this test by hand.
+KERBEROS="${KERBEROS:-mit}"
+
+# Configure Perl to use the cpanm installation paths.
+eval "$(perl -Mlocal::lib)"
+
+# Generate Autotools files.
+./bootstrap
+
+# Build everything with Clang first, with warnings enabled.
+if [ "$KERBEROS" = 'heimdal' ]; then
+    ./configure CC=clang PATH_KRB5_CONFIG=/usr/bin/krb5-config.heimdal \
+        --enable-perl --enable-php --enable-python --enable-ruby
+else
+    ./configure CC=clang \
+        --enable-perl --enable-php --enable-python --enable-ruby
+fi
+make warnings
+
+# Then rebuild everything with GCC with warnings enabled.
+make distclean
+if [ "$KERBEROS" = 'heimdal' ]; then
+    ./configure CC=gcc PATH_KRB5_CONFIG=/usr/bin/krb5-config.heimdal \
+        --enable-perl --enable-php --enable-python --enable-ruby
+else
+    ./configure CC=gcc \
+        --enable-perl --enable-php --enable-python --enable-ruby
+fi
+make warnings
+
+# Run the tests with valgrind.
+make check-valgrind
+
+# Run additional style tests, but only in the MIT build.
+if [ "$KERBEROS" = "mit" ]; then
+    make check-cppcheck
+    cd python
+    mypy .
+    mypy --py2 .
+    black --check .
+    flake8
+    cd ..
+fi

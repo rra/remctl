@@ -1,0 +1,77 @@
+# Workflow for GitHub Actions testing.
+#
+# Copyright 2016, 2018-2020, 2022 Russ Allbery <eagle@eyrie.org>
+#
+# SPDX-License-Identifier: MIT
+
+name: build
+
+on:
+  push:
+    branches-ignore:
+      - "debian/**"
+      - "pristine-tar"
+      - "ubuntu/**"
+      - "upstream/**"
+    tags:
+      - "release/*"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      AUTHOR_TESTING: 1
+      C_TAP_VERBOSE: 1
+      REMCTL_PYTHON_VERSIONS: "python2 python3"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        kerberos:
+          - "mit"
+          - "heimdal"
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: install
+        run: sudo -E ci/install
+
+      - name: Get Perl version
+        id: get-perl
+        run: |
+          perl -e 'print "::set-output name=version::", $^V, "\n"'
+
+      - name: Cache Perl modules
+        uses: actions/cache@v3
+        with:
+          path: ~/perl5
+          key: ${{ runner.os }}-perl-${{ steps.get-perl.outputs.version }}-${{ hashFiles('ci/cpanfile') }}
+          restore-keys: |
+            ${{ runner.os }}-perl-${{ steps.get-perl.outputs.version }}-
+
+      - uses: perl-actions/install-with-cpanm@v1
+        env:
+          PERL5LIB: ${{ env.HOME }}/perl5
+        with:
+          args: "--local-lib=~/perl5 --with-suggests --notest"
+          cpanfile: ci/cpanfile
+          path: /usr/bin/cpanm
+          sudo: false
+
+      - name: kdc-setup-mit
+        run: sudo ci/kdc-setup-mit
+        if: matrix.kerberos == 'mit'
+
+      - name: kdc-setup-heimdal
+        run: sudo ci/kdc-setup-heimdal
+        if: matrix.kerberos == 'heimdal'
+
+      - name: test
+        run: ci/test
+        env:
+          KERBEROS: ${{ matrix.kerberos }}

@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Install packages for integration tests.
+#
+# This script is normally run via sudo in a test container or VM, such as via
+# GitHub Actions.
+#
+# Copyright 2016, 2018-2020 Russ Allbery <eagle@eyrie.org>
+#
+# SPDX-License-Identifier: MIT
+
+set -eux
+
+# Normally, KERBEROS is set based on the CI matrix, but provide a default in
+# case someone runs this test by hand.
+KERBEROS="${KERBEROS:-mit}"
+
+# Install apt packages.
+apt-get update
+apt-get install $(grep -v '^#' ci/apt-packages)
+
+# If not running as a GitHub workflow, also install Perl packages.  Under the
+# GitHub workflow, this will be done (and cached) by actions.
+if [ -z "${GITHUB_WORKFLOW:-}" ]; then
+    cpanm --notest --cpanfile ci/cpanfile --installdeps .
+fi
+
+# Dependencies for additional style checks for the Python bindings.  These are
+# only run as part of the MIT Kerberos test.
+if [ "$KERBEROS" = "mit" ]; then
+    pip3 install -r python/requirements-dev.txt
+fi

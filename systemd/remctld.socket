@@ -1,0 +1,12 @@
+# Socket configuration for remctld service.  -*- conf -*-
+
+[Unit]
+Description=remctld listening socket
+Documentation=man:remctld(8)
+Documentation=https://www.eyrie.org/~eagle/software/remctl/
+
+[Socket]
+ListenStream=4373
+
+[Install]
+WantedBy=sockets.target

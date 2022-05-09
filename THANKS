@@ -1,0 +1,78 @@
+                              remctl Thanks
+
+To Anton Ushakov for the original design document, much of the version one
+protocol design, and the initial implementation.
+
+To Roland Schemers for extensive review of the initial code and protocol
+and help with the original Java client.
+
+To Romain LENGLET for the idea and code for examples/rsh-wrapper.
+
+To Thomas Kula for testing of remctl 2.0 and later versions on NetBSD and
+Heimdal, for the Python bindings, and for the REMCTL_COMMAND environment
+variable implementation.
+
+To Ralf Wildenhues for help in getting make check to work with builddir !=
+srcdir builds.
+
+To Darren Patterson and Digant Kasundra for contributions to the RPM spec
+file and testing on Red Hat.
+
+To Jonathan Kollasch for the initial IPv6 patch and for identifying all of
+the places the code was making IPv4 assuptions.
+
+To Andrew Mortensen for the initial -F and -k flag support for remctld,
+for the initial remctl PECL extension for PHP, for general code formatting
+comments and a reminder to free malloc'd memory in the Python bindings,
+and for implementing the user option in the remctld configuration file.
+
+To Alf Wachsmann for catching inaccuracies in the Perl documentation.
+
+To Jeffrey Hutzelman and Chaskiel Grundman for testing with Heimdal 0.6
+and teaching me a great deal about GSS-API flags and the security issues
+that surround them.
+
+To Marcus Watts for testing and various bug fixes, lots of improvements to
+the standalone server mode, and fixes for the Perl API.  Marcus also
+rewrote the Java client, adding support for protocol version two and a
+server implementation.
+
+To Sandor Sklar for testing multiple patches for the remctl build on AIX
+5.2 and providing an account so that I could investigate test suite
+issues.
+
+To Matthew Loar for the Windows port of the remctl client.
+
+To Jeffrey Hutzelman for adding the framework for ACL method support and
+implementing the file, princ, deny, and gput schemes, as well as lots of
+testing and portability bug reports and patches.
+
+To Timothy G. Abbott for suggesting additional restrictions on the names
+of files read when processing an include of a directory.
+
+To Jeffrey Altman for additional porting to Windows and fixes to the
+Windows build infrastructure.
+
+To Anthony M. Martinez for the initial Ruby bindings.
+
+To Peter Eriksson for the example SMF manifest for the remctld daemon and
+help with building against Solaris 10's native GSS-API libraries.
+
+To Anton Lundin for the initial implementation that led to regex and PCRE
+ACL support in remctld.
+
+To Tollef Fog Heen for assistance in writing the pkg-config configuration
+file for libremctl.
+
+To Jon Robertson for the initial implementation of the summary and help
+configuration options.
+
+To Remi Ferrand for the initial implementation of the localgroup ACL type
+and for extending the summary configuration option to work with commands
+with subcommands other than ALL.
+
+To Hugh Cole-Baker for fixing the localgroup ACL scheme on systems with
+large numbers of supplemental groups.
+
+To Santosh Ananthakrishnan for finding a memory management security bug in
+the server handling of the sudo configuration option.

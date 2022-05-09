@@ -1,0 +1,17 @@
+# systemd configuration for remctld.  -*- conf -*-
+
+[Unit]
+Description=remote authenticated command execution with ACLs
+Documentation=man:remctld(8)
+Documentation=https://www.eyrie.org/~eagle/software/remctld/
+Requires=remctld.socket
+
+[Service]
+Type=simple
+NotifyAccess=main
+Restart=always
+ExecStart=@sbindir@/remctld -F -m
+
+[Install]
+Also=remctld.socket
+WantedBy=multi-user.target

@@ -1,0 +1,27 @@
+Build.PL
+lib/Net/Remctl.pm
+lib/Net/Remctl.xs
+lib/Net/Remctl/Backend.pm
+MANIFEST			This list of files
+MANIFEST.SKIP
+t/api/basic.t
+t/backend/basic.t
+t/backend/nested.t
+t/backend/options.t
+t/data/perl.conf
+t/data/perlcriticrc
+t/data/perltidyrc
+t/data/remctl.conf
+t/docs/pod-coverage.t
+t/docs/pod-spelling.t
+t/docs/pod.t
+t/docs/synopsis.t
+t/lib/Test/Remctl.pm
+t/lib/Test/RRA.pm
+t/lib/Test/RRA/Automake.pm
+t/lib/Test/RRA/Config.pm
+t/style/coverage.t
+t/style/critic.t
+t/style/minimum-version.t
+t/style/strict.t
+typemap

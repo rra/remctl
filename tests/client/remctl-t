@@ -1,0 +1,88 @@
+#!/bin/sh
+#
+# Test suite for the remctl command-line client.
+#
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2016 Russ Allbery <eagle@eyrie.org>
+# Copyright 2006-2007, 2009, 2011-2012, 2014
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# SPDX-License-Identifier: MIT
+
+. "${C_TAP_SOURCE}/tap/libtap.sh"
+. "${C_TAP_SOURCE}/tap/kerberos.sh"
+. "${C_TAP_SOURCE}/tap/remctl.sh"
+
+# Test setup.
+kerberos_setup
+if [ $? != 0 ] ; then
+    skip_all "Kerberos tests not configured"
+else
+    plan 14
+fi
+remctl="$C_TAP_BUILD/../client/remctl"
+if [ ! -x "$remctl" ] ; then
+    bail "can't locate remctl client binary"
+fi
+remctld_start "$C_TAP_BUILD/../server/remctld" "$C_TAP_BUILD/data/conf-simple"
+
+# Now, we can finally run our tests.
+ok_program "basic" 0 "hello world" \
+    "$remctl" -s "$principal" -p 14373 localhost test test
+ok_program "no output" 0 "" \
+    "$remctl" -s "$principal" -p 14373 localhost test status 0
+ok_program "exit status 1" 1 "" \
+    "$remctl" -s "$principal" -p 14373 localhost test status 1
+ok_program "exit status 2" 2 "" \
+    "$remctl" -s "$principal" -p 14373 localhost test status 2
+ok_program "wrong principal" 255 "Access denied" \
+    "$remctl" -s "$principal" -p 14373 localhost test noauth
+ok_program "non-existent ACL" 255 "Access denied" \
+    "$remctl" -s "$principal" -p 14373 localhost test noacl
+ok_program "non-existent command" 255 "remctld: cannot execute command" \
+    strip_colon_error "$remctl" -s "$principal" -p 14373 \
+        localhost test nonexistent
+ok_program "unknown command" 255 "Unknown command" \
+    "$remctl" -s "$principal" -p 14373 localhost test bad-command
+ok_program "201 arguments" 0 "201" \
+    "$remctl" -s "$principal" -p 14373 localhost test argv \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a
+
+# Make sure that error messages end in a newline.
+tmpdir=`test_tmpdir`
+"$remctl" -s "$principal" -p 14373 localhost test noauth \
+    > "$tmpdir/output" 2>&1
+echo 'foo' >> "$tmpdir/output"
+ok "error messages end in a newline" \
+    [ "`wc -l "$tmpdir/output" | sed 's, /.*,,'`" -eq 2 ]
+
+# Check refused connections.
+"$remctl" -s "$principal" -p 14445 localhost test noauth \
+    > "$tmpdir/output" 2>&1
+output=`sed 's/):.*/)/' "$tmpdir/output"`
+echo "# saw: $output"
+ok "correct connection refused error" \
+    [ "$output" = "remctl: cannot connect to localhost (port 14445)" ]
+
+# Check binding to a particular source IP.
+ok_program "source of 127.0.0.1" 0 "hello world" \
+    "$remctl" -b 127.0.0.1 -s "$principal" -p 14373 127.0.0.1 test test
+"$remctl" -b ::1 -s "$principal" -p 14373 127.0.0.1 test test \
+    > "$tmpdir/output" 2>&1
+status=$?
+ok "source of ::1 fails" [ "$status" != 0 ]
+output=`sed 's/):.*/)/' "$tmpdir/output"`
+echo "# saw: $output"
+ok "correct bind address error" \
+    [ "$output" = "remctl: cannot connect to 127.0.0.1 (port 14373)" ]
+
+# Clean up.
+rm -f "$tmpdir/output"
+remctld_stop
+kerberos_cleanup
+rmdir "$tmpdir" || true
