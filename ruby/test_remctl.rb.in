@@ -1,18 +1,19 @@
 # Test suite for remctl Ruby bindings.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2022 Russ Allbery <eagle@eyrie.org>
 # Copyright 2010, 2012, 2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
 # SPDX-License-Identifier: MIT
 
 require 'fileutils'
-require 'minitest'
+require 'minitest/autorun'
 require 'remctl'
 
 module Helpers
   def configured?
-    return File.exists? 'config/principal'
+    return File.exist? 'config/principal'
   end
 
   def get_principal
@@ -38,7 +39,7 @@ module Helpers
            '-P', '@abs_top_builddir@/tests/tmp/pid', '-d', '-S', '-F',
            '-k', '@abs_top_builddir@/tests/config/keytab')
     end
-    unless File.exists? 'tmp/pid' then sleep 1 end
+    unless File.exist? 'tmp/pid' then sleep 1 end
   end
 
   def stop_remctld
@@ -62,7 +63,7 @@ module Helpers
         return true
       end
     end
-    unless File.exists? 'tmp/pid' then sleep 1 end
+    unless File.exist? 'tmp/pid' then sleep 1 end
     stop_remctld
     return false
   end
@@ -119,7 +120,7 @@ class TC_RemctlSimple < Minitest::Test
     unless configured? then return end
     Remctl.default_port = 14373
     Remctl.default_principal = @principal
-    assert_raise Remctl::Error do
+    assert_raises Remctl::Error do
       begin
         result = Remctl.remctl('localhost', 'test', 'bad-command')
       rescue Remctl::Error
@@ -133,8 +134,8 @@ class TC_RemctlSimple < Minitest::Test
     unless configured? then return end
     Remctl.default_port = 14373
     Remctl.default_principal = @principal
-    assert_raise ArgumentError do Remctl.remctl end
-    assert_raise Remctl::Error do
+    assert_raises ArgumentError do Remctl.remctl end
+    assert_raises Remctl::Error do
       begin
         Remctl.remctl('localhost')
       rescue
@@ -142,9 +143,9 @@ class TC_RemctlSimple < Minitest::Test
         raise
       end
     end
-    assert_raise ArgumentError, TypeError do Remctl.default_port = 'foo' end
-    assert_raise ArgumentError, RangeError do Remctl.default_port = -1 end
-    assert_raise ArgumentError do
+    assert_raises ArgumentError, TypeError do Remctl.default_port = 'foo' end
+    assert_raises ArgumentError, RangeError do Remctl.default_port = -1 end
+    assert_raises ArgumentError do
       begin
         Remctl.default_port = 65536
       rescue ArgumentError
@@ -152,8 +153,8 @@ class TC_RemctlSimple < Minitest::Test
         raise
       end
     end
-    assert_raise TypeError do Remctl.remctl(1) end
-    assert_raise TypeError do Remctl.remctl('localhost', 1) end
+    assert_raises TypeError do Remctl.remctl(1) end
+    assert_raises TypeError do Remctl.remctl('localhost', 1) end
   end
 end
 
@@ -201,7 +202,7 @@ class TC_RemctlFull < Minitest::Test
   def test_full_ccache
     unless configured? then return end
     ENV['KRB5CCNAME'] = 'nonexistent-file'
-    assert_raise Remctl::Error do
+    assert_raises Remctl::Error do
       Remctl.new('127.0.0.1', 14373, @principal)
     end
     Remctl.ccache = 'tmp/krb5cc_test'
@@ -218,7 +219,7 @@ class TC_RemctlFull < Minitest::Test
     r = Remctl.new('127.0.0.1', 14373, @principal)
     r.close
     Remctl.source_ip = '::1'
-    assert_raise Remctl::Error do
+    assert_raises Remctl::Error do
       Remctl.new('127.0.0.1', 14373, @principal)
     end
     Remctl.source_ip = nil
@@ -231,7 +232,7 @@ class TC_RemctlFull < Minitest::Test
     r = Remctl.new('127.0.0.1', 14373, @principal)
     r.set_timeout(1)
     r.command('test', 'sleep')
-    assert_raise Remctl::Error do
+    assert_raises Remctl::Error do
       begin
         output = r.output
       rescue Remctl::Error
@@ -245,7 +246,7 @@ class TC_RemctlFull < Minitest::Test
     Remctl.timeout = 1
     r = Remctl.new('127.0.0.1', 14373, @principal)
     r.command('test', 'sleep')
-    assert_raise Remctl::Error do
+    assert_raises Remctl::Error do
       begin
         output = r.output
       rescue Remctl::Error
@@ -258,15 +259,15 @@ class TC_RemctlFull < Minitest::Test
 
   def test_full_errors
     unless configured? then return end
-    assert_raise ArgumentError do Remctl.new end
-    assert_raise TypeError do Remctl.new(1, 14373, @principal) end
-    assert_raise ArgumentError, TypeError do
+    assert_raises ArgumentError do Remctl.new end
+    assert_raises TypeError do Remctl.new(1, 14373, @principal) end
+    assert_raises ArgumentError, TypeError do
       Remctl.new('localhost', 'foo', @principal)
     end
-    assert_raise TypeError do Remctl.new('localhost', 14373, 1) end
-    assert_raise ArgumentError, RangeError do Remctl.new('localhost', -1) end
-    assert_raise ArgumentError do Remctl.new('localhost', 65536) end
-    assert_raise Remctl::Error do
+    assert_raises TypeError do Remctl.new('localhost', 14373, 1) end
+    assert_raises ArgumentError, RangeError do Remctl.new('localhost', -1) end
+    assert_raises ArgumentError do Remctl.new('localhost', 65536) end
+    assert_raises Remctl::Error do
       begin
         Remctl.new('localhost', 14444, @principal)
       rescue Remctl::Error
@@ -276,8 +277,8 @@ class TC_RemctlFull < Minitest::Test
       end
     end
     r = Remctl.new('localhost', 14373, @principal)
-    assert_raise TypeError do r.command(1) end
+    assert_raises TypeError do r.command(1) end
     r.close
-    assert_raise Remctl::NotOpen do r.command('test', 'test') end
+    assert_raises Remctl::NotOpen do r.command('test', 'test') end
   end
 end
