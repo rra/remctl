@@ -1,4 +1,4 @@
-remctl (3.18-1) UNRELEASED; urgency=medium
+remctl (3.18-1) unstable; urgency=medium
 
   * New upstream release.
     - Add support for PCRE2.  (Closes: 999974)
@@ -15,7 +15,7 @@ remctl (3.18-1) UNRELEASED; urgency=medium
     specification, which is under a separate, overriding free license.
   * Update standards version to 4.6.0 (no changes required).
 
- -- Russ Allbery <rra@debian.org>  Mon, 27 Dec 2021 17:08:32 -0800
+ -- Russ Allbery <rra@debian.org>  Sun, 08 May 2022 17:19:42 -0700
 
 remctl (3.17-1) unstable; urgency=medium
 
