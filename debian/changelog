@@ -11,6 +11,8 @@ remctl (3.18-1) UNRELEASED; urgency=medium
   * Test supported Python versions instead of requested versions for
     autopkgtests, and stop testing Python 2.x versions.
   * Refresh upstream signing key.
+  * Override Lintian warning about the license of the protocol
+    specification, which is under a separate, overriding free license.
   * Update standards version to 4.6.0 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Mon, 27 Dec 2021 17:08:32 -0800
