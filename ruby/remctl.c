@@ -5,7 +5,7 @@
  * simple and complex forms of the API.
  *
  * Original implementation by Anthony M. Martinez <twopir@nmt.edu>
- * Copyright 2018, 2020 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018, 2020, 2022 Russ Allbery <eagle@eyrie.org>
  * Copyright 2010-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
@@ -27,6 +27,22 @@
  * There is no SPDX-License-Identifier registered for this license.
  */
 
+/*
+ * Ruby's config.h unconditionally defines several C compatibility macros that
+ * cannot be subsequently redefined, so it has to be included before our
+ * config.h (which correctly conditionalizes those defines).
+ *
+ * The Ruby includes use a bare config.h file and don't use proper
+ * namespacing, so we have to undefine some things that we set that Ruby also
+ * sets.  We don't care about any of these settings, thankfully.
+ */
+#include <ruby.h>
+#undef PACKAGE_NAME
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef PACKAGE_STRING
+#undef PACKAGE_BUGREPORT
+
 #include <config.h>
 #include <portable/system.h>
 
@@ -35,18 +51,6 @@
 
 #include <client/remctl.h>
 #include <util/macros.h>
-
-/*
- * The Ruby includes use a bare config.h file and don't use proper
- * namespacing, so we have to undefine some things that we set that Ruby also
- * sets.  We don't care about any of these settings, thankfully.
- */
-#undef PACKAGE_NAME
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#undef PACKAGE_STRING
-#undef PACKAGE_BUGREPORT
-#include <ruby.h>
 
 /*
  * Ruby 1.9 changed the call signature for rb_cvar_set.  Ruby 1.8 used to
