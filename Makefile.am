@@ -365,7 +365,7 @@ RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
 	-Wno-gnu-statement-expression -Wno-unknown-warning-option	    \
 	-Wno-gcc-compat -Wno-extra-semi-stmt -Wno-strict-overflow -Wno-vla  \
 	-Wno-gnu-zero-variadic-macro-arguments				    \
-	-Wno-declaration-after-statement
+	-Wno-declaration-after-statement -Wno-unknown-attributes
 
 warnings:
 	$(MAKE) V=0					\
