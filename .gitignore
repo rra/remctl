@@ -56,6 +56,7 @@
 /php/missing
 /php/mkinstalldirs
 /php/modules/
+/php/php_remctl.dep
 /php/php_remctl.h
 /php/php_test_results_*.txt
 /php/run-tests.php
