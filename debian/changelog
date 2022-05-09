@@ -15,7 +15,7 @@ remctl (3.18-1) unstable; urgency=medium
     specification, which is under a separate, overriding free license.
   * Update standards version to 4.6.0 (no changes required).
 
- -- Russ Allbery <rra@debian.org>  Sun, 08 May 2022 17:19:42 -0700
+ -- Russ Allbery <rra@debian.org>  Sun, 08 May 2022 21:17:33 -0700
 
 remctl (3.17-1) unstable; urgency=medium
 
