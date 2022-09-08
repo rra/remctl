@@ -95,7 +95,7 @@ Package: remctl-server
 Architecture: any
 Multi-Arch: foreign
 Depends:
- netbase (>= 4.31),
+ netbase,
  update-inetd | inet-superserver,
  ${misc:Depends},
  ${shlibs:Depends},
