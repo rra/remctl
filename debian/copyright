@@ -4,6 +4,7 @@ Source: https://www.eyrie.org/~eagle/software/remctl/
 Copyright: 2015-2022 Russ Allbery <eagle@eyrie.org>
   2002-2014 The Board of Trustees of the Leland Stanford Junior University
 License: Expat
+Upstream-Name: remctl
 
 Files: *
 Copyright: 1997, 2000-2002 Benjamin Sittler
