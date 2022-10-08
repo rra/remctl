@@ -5,9 +5,6 @@
 # binding modules.
 export DEB_BUILD_MAINT_OPTIONS = hardening=+bindnow
 
-# Link with --as-needed so that the remctl client library doesn't inherit
-# the shared library dependencies of libremctl.
-
 # Enable -fPIE for all binaries, picked up by the upstream build system.
 export REMCTL_PROGRAM_CFLAGS  = -fPIE
 export REMCTL_PROGRAM_LDFLAGS = -fPIE
