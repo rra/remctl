@@ -1,0 +1,5 @@
+debian/examples/*               usr/share/doc/remctl-server/examples
+debian/tmp/lib/systemd/system/* usr/share/doc/remctl-server/examples
+debian/tmp/usr/sbin
+debian/tmp/usr/share/man/man8
+examples/remctl.conf            etc/remctl/
