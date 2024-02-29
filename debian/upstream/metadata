@@ -1,0 +1,8 @@
+Name: remctl
+Contact: Russ Allbery <eagle@eyrie.org>
+Documentation: https://www.eyrie.org/~eagle/software/remctl/
+Bug-Database: https://github.com/rra/remctl/issues
+Bug-Submit: https://github.com/rra/remctl/issues/new
+Changelog: https://www.eyrie.org/~eagle/software/remctl/news.html
+Repository: https://git.eyrie.org/git/kerberos/remctl.git
+Repository-Browse: https://git.eyrie.org/?p=kerberos/remctl.git

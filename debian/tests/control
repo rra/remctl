@@ -1,0 +1,9 @@
+Test-Command: /usr/share/pkg-perl-autopkgtest/runner runtime-deps
+Depends:
+ pkg-perl-autopkgtest,
+ @,
+
+Tests: python
+Depends:
+ python3-all,
+ python3-pyremctl,

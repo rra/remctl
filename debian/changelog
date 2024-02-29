@@ -1,0 +1,1013 @@
+remctl (3.18-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Rename libraries for 64-bit time_t transition.  Closes: #1062856
+
+ -- Benjamin Drung <bdrung@debian.org>  Thu, 29 Feb 2024 23:01:16 +0000
+
+remctl (3.18-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Add support for PCRE2.  (Closes: 999974)
+    - Document that pcre and regex ACL expressions should be anchored.
+    - Document sending SIGHUP to remctld to reload its configuration.
+    - Mark remctl client library functions with their deallocators.
+  * Reorganize the binary package descriptions to put the distinguishing
+    quality of each package first, ahead of the generic description of
+    remctl, rather than last.
+  * Test supported Python versions instead of requested versions for
+    autopkgtests, and stop testing Python 2.x versions.
+  * Refresh upstream signing key.
+  * Override Lintian warning about the license of the protocol
+    specification, which is under a separate, overriding free license.
+  * Update standards version to 4.6.0 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Sun, 08 May 2022 21:17:33 -0700
+
+remctl (3.17-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Add support for PHP 8.
+    - Fix basic tests on platforms without IPv4.  (Closes: #972206)
+  * Change the default Debian packaging branch to debian/unstable.
+  * Move the canonical packaging repository to Salsa.
+  * Remove the version number of PHP from the long description of
+    php-remctl, since the source now supports either PHP 7 or PHP 8.
+  * Update to debhelper compatibility level v13.
+  * Update standards version to 4.5.1 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Sun, 13 Dec 2020 15:14:38 -0800
+
+remctl (3.16-4) unstable; urgency=medium
+
+  [ Gianfranco Costamagna ]
+  * Avoid Python setuptools trying to download and install typing from PIP
+    for the Python tests by removing install_requires, since setuptools is
+    not smart enough to know that the typing dependency is satisfied by
+    Python 3's standard library.  (Closes: #944151, #944152)
+
+ -- Russ Allbery <rra@debian.org>  Tue, 05 Nov 2019 20:45:18 -0800
+
+remctl (3.16-3) unstable; urgency=medium
+
+  * Fix syntax of Python autopkgtest script to work with both Python 2 and
+    Python 3.
+
+ -- Russ Allbery <rra@debian.org>  Sun, 03 Nov 2019 10:52:30 -0800
+
+remctl (3.16-2) unstable; urgency=medium
+
+  * Reupload including the binary packages since source-only uploads
+    aren't allowed when NEW processing is involved.  (Requires a version
+    bump because dgit already recorded the 3.16-1 version as part of a
+    source-only upload.)
+
+ -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 15:13:23 -0700
+
+remctl (3.16-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Add -t flag to the remctl client to specify network timeout.
+    - Fix NULL pointer dereference after memory allocation failure.
+    - Add GCC attributes to declarations in remctl.h.
+  * Add python3-pyremctl package with the Python 3 version of the
+    libremctl bindings and drop python-remctl.  (Closes: #938350)
+  * Remove XS-Python-Version, since only 2.7 is now supported.
+  * Add Build-Depends-Package to libremctl1 symbols file.
+  * Mention remctl-shell in the long description of remctl-server.
+  * Update to debhelper compatibility level V12.
+    - Switch to debhelper-compat dependency and remove debian/compat.
+    - Override dh_missing rather than pass --fail-missing to dh_install.
+  * Update standards version to 4.4.1.
+    - Install NEWS in all packages as /usr/share/doc/<package>/NEWS.gz
+      rather than as changelog.gz.
+  * Remove obsolete debian/source/options file to force xz compression.
+  * Remove unnecessary Perl module test that includes Recommends.  The
+    Perl module has no Recommends, so this is redundant with the normal
+    dependency test.
+  * Drop versioned dpkg-dev dependency that's older than oldoldstable.
+  * Drop version constraint on gem2deb satisfied by oldoldstable.
+  * Drop Provides: php7.0-remctl from php-remctl.  This transition was
+    completed long ago.
+  * Run wrap-and-sort -ast.
+
+ -- Russ Allbery <rra@debian.org>  Sat, 26 Oct 2019 13:49:19 -0700
+
+remctl (3.15-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Fix possible output truncation for commands receiving data from
+      standard input that exit before reading all input data.
+    - Do more paranoid validation of more protocol elements.
+    - Make a test robust against the first resolved value of 127.0.0.1 not
+      being localhost.  (Closes: #835677)
+  * Add Multi-Arch: same for libnet-remctl-perl and ruby-remctl.
+  * Enable basic pkg-perl-autopkgtests tests with a custom control file,
+    since autodep8 doesn't find the Perl package built from this
+    more-complex source package.  Don't include the smoke test for now
+    since it requires a more complex setup and execution of the test from
+    the perl subdirectory.
+  * Add the Python import test generated by autodep8 to the package.
+    (Unfortunately, autopkgtest-pkg-python in the Testsuite control field
+    appears to do nothing if debian/tests/control exists in the package.)
+  * Add dh-python to Build-Depends as requested by dh_python2.
+  * Add debian/upstream/metadata file.
+  * Set Rules-Requires-Root: no.
+  * Bump watch file version to 4.
+  * Update standards version to 4.1.4 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Sat, 05 May 2018 15:30:47 -0700
+
+remctl (3.14-1) unstable; urgency=high
+
+  * New upstream release.
+    - SECURITY: Fix use-after-free and double-free when handling the sudo
+      option in remctld.  This may allow (with some difficulty) arbitrary
+      command execution on the server by streaming clients if the sudo
+      option was used in the server configuration.  Thanks, Santosh
+      Ananthakrishnan.  (CVE-2018-0493)
+  * Add upstream-vcs-tag pattern to debian/gbp.conf.
+  * Use an https URL in debian/watch.
+  * Update debhelper comptibility level to V11.
+    - Drop dependency and explicit configuration of dh-autoreconf.
+    - Drop explicit --parallel option, since this is now the default.
+  * Update standards version to 4.1.3.
+    - Change libremctl-dev priority to optional.
+    - Use https URLs in debian/copyright.
+  * Refresh upstream signing key.
+
+ -- Russ Allbery <rra@debian.org>  Sun, 01 Apr 2018 15:07:40 -0700
+
+remctl (3.13-1) unstable; urgency=medium
+
+  * New upstream release.
+    - remctl-shell now supports being run as a forced command.
+    - The summary configuration option is now allowed for commands with
+      subcommands other than ALL, passing in two arguments to the summary
+      command.
+  * Build the standalone binaries with -fPIE.
+
+ -- Russ Allbery <rra@debian.org>  Mon, 10 Oct 2016 19:23:31 -0700
+
+remctl (3.12-1) unstable; urgency=medium
+
+  * New upstream release.
+    - New server implementation, remctl-shell, included in the
+      remctl-server package, which is meant to be run as the shell of a
+      dedicated user via ssh and supports the same configuration as
+      remctld.  (This may eventually move into a separate package; if you
+      would like to see that, file a bug.)
+    - New server configuration option, sudo, which says to change users
+      with sudo when running the command.
+  * Hard-code the path to sudo in the build so that the sudo package
+    doesn't have to be installed when building the package.
+  * Switch to the new comment character for php-remctl.ini.
+  * Switch to https for all package metadata URLs.
+  * Remove now-unneeded source Lintian override.
+  * Update standards version to 3.9.8 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Fri, 29 Jul 2016 13:23:57 -0700
+
+remctl (3.11-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Port to PHP 7.  (Closes: #821713)
+  * Convert packaging to use dh_php and build php-remctl instead of
+    php5-remctl (and provide php7.0-remctl).  There is no upgrade path
+    defined from php5-remctl, since that seems to be the way other PHP
+    packages are being handled during the upgrade.
+  * Switch to the DEP-14 branch layout and update debian/gbp.conf and
+    Vcs-Git accordingly.
+  * Belatedly bump shlibs for interfaces added in remctl 3.3.
+
+ -- Russ Allbery <rra@debian.org>  Sat, 07 May 2016 15:15:46 -0700
+
+remctl (3.10-1) unstable; urgency=medium
+
+  * New upstream release.
+    - New server ACLs anyuser:auth and anyuser:anonymous.  The latter
+      allows access by anonymous clients if the KDC supports anonymous
+      service tickets.
+    - Server now sets the REMOTE_EXPIRES environment variable to the time
+      when the client credentials would expire.
+    - Anonymous users no longer satisfy ANYUSER (anyuser:auth).
+    - Simplify the Python RemctlError class (with some backward
+      incompatibilities).
+    - Dynamically resize the buffer used for the localgroup ACL scheme,
+      allowing support of users in large numbers of local groups.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 27 Nov 2015 15:24:56 -0800
+
+remctl (3.9-2) unstable; urgency=medium
+
+  * Build against libsystemd instead of libsystemd-daemon.  Thanks,
+    Michael Biebl.  (Closes: #779764)
+  * Add explicit build dependency on libmodule-build-perl, since it will
+    soon no longer be provided by the perl package.  (Closes: #791666)
+  * Add debian/gbp.conf reflecting the branch layout of the default
+    packaging repository.
+  * Refresh upstream signing key.
+  * Update standards version to 3.9.6 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Sat, 08 Aug 2015 11:16:49 -0700
+
+remctl (3.9-1) unstable; urgency=medium
+
+  * New upstream release.
+    - New server ACL type, localgroup, which converts the principal to a
+      local username and then checks for membership in a local group.
+    - Fix incorrect handling of interruptions of network writes by signals
+      in the server.
+    - Prefer calloc and reallocarray when allocating memory with
+      multiplication.
+    - Restore the SIGPIPE handler before running a command.
+    - Add version and compatibility information to all manual pages.
+  * Use an executable debian/libnet-remctl-perl.install file to pull the
+    correct Perl arch-specific vendor module path from Perl during the
+    build.  Should fix builds with Perl 5.20.  Thanks, Niko Tyni and
+    gregor herrmann.  (Closes: #752902)
+  * Build-Depend on krb5-config to get enough of a Kerberos configuration
+    for some test cases that are KDC-independent to run.
+  * Fix Upstream-Contact email address in debian/copyright.
+  * Remove most debian/tmp prefixes from debhelper *.install files.  These
+    have not been needed since compat level 7.  Retain them only for the
+    remctl-server.install file, which pulls files from both the source
+    tree and the installed binary tree and benefits from the
+    disambiguation.
+
+ -- Russ Allbery <rra@debian.org>  Wed, 02 Jul 2014 20:57:10 -0700
+
+remctl (3.8-3) unstable; urgency=medium
+
+  * Build-Depend on the version of gem2deb with working multi-binary
+    package support for native extensions.
+  * Fix the exclusion rule for dh_install --fail-missing to ignore the
+    Ruby module under both the 2.0 and 1.9.1 paths.  (dh_ruby --install
+    will go back and install the module in the correct locations.)  Should
+    fix FTBFS in Ubuntu, which still has Ruby 1.9.1.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 11 Apr 2014 13:27:58 -0700
+
+remctl (3.8-2) unstable; urgency=medium
+
+  * Add upstream patch to increase the buffer size on timeout tests.
+    Linux has apparently increased the size of network writes it is
+    willing to buffer internally, so we now have to write more data to
+    force a timeout.  (Closes: #743991)
+  * Use gem2deb to build and install the Ruby module.  This will
+    automatically use the current supported Ruby versions, avoiding the
+    need for sourceful uploads for new Ruby releases.  Thanks to Christian
+    Hofstaedtler for the patch.
+  * Remove now-unneeded Lintian override for the upstream signing key.
+  * Add a Lintian override for the dual-licensed protocol specification.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 08 Apr 2014 19:34:24 -0700
+
+remctl (3.8-1) unstable; urgency=medium
+
+  * New upstream release.
+    - remctld now uses libevent for the process event loop, which removes
+      the need to poll for child exit and will make the server faster and
+      more responsive.
+    - Fill each MESSAGE_OUTPUT message from the server with the maximum
+      allowed data per the protocol, rather than capping it artificially
+      at 65000 octets.
+    - Fix a minor server memory leak when processing help commands.
+    - Fix a minor client memory leak on errors with protocol one commands.
+    - Write out the server PID file atomically.
+  * Start building the Ruby extension for Ruby 2.0 and stop building it
+    for Ruby 1.8, which is being removed.  (Closes: #735659)
+  * Add Depends on ruby | ruby-interpreter to ruby-remctl.  This is
+    apparently standard for Ruby extensions, since it will pull in a
+    version of Ruby that can use the extension if the Ruby versions of the
+    extension match the providers of ruby-interpreter.
+  * Drop Replaces and Breaks on libremctl-ruby1.8 and libremctl-ruby1.9.
+    These were already tranditional packages in wheezy.
+  * Correctly qualify the libsystemd-daemon-dev dependency with
+    [linux-any].  (Closes: #736578)
+  * Switch to the new uscan upstream signature verification method, which
+    uses an armored key in debian/upstream/signing-key.asc.  This allows
+    removal of debian/source/include-binaries.  Export a minimal key to
+    save all the space required by key signatures, since inclusion of the
+    key in the package already indicates the relevant trust and the
+    signatures are retrievable from a public keyserver.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 28 Jan 2014 19:50:20 -0800
+
+remctl (3.7-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Fix client memory leak when remctl_set_ccache is used.
+    - Fix Net::Remctl::Backend argument count validation when one of the
+      arguments is coming from standard input.
+    - remctld in stand-alone mode now supports systemd status notification
+      and socket activation and, with -Z, upstart status notification.  By
+      default, remctld is still spawned from inetd, so this only affects
+      users who change the default configuration.  Sample systemd and
+      upstart configurations are included in /usr/share/doc/remctl-server.
+    - Net::Remctl classes now fail cleanly if the object is undef.
+  * Switch the default Ruby build to 1.9.1 to make it easier to remove the
+    Ruby 1.8 module build when ready to do so.
+  * Add necessary keyring and watch configuration for uscan to verify
+    PGP signatures on new upstream releases.
+  * Update the watch file to download *.tar.xz distributions by default.
+  * Remove now-unnecessary override of dh_builddeb to use xz compression.
+  * Remove old NEWS file that predated the package split for a port
+    transition that substantially predated oldstable.
+  * Update standards version to 3.9.5 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Mon, 06 Jan 2014 15:03:12 -0800
+
+remctl (3.6-1) unstable; urgency=low
+
+  * New upstream release.
+    - For client calls with a timeout, restart waiting for a non-blocking
+      connect if the select call is interrupted by a signal.
+    - Better Net::Remctl::Backend help formatting for commands with long
+      syntax.
+
+ -- Russ Allbery <rra@debian.org>  Wed, 14 Aug 2013 21:56:39 -0700
+
+remctl (3.5-1) unstable; urgency=low
+
+  * New upstream release.
+    - Fix a long-standing race condition in remctld that could truncate
+      large backend output.
+    - remctl_set_ccache is now threadsafe when built against a GSS-API
+      library that supports gss_krb5_import_cred.
+    - The Net::Remctl and Net::Remctl::Backend Perl module versions have
+      gone backwards from Perl's perspective to bring them in-line with
+      the package version (3.4 -> 3.05).  This is a one-time adjustment
+      to a more reliable versioning scheme.
+    - Fix test suite issues with newer Linux kernels.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 28 Jun 2013 21:45:30 -0700
+
+remctl (3.4-2) unstable; urgency=low
+
+  * Upload to unstable.
+  * Drop old Ruby transitional packages required for upgrades from squeeze
+    now that wheezy has been released.
+  * Add additional Perl modules required to run the full module test suite
+    to Build-Depends.
+
+ -- Russ Allbery <rra@debian.org>  Sat, 11 May 2013 16:34:25 -0700
+
+remctl (3.4-1) experimental; urgency=low
+
+  * New upstream release.
+    - New C APIs for establishing a remctl connection given a sockaddr, a
+      list of struct addrinfo, or an already open socket.
+    - New Net::Remctl::Backend Perl module to aid writing remctl backend
+      scripts.
+    - Remove all prototypes from Net::Remctl functions.
+    - Return an error if an empty command is passed to remctl_command.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 26 Mar 2013 13:19:58 -0700
+
+remctl (3.3-1) experimental; urgency=low
+
+  * New upstream release.
+    - Fix a file descriptor leak when checking ACL files.
+    - Fix memory leaks in remctld and libremctl.
+    - Don't create the PID file in remctld until the network socket is set
+      up and listening.
+    - Remove prototypes from the Perl remctl() function to allow passing
+      in parameters via an array.
+  * Use xz compression for the Debian binary packages.
+  * Update to standards version 3.9.4.
+    - Add branch information to Vcs-Git.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 25 Sep 2012 21:34:43 -0700
+
+remctl (3.2-3) unstable; urgency=low
+
+  * Cherry-pick upstream fix to flags passed to open() when creating
+    sentinel files in the test suite.  Hopefully fixes FTBFS on Hurd.
+
+ -- Russ Allbery <rra@debian.org>  Thu, 28 Jun 2012 13:57:28 -0700
+
+remctl (3.2-2) unstable; urgency=low
+
+  * Cherry-pick upstream fix to add proper dependencies on libremctl.la to
+    the build rules for other language bindings.  This should fix
+    occasional FTBFS problems with parallel builds.  Thanks, Aaron
+    M. Ucko.  (Closes: #679307)
+
+ -- Russ Allbery <rra@debian.org>  Wed, 27 Jun 2012 16:32:57 -0700
+
+remctl (3.2-1) unstable; urgency=low
+
+  * New upstream release.
+    - If remctld receives a help command with no arguments and no help
+      command is explicitly defined, it will look for commands to which
+      the current user has access and for which the summary option is set
+      and run them with the argument given by the summary option,
+      collecting the output and sending it back to the client.
+    - If remctld receives a help command with one or two arguments and a
+      command entry exists matching those arguments, the user has access
+      to run it, and the help option is set, the command is run with the
+      help option as the subcommand.
+    - Always close the server's connection to the client on low-level
+      network and GSS-API errors.
+    - Fix remctld segfault when the configuration does not define any
+      commands.
+  * Update Ruby extension packaging for the new Ruby standard.  The
+    ruby-remctl package replaces all libremctl-ruby* packages, which are
+    now transitional packages to ease the upgrade.  The Ruby extension is
+    now installed in the vendor_ruby directory and the modules for all
+    supported Ruby versions are included in the same package.
+  * Switch to xz compression for the upstream and Debian tarballs.
+  * Move single-debian-patch to local-options and patch-header to
+    local-patch-header so that they only apply to the packages I build and
+    NMUs get regular version-numbered patches.
+  * Enable parallel builds.
+  * Mark libremctl-dev Multi-Arch: same and remctl-client and
+    remctl-server Multi-Arch: foreign.
+  * Convert debian/copyright to copyright-format 1.0.
+  * Update standards version to 3.9.3 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Tue, 19 Jun 2012 20:19:03 -0700
+
+remctl (3.1-1) unstable; urgency=low
+
+  * New upstream release.
+    - New remctl_set_timeout function and corresponding API in all the
+      language bindings to set a timeout on all further network operations
+      on that client connection.
+    - remctld supports a user configuration option to run a program as a
+      specific user (with supplemental groups).
+    - remctld's timeout is now one hour between messages instead of a
+      total limit of one hour for the connection.
+    - PHP's remctl_output no longer warns on failure.
+    - Python's _remctl.remctl_output returns an empty tuple on error.
+    - Fix error reporting for non-blocking connect.
+
+ -- Russ Allbery <rra@debian.org>  Wed, 29 Feb 2012 13:14:14 -0800
+
+remctl (3.0-6) unstable; urgency=low
+
+  * Patch the upstream build system to provide more hooks for Perl and
+    Python builds and make use of them, removing all the complexity in
+    debian/rules to selectively rebuild parts of the source.  As a side
+    effect, fix application of the hardening flags to all of the
+    interpretor modules.
+  * Use dh-autoreconf to rebuild the Autotools build system, and link with
+    --as-needed to remove the additional unnecessarily library
+    dependencies for the client.  Remove the workaround of relinking the
+    binary, which removed the hardening flags.
+  * Pass the hardening flags into the Perl and Python module rebuilds.
+  * Depend on debhelper (>= 9) now that V9 is no longer experimental and
+    remove now-unneeded Lintian override.
+  * Remove the special additional test run for kfreebsd-amd64.  The
+    problem has been located and corrected upstream.
+
+ -- Russ Allbery <rra@debian.org>  Sat, 04 Feb 2012 20:21:09 -0800
+
+remctl (3.0-5) unstable; urgency=low
+
+  * Fix the skip count for the network utility test suite, fixing a
+    spurious test failure on systems without IPv6.  Patch from Felix
+    Geyer.  (Closes: #654982)
+  * Fix removal of build directory paths from RPATH when building the Perl
+    module inside a build directory that contains regex metacharacters.
+
+ -- Russ Allbery <rra@debian.org>  Sun, 08 Jan 2012 21:01:28 -0800
+
+remctl (3.0-4) unstable; urgency=low
+
+  * Disable the network timeout test for right now since kfreebsd-amd64 is
+    still failing.  Add some additional debugging and run the test with
+    full output for now so that this test can hopefully be reinstated in a
+    later version.
+
+ -- Russ Allbery <rra@debian.org>  Wed, 02 Nov 2011 19:21:14 -0700
+
+remctl (3.0-3) unstable; urgency=low
+
+  * Further test suite fixes for kfreebsd: Skip network timeout tests if a
+    short listen queue doesn't cause any connections to fail, and fix the
+    bounds handling when closing open sockets if all connections
+    succeeded.  (Closes: #647254)
+
+ -- Russ Allbery <rra@debian.org>  Wed, 02 Nov 2011 12:47:06 -0700
+
+remctl (3.0-2) unstable; urgency=low
+
+  * Allow for different networking behavior seen on kfreebsd systems in
+    the test suite.  (Closes: #647254)
+    - FreeBSD kernel refuses connections after listen queue exhaustion.
+    - getaddrinfo may return other errors on invalid host lookups.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 01 Nov 2011 21:07:03 -0700
+
+remctl (3.0-1) unstable; urgency=low
+
+  * New upstream release.
+    - New protocol version 3, adding a NOOP command.
+    - More consistent and formal handling of continuation commands.
+    - The server no longer closes the connection after version or error
+      replies.
+    - Add new remctl_set_source_ip function to set the source IP address
+      for outgoing client connections.
+    - Add new -b option to remctl command-line client to set source IP.
+    - Add new remctl_set_ccache function to specify the credential store
+      to use for GSS-API authentication.
+    - Fix a client memory leak on remctl_close.
+    - Send QUIT to the server when reopening a remctl object.
+  * Convert libremctl to multiarch.
+  * Update to (experimental) debhelper compatibility level V9.
+    - Add Pre-Depends: ${misc:Pre-Depends} to libremctl1.
+    - Use dpkg-buildflags to set CFLAGS.
+    - Enable bindnow hardening.  Leave pie off for right now.
+    - Add Lintian override for using an experimental debhelper level.
+  * Update Python packaging to use dh_python2.
+    - Add XS-Python-Version to debian/control.
+    - Add python2 debhelper add-on to debian/rules.
+    - Remove build dependency on python-support.
+
+ -- Russ Allbery <rra@debian.org>  Mon, 31 Oct 2011 18:05:11 -0700
+
+remctl (2.18-1) unstable; urgency=low
+
+  * New upstream release.
+    - Fix uninitialized variable in remctld standalone server.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 31 May 2011 17:10:09 -0700
+
+remctl (2.17-1) unstable; urgency=low
+
+  * New upstream release.
+    - Fix return object construction in the Python simple bindings.
+    - Support -b option in remctld to set the bind address.
+    - Support IPv6 in remctld when run stand-alone.
+    - Add a pkg-config configuration file for libremctl.
+    - Set PHP extension test to be noninteractive.
+    - Initialize sockaddr structs more correctly.
+  * Remove Conflicts/Replaces referring to versions older than oldstable.
+  * Update standards version to 3.9.2 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Tue, 31 May 2011 15:40:02 -0700
+
+remctl (2.16-2) unstable; urgency=low
+
+  * Skip the getaddrinfo invalid host test if foo.invalid resolves using
+    gethostbyname.  This hopefully works around build issues on kFreeBSD.
+    (See #626047)
+  * Update network utility library from rra-c-util 3.4 to fix problems
+    with the test suite on hosts that bind IPv4 addresses when binding
+    IPv6 addresses by default.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 10 May 2011 20:53:25 -0700
+
+remctl (2.16-1) unstable; urgency=low
+
+  * New upstream release.
+    - Add Ruby bindings (install libremctl-ruby).
+    - Add support for PCRE and regex ACLs in the remctl server.
+    - remctld now sets REMCTL_COMMAND to the command run.
+  * Use dh_gencontrol -- -V to pass the PHP version substvar instead of
+    writing it to the substvars file.
+  * Switch to 3.0 (quilt) source format.  Force a single Debian patch and
+    include a custom patch header explaining that it is a rollup of any
+    fixes cherry-picked from upstream and breaking those patches out
+    separately would be work for no gain.
+
+ -- Russ Allbery <rra@debian.org>  Sun, 02 May 2010 18:13:50 -0700
+
+remctl (2.15-3) unstable; urgency=low
+
+  * Make use of the new Makefile variables in the upstream 2.15 release to
+    control the Python installation and test suite.  Hopefully fixes
+    installation with Python 2.6 as the default.  (Closes: #571509)
+  * Fix the PHP tests to work properly with PHP 5.3, which no longer
+    passes environment variables through to the running test programs.
+  * Downgrade the libremctl-dev dependency on libkrb5-dev to suggests
+    since it's only required for static linking.
+  * Fix a spelling error in the Net::Remctl man page.
+  * Update standards version to 3.8.4 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Thu, 25 Feb 2010 18:06:48 -0800
+
+remctl (2.15-2) unstable; urgency=low
+
+  * Do not add php5 as an alternative to the phpapi dependency in
+    php5-remctl, fixing problems with the upcoming PHP 5.3 transition.
+    Thanks, Raphael Geissert.  (Closes: #566300)
+
+ -- Russ Allbery <rra@debian.org>  Fri, 22 Jan 2010 11:21:37 -0800
+
+remctl (2.15-1) unstable; urgency=low
+
+  * New upstream release.
+    - Allow the subcommand to be omitted on the remctl command line.
+    - New special keyword EMPTY in remctld configuration.
+    - Allow use of ALL for the command in the remctld configuration.
+    - Fix read of uninitialized memory when parsing ACL files.
+  * Fix debian/rules logic for forcing Python module tests to be run using
+    the default version of Python.
+
+ -- Russ Allbery <rra@debian.org>  Sun, 29 Nov 2009 18:51:38 -0800
+
+remctl (2.14-4) unstable; urgency=low
+
+  * Add --install-layout=deb to the Python setup.py install commands to
+    support Python 2.6.
+  * Add php5-cli to the build dependencies so that the test suite is run.
+  * Update to debhelper compatibility level V7.
+    - Use debhelper rule minimization with overrides.
+    - Skip the test suite if nocheck is set in DEB_BUILD_OPTIONS.
+    - Let dh_install handle installation of remctl.conf.
+    - Add ${misc:Depends} to all dependencies.
+  * Apply a build-time fix to the upstream Makefile to only use the Python
+    build directory for the default version of Python.  This is required
+    now that make check is run after building Python modules for all
+    supported versions.
+  * Use the right optimization and warning flags when relinking libremctl.
+
+ -- Russ Allbery <rra@debian.org>  Thu, 27 Aug 2009 19:28:16 -0700
+
+remctl (2.14-3) unstable; urgency=low
+
+  * Stop including the protocol documentation in remctl-server.  Add a
+    pointer to the remctl-client package for protocol documentation in
+    remctl-server's README.Debian.
+  * Add a doc-base registration file for the remctl protocol specification
+    in remctl-client.
+  * Do not install the libremctl.la file.  Libtool *.la files force other
+    packages using Libtool to declare excessive library dependencies.
+  * Add an explicit build-dependency on Perl.  It was being pulled in by
+    other build dependencies, but this is more correct.
+  * Update standards version to 3.8.3 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Mon, 24 Aug 2009 16:12:57 -0700
+
+remctl (2.14-2) unstable; urgency=low
+
+  * Fix test suite behavior when IPv6 support is available in the library
+    but disabled in the kernel.  Thanks, Peter 'p2' De Schrijver.
+    (Closes: #530573)
+  * Change php5-remctl's section to php to match override.
+
+ -- Russ Allbery <rra@debian.org>  Mon, 08 Jun 2009 00:21:09 -0700
+
+remctl (2.14-1) unstable; urgency=low
+
+  * New upstream release.
+    - remctld can be configured to pass an argument on standard input.
+    - Arguments passed on standard input may now contain nuls.
+    - remctld logging now replaces unprintable characters.
+    - "command" and "subcommand" are now used instead of "type" and
+      "service" in all documentation of remctl commands.
+    - Better diagnosis of nul characters in command arguments.
+    - Plug several memory leaks in the remctld server.
+  * Allow php5 as an alternative for the phpapi dependency to avoid a
+    Lintian warning (although I'm not sure this change is correct and need
+    to investigate further later).
+  * Update standards version to 3.8.1 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Fri, 22 May 2009 16:20:45 -0700
+
+remctl (2.13-3) unstable; urgency=low
+
+  * Upload to unstable.
+
+ -- Russ Allbery <rra@debian.org>  Mon, 16 Feb 2009 20:13:34 -0800
+
+remctl (2.13-2) experimental; urgency=low
+
+  * Call open() with the correct arguments when creating a sentinel file
+    in the test suite.  (LP: #307326)
+
+ -- Russ Allbery <rra@debian.org>  Thu, 11 Dec 2008 19:30:14 -0800
+
+remctl (2.13-1) experimental; urgency=low
+
+  * New upstream release.
+    - New PHP PECL bindings for libremctl (php5-remctl).
+    - New Python remctl extension (python-remctl).
+    - Add support for ACL methods to the remctld server.
+    - Add the deny ACL method to reject authentication by certain users.
+    - Add the princ ACL method, allowing direct specification of
+      particular principals in the main configuration file.
+    - When processing the include of a directory for configuration or ACL
+      files, limit the files included to characters in [a-zA-Z0-9_-] to
+      avoid editor temporary files.  (Closes: #479481)
+  * On new installations of remctl-server, add the inetd.conf line with
+    the symbolic protocol name rather than the port number.  Depend on a
+    new enough version of netbase.  Remove that line in prerm.
+  * Add Vcs-Git and Vcs-Browser control fields.
+  * Update standards version to 3.8.0 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Fri, 14 Nov 2008 18:27:14 -0800
+
+remctl (2.12-1) unstable; urgency=low
+
+  * New upstream release.
+    - Allow the GSS-API library to do hostname canonicalization if no
+      server principal was specified in the client.
+    - Document the client's choice of default server principal.
+    - Fix an exit rather than error in the client library after an out of
+      memory error.
+    - Close file descriptors in the server when spawning children.
+    - Fix Perl API interface for requesting the default principal.
+    - Fix test suite failure when DNS lookups fail.  Thanks, Lucas
+      Nussbaum.  (Closes: #467590)
+  * Use touch $@ to create stamp files.
+  * Rewrite debian/copyright based on the upstream LICENSE file.
+  * Bump the watch version to 3.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 04 Apr 2008 22:24:07 -0700
+
+remctl (2.11-3) unstable; urgency=low
+
+  * Add the correct Perl dependencies for libnet-remctl-perl.
+  * Really rebuild the Perl module to remove an unnecessary libgssapi_krb5
+    dependency.
+  * Update standards version to 3.7.3 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Mon, 28 Jan 2008 11:26:27 -0800
+
+remctl (2.11-2) unstable; urgency=low
+
+  * Create a symbols file for libremctl1 and tighten build dependencies
+    accordingly.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 20 Nov 2007 13:41:16 -0800
+
+remctl (2.11-1) unstable; urgency=low
+
+  * New upstream release.
+    - Default to IANA-assigned port 4373.
+    - Fall back to old 4444 port on client connections.
+    - Fix remctld segfault when given a command with no service.
+    - Improve remctld man page.
+  * Change the port number when creating the initial inetd.conf entry.
+  * Remove inetd.conf entries for both 4444 and 4373 on package removal.
+  * Move Homepage pseudo-headers to a proper control header now that dpkg
+    supports this.
+
+ -- Russ Allbery <rra@debian.org>  Sun, 11 Nov 2007 13:28:28 -0800
+
+remctl (2.10-1) unstable; urgency=low
+
+  * New upstream release.
+    - Fix server crash when client sends too many arguments.
+    - Request sequence protection, don't require replay protection.
+    - Standalone remctld removes PID file and handles signals.
+    - Standalone remctld re-reads config on SIGHUP.
+    - Standalone remctld doesn't exit after an hour.
+    - libremctl now uses symbol versioning.
+    - Allow port and principal to be omitted in Net::Remctl::open.
+    - Documentation fixes for Net::Remctl.
+    - Check for MIT GSS-API library first to avoid UMich libgssapi.
+  * Allow inet-superserver to satisfy the update-inetd requirement.
+  * Move tcpd to Recommends for remctld.  It's used by the default
+    inetd.conf line but isn't strictly required.
+  * Stop including the Java client as an example; it's no longer just a
+    few files.  Refer the curious to the source package in remctl-client's
+    README.Debian.
+
+ -- Russ Allbery <rra@debian.org>  Sun, 26 Aug 2007 13:39:22 -0700
+
+remctl (2.9-1) unstable; urgency=low
+
+  * New upstream release.
+    - Fix error handling bug when a client network connection fails.
+    - Add C API man pages.
+    - Fix several documentation errors in the Net::Remctl module.
+  * Use DESTDIR in the install target in debian/rules rather than
+    resetting prefix now that the Perl module installation also supports
+    it.
+  * Run dh_fixperms before dh_strip so that Perl modules are properly
+    stripped.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 29 Jun 2007 17:04:34 -0700
+
+remctl (2.8-1) unstable; urgency=low
+
+  * New upstream release.
+    - New libnet-remctl-perl package with the Perl libremctl bindings.
+    - Fix null pointer dereferences in remctl call on errors.
+    - Fork for each connection in stand-alone mode.
+    - Background by default in stand-alone mode (-F to disable).
+    - New remctld -k option to use a non-default keytab.
+    - remctld exits properly if it can't parse its configuration file.
+    - Fix GSS-API memory free calls in some error cases.
+    - Library now properly supports default ports and principals.
+  * Use ${binary:Version} instead of ${Source-Version} in debian/control.
+  * libremctl-dev contains no binaries with shared library dependencies
+    and never will, so drop ${shlibs:Depends} from its control entry to
+    avoid a warning.
+
+ -- Russ Allbery <rra@debian.org>  Wed, 27 Jun 2007 18:07:25 -0700
+
+remctl (2.7-2) unstable; urgency=low
+
+  * remctl-server now depends on update-inetd directly and recommends
+    openbsd-inetd | inet-superserver, since it will run without inetd but
+    calls update-inetd in its postinst.
+  * Remove the remctl transitional package now that etch is released.
+  * Support reconfigure in the remctl-server postinst.
+  * Don't fail on unknown arguments to maintainer scripts.
+  * Add build-arch and build-indep targets, just in case.
+  * Update debhelper compatibility level to V5.
+
+ -- Russ Allbery <rra@debian.org>  Fri, 13 Apr 2007 08:52:30 -0700
+
+remctl (2.7-1) unstable; urgency=low
+
+  * New upstream release.
+    - remctld considers a command complete when it exits rather than
+      waiting for standard output and error to be closed.
+    - Properly canonicalize the remote host in the command-line client.
+    - Fix protocol errors with commands larger than the token size.
+    - Fix memory and file descriptor leaks in remctld.
+
+ -- Russ Allbery <rra@debian.org>  Sun, 25 Mar 2007 17:17:00 -0700
+
+remctl (2.6-2) unstable; urgency=low
+
+  * libremctl-dev should depend on libremctl1.
+
+ -- Russ Allbery <rra@debian.org>  Thu,  8 Mar 2007 20:10:16 -0800
+
+remctl (2.6-1) unstable; urgency=high
+
+  * Urgency high for security fix.
+  * New upstream release.
+    - Treat non-existant ACLs as authorization failure, not success.
+
+ -- Russ Allbery <rra@debian.org>  Sat,  3 Feb 2007 22:55:04 -0800
+
+remctl (2.5-1) unstable; urgency=low
+
+  * New upstream release.
+    - The remctl client library now supports arbitrarily large commands
+      transparently, at the cost of some memory consumption on the client
+      and server.
+    - Commands are run with stdin open to /dev/null rather than closed.
+    - Clean up memory leaks and more strictly check command input.
+    - Clean up handling of token size limits.
+  * Update copyright statement and dates.
+
+ -- Russ Allbery <rra@debian.org>  Sat,  3 Feb 2007 21:02:25 -0800
+
+remctl (2.4-1) unstable; urgency=low
+
+  * New upstream release.
+    - IPv6 support.
+    - Correctly check for network errors when sending tokens.
+    - Print a newline after error messages in the command-line client.
+    - Return better error messages for too many arguments.
+
+ -- Russ Allbery <rra@debian.org>  Wed, 17 Jan 2007 11:55:32 -0800
+
+remctl (2.3-1) unstable; urgency=low
+
+  * New upstream release.
+    - Increase the maximum number of arguments the server will accept for
+      a command to 4096 from 64.
+    - Add the -S flag to remctld for testing.
+    - Document the exit status of remctl.
+  * Relink remctl after building to eliminte the unneceesary dependencies
+    on the Kerberos libraries.
+
+ -- Russ Allbery <rra@debian.org>  Wed,  6 Dec 2006 20:07:14 -0800
+
+remctl (2.2-1) unstable; urgency=low
+
+  * New upstream release.
+    - Work around an interaction between glibc headers and gcc 4.1 that
+      produces compilation errors when calling wait W* macros on int
+      members of const structs.  Thanks to Martin Michlmayr for the report
+      and analysis.  (Closes: #386438)
+    - Better type safety in printf on 64-bit systems.
+
+ -- Russ Allbery <rra@debian.org>  Fri,  8 Sep 2006 14:18:05 -0700
+
+remctl (2.1-1) unstable; urgency=low
+
+  * New upstream release.
+    - Now sets REMOTE_USER, REMOTE_ADDR, and REMOTE_HOST for commands run
+      by remctld in addition to REMUSER.
+    - No longer sets SCPRINCIPAL.
+  * Copy the upstream examples/remctl.conf instead of supplying our own.
+  * Remove unnecessary comments about the behavior of dh_installdeb from
+    the maintainer scripts.
+
+ -- Russ Allbery <rra@debian.org>  Tue, 22 Aug 2006 16:13:30 -0700
+
+remctl (2.0-2) unstable; urgency=low
+
+  * The development package for MIT Kerberos is libkrb5-dev, not
+    libkrb53-dev.  Thanks, Luk Claes.  (Closes: #383136)
+
+ -- Russ Allbery <rra@debian.org>  Tue, 15 Aug 2006 09:04:44 -0700
+
+remctl (2.0-1) unstable; urgency=low
+
+  * New upstream release.
+    - New version 2 protocol with automatic down-negotiation to the old
+      protocol for backward compatibility.  Supports streaming output from
+      the server, distinguishing between output streams, and persistant
+      connections.
+    - Don't consider inclusion of empty directories in a configuration
+      file an error.
+    - New protocol documentation.
+  * Use a better way to optionally run make distclean.
+  * Always pass the system type into configure.
+  * Update standards version to 3.7.2 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Wed,  9 Aug 2006 09:38:55 -0700
+
+remctl (1.12-2) unstable; urgency=low
+
+  * Don't assume "rule: export VARIABLE=value" works in debian/rules;
+    instead, export the variable separate from the rule-specific setting.
+    The make on at least one of the buildds didn't like this construct.
+
+ -- Russ Allbery <rra@debian.org>  Sun,  1 Jan 2006 23:25:59 -0800
+
+remctl (1.12-1) unstable; urgency=low
+
+  * New upstream release.
+    - Fix memory initialization bug in remctld configuration parsing.
+  * Use DH_OPTIONS in debian/rules to avoid -i and -a clutter.
+
+ -- Russ Allbery <rra@debian.org>  Sun,  1 Jan 2006 21:21:40 -0800
+
+remctl (1.11-1) unstable; urgency=low
+
+  * New upstream version.
+    - remctl stops parsing arguments at the first non-option to make it
+      easier to pass options to remote programs.
+    - Include example of how to use remctl like rsh.  Thanks, Romain
+      LENGLET.
+    - Support include in ACL files.  (Closes: #309418)
+
+ -- Russ Allbery <rra@debian.org>  Thu, 22 Dec 2005 16:43:59 -0800
+
+remctl (1.10-1) unstable; urgency=low
+
+  * New upstream version.
+    - The -v verbose option is now -d (debug) for remctl and remctld.
+    - Better and cleaner error reporting and logging.
+    - Support linking with only the shared libraries called directly and
+      relying on the shared libraries to pull in their own dependencies,
+      reducing unnecessary package dependencies.
+  * Build separate remctl-server and remctl-client packages (with a remctl
+    transitional package for upgrades).
+  * remctl-server now enables remctld by default.
+  * Run remctld under tcpd and depend on tcpd.
+  * Use a better method to optionally run make distclean.
+  * Remove unused targets in debian/rules.
+  * Use recommended indentation of Homepage link in long description.
+  * Update copyright to my current format, remove the confusing clause
+    about export that was removed from the upstream license, and add an
+    explicit packaging copyright and license.
+  * Update maintainer address.
+  * Update standards version to 3.6.2 (no changes required).
+
+ -- Russ Allbery <rra@debian.org>  Thu,  1 Dec 2005 17:26:08 -0800
+
+remctl (1.9-1) unstable; urgency=high
+
+  * New upstream release.
+    - Fix serious bug when including directories of configuration files.
+
+ -- Russ Allbery <rra@stanford.edu>  Tue, 10 May 2005 21:37:12 -0700
+
+remctl (1.8-2) unstable; urgency=low
+
+  * Depend on netbase for update-inetd.
+
+ -- Russ Allbery <rra@stanford.edu>  Tue, 10 May 2005 18:01:01 -0700
+
+remctl (1.8-1) unstable; urgency=low
+
+  * New upstream release.
+    - Support include and continuation lines in configuration files.
+    - Default configuration file location is now /etc/remctl/remctl.conf.
+    - Reduce the syslog noise unless -v is used.
+    - Remove the misleading export clause from the license.
+  * Add postinst and prerm to add a commented-out invocation of remctld to
+    inetd.conf.
+  * Install a sample remctl.conf in /etc/remctl that includes all
+    fragments in /etc/remctl/conf.d.  Create /etc/remctl/conf.d and
+    /etc/remctl/acl for the use of the local administrator.
+
+ -- Russ Allbery <rra@stanford.edu>  Fri,  6 May 2005 08:52:37 -0700
+
+remctl (1.7-2) unstable; urgency=low
+
+  * Uploaded to Debian.  (Closes: #304747)
+  * Use the recommended syntax for the homepage link in the description.
+
+ -- Russ Allbery <rra@stanford.edu>  Fri, 15 Apr 2005 00:25:19 -0700
+
+remctl (1.7-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Russ Allbery <rra@stanford.edu>  Wed, 23 Feb 2005 00:19:37 -0800

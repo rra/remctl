@@ -1,0 +1,5 @@
+usr/include
+usr/lib/*/libremctl.a
+usr/lib/*/libremctl.so
+usr/lib/*/pkgconfig/libremctl.pc
+usr/share/man/man3/*.3

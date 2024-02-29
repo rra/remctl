@@ -1,0 +1,49 @@
+#!/usr/bin/make -f
+
+# Add hardening build flags.  -fPIE is added separately below via hooks in
+# the upstream build system, since adding it globally breaks the language
+# binding modules.
+export DEB_BUILD_MAINT_OPTIONS = hardening=+bindnow
+
+# Link with --as-needed so that the remctl client library doesn't inherit
+# the shared library dependencies of libremctl.
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+
+# Enable -fPIE for all binaries, picked up by the upstream build system.
+export REMCTL_PROGRAM_CFLAGS  = -fPIE
+export REMCTL_PROGRAM_LDFLAGS = -fPIE
+
+# The additional flags to pass to Build.PL, picked up by the upstream build
+# system.
+export REMCTL_PERL_FLAGS := --installdirs vendor --create_packlist 0
+
+# The supported Python versions and the additional Python flags, picked up
+# by the upstream build system.
+export REMCTL_PYTHON_INSTALL  := --install-layout=deb
+export REMCTL_PYTHON_VERSIONS := $(shell py3versions -s)
+
+%:
+	dh $@ --with python3,ruby
+
+override_dh_autoreconf:
+	dh_autoreconf --as-needed
+
+override_dh_auto_configure:
+	dh_auto_configure -- PATH_SUDO=/usr/bin/sudo --sysconfdir=/etc/remctl \
+	    --with-systemdsystemunitdir=/lib/systemd/system		      \
+	    --enable-reduced-depends --enable-perl --enable-php		      \
+	    --enable-python --enable-ruby
+
+# Ignore the Ruby module installed in usr/local/lib by the upstream build
+# system.  Run dh_ruby --install to build and install the module for each
+# supported Ruby version.
+override_dh_install:
+	dh_install -Xlibremctl.la -Xusr/local/lib
+	dh_ruby --install
+	dh_php -pphp-remctl
+
+override_dh_missing:
+	dh_missing --fail-missing
+
+override_dh_makeshlibs:
+	dh_makeshlibs -V 'libremctl1 (>= 3.3)'
