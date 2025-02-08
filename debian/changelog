@@ -2,6 +2,8 @@ remctl (3.18-2) UNRELEASED; urgency=medium
 
   [ Russ Allbery ]
   * Incorporate 64-bit time_t transition changes from NMU.
+  * Avoid comment markers in EXTRA_DIST because Automake now warns about
+    them, which causes build failures due to -Werror. (Closes: #1094528)
 
   [ Debian Janitor ]
   * Remove constraints unnecessary since buster (oldstable):
