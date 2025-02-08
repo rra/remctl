@@ -1,5 +1,9 @@
 remctl (3.18-2) UNRELEASED; urgency=medium
 
+  [ Russ Allbery ]
+  * Incorporate 64-bit time_t transition changes from NMU.
+
+  [ Debian Janitor ]
   * Remove constraints unnecessary since buster (oldstable):
     - remctl-server: Drop versioned constraint on netbase in Depends.
   * Set field Upstream-Name in debian/copyright.
@@ -9,6 +13,13 @@ remctl (3.18-2) UNRELEASED; urgency=medium
   * Avoid explicitly specifying -Wl,--as-needed linker flag.
 
  -- Debian Janitor <janitor@jelmer.uk>  Thu, 08 Sep 2022 08:51:52 -0000
+
+remctl (3.18-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Rename libraries for 64-bit time_t transition.  Closes: #1062856
+
+ -- Sergio Durigan Junior <sergiodj@debian.org>  Sat, 03 Feb 2024 20:27:39 +0000
 
 remctl (3.18-1) unstable; urgency=medium
 

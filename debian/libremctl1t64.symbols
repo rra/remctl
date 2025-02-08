@@ -1,4 +1,4 @@
-libremctl.so.1 libremctl1 #MINVER#
+libremctl.so.1 libremctl1t64 #MINVER#
 * Build-Depends-Package: libremctl-dev
  REMCTL_1.0@REMCTL_1.0 2.10
  remctl@REMCTL_1.0 2.10
