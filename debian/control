@@ -22,7 +22,7 @@ Build-Depends:
  perl,
  php-cli,
  php-dev,
- pkg-config,
+ pkgconf,
  python3-all-dev,
  python3-pytest,
  python3-pytest-runner,

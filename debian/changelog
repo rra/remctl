@@ -4,6 +4,7 @@ remctl (3.18-2) UNRELEASED; urgency=medium
   * Incorporate 64-bit time_t transition changes from NMU.
   * Avoid comment markers in EXTRA_DIST because Automake now warns about
     them, which causes build failures due to -Werror. (Closes: #1094528)
+  * Build-depend on pkgconf rather than pkg-config.
   * Adapt to new Ruby packaging standards.
     - Use ${ruby:Depends} instead of a manual Ruby dependency.
     - Use Ruby-Versions instead of XB-Ruby-Versions.
