@@ -1,0 +1,26 @@
+remctl is maintained using the dgit-maint-debrebase(7) workflow with
+split-view enabled.
+
+Most people modifying this package will not need to care about this. You
+can make changes to remctl as you would any other software maintained in
+Git, including changes to the upstream files. There are only two things to
+be aware of:
+
+* Do not make a single commit that changes both files inside debian/* and
+  files outside of debian/*. Instead, separate that into two commits.
+
+* Do not use non-fast-forward git merge to pull in changes from other
+  lines of development. Instead, rebase first and do a fast-forward
+  merge. A merge commit may confuse the git-debrebase machinery.
+
+If you are uploading this package, please consider doing so with dgit. If
+you are going to push your changes to Salsa, please run:
+
+    git config --add --local dgit.default.split-view always
+
+before running dgit push-source to upload the package. The default
+behavior will not break the package, but it will add unwanted and
+unnecessary cruft to the main development branch.
+
+To import a new upstream and rebase (and potentially discard) the
+currently-Debian-specific patches, see dgit-maint-debrebase(7).

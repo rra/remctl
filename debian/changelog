@@ -10,6 +10,8 @@ remctl (3.18-2) unstable; urgency=medium
     - Override several Lintian tags that appear to be wrong.
   * Drop dh_autoreconf override in debian/rules since --as-needed is now
     the default in Debian.
+  * Convert to the dgit-maint-debrebase workflow and add a
+    debian/README.source file documenting that workflow.
   * Update Lintian overrides to drop a now-unneeded override and to adapt
     to the new syntax for extra information in tags.
   * Update standards version to 4.7.0 (no changes required).
@@ -23,7 +25,7 @@ remctl (3.18-2) unstable; urgency=medium
     (already present in machine-readable debian/copyright).
   * Avoid explicitly specifying -Wl,--as-needed linker flag.
 
- -- Russ Allbery <rra@debian.org>  Sat, 08 Feb 2025 14:11:08 -0800
+ -- Russ Allbery <rra@debian.org>  Sat, 08 Feb 2025 14:28:02 -0800
 
 remctl (3.18-1.1) unstable; urgency=medium
 
