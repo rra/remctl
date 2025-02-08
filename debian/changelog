@@ -13,6 +13,7 @@ remctl (3.18-2) unstable; urgency=medium
   * Update Lintian overrides to drop a now-unneeded override and to adapt
     to the new syntax for extra information in tags.
   * Update standards version to 4.7.0 (no changes required).
+  * Update upstream signing key.
 
   [ Debian Janitor ]
   * Remove constraints unnecessary since buster (oldstable):
