@@ -4,6 +4,8 @@ remctl (3.18-2) UNRELEASED; urgency=medium
   * Incorporate 64-bit time_t transition changes from NMU.
   * Avoid comment markers in EXTRA_DIST because Automake now warns about
     them, which causes build failures due to -Werror. (Closes: #1094528)
+  * Update Lintian overrides to drop a now-unneeded override and to adapt
+    to the new syntax for extra information in tags.
   * Update standards version to 4.7.0 (no changes required).
 
   [ Debian Janitor ]

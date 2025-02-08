@@ -1,5 +1,4 @@
 # The documentation generator inserts an IETF copyright statement, but there
 # is a separate statement in these documents overriding it and releasing the
 # documentation under a free license.
-remctl source: license-problem-non-free-RFC-BCP78 docs/protocol.html
-remctl source: license-problem-non-free-RFC-BCP78 docs/protocol.txt
+remctl source: license-problem-non-free-RFC-BCP78 *docs/protocol.*
