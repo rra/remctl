@@ -7,8 +7,7 @@ remctl (3.18-2) unstable; urgency=medium
   * Build-depend on pkgconf rather than pkg-config.
   * Adapt to new Ruby packaging standards.
     - Use ${ruby:Depends} instead of a manual Ruby dependency.
-    - Use Ruby-Versions instead of XB-Ruby-Versions.
-    - Override a bogus Lintian warning about X-DhRuby-Root capitalization.
+    - Override several Lintian tags that appear to be wrong.
   * Drop dh_autoreconf override in debian/rules since --as-needed is now
     the default in Debian.
   * Update Lintian overrides to drop a now-unneeded override and to adapt
