@@ -2,3 +2,6 @@
 # is a separate statement in these documents overriding it and releasing the
 # documentation under a free license.
 remctl source: license-problem-non-free-RFC-BCP78 *docs/protocol.*
+
+# This capitalization is the form used in the documentation.
+remctl source: cute-field X-DhRuby-Root vs X-Dhruby-Root *

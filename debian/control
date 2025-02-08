@@ -183,11 +183,11 @@ Multi-Arch: same
 Pre-Depends:
  ${misc:Pre-Depends},
 Depends:
- ruby | ruby-interpreter,
+ ${ruby:Depends},
  ${misc:Depends},
  ${shlibs:Depends},
 X-DhRuby-Root: ruby
-XB-Ruby-Versions: ${ruby:Versions}
+Ruby-Versions: ${ruby:Versions}
 Description: Ruby extension for Kerberos-authenticated command execution
  The Ruby remctl extension, which provides native Ruby bindings for the
  libremctl client library.
