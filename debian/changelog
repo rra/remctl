@@ -9,6 +9,8 @@ remctl (3.18-2) UNRELEASED; urgency=medium
     - Use ${ruby:Depends} instead of a manual Ruby dependency.
     - Use Ruby-Versions instead of XB-Ruby-Versions.
     - Override a bogus Lintian warning about X-DhRuby-Root capitalization.
+  * Drop dh_autoreconf override in debian/rules since --as-needed is now
+    the default in Debian.
   * Update Lintian overrides to drop a now-unneeded override and to adapt
     to the new syntax for extra information in tags.
   * Update standards version to 4.7.0 (no changes required).

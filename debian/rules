@@ -21,9 +21,6 @@ export REMCTL_PYTHON_VERSIONS := $(shell py3versions -s)
 %:
 	dh $@ --with python3,ruby
 
-override_dh_autoreconf:
-	dh_autoreconf --as-needed
-
 override_dh_auto_configure:
 	dh_auto_configure -- PATH_SUDO=/usr/bin/sudo --sysconfdir=/etc/remctl \
 	    --with-systemdsystemunitdir=/lib/systemd/system		      \
