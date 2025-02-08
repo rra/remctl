@@ -3,5 +3,9 @@
 # documentation under a free license.
 remctl source: license-problem-non-free-RFC-BCP78 *docs/protocol.*
 
+# Despite Lintian's claims, this field clearly has not been adopted and
+# dpkg warns that it's unrecognized if used without the XB prefix.
+remctl source: adopted-extended-field * XB-Ruby-Versions *
+
 # This capitalization is the form used in the documentation.
 remctl source: cute-field X-DhRuby-Root vs X-Dhruby-Root *
