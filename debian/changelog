@@ -4,6 +4,7 @@ remctl (3.18-3) UNRELEASED; urgency=medium
     module. This is required for cross-building and eventually may be
     required if libcrypt-dev is separated from libc6-dev. Thanks, Helmut
     Grohne. (Closes: #1102874)
+  * Update standards version to 4.7.2 (no changes required).
 
  -- Russ Allbery <rra@debian.org>  Sat, 12 Apr 2025 10:47:15 -0700
 
