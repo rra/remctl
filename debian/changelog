@@ -1,3 +1,12 @@
+remctl (3.18-3) UNRELEASED; urgency=medium
+
+  * Add perl-xs-dev to dependencies since this package builds an XS
+    module. This is required for cross-building and eventually may be
+    required if libcrypt-dev is separated from libc6-dev. Thanks, Helmut
+    Grohne. (Closes: #1102874)
+
+ -- Russ Allbery <rra@debian.org>  Sat, 12 Apr 2025 10:47:15 -0700
+
 remctl (3.18-2) unstable; urgency=medium
 
   [ Russ Allbery ]

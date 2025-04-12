@@ -20,6 +20,7 @@ Build-Depends:
  libtest-strict-perl,
  libtest-synopsis-perl,
  perl,
+ perl-xs-dev,
  php-cli,
  php-dev,
  pkgconf,
