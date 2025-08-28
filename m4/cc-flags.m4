@@ -103,6 +103,7 @@ dnl   -Wsign-conversion               Too many fiddly changes for the benefit
 dnl   -Wswitch-default                False positives with switches on enums
 dnl   -Wtautological-pointer-compare  False positives with for loops
 dnl   -Wundef                         Conflicts with Autoconf probe results
+dnl   -Wunknown-warning-option        Need to support different Clang versions
 dnl   -Wunreachable-code              Happens with optional compilation
 dnl   -Wunreachable-code-return       Other compilers get confused
 dnl   -Wunsafe-buffer-usage           Intended for C++, not applicable to C
@@ -118,9 +119,9 @@ AC_DEFUN([RRA_PROG_CC_WARNINGS_FLAGS],
         [-Weverything -Wno-cast-qual -Wno-disabled-macro-expansion -Wno-padded
          -Wno-sign-conversion -Wno-reserved-id-macro -Wno-reserved-identifier
          -Wno-switch-default -Wno-tautological-pointer-compare -Wno-undef
-         -Wno-unreachable-code -Wno-unreachable-code-return
-         -Wno-unsafe-buffer-usage -Wno-unused-macros
-         -Wno-used-but-marked-unused],
+         -Wno-unknown-warning-option -Wno-unreachable-code
+         -Wno-unreachable-code-return -Wno-unsafe-buffer-usage
+         -Wno-unused-macros -Wno-used-but-marked-unused],
         [RRA_PROG_CC_FLAG(flag,
             [WARNINGS_CFLAGS="${WARNINGS_CFLAGS} flag"])])],
     [WARNINGS_CFLAGS="-g -O2 -D_FORTIFY_SOURCE=3 -Werror"
