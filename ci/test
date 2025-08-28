@@ -4,7 +4,7 @@
 #
 # This script is normally run in a test container, such as in Travis-CI.
 #
-# Copyright 2016, 2018-2020 Russ Allbery <eagle@eyrie.org>
+# Copyright 2016, 2018-2020, 2025 Russ Allbery <eagle@eyrie.org>
 #
 # SPDX-License-Identifier: MIT
 
@@ -49,7 +49,6 @@ if [ "$KERBEROS" = "mit" ]; then
     make check-cppcheck
     cd python
     mypy .
-    mypy --py2 .
     black --check .
     flake8
     cd ..
