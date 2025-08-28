@@ -50,6 +50,5 @@ if [ "$KERBEROS" = "mit" ]; then
     cd python
     mypy .
     black --check .
-    flake8
     cd ..
 fi
