@@ -6,7 +6,7 @@
  * with the child process.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018, 2025 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
  * Copyright 2002-2010, 2012-2014
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -374,7 +374,7 @@ server_process_run(struct process *process)
 {
     bool success;
     struct event_base *loop;
-    struct client *client = process->client;
+    const struct client *client = process->client;
     const struct timeval immediate = {0, 0};
 
     /* Create the event base that we use for the event loop. */

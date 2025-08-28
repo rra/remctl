@@ -47,8 +47,8 @@
  */
 #if !defined(__attribute__) && !defined(__fd_arg__)
 #    if __GNUC__ < 13 && !defined(__clang__)
-#        define __fd_arg__(arg) /* empty */
-#        define __fd_arg_read__(arg) /* empty */
+#        define __fd_arg__(arg)       /* empty */
+#        define __fd_arg_read__(arg)  /* empty */
 #        define __fd_arg_write__(arg) /* empty */
 #    endif
 #endif

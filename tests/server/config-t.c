@@ -2,6 +2,7 @@
  * Test suite for the server configuration parsing.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2025 Russ Allbery <eagle@eyrie.org>
  * Copyright 2007, 2009-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -23,7 +24,7 @@
 static void
 test_error(const char *file, const char *expected)
 {
-    struct config *config;
+    const struct config *config;
     char *p;
 
     errors_capture();

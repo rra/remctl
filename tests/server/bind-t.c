@@ -2,7 +2,7 @@
  * Test suite for address binding in the server.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018, 2025 Russ Allbery <eagle@eyrie.org>
  * Copyright 2011-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -46,7 +46,8 @@ have_ipv6(void)
 static bool
 have_ipv6_addr(void)
 {
-    struct addrinfo hints, *addrs, *addr;
+    struct addrinfo hints, *addrs;
+    const struct addrinfo *addr;
     int error;
     char service[16];
     bool result = false;

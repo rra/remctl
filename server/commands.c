@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2015-2016, 2019 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015-2016, 2019, 2025 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
  * Copyright 2002-2010, 2012-2014
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -40,7 +40,8 @@
  * function copes in case that changes later.
  */
 static bool
-line_matches(struct rule *rule, const char *command, const char *subcommand)
+line_matches(const struct rule *rule, const char *command,
+             const char *subcommand)
 {
     bool okay = false;
 
@@ -68,7 +69,8 @@ line_matches(struct rule *rule, const char *command, const char *subcommand)
  * Returns the matching config line or NULL if none match.
  */
 static struct rule *
-find_config_line(struct config *config, char *command, char *subcommand)
+find_config_line(struct config *config, const char *command,
+                 const char *subcommand)
 {
     size_t i;
 

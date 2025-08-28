@@ -659,7 +659,9 @@ check-cppcheck:
 	        -o -name 'php*_remctl.c' -prune -o -name '*.[ch]' -print \
 	    | cppcheck -q --force --error-exitcode=2 --file-list=-	 \
 		--suppressions-list=tests/data/cppcheck.supp		 \
-		--enable=warning,performance,portability,style
+		--enable=warning,performance,portability,style		 \
+		--check-level=exhaustive --include=config.h		 \
+		-DUNUSED= -DHAVE_GPUT=1 -DCONFIG_FILE="remctl.conf"
 
 # The full path to valgrind and its options, used when doing valgrind
 # testing.

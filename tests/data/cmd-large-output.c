@@ -4,6 +4,7 @@
  * output right before process close.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2025 Russ Allbery <eagle@eyrie.org>
  * Copyright 2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -13,11 +14,12 @@
 #include <config.h>
 #include <portable/system.h>
 
+#include <util/xmalloc.h>
 #include <util/xwrite.h>
 
 
 int
-main(int argc, char *argv[])
+main(int argc, const char *argv[])
 {
     unsigned long length;
     char *data;
@@ -31,7 +33,7 @@ main(int argc, char *argv[])
         fprintf(stderr, "invalid data length\n");
         exit(1);
     }
-    data = malloc(length);
+    data = xmalloc(length);
     memset(data, '1', length);
     xwrite(STDOUT_FILENO, data, length);
     exit(0);

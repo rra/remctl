@@ -21,6 +21,10 @@
 // function type when passing in the callback.
 constParameterCallback
 
+// This appears to be some weird C++ thing that is wildly inaccurate for C
+// code.
+unusedStructMember
+
 // I like declaring variables at the top of a function rather than cluttering
 // every if and loop body with declarations.
 variableScope

@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2015, 2018, 2020, 2022 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015, 2018, 2020, 2022, 2025 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
@@ -433,7 +433,8 @@ read_conf_file(void *data, const char *name)
 {
     struct config *config = data;
     FILE *file;
-    char *buffer, *p, *option;
+    char *buffer, *option;
+    const char *p;
     int bufsize;
     size_t length, count, i, arg_i;
     enum config_status s;
@@ -822,7 +823,8 @@ acl_check_gput(const struct client *client, const char *data, const char *file,
                size_t lineno)
 {
     GPUT *G;
-    char *role, *xform, *xform_start, *xform_end;
+    char *role, *xform, *xform_start;
+    const char *xform_end;
     enum config_status s;
 
     xform_start = strchr(data, '[');
@@ -1142,7 +1144,7 @@ static enum config_status
 acl_check_localgroup(const struct client *client, const char *group,
                      const char *file, size_t lineno)
 {
-    struct passwd *pw;
+    const struct passwd *pw;
     struct group *gr = NULL;
     char *grbuffer = NULL;
     size_t i;

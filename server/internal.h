@@ -2,7 +2,7 @@
  * Internal support functions for the remctld daemon.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2015-2016, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015-2016, 2018, 2025 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
  * Copyright 2006-2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -147,7 +147,8 @@ BEGIN_DECLS
 /* Logging functions. */
 void warn_gssapi(const char *, OM_uint32 major, OM_uint32 minor);
 void warn_token(const char *, int status, OM_uint32 major, OM_uint32 minor);
-void server_log_command(struct iovec **, struct rule *, const char *user);
+void server_log_command(struct iovec **, const struct rule *,
+                        const char *user);
 
 /* Configuration file functions. */
 struct config *server_config_load(const char *file);

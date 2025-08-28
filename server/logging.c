@@ -6,6 +6,7 @@
  * right place.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2025 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2008, 2010, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -84,7 +85,8 @@ warn_token(const char *error, int status, OM_uint32 major, OM_uint32 minor)
  * matched the command, and the principal running the command.
  */
 void
-server_log_command(struct iovec **argv, struct rule *rule, const char *user)
+server_log_command(struct iovec **argv, const struct rule *rule,
+                   const char *user)
 {
     char *command, *p;
     unsigned int i;
