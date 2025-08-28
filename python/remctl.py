@@ -28,9 +28,9 @@
 
 """Interface to remctl.
 
-   This module is an interface to remctl, a client/server
-   protocol for running single commands on a remote host
-   using Kerberos v5 authentication.
+This module is an interface to remctl, a client/server
+protocol for running single commands on a remote host
+using Kerberos v5 authentication.
 """
 
 from typing import Iterable, Optional, Text, Tuple, Union
