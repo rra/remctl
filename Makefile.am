@@ -341,29 +341,36 @@ distclean-local: clean-local
 	    python/tests/__pycache__
 
 # Suppress some warnings for Perl, PHP, Python, and Ruby code because the
-# auto-generated code otherwise generates them.  This suppression list
-# covers both GCC and Clang.
+# auto-generated code otherwise generates them. This suppression list covers
+# both GCC and Clang.
 PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs			\
 	-Wno-strict-prototypes -Wno-missing-declarations		\
 	-Wno-missing-prototypes -Wno-redundant-decls -Wno-shadow	\
 	-Wno-old-style-definition -Wno-conversion			\
 	-Wno-gnu-statement-expression -Wno-cast-align -Wno-comma	\
 	-Wno-covered-switch-default -Wno-extra-semi-stmt		\
-	-Wno-implicit-fallthrough
+	-Wno-implicit-fallthrough -Wno-declaration-after-statement	\
+	-Wno-switch-enum -Wno-bad-function-cast -Wno-pre-c11-compat
 PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
 	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal	\
 	-Wno-strict-overflow -Wno-conversion -Wno-missing-declarations	\
-	-Wno-double-promotion -Wno-cast-align -Wno-extra-semi-stmt
+	-Wno-double-promotion -Wno-cast-align -Wno-extra-semi-stmt	\
+	-Wno-bad-function-cast -Wno-documentation-unknown-command	\
+	-Wno-declaration-after-statement -Wno-documentation		\
+	-Wno-missing-field-initializers -Wno-pre-c11-compat
 PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing \
-	-Wno-redundant-decls -Wno-cast-align
+	-Wno-redundant-decls -Wno-cast-align -Wno-extra-semi-stmt
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
 	-Wno-nested-externs -Wno-shift-sign-overflow			    \
 	-Wno-gnu-statement-expression -Wno-unknown-warning-option	    \
 	-Wno-gcc-compat -Wno-extra-semi-stmt -Wno-strict-overflow -Wno-vla  \
 	-Wno-gnu-zero-variadic-macro-arguments				    \
 	-Wno-declaration-after-statement -Wno-unknown-attributes	    \
-	-Wno-ignored-attributes
+	-Wno-ignored-attributes -Wno-c23-extensions -Wno-documentation	    \
+	-Wno-documentation-unknown-command -Wno-unused-parameter	    \
+	-Wno-documentation-deprecated-sync -Wno-pre-c11-compat		    \
+	-Wno-incompatible-function-pointer-types-strict
 
 warnings:
 	$(MAKE) V=0					\
@@ -802,7 +809,8 @@ endif
 
 # CFLAGS to pass to the Ruby build.
 RUBY_CFLAGS = -I$(abs_top_builddir) -I$(abs_top_srcdir)			\
-	-I$(abs_top_srcdir)/client $(CPPFLAGS) $(CFLAGS) $(AM_CFLAGS)	\
+	-I$(abs_top_srcdir)/client $(CPPFLAGS) $(CFLAGS)		\
+	$$(echo "$(AM_CFLAGS)" | sed 's/ -D_FORTIFY_SOURCE=3//')	\
 	$(RUBY_CFLAGS_EXTRA)
 
 # Always enable verbose builds, since we want them for automated builds and
@@ -815,7 +823,7 @@ ruby/remctl.so: ruby/extconf.rb $(srcdir)/ruby/remctl.c client/libremctl.la
 	    done						\
 	fi
 	cd ruby && $(REMCTL_RUBY) extconf.rb $(REMCTL_RUBY_FLAGS)
-	cd ruby && $(MAKE) V=1 CC='$(CC)' CFLAGS='$(RUBY_CFLAGS)'
+	cd ruby && $(MAKE) V=1 CC='$(CC)' CFLAGS="$(RUBY_CFLAGS)"
 
 install-data-local-ruby: ruby/remctl.so
 	cd ruby && $(MAKE) install DESTDIR=$(DESTDIR)

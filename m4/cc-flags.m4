@@ -123,7 +123,7 @@ AC_DEFUN([RRA_PROG_CC_WARNINGS_FLAGS],
          -Wno-used-but-marked-unused],
         [RRA_PROG_CC_FLAG(flag,
             [WARNINGS_CFLAGS="${WARNINGS_CFLAGS} flag"])])],
-    [WARNINGS_CFLAGS="-g -O2 -D_FORTIFY_SOURCE=2 -Werror"
+    [WARNINGS_CFLAGS="-g -O2 -D_FORTIFY_SOURCE=3 -Werror"
      m4_foreach_w([flag],
         [-fstrict-overflow -fstrict-aliasing -fstrict-flex-arrays=3 -Wall
          -Wextra -Wformat=2 -Wformat-overflow=2 -Wformat-signedness
