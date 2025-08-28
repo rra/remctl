@@ -1,3 +1,5 @@
+# serial 2
+
 dnl Find the compiler and linker flags for PCRE.
 dnl
 dnl Finds the compiler and linker flags for linking with the PCRE library.
@@ -20,7 +22,7 @@ dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2021-2022 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2021-2022, 2024 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2010, 2013
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
@@ -56,10 +58,10 @@ AC_DEFUN([_RRA_LIB_PCRE_PATHS],
     [AS_IF([test x"$rra_pcre_root" != x],
         [RRA_SET_LDFLAGS([PCRE_LDFLAGS], [$rra_pcre_root])])])
  AS_IF([test x"$rra_pcre_includedir" != x],
-    [PCRE_CPPFLAGS="-I$rra_pcre_includedir"],
+    [PCRE_CPPFLAGS="-isystem $rra_pcre_includedir"],
     [AS_IF([test x"$rra_pcre_root" != x],
         [AS_IF([test x"$rra_pcre_root" != x/usr],
-            [PCRE_CPPFLAGS="-I${rra_pcre_root}/include"])])])])
+            [PCRE_CPPFLAGS="-isystem ${rra_pcre_root}/include"])])])])
 
 dnl Does the appropriate library checks for PCRE linkage without pcre-config.
 dnl The single argument, if true, says to fail if PCRE could not be found.

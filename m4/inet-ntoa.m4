@@ -1,3 +1,5 @@
+# serial 1
+
 dnl Check for a working inet_ntoa.
 dnl
 dnl Check whether inet_ntoa is present and working.  Since calling inet_ntoa
@@ -9,7 +11,7 @@ dnl
 dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
-dnl Copyright 1999-2001, 2003 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 1999-2001, 2003, 2022 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2008-2009
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
@@ -38,7 +40,7 @@ main(void)
 
 dnl The public macro.
 AC_DEFUN([RRA_FUNC_INET_NTOA],
-[AC_CACHE_CHECK(for working inet_ntoa, rra_cv_func_inet_ntoa_works,
+[AC_CACHE_CHECK([for working inet_ntoa], [rra_cv_func_inet_ntoa_works],
     [AC_RUN_IFELSE([AC_LANG_SOURCE([_RRA_FUNC_INET_NTOA_SOURCE])],
         [rra_cv_func_inet_ntoa_works=yes],
         [rra_cv_func_inet_ntoa_works=no],

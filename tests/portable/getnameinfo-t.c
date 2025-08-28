@@ -5,7 +5,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2005-2006, 2014, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2005-2006, 2014, 2018, 2022-2024 Russ Allbery <eagle@eyrie.org>
  * Copyright 2007-2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -37,10 +37,10 @@ main(void)
 {
     char node[256], service[256];
     struct sockaddr_in sin;
-    struct sockaddr *sa = (struct sockaddr *) &sin;
+    const struct sockaddr *sa;
     int status;
     struct hostent *hp;
-    struct servent *serv;
+    const struct servent *serv;
     char *name;
 
     plan(26);
@@ -52,6 +52,7 @@ main(void)
      * the same port, but with different protocols.
      */
     memset(&sin, 0, sizeof(sin));
+    sa = (struct sockaddr *) &sin;
     sin.sin_family = AF_INET;
     sin.sin_port = htons(119);
     inet_aton("10.20.30.40", &sin.sin_addr);
@@ -139,15 +140,26 @@ main(void)
         }
     }
 
-    /* Hope that no one is weird enough to put 0.0.0.0 into DNS. */
+    /*
+     * We originally hoped that no one was weird enough to put 0.0.0.0 into
+     * DNS, but sadly, the riscv64 Debian buildd did exactly that.  Make sure
+     * that 0.0.0.0 doesn't resolve before testing an IP address with no
+     * resolution.  If it does resolve, skip the tests.
+     */
     inet_aton("0.0.0.0", &sin.sin_addr);
     status = test_getnameinfo(sa, sizeof(sin), node, sizeof(node), NULL, 0, 0);
     is_int(0, status, "lookup of 0.0.0.0");
-    is_string("0.0.0.0", node, "...returns the IP address");
-    node[0] = '\0';
-    status = test_getnameinfo(sa, sizeof(sin), node, sizeof(node), NULL, 0,
-                              NI_NAMEREQD);
-    is_int(EAI_NONAME, status, "...fails with NI_NAMEREQD");
+    hp = gethostbyaddr((const void *) &sin.sin_addr, sizeof(sin.sin_addr),
+                       AF_INET);
+    if (hp != NULL)
+        skip_block(2, "0.0.0.0 resolves to a hostname");
+    else {
+        is_string("0.0.0.0", node, "...returns the IP address");
+        node[0] = '\0';
+        status = test_getnameinfo(sa, sizeof(sin), node, sizeof(node), NULL, 0,
+                                  NI_NAMEREQD);
+        is_int(EAI_NONAME, status, "...fails with NI_NAMEREQD");
+    }
 
     sin.sin_family = AF_UNIX;
     status = test_getnameinfo(sa, sizeof(sin), node, sizeof(node), NULL, 0, 0);

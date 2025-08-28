@@ -1,3 +1,5 @@
+# serial 1
+
 dnl Use krb5-config to get link paths for Kerberos libraries.
 dnl
 dnl Provides one macro, RRA_KRB5_CONFIG, which attempts to get compiler and
@@ -11,7 +13,7 @@ dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2018, 2021 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2018, 2021-2022 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2011-2012
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
@@ -86,9 +88,9 @@ AC_DEFUN([RRA_KRB5_CONFIG],
      rra_krb5_config_$3="$PATH_KRB5_CONFIG"])
  AS_IF([test x"$rra_krb5_config_$3" != x && test -x "$rra_krb5_config_$3"],
     [AC_CACHE_CHECK([for $2 support in krb5-config], [rra_cv_lib_$3[]_config],
-         [AS_IF(["$rra_krb5_config_$3" 2>&1 | grep $2 >/dev/null 2>&1],
-             [rra_cv_lib_$3[]_config=yes],
-             [rra_cv_lib_$3[]_config=no])])
+        [AS_IF(["$rra_krb5_config_$3" 2>&1 | grep $2 >/dev/null 2>&1],
+            [rra_cv_lib_$3[]_config=yes],
+            [rra_cv_lib_$3[]_config=no])])
      AS_IF([test "$rra_cv_lib_$3[]_config" = yes],
         [$3[]_CPPFLAGS=`"$rra_krb5_config_$3" --cflags $2 2>/dev/null`
          _RRA_KRB5_CONFIG_LIBS([$rra_krb5_config_$3], [$2], [$3])

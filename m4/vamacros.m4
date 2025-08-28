@@ -1,3 +1,5 @@
+# serial 1
+
 dnl Check for support for variadic macros.
 dnl
 dnl This file defines two macros for probing for compiler support for variadic

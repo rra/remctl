@@ -1,3 +1,5 @@
+# serial 1
+
 dnl Determine whether the current compiler is Clang.
 dnl
 dnl If the current compiler is Clang, set the shell variable CLANG to yes.

@@ -5,7 +5,7 @@
 # The canonical version of this file is maintained in the rra-c-util package,
 # which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
-# Copyright 2018-2019, 2021 Russ Allbery <eagle@eyrie.org>
+# Copyright 2018-2019, 2021, 2024 Russ Allbery <eagle@eyrie.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -27,8 +27,8 @@
 #
 # SPDX-License-Identifier: MIT
 
-use 5.010;
-use strict;
+use 5.012;
+use autodie;
 use warnings;
 
 use lib "$ENV{C_TAP_SOURCE}/tap/perl";
@@ -51,13 +51,13 @@ automake_setup({ chdir_build => 1 });
 opendir(my $logdir, File::Spec->catfile('tests', 'tmp', 'valgrind'))
   or plan skip_all => 'No valgrind logs in tests/tmp/valgrind';
 my @logs = grep { m{ \A log [.] }xms } readdir $logdir;
-closedir($logdir) or BAIL_OUT("cannot close directory: $!");
+closedir($logdir);
 
 # Check each log file.
 plan tests => scalar(@logs);
 for my $file (@logs) {
     my $path = File::Spec->catfile('tests', 'tmp', 'valgrind', $file);
-    open(my $log, '<', $path) or BAIL_OUT("cannot open $path: $!");
+    open(my $log, '<', $path);
     my $okay = 1;
     my @log;
     while (defined(my $line = <$log>)) {
@@ -66,7 +66,7 @@ for my $file (@logs) {
             $okay = ($1 == 0);
         }
     }
-    close($log) or BAIL_OUT("cannot close $path: $!");
+    close($log);
     if ($okay) {
         unlink($path);
     } else {

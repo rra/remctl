@@ -1,3 +1,5 @@
+# serial 1
+
 dnl Various checks for socket support and macros.
 dnl
 dnl This is a collection of various Autoconf macros for checking networking

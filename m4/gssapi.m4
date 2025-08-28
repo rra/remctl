@@ -1,3 +1,5 @@
+# serial 2
+
 dnl Find the compiler and linker flags for GSS-API.
 dnl
 dnl Finds the compiler and linker flags for linking with GSS-API libraries.
@@ -19,6 +21,7 @@ dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2024 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2005-2009, 2011-2012
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
@@ -66,10 +69,10 @@ AC_DEFUN([_RRA_LIB_GSSAPI_PATHS],
     [AS_IF([test x"$rra_gssapi_root" != x],
         [RRA_SET_LDFLAGS([GSSAPI_LDFLAGS], [$rra_gssapi_root])])])
  AS_IF([test x"$rra_gssapi_includedir" != x],
-    [GSSAPI_CPPFLAGS="-I$rra_gssapi_includedir"],
+    [GSSAPI_CPPFLAGS="-isystem $rra_gssapi_includedir"],
     [AS_IF([test x"$rra_gssapi_root" != x],
         [AS_IF([test x"$rra_gssapi_root" != x/usr],
-            [GSSAPI_CPPFLAGS="-I${rra_gssapi_root}/include"])])])])
+            [GSSAPI_CPPFLAGS="-isystem ${rra_gssapi_root}/include"])])])])
 
 dnl Does the appropriate library checks for reduced-dependency GSS-API
 dnl linkage.

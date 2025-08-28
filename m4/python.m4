@@ -1,3 +1,5 @@
+# serial 2
+
 dnl Probe for Python properties and, optionally, flags for embedding Python.
 dnl
 dnl Provides the following macros:
@@ -40,8 +42,8 @@ dnl
 dnl The canonical version of this file is maintained in the rra-c-util
 dnl package, available at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 dnl
-dnl Copyright 2018, 2021 Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2009, 2011, 2015, 2018, 2021
+dnl Copyright 2018, 2021-2022 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2009, 2011, 2015, 2018, 2021, 2024
 dnl     Julien ÉLIE <julien@trigofacile.com>
 dnl Copyright 1998-2003 The Internet Software Consortium
 dnl
@@ -102,7 +104,7 @@ AC_DEFUN([RRA_PROG_PYTHON],
                 [ac_cv_path_PYTHON="$ac_path_PYTHON"
                  ac_path_PYTHON_found=:])])])
      AS_IF([test x"$ac_cv_path_PYTHON" = x],
-         [AC_MSG_ERROR([Python $rra_py_expected_ver or greater is required])])
+        [AC_MSG_ERROR([Python $rra_py_expected_ver or greater is required])])
      PYTHON="$ac_cv_path_PYTHON"
      AC_SUBST([PYTHON])])])
 
@@ -110,7 +112,7 @@ dnl Check whether a given Python module can be loaded.  Runs the second
 dnl argument if it can, and the third argument if it cannot.
 AC_DEFUN([RRA_PYTHON_CHECK_MODULE],
 [AS_LITERAL_IF([$1], [], [m4_fatal([$0: requires literal arguments])])dnl
- AS_VAR_PUSHDEF([ac_Module], [inn_cv_python_module_$1])dnl
+ AS_VAR_PUSHDEF([ac_Module], [rra_cv_python_module_$1])dnl
  AC_CACHE_CHECK([for Python module $1], [ac_Module],
     [AS_IF(["$PYTHON" -c 'import $1' >/dev/null 2>&1],
         [AS_VAR_SET([ac_Module], [yes])],
@@ -124,27 +126,31 @@ AC_DEFUN([RRA_LIB_PYTHON],
  AC_SUBST([PYTHON_LIBS])
  AC_MSG_CHECKING([for flags to link with Python])
  AS_IF(["$PYTHON" -c 'import sysconfig' >/dev/null 2>&1],
-     [py_include=`$PYTHON -c 'import sysconfig; \
-          print(sysconfig.get_paths("posix_prefix").get("include", ""))'`
-      py_libdir=`$PYTHON -c 'import sysconfig; \
-          print(" -L".join(sysconfig.get_config_vars("LIBDIR")))'`
-      py_ldlibrary=`$PYTHON -c 'import sysconfig; \
-          print(sysconfig.get_config_vars("LDLIBRARY")@<:@0@:>@)'`
-      py_linkage=`$PYTHON -c 'import sysconfig;                      \
-          print(" ".join(sysconfig.get_config_vars(                  \
-              "LIBS", "LIBC", "LIBM", "LOCALMODLIBS", "BASEMODLIBS", \
-              "LINKFORSHARED", "LDFLAGS")))'`],
-     [py_include=`$PYTHON -c 'import distutils.sysconfig; \
-          print(distutils.sysconfig.get_python_inc())'`
-      py_libdir=`$PYTHON -c 'import distutils.sysconfig; \
-          print(" -L".join(distutils.sysconfig.get_config_vars("LIBDIR")))'`
-      py_ldlibrary=`$PYTHON -c 'import distutils.sysconfig; \
-          print(distutils.sysconfig.get_config_vars("LDLIBRARY")@<:@0@:>@)'`
-      py_linkage=`$PYTHON -c 'import distutils.sysconfig;            \
-          print(" ".join(distutils.sysconfig.get_config_vars(        \
-              "LIBS", "LIBC", "LIBM", "LOCALMODLIBS", "BASEMODLIBS", \
-              "LINKFORSHARED", "LDFLAGS")))'`])
- PYTHON_CPPFLAGS="-I$py_include"
+    [py_include=`$PYTHON -c 'import sysconfig; \
+        print(sysconfig.get_paths("posix_prefix").get("include", ""))'`
+     py_libdir=`$PYTHON -c 'import sysconfig; \
+        print(" -L".join(sysconfig.get_config_vars("LIBDIR")))'`
+     py_ldlibrary=`$PYTHON -c 'import sysconfig; \
+        print(sysconfig.get_config_vars("LDLIBRARY")@<:@0@:>@)'`
+     AS_IF([test -x "${PYTHON}-config"],
+        [py_linkage=`${PYTHON}-config --libs 2>/dev/null`],
+        [py_linkage=`$PYTHON -c 'import sysconfig;     \
+            print(" ".join(sysconfig.get_config_vars(  \
+                "LIBS", "LIBC", "LIBM", "BASEMODLIBS", \
+                "LINKFORSHARED", "LDFLAGS")))'`])],
+    [py_include=`$PYTHON -c 'import distutils.sysconfig; \
+        print(distutils.sysconfig.get_python_inc())'`
+     py_libdir=`$PYTHON -c 'import distutils.sysconfig; \
+        print(" -L".join(distutils.sysconfig.get_config_vars("LIBDIR")))'`
+     py_ldlibrary=`$PYTHON -c 'import distutils.sysconfig; \
+        print(distutils.sysconfig.get_config_vars("LDLIBRARY")@<:@0@:>@)'`
+     AS_IF([test -x "${PYTHON}-config"],
+        [py_linkage=`${PYTHON}-config --libs 2>/dev/null`],
+        [py_linkage=`$PYTHON -c 'import distutils.sysconfig;    \
+            print(" ".join(distutils.sysconfig.get_config_vars( \
+                "LIBS", "LIBC", "LIBM", "BASEMODLIBS",          \
+                "LINKFORSHARED", "LDFLAGS")))'`])])
+ PYTHON_CPPFLAGS="-isystem $py_include"
  py_libpython=`AS_ECHO(["$py_ldlibrary"]) \
     | sed -e 's/^lib//' -e 's/\.@<:@a-z@:>@*$//'`
  PYTHON_LIBS="-L$py_libdir -l$py_libpython $py_linkage"

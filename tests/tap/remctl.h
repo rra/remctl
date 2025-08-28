@@ -8,6 +8,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2024 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2007, 2009, 2011-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -64,15 +65,16 @@ BEGIN_DECLS
  * config.h.  If it's not defined, remctld_start calls skip_all, assuming that
  * this means that the test case cannot be run.
  */
-struct process *remctld_start(struct kerberos_config *, const char *config,
-                              ...) __attribute__((__nonnull__(1, 2)));
+struct process *remctld_start(const struct kerberos_config *,
+                              const char *config, ...)
+    __attribute__((__nonnull__(1, 2)));
 
 /*
  * Like remctld_start, but run remctld under fakeroot.  Calls skip_all if
  * PATH_FAKEROOT is not defined, either with explicit compiler options or in
  * config.h.
  */
-struct process *remctld_start_fakeroot(struct kerberos_config *,
+struct process *remctld_start_fakeroot(const struct kerberos_config *,
                                        const char *config, ...)
     __attribute__((__nonnull__(1, 2)));
 

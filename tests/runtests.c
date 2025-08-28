@@ -8,7 +8,8 @@
  * should be sent to the e-mail address below.  This program is part of C TAP
  * Harness <https://www.eyrie.org/~eagle/software/c-tap-harness/>.
  *
- * Copyright 2000-2001, 2004, 2006-2019, 2022 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2000-2001, 2004, 2006-2019, 2022, 2024
+ *     Russ Allbery <eagle@eyrie.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -120,7 +121,7 @@
 
 /* AIX 6.1 (and possibly later) doesn't have WCOREDUMP. */
 #ifndef WCOREDUMP
-#    define WCOREDUMP(status) ((unsigned) (status) &0x80)
+#    define WCOREDUMP(status) ((unsigned) (status) & 0x80)
 #endif
 
 /*
@@ -994,7 +995,7 @@ test_print_range(unsigned long first, unsigned long last, unsigned long chars,
  * that terminated it if it was killed by a signal.
  */
 static void
-test_summarize(struct testset *ts, int status)
+test_summarize(const struct testset *ts, int status)
 {
     unsigned long i;
     unsigned long missing = 0;

@@ -15,7 +15,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2017, 2022 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2017, 2022, 2023 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2007, 2009-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -167,7 +167,7 @@ kerberos_kinit(void)
     char *path;
     char principal[BUFSIZ], *command;
     size_t i;
-    int status;
+    int status = 0;
 
     /* Read the principal corresponding to the keytab. */
     path = test_file_path("config/principal");

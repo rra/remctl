@@ -1,3 +1,5 @@
+# serial 1
+
 dnl Check whether the linker supports --version-script.
 dnl
 dnl Probes whether the linker supports --version-script with a simple version

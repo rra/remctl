@@ -1,3 +1,5 @@
+# serial 1
+
 dnl Find the compiler and linker flags for PCRE2.
 dnl
 dnl Finds the compiler and linker flags for linking with the PCRE2 library.

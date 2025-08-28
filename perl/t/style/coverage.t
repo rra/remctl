@@ -6,7 +6,7 @@
 # which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2019-2021 Russ Allbery <eagle@eyrie.org>
+# Copyright 2019-2021, 2024 Russ Allbery <eagle@eyrie.org>
 # Copyright 2013-2014
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -30,8 +30,8 @@
 #
 # SPDX-License-Identifier: MIT
 
-use 5.010;
-use strict;
+use 5.012;
+use autodie;
 use warnings;
 
 use lib 't/lib';
@@ -54,9 +54,9 @@ use_prereq('Test::Strict');
 # Build a list of test directories to use for coverage.
 my %ignore = map { $_ => 1 } qw(config data docs lib style),
   @COVERAGE_SKIP_TESTS;
-opendir(my $testdir, 't') or BAIL_OUT("cannot open t: $!");
-my @t_dirs = readdir($testdir) or BAIL_OUT("cannot read t: $!");
-closedir($testdir) or BAIL_OUT("cannot close t: $!");
+opendir(my $testdir, 't');
+my @t_dirs = readdir($testdir);
+closedir($testdir);
 
 # Filter out ignored and system directories.
 @t_dirs = grep { !$ignore{$_} } File::Spec->no_upwards(@t_dirs);

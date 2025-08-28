@@ -13,11 +13,11 @@
 #
 # SPDX-License-Identifier: MIT
 
-package Test::RRA::Automake;
+package Test::RRA::Automake v11.0.0;
 
-use 5.010;
+use 5.012;
+use autodie;
 use base qw(Exporter);
-use strict;
 use warnings;
 
 use Exporter;
@@ -51,22 +51,10 @@ BEGIN {
 use lib $PERL_BLIB_ARCH;
 use lib $PERL_BLIB_LIB;
 
-# Declare variables that should be set in BEGIN for robustness.
-our (@EXPORT_OK, $VERSION);
-
-# Set $VERSION and everything export-related in a BEGIN block for robustness
-# against circular module loading (not that we load any modules, but
-# consistency is good).
-BEGIN {
-    @EXPORT_OK = qw(
-        all_files automake_setup perl_dirs test_file_path test_tmpdir
-    );
-
-    # This version should match the corresponding rra-c-util release, but with
-    # two digits for the minor version, including a leading zero if necessary,
-    # so that it will sort properly.
-    $VERSION = '10.02';
-}
+# Exports.
+our @EXPORT_OK = qw(
+    all_files automake_setup perl_dirs test_file_path test_tmpdir
+);
 
 # Directories to skip globally when looking for all files, or for directories
 # that could contain Perl files.
@@ -163,7 +151,7 @@ sub automake_setup {
         pop(@dirs);
     }
     my $root = File::Spec->catpath($vol, File::Spec->catdir(@dirs), q{});
-    chdir($root) or BAIL_OUT("cannot chdir to $root: $!");
+    chdir($root);
 
     # If C_TAP_BUILD is a subdirectory of C_TAP_SOURCE, add it to the global
     # ignore list.
@@ -230,14 +218,14 @@ sub perl_dirs {
     my %skip_tests = map { $_ => 1 } @skip_tests;
 
     # Build the list of top-level directories to test.
-    opendir(my $rootdir, q{.}) or BAIL_OUT("cannot open .: $!");
+    opendir(my $rootdir, q{.});
     my @dirs = grep { -d && !$skip{$_} } readdir($rootdir);
     closedir($rootdir);
     @dirs = File::Spec->no_upwards(@dirs);
 
     # Add the list of subdirectories of the tests directory.
     if (-d 'tests') {
-        opendir(my $testsdir, q{tests}) or BAIL_OUT("cannot open tests: $!");
+        opendir(my $testsdir, q{tests});
 
         # Skip if found in %skip_tests or if not a directory.
         my $is_skipped = sub {
@@ -448,9 +436,9 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2014-2015, 2018-2021 Russ Allbery <eagle@eyrie.org>
-
 Copyright 2013 The Board of Trustees of the Leland Stanford Junior University
+
+Copyright 2014-2015, 2018-2021, 2024 Russ Allbery <eagle@eyrie.org>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

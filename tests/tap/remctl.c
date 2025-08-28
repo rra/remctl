@@ -8,7 +8,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2018, 2020 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018, 2020, 2024 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2007, 2009, 2011-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -63,8 +63,8 @@
  * not set, remctld_start_internal calls skip_all.
  */
 static struct process *
-remctld_start_internal(struct kerberos_config *krbconf, const char *config,
-                       va_list args, bool fakeroot)
+remctld_start_internal(const struct kerberos_config *krbconf,
+                       const char *config, va_list args, bool fakeroot)
 {
     va_list args_copy;
     char *tmpdir, *pidfile, *confpath;
@@ -141,7 +141,7 @@ remctld_start_internal(struct kerberos_config *krbconf, const char *config,
  * Just calls remctld_start_internal without enabling fakeroot support.
  */
 struct process *
-remctld_start(struct kerberos_config *krbconf, const char *config, ...)
+remctld_start(const struct kerberos_config *krbconf, const char *config, ...)
 {
     va_list args;
     struct process *process;
@@ -157,8 +157,8 @@ remctld_start(struct kerberos_config *krbconf, const char *config, ...)
  * Just calls remctld_start_internal with fakeroot enabled.
  */
 struct process *
-remctld_start_fakeroot(struct kerberos_config *krbconf, const char *config,
-                       ...)
+remctld_start_fakeroot(const struct kerberos_config *krbconf,
+                       const char *config, ...)
 {
     va_list args;
     struct process *process;
