@@ -36,7 +36,7 @@ jobs:
           - "heimdal"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
       - name: install
         run: sudo -E ci/install
