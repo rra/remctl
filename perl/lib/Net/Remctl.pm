@@ -22,7 +22,7 @@ use vars qw($VERSION @EXPORT);
 # This version matches the version of remctl with which this module was
 # released, but with at least two digits for the minor version.
 BEGIN {
-    $VERSION = '3.18';
+    $VERSION = '3.19';
     @EXPORT = qw(remctl);
 }
 

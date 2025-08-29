@@ -1,5 +1,15 @@
                        User-Visible remctl Changes
 
+remctl 3.19 (unreleased)
+
+    Fix build from Git with Automake 1.17 and later.
+
+    Update to rra-c-util 11.1.0:
+
+    * Skip portable/getnameinfo checks when 0.0.0.0 resolves.
+    * Try to fix linking on systems with a stray lib64 directory.
+    * Fix build issues when pkg-config is not installed.
+
 remctl 3.18 (2022-05-08)
 
     Add support for PCRE2 for pcre ACLs and use it by preference over
