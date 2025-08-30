@@ -139,7 +139,8 @@ if ($okay) {
     start_remctld();
     $okay = run_kinit();
 }
-SKIP: {
+SKIP:
+{
     if (!$okay) {
         skip 'no Kerberos configuration' => 61;
     }
@@ -272,7 +273,8 @@ SKIP: {
     );
 
     # Set the ticket cache, and then open should work.
-  SKIP: {
+  SKIP:
+    {
         if (!$remctl->set_ccache($cache)) {
             skip 'gss_krb5_set_ccache not supported' => 1;
         }

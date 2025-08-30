@@ -42,9 +42,9 @@ sub cmd_options {
 # and long.
 my %commands = (
     options => {
-        code => \&cmd_options,
+        code    => \&cmd_options,
         options => [qw(debug+ help|h input|i=s output=s sort! version|v)],
-    },
+    }
 );
 my $backend = Net::Remctl::Backend->new({ commands => \%commands });
 isa_ok($backend, 'Net::Remctl::Backend');

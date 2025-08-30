@@ -109,9 +109,9 @@ is_deeply(\@CALLS, [], 'no functions called');
 # Set a global command name in the object, which should change the error.
 $backend = Net::Remctl::Backend->new(
     {
-        command => 'foo',
+        command  => 'foo',
         commands => \%commands,
-    },
+    }
 );
 ($out, $err, $status) = run_wrapper($backend, qw(cmd1 arg1 arg2 arg3));
 is($status, 255, 'cmd1 with three args returns 255');

@@ -85,8 +85,8 @@ my %commands = (
 );
 #>>>
 my %args = (
-    command => 'frobnicate',
-    commands => \%commands,
+    command     => 'frobnicate',
+    commands    => \%commands,
     help_banner => 'Frobnicate remctl help:',
 );
 my $backend = Net::Remctl::Backend->new(\%args);
