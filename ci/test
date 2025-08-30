@@ -41,7 +41,10 @@ else
 fi
 make warnings
 
-# Run the tests with valgrind.
+# Run the full test suite.
+make check
+
+# Re-run the tests with valgrind.
 make check-valgrind
 
 # Run additional style tests, but only in the MIT build.
