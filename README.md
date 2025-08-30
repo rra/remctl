@@ -111,9 +111,8 @@ or later and phpize, plus any other programs that phpize requires.  PHP
 only tested on PHP 7.x and later.
 
 To build the Python bindings for the C client library, you will need
-Python 2.7, or Python 3.1 or later.  You will also need the setuptools and
-pytest modules and, for Python 2, the typing module.  Earlier versions may
-work back to possibly Python 2.3, but are not tested.
+Python 3.1 or later.  You will also need the setuptools and pytest
+modules.
 
 To build the Ruby bindings for the C client library, you will need Ruby
 1.8 or later (primarily tested with 2.5 and later).
@@ -391,9 +390,9 @@ always have the current version of this package, the current
 documentation, and pointers to any additional resources.
 
 For bug tracking, use the [issue tracker on
-GitHub](https://github.com/rra/remctl/issues).  However, please be aware
-that I tend to be extremely busy and work projects often take priority.
-I'll save your report and get to it as soon as I can, but it may take me a
+GitHub](https://github.com/rra/remctl/issues).  Please be aware that I
+tend to be extremely busy and work projects often take priority.  I'll
+save your report and get to it as soon as I can, but it may take me a
 couple of months.
 
 ## Source Repository

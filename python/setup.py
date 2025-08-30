@@ -3,7 +3,7 @@
 # Python remctl extension build rules.
 #
 # Original implementation by Thomas L. Kula <kula@tproa.net>
-# Copyright 2019 Russ Allbery <eagle@eyrie.org>
+# Copyright 2019, 2025 Russ Allbery <eagle@eyrie.org>
 # Copyright 2008
 #     The Board of Trustees of the Leland Stanford Junior University
 # Copyright 2008 Thomas L. Kula <kula@tproa.net>
@@ -119,7 +119,6 @@ kwargs = {
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: C",
-        "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 3",
         "Topic :: Security",
         "Topic :: Software Development :: Libraries :: Python Modules",
