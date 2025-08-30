@@ -103,7 +103,7 @@ or test Windows, so it's always possible Windows support has broken.  The
 server is not supported on Windows.
 
 To build the Perl bindings for the C client library, you will need Perl
-5.10 or later.
+5.12 or later.
 
 To build the PHP bindings for the C client library, you will need PHP 5.x
 or later and phpize, plus any other programs that phpize requires.  PHP
