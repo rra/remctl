@@ -1,3 +1,10 @@
+remctl (3.18-4) UNRELEASED; urgency=medium
+
+  * Adjust the test suite for different Getopt::Long diagnostics in Perl
+    5.42. Thanks, Niko Tyni. (Closes: #1111883)
+
+ -- Russ Allbery <rra@debian.org>  Mon, 08 Sep 2025 21:29:10 -0700
+
 remctl (3.18-3) unstable; urgency=medium
 
   * Add perl-xs-dev to dependencies since this package builds an XS
