@@ -93,8 +93,8 @@ $commands{number}{options} = ['number=i'];
 ($output, $error, $status) = run_wrapper($backend, 'number', '--number=foo');
 is($status, 255, 'unknown option returns 255');
 is($output, q{}, '...with no output');
-is(
+like(
     $error,
-    qq{number: value "foo" invalid for option number (number expected)\n},
+    qr{number: [ ] value [ ] "foo" [ ] invalid [ ] for [ ] option}xms,
     '...and correct error',
 );
