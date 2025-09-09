@@ -1,0 +1,26 @@
+From: Russ Allbery <eagle@eyrie.org>
+Date: Mon, 8 Sep 2025 21:26:43 -0700
+X-Dgit-Generated: 3.18-4 d42d2e47cb91deb7ecc80f20f84b8df4399a8912
+Subject: Adjust t/backend/options.t for Perl 5.42
+
+Getopt::Long changed its diagnostics slightly in 2.58, which is
+now included in Perl 5.42. Change the test to use a regex match
+to catch either variation. Based on a patch by Niko Tyni.
+
+---
+
+diff --git a/perl/t/backend/options.t b/perl/t/backend/options.t
+index f5723e3..42f7915 100755
+--- a/perl/t/backend/options.t
++++ b/perl/t/backend/options.t
+@@ -93,8 +93,8 @@ $commands{number}{options} = ['number=i'];
+ ($output, $error, $status) = run_wrapper($backend, 'number', '--number=foo');
+ is($status, 255, 'unknown option returns 255');
+ is($output, q{}, '...with no output');
+-is(
++like(
+     $error,
+-    qq{number: value "foo" invalid for option number (number expected)\n},
++    qr{number: [ ] value [ ] "foo" [ ] invalid [ ] for [ ] option}xms,
+     '...and correct error',
+ );
