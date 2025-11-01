@@ -2,7 +2,7 @@
  * Test suite for the server ACL checking.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2015-2016, 2018, 2022 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015-2016, 2018, 2022, 2025 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
  * Copyright 2007-2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -252,15 +252,20 @@ main(void)
     errors_capture();
     ok(!acl_permit(&rule, "host/bar.org@EXAMPLE.ORG"), "PCRE invalid regex");
 
-    /* Truncate the error message since PCRE2 includes some error detail. */
+    /*
+     * Truncate the error message since PCRE2 includes some error detail. The
+     * error message is truncated one character before the colon to remove the
+     * error position; PCRE 10.46 and earlier reported the error in position 0
+     * and 10.47 and later report the error in position 1.
+     */
     if (strlen(errors) > 8) {
         colon = strchr(errors + 8, ':');
         if (colon != NULL) {
-            colon[0] = '\n';
-            colon[1] = '\0';
+            colon[-1] = '\n';
+            colon[0] = '\0';
         }
     }
-    is_string("TEST:0: compilation of regex '+host/.*' failed around 0\n",
+    is_string("TEST:0: compilation of regex '+host/.*' failed around \n",
               errors, "...with invalid regex error");
     errors_uncapture();
 #else
