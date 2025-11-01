@@ -1,0 +1,3 @@
+avoid-comment-markers-in-extra_dist.patch
+adjust-tbackendoptions.t-for-perl-5.42.patch
+fix-test-failure-with-pcre-10.47.patch

@@ -1,0 +1,41 @@
+From: Russ Allbery <eagle@eyrie.org>
+Date: Sat, 8 Feb 2025 12:52:59 -0800
+X-Dgit-Generated: 3.18-5 d951adcc891d9d6bf7efe07ec0f4b7cf4f34aae9
+Subject: Avoid comment markers in EXTRA_DIST
+
+Automake now warns about escaped comment markers in `EXTRA_DIST`.
+Avoid the one instance of this by including `tests/data/acls` by
+directory name instead of listing the individual files with weird
+names.
+
+---
+
+diff --git a/Makefile.am b/Makefile.am
+index f841239..051eeb4 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,7 +1,7 @@
+ # Automake makefile for remctl.
+ #
+ # Written by Russ Allbery <eagle@eyrie.org>
+-# Copyright 2015-2016, 2018-2022 Russ Allbery <eagle@eyrie.org>
++# Copyright 2015-2016, 2018-2022, 2025 Russ Allbery <eagle@eyrie.org>
+ # Copyright 2016 Dropbox, Inc.
+ # Copyright 2006-2014
+ #     The Board of Trustees of the Leland Stanford Junior University
+@@ -109,12 +109,9 @@ EXTRA_DIST = .clang-format .gitignore .github LICENSE Makefile.w32	    \
+ 	tests/data/acl-bad-include tests/data/acl-bad-syntax		    \
+ 	tests/data/acl-nonexistant tests/data/acl-recursive		    \
+ 	tests/data/acl-simple tests/data/acl-too-long			    \
+-	tests/data/acl-valid-3 tests/data/acls/VALID_09			    \
+-	tests/data/acls/val\#id tests/data/acls/val.id			    \
+-	tests/data/acls/valid tests/data/acls/valid-2			    \
+-	tests/data/acls/val~id tests/data/acls2/valid-4 tests/data/cmd-argv \
+-	tests/data/cmd-env tests/data/cmd-hello tests/data/cmd-help	    \
+-	tests/data/cmd-sleep tests/data/cmd-status			    \
++	tests/data/acl-valid-3 tests/data/acls tests/data/acls2/valid-4	    \
++	tests/data/cmd-argv tests/data/cmd-env tests/data/cmd-hello	    \
++	tests/data/cmd-help tests/data/cmd-sleep tests/data/cmd-status	    \
+ 	tests/data/conf-nosummary tests/data/conf-test			    \
+ 	tests/data/configs/bad-logmask-1 tests/data/configs/bad-include-1   \
+ 	tests/data/configs/bad-logmask-2 tests/data/configs/bad-logmask-3   \
