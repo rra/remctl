@@ -2,6 +2,10 @@ remctl (3.18-5) unstable; urgency=medium
 
   * Adjust the test suite for different diagnostics in PCRE 10.47. Thanks,
     Matthew Vernon. (Closes: #1119871)
+  * Enable verbose mode for runtests when building the Debian package so
+    that the full output of each test will be shown. This will aid in
+    debugging test failure without having to rebuild the package locally
+    until c-tap-harness has better support for showing test failures.
   * Update debian/watch to version 5.
   * Remove obsolete Rules-Requires-Root: no control field.
 

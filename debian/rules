@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-# Add hardening build flags.  -fPIE is added separately below via hooks in
+# Add hardening build flags. -fPIE is added separately below via hooks in
 # the upstream build system, since adding it globally breaks the language
 # binding modules.
 export DEB_BUILD_MAINT_OPTIONS = hardening=+bindnow
@@ -18,6 +18,9 @@ export REMCTL_PERL_FLAGS := --installdirs vendor --create_packlist 0
 export REMCTL_PYTHON_INSTALL  := --install-layout=deb
 export REMCTL_PYTHON_VERSIONS := $(shell py3versions -s)
 
+# Put the runtests harness in verbose mode to show the output of each test.
+export C_TAP_VERBOSE = 1
+
 %:
 	dh $@ --with python3,ruby
 
@@ -28,7 +31,7 @@ override_dh_auto_configure:
 	    --enable-python --enable-ruby
 
 # Ignore the Ruby module installed in usr/local/lib by the upstream build
-# system.  Run dh_ruby --install to build and install the module for each
+# system. Run dh_ruby --install to build and install the module for each
 # supported Ruby version.
 override_dh_install:
 	dh_install -Xlibremctl.la -Xusr/local/lib
