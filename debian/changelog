@@ -2,6 +2,7 @@ remctl (3.18-5) unstable; urgency=medium
 
   * Adjust the test suite for different diagnostics in PCRE 10.47. Thanks,
     Matthew Vernon. (Closes: #1119871)
+  * Update debian/watch to version 5.
   * Remove obsolete Rules-Requires-Root: no control field.
 
  -- Russ Allbery <rra@debian.org>  Sat, 01 Nov 2025 09:29:10 -0700
