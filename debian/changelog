@@ -8,8 +8,9 @@ remctl (3.18-5) unstable; urgency=medium
     until c-tap-harness has better support for showing test failures.
   * Update debian/watch to version 5.
   * Remove obsolete Rules-Requires-Root: no control field.
+  * Update upstream signing key.
 
- -- Russ Allbery <rra@debian.org>  Sat, 01 Nov 2025 09:29:10 -0700
+ -- Russ Allbery <rra@debian.org>  Sat, 01 Nov 2025 09:58:21 -0700
 
 remctl (3.18-4) unstable; urgency=medium
 
