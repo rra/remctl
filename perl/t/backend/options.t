@@ -95,6 +95,6 @@ is($status, 255, 'unknown option returns 255');
 is($output, q{}, '...with no output');
 is(
     $error,
-    qq{number: value "foo" invalid for option number (number expected)\n},
+    qq{number: value "foo" invalid for option number (integer number expected)\n},
     '...and correct error',
 );
