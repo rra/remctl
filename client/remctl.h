@@ -3,7 +3,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on prior work by Anton Ushakov
- * Copyright 2019, 2022 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2019, 2022, 2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2008, 2011-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -275,7 +275,7 @@ struct remctl_output *remctl_output(struct remctl *)
  * message.  The returned error string will be invalidated by any subsequent
  * call to a remctl library function.
  */
-const char *remctl_error(struct remctl *) __attribute__((__nonnull__));
+const char *remctl_error(const struct remctl *) __attribute__((__nonnull__));
 
 END_DECLS
 
