@@ -353,7 +353,8 @@ PERL_WARNINGS = -Wno-write-strings -Wno-nested-externs			\
 	-Wno-gnu-statement-expression -Wno-cast-align -Wno-comma	\
 	-Wno-covered-switch-default -Wno-extra-semi-stmt		\
 	-Wno-implicit-fallthrough -Wno-declaration-after-statement	\
-	-Wno-switch-enum -Wno-bad-function-cast -Wno-pre-c11-compat
+	-Wno-switch-enum -Wno-bad-function-cast -Wno-pre-c11-compat	\
+	-Wno-c++-keyword -Wno-thread-safety-analysis
 PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-missing-prototypes -Wno-unused-parameter -Wno-sign-compare	\
 	-Wno-redundant-decls -Wno-old-style-definition -Wno-float-equal	\
@@ -362,8 +363,9 @@ PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-bad-function-cast -Wno-documentation-unknown-command	\
 	-Wno-declaration-after-statement -Wno-documentation		\
 	-Wno-missing-field-initializers -Wno-pre-c11-compat
-PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing \
-	-Wno-redundant-decls -Wno-cast-align -Wno-extra-semi-stmt
+PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing		\
+	-Wno-redundant-decls -Wno-cast-align -Wno-extra-semi-stmt	\
+	-Wno-c++-keyword
 RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
 	-Wno-nested-externs -Wno-shift-sign-overflow			    \
 	-Wno-gnu-statement-expression -Wno-unknown-warning-option	    \
@@ -373,7 +375,8 @@ RUBY_WARNINGS = -Wno-strict-prototypes -Wno-redundant-decls -Wno-conversion \
 	-Wno-ignored-attributes -Wno-c23-extensions -Wno-documentation	    \
 	-Wno-documentation-unknown-command -Wno-unused-parameter	    \
 	-Wno-documentation-deprecated-sync -Wno-pre-c11-compat		    \
-	-Wno-incompatible-function-pointer-types-strict
+	-Wno-incompatible-function-pointer-types-strict -Wno-c++-keyword    \
+	-Wno-default-const-init-field-unsafe
 
 warnings:
 	$(MAKE) V=0					\
