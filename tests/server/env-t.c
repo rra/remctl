@@ -2,7 +2,7 @@
  * Test suite for environment variables set by the server.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2015, 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015, 2018, 2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006, 2009-2010, 2012-2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -11,6 +11,7 @@
 
 #include <config.h>
 #include <portable/system.h>
+#include <time.h>
 
 #include <client/internal.h>
 #include <client/remctl.h>
