@@ -6,7 +6,7 @@
  * right place.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2025 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2025-2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2008, 2010, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -90,7 +90,7 @@ server_log_command(struct iovec **argv, const struct rule *rule,
 {
     char *command, *p;
     unsigned int i;
-    unsigned int *j;
+    const unsigned int *j;
     struct vector *masked;
     const char *arg;
 

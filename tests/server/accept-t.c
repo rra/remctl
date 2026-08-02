@@ -2,6 +2,7 @@
  * Test suite for the server connection negotiation code.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2007, 2009-2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -106,7 +107,7 @@ make_connection(int protocol, const char *principal)
 int
 main(void)
 {
-    struct kerberos_config *config;
+    const struct kerberos_config *config;
     socket_type s, fd;
     int protocol;
     pid_t child;

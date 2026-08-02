@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2015-2016, 2019, 2025 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015-2016, 2019, 2025-2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2016 Dropbox, Inc.
  * Copyright 2002-2010, 2012-2014
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -69,7 +69,7 @@ line_matches(const struct rule *rule, const char *command,
  * Returns the matching config line or NULL if none match.
  */
 static struct rule *
-find_config_line(struct config *config, const char *command,
+find_config_line(const struct config *config, const char *command,
                  const char *subcommand)
 {
     size_t i;
@@ -93,8 +93,8 @@ find_config_line(struct config *config, const char *command,
 static void
 server_send_summary(struct client *client, struct config *config)
 {
-    char *path = NULL;
-    char *program;
+    const char *path = NULL;
+    const char *program;
     const char *subcommand;
     struct rule *rule = NULL;
     size_t i;
