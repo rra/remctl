@@ -177,7 +177,7 @@ AC_ARG_ENABLE([perl],
     [AS_IF([test x"$enableval" = xyes], [build_perl=yes])])
 AM_CONDITIONAL([BUILD_PERL], [test x"$build_perl" = xyes])
 AS_IF([test x"$build_perl" = xyes],
-    [RRA_PROG_PERL([5.008])
+    [RRA_PROG_PERL([5.012])
      PERL_LDFLAGS=`"$PERL" -MConfig -e 'print $Config{lddlflags}'`])
 AC_SUBST([PERL_LDFLAGS])
 
