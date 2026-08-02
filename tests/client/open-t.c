@@ -2,6 +2,7 @@
  * Test suite for the client connection negotiation code.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2006-2007, 2009-2010, 2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -116,7 +117,7 @@ int
 main(void)
 {
     struct kerberos_config *config;
-    char *p, *path, *pidfile;
+    char *p, *path, *pidfile, *error_copy;
     const char *error;
     struct remctl *r;
     int protocol;
@@ -137,10 +138,12 @@ main(void)
     error = remctl_error(r);
     ok(error != NULL, "...with error");
     if (error != NULL && strchr(error, ':') != NULL) {
-        p = strchr(error, ':');
+        error_copy = bstrdup(error);
+        p = strchr(error_copy, ':');
         *p = '\0';
-        is_string("cannot connect to 127.0.0.1 (port 14445)", error,
+        is_string("cannot connect to 127.0.0.1 (port 14445)", error_copy,
                   "...and the correct error");
+        free(error_copy);
     } else {
         ok(0, "...and the correct error");
     }
