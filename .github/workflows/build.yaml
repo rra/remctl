@@ -44,7 +44,7 @@ jobs:
       - name: Get Perl version
         id: get-perl
         run: |
-          perl -e 'print "::set-output name=version::", $^V, "\n"'
+          perl -e 'print "version=", $^V, "\n"' >> $GITHUB_OUTPUT
 
       - name: Cache Perl modules
         uses: actions/cache@v6
