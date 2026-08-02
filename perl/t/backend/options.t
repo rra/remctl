@@ -3,7 +3,7 @@
 # Tests for option handling in Net::Remctl::Backend.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2020, 2022 Russ Allbery <eagle@eyrie.org>
+# Copyright 2020, 2022, 2026 Russ Allbery <eagle@eyrie.org>
 # Copyright 2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -93,8 +93,12 @@ $commands{number}{options} = ['number=i'];
 ($output, $error, $status) = run_wrapper($backend, 'number', '--number=foo');
 is($status, 255, 'unknown option returns 255');
 is($output, q{}, '...with no output');
-is(
+like(
     $error,
-    qq{number: value "foo" invalid for option number (number expected)\n},
+    qr{
+      \A number: [ ] value [ ] "foo" [ ] invalid [ ] for [ ] option [ ] number
+      [ ] [(] (?:integer [ ])? number [ ] expected [)]
+      \n \z
+    }xms,
     '...and correct error',
 );
