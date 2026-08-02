@@ -6,10 +6,9 @@
 #
 # SPDX-License-Identifier: MIT
 
-package Net::Remctl;
+package Net::Remctl v3.18;
 
-use 5.010;
-use strict;
+use 5.012;
 use warnings;
 
 use base qw(DynaLoader Exporter);
@@ -17,14 +16,7 @@ use base qw(DynaLoader Exporter);
 # Yes, I shouldn't have exported something by default, but I did, and now
 # removing it would break backward compatibility.  So we live with it.
 ## no critic (Modules::ProhibitAutomaticExportation)
-use vars qw($VERSION @EXPORT);
-
-# This version matches the version of remctl with which this module was
-# released, but with at least two digits for the minor version.
-BEGIN {
-    $VERSION = '3.19';
-    @EXPORT = qw(remctl);
-}
+our @EXPORT = qw(remctl);
 
 Net::Remctl->bootstrap();
 1;
@@ -372,7 +364,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2020, 2022 Russ Allbery <eagle@eyrie.org>
+Copyright 2020, 2022, 2026 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2007-2008, 2011-2014 The Board of Trustees of the Leland Stanford
 Junior University

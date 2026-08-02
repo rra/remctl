@@ -2,10 +2,9 @@
 #
 # SPDX-License-Identifier: MIT
 
-package Net::Remctl::Backend;
+package Net::Remctl::Backend v3.18;
 
-use 5.010;
-use strict;
+use 5.012;
 use warnings;
 
 use Getopt::Long;
@@ -22,14 +21,6 @@ use constant MAX_SYNTAX_LENGTH => 48;
 # If all syntax lines exceed MAX_SYNTAX_LENGTH, start the summary output in
 # this column.
 use constant DEFAULT_SUMMARY_COLUMN => 40;
-
-our $VERSION;
-
-# This version matches the version of remctl with which this module was
-# released, but with at least two digits for the minor version.
-BEGIN {
-    $VERSION = '3.19';
-}
 
 # Constructor.  Takes all possible parameters as a hash.  See the POD
 # documentation for details of the possible parameters and their meanings.
@@ -685,7 +676,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2019-2020, 2022 Russ Allbery <eagle@eyrie.org>
+Copyright 2019-2020, 2022, 2026 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2012-2014 The Board of Trustees of the Leland Stanford Junior
 University

@@ -2,7 +2,7 @@
 #
 # Written by Russ Allbery <eagle@eyrie.org>
 # Improvements by Thomas Kula and Darren Patterson
-# Copyright 2018, 2020, 2022 Russ Allbery <eagle@eyrie.org>
+# Copyright 2018, 2020, 2022, 2026 Russ Allbery <eagle@eyrie.org>
 # Copyright 2006-2007, 2012-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -335,7 +335,7 @@ EOF
 %files client
 %defattr(-, root, root)
 %{_bindir}/*
-%doc NEWS README TODO
+%doc CHANGELOG.md README TODO
 %{_libdir}/libremctl.la
 %{_libdir}/libremctl.so
 %{_libdir}/libremctl.so.*
@@ -345,7 +345,7 @@ EOF
 %defattr(-, root, root)
 %dir /etc/remctl
 %{_sbindir}/*
-%doc NEWS README TODO
+%doc CHANGELOG.md README TODO
 %doc %{_mandir}/*/remctld.*
 %if !0%{?with_systemd:1}
 %config /etc/xinetd.d/remctl
@@ -369,7 +369,7 @@ EOF
 %if 0%{?rel} != 5
 %{python_sitearch}/pyremctl-%{version}-*.egg-info
 %endif
-%doc NEWS TODO
+%doc CHANGELOG.md TODO
 %doc python/README
 %endif
 
@@ -379,13 +379,13 @@ EOF
 %{perl_vendorarch}/Net
 %{perl_vendorarch}/auto/Net
 %doc %{_mandir}/man3/Net::Remctl*
-%doc NEWS TODO
+%doc CHANGELOG.md TODO
 %endif
 
 %if %{buildphp}
 %files php
 %defattr(-,root,root,-)
-%doc NEWS TODO
+%doc CHANGELOG.md TODO
 %doc php/README
 %{php_extdir}/remctl.so
 %config(noreplace) %{php_inidir}/remctl.ini
@@ -395,7 +395,7 @@ EOF
 %defattr(-,root,root,-)
 %files ruby
 %defattr(-,root,root,-)
-%doc NEWS TODO
+%doc CHANGELOG.md TODO
 %doc ruby/README
 %{ruby_vendorarchdir}/remctl.so
 %endif

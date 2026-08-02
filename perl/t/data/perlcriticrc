@@ -10,7 +10,7 @@
 # which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2018-2022, 2025 Russ Allbery <eagle@eyrie.org>
+# Copyright 2018-2022, 2025-2026 Russ Allbery <eagle@eyrie.org>
 # Copyright 2011-2013
 #     The Board of Trustees of the Leland Stanford Junior University
 #
@@ -42,11 +42,14 @@ severity = 1
 # exclusion rules.
 verbose = %f:%l:%c: [%p] %m (%e, Severity: %s)\n
 
+# Perl::Critic::Bangs is installed in the Perl containers used on GitHub but
+# doesn't seem to be packaged by Debian.
+#
 # Perl::Critic::Freenode has been renamed upstream to Perl::Critic::Community
 # but some systems may still have both installed and the old checks may report
 # as Community::* but don't honor the configuration. This exclusion ensures
 # the legacy names are never loaded.
-exclude = Freenode::
+exclude = Bangs:: Freenode::
 
 # Originally I preferred this style, but I have been convinced that it's less
 # readable for people coming from other languages and poses more tricky

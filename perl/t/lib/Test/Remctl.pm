@@ -10,27 +10,14 @@
 #
 # SPDX-License-Identifier: MIT
 
-package Test::Remctl;
+package Test::Remctl v4.0.0;
 
-use 5.010;
-use strict;
+use 5.012;
 use warnings;
 
 use base qw(Exporter);
 
-# Declare variables that should be set in BEGIN for robustness.
-our (@EXPORT_OK, $VERSION);
-
-# Set $VERSION and everything export-related in a BEGIN block for robustness
-# against circular module loading (not that we load any modules, but
-# consistency is good).
-BEGIN {
-    @EXPORT_OK = qw(run_wrapper);
-
-    # This version is somewhat arbitrary and doesn't track the broader remctl
-    # version.  I update it when code in this module changes.
-    $VERSION = '1.02';
-}
+our @EXPORT_OK = qw(run_wrapper);
 
 # Run the backend and capture its output and return status.
 #
@@ -113,7 +100,7 @@ Russ Allbery <eagle@eyrie.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2020, 2022 Russ Allbery <eagle@eyrie.org>
+Copyright 2020, 2022, 2026 Russ Allbery <eagle@eyrie.org>
 
 Copyright 2012-2013 The Board of Trustees of the Leland Stanford Junior
 University
