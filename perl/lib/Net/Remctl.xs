@@ -21,7 +21,7 @@
  * members of the struct.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2018 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018, 2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2007-2008, 2011-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -53,9 +53,11 @@ static const struct {
     { REMCTL_OUT_OUTPUT, "output" },
     { REMCTL_OUT_STATUS, "status" },
     { REMCTL_OUT_ERROR,  "error"  },
-    { REMCTL_OUT_DONE,   "done"   },
-    { 0,                 NULL     }
+    { REMCTL_OUT_DONE,   "done"   }
 };
+
+/* Used for iterating through an array whose size is known statically. */
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
 /* Used to check that an object argument to a function is not NULL. */
 #define CROAK_NULL(o, t, f)                     \
@@ -294,7 +296,7 @@ type(self)
   CODE:
     CROAK_NULL_SELF(self, "Net::Remctl::Output", "type");
     RETVAL = NULL;
-    for (i = 0; OUTPUT_TYPE[i].name != NULL; i++)
+    for (i = 0; i < ARRAY_SIZE(OUTPUT_TYPE); i++)
         if (OUTPUT_TYPE[i].type == self->type) {
             RETVAL = OUTPUT_TYPE[self->type].name;
             break;

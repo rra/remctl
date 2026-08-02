@@ -5,7 +5,7 @@
  * simple and complex forms of the API.
  *
  * Original implementation by Anthony M. Martinez <twopir@nmt.edu>
- * Copyright 2018, 2020, 2022 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018, 2020, 2022, 2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2010-2013
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2010 Anthony M. Martinez <twopir@nmt.edu>
@@ -81,10 +81,12 @@ static const struct {
     {REMCTL_OUT_OUTPUT, "output"},
     {REMCTL_OUT_STATUS, "status"},
     {REMCTL_OUT_ERROR,  "error" },
-    {REMCTL_OUT_DONE,   "done"  },
-    {0,                 NULL    }
+    {REMCTL_OUT_DONE,   "done"  }
 };
 /* clang-format on */
+
+/* Used for iterating through an array whose size is known statically. */
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
 /*
  * Used for the complex interface when a method that requires the remctl
@@ -490,9 +492,9 @@ rb_remctl_command(int argc, VALUE argv[], VALUE self)
 static VALUE
 rb_remctl_type_intern(enum remctl_output_type type)
 {
-    int i;
+    size_t i;
 
-    for (i = 0; OUTPUT_TYPE[i].name != NULL; i++)
+    for (i = 0; i < ARRAY_SIZE(OUTPUT_TYPE); i++)
         if (OUTPUT_TYPE[i].type == type)
             return ID2SYM(rb_intern(OUTPUT_TYPE[i].name));
     rb_bug("Fell off the end while looking up remctl output type %u!\n", type);

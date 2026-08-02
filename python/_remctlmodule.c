@@ -6,7 +6,7 @@
  * Python wrapper around this class.
  *
  * Original implementation by Thomas L. Kula <kula@tproa.net>
- * Copyright 2018-2020, 2025 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018-2020, 2025-2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2008 Thomas L. Kula <kula@tproa.net>
  * Copyright 2008, 2011-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
@@ -54,9 +54,11 @@ static const struct {
     {REMCTL_OUT_STATUS, "status"},
     {REMCTL_OUT_ERROR,  "error" },
     {REMCTL_OUT_DONE,   "done"  },
-    {0,                 NULL    }
 };
 /* clang-format on */
+
+/* Used for iterating through an array whose size is known statically. */
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
 
 static PyObject *
@@ -319,7 +321,7 @@ py_remctl_output(PyObject *self, PyObject *args)
     output = remctl_output(r);
     if (output == NULL)
         return Py_BuildValue("()");
-    for (i = 0; OUTPUT_TYPE[i].name != NULL; i++)
+    for (i = 0; i < ARRAY_SIZE(OUTPUT_TYPE); i++)
         if (OUTPUT_TYPE[i].type == output->type) {
             type = OUTPUT_TYPE[output->type].name;
             break;

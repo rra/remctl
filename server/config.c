@@ -6,7 +6,7 @@
  *
  * Written by Russ Allbery <eagle@eyrie.org>
  * Based on work by Anton Ushakov
- * Copyright 2015, 2018, 2020, 2022, 2025 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2015, 2018, 2020, 2022, 2025-2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  * Copyright 2008 Carnegie Mellon University
@@ -166,8 +166,8 @@ handle_include(const char *included, const char *file, size_t lineno,
     } else {
         DIR *dir;
         struct dirent *entry;
-        int status = CONFIG_NOMATCH;
-        int last;
+        enum config_status status = CONFIG_NOMATCH;
+        enum config_status last;
 
         dir = opendir(included);
         if (dir == NULL) {
@@ -575,7 +575,7 @@ read_conf_file(void *data, const char *name)
     /* Free allocated memory and return success. */
     free(buffer);
     fclose(file);
-    return 0;
+    return CONFIG_SUCCESS;
 
     /* Abort with an error. */
 fail:
