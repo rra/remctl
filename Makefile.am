@@ -362,7 +362,8 @@ PHP_WARNINGS = -Wno-strict-prototypes -Wno-write-strings		\
 	-Wno-double-promotion -Wno-cast-align -Wno-extra-semi-stmt	\
 	-Wno-bad-function-cast -Wno-documentation-unknown-command	\
 	-Wno-declaration-after-statement -Wno-documentation		\
-	-Wno-missing-field-initializers -Wno-pre-c11-compat
+	-Wno-missing-field-initializers -Wno-pre-c11-compat		\
+	-Wno-nested-externs -Wno-shadow
 PYTHON_WARNINGS = -Wno-unused-parameter -Wno-strict-aliasing		\
 	-Wno-redundant-decls -Wno-cast-align -Wno-extra-semi-stmt	\
 	-Wno-c++-keyword
