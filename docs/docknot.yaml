@@ -28,7 +28,7 @@ copyrights:
     years: 2002-2014
 
 build:
-  autoconf: '2.64'
+  autoconf: '2.72'
   automake: '1.11'
   autotools: true
   bootstrap: |
@@ -89,6 +89,19 @@ build:
     The Java client and server aren't integrated with the regular build
     system.  For information on building and installing them, see
     `java/README`.
+
+    The libremctl ABI is affected by the size of `time_t`.  remctl will
+    attempt to force a `time_t` of at least 64 bits if that is possible on the
+    local system and, if so, will use the `REMCTL_3.0` symbol version and
+    `libremctl.so.3` SONAME, since the resulting library may be incompatible
+    with older code that used a shorter `time_t`.  The newer SONAME and symbol
+    version will be used even on platforms where no change in ABI was
+    required, to smooth the transition for Linux distributions that bumped the
+    libremctl SONAME during their `time_t` transition.  If increasing the size
+    of `time_t` is not possible or `--disable-year2038` was passed to
+    configure, remctl will use the older `REMCTL_1.0` symbol version and
+    `libremctl.so.1` SONAME, since the resulting library will be
+    ABI-compatible with versions prior to 4.0.0.
 
     remctl will use pkg-config if it's available to find the build flags for
     libevent.  You can control which pkg-config binary and paths are used with

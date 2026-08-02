@@ -1,14 +1,14 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Written by Russ Allbery <eagle@eyrie.org>
-dnl Copyright 2015-2016, 2018-2020, 2022 Russ Allbery <eagle@eyrie.org>
+dnl Copyright 2015-2016, 2018-2020, 2022, 2026 Russ Allbery <eagle@eyrie.org>
 dnl Copyright 2016 Dropbox, Inc.
 dnl Copyright 2002-2008, 2010-2014
 dnl     The Board of Trustees of the Leland Stanford Junior University
 dnl
 dnl SPDX-License-Identifier: MIT
 
-AC_PREREQ([2.64])
+AC_PREREQ([2.72])
 AC_INIT([remctl], [3.18], [eagle@eyrie.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_LIBOBJ_DIR([portable])
@@ -21,16 +21,30 @@ dnl Detect unexpanded macros.
 m4_pattern_forbid([^PKG_])
 m4_pattern_forbid([^_?RRA_])
 
-dnl AM_PROG_AR is required for Automake 1.12 by Libtool but not defined at all
-dnl (or needed) in Automake 1.11.  Work around this bug.
+dnl Probe for basic compiler behavior.
 AC_PROG_CC
 AC_USE_SYSTEM_EXTENSIONS
 RRA_PROG_CC_WARNINGS_FLAGS
-AC_SYS_LARGEFILE
 AM_PROG_CC_C_O
+
+dnl AM_PROG_AR is required for Automake 1.12 by Libtool but not defined at all
+dnl (or needed) in Automake 1.11.  Work around this bug.
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 LT_INIT
 RRA_LD_VERSION_SCRIPT
+
+dnl Attempt to force long time_t consistently on all hosts so that the new
+dnl symbol version and SONAME indicates a longer time_t.  If this is not
+dnl possible, use the older symbol versions and SONAME, since in that case the
+dnl library will have the same ABI as pre-4.0.0 releases.
+AC_SYS_YEAR2038
+AS_IF([test x"$ac_have_year2038" = xyes],
+    [LIBREMCTL_LTVERSION="3:0:0"
+     LIBREMCTL_SYMVER="4.0"],
+    [LIBREMCTL_LTVERSION="2:0:1"
+     LIBREMCTL_SYMVER="1.0"])
+AC_SUBST([LIBREMCTL_LTVERSION])
+AC_SUBST([LIBREMCTL_SYMVER])
 
 dnl Support installation of systemd unit files.
 RRA_WITH_SYSTEMD_UNITDIR
@@ -204,8 +218,8 @@ AS_IF([test x"$rra_reduced_depends" = xtrue],
     [DEPEND_LIBS="$GSSAPI_LDFLAGS $GSSAPI_LIBS $KRB5_LDFLAGS $KRB5_LIBS"])
 AC_SUBST([DEPEND_LIBS])
 
-AC_CONFIG_FILES([Makefile java/build.xml java/local.properties])
-AC_CONFIG_FILES([tests/data/conf-simple])
+AC_CONFIG_FILES([Makefile client/libremctl.map java/build.xml])
+AC_CONFIG_FILES([java/local.properties tests/data/conf-simple])
 AS_IF([test x"$build_php" = xyes],
     [AC_CONFIG_FILES([php/config.m4 php/php_remctl.h])])
 AS_IF([test x"$build_ruby" = xyes],

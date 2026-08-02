@@ -1,4 +1,4 @@
-REMCTL_1.0 {
+REMCTL_@LIBREMCTL_SYMVER@ {
     global:
         remctl;
         remctl_close;

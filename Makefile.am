@@ -1,7 +1,7 @@
 # Automake makefile for remctl.
 #
 # Written by Russ Allbery <eagle@eyrie.org>
-# Copyright 2015-2016, 2018-2022, 2025 Russ Allbery <eagle@eyrie.org>
+# Copyright 2015-2016, 2018-2022, 2025, 2026 Russ Allbery <eagle@eyrie.org>
 # Copyright 2016 Dropbox, Inc.
 # Copyright 2006-2014
 #     The Board of Trustees of the Leland Stanford Junior University
@@ -142,6 +142,9 @@ DISTCHECK_CONFIGURE_FLAGS = \
 # or GSS-API functions.
 AM_CPPFLAGS = $(GSSAPI_CPPFLAGS) $(KRB5_CPPFLAGS)
 
+# Find the appropriate way to control library versions.  The map file is
+# preferred since it sets symbol versions.  The sym file only restricts
+# visibility of non-public symbols.
 if HAVE_LD_VERSION_SCRIPT
     VERSION_LDFLAGS = -Wl,--version-script=${srcdir}/client/libremctl.map
 else
@@ -177,8 +180,8 @@ endif
 lib_LTLIBRARIES = client/libremctl.la
 client_libremctl_la_SOURCES = client/api.c client/client-v1.c \
 	client/client-v2.c client/error.c client/internal.h client/open.c
-client_libremctl_la_LDFLAGS = -version-info 2:0:1 $(VERSION_LDFLAGS) \
-	$(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS)
+client_libremctl_la_LDFLAGS = -version-info $(LIBREMCTL_LTVERSION) \
+	$(VERSION_LDFLAGS) $(GSSAPI_LDFLAGS) $(KRB5_LDFLAGS)
 client_libremctl_la_LIBADD = util/libutil.la portable/libportable.la \
 	$(GSSAPI_LIBS) $(KRB5_LIBS)
 include_HEADERS = client/remctl.h
