@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-package Test::Remctl v4.0.0;
+package Test::Remctl v3.18.0;
 
 use 5.012;
 use warnings;

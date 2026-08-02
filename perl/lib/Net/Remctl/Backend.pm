@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-package Net::Remctl::Backend v3.18;
+package Net::Remctl::Backend v3.18.0;
 
 use 5.012;
 use warnings;

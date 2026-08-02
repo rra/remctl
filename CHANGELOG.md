@@ -8,7 +8,7 @@ Find changes for the upcoming release in the project's [changelog.d directory](h
 
 <a id='changelog-3.18'></a>
 
-## 3.18 (2022-05-20)
+## 3.18.0 (2022-05-20)
 
 ### Backwards-incompatible changes
 
