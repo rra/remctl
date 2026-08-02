@@ -7,7 +7,7 @@
  *
  * Written by Anton Ushakov
  * Extensive modifications by Russ Allbery <eagle@eyrie.org>
- * Copyright 2018, 2020 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2018, 2020, 2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2002-2008, 2010-2012, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -338,23 +338,23 @@ bind_sockets(struct options *options, socket_type **fds, unsigned int *count)
 static void
 write_pidfile(pid_t pid, const char *path)
 {
-    char *template;
+    char *name_template;
     FILE *pid_file;
     int fd;
 
-    xasprintf(&template, "%s.XXXXXX", path);
-    fd = mkstemp(template);
+    xasprintf(&name_template, "%s.XXXXXX", path);
+    fd = mkstemp(name_template);
     if (fd < 0)
-        sysdie("cannot create temporary PID file %s", template);
+        sysdie("cannot create temporary PID file %s", name_template);
     pid_file = fdopen(fd, "w");
     if (pid_file == NULL)
-        sysdie("cannot reopen temporary PID file %s", template);
+        sysdie("cannot reopen temporary PID file %s", name_template);
     if (fprintf(pid_file, "%ld\n", (long) pid) < 0)
-        sysdie("cannot write to temporary PID file %s", template);
+        sysdie("cannot write to temporary PID file %s", name_template);
     fclose(pid_file);
-    if (rename(template, path) < 0)
+    if (rename(name_template, path) < 0)
         sysdie("cannot rename temporary PID file to %s", path);
-    free(template);
+    free(name_template);
 }
 
 

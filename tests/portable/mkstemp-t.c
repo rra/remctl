@@ -5,7 +5,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
- * Copyright 2024 Russ Allbery <eagle@eyrie.org>
+ * Copyright 2024, 2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2009, 2011
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -25,13 +25,13 @@
 
 #include <tests/tap/basic.h>
 
-int test_mkstemp(char *template);
+int test_mkstemp(char *);
 
 int
 main(void)
 {
     int fd;
-    char template[] = "tsXXXXXXX";
+    char templ[] = "tsXXXXXXX";
     char tooshort[] = "XXXXX";
     char bad1[] = "/foo/barXXXXX";
     char bad2[] = "/foo/barXXXXXX.out";
@@ -57,14 +57,14 @@ main(void)
     errno = 0;
 
     /* Now try creating a real file. */
-    fd = test_mkstemp(template);
+    fd = test_mkstemp(templ);
     ok(fd >= 0, "mkstemp works with valid template");
-    ok(strcmp(template, "tsXXXXXXX") != 0, "...and template changed");
-    ok(strncmp(template, "tsX", 3) == 0, "...and didn't touch first X");
-    ok(access(template, F_OK) == 0, "...and the file exists");
+    ok(strcmp(templ, "tsXXXXXXX") != 0, "...and template changed");
+    ok(strncmp(templ, "tsX", 3) == 0, "...and didn't touch first X");
+    ok(access(templ, F_OK) == 0, "...and the file exists");
 
     /* Make sure that it's the same file as template refers to now. */
-    ok(stat(template, &st1) == 0, "...and stat of template works");
+    ok(stat(templ, &st1) == 0, "...and stat of template works");
     ok(fstat(fd, &st2) == 0, "...and stat of open file descriptor works");
     ok(st1.st_ino == st2.st_ino, "...and they're the same file");
 
@@ -81,14 +81,14 @@ main(void)
      */
 
     /* Make sure the open mode is correct. */
-    length = strlen(template);
-    is_int(length, write(fd, template, length), "write to open file works");
+    length = strlen(templ);
+    is_int(length, write(fd, templ, length), "write to open file works");
     ok(lseek(fd, 0, SEEK_SET) == 0, "...and rewind works");
     is_int(length, read(fd, buffer, length), "...and the data is there");
     buffer[length] = '\0';
-    is_string(template, buffer, "...and matches what we wrote");
+    is_string(templ, buffer, "...and matches what we wrote");
     close(fd);
-    unlink(template);
+    unlink(templ);
 
     return 0;
 }

@@ -8,6 +8,7 @@
  * which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
  *
  * Written by Russ Allbery <eagle@eyrie.org>
+ * Copyright 2026 Russ Allbery <eagle@eyrie.org>
  * Copyright 2009, 2011, 2014
  *     The Board of Trustees of the Leland Stanford Junior University
  *
@@ -48,7 +49,7 @@ typedef unsigned long long_int_type;
 #endif
 
 int
-mkstemp(char *template)
+mkstemp(char *templ)
 {
     static const char letters[] =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -62,12 +63,12 @@ mkstemp(char *template)
      * Make sure we have a valid template and initialize p to point at the
      * beginning of the template portion of the string.
      */
-    length = strlen(template);
+    length = strlen(templ);
     if (length < 6) {
         errno = EINVAL;
         return -1;
     }
-    XXXXXX = template + length - 6;
+    XXXXXX = templ + length - 6;
     if (strcmp(XXXXXX, "XXXXXX") != 0) {
         errno = EINVAL;
         return -1;
@@ -86,7 +87,7 @@ mkstemp(char *template)
             XXXXXX[i] = letters[working % 62];
             working /= 62;
         }
-        fd = open(template, O_RDWR | O_CREAT | O_EXCL, 0600);
+        fd = open(templ, O_RDWR | O_CREAT | O_EXCL, 0600);
         if (fd >= 0 || (errno != EEXIST && errno != EISDIR))
             return fd;
 

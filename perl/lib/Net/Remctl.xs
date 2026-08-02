@@ -105,12 +105,12 @@ remctl(host, port, principal, ...)
 
 
 Net::Remctl
-remctl_new(class)
-    const char *class
+remctl_new(cls)
+    const char *cls
   CODE:
     RETVAL = remctl_new();
     if (RETVAL == NULL)
-        croak("Error creating %s object: %s", class, strerror(errno));
+        croak("Error creating %s object: %s", cls, strerror(errno));
   OUTPUT:
     RETVAL
 
