@@ -34,9 +34,9 @@
 # Use rpmbuild option "--define 'buildpython 0'" to not build the Python module.
 %{!?buildpython:%define buildpython 1}
 %if %{buildpython}
-%define py_version %(python -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
-%define py_libdest %(python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'LIBDEST' ])")
-%define py_binlibdest %(python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'BINLIBDEST' ])")
+%define py_version %(/usr/bin/python3 -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
+%define py_libdest %(/usr/bin/python3 -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'LIBDEST' ])")
+%define py_binlibdest %(/usr/bin/python3 -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'BINLIBDEST' ])")
 %endif
 
 Name: remctl
@@ -55,7 +55,10 @@ BuildRequires: krb5-devel, libgcrypt, libevent-devel, fakeroot
 BuildRequires: perl(Module::Build)
 %endif
 %if %{buildpython}
-BuildRequires: python-devel, python
+BuildRequires: python3-devel, python3
+%if (0%{?rel} >= 8)
+BuildRequires: python3-pytest-runner
+%endif
 %endif
 %if %{buildphp}
 BuildRequires: php-devel
@@ -151,12 +154,12 @@ This package contains the PHP remctl client library.
 %endif
 
 %if %{buildpython}
-%package python
+%package python3
 Summary: Python library for Kerberos-authenticated command execution
 Group: Applications/Internet
 Requires: %{name}-client = %{version}-%{release}
 
-%description python
+%description python3
 remctl is a client/server protocol for executing specific commands on a
 remote system with Kerberos authentication.  The allowable commands must
 be listed in a server configuration file, and the executable run on the
@@ -257,8 +260,8 @@ mkdir -p %{buildroot}/usr/share/doc/remctl-perl-%{vers}
 chmod 755 %{buildroot}/usr/share/doc/remctl-perl-%{vers}
 %endif
 %if %{buildpython}
-mkdir -p %{buildroot}/usr/share/doc/remctl-python-%{vers}
-chmod 755 %{buildroot}/usr/share/doc/remctl-python-%{vers}
+mkdir -p %{buildroot}/usr/share/doc/remctl-python3-%{vers}
+chmod 755 %{buildroot}/usr/share/doc/remctl-python3-%{vers}
 find %{buildroot} -name _remctl.so -exec chmod 755 {} \;
 %endif
 %if %{buildruby}
@@ -333,11 +336,12 @@ make check
 %endif
 
 %if %{buildpython}
-%files python
+%files python3
 %defattr(-, root, root)
-%{python_sitearch}/_remctl.so
-%{python_sitearch}/remctl.py*
-%{python_sitearch}/pyremctl-%{version}-*.egg-info
+%{python3_sitearch}/_remctl*.so
+%{python3_sitearch}/remctl.py*
+%{python3_sitearch}/__pycache__/remctl*.pyc
+%{python3_sitearch}/pyremctl-%{version}-*.egg-info
 %doc CHANGELOG.md TODO
 %doc python/README
 %endif
