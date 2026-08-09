@@ -43,11 +43,7 @@ Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
 Version: %{vers}
 Release: 1.%{relsuffix}
-%if 0%{?rel} >= 4 || 0%{?sles_version:1}
 License: MIT
-%else
-Copyright: MIT
-%endif
 URL: https://www.eyrie.org/~eagle/software/remctl/
 Source: https://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
@@ -82,36 +78,6 @@ Distribution: EL
 %ifarch i386
 BuildArch: i686
 %endif
-
-%if %{buildphp}
-# RHEL 5/6 compatibility for PHP
-%if 0%{?rel} == 5
-%global php_apiver %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
-%{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
-%endif
-%if 0%{?rel} == 5 || 0%{?rel} == 6
-%{!?php_inidir: %{expand: %%global php_inidir %{_sysconfdir}/php.d }}
-%endif
-%endif
-
-%if %{buildpython}
-# RHEL 5 compatibility for Python
-%if 0%{?rel} == 5
-%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%endif
-%endif
-
-%if %{buildruby}
-# RHEL 5/6 compatibility for Ruby
-%if 0%{?rel} == 5
-%{!?ruby_vendorarchdir: %global ruby_vendorarchdir %(ruby -rrbconfig -e 'puts Config::CONFIG["sitearchdir"] ')}
-%endif
-%if 0%{?rel} == 6
-%{!?ruby_vendorarchdir: %global ruby_vendorarchdir %(ruby -rrbconfig -e 'puts Config::CONFIG["vendorarchdir"] ')}
-%endif
-%endif
-
 
 %description
 remctl is a client/server protocol for executing specific commands on a
@@ -170,12 +136,8 @@ This package contains the client program (remctl) and the client libraries.
 Summary: PHP interface to remctl
 Group: Development/Libraries
 Requires: %{name}-client = %{version}-%{release}
-%if 0%{?rel} == 5
-Requires:     php-api = %{php_apiver}
-%else
 Requires:     php(zend-abi) = %{php_zend_api}
 Requires:     php(api) = %{php_core_api}
-%endif
 
 %description php
 remctl is a client/server protocol for executing specific commands on a
@@ -210,11 +172,7 @@ This package contains the Python remctl client library.
 Summary: Ruby interface to remctl
 Group: Development/Libraries
 Requires: %{name}-client = %{version}-%{release}
-%if 0%{?rel} <= 6
-Requires: ruby(abi) = 1.8
-%else
 Requires: ruby(abi) = 1.9.1
-%endif
 Provides: ruby(remctl) = %{version}-%{release}
 
 %description ruby
@@ -268,9 +226,7 @@ options="$options --enable-python"
 %if %{buildperl}
 export PATH="/usr/kerberos/bin:/sbin:/bin:/usr/sbin:$PATH"
 export REMCTL_PERL_FLAGS="--installdirs=vendor"
-%if 0%{?rel} >= 6
 export REMCTL_PERL_FLAGS="$REMCTL_PERL_FLAGS --prefix=/usr"
-%endif
 %endif
 %configure $options
 %{__make}
@@ -381,9 +337,7 @@ make check
 %defattr(-, root, root)
 %{python_sitearch}/_remctl.so
 %{python_sitearch}/remctl.py*
-%if 0%{?rel} != 5
 %{python_sitearch}/pyremctl-%{version}-*.egg-info
-%endif
 %doc CHANGELOG.md TODO
 %doc python/README
 %endif
