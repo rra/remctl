@@ -14,7 +14,7 @@
 %define with_systemd 1
 %endif
 %else
-%define rel %(cat /etc/redhat-release | cut -d ' ' -f 7 | cut -d'.' -f1)
+%define rel %(perl -ne 'print $1 if /^Red.*Hat\\s+Enterprise\\s+Linux\\s+(?:(?:Server|Client|Workstation|Everything)\\s+)?release\\s+(\\d+)/i' /etc/redhat-release)
 %define relsuffix EL%{rel}
 %if %{rel} >= 7
 %define with_systemd 1
@@ -34,38 +34,37 @@
 # Use rpmbuild option "--define 'buildpython 0'" to not build the Python module.
 %{!?buildpython:%define buildpython 1}
 %if %{buildpython}
-%define py_version %(python -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
-%define py_libdest %(python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'LIBDEST' ])")
-%define py_binlibdest %(python -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'BINLIBDEST' ])")
+%define py_version %(/usr/bin/python3 -c "from distutils.sysconfig import get_python_version; print(get_python_version())" )
+%define py_libdest %(/usr/bin/python3 -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'LIBDEST' ])")
+%define py_binlibdest %(/usr/bin/python3 -c "from distutils.sysconfig import get_config_vars; print(get_config_vars()[ 'BINLIBDEST' ])")
 %endif
 
 Name: remctl
 Summary: Client/server for Kerberos-authenticated command execution
 Version: %{vers}
 Release: 1.%{relsuffix}
-%if 0%{?rel} >= 4 || 0%{?sles_version:1}
 License: MIT
-%else
-Copyright: MIT
-%endif
 URL: https://www.eyrie.org/~eagle/software/remctl/
 Source: https://archives.eyrie.org/software/kerberos/%{name}-%{version}.tar.gz
 Group: System Environment/Daemons
 Vendor: Stanford University
 Packager: Russ Allbery <eagle@eyrie.org>
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: krb5-devel, libgcrypt, libevent-devel
+BuildRequires: krb5-devel, libgcrypt, libevent-devel, fakeroot
 %if %{buildperl}
 BuildRequires: perl(Module::Build)
 %endif
 %if %{buildpython}
-BuildRequires: python-devel, python
+BuildRequires: python3-devel, python3
+%if (0%{?rel} >= 8)
+BuildRequires: python3-pytest-runner
+%endif
 %endif
 %if %{buildphp}
 BuildRequires: php-devel
 %endif
 %if %{buildruby}
-BuildRequires: ruby, ruby-devel
+BuildRequires: ruby, ruby-devel, rubygem-minitest
 %endif
 %if 0%{?sles_version:1}
 %if 0%{?with_systemd:1}
@@ -74,7 +73,7 @@ BuildRequires: systemd-rpm-macros
 Distribution: SUSE Linux Enterprise %{sles_version}
 %else
 %if 0%{?with_systemd:1}
-BuildRequires: systemd-units
+BuildRequires: systemd-units, systemd-devel
 %endif
 Distribution: EL
 %endif
@@ -82,36 +81,6 @@ Distribution: EL
 %ifarch i386
 BuildArch: i686
 %endif
-
-%if %{buildphp}
-# RHEL 5/6 compatibility for PHP
-%if 0%{?rel} == 5
-%global php_apiver %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
-%{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
-%endif
-%if 0%{?rel} == 5 || 0%{?rel} == 6
-%{!?php_inidir: %{expand: %%global php_inidir %{_sysconfdir}/php.d }}
-%endif
-%endif
-
-%if %{buildpython}
-# RHEL 5 compatibility for Python
-%if 0%{?rel} == 5
-%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%endif
-%endif
-
-%if %{buildruby}
-# RHEL 5/6 compatibility for Ruby
-%if 0%{?rel} == 5
-%{!?ruby_vendorarchdir: %global ruby_vendorarchdir %(ruby -rrbconfig -e 'puts Config::CONFIG["sitearchdir"] ')}
-%endif
-%if 0%{?rel} == 6
-%{!?ruby_vendorarchdir: %global ruby_vendorarchdir %(ruby -rrbconfig -e 'puts Config::CONFIG["vendorarchdir"] ')}
-%endif
-%endif
-
 
 %description
 remctl is a client/server protocol for executing specific commands on a
@@ -170,12 +139,8 @@ This package contains the client program (remctl) and the client libraries.
 Summary: PHP interface to remctl
 Group: Development/Libraries
 Requires: %{name}-client = %{version}-%{release}
-%if 0%{?rel} == 5
-Requires:     php-api = %{php_apiver}
-%else
 Requires:     php(zend-abi) = %{php_zend_api}
 Requires:     php(api) = %{php_core_api}
-%endif
 
 %description php
 remctl is a client/server protocol for executing specific commands on a
@@ -189,12 +154,12 @@ This package contains the PHP remctl client library.
 %endif
 
 %if %{buildpython}
-%package python
+%package python3
 Summary: Python library for Kerberos-authenticated command execution
 Group: Applications/Internet
 Requires: %{name}-client = %{version}-%{release}
 
-%description python
+%description python3
 remctl is a client/server protocol for executing specific commands on a
 remote system with Kerberos authentication.  The allowable commands must
 be listed in a server configuration file, and the executable run on the
@@ -210,11 +175,7 @@ This package contains the Python remctl client library.
 Summary: Ruby interface to remctl
 Group: Development/Libraries
 Requires: %{name}-client = %{version}-%{release}
-%if 0%{?rel} <= 6
-Requires: ruby(abi) = 1.8
-%else
 Requires: ruby(abi) = 1.9.1
-%endif
 Provides: ruby(remctl) = %{version}-%{release}
 
 %description ruby
@@ -268,9 +229,7 @@ options="$options --enable-python"
 %if %{buildperl}
 export PATH="/usr/kerberos/bin:/sbin:/bin:/usr/sbin:$PATH"
 export REMCTL_PERL_FLAGS="--installdirs=vendor"
-%if 0%{?rel} >= 6
 export REMCTL_PERL_FLAGS="$REMCTL_PERL_FLAGS --prefix=/usr"
-%endif
 %endif
 %configure $options
 %{__make}
@@ -292,6 +251,7 @@ mkdir -p %{buildroot}/etc/remctl/conf.d
 mkdir -p %{buildroot}/usr/share/doc/remctl-{server,client}-%{vers}
 chmod 755 %{buildroot}/usr/share/doc/remctl-{server,client}-%{vers}
 install -c -m 0644 examples/remctl.conf %{buildroot}/etc/remctl/remctl.conf
+rm -f %{buildroot}/usr/lib64/libremctl.la
 %if %{buildperl}
 find %{buildroot} -type f -name perllocal.pod -exec rm -f {} \;
 find %{buildroot} -type f -name .packlist -exec rm -f {} \;
@@ -301,8 +261,8 @@ mkdir -p %{buildroot}/usr/share/doc/remctl-perl-%{vers}
 chmod 755 %{buildroot}/usr/share/doc/remctl-perl-%{vers}
 %endif
 %if %{buildpython}
-mkdir -p %{buildroot}/usr/share/doc/remctl-python-%{vers}
-chmod 755 %{buildroot}/usr/share/doc/remctl-python-%{vers}
+mkdir -p %{buildroot}/usr/share/doc/remctl-python3-%{vers}
+chmod 755 %{buildroot}/usr/share/doc/remctl-python3-%{vers}
 find %{buildroot} -name _remctl.so -exec chmod 755 {} \;
 %endif
 %if %{buildruby}
@@ -326,6 +286,21 @@ TCP="remctl"
 EOF
 %endif
 
+%check
+# Use rpmbuild option "--define 'test_princ'" to set the principal name
+# Use rpmbuild option "--define 'test_keytab'" to specify the keytab location
+# Use rpmbuild option "--define 'test_krb5_conf'" to specify a krb5.conf to use
+%if 0%{?test_princ:%{?test_keytab:1}}
+ln -s $(realpath '%{test_keytab}') tests/config/keytab
+echo '%{test_princ}'  > tests/config/principal
+%endif
+%if 0%{?test_krb5_conf:1}
+ln -s $(realpath '%{test_krb5_conf}') tests/config/krb5.conf
+%endif
+export KRB5RCACHEDIR=$(realpath tests/rcache)
+mkdir -p ${KRB5RCACHEDIR}
+make check
+
 %files devel
 %defattr(-, root, root)
 /usr/include/remctl.h
@@ -336,7 +311,6 @@ EOF
 %defattr(-, root, root)
 %{_bindir}/*
 %doc CHANGELOG.md README TODO
-%{_libdir}/libremctl.la
 %{_libdir}/libremctl.so
 %{_libdir}/libremctl.so.*
 %doc %{_mandir}/man1/remctl.*
@@ -347,6 +321,7 @@ EOF
 %{_sbindir}/*
 %doc CHANGELOG.md README TODO
 %doc %{_mandir}/*/remctld.*
+%doc %{_mandir}/*/remctl-shell.*
 %if !0%{?with_systemd:1}
 %config /etc/xinetd.d/remctl
 %endif
@@ -362,13 +337,12 @@ EOF
 %endif
 
 %if %{buildpython}
-%files python
+%files python3
 %defattr(-, root, root)
-%{python_sitearch}/_remctl.so
-%{python_sitearch}/remctl.py*
-%if 0%{?rel} != 5
-%{python_sitearch}/pyremctl-%{version}-*.egg-info
-%endif
+%{python3_sitearch}/_remctl*.so
+%{python3_sitearch}/remctl.py*
+%{python3_sitearch}/__pycache__/remctl*.pyc
+%{python3_sitearch}/pyremctl-%{version}-*.egg-info
 %doc CHANGELOG.md TODO
 %doc python/README
 %endif
