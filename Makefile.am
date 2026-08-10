@@ -80,7 +80,8 @@ PYTHON_DIRECTORIES = python python/tests python/tests/data
 
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = .clang-format .gitignore .github LICENSE Makefile.w32	    \
-	README.md bootstrap ci/README.md ci/apt-packages ci/cpanfile	    \
+	CHANGELOG.md README.md bootstrap				    \
+	ci/README.md ci/apt-packages ci/cpanfile			    \
 	ci/files/heimdal/heimdal-kdc ci/files/heimdal/kadmind.acl	    \
 	ci/files/heimdal/kdc.conf ci/files/heimdal/krb5.conf		    \
 	ci/files/mit/extensions.client ci/files/mit/extensions.kdc	    \
