@@ -251,6 +251,7 @@ mkdir -p %{buildroot}/etc/remctl/conf.d
 mkdir -p %{buildroot}/usr/share/doc/remctl-{server,client}-%{vers}
 chmod 755 %{buildroot}/usr/share/doc/remctl-{server,client}-%{vers}
 install -c -m 0644 examples/remctl.conf %{buildroot}/etc/remctl/remctl.conf
+rm -f %{buildroot}/usr/lib64/libremctl.la
 %if %{buildperl}
 find %{buildroot} -type f -name perllocal.pod -exec rm -f {} \;
 find %{buildroot} -type f -name .packlist -exec rm -f {} \;
@@ -309,7 +310,6 @@ make check
 %defattr(-, root, root)
 %{_bindir}/*
 %doc CHANGELOG.md README TODO
-%{_libdir}/libremctl.la
 %{_libdir}/libremctl.so
 %{_libdir}/libremctl.so.*
 %doc %{_mandir}/man1/remctl.*
